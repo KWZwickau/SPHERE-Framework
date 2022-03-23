@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\ClassRegister;
 
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -20,6 +21,7 @@ class ClassRegister implements IApplicationInterface
 
         Absence::registerModule();
         Digital::registerModule();
+        Instruction::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__ . '\Digital'), new Link\Name('Digitales Klassenbuch'))
