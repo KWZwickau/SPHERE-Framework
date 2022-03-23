@@ -37,14 +37,17 @@ use SPHERE\Common\Frontend\Icon\Repository\Commodity;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
@@ -265,6 +268,8 @@ class Service extends AbstractService
                 new Calendar(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
         }
 
+        $buttonList[] = $this->getButton('Unterrichtete Fächer / Lehrer', '/Education/ClassRegister/Digital/Lectureship',
+            new Listing(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
         $buttonList[] = $this->getButton('Download', '/Education/ClassRegister/Digital/Download',
             new Download(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
 
@@ -744,5 +749,50 @@ class Service extends AbstractService
         }
 
         return '';
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return string
+     */
+    public function getSubjectsAndLectureshipByDivision(TblDivision $tblDivision): string
+    {
+        $dataList = array();
+        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false))) {
+            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
+                    $listing = array();
+                    if (($list = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                        $tblDivision, $tblSubject
+                    ))) {
+                        foreach ($list as $item) {
+                            if (($tblSubjectGroup = $item->getTblSubjectGroup())) {
+                                $listing[] = $tblSubjectGroup->getName()
+                                    . new PullRight(Division::useService()->getSubjectTeacherNameList($tblDivision, $tblSubject, $tblSubjectGroup));
+                            }
+                        }
+                        sort($listing);
+                    }
+
+                    $dataList[] = array(
+                        'Subject' => $tblDivisionSubject->getHasGrading()
+                            ? $tblSubject->getDisplayName()
+                            : new Muted($tblSubject->getDisplayName()  . ' (Keine Benotung)'),
+                        'Teacher' => Division::useService()->getSubjectTeacherNameList($tblDivision, $tblSubject),
+                        'SubjectGroup' => $list ? new \SPHERE\Common\Frontend\Layout\Repository\Listing($listing) : ''
+                    );
+                }
+            }
+        }
+
+        $columns = array(
+            'Subject' => 'Unterrichtsfach',
+            'Teacher' => 'Lehrer',
+            'SubjectGroup' => 'Fach-Gruppe' . new PullRight('Fach-Gruppen-Lehrer')
+        );
+
+        return (new TableData($dataList, new Title('Klasse ' . $tblDivision->getDisplayName()), $columns))
+            ->setHash('Table_Division_' . $tblDivision->getId());
     }
 }

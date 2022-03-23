@@ -6,11 +6,14 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 /**
  * @Entity
@@ -244,5 +247,25 @@ class TblGroup extends Element
         }
 
         return $list;
+    }
+
+    /**
+     * @return false|TblDivision[]
+     */
+    public function getCurrentDivisionList()
+    {
+        $list = array();
+        if(($tblPersonList = Group::useService()->getPersonAllByGroup($this))) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tblStudent = $tblPerson->getStudent())
+                    && ($tblMainDivision = $tblStudent->getCurrentMainDivision())
+                ) {
+                    $list[$tblMainDivision->getId()] = $tblMainDivision;
+                }
+            }
+            $list = (new Extension())->getSorter($list)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
+        }
+
+        return empty($list) ? false : $list;
     }
 }

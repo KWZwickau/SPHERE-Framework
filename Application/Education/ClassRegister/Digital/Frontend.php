@@ -39,6 +39,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Home;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -1741,5 +1742,60 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
+    public function frontendLectureship(
+        $DivisionId = null,
+        $GroupId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ) {
+        $stage = new Stage('Digitales Klassenbuch', 'Unterrichtete Fächer / Lehrer');
+
+        $stage->addButton(new Standard(
+            'Zurück', $BasicRoute, new ChevronLeft()
+        ));
+        $tblYear = null;
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if ($tblDivision || $tblGroup) {
+            if ($tblGroup) {
+                $content = '';
+                if (($tblDivisionList = $tblGroup->getCurrentDivisionList())) {
+                    foreach ($tblDivisionList as $tblGroupDivision) {
+                        $content .= Digital::useService()->getSubjectsAndLectureshipByDivision($tblGroupDivision);
+                    }
+                }
+            } else {
+                $content = Digital::useService()->getSubjectsAndLectureshipByDivision($tblDivision);
+            }
+
+            $stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        Digital::useService()->getHeadLayoutRow(
+                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
+                        ),
+                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
+                            '/Education/ClassRegister/Digital/Lectureship', $BasicRoute)
+                    )),
+                    new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        $content
+                    )), new Title(new Listing() . ' Unterrichtete Fächer / Lehrer'))
+                ))
+            );
+        } else {
+            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        return $stage;
     }
 }
