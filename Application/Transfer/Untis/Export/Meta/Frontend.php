@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Transfer\Indiware\Export\Meta;
+namespace SPHERE\Application\Transfer\Untis\Export\Meta;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -17,20 +17,15 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
-/**
- * Class Frontend
- * @package SPHERE\Application\Transfer\Indiware\Export\Meta
- */
 class Frontend extends Extension implements IFrontendInterface
 {
-
     /**
      * @return Stage
      */
     public function frontendPrepare(): Stage
     {
-        $Stage = new Stage('Indiware', 'Datentransfer');
-        $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Export', new ChevronLeft()));
+        $Stage = new Stage('Untis', 'Datentransfer');
+        $Stage->addButton(new Standard('Zurück', '/Transfer/Untis/Export', new ChevronLeft()));
         $Stage->setMessage('Exportvorbereitung / Klassenauswahl');
 
         $tblDivisionList = array();
@@ -58,13 +53,12 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         if(!empty($tblDivisionList)){
-            // Klassen der Schulart: Gymnasium
             array_walk($tblDivisionList, function(TblDivision $tblDivision) use (&$tableContent){
                 $item['Division'] = $tblDivision->getDisplayName();
                 $item['Term'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 $item['SchoolType'] = $tblDivision->getTypeName();
                 $item['countStudent'] = 0;
-                $item['Option'] = new Standard('', '/Api/Transfer/Indiware/Meta/Download', new Download(), array('DivisionId' => $tblDivision->getId()));
+                $item['Option'] = new Standard('', '/Api/Transfer/Untis/Meta/Download', new Download(), array('DivisionId' => $tblDivision->getId()));
 
                 $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByDivision($tblDivision);
                 if($tblDivisionStudentList){
@@ -104,5 +98,4 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
-
 }
