@@ -192,15 +192,15 @@ class Service extends AbstractService
         if ($Data !== null && isset($Data['Division'])) {
             $saveCertificatesForStudents = array();
             $tblConsumerBySession = Consumer::useService()->getConsumerBySession();
+            $tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType();
             foreach ($Data['Division'] as $divisionId => $value) {
                 if (($tblDivision = Division::useService()->getDivisionById($divisionId))) {
                     if (($tblPrepare = Prepare::useService()->createPrepareData(
                         $tblDivision,
                         $tblGenerateCertificate->getDate(),
                         $tblGenerateCertificate->getName(),
-                        $tblGenerateCertificate->getServiceTblCertificateType()
-                            ? ($tblGenerateCertificate->getServiceTblCertificateType()->getIdentifier() == 'GRADE_INFORMATION'
-                            ? true : false)
+                        $tblCertificateType
+                            ? ($tblCertificateType->getIdentifier() == 'GRADE_INFORMATION' ? true : false)
                             : false,
                         $tblGenerateCertificate,
                         $tblGenerateCertificate->getServiceTblAppointedDateTask()
@@ -229,7 +229,10 @@ class Service extends AbstractService
 
                                 // bei Mittelschule und Primärer Förderschwerpunkt Lernen oder geistige Entwicklung soll keine
                                 // Zeugnisvorlage vorausgewählt werden
-                                if ($tblType && !$this->checkAutoSelect($tblPerson, $tblType)) {
+                                // SSW-1647 Noteninformation soll unabhängig vom FS immer gesetzt werden
+                                if ($tblType && !$this->checkAutoSelect($tblPerson, $tblType)
+                                    && $tblCertificateType && $tblCertificateType->getIdentifier() != 'GRADE_INFORMATION'
+                                ) {
                                     continue;
                                 }
 
