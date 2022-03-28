@@ -1,7 +1,7 @@
 {% if( TableTitle is not empty ) %}
     {{ TableTitle }}
 {% endif %}
-<table class="table table-bordered table-condensed table-striped" style="margin-bottom: 8px;">
+<table class="table tableFixHead table-bordered table-condensed table-striped" style="margin-bottom: 8px;">
     <thead>
     {% for TableHead in HeadList %}
         {% for TableRow in TableHead.getTableRow %}

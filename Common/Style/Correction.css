@@ -471,3 +471,13 @@ a.type-muted-link:focus {
     -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
 }
+
+.tableFixHead {
+    overflow: auto;
+    height: 100px;
+}
+.tableFixHead thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
