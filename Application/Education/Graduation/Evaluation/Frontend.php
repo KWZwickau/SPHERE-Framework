@@ -3388,12 +3388,15 @@ class Frontend extends Extension implements IFrontendInterface
 
                 // Stichtagsnote
                 if ($tblTask->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')) {
+                    $averageGradeList = array();
                     if (!empty($testList)) {
                         /** @var TblTest $tblTest */
                         foreach ($testList as $tblTest) {
                             $tblSubject = $tblTest->getServiceTblSubject();
                             if ($tblSubject && $tblTest->getServiceTblDivision()) {
                                 $tableHeaderList[$tblDivision->getId()]['Subject' . $tblSubject->getId()] = $tblSubject->getAcronym();
+                                $studentList[$tblDivision->getId()][0]['Subject' . $tblSubject->getId()] = '';
+                                $studentList[$tblDivision->getId()][0]['Average'] = '';
 
                                 $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
                                     $tblTest->getServiceTblDivision(),
@@ -3417,7 +3420,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $tblTest, $tblSubject, $tblPerson, $studentList,
                                                     $tblDivisionSubject->getTblSubjectGroup()
                                                         ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                                    $gradeList
+                                                    $gradeList,
+                                                    $averageGradeList
                                                 );
                                             }
                                         }
@@ -3430,7 +3434,8 @@ class Frontend extends Extension implements IFrontendInterface
                                             }
 
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                $tblTest, $tblSubject, $tblPerson, $studentList, null, $gradeList);
+                                                $tblTest, $tblSubject, $tblPerson, $studentList, null, $gradeList,
+                                                $averageGradeList);
                                         }
                                     }
                                 }
@@ -3479,6 +3484,14 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
+                    // Durchschnitte pro Fach-Klasse
+                    $studentList[$tblDivision->getId()][0]['Number'] = '';
+                    $studentList[$tblDivision->getId()][0]['Name'] = new Muted('&#216; Fach-Klasse');
+                    foreach ($averageGradeList as $subjectId => $grades) {
+                        $countGrades = count($grades);
+                        $studentList[$tblDivision->getId()][0]['Subject' . $subjectId] = $countGrades  > 0
+                            ? round(array_sum($grades) / $countGrades, 2 ) : '';
+                    }
                 } else {
 
                     if (($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation',
@@ -3635,7 +3648,8 @@ class Frontend extends Extension implements IFrontendInterface
         TblPerson $tblPerson,
         $studentList,
         TblSubjectGroup $tblSubjectGroup = null,
-        &$gradeList = array()
+        &$gradeList = array(),
+        &$averageGradeList = array()
     ) {
 
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
@@ -3679,6 +3693,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($gradeValue !== null && $gradeValue !== '') {
                 $gradeList[$tblPerson->getId()][] = $gradeValue;
+
+                $averageGradeList[$tblSubject->getId()][$tblPerson->getId()] = $gradeValue;
             }
 
             $isGradeInRange = true;

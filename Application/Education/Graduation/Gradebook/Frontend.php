@@ -3085,9 +3085,17 @@ class Frontend extends FrontendScoreRule
             $tableHeaderList['Name'] = 'Name';
             $tableHeaderList['Integration'] = 'Integration';
             $tblDivisionList = array();
+            $sumSubjectAverage = array();
+            $countSubjectAverage = array();
+            $averageData = array(
+                'Number' => '',
+                'Name' => new Muted('&#216; Fach-Klasse'),
+                'Integration' => ''
+            );
 
             if ($tblGroup) {
                 $tableHeaderList['Division'] = 'Klasse';
+                $averageData['Division'] = '';
                 if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                     foreach ($tblPersonList as $tblPerson) {
                         if (($tblDivisionListByPerson = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
@@ -3141,6 +3149,7 @@ class Frontend extends FrontendScoreRule
             }
             if ($showCourse) {
                 $tableHeaderList['Course'] = 'Bildungsgang';
+                $averageData['Course'] = '';
             }
 
             $SubjectList = array();
@@ -3164,6 +3173,9 @@ class Frontend extends FrontendScoreRule
             if (!empty($SubjectList)) {
                 foreach ($SubjectList as $Acronym => $SubjectId) {
                     $tableHeaderList[$SubjectId . 'Id'] = $Acronym;
+                    $averageData[$SubjectId . 'Id'] = '';
+                    $sumSubjectAverage[$SubjectId . 'Id'] = 0;
+                    $countSubjectAverage[$SubjectId . 'Id'] = 0;
                 }
             }
 
@@ -3267,6 +3279,9 @@ class Frontend extends FrontendScoreRule
                                             $average = 'Fehler';
                                         } elseif (is_string($average) && strpos($average, '(')) {
                                             $average = substr($average, 0, strpos($average, '('));
+
+                                            $sumSubjectAverage[$tblSubject->getId() . 'Id'] += $average;
+                                            $countSubjectAverage[$tblSubject->getId() . 'Id']++;
                                         }
 
 
@@ -3305,6 +3320,14 @@ class Frontend extends FrontendScoreRule
                     $studentTable[] = $data;
                 }
             }
+
+            foreach($sumSubjectAverage as $key => $value) {
+                if (isset($countSubjectAverage[$key])) {
+                    $averageData[$key] = $countSubjectAverage[$key] > 0
+                        ? '&#216; ' . round($value / $countSubjectAverage[$key], 2) : '';
+                }
+            }
+            $studentTable[] = $averageData;
 
             $Stage->addButton(new External(
                 'Alle Schülerübersichten dieser Klasse herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
