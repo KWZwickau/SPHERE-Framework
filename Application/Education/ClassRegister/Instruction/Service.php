@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\ClassRegister\Instruction;
 
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstruction;
+use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstructionItem;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Setup;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -107,5 +108,15 @@ class Service extends AbstractService
     public function destroyInstruction(TblInstruction $tblInstruction): bool
     {
         return (new Data($this->getBinding()))->destroyInstruction($tblInstruction);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblInstructionItem
+     */
+    public function getInstructionItemById($Id)
+    {
+        return (new Data($this->getBinding()))->getInstructionItemById($Id);
     }
 }

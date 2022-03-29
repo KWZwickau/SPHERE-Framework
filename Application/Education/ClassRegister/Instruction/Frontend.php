@@ -3,21 +3,34 @@
 namespace SPHERE\Application\Education\ClassRegister\Instruction;
 
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -137,5 +150,51 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         ))->disableSubmitAction();
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
+    public function frontendInstruction(
+        $DivisionId = null,
+        $GroupId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ) {
+        $stage = new Stage('Digitales Klassenbuch', 'Belehrungen');
+
+        $stage->addButton(new Standard(
+            'Zurück', $BasicRoute, new ChevronLeft()
+        ));
+        $tblYear = null;
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if ($tblDivision || $tblGroup) {
+            $content = '';
+            // todo Belehrungen immer anzeigen mit möglichkeit mehrere hinzuzufügen
+            $stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        Digital::useService()->getHeadLayoutRow(
+                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
+                        ),
+                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
+                            '/Education/ClassRegister/Digital/Instruction', $BasicRoute)
+                    )),
+                    new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        $content
+                    )), new Title(new CommodityItem() . ' Belehrungen'))
+                ))
+            );
+        } else {
+            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        return $stage;
     }
 }

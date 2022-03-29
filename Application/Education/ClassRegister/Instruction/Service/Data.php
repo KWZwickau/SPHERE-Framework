@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\ClassRegister\Instruction\Service;
 
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstruction;
+use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstructionItem;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -109,5 +110,15 @@ class Data extends AbstractData
     public function getInstructionAll()
     {
         return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblInstruction');
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblInstructionItem
+     */
+    public function getInstructionItemById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', $Id);
     }
 }

@@ -12,16 +12,20 @@ class Instruction implements IModuleInterface
 {
     public static function registerModule()
     {
-        /**
-         * Route
-         */
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route('SPHERE\Application\Education\ClassRegister\Digital\InstructionSetting'), new Link\Name('Einstellungen Belehrungen'))
         );
 
+        /**
+         * Route
+         */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             'SPHERE\Application\Education\ClassRegister\Digital\InstructionSetting',
             __NAMESPACE__ . '\Frontend::frontendInstructionSetting'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            'SPHERE\Application\Education\ClassRegister\Digital\Instruction',
+            __NAMESPACE__ . '\Frontend::frontendInstruction'
         ));
     }
 
