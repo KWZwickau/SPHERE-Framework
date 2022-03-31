@@ -117,7 +117,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         )
                                     )
                                 )
-                                , 12)
+                            , 12)
                         ), new Title(new Listing().' Übersicht')
                     )
                 )
@@ -630,8 +630,12 @@ class Frontend extends Extension implements IFrontendInterface
         $PersonList = Person::useService()->createTeacherList();
         if ($PersonList) {
             $Stage->addButton(
-                new Primary('Herunterladen',
+                new Primary('Download Mitarbeiterliste',
                     '/Api/Reporting/Custom/Gersdorf/Common/TeacherList/Download', new Download())
+            );
+            $Stage->addButton(
+                new Primary('Download Lehrerliste',
+                    '/Api/Reporting/Custom/Gersdorf/Common/TeacherList/Download', new Download(), array('isTeacher' => true))
             );
             $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
@@ -650,6 +654,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Address'  => 'Anschrift',
                                     'Phone'    => 'Telefon',
                                     'Birthday' => 'Geburtsdatum',
+                                    'Group'    => 'Personengruppe',
                                 ),
                                 array(
                                     "columnDefs" => array(

@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Reporting\Custom\Gersdorf;
 
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Document\Custom\Gersdorf\Gersdorf;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -120,21 +121,24 @@ class Common
     }
 
     /**
-     * @param null $DivisionId
+     * @param $isTeacher
      *
-     * @return string|bool
+     * @return false|string
      */
-    public function downloadTeacherList($DivisionId = null)
+    public function downloadTeacherList($isTeacher = false)
     {
 
-        $PersonList = Person::useService()->createTeacherList();
+        $PersonList = Person::useService()->createTeacherList($isTeacher);
         if ($PersonList) {
-            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
-            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-            if ($tblPersonList) {
-                $fileLocation = Person::useService()->createTeacherListExcel($PersonList, $tblPersonList);
+            $tblPersonList = Person::useService()->getPersonStaffList($isTeacher);
+            if(!empty($tblPersonList)){
+                $fileLocation = Person::useService()->createTeacherListExcel($PersonList, $tblPersonList, $isTeacher);
+                if($isTeacher){
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Lehrerliste ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                }
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Lehrerliste ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                    "Mitarbeiter ".date("Y-m-d H:i:s").".xlsx")->__toString();
             }
         }
         return false;

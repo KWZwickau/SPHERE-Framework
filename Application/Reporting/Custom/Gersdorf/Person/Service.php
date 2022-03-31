@@ -951,22 +951,25 @@ class Service extends Extension
     /**
      * @return array
      */
-    public function createTeacherList()
+    public function createTeacherList($isTeacher = false)
     {
 
-        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER));
+        $tblPersonList = $this->getPersonStaffList($isTeacher);
+
         $TableContent = array();
         if (!empty( $tblPersonList )) {
-
             $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
             $i = 1;
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$i) {
+            $tblGroupTeacher = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
+            $tblGroupStaff = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$i, $tblGroupTeacher, $tblGroupStaff) {
                 $Item['Number'] = $i++;
                 $Item['Name'] = ($tblPerson->getTitle() ? $tblPerson->getTitle().' ' : '').$tblPerson->getLastFirstName();
                 $Item['Birthday'] = '';
                 $Item['Gender'] = '';
                 $Item['Address'] = $Item['Street'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                 $Item['Phone'] = '';
+                $Item['Group'] = '';
                 $Item['PhoneList'] = array();
                 if ($tblCommon = Common::useService()->getCommonByPerson($tblPerson)) {
                     if($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()){
@@ -995,6 +998,14 @@ class Service extends Extension
                         $Item['Phone'] = implode(', ', $Item['PhoneList']);
                     }
                 }
+                if(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupTeacher)
+                && Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStaff)){
+                    $Item['Group'] = 'Mitarbeiter, Lehrer';
+                } elseif(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStaff)){
+                    $Item['Group'] = 'Mitarbeiter';
+                } elseif(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupTeacher)) {
+                    $Item['Group'] = 'Lehrer';
+                }
 
                 array_push($TableContent, $Item);
             });
@@ -1009,7 +1020,7 @@ class Service extends Extension
      *
      * @return bool|FilePointer
      */
-    public function createTeacherListExcel($PersonList, $tblPersonList)
+    public function createTeacherListExcel($PersonList, $tblPersonList, $isTeacher = false)
     {
 
         if (!empty( $PersonList )) {
@@ -1027,7 +1038,11 @@ class Service extends Extension
             $export = $this->setHeader($export, 5);
 
             // Fill Header
-            $export->setValue($export->getCell(0, 0), 'Lehrerliste - Adressen, Telefon, Geburtstag');
+            if($isTeacher){
+                $export->setValue($export->getCell(0, 0), 'Lehrerliste - Adressen, Telefon, Geburtstag');
+            } else {
+                $export->setValue($export->getCell(0, 0), 'Mitarbeiterliste - Adressen, Telefon, Geburtstag');
+            }
             $export->setValue($export->getCell(0, 1), 'Christilicher Schulverein e.V.');
             $export->setValue($export->getCell(0, 2), 'Evangelische Oberschule Gersdorf staatlich anerkannte Ersatzschule');
             $Year = '';
@@ -1128,6 +1143,34 @@ class Service extends Extension
         }
 
         return false;
+    }
+
+    /**
+     * @param bool $isTeacher
+     * @return array|bool|TblPerson[]
+     */
+    public function getPersonStaffList(bool $isTeacher = false){
+        $tblPersonList = array();
+        $tblGroupTeacher = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
+        $tblGroupStaff = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+        if($isTeacher){
+            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroupTeacher);
+            if($tblPersonList === false){
+                $tblPersonList = array();
+            }
+        } else {
+            if(($TeacherList = Group::useService()->getPersonAllByGroup($tblGroupTeacher))){
+                foreach($TeacherList as $Teacher){
+                    $tblPersonList[$Teacher->getId()] = $Teacher;
+                }
+            }
+            if(($StaffList = Group::useService()->getPersonAllByGroup($tblGroupStaff))){
+                foreach($StaffList as $Staff){
+                    $tblPersonList[$Staff->getId()] = $Staff;
+                }
+            }
+        }
+        return $tblPersonList;
     }
 
     /**

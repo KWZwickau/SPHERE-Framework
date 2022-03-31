@@ -31,7 +31,7 @@ class Person extends AbstractModule implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__.'/ClassPhoneList'), new Link\Name('Telefonlisten'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/TeacherList'), new Link\Name('Lehrerliste'))
+            new Link(new Link\Route(__NAMESPACE__.'/TeacherList'), new Link\Name('Mitarbeiterliste'))
         );
 
 
