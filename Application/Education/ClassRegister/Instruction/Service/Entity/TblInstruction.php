@@ -15,6 +15,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblInstruction extends Element
 {
+    const ATTR_SUBJECT = 'Subject';
+
     /**
      * @Column(type="string")
      */

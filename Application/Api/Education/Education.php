@@ -6,7 +6,7 @@ use SPHERE\Application\Api\Education\Certificate\Generate\ApiGenerate;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
-use SPHERE\Application\Api\Education\ClassRegister\ApiInstruction;
+use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionItem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
 use SPHERE\Application\Api\Education\ClassRegister\ClassRegister;
@@ -71,6 +71,6 @@ class Education implements IApplicationInterface
         ApiGradeMaintenance::registerApi();
         ApiDigital::registerApi();
         ApiInstructionSetting::registerApi();
-        ApiInstruction::registerApi();
+        ApiInstructionItem::registerApi();
     }
 }

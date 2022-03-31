@@ -18,13 +18,13 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblInstructionItemStudent extends Element
 {
-    const ATTR_TBL_InstructionItem = 'tblInstructionItem';
+    const ATTR_TBL_InstructionItem = 'tblClassRegisterInstructionItem';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
 
     /**
      * @Column(type="bigint")
      */
-    protected $tblInstructionItem;
+    protected $tblClassRegisterInstructionItem;
 
     /**
      * @Column(type="bigint")
@@ -37,10 +37,10 @@ class TblInstructionItemStudent extends Element
     public function getTblInstructionItem()
     {
 
-        if (null === $this->tblInstructionItem) {
+        if (null === $this->tblClassRegisterInstructionItem) {
             return false;
         } else {
-            return Instruction::useService()->getInstructionItemById($this->tblInstructionItem);
+            return Instruction::useService()->getInstructionItemById($this->tblClassRegisterInstructionItem);
         }
     }
 
@@ -50,7 +50,7 @@ class TblInstructionItemStudent extends Element
     public function setTblInstructionItem(TblInstructionItem $tblInstructionItem = null)
     {
 
-        $this->tblInstructionItem = (null === $tblInstructionItem ? null : $tblInstructionItem->getId());
+        $this->tblClassRegisterInstructionItem = (null === $tblInstructionItem ? null : $tblInstructionItem->getId());
     }
 
     /**

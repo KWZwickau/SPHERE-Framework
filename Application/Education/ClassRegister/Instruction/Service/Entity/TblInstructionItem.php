@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -25,15 +26,17 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblInstructionItem extends Element
 {
-    const ATTR_TBL_INSTRUCTION = 'tblInstruction';
+    const ATTR_TBL_INSTRUCTION = 'tblClassRegisterInstruction';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_GROUP = 'serviceTblGroup';
+    const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_DATE = 'Date';
+    const ATTR_IS_MAIN = 'IsMain';
 
     /**
      * @Column(type="bigint")
      */
-    protected $tblInstruction;
+    protected $tblClassRegisterInstruction;
 
     /**
      * @Column(type="bigint")
@@ -66,14 +69,19 @@ class TblInstructionItem extends Element
     protected string $Content;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsMain;
+
+    /**
      * @return bool|TblInstruction
      */
     public function getTblInstruction()
     {
-        if (null === $this->tblInstruction) {
+        if (null === $this->tblClassRegisterInstruction) {
             return false;
         } else {
-            return Instruction::useService()->getInstructionById($this->tblInstruction);
+            return Instruction::useService()->getInstructionById($this->tblClassRegisterInstruction);
         }
     }
 
@@ -82,7 +90,7 @@ class TblInstructionItem extends Element
      */
     public function setTblInstruction(TblInstruction $tblInstruction = null)
     {
-        $this->tblInstruction = (null === $tblInstruction ? null : $tblInstruction->getId());
+        $this->tblClassRegisterInstruction = (null === $tblInstruction ? null : $tblInstruction->getId());
     }
 
     /**
@@ -204,5 +212,33 @@ class TblInstructionItem extends Element
     public function setContent(string $Content)
     {
         $this->Content = $Content;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsMain()
+    {
+        return $this->IsMain;
+    }
+
+    /**
+     * @param bool $IsMain
+     */
+    public function setIsMain($IsMain): void
+    {
+        $this->IsMain = (bool) $IsMain;
+    }
+
+    /**
+     * @param bool $IsToolTip
+     *
+     * @return string
+     */
+    public function getTeacherString(bool $IsToolTip = true): string
+    {
+        return $this->getServiceTblPerson()
+            ? Digital::useService()->getTeacherString($this->getServiceTblPerson(), $IsToolTip)
+            : '';
     }
 }

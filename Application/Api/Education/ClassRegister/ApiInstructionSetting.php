@@ -106,7 +106,7 @@ class ApiInstructionSetting extends Extension implements IApiInterface
      */
     public function loadInstructionContent() : string
     {
-        return Instruction::useFrontend()->loadInstructionTable();
+        return Instruction::useFrontend()->loadInstructionSettingTable();
     }
 
     /**
