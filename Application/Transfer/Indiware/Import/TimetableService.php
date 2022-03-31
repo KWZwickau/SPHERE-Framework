@@ -20,9 +20,9 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 class TimetableService
 {
 
-    private $UploadList = array();
-    private $WarningList = array();
-    private $CountImport = array();
+    private array $UploadList = array();
+    private array $WarningList = array();
+    private array $CountImport = array();
 
     /**
      * @return array
@@ -68,8 +68,8 @@ class TimetableService
         if (null === $File) {
             $Form->setError('File', 'Wählen Sie eine Datei aus');
             $IsError = true;
-        } else {
-            $_POST['File'] = $File;
+//        } else {
+//            $_POST['File'] = $File;
         }
         if(!isset($Data['Name']) || $Data['Name'] == ''){
             $Form->setError('Data[Name]', 'Für den Stundenplan wird ein Name benötigt');
@@ -116,13 +116,27 @@ class TimetableService
         if (null !== $File) {
 
             if ($File->getError()) {
-                $Form->setError('File', 'Fehler');
+                $Form->setError('File', 'Fehler: '.$File->getError());
+                return new Well($Form);
+            }
+            if (strtoupper($File->getClientOriginalExtension()) != 'XML') {
+                $Form->setError('File', 'Fehler: Datei muss eine XML sein');
                 return new Well($Form);
             }
             /** Prepare */
             $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
             /** Read */
             $Document = Document::getDocument($File->getPathname());
+            // Prüfung auf Verwendbarkeit
+            /** @var Node $Node */
+            // note = "upsp"
+            $Node = $Document->getContent();
+            if(!($Node->getChild('unterricht'))
+            || !($Node->getChild('plan'))){
+                $Form->setError('File', 'Fehler im Inhalt der Datei');
+                return new Well($Form);
+            }
+
             if (!$Document instanceof UniversalXml) {
                 $Form->setError('File', 'XML kann nicht ausgelesen werden');
                 return new Well($Form);
@@ -133,16 +147,20 @@ class TimetableService
         return new Danger('File nicht gefunden');
     }
 
+    /**
+     * @param File $File
+     * @return array
+     */
     public function getTimeTableImportFromFile(File $File)
     {
 
         $timetableImport = array();
         $unterrichtList = array();
         $planList = array();
-        $this->Document = Document::getDocument($File->getPathname());
+        $Document = Document::getDocument($File->getPathname());
         /** @var Node $Node */
         // note = "upsp"
-        $Node = $this->Document->getContent();
+        $Node = $Document->getContent();
         if(($Unterricht = $Node->getChild('unterricht'))){
             $UnterrichtChildList = $Unterricht->getChildList();
             foreach($UnterrichtChildList as $UnterrichtChild){
@@ -221,7 +239,7 @@ class TimetableService
                             $item['Room'] = $plan['pl_raum'];
                             $item['Subject'] = $unterricht['un_fach'];
                             $item['Level'] = $unterricht['un_stufe'];
-                            $item['Division'] = $Division;
+                            $item['Course'] = $Division;
                             $item['Person'] = $Teacher;
                             $item['SubjectGroup'] = $unterricht['un_gruppe'];
                             array_push($timetableImport, $item);
@@ -234,13 +252,17 @@ class TimetableService
         return $timetableImport;
     }
 
+    /**
+     * @param File $File
+     * @return array
+     */
     public function getWeekDataFromFile(File $File)
     {
 
-        $this->Document = Document::getDocument($File->getPathname());
+        $Document = Document::getDocument($File->getPathname());
         /** @var Node $Node */
         // note = "upsp"
-        $Node = $this->Document->getContent();
+        $Node = $Document->getContent();
 
         // Wochen
         $WeekImport = array();
@@ -269,7 +291,6 @@ class TimetableService
      * @param array $result
      * @param \DateTime $Date
      * @return void
-     * @throws \Exception
      */
     public function getProductiveResult(array $result, \DateTime $Date)
     {
@@ -278,11 +299,6 @@ class TimetableService
         $tblYearList = Term::useService()->getYearAllByDate($Date);
 
         foreach($result as $Row){
-            $isRoom = $isPerson = $isDivision = $isSubject = true;
-            // frontend column
-            $Room = $Person = $Division = $Subject = '';
-            $Row['SSWPerson'] = $Row['SSWDivision'] = $Row['SSWSubject'] = '';
-            // backend
             $Row['tblPerson'] = $Row['tblCourse'] = $Row['tblSubject'] = false;
             if(isset($Row['Subject']) && $Row['Subject'] !== ''){
                 $Row['tblSubject'] = Subject::useService()->getSubjectByAcronym($Row['Subject']);
@@ -290,22 +306,20 @@ class TimetableService
             if (!$Row['tblSubject']) {
                 $this->CountImport['Subject'][$Row['Subject']][] = 'Fach nicht gefunden';
             }
-            if(isset($Row['Division']) && $Row['Division'] !== ''){
+            if(isset($Row['Course']) && $Row['Course'] !== ''){
                 if($tblYearList){
                     // Suche nach SSW Klasse
                     foreach ($tblYearList as $tblYear) {
                         //ToDO Change Division to Course
-                        if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['Division'], $tblYear))) {
-//                        $Row['tblDivision'] = $tblDivision;
+                        if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['Course'], $tblYear))) {
                             $Row['tblCourse'] = $tblDivision;
-                            $Row['SSWDivision'] = $tblDivision->getDisplayName();
                             break;
                         }
                     }
                 }
             }
             if(!$Row['tblCourse']){
-                $this->CountImport['Division'][$Row['Division']][] = 'Klasse nicht gefunden';
+                $this->CountImport['Course'][$Row['Course']][] = 'Klasse nicht gefunden';
             }
             if(isset($Row['Person']) && $Row['Person'] !== ''){
                 $tblTeacher = Teacher::useService()->getTeacherByAcronym($Row['Person']);
@@ -317,14 +331,18 @@ class TimetableService
                 $this->CountImport['Person'][$Row['Person']][] = 'Lehrerkürzel nicht gefunden';
             }
             // Pflichtangaben
-            if(!$Row['tblSubject'] || !$Row['tblCourse'] || !$Row['tblPerson'] || $Row['Room'] == ''){
-                array_push($this->WarningList, $Row);
-            } elseif($isSubject && $isDivision && $isPerson && $isRoom){
+            if($Row['tblSubject'] && $Row['tblCourse'] && $Row['tblPerson']) { // && $isRoom
                 array_push($this->UploadList, $Row);
+            } else {
+                array_push($this->WarningList, $Row);
             }
         }
     }
 
+    /**
+     * @param $Value
+     * @return string
+     */
     private function setHiddenSort($Value = '')
     {
 
@@ -346,7 +364,9 @@ class TimetableService
         // insert
         $tblTimetable = TimetableClassRegister::useService()->createTimetable($Name, $Description, $DateFrom, $DateTo);
         if($tblTimetable){
-            TimetableClassRegister::useService()->createTimetableWeekBulk($tblTimetable, $WeekImport);
+            if(!empty($WeekImport)){
+                TimetableClassRegister::useService()->createTimetableWeekBulk($tblTimetable, $WeekImport);
+            }
             return TimetableClassRegister::useService()->createTimetableNodeBulk($tblTimetable, $ImportList);
         }
         return false;

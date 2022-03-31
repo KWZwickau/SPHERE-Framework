@@ -91,6 +91,29 @@ class TblTimetableNode extends Element
         return $this->Day;
     }
 
+    public function getDisplayDay($lettercount = 10)
+    {
+        if($lettercount > 0){
+            switch ($this->Day){
+                case self::WEEK_DAY_MONDAY:
+                    return substr('Montag', 0, $lettercount);
+                case self::WEEK_DAY_TUESDAY:
+                    return substr('Dienstag', 0, $lettercount);
+                case self::WEEK_DAY_WEDNESDAY:
+                    return substr('Mittwoch', 0, $lettercount);
+                case self::WEEK_DAY_THURSDAY:
+                    return substr('Donnerstag', 0, $lettercount);
+                case self::WEEK_DAY_FRIDAY:
+                    return substr('Freitag', 0, $lettercount);
+                case self::WEEK_DAY_SUNDAY:
+                    return substr('Samstag', 0, $lettercount);
+                case self::WEEK_DAY_SATURDAY:
+                    return substr('Sonntag', 0, $lettercount);
+            }
+        }
+        return $this->Day;
+    }
+
     /**
      * @param int $Day
      * @return void

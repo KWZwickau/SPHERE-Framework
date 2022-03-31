@@ -345,7 +345,7 @@ class Service extends AbstractService
      * @param $LevelName
      * @param $DivisionName
      */
-    protected function matchDivision($Value, &$LevelName, &$DivisionName)
+    public function matchDivision($Value, &$LevelName, &$DivisionName)
     {
 
         if (strpos($Value, '-') !== false
@@ -358,6 +358,10 @@ class Service extends AbstractService
             $DivisionName = $Match[1];
         } elseif (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
             // Klasse 5a
+            $LevelName = $Match[1];
+            $DivisionName = $Match[2];
+        } elseif (preg_match('!^(\d+) ([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
+            // Klasse 5 a
             $LevelName = $Match[1];
             $DivisionName = $Match[2];
         } elseif (preg_match('!^([0-9]*?)$!is', $Value, $Match)) {
