@@ -1180,7 +1180,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Result = Person::useService()->getStudentFilterResult($Person, $Year, $Division, $PersonGroup);
 
-        $TableContent = Person::useService()->getStudentTableContent($Result, $Option, $PersonGroup);
+        $Service = Person::useService();
+        $TableContent = $Service->getStudentTableContent($Result, $Option, $PersonGroup);
+        $MetaComparisonList = $Service->getMetaComparisonList();
 
         $AddCount = 0;
 
@@ -1215,46 +1217,63 @@ class Frontend extends Extension implements IFrontendInterface
         $TableHead['Sibling_2'] = 'Geschwister2';
         $TableHead['Sibling_3'] = 'Geschwister3';
 
-        // 3 Sorgeberechtigte
-        for($i = 1; $i <= 3 ; $i++){
-            $TableHead['Custody_'.$i.'_Salutation'] = 'Sorg'.$i.' Anrede';
-            $TableHead['Custody_'.$i.'_Title'] = 'Sorg'.$i.' Titel';
-            $TableHead['Custody_'.$i.'_FirstName'] = 'Sorg'.$i.' Vorname';
-            $TableHead['Custody_'.$i.'_LastName'] = 'Sorg'.$i.' Nachname';
-            $TableHead['Custody_'.$i.'_Birthday'] = 'Sorg'.$i.' Geburtsdatum';
-            $TableHead['Custody_'.$i.'_BirthPlace'] = 'Sorg'.$i.' Geburtsort';
-            $TableHead['Custody_'.$i.'_Job'] = 'Sorg'.$i.' Beruf';
-            $TableHead['Custody_'.$i.'_Address'] = 'Sorg'.$i.' Adresse';
-            $TableHead['Custody_'.$i.'_PhoneFixedPrivate'] = 'Sorg'.$i.' Festnetz (Privat)';
-            $TableHead['Custody_'.$i.'_PhoneFixedWork'] = 'Sorg'.$i.' Festnetz (Geschäftl.)';
-            $TableHead['Custody_'.$i.'_PhoneFixedEmergency'] = 'Sorg'.$i.' Festnetz (Notfall)';
-            $TableHead['Custody_'.$i.'_PhoneMobilePrivate'] = 'Sorg'.$i.' Festnetz (Privat)';
-            $TableHead['Custody_'.$i.'_PhoneMobileWork'] = 'Sorg'.$i.' Festnetz (Geschäftl.)';
-            $TableHead['Custody_'.$i.'_PhoneMobileEmergency'] = 'Sorg'.$i.' Festnetz (Notfall)';
-            $TableHead['Custody_'.$i.'_Mail_Private'] = 'Sorg'.$i.' Mail (Privat)';
-            $TableHead['Custody_'.$i.'_Mail_Work'] = 'Sorg'.$i.' Mail (Geschäftl.)';
+        $ColumnDef = array(
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+            // Sibling
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (22 + $AddCount)),
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (23 + $AddCount)),
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (24 + $AddCount)),
+        );
+
+        $SortCount = 0;
+        foreach($MetaComparisonList as $Type => $TypeCount){
+            if($TypeCount >= 1){
+                for($i = 1; $i <= $TypeCount ; $i++) {
+                    $TableHead[$Type.$i.'_Salutation'] = $Type.' '.$i.' Anrede';
+                    $TableHead[$Type.$i.'_Title'] = $Type.' '.$i.' Titel';
+                    $TableHead[$Type.$i.'_FirstName'] = $Type.' '.$i.' Vorname';
+                    $TableHead[$Type.$i.'_LastName'] = $Type.' '.$i.' Nachname';
+                    $TableHead[$Type.$i.'_Birthday'] = $Type.' '.$i.' Geburtsdatum';
+                    $TableHead[$Type.$i.'_BirthPlace'] = $Type.' '.$i.' Geburtsort';
+                    $TableHead[$Type.$i.'_Job'] = $Type.' '.$i.' Beruf';
+                    $TableHead[$Type.$i.'_Address'] = $Type.' '.$i.' Adresse';
+                    $TableHead[$Type.$i.'_PhoneFixedPrivate'] = $Type.' '.$i.' Festnetz (Privat)';
+                    $TableHead[$Type.$i.'_PhoneFixedWork'] = $Type.' '.$i.' Festnetz (Geschäftl.)';
+                    $TableHead[$Type.$i.'_PhoneFixedEmergency'] = $Type.' '.$i.' Festnetz (Notfall)';
+                    $TableHead[$Type.$i.'_PhoneMobilePrivate'] = $Type.' '.$i.' Festnetz (Privat)';
+                    $TableHead[$Type.$i.'_PhoneMobileWork'] = $Type.' '.$i.' Festnetz (Geschäftl.)';
+                    $TableHead[$Type.$i.'_PhoneMobileEmergency'] = $Type.' '.$i.' Festnetz (Notfall)';
+                    $TableHead[$Type.$i.'_Mail_Private'] = $Type.' '.$i.' Mail (Privat)';
+                    $TableHead[$Type.$i.'_Mail_Work'] = $Type.' '.$i.' Mail (Geschäftl.)';
+                    $ColumnDef[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (27 + $AddCount + (16 * $SortCount)));
+                    $ColumnDef[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (28 + $AddCount + (16 * $SortCount)));
+                    $SortCount++;
+                }
+            }
         }
 
         $Table = new TableData($TableContent, null, $TableHead,
             array(
                 'order'      => array(array(1, 'asc')),
-                'columnDefs' => array(
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
-                    // Sibling
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (22 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (23 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (24 + $AddCount)),
-                    // Custody 1
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (27 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (28 + $AddCount)),
-                    // Custody 2
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (43 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (44 + $AddCount)),
-                    // Custody 3
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (59 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (60 + $AddCount)),
-                ),
+                'columnDefs' => $ColumnDef,
+//                'columnDefs' => array(
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+//                    // Sibling
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (22 + $AddCount)),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (23 + $AddCount)),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (24 + $AddCount)),
+//                    // Custody 1
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (27 + $AddCount)),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (28 + $AddCount)),
+//                    // Custody 2
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (43 + $AddCount)),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (44 + $AddCount)),
+//                    // Custody 3
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (59 + $AddCount)),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (60 + $AddCount)),
+//                ),
 //                'pageLength' => -1,
 //                'paging'     => false,
 //                'searching'  => false,

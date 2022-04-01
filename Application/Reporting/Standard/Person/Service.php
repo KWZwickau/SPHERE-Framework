@@ -52,6 +52,15 @@ use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
  */
 class Service extends Extension
 {
+    /** Zählung zur Anzeigenbestimmung "Stammdatenabfrage"
+     * @var array
+     */
+    private $MetaComparisonList = array();
+
+    public function getMetaComparisonList()
+    {
+        return $this->MetaComparisonList;
+    }
 
     /**
      * @param TblDivision $tblDivision
@@ -1214,7 +1223,6 @@ class Service extends Extension
                 $Item['MobilPhoneNumber'] = '';
                 $Item['Mail'] = '';
                 $Item['BirthPlace'] = '';
-                $Item['Gender'] = '';
                 $Item['Nationality'] = '';
                 $Item['Religion'] = '';
                 $Item['ParticipationWillingness'] = '';
@@ -2355,7 +2363,7 @@ class Service extends Extension
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblDivision, &$count) {
 
                 $Item['Number'] = $count++;
-                $Item['Name'] = '';
+                $Item['Name'] = $tblPerson->getLastFirstName();
                 $Item['Birthday'] = '';
                 $Item['Education'] = '';
                 $Item['ForeignLanguage1'] = '';
@@ -2368,7 +2376,6 @@ class Service extends Extension
                 $Item['ExcelElective'] = array();
                 $Item['Elective1'] = $Item['Elective2'] = $Item['Elective3'] = $Item['Elective4'] = $Item['Elective5'] = '';
 
-                $Item['Name'] = $tblPerson->getLastFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $Item['Birthday'] = $tblCommon->getTblCommonBirthDates()->getBirthday();
@@ -2762,7 +2769,6 @@ class Service extends Extension
                 $PersonGroupName = $tblPersonGroup->getName();
             }
 
-
             /**
              * @var int                                $Index
              * @var ViewPerson[]|ViewDivisionStudent[] $Row
@@ -2806,13 +2812,11 @@ class Service extends Extension
                         $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
                     }
 
-                    $DataPerson['FirstName'] = '';
-                    $DataPerson['LastName'] = '';
                     $DataPerson['FirstName'] = $tblPerson->getFirstName();
+                    $DataPerson['LastName'] = $tblPerson->getLastName();
                     if ($tblPerson->getSecondName()) {
                         $DataPerson['FirstName'] = $DataPerson['FirstName'].' ' . $tblPerson->getSecondName();
                     }
-                    $DataPerson['LastName'] = $tblPerson->getLastName();
 
                     $DataPerson['Gender'] = '';
                     $DataPerson['Birthday'] = '';
@@ -2962,192 +2966,74 @@ class Service extends Extension
                     $DataPerson['Sibling_2'] = '';
                     $DataPerson['Sibling_3'] = '';
 
-                    // 3 Sorgeberechtigte
-                    for($j = 1; $j <= 3; $j++) {
-                        $DataPerson['Custody_'.$j.'_Salutation'] = '';
-                        $DataPerson['Custody_'.$j.'_Title'] = '';
-                        $DataPerson['Custody_'.$j.'_FirstName'] = '';
-                        $DataPerson['Custody_'.$j.'_LastName'] = '';
-                        $DataPerson['Custody_'.$j.'_Birthday'] = '';
-                        $DataPerson['Custody_'.$j.'_BirthPlace'] = '';
-                        $DataPerson['Custody_'.$j.'_Job'] = '';
-                        $DataPerson['Custody_'.$j.'_Address'] = '';
-                        $DataPerson['Custody_'.$j.'_Street'] = '';
-                        $DataPerson['Custody_'.$j.'_HouseNumber'] = '';
-                        $DataPerson['Custody_'.$j.'_CityCode'] = '';
-                        $DataPerson['Custody_'.$j.'_City'] = '';
-                        $DataPerson['Custody_'.$j.'_District'] = '';
-                        $DataPerson['Custody_'.$j.'_PhoneFixedPrivate'] = '';
-                        $DataPerson['Custody_'.$j.'_PhoneFixedWork'] = '';
-                        $DataPerson['Custody_'.$j.'_PhoneFixedEmergency'] = '';
-                        $DataPerson['Custody_'.$j.'_PhoneMobilePrivate'] = '';
-                        $DataPerson['Custody_'.$j.'_PhoneMobileWork'] = '';
-                        $DataPerson['Custody_'.$j.'_PhoneMobileEmergency'] = '';
-                        $DataPerson['Custody_'.$j.'_Mail_Private'] = '';
-                        $DataPerson['Custody_'.$j.'_Mail_Work'] = '';
-                    }
-
-                    if (($tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
-                        foreach ($tblRelationshipAll as $tblToPerson) {
+                    $tblTypeSibling = Relationship::useService()->getTypeByName('Geschwisterkind');
+                    if (($tblRelationshipSibling = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblTypeSibling))) {
+                        foreach ($tblRelationshipSibling as $tblToPerson) {
                             /** @var \SPHERE\Application\People\Relationship\Service\Entity\TblToPerson $tblToPerson */
-                            if (($tblType = $tblToPerson->getTblType())) {
-                                if ($tblType->getName() == 'Geschwisterkind') {
-                                    $SiblingString = '';
-                                    if (($tblPersonFrom = $tblToPerson->getServiceTblPersonFrom()) && ($tblPersonTo = $tblToPerson->getServiceTblPersonTo())) {
-                                        if ($tblPersonFrom->getId() !== $tblPerson->getId()) {
-                                            $tblPersonSibling = $tblPersonFrom;
-                                        } elseif ($tblPersonTo->getId() !== $tblPerson->getId()) {
-                                            $tblPersonSibling = $tblPersonTo;
-                                        }
-                                        if (!empty($tblPersonSibling)) {
-                                            $SiblingString = $tblPersonSibling->getLastName() . ', ' . $tblPersonSibling->getFirstName();
-                                            if ($tblPersonSibling->getSecondName()) {
-                                                $SiblingString = $SiblingString.' ' . $tblPersonSibling->getSecondName();
-                                            }
-                                            if (($tblYear = Term::useService()->getYearById($Year[ViewYear::TBL_YEAR_ID]))) {
-                                                if (($SiblingDivision = Student::useService()->getMainDivisionByPersonAndYear($tblPersonSibling, $tblYear))) {
-                                                    $SiblingString = $SiblingString.' (' . $SiblingDivision->getDisplayName() . ')';
-                                                } else {
-                                                    if ($Option) {
-                                                        $SiblingString = $SiblingString.' (Ehemalig)';
-                                                    } else {
-                                                        $SiblingString = '';
-                                                    }
-                                                }
-                                            }
-                                        }
+                            $SiblingString = '';
+                            if (($tblPersonFrom = $tblToPerson->getServiceTblPersonFrom()) && ($tblPersonTo = $tblToPerson->getServiceTblPersonTo())) {
+                                if ($tblPersonFrom->getId() !== $tblPerson->getId()) {
+                                    $tblPersonSibling = $tblPersonFrom;
+                                } elseif ($tblPersonTo->getId() !== $tblPerson->getId()) {
+                                    $tblPersonSibling = $tblPersonTo;
+                                }
+                                if (!empty($tblPersonSibling)) {
+                                    $SiblingString = $tblPersonSibling->getLastName() . ', ' . $tblPersonSibling->getFirstName();
+                                    if ($tblPersonSibling->getSecondName()) {
+                                        $SiblingString = $SiblingString.' ' . $tblPersonSibling->getSecondName();
                                     }
-                                    if (empty($DataPerson['Sibling_1']) && $SiblingString) {
-                                        $DataPerson['Sibling_1'] = $SiblingString;
-                                    } elseif (empty($DataPerson['Sibling_2']) && $SiblingString) {
-                                        $DataPerson['Sibling_2'] = $SiblingString;
-                                    } elseif (empty($DataPerson['Sibling_3']) && $SiblingString) {
-                                        $DataPerson['Sibling_3'] = $SiblingString;
+                                    if (($tblYear = Term::useService()->getYearById($Year[ViewYear::TBL_YEAR_ID]))) {
+                                        if (($SiblingDivision = Student::useService()->getMainDivisionByPersonAndYear($tblPersonSibling, $tblYear))) {
+                                            $SiblingString = $SiblingString.' (' . $SiblingDivision->getDisplayName() . ')';
+                                        } else {
+                                            if ($Option) {
+                                                $SiblingString = $SiblingString.' (Ehemalig)';
+                                            } else {
+                                                $SiblingString = '';
+                                            }
+                                        }
                                     }
                                 }
+                            }
+                            if (empty($DataPerson['Sibling_1']) && $SiblingString) {
+                                $DataPerson['Sibling_1'] = $SiblingString;
+                            } elseif (empty($DataPerson['Sibling_2']) && $SiblingString) {
+                                $DataPerson['Sibling_2'] = $SiblingString;
+                            } elseif (empty($DataPerson['Sibling_3']) && $SiblingString) {
+                                $DataPerson['Sibling_3'] = $SiblingString;
                             }
                         }
                     }
-                    $tblRelationshipCustodyList = array();
-                    if(($tblType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))){
-                        $tblRelationshipCustodyList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
-                            $tblType);
-                    }
 
-                    if(!empty($tblRelationshipCustodyList)){
-                        for($i = 1; $i <= 3; $i++) {
-                            $tblRelationshipCustody = false;
-                            foreach($tblRelationshipCustodyList as $tblRelationshipCustodyControl) {
-                                if($tblRelationshipCustodyControl->getRanking() == $i || $i == 1
-                                    && $tblRelationshipCustodyControl->getRanking() === null){
-                                    $tblRelationshipCustody = $tblRelationshipCustodyControl;
-                                    break;
-                                }
-                            }
-
-                            if($tblRelationshipCustody
-                                && ($tblPersonCustody = $tblRelationshipCustody->getServiceTblPersonFrom())){
-                                $DataPerson['Custody_'.$i.'_Salutation'] = $tblPersonCustody->getSalutation();
-                                $DataPerson['Custody_'.$i.'_Title'] = $tblPersonCustody->getTitle();
-                                $DataPerson['Custody_'.$i.'_FirstName'] = $tblPersonCustody->getFirstName();
-                                if($tblPersonCustody->getSecondName()){
-                                    $DataPerson['Custody_'.$i.'_FirstName'] = $DataPerson['Custody_'.$i.'_FirstName'].' '.$tblPersonCustody->getSecondName();
-                                }
-                                $DataPerson['Custody_'.$i.'_LastName'] = $tblPersonCustody->getLastName();
-                                if(($tblCommonCustody = Common::useService()->getCommonByPerson($tblPersonCustody))){
-                                    if(($tblCommonBirthDatesCustody = $tblCommonCustody->getTblCommonBirthDates())){
-                                        $DataPerson['Custody_'.$i.'_Birthday'] = $tblCommonBirthDatesCustody->getBirthday();
-                                        $DataPerson['Custody_'.$i.'_BirthPlace'] = $tblCommonBirthDatesCustody->getBirthplace();
-                                    }
-                                }
-                                if(($tblCustody = Custody::useService()->getCustodyByPerson($tblPersonCustody))){
-                                    $DataPerson['Custody_'.$i.'_Job'] = $tblCustody->getOccupation();
-                                }
-                                if(($tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonCustody))){
-                                    $DataPerson['Custody_'.$i.'_Address'] = $tblAddressCustody->getGuiString();
-                                    if(($tblCityCustody = $tblAddressCustody->getTblCity())){
-                                        $DataPerson['Custody_'.$i.'_Street'] = $tblAddressCustody->getStreetName();
-                                        $DataPerson['Custody_'.$i.'_HouseNumber'] = $tblAddressCustody->getStreetNumber();
-                                        $DataPerson['Custody_'.$i.'_CityCode'] = $tblCityCustody->getCode();
-                                        $DataPerson['Custody_'.$i.'_City'] = $tblCityCustody->getName();
-                                        $DataPerson['Custody_'.$i.'_District'] = $tblCityCustody->getDisplayDistrict();
-                                    }
-                                }
-
-                                if(($tblPhoneAllCustody = Phone::useService()->getPhoneAllByPerson($tblPersonCustody))){
-                                    foreach($tblPhoneAllCustody as $tblToPersonCustody) {
-                                        /** @var TblToPerson $tblToPersonCustody */
-                                        if(($tblPhoneTypeCustody = $tblToPersonCustody->getTblType())
-                                            && ($PhoneDescriptionCustody = $tblPhoneTypeCustody->getDescription())
-                                            && ($PhoneNameCustody = $tblPhoneTypeCustody->getName())
-                                            && ($tblPhoneCustody = $tblToPersonCustody->getTblPhone())){
-                                            if($PhoneDescriptionCustody == 'Festnetz'){
-                                                switch($PhoneNameCustody) {
-                                                    case 'Privat':
-                                                        if($DataPerson['Custody_'.$i.'_PhoneFixedPrivate']){
-                                                            $DataPerson['Custody_'.$i.'_PhoneFixedPrivate'] = $DataPerson['Custody_'.$i.'_PhoneFixedPrivate'].', ';
-                                                        }
-                                                        $DataPerson['Custody_'.$i.'_PhoneFixedPrivate'] = $tblPhoneCustody->getNumber()
-                                                            .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                                        break;
-                                                    case 'Geschäftlich':
-                                                        if($DataPerson['Custody_'.$i.'_PhoneFixedWork']){
-                                                            $DataPerson['Custody_'.$i.'_PhoneFixedWork'] = $DataPerson['Custody_'.$i.'_PhoneFixedWork'].', ';
-                                                        }
-                                                        $DataPerson['Custody_'.$i.'_PhoneFixedWork'] = $DataPerson['Custody_'.$i.'_PhoneFixedWork'].$tblPhoneCustody->getNumber()
-                                                            .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                                        break;
-                                                    case 'Notfall':
-                                                        if($DataPerson['Custody_'.$i.'_PhoneFixedEmergency']){
-                                                            $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'] = $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'].', ';
-                                                        }
-                                                        $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'] = $DataPerson['Custody_'.$i.'_PhoneFixedEmergency'].$tblPhoneCustody->getNumber()
-                                                            .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                                        break;
-                                                }
-                                            } elseif($PhoneDescriptionCustody == 'Mobil') {
-                                                switch($PhoneNameCustody) {
-                                                    case 'Privat':
-                                                        if($DataPerson['Custody_'.$i.'_PhoneMobilePrivate']){
-                                                            $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'] = $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'].', ';
-                                                        }
-                                                        $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'] = $DataPerson['Custody_'.$i.'_PhoneMobilePrivate'].$tblPhoneCustody->getNumber()
-                                                            .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                                        break;
-                                                    case 'Geschäftlich':
-                                                        if($DataPerson['Custody_'.$i.'_PhoneMobileWork']){
-                                                            $DataPerson['Custody_'.$i.'_PhoneMobileWork'] = $DataPerson['Custody_'.$i.'_PhoneMobileWork'].', ';
-                                                        }
-                                                        $DataPerson['Custody_'.$i.'_PhoneMobileWork'] = $DataPerson['Custody_'.$i.'_PhoneMobileWork'].$tblPhoneCustody->getNumber()
-                                                            .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                                        break;
-                                                    case 'Notfall':
-                                                        if($DataPerson['Custody_'.$i.'_PhoneMobileEmergency']){
-                                                            $DataPerson['Custody_'.$i.'_PhoneMobileEmergency'] = ', ';
-                                                        }
-                                                        $DataPerson['Custody_'.$i.'_PhoneMobileEmergency'] = $DataPerson['Custody_'.$i.'_PhoneMobileEmergency'].$tblPhoneCustody->getNumber()
-                                                            .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                                        break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                if(($tblMailAllCustody = Mail::useService()->getMailAllByPerson($tblPersonCustody))){
-                                    foreach($tblMailAllCustody as $tblToPersonMailCustody) {
-                                        if(($tblTypeMailCustody = $tblToPersonMailCustody->getTblType())
-                                            && ($tblMailCustody = $tblToPersonMailCustody->getTblMail())){
-                                            if($tblTypeMailCustody->getName() == 'Privat'){
-                                                $DataPerson['Custody_'.$i.'_Mail_Private'] = $tblMailCustody->getAddress();
-                                            } elseif($tblTypeMailCustody->getName() == 'Geschäftlich') {
-                                                $DataPerson['Custody_'.$i.'_Mail_Work'] = $tblMailCustody->getAddress();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                    // Definition mit leerwerten wird für das Frontend benötigt
+                    $TypeList = array('Sorgeberechtigt' => 3, 'Vormund' => 3, 'Bevollmächtigt' => 3, 'Notfallkontakt' => 3);
+                    foreach($TypeList as $Type => $Count){
+                        for($j = 1; $j <= $Count; $j++) {
+                            $DataPerson[$Type.$j.'_Salutation'] = '';
+                            $DataPerson[$Type.$j.'_Title'] = '';
+                            $DataPerson[$Type.$j.'_FirstName'] = '';
+                            $DataPerson[$Type.$j.'_LastName'] = '';
+                            $DataPerson[$Type.$j.'_Birthday'] = '';
+                            $DataPerson[$Type.$j.'_BirthPlace'] = '';
+                            $DataPerson[$Type.$j.'_Job'] = '';
+                            $DataPerson[$Type.$j.'_Address'] = '';
+                            $DataPerson[$Type.$j.'_Street'] = '';
+                            $DataPerson[$Type.$j.'_HouseNumber'] = '';
+                            $DataPerson[$Type.$j.'_CityCode'] = '';
+                            $DataPerson[$Type.$j.'_City'] = '';
+                            $DataPerson[$Type.$j.'_District'] = '';
+                            $DataPerson[$Type.$j.'_PhoneFixedPrivate'] = '';
+                            $DataPerson[$Type.$j.'_PhoneFixedWork'] = '';
+                            $DataPerson[$Type.$j.'_PhoneFixedEmergency'] = '';
+                            $DataPerson[$Type.$j.'_PhoneMobilePrivate'] = '';
+                            $DataPerson[$Type.$j.'_PhoneMobileWork'] = '';
+                            $DataPerson[$Type.$j.'_PhoneMobileEmergency'] = '';
+                            $DataPerson[$Type.$j.'_Mail_Private'] = '';
+                            $DataPerson[$Type.$j.'_Mail_Work'] = '';
                         }
                     }
+
+                    $this->setRelationshipContent($tblPerson, $DataPerson);
 
                     // ignore duplicated Person
                     if ($DataPerson['TblPerson_Id']) {
@@ -3160,6 +3046,174 @@ class Service extends Extension
         }
 
         return $SearchResult;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $DataPerson
+     * @return void
+     */
+    public function setRelationshipContent(TblPerson $tblPerson, &$DataPerson)
+    {
+
+        // Erstellen der Personenlisten, und die Zählung über die Beziehungstypen
+        $tblToPersonList = array();
+        if(($tblType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))){
+            if(($tblRelationshipCustodyList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))){
+                if(!isset($this->MetaComparisonList['Sorgeberechtigt']) || $this->MetaComparisonList['Sorgeberechtigt'] < count($tblRelationshipCustodyList)){
+                    $this->MetaComparisonList['Sorgeberechtigt'] = count($tblRelationshipCustodyList);
+                }
+                foreach($tblRelationshipCustodyList as $tblRelationshipCustody){
+                    $tblToPersonList[] = $tblRelationshipCustody;
+                }
+            }
+        }
+        if(($tblType = Relationship::useService()->getTypeByName('Vormund'))){
+            if(($tblRelationshipGuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))){
+                if(!isset($this->MetaComparisonList['Vormund']) || $this->MetaComparisonList['Vormund'] < count($tblRelationshipGuardianList)){
+                    $this->MetaComparisonList['Vormund'] = count($tblRelationshipGuardianList);
+                }
+                foreach($tblRelationshipGuardianList as $tblRelationshipGuardian){
+                    $tblToPersonList[] = $tblRelationshipGuardian;
+                }
+            }
+        }
+        if(($tblType = Relationship::useService()->getTypeByName('Bevollmächtigt'))){
+            if(($tblRelationshipAuthorizedList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))){
+                if(!isset($this->MetaComparisonList['Bevollmächtigt']) || $this->MetaComparisonList['Bevollmächtigt'] < count($tblRelationshipAuthorizedList)){
+                    $this->MetaComparisonList['Bevollmächtigt'] = count($tblRelationshipAuthorizedList);
+                }
+                foreach($tblRelationshipAuthorizedList as $tblRelationshipAuthorized){
+                    $tblToPersonList[] = $tblRelationshipAuthorized;
+                }
+            }
+        }
+        if(($tblType = Relationship::useService()->getTypeByName('Notfallkontakt'))){
+            if(($tblRelationshipEmergencyList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))){
+                if(!isset($this->MetaComparisonList['Notfallkontakt']) || $this->MetaComparisonList['Notfallkontakt'] < count($tblRelationshipEmergencyList)){
+                    $this->MetaComparisonList['Notfallkontakt'] = count($tblRelationshipEmergencyList);
+                }
+                foreach($tblRelationshipEmergencyList as $tblRelationshipEmergency){
+                    $tblToPersonList[] = $tblRelationshipEmergency;
+                }
+            }
+        }
+
+        if(!empty($tblToPersonList)){
+            $TypeCount = array('Sorgeberechtigt' => 0, 'Vormund' => 0, 'Bevollmächtigt' => 0, 'Notfallkontakt' => 0);
+            foreach($tblToPersonList as $tblToPerson){
+                $TypeName = $tblToPerson->getTblType()->getName();
+                if($tblToPerson->getRanking()){
+                    $Rank = $tblToPerson->getRanking();
+                } else {
+                    $Rank = ++$TypeCount[$TypeName];
+                }
+                // mehr als 3 Einträge in einem Beziehungstyp werden ignoriert
+                if($Rank > 3){
+                    continue;
+                }
+                if(($tblPersonRelationship = $tblToPerson->getServiceTblPersonFrom())){
+                    $DataPerson[$TypeName.$Rank.'_Salutation'] = $tblPersonRelationship->getSalutation();
+                    $DataPerson[$TypeName.$Rank.'_Title'] = $tblPersonRelationship->getTitle();
+                    $DataPerson[$TypeName.$Rank.'_FirstName'] = $tblPersonRelationship->getFirstName();
+                    if($tblPersonRelationship->getSecondName()){
+                        $DataPerson[$TypeName.$Rank.'_FirstName'] = $DataPerson[$TypeName.$Rank.'_FirstName'].' '.$tblPersonRelationship->getSecondName();
+                    }
+                    $DataPerson[$TypeName.$Rank.'_LastName'] = $tblPersonRelationship->getLastName();
+                    if(($tblCommonCustody = Common::useService()->getCommonByPerson($tblPersonRelationship))){
+                        if(($tblCommonBirthDatesCustody = $tblCommonCustody->getTblCommonBirthDates())){
+                            $DataPerson[$TypeName.$Rank.'_Birthday'] = $tblCommonBirthDatesCustody->getBirthday();
+                            $DataPerson[$TypeName.$Rank.'_BirthPlace'] = $tblCommonBirthDatesCustody->getBirthplace();
+                        }
+                    }
+                    if(($tblCustody = Custody::useService()->getCustodyByPerson($tblPersonRelationship))){
+                        $DataPerson[$TypeName.$Rank.'_Job'] = $tblCustody->getOccupation();
+                    }
+                    if(($tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonRelationship))){
+                        $DataPerson[$TypeName.$Rank.'_Address'] = $tblAddressCustody->getGuiString();
+                        if(($tblCityCustody = $tblAddressCustody->getTblCity())){
+                            $DataPerson[$TypeName.$Rank.'_Street'] = $tblAddressCustody->getStreetName();
+                            $DataPerson[$TypeName.$Rank.'_HouseNumber'] = $tblAddressCustody->getStreetNumber();
+                            $DataPerson[$TypeName.$Rank.'_CityCode'] = $tblCityCustody->getCode();
+                            $DataPerson[$TypeName.$Rank.'_City'] = $tblCityCustody->getName();
+                            $DataPerson[$TypeName.$Rank.'_District'] = $tblCityCustody->getDisplayDistrict();
+                        }
+                    }
+
+                    if(($tblPhoneAllCustody = Phone::useService()->getPhoneAllByPerson($tblPersonRelationship))){
+                        foreach($tblPhoneAllCustody as $tblToPersonCustody) {
+                            /** @var TblToPerson $tblToPersonCustody */
+                            if(($tblPhoneTypeCustody = $tblToPersonCustody->getTblType())
+                                && ($PhoneDescriptionCustody = $tblPhoneTypeCustody->getDescription())
+                                && ($PhoneNameCustody = $tblPhoneTypeCustody->getName())
+                                && ($tblPhoneCustody = $tblToPersonCustody->getTblPhone())){
+                                if($PhoneDescriptionCustody == 'Festnetz'){
+                                    switch($PhoneNameCustody) {
+                                        case 'Privat':
+                                            if($DataPerson[$TypeName.$Rank.'_PhoneFixedPrivate']){
+                                                $DataPerson[$TypeName.$Rank.'_PhoneFixedPrivate'] = $DataPerson[$TypeName.$Rank.'_PhoneFixedPrivate'].', ';
+                                            }
+                                            $DataPerson[$TypeName.$Rank.'_PhoneFixedPrivate'] = $tblPhoneCustody->getNumber()
+                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                            break;
+                                        case 'Geschäftlich':
+                                            if($DataPerson[$TypeName.$Rank.'_PhoneFixedWork']){
+                                                $DataPerson[$TypeName.$Rank.'_PhoneFixedWork'] = $DataPerson[$TypeName.$Rank.'_PhoneFixedWork'].', ';
+                                            }
+                                            $DataPerson[$TypeName.$Rank.'_PhoneFixedWork'] = $DataPerson[$TypeName.$Rank.'_PhoneFixedWork'].$tblPhoneCustody->getNumber()
+                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                            break;
+                                        case 'Notfall':
+                                            if($DataPerson[$TypeName.$Rank.'_PhoneFixedEmergency']){
+                                                $DataPerson[$TypeName.$Rank.'_PhoneFixedEmergency'] = $DataPerson[$TypeName.$Rank.'_PhoneFixedEmergency'].', ';
+                                            }
+                                            $DataPerson[$TypeName.$Rank.'_PhoneFixedEmergency'] = $DataPerson[$TypeName.$Rank.'_PhoneFixedEmergency'].$tblPhoneCustody->getNumber()
+                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                            break;
+                                    }
+                                } elseif($PhoneDescriptionCustody == 'Mobil') {
+                                    switch($PhoneNameCustody) {
+                                        case 'Privat':
+                                            if($DataPerson[$TypeName.$Rank.'_PhoneMobilePrivate']){
+                                                $DataPerson[$TypeName.$Rank.'_PhoneMobilePrivate'] = $DataPerson[$TypeName.$Rank.'_PhoneMobilePrivate'].', ';
+                                            }
+                                            $DataPerson[$TypeName.$Rank.'_PhoneMobilePrivate'] = $DataPerson[$TypeName.$Rank.'_PhoneMobilePrivate'].$tblPhoneCustody->getNumber()
+                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                            break;
+                                        case 'Geschäftlich':
+                                            if($DataPerson[$TypeName.$Rank.'_PhoneMobileWork']){
+                                                $DataPerson[$TypeName.$Rank.'_PhoneMobileWork'] = $DataPerson[$TypeName.$Rank.'_PhoneMobileWork'].', ';
+                                            }
+                                            $DataPerson[$TypeName.$Rank.'_PhoneMobileWork'] = $DataPerson[$TypeName.$Rank.'_PhoneMobileWork'].$tblPhoneCustody->getNumber()
+                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                            break;
+                                        case 'Notfall':
+                                            if($DataPerson[$TypeName.$Rank.'_PhoneMobileEmergency']){
+                                                $DataPerson[$TypeName.$Rank.'_PhoneMobileEmergency'] = ', ';
+                                            }
+                                            $DataPerson[$TypeName.$Rank.'_PhoneMobileEmergency'] = $DataPerson[$TypeName.$Rank.'_PhoneMobileEmergency'].$tblPhoneCustody->getNumber()
+                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if(($tblMailAllCustody = Mail::useService()->getMailAllByPerson($tblPersonRelationship))){
+                        foreach($tblMailAllCustody as $tblToPersonMailCustody) {
+                            if(($tblTypeMailCustody = $tblToPersonMailCustody->getTblType())
+                                && ($tblMailCustody = $tblToPersonMailCustody->getTblMail())){
+                                if($tblTypeMailCustody->getName() == 'Privat'){
+                                    $DataPerson[$TypeName.$Rank.'_Mail_Private'] = $tblMailCustody->getAddress();
+                                } elseif($tblTypeMailCustody->getName() == 'Geschäftlich') {
+                                    $DataPerson[$TypeName.$Rank.'_Mail_Work'] = $tblMailCustody->getAddress();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -3226,28 +3280,50 @@ class Service extends Extension
         $export->setValue($export->getCell($Column++, $Row), "Geschwister2");
         $export->setValue($export->getCell($Column++, $Row), "Geschwister3");
 
-        // 3 Sorgeberechtigte
-        for($i = 1; $i <= 3; $i++){
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Anrede");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Titel");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Vorname");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Nachname");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Geburtstag");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Geburtsort");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Beruf");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Straße");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Hausnummer");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." PLZ");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Wohnort");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Ortsteil");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Festnetz (Privat)");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Festnetz (Geschäftl.)");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Festnetz (Notfall)");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Mobil (Privat)");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Mobil (Geschäftl.)");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Mobil (Notfall)");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Mail (Privat)");
-            $export->setValue($export->getCell($Column++, $Row), "Sorg".$i." Mail (Geschäftl.)");
+
+        $MetaComparisonList = $this->getMetaComparisonList();
+        foreach($MetaComparisonList as $Type => $TypeCount){
+            if($TypeCount >= 1){
+                for($i = 1; $i <= $TypeCount ; $i++) {
+                    $TableHead[$Type.$i.'_Salutation'] = $Type.' '.$i.' Anrede';
+                    $TableHead[$Type.$i.'_Title'] = $Type.' '.$i.' Titel';
+                    $TableHead[$Type.$i.'_FirstName'] = $Type.' '.$i.' Vorname';
+                    $TableHead[$Type.$i.'_LastName'] = $Type.' '.$i.' Nachname';
+                    $TableHead[$Type.$i.'_Birthday'] = $Type.' '.$i.' Geburtsdatum';
+                    $TableHead[$Type.$i.'_BirthPlace'] = $Type.' '.$i.' Geburtsort';
+                    $TableHead[$Type.$i.'_Job'] = $Type.' '.$i.' Beruf';
+                    $TableHead[$Type.$i.'_Address'] = $Type.' '.$i.' Adresse';
+                    $TableHead[$Type.$i.'_PhoneFixedPrivate'] = $Type.' '.$i.' Festnetz (Privat)';
+                    $TableHead[$Type.$i.'_PhoneFixedWork'] = $Type.' '.$i.' Festnetz (Geschäftl.)';
+                    $TableHead[$Type.$i.'_PhoneFixedEmergency'] = $Type.' '.$i.' Festnetz (Notfall)';
+                    $TableHead[$Type.$i.'_PhoneMobilePrivate'] = $Type.' '.$i.' Festnetz (Privat)';
+                    $TableHead[$Type.$i.'_PhoneMobileWork'] = $Type.' '.$i.' Festnetz (Geschäftl.)';
+                    $TableHead[$Type.$i.'_PhoneMobileEmergency'] = $Type.' '.$i.' Festnetz (Notfall)';
+                    $TableHead[$Type.$i.'_Mail_Private'] = $Type.' '.$i.' Mail (Privat)';
+                    $TableHead[$Type.$i.'_Mail_Work'] = $Type.' '.$i.' Mail (Geschäftl.)';
+
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Anrede');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Titel');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Vorname');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Nachname');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Geburtstag');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Geburtsort');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Beruf');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Straße');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Hausnummer');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' PLZ');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Wohnort');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Ortsteil');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Festnetz (Privat)');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Festnetz (Geschäftl.)');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Festnetz (Notfall)');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Mobil (Privat)');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Mobil (Geschäftl.)');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Mobil (Notfall)');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Mail (Privat)');
+                    $export->setValue($export->getCell($Column++, $Row), $Type.' '.$i.' Mail (Geschäftl.)');
+                }
+            }
         }
 
         foreach ($TableContent as $PersonData) {
@@ -3287,28 +3363,31 @@ class Service extends Extension
             $export->setValue($export->getCell($Column++, $Row), $PersonData['Sibling_2']);
             $export->setValue($export->getCell($Column++, $Row), $PersonData['Sibling_3']);
 
-            // 3 Sorgeberechtigte
-            for($j = 1; $j <= 3; $j++) {
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_Salutation']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_Title']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_FirstName']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_LastName']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_Birthday']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_BirthPlace']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_Job']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_Street']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_HouseNumber']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_CityCode']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_City']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_District']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_PhoneFixedPrivate']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_PhoneFixedWork']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_PhoneFixedEmergency']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_PhoneMobilePrivate']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_PhoneMobileWork']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_PhoneMobileEmergency']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_Mail_Private']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Custody_'.$j.'_Mail_Work']);
+            foreach($MetaComparisonList as $Type => $TypeCount){
+                if($TypeCount >= 1){
+                    for($j = 1; $j <= $TypeCount ; $j++) {
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_Salutation']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_Title']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_FirstName']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_LastName']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_Birthday']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_BirthPlace']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_Job']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_Street']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_HouseNumber']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_CityCode']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_City']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_District']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_PhoneFixedPrivate']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_PhoneFixedWork']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_PhoneFixedEmergency']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_PhoneMobilePrivate']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_PhoneMobileWork']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_PhoneMobileEmergency']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_Mail_Private']);
+                        $export->setValue($export->getCell($Column++, $Row), $PersonData[$Type.$j.'_Mail_Work']);
+                    }
+                }
             }
         }
 
@@ -3943,22 +4022,20 @@ class Service extends Extension
                     $Item['Title'] = '';
                     $Item['FirstName'] = '';
                     $Item['LastName'] = '';
+                    $Item['activeDivision'] = '';
                     if($tblYearList){
                         foreach($tblYearList as $tblYear){
                             if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPersonStudent, $tblYear))){
                                 $Item['activeDivision'] = $tblDivision->getDisplayName();
                                 $Item['Year'] = $tblYear->getYear();
+                                break;
                             }
                         }
                     }
                     $Item['StudentFirstName'] = $tblPersonStudent->getFirstSecondName();
                     $Item['StudentLastName'] = $tblPersonStudent->getLastName();
-                    $Item['activeDivision'] = '';
                     $Item['Type'] = 'Schüler';
                     $Item['individualPersonGroup'] = '';
-                    if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPersonStudent, $tblYear))){
-                        $Item['activeDivision'] = $tblDivision->getDisplayName();
-                    }
                     $PersonGroupList = array();
                     if(($tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPersonStudent))){
                         foreach($tblPersonGroupList as $tblPersonGroup){
