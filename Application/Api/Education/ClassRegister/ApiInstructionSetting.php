@@ -53,6 +53,8 @@ class ApiInstructionSetting extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openDeleteInstructionModal');
         $Dispatcher->registerMethod('saveDeleteInstructionModal');
 
+        $Dispatcher->registerMethod('loadInstructionReportingContent');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -372,5 +374,30 @@ class ApiInstructionSetting extends Extension implements IApiInterface
         } else {
             return new Danger('Die Belehrung konnte nicht gelöscht werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadInstructionReportingContent(): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'InstructionReportingContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadInstructionReportingContent',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param array|null $Data
+     *
+     * @return string
+     */
+    public function loadInstructionReportingContent(?array $Data) : string
+    {
+        return Instruction::useFrontend()->loadInstructionReportingTable($Data);
     }
 }

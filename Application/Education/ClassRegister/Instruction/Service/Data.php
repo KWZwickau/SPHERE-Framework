@@ -151,7 +151,7 @@ class Data extends AbstractData
             return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
                 TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
                 TblInstructionItem::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId(),
-                TblInstructionItem::ATTR_SERVICE_TBL_YEAR => $tblGroup->getId()
+                TblInstructionItem::ATTR_SERVICE_TBL_YEAR => $tblYear->getId()
             ), array(TblInstructionItem::ATTR_DATE => self::ORDER_ASC));
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
