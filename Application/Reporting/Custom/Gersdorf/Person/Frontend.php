@@ -626,7 +626,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setTitle('Auswertung');
         $Stage->setDescription('Lehrerliste');
 
-        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER));
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF));
         $PersonList = Person::useService()->createTeacherList();
         if ($PersonList) {
             $Stage->addButton(
