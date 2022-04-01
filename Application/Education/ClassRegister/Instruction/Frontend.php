@@ -72,6 +72,7 @@ class Frontend extends Extension implements IFrontendInterface
         $dataList = array();
         if (($tblInstructionList = Instruction::useService()->getInstructionAll())) {
             foreach ($tblInstructionList as $tblInstruction) {
+                $hasInstructionItems = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, null, null);
                 $dataList[] = array(
                     'Subject' => $tblInstruction->getSubject(),
                     'Content' => $tblInstruction->getContent(),
@@ -83,13 +84,15 @@ class Frontend extends Extension implements IFrontendInterface
                             array(),
                             'Bearbeiten'
                         ))->ajaxPipelineOnClick(ApiInstructionSetting::pipelineOpenEditInstructionModal($tblInstruction->getId()))
-                        . (new Standard(
-                            '',
-                            ApiInstructionSetting::getEndpoint(),
-                            new Remove(),
-                            array(),
-                            'Löschen'
-                        ))->ajaxPipelineOnClick(ApiInstructionSetting::pipelineOpenDeleteInstructionModal($tblInstruction->getId()))
+                        . (!$hasInstructionItems
+                            ? (new Standard(
+                                '',
+                                ApiInstructionSetting::getEndpoint(),
+                                new Remove(),
+                                array(),
+                                'Löschen'
+                            ))->ajaxPipelineOnClick(ApiInstructionSetting::pipelineOpenDeleteInstructionModal($tblInstruction->getId()))
+                            : '')
                 );
             }
         }
@@ -367,6 +370,20 @@ class Frontend extends Extension implements IFrontendInterface
                 ));
         }
         $buttonList[] = $saveButton;
+
+        // Belehrung löschen
+        if ($InstructionItemId
+            // Hauptbelehrung erst löschen wenn alle Nachbelehrungen gelöscht wurden
+            && (!$tblInstructionItem->getIsMain() || count(Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivision, $tblGroup)) == 1)
+        ) {
+            $buttonList[] = (new \SPHERE\Common\Frontend\Link\Repository\Danger(
+                'Löschen',
+                ApiInstructionItem::getEndpoint(),
+                new Remove(),
+                array(),
+                false
+            ))->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenDeleteInstructionItemModal($InstructionItemId));
+        }
 
         return (new Form(array(
             new FormGroup(

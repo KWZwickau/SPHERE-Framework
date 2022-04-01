@@ -277,6 +277,12 @@ class Service extends AbstractService
      */
     public function destroyInstructionItem(TblInstructionItem $tblInstructionItem): bool
     {
+        if (($list = $this->getMissingStudentsByInstructionItem($tblInstructionItem))) {
+            foreach ($list as $tblInstructionItemStudent) {
+                (new Data($this->getBinding()))->removeInstructionItemStudent($tblInstructionItemStudent);
+            }
+        }
+
         return (new Data($this->getBinding()))->destroyInstructionItem($tblInstructionItem);
     }
 

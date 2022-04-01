@@ -153,9 +153,11 @@ class Data extends AbstractData
                 TblInstructionItem::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId(),
                 TblInstructionItem::ATTR_SERVICE_TBL_YEAR => $tblGroup->getId()
             ), array(TblInstructionItem::ATTR_DATE => self::ORDER_ASC));
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
+                TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
+            ), array(TblInstructionItem::ATTR_DATE => self::ORDER_ASC));
         }
-
-        return false;
     }
 
     /**

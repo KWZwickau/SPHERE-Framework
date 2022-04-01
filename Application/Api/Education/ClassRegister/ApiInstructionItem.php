@@ -9,7 +9,6 @@ use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblIns
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -411,14 +410,8 @@ class ApiInstructionItem extends Extension implements IApiInterface
                             new Panel(
                                 new Question() . ' Diese Die Belehrung wirklich löschen?',
                                 array(
+                                    ($tblInstruction = $tblInstructionItem->getTblInstruction()) ? $tblInstruction->getSubject() : '',
                                     $tblInstructionItem->getDate(),
-                                    $tblInstructionItem->getLessonDisplay(),
-                                    ($tblSubject = $tblInstructionItem->getServiceTblSubject())
-                                        ? $tblSubject->getDisplayName() : '',
-                                    ($tblPerson = $tblInstructionItem->getServiceTblPerson())
-                                        ? $tblPerson->getFullName() : '',
-                                    $tblInstructionItem->getContent(),
-                                    $tblInstructionItem->getHomework(),
                                 ),
                                 Panel::PANEL_TYPE_DANGER
                             )
@@ -464,15 +457,12 @@ class ApiInstructionItem extends Extension implements IApiInterface
         if (!($tblInstructionItem = Instruction::useService()->getInstructionItemById($InstructionItemId))) {
             return new Danger('Die Belehrung wurde nicht gefunden', new Exclamation());
         }
-        $date = $tblInstructionItem->getDate();
         $tblDivision = $tblInstructionItem->getServiceTblDivision();
         $tblGroup = $tblInstructionItem->getServiceTblGroup();
 
         if (Instruction::useService()->destroyInstructionItem($tblInstructionItem)) {
             return new Success('Die Belehrung wurde erfolgreich gelöscht.')
-                . self::pipelineLoadInstructionItemContent($tblDivision ? $tblDivision->getId() : null,
-                    $tblGroup ? $tblGroup->getId() : null, $date,
-                    ($View = Consumer::useService()->getAccountSettingValue('InstructionItemView')) ? $View : 'Day')
+                . self::pipelineLoadInstructionItemContent($tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null)
                 . self::pipelineClose();
         } else {
             return new Danger('Die Belehrung konnte nicht gelöscht werden.') . self::pipelineClose();
