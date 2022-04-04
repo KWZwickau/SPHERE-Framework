@@ -3,6 +3,8 @@ namespace SPHERE\Application\Api\Reporting\Custom\Gersdorf;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Reporting\Custom\Gersdorf\Person\Person;
 
 /**
@@ -114,6 +116,27 @@ class Common
             }
         }
 
+        return false;
+    }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return string|bool
+     */
+    public function downloadTeacherList($DivisionId = null)
+    {
+
+        $PersonList = Person::useService()->createTeacherList();
+        if ($PersonList) {
+            $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
+            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            if ($tblPersonList) {
+                $fileLocation = Person::useService()->createTeacherListExcel($PersonList, $tblPersonList);
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Lehrerliste ".date("Y-m-d H:i:s").".xlsx")->__toString();
+            }
+        }
         return false;
     }
 }

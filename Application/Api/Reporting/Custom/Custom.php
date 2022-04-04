@@ -202,6 +202,10 @@ class Custom implements IModuleInterface
                 __NAMESPACE__.'/Gersdorf/Common/ClassPhoneList/Download',
                 __NAMESPACE__.'\Gersdorf\Common::downloadClassPhoneList'
             ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Gersdorf/Common/TeacherList/Download',
+                __NAMESPACE__.'\Gersdorf\Common::downloadTeacherList'
+            ));
         }
     }
 

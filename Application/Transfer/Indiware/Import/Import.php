@@ -110,6 +110,8 @@ class Import extends Extension implements IModuleInterface
                     )
                     , 'Herunterladen'));
         }
+        $PanelTimetable[] = new PullClear('Stundenplan aus Indiware: '.
+            new Center(new Standard('', '/Transfer/Indiware/Import/Timetable', new Upload())));
 
         $Stage->setMessage('Importvorbereitung / Daten importieren');
 
@@ -127,11 +129,11 @@ class Import extends Extension implements IModuleInterface
                 new LayoutColumn(
                     new Panel('Indiware-Import für Schüler-Kurse SEK II', $PanelStudentCourseImport
                         , Panel::PANEL_TYPE_INFO)
-                    , 4),
+                , 4),
                 new LayoutColumn(
                     new Panel('Indiware-Import für Lehraufträge', $PanelLectureshipImport
                         , Panel::PANEL_TYPE_INFO)
-                    , 4),
+                , 4),
             )),
             new LayoutRow(array(
                 new LayoutColumn(
@@ -145,7 +147,11 @@ class Import extends Extension implements IModuleInterface
                         ),
                         Panel::PANEL_TYPE_INFO
                     )
-                    , 4),
+                , 4),
+                new LayoutColumn(
+                    new Panel('Import Stundenplan:', $PanelTimetable
+                        , Panel::PANEL_TYPE_INFO)
+                , 4),
             )))))
         );
 
