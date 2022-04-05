@@ -36,10 +36,10 @@ class ItsLearning implements IModuleInterface
     /**
      * @return string
      */
-    public function downloadStudentCustodyList()
+    public function downloadStudentCustodyList($Year)
     {
 
-        $fileLocation = ItsLearningApp::useService()->downloadStudentCustodyCSV();
+        $fileLocation = ItsLearningApp::useService()->downloadStudentCustodyCSV($Year);
         if($fileLocation){
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "itslearning_Schüler_Sorgeberechtigte.csv")->__toString();
