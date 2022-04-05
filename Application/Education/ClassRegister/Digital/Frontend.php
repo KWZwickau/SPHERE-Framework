@@ -8,6 +8,7 @@ use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -1183,7 +1184,15 @@ class Frontend extends Extension implements IFrontendInterface
             $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiDigital::pipelineEditLessonContentSave($LessonContentId));
         } else {
-            // todo befüllen bei neuen Einträge aus dem importierten Stundenplan
+            // befüllen bei neuen Einträge aus dem importierten Stundenplan
+            if ($tblDivision && $Date && $Lesson
+                && ($tblTimetableNode = Timetable::useService()->getTimeTableNodeBy($tblDivision, new DateTime($Date), (int) $Lesson))
+            ) {
+                $Global = $this->getGlobal();
+                $Global->POST['Data']['serviceTblSubject'] = $tblTimetableNode->getServiceTblSubject() ? $tblTimetableNode->getServiceTblSubject()->getId() : 0;
+                $Global->POST['Data']['Room'] =$tblTimetableNode->getRoom();
+                $Global->savePost();
+            }
 
             $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiDigital::pipelineCreateLessonContentSave(

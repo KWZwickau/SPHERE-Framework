@@ -1,9 +1,12 @@
 <?php
 namespace SPHERE\Application\Education\ClassRegister\Timetable\Service;
 
+use DateTime;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -35,12 +38,12 @@ class Data extends AbstractData
 
     /**
      * @param string $Name
-     * @param \DateTime $DateFrom
-     * @param \DateTime $DateTo
+     * @param DateTime $DateFrom
+     * @param DateTime $DateTo
+     *
      * @return null|TblTimetable
-     * @throws \Exception
      */
-    public function getTimetableByNameAndTime(string $Name, \DateTime $DateFrom, \DateTime $DateTo): ?TblTimetable
+    public function getTimetableByNameAndTime(string $Name, DateTime $DateFrom, DateTime $DateTo): ?TblTimetable
     {
         /* @var TblTimetable $Entity */
         $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetable',
@@ -50,6 +53,33 @@ class Data extends AbstractData
                 TblTimetable::ATTR_DATE_TO => $DateTo
             ));
         return (false === $Entity ? null : $Entity);
+    }
+
+    /**
+     * @param DateTime $Date
+     *
+     * @return TblTimetable[]|false
+     */
+    public function getTimetableListByDateTime(DateTime $Date)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblTimetable', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->lte('t.DateFrom', '?1'),
+                    $queryBuilder->expr()->gte('t.DateTo', '?1')
+                )
+            )
+            ->setParameter(1, $Date)
+            ->orderBy('t.DateFrom', 'DESC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**
@@ -69,6 +99,53 @@ class Data extends AbstractData
 
     /**
      * @param TblTimetable $tblTimetable
+     * @param TblDivision $tblDivision
+     * @param Int $Day
+     * @param Int $Hour
+     * @param TblPerson|null $tblPerson
+     *
+     * @return false|TblTimetableNode[]
+     */
+    public function getTimetableNodeListBy(TblTimetable $tblTimetable, TblDivision $tblDivision, Int $Day, Int $Hour, ?TblPerson $tblPerson)
+    {
+        if ($tblPerson) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
+                TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
+                TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                TblTimetableNode::ATTR_DAY => $Day,
+                TblTimetableNode::ATTR_HOUR => $Hour,
+                TblTimetableNode::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        }
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
+            TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
+            TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+            TblTimetableNode::ATTR_DAY => $Day,
+            TblTimetableNode::ATTR_HOUR => $Hour
+        ));
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param Int $Day
+     * @param TblPerson|null $tblPerson
+     *
+     * @return false|TblTimetableNode[]
+     */
+    public function getTimetableNodeListByDayAndPerson(TblTimetable $tblTimetable, Int $Day, TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
+            TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
+            TblTimetableNode::ATTR_DAY => $Day,
+            TblTimetableNode::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+        ), array(
+            TblTimetableNode::ATTR_HOUR => self::ORDER_ASC
+        ));
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
      * @return TblTimetableWeek[]|null
      */
     public function getTimetableWeekListByTimetable(TblTimetable $tblTimetable)
@@ -80,6 +157,22 @@ class Data extends AbstractData
                 TblTimetableWeek::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId()
             ));
         return (false === $EntityList ? null : $EntityList);
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param string $week
+     * @param DateTime $dateTime
+     *
+     * @return false|TblTimetableWeek
+     */
+    public function getTimetableWeekByTimeTableAndWeekAndDate(TblTimetable $tblTimetable,string $week , DateTime $dateTime)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblTimetableWeek', array(
+            TblTimetableWeek::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
+            TblTimetableWeek::ATTR_WEEK => $week,
+            TblTimetableWeek::ATTR_DATE => $dateTime,
+        ));
     }
 
     /**
@@ -96,11 +189,11 @@ class Data extends AbstractData
     /**
      * @param string $Name
      * @param string $Description
-     * @param \DateTime $DateFrom
-     * @param \DateTime $DateTo
+     * @param DateTime $DateFrom
+     * @param DateTime $DateTo
      * @return TblTimetable|null
      */
-    public function createTimetable($Name, $Description, \DateTime $DateFrom, \DateTime $DateTo): ?TblTimetable
+    public function createTimetable($Name, $Description, DateTime $DateFrom, DateTime $DateTo): ?TblTimetable
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -186,7 +279,7 @@ class Data extends AbstractData
                 $Entity = new TblTimetableWeek();
                 $Entity->setNumber($Row['Number']);
                 $Entity->setWeek($Row['Week']);
-                $Entity->setDate(new \DateTime($Row['Date']));
+                $Entity->setDate(new DateTime($Row['Date']));
                 $Entity->setTblTimetable($tblTimetable);
                 $Manager->bulkSaveEntity($Entity);
                 Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
