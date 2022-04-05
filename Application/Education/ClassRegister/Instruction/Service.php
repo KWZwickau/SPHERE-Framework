@@ -48,9 +48,9 @@ class Service extends AbstractService
     /**
      * @return false|TblInstruction[]
      */
-    public function getInstructionAll()
+    public function getInstructionAll(bool $isActive = true)
     {
-        return (new Data($this->getBinding()))->getInstructionAll();
+        return (new Data($this->getBinding()))->getInstructionAll($isActive);
     }
 
     /**
@@ -113,6 +113,19 @@ class Service extends AbstractService
     public function destroyInstruction(TblInstruction $tblInstruction): bool
     {
         return (new Data($this->getBinding()))->destroyInstruction($tblInstruction);
+    }
+
+    /**
+     * @param TblInstruction $tblInstruction
+     *
+     * @return bool
+     */
+    public function activateInstruction(TblInstruction $tblInstruction): bool
+    {
+        return (new Data($this->getBinding()))->activateInstruction(
+            $tblInstruction,
+            !$tblInstruction->getIsActive()
+        );
     }
 
     /**
@@ -217,6 +230,7 @@ class Service extends AbstractService
             $tblYear ?: null,
             $tblPerson ?: null,
             $Data['Date'],
+            !$tblMainInstructionItem ? $tblInstruction->getSubject() : '',
             $Data['Content'] ?? '',
             !$tblMainInstructionItem
         ))) {

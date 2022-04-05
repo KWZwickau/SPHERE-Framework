@@ -29,12 +29,15 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
+use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -79,12 +82,15 @@ class Frontend extends Extension implements IFrontendInterface
     public function loadInstructionSettingTable(): string
     {
         $dataList = array();
-        if (($tblInstructionList = Instruction::useService()->getInstructionAll())) {
+        if (($tblInstructionList = Instruction::useService()->getInstructionAll(false))) {
             foreach ($tblInstructionList as $tblInstruction) {
                 $hasInstructionItems = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, null, null);
                 $dataList[] = array(
                     'Subject' => $tblInstruction->getSubject(),
                     'Content' => $tblInstruction->getContent(),
+                    'Status' => $tblInstruction->getIsActive()
+                        ? new Success(new PlusSign().' aktiv')
+                        : new Warning(new MinusSign() . ' inaktiv'),
                     'Option' =>
                         (new Standard(
                             '',
@@ -93,6 +99,13 @@ class Frontend extends Extension implements IFrontendInterface
                             array(),
                             'Bearbeiten'
                         ))->ajaxPipelineOnClick(ApiInstructionSetting::pipelineOpenEditInstructionModal($tblInstruction->getId()))
+                        . (new Standard(
+                            '',
+                            ApiInstructionSetting::getEndpoint(),
+                            $tblInstruction->getIsActive() ? new MinusSign() : new PlusSign(),
+                            array(),
+                            $tblInstruction->getIsActive() ? 'Deaktivieren' : 'Aktivieren'
+                        ))->ajaxPipelineOnClick(ApiInstructionSetting::pipelineActivateInstructionSave($tblInstruction->getId()))
                         . (!$hasInstructionItems
                             ? (new Standard(
                                 '',
@@ -112,6 +125,7 @@ class Frontend extends Extension implements IFrontendInterface
             array(
                 'Subject' => 'Thema',
                 'Content' => 'Inhalt',
+                'Status' => 'Status',
                 'Option' => ''
             ),
             array(
@@ -119,7 +133,8 @@ class Frontend extends Extension implements IFrontendInterface
                     array(0, 'asc')
                 ),
                 'columnDefs' => array(
-                    array('width' => '60px', 'targets' => -1),
+                    array('width' => '60px', 'targets' => -2),
+                    array('width' => '100px', 'targets' => -1),
                 ),
                 'responsive' => false
             )
@@ -233,14 +248,17 @@ class Frontend extends Extension implements IFrontendInterface
         $dataList = array();
         if (($tblInstructionList = Instruction::useService()->getInstructionAll())) {
             foreach ($tblInstructionList as $tblInstruction) {
+                $subject = $tblInstruction->getSubject();
                 $content = $tblInstruction->getContent();
                 $count = 0;
                 $sublist = array();
-                $options = '';
                 if (($tblInstructionItemList = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivision, $tblGroup))) {
                     foreach ($tblInstructionItemList as $tblInstructionItem) {
                         if ($tblInstructionItem->getIsMain()) {
                             $content = $tblInstructionItem->getContent();
+                            if ($tblInstructionItem->getSubject()) {
+                                $subject = $tblInstructionItem->getSubject();
+                            }
                             $index = 0;
                         } else {
                             $index = ++$count;
@@ -252,13 +270,17 @@ class Frontend extends Extension implements IFrontendInterface
                         $sublist[$index] = $pretext
                             . ($missingStudents ? ' - ' . new ToolTip(new Warning(count($missingStudents) . ' fehlende'
                                     . (count($missingStudents) == 1 ? 'r' : '') . ' Schüler'), implode(' - ', $missingStudents)) : '')
-                            . ' - '. $tblInstructionItem->getTeacherString();
-
-                        $options .= (new Standard($count > 0 ? $count . '.' : '', ApiInstructionItem::getEndpoint(), new Edit(), array(), $pretext .  ' bearbeiten'))
-                            ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenEditInstructionItemModal(
-                                $tblInstructionItem->getId()
-                            ));
+                            . ' - '. $tblInstructionItem->getTeacherString()
+                            . new PullRight((new Standard('', ApiInstructionItem::getEndpoint(), new Edit(), array(), $pretext .  ' bearbeiten'))
+                                ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenEditInstructionItemModal(
+                                    $tblInstructionItem->getId()
+                                )));
                     }
+
+                    $sublist[] = (new Standard('', ApiInstructionItem::getEndpoint(), new Plus(), array(), 'Neue Nachbelehrung hinzufügen'))
+                        ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenCreateInstructionItemModal(
+                            $tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null, $tblInstruction->getId()
+                        ));
 
                     if (($missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, $tblDivision, $tblGroup))) {
                         $panel = new Panel('Belehrung teilweise durchgeführt', $sublist, Panel::PANEL_TYPE_WARNING)
@@ -267,19 +289,17 @@ class Frontend extends Extension implements IFrontendInterface
                         $panel = new Panel(new Check() . ' Belehrung vollständig durchgeführt', $sublist, Panel::PANEL_TYPE_SUCCESS);
                     }
                 } else {
-                    $panel = new Panel(new Exclamation() . ' Keine Belehrung durchgeführt', '', Panel::PANEL_TYPE_DANGER);
+                    $sublist[] = (new Standard('', ApiInstructionItem::getEndpoint(), new Plus(), array(), 'Neue Belehrung hinzufügen'))
+                        ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenCreateInstructionItemModal(
+                            $tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null, $tblInstruction->getId()
+                        ));
+                    $panel = new Panel(new Exclamation() . ' Keine Belehrung durchgeführt', $sublist, Panel::PANEL_TYPE_DANGER);
                 }
 
-                $options .= (new Standard('', ApiInstructionItem::getEndpoint(), new Plus(), array(), 'Neue Belehrung hinzufügen'))
-                    ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenCreateInstructionItemModal(
-                        $tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null, $tblInstruction->getId()
-                    ));
-
                 $dataList[] = array(
-                    'Subject' => $tblInstruction->getSubject(),
+                    'Subject' => $subject,
                     'Content' => $content,
-                    'Transactions' => $panel,
-                    'Option'  => $options
+                    'Transactions' => $panel
                 );
             }
         }
@@ -290,8 +310,7 @@ class Frontend extends Extension implements IFrontendInterface
             array(
                 'Subject' => 'Thema',
                 'Content' => 'Inhalt',
-                'Transactions' => 'Durchführung',
-                'Option' => ''
+                'Transactions' => 'Durchführung'
             ),
             array(
                 'order' => array(
@@ -480,8 +499,8 @@ class Frontend extends Extension implements IFrontendInterface
                     if (Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivision, null)) {
                         if (($missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, $tblDivision, null))) {
                             $status = new Warning('Belehrung teilweise durchgeführt');
-                            $student = new Warning(new Disable() . ' ' . count($missingPersonTotal) . ' fehlende' . (count($missingPersonTotal) == 1 ? 'r' : '')
-                                . ' Schüler');
+                            $student = new ToolTip(new Warning(new Disable() . ' ' . count($missingPersonTotal) . ' fehlende' . (count($missingPersonTotal) == 1 ? 'r' : '')
+                                . ' Schüler'), implode(' - ', $missingPersonTotal));
                             $isDivisionFulfilled = false;
                         } else {
                             $status = new Success(new Check() . ' Belehrung vollständig durchgeführt');

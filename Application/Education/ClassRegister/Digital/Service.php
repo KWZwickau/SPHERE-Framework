@@ -795,7 +795,7 @@ class Service extends AbstractService
             'SubjectGroup' => 'Fach-Gruppe' . new PullRight('Fach-Gruppen-Lehrer')
         );
 
-        return (new TableData($dataList, new Title('Klasse ' . $tblDivision->getDisplayName()), $columns))
+        return (new TableData($dataList, new Title('Klasse ' . $tblDivision->getDisplayName()), $columns, null))
             ->setHash('Table_Division_' . $tblDivision->getId());
     }
 }

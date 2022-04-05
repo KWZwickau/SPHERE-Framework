@@ -48,6 +48,7 @@ class Setup extends AbstractSetup
 
         $this->createColumn($Table, 'Subject', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Content', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'IsActive', self::FIELD_TYPE_BOOLEAN, false, true);
 
         return $Table;
     }
@@ -67,6 +68,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'Date', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'Subject', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Content', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'IsMain', self::FIELD_TYPE_BOOLEAN);
 

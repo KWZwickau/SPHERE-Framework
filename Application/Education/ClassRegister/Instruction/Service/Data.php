@@ -17,16 +17,18 @@ class Data extends AbstractData
 {
     public function setupDatabaseContent()
     {
-        $this->createInstruction('Einhaltung der Hausordnung', '');
-        $this->createInstruction('Verhalten bei Schadensereignissen und Bedrohungslagen', '');
-        $this->createInstruction('Verhalten bei Katastrophenalarm', '');
-        $this->createInstruction('Verhalten in den Fachräumen: Physik', '');
-        $this->createInstruction('Verhalten in den Fachräumen: Biologie', '');
-        $this->createInstruction('Verhalten in den Fachräumen: Chemie', '');
-        $this->createInstruction('Verhalten im Sportunterricht', '');
-        $this->createInstruction('Verhinderung und Bekämpfung von Bränden', '');
-        $this->createInstruction('Verhalten bei Gefahren im Winter', '');
-        $this->createInstruction('Verhalten im Straßenverkehr', '');
+        if (!$this->getInstructionAll(false)) {
+            $this->createInstruction('Einhaltung der Hausordnung', '');
+            $this->createInstruction('Verhalten bei Schadensereignissen und Bedrohungslagen', '');
+            $this->createInstruction('Verhalten bei Katastrophenalarm', '');
+            $this->createInstruction('Verhalten in den Fachräumen: Physik', '');
+            $this->createInstruction('Verhalten in den Fachräumen: Biologie', '');
+            $this->createInstruction('Verhalten in den Fachräumen: Chemie', '');
+            $this->createInstruction('Verhalten im Sportunterricht', '');
+            $this->createInstruction('Verhinderung und Bekämpfung von Bränden', '');
+            $this->createInstruction('Verhalten bei Gefahren im Winter', '');
+            $this->createInstruction('Verhalten im Straßenverkehr', '');
+        }
     }
 
     /**
@@ -47,6 +49,7 @@ class Data extends AbstractData
             $Entity = new TblInstruction();
             $Entity->setSubject($Subject);
             $Entity->setContent($Content);
+            $Entity->setIsActive(true);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -74,6 +77,32 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setSubject($Subject);
             $Entity->setContent($Content);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblInstruction $tblInstruction
+     * @param bool $isActive
+     *
+     * @return bool
+     */
+    public function activateInstruction(
+        TblInstruction $tblInstruction,
+        bool $isActive
+    ): bool {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblInstruction $Entity */
+        $Entity = $Manager->getEntityById('TblInstruction', $tblInstruction->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsActive($isActive);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -117,9 +146,13 @@ class Data extends AbstractData
     /**
      * @return false|TblInstruction[]
      */
-    public function getInstructionAll()
+    public function getInstructionAll(bool $isActive)
     {
-        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblInstruction');
+        if ($isActive) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblInstruction', array(TblInstruction::ATTR_IS_ACTIVE => $isActive));
+        } else {
+            return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblInstruction');
+        }
     }
 
     /**
@@ -195,6 +228,7 @@ class Data extends AbstractData
      * @param TblYear|null $tblYear
      * @param TblPerson|null $tblPerson
      * @param $Date
+     * @param $Subject
      * @param $Content
      * @param $IsMain
      *
@@ -207,6 +241,7 @@ class Data extends AbstractData
         ?TblYear $tblYear,
         ?TblPerson $tblPerson,
         $Date,
+        $Subject,
         $Content,
         $IsMain
     ): TblInstructionItem {
@@ -219,6 +254,7 @@ class Data extends AbstractData
         $Entity->setServiceTblYear($tblYear);
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setDate($Date ? new DateTime($Date) : null);
+        $Entity->setSubject($Subject);
         $Entity->setContent($Content);
         $Entity->setIsMain($IsMain);
 

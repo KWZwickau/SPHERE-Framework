@@ -66,6 +66,11 @@ class TblInstructionItem extends Element
     /**
      * @Column(type="string")
      */
+    protected string $Subject;
+
+    /**
+     * @Column(type="string")
+     */
     protected string $Content;
 
     /**
@@ -196,6 +201,22 @@ class TblInstructionItem extends Element
     public function setDate(DateTime $Date = null)
     {
         $this->Date = $Date;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubject(): string
+    {
+        return $this->Subject;
+    }
+
+    /**
+     * @param string $Subject
+     */
+    public function setSubject(string $Subject): void
+    {
+        $this->Subject = $Subject;
     }
 
     /**

@@ -52,6 +52,7 @@ class ApiInstructionSetting extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveEditInstructionModal');
         $Dispatcher->registerMethod('openDeleteInstructionModal');
         $Dispatcher->registerMethod('saveDeleteInstructionModal');
+        $Dispatcher->registerMethod('saveActivateInstruction');
 
         $Dispatcher->registerMethod('loadInstructionReportingContent');
 
@@ -373,6 +374,47 @@ class ApiInstructionSetting extends Extension implements IApiInterface
                 . self::pipelineClose();
         } else {
             return new Danger('Die Belehrung konnte nicht gelöscht werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param string $InstructionId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineActivateInstructionSave(string $InstructionId): Pipeline
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'InstructionContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveActivateInstruction'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'InstructionId' => $InstructionId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $InstructionId
+     *
+     * @return Danger|string
+     */
+    public function saveActivateInstruction(string $InstructionId)
+    {
+        if (!($tblInstruction = Instruction::useService()->getInstructionById($InstructionId))) {
+            return new Danger('Die Belehrung wurde nicht gefunden', new Exclamation());
+        }
+
+        $status = $tblInstruction->getIsActive() ? 'deaktiviert' : 'aktiviert';
+        if (Instruction::useService()->activateInstruction($tblInstruction)) {
+            return self::pipelineLoadInstructionContent();
+        } else {
+            return new Danger('Die Belehrung konnte nicht ' . $status . ' werden.') . self::pipelineClose();
         }
     }
 

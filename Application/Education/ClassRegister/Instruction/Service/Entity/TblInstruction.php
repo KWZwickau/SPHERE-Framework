@@ -16,6 +16,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblInstruction extends Element
 {
     const ATTR_SUBJECT = 'Subject';
+    const ATTR_IS_ACTIVE = 'IsActive';
 
     /**
      * @Column(type="string")
@@ -26,6 +27,11 @@ class TblInstruction extends Element
      * @Column(type="string")
      */
     protected string $Content;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsActive;
 
     /**
      * @return string
@@ -57,5 +63,21 @@ class TblInstruction extends Element
     public function setContent(string $Content): void
     {
         $this->Content = $Content;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsActive(): bool
+    {
+        return $this->IsActive;
+    }
+
+    /**
+     * @param bool $IsActive
+     */
+    public function setIsActive($IsActive): void
+    {
+        $this->IsActive = $IsActive;
     }
 }
