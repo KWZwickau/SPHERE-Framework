@@ -171,6 +171,48 @@ class Frontend extends Extension implements IFrontendInterface
 
             $DivisionPanelContent = $this->getDivisionPanelContent($tblDivision);
 
+            $HeadList = array(
+                'Number'           => '#',
+                'LastName'         => 'Name',
+                'FirstName'        => 'Vorname',
+                'Gender'           => 'Geschlecht',
+                'Denomination'     => 'Konfession',
+                'Birthday'         => 'Geburtsdatum',
+                'Birthplace'       => 'Geburtsort',
+                'Address'          => 'Adresse',
+                'Phone'            => new ToolTip('Telefon ' . new Info(),
+                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt'),
+                'Mail'             => 'E-Mail',
+                'ForeignLanguage1' => 'Fremdsprache 1',
+                'ForeignLanguage2' => 'Fremdsprache 2',
+                'ForeignLanguage3' => 'Fremdsprache 3',
+                'Religion'         => 'Religion',
+            );
+            if(($tblLevel = $tblDivision->getTblLevel())){
+                if(($tblType = $tblLevel->getServiceTblType())){
+                    // Profil
+                    if(($tblLevel->getName() == 8
+                            || $tblLevel->getName() == 9
+                            || $tblLevel->getName() == 10)
+                        && $tblType->getName() == 'Gymnasium'){
+                        $HeadList['Profile'] = 'Profil';
+                    }
+                    // Wahlbereich
+                    if(($tblLevel->getName() == 7
+                            || $tblLevel->getName() == 8
+                            || $tblLevel->getName() == 9)
+                        && $tblType->getName() == 'Mittelschule / Oberschule'){
+                        $HeadList['Orientation'] = 'Wahlbereich';
+                    }
+                    // Wahlfach
+                    if($tblLevel->getName() == 10
+                        && $tblType->getName() == 'Mittelschule / Oberschule'){
+                        $HeadList['Elective'] = 'Wahlfächer';
+                    }
+
+                }
+            }
+
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
@@ -195,26 +237,9 @@ class Frontend extends Extension implements IFrontendInterface
                             : null
                     )),
                     new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(new TableData($PersonList, null, array(
-                            'Number'           => '#',
-                            'LastName'         => 'Name',
-                            'FirstName'        => 'Vorname',
-                            'Gender'           => 'Geschlecht',
-                            'Denomination'     => 'Konfession',
-                            'Birthday'         => 'Geburtsdatum',
-                            'Birthplace'       => 'Geburtsort',
-                            'Address'          => 'Adresse',
-                            'Phone'            => new ToolTip('Telefon ' . new Info(),
-                                'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt'),
-                            'Mail'             => 'E-Mail',
-                            'ForeignLanguage1' => 'Fremdsprache 1',
-                            'ForeignLanguage2' => 'Fremdsprache 2',
-                            'ForeignLanguage3' => 'Fremdsprache 3',
-                            'Profile'          => 'Profil',
-                            'Religion'         => 'Religion',
-                            'Orientation'      => 'Wahlbereich',
-                            'Elective'         => 'Wahlfächer',
-                            ), array(
+                        new LayoutColumn(new TableData($PersonList, null,
+                            $HeadList
+                            , array(
                                 'pageLength' => -1,
                                 'responsive' => false,
                                 'columnDefs' => array(

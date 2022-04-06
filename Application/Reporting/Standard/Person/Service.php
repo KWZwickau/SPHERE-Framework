@@ -494,6 +494,35 @@ class Service extends Extension
 
         if (!empty($PersonList)) {
 
+            $isProfile = false;
+            $isOrientation = false;
+            $isElective = false;
+
+            if(($tblLevel = $tblDivision->getTblLevel())){
+                if(($tblType = $tblLevel->getServiceTblType())){
+                    // Profil
+                    if(($tblLevel->getName() == 8
+                            || $tblLevel->getName() == 9
+                            || $tblLevel->getName() == 10)
+                        && $tblType->getName() == 'Gymnasium'){
+                        $isProfile = true;
+                    }
+                    // Wahlbereich
+                    if(($tblLevel->getName() == 7
+                            || $tblLevel->getName() == 8
+                            || $tblLevel->getName() == 9)
+                        && $tblType->getName() == 'Mittelschule / Oberschule'){
+                        $isOrientation = true;
+                    }
+                    // Wahlfach
+                    if($tblLevel->getName() == 10
+                        && $tblType->getName() == 'Mittelschule / Oberschule'){
+                        $isElective = true;
+                    }
+
+                }
+            }
+
             $fileLocation = Storage::createFilePointer('xlsx');
 
             $Row = 0;
@@ -520,10 +549,18 @@ class Service extends Extension
             $export->setValue($export->getCell($Column++, $Row), "FS 1");
             $export->setValue($export->getCell($Column++, $Row), "FS 2");
             $export->setValue($export->getCell($Column++, $Row), "FS 3");
-            $export->setValue($export->getCell($Column++, $Row), "Profil");
-            $export->setValue($export->getCell($Column++, $Row), "Religion");
-            $export->setValue($export->getCell($Column++, $Row), "Wahlbereich");
-            $export->setValue($export->getCell($Column, $Row), "Wahlfächer");
+            $export->setValue($export->getCell($Column, $Row), "Religion");
+            if($isProfile){
+                $export->setValue($export->getCell(++$Column, $Row), "Profil");
+            }
+            if($isOrientation){
+                $export->setValue($export->getCell(++$Column, $Row), "Wahlbereich");
+            }
+            if($isElective){
+                $export->setValue($export->getCell(++$Column, $Row), "Wahlfächer");
+            }
+
+
 
             $export->setStyle($export->getCell(0, $Row), $export->getCell($Column, $Row))
                 // Header Fett
@@ -566,12 +603,20 @@ class Service extends Extension
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['ForeignLanguage1']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['ForeignLanguage2']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['ForeignLanguage3']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Profile']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Religion']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Orientation']);
-                $export->setValue($export->getCell($Column, $Row), (is_array($PersonData['ExcelElective'])
-                    ? implode(', ', $PersonData['ExcelElective'])
-                    : '') );
+                $export->setValue($export->getCell($Column, $Row), $PersonData['Religion']);
+                if($isProfile){
+                    $export->setValue($export->getCell(++$Column, $Row), $PersonData['Profile']);
+                }
+                if($isOrientation){
+                    $export->setValue($export->getCell(++$Column, $Row), $PersonData['Orientation']);
+                }
+                if($isElective){
+                    $export->setValue($export->getCell(++$Column, $Row), (is_array($PersonData['ExcelElective'])
+                        ? implode(', ', $PersonData['ExcelElective'])
+                        : '') );
+                }
+
+
 
                 // get row to the same high as highest PhoneRow or MailRow
                 if ($Row < ($phoneRow - 1)) {
@@ -608,8 +653,8 @@ class Service extends Extension
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(6);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(6);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(6);
-            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(7);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(8);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(7);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(12);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(12);
 
