@@ -77,8 +77,7 @@ class Service extends Extension
                 }
                 // Content
                 $Item['Number'] = $CountNumber;
-                $Item['Count2'] = $CountNumber;
-                $Item['Name'] = $tblPerson->getLastFirstName();
+//                $Item['Name'] = $tblPerson->getLastFirstName();
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
@@ -130,15 +129,16 @@ class Service extends Extension
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $i = 0;
-            $export->setValue($export->getCell($i++, 3), "lfdNr.");
-            $export->setValue($export->getCell($i++, 3), "Name, Vorname");
+            $export->setValue($export->getCell($i++, 3), "Nr.");
+            $export->setValue($export->getCell($i++, 3), "Name");
+            $export->setValue($export->getCell($i++, 3), "Vorname");
 //            $export->setValue($export->getCell(2, 3), "lfdNr.");
-            $export->setValue($export->getCell($i++, 3), "Geburtsdatum");
+            $export->setValue($export->getCell($i++, 3), "Geb.-Tag");
             $export->setValue($export->getCell($i++, 3), "Geburtsort");
             $export->setValue($export->getCell($i, 3), "Wohnanschrift");
 
             //Settings Header
-            $export = $this->setHeader($export, 4);
+            $export = $this->setHeader($export, 5);
 
             $Start = $Row = 3;
             foreach ($PersonList as $PersonData) {
@@ -155,26 +155,27 @@ class Service extends Extension
 
                 $i = 0;
                 $export->setValue($export->getCell($i++, $Row), $PersonData['Number']);
-                $export->setValue($export->getCell($i++, $Row), $PersonData['Name']);
-//                $export->setValue($export->getCell(2, $Row), $PersonData['Count2']);
+                $export->setValue($export->getCell($i++, $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell($i++, $Row), $PersonData['FirstName']);
                 $export->setValue($export->getCell($i++, $Row), $PersonData['Birthday']);
                 $export->setValue($export->getCell($i++, $Row), $PersonData['Birthplace']);
                 $export->setValue($export->getCell($i, $Row), $PersonData['AddressExcel']);
             }
 
             // TableBorder
-            $export->setStyle($export->getCell(0, ( $Start + 1 )), $export->getCell(4, $Row))
+            $export->setStyle($export->getCell(0, ( $Start + 1 )), $export->getCell(5, $Row))
                 ->setBorderAll()
                 ->setWrapText()
                 ->setAlignmentMiddle();
 
             $i = 0;
             // Spaltenbreite
-            $export->setStyle($export->getCell($i++, 0), $export->getCell(0, $Row))->setColumnWidth(6);
-            $export->setStyle($export->getCell($i++, 0), $export->getCell(1, $Row))->setColumnWidth(26);
-            $export->setStyle($export->getCell($i++, 0), $export->getCell(2, $Row))->setColumnWidth(13);
-            $export->setStyle($export->getCell($i++, 0), $export->getCell(3, $Row))->setColumnWidth(15);
-            $export->setStyle($export->getCell($i, 0), $export->getCell(4, $Row))->setColumnWidth(38);
+            $export->setStyle($export->getCell($i++, 0), $export->getCell(0, $Row))->setColumnWidth(3);
+            $export->setStyle($export->getCell($i++, 0), $export->getCell(1, $Row))->setColumnWidth(16);
+            $export->setStyle($export->getCell($i++, 0), $export->getCell(2, $Row))->setColumnWidth(16);
+            $export->setStyle($export->getCell($i++, 0), $export->getCell(3, $Row))->setColumnWidth(11);
+            $export->setStyle($export->getCell($i++, 0), $export->getCell(4, $Row))->setColumnWidth(15);
+            $export->setStyle($export->getCell($i, 0), $export->getCell(5, $Row))->setColumnWidth(37);
 
             // Center
             $export->setStyle($export->getCell(0, 3), $export->getCell(0, $Row))->setAlignmentCenter();
