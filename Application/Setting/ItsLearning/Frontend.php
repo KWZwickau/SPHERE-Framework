@@ -35,7 +35,7 @@ class Frontend extends Extension
     /**
      * @return Stage
      */
-    public function frontendDownload($Year = null)
+    public function frontendDownload()
     {
 
         $tblYearTempList = Term::useService()->getYearByNow();
@@ -59,12 +59,18 @@ class Frontend extends Extension
                     new LinkIcon(), array(), 'Link zu externem Support'))->setExternal().')')
         );
 
-        $tblYearList = Term::useService()->getYearAllSinceYears(1);
+        $tblYearList[0] = '';
+        if(($tblYearTempList = Term::useService()->getYearAllSinceYears(1))){
+            foreach($tblYearTempList as $tblYearTemp){
+                $tblYearList[$tblYearTemp->getId()] = $tblYearTemp;
+            }
+        }
 
         $Stage->setContent(
             new Form(new FormGroup(new FormRow(new FormColumn(
                     (new SelectBox('Year', 'Schuljahr', array('{{ Name }} {{ Description }}' => $tblYearList)))->ajaxPipelineOnChange(ApiItsLearning::pipelineLoad())
             ))))
+            .new Container('&nbsp;')
             .$ApiReceiver
         );
 

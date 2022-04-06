@@ -63,6 +63,7 @@ class ApiItsLearning implements IApiInterface
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'loadContent'
         ));
+        // Jahr wird bei Seitenaufruf aus der Pipeline gezogen, sonst aus Form (on change)
         if($tblYearId){
             $Emitter->setGetPayload(array(
                 self::API_TARGET => 'loadContent',
