@@ -90,6 +90,7 @@ class Service extends Extension
 
                 $body = '';
                 if (($tblAccount = Account::useService()->getAccountBySession())) {
+                    $body .= 'URL: ' . $this->getRequest()->getHost() . '<br/>';
                     $body .= 'Account-Id: ' . $tblAccount->getId() . '<br/>';
                     $body .= 'Account-Benutzername: ' . htmlentities($tblAccount->getUsername()) . '<br/>';
                     if (($tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount))) {
