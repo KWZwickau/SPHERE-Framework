@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital;
 
 use DateInterval;
 use DateTime;
+use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\Certificate\Prepare\View;
@@ -50,7 +51,9 @@ use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -76,6 +79,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -515,10 +519,6 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
                         ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null), 'LessonContentContent')
                     )), new Title(new Book() . ' Klassentagebuch')),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        Digital::useService()->getStudentTable($tblDivision ?: null, $tblGroup ?: null, $BasicRoute,
-                            '/Education/ClassRegister/Digital/LessonContent')
-                    )), new Title(new PersonGroup() . ' Schülerliste'))
                 ))
             );
         } else {
@@ -587,10 +587,9 @@ class Frontend extends Extension implements IFrontendInterface
                 , 5)
         )))));
 
-        return
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($buttons, 8),
-                new LayoutColumn($form, 4)
+        $layout = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn($buttons, $View == 'Day' ? 7 : 8),
+                new LayoutColumn($form, $View == 'Day' ? 5 : 4)
             ))))
             . new Container('&nbsp;')
             . new Panel(
@@ -598,6 +597,15 @@ class Frontend extends Extension implements IFrontendInterface
                 $content,
                 Panel::PANEL_TYPE_PRIMARY
             );
+
+        if ($View == 'Day') {
+            $layout = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn($this->getStudentPanel($tblDivision, $tblGroup), 2),
+                new LayoutColumn($layout, 10),
+            ))));
+        }
+
+        return $layout;
     }
 
     /**
@@ -671,6 +679,24 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $isHoliday = Term::useService()->getHolidayByDay($tblYear, $date, null);
             }
+
+            // Prüfung ob das Datum innerhalb des Schuljahres liegt.
+            list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if ($startDateSchoolYear && $endDateSchoolYear) {
+                if ($date < $startDateSchoolYear || $date > $endDateSchoolYear) {
+                    return new Warning('Das ausgewählte Datum: ' . $DateString . ' befindet sich außerhalb des Schuljahres.', new Exclamation());
+                }
+                if ($previewsDate < $startDateSchoolYear) {
+                    $previewsDate = false;
+                }
+                if ($nextDate > $endDateSchoolYear) {
+                    $nextDate = false;
+                }
+            } else {
+                return new Warning('Das Schuljahr besitzt keinen Zeitraum', new Exclamation());
+            }
+        } else {
+            return new Warning('Kein Schuljahr gefunden', new Exclamation());
         }
         // aktueller Tag
         $isCurrentDay = (new DateTime('today'))->format('d.m.Y') ==  $date->format('d.m.Y');
@@ -857,10 +883,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn('&nbsp;', 3),
                                 new LayoutColumn(
                                     new Center(
-                                        (new Link(new ChevronLeft(), ApiDigital::getEndpoint(), null, array(),
-                                            $dayName[$previewsDate->format('w')] . ', den ' . $previewsDate->format('d.m.Y')))
-                                            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
-                                                $DivisionId, $GroupId, $previewsDate->format('d.m.Y'), 'Day'))
+                                        $previewsDate
+                                            ? (new Link(new ChevronLeft(), ApiDigital::getEndpoint(), null, array(),
+                                                $dayName[$previewsDate->format('w')] . ', den ' . $previewsDate->format('d.m.Y')))
+                                                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
+                                                    $DivisionId, $GroupId, $previewsDate->format('d.m.Y'), 'Day'))
+                                            : ''
                                     )
                                     , 1),
                                 new LayoutColumn(
@@ -868,10 +896,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     , 4),
                                 new LayoutColumn(
                                     new Center(
-                                        (new Link(new ChevronRight(), ApiDigital::getEndpoint(), null, array(),
-                                            $dayName[$nextDate->format('w')] . ', den ' . $nextDate->format('d.m.Y')))
-                                            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
-                                                $DivisionId, $GroupId, $nextDate->format('d.m.Y'), 'Day'))
+                                        $nextDate
+                                            ? (new Link(new ChevronRight(), ApiDigital::getEndpoint(), null, array(),
+                                                $dayName[$nextDate->format('w')] . ', den ' . $nextDate->format('d.m.Y')))
+                                                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
+                                                    $DivisionId, $GroupId, $nextDate->format('d.m.Y'), 'Day'))
+                                            : ''
                                     )
                                     , 1),
                                 new LayoutColumn('&nbsp;', 3),
@@ -952,6 +982,26 @@ class Frontend extends Extension implements IFrontendInterface
         $year = $date->format('Y');
         $week = str_pad($currentWeek, 2, '0', STR_PAD_LEFT);
         $startDate  = new DateTime(date('d.m.Y', strtotime("$year-W{$week}")));
+
+        // Prüfung ob das Datum innerhalb des Schuljahres liegt.
+        if ($tblYear) {
+            list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if ($startDateSchoolYear && $endDateSchoolYear) {
+                if ($date < $startDateSchoolYear || $date > $endDateSchoolYear) {
+                    return new Warning('Das ausgewählte Datum: ' . $DateString . ' befindet sich außerhalb des Schuljahres.', new Exclamation());
+                }
+                if ($previewsWeekDate < $startDateSchoolYear) {
+                    $previewsWeekDate = false;
+                }
+                if ($nextWeekDate > $endDateSchoolYear) {
+                    $nextWeekDate = false;
+                }
+            } else {
+                return new Warning('Das Schuljahr besitzt keinen Zeitraum', new Exclamation());
+            }
+        } else {
+            return new Warning('Kein Schuljahr gefunden', new Exclamation());
+        }
 
         for ($day = 1; $day < 6; $day++) {
             // Ferien, Feiertage
@@ -1062,27 +1112,30 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutRow(
                     new LayoutColumn(
                         new Layout(new LayoutGroup(new LayoutRow(array(
-                                new LayoutColumn('&nbsp;', 3),
-                                new LayoutColumn(
-                                    new Center(
-                                        (new Link(new ChevronLeft(), ApiDigital::getEndpoint(), null, array(), 'KW' . $previewsWeek))
+                            new LayoutColumn('&nbsp;', 3),
+                            new LayoutColumn(
+                                new Center(
+                                    $previewsWeekDate
+                                        ? (new Link(new ChevronLeft(), ApiDigital::getEndpoint(), null, array(), 'KW' . $previewsWeek))
                                             ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
                                                 $DivisionId, $GroupId, $previewsWeekDate->format('d.m.Y'), 'Week'))
-                                    )
-                                    , 1),
-                                new LayoutColumn(
-                                    new Center(new Bold('KW' . $currentWeek. ' '))
-                                    , 4),
-                                new LayoutColumn(
-                                    new Center(
-                                        (new Link(new ChevronRight(), ApiDigital::getEndpoint(), null, array(), 'KW' . $nextWeek))
+                                        : ''
+                                )
+                                , 1),
+                            new LayoutColumn(
+                                new Center(new Bold('KW' . $currentWeek. ' '))
+                                , 4),
+                            new LayoutColumn(
+                                new Center(
+                                    $nextWeekDate
+                                        ? (new Link(new ChevronRight(), ApiDigital::getEndpoint(), null, array(), 'KW' . $nextWeek))
                                             ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
                                                 $DivisionId, $GroupId, $nextWeekDate->format('d.m.Y'), 'Week'))
-                                    )
-                                    , 1),
-                                new LayoutColumn('&nbsp;', 3),
-                            )))
-                        )
+                                        : ''
+                                )
+                                , 1),
+                            new LayoutColumn('&nbsp;', 3),
+                        ))))
                         . '<div style="height: 5px;"></div>'
                         , 12)
                 ),
@@ -1644,40 +1697,37 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Exclamation())
                         ),
                         new LayoutColumn(
-                            new Standard('Download ' . $name . ' (Auswertung)'
-                                , '/Api/Reporting/Standard/Person/ClassList/Download', new Download(), array(
+                            new Link(new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste'),
+                                '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
-                                )
-                            )
-                        ),
-                        new LayoutColumn(new Container('&nbsp;')),
+                                ))
+                            , 3),
                         new LayoutColumn(
-                            new Standard('Download ' . $name . ' Krankenakte'
-                                , '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', new Download(), array(
+                            new Link(new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Krankenakte'),
+                                '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
-                                )
-                            )
-                        ),
-                        new LayoutColumn(new Container('&nbsp;')),
+                                ))
+                            , 3),
                         new LayoutColumn(
-                            new Standard('Download ' . $name . ' Einverständniserklärung'
-                                , '/Api/Reporting/Standard/Person/AgreementClassList/Download', new Download(), array(
+                            new Link(new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Einverständniserklärung'),
+                                '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
-                                )
-                            )
-                        ),
-                        new LayoutColumn(new Container('&nbsp;')),
+                                ))
+                            , 3),
                         new LayoutColumn(
-                            new Standard('Download ' . $name . ' zeugnisrelevante Fehlzeiten'
-                                , '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', new Download(), array(
+                            new Link(new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' zeugnisrelevante Fehlzeiten'),
+                                '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
-                                )
-                            )
-                        )
+                                ))
+                            , 3),
                     )), new Title(new Download() . ' Download'))
                 ))
             );
@@ -1806,5 +1856,32 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $stage;
+    }
+
+    private function getStudentPanel(?TblDivision $tblDivision, ?TblGroup $tblGroup): string
+    {
+        $tblPersonList = false;
+        $dataList = array();
+        if ($tblDivision) {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        } elseif ($tblGroup) {
+            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
+                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
+            }
+        }
+
+        if ($tblPersonList) {
+            $count = 0;
+            foreach ($tblPersonList as $tblPerson) {
+                $dataList[] = new PullLeft(++$count) . new PullRight($tblPerson->getLastFirstName());
+            }
+        }
+
+        return new Panel(
+            'Schüler',
+//            new Table($tableHead, $tableBody, null, false, null, 'TableCustom'),
+            $dataList,
+            Panel::PANEL_TYPE_INFO
+        );
     }
 }

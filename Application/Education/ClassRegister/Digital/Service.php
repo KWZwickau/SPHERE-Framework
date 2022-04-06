@@ -439,6 +439,31 @@ class Service extends AbstractService
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $error = true;
+        } else {
+            // Prüfung ob das Datum innerhalb des Schuljahres liegt.
+            if ($tblDivision) {
+                $tblYear = $tblDivision->getServiceTblYear();
+            } elseif ($tblGroup) {
+                $tblYear = $tblGroup->getCurrentYear();
+            } else {
+                $tblYear = false;
+            }
+            if ($tblYear) {
+                list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                if ($startDateSchoolYear && $endDateSchoolYear) {
+                    $date = new DateTime($Data['Date']);
+                    if ($date < $startDateSchoolYear || $date > $endDateSchoolYear) {
+                        $form->setError('Data[Date]', 'Das ausgewählte Datum: ' . $Data['Date'] . ' befindet sich außerhalb des Schuljahres.');
+                        $error = true;
+                    }
+                } else {
+                    $form->setError('Data[Date]', 'Das Schuljahr besitzt keinen Zeitraum');
+                    $error = true;
+                }
+            } else {
+                $form->setError('Data[Date]', 'Kein Schuljahr gefunden');
+                $error = true;
+            }
         }
         if (isset($Data['Lesson']) && $Data['Lesson'] < 1) {
             $form->setError('Data[Lesson]', 'Bitte geben Sie eine Unterrichtseinheit an');
@@ -494,6 +519,24 @@ class Service extends AbstractService
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $error = true;
+        } else {
+            // Prüfung ob das Datum innerhalb des Schuljahres liegt.
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                if ($startDateSchoolYear && $endDateSchoolYear) {
+                    $date = new DateTime($Data['Date']);
+                    if ($date < $startDateSchoolYear || $date > $endDateSchoolYear) {
+                        $form->setError('Data[Date]', 'Das ausgewählte Datum: ' . $Data['Date'] . ' befindet sich außerhalb des Schuljahres.');
+                        $error = true;
+                    }
+                } else {
+                    $form->setError('Data[Date]', 'Das Schuljahr besitzt keinen Zeitraum');
+                    $error = true;
+                }
+            } else {
+                $form->setError('Data[Date]', 'Kein Schuljahr gefunden');
+                $error = true;
+            }
         }
         if (isset($Data['Lesson']) && $Data['Lesson'] < 1) {
             $form->setError('Data[Lesson]', 'Bitte geben Sie eine Unterrichtseinheit an');
