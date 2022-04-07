@@ -18,6 +18,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -56,6 +57,16 @@ class TblLessonContent extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblSubject;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblSubstituteSubject;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsCanceled;
 
     /**
      * @Column(type="datetime")
@@ -183,6 +194,26 @@ class TblLessonContent extends Element
     }
 
     /**
+     * @return bool|TblSubject
+     */
+    public function getServiceTblSubstituteSubject()
+    {
+        if (null === $this->serviceTblSubstituteSubject) {
+            return false;
+        } else {
+            return Subject::useService()->getSubjectById($this->serviceTblSubstituteSubject);
+        }
+    }
+
+    /**
+     * @param TblSubject|null $tblSubstituteSubject
+     */
+    public function setServiceTblSubstituteSubject(TblSubject $tblSubstituteSubject = null)
+    {
+        $this->serviceTblSubstituteSubject = ( null === $tblSubstituteSubject ? null : $tblSubstituteSubject->getId() );
+    }
+
+    /**
      * @return string
      */
     public function getDate()
@@ -232,11 +263,21 @@ class TblLessonContent extends Element
     }
 
     /**
+     * @param bool $ShowCanceled
+     *
      * @return string
      */
-    public function getContent(): string
+    public function getContent(bool $ShowCanceled = true): string
     {
-        return $this->Content;
+        if ($this->Content) {
+            return $this->Content;
+        }
+
+        if ($ShowCanceled && $this->getIsCanceled()) {
+            return 'Ausgefallen';
+        }
+
+        return '';
     }
 
     /**
@@ -289,5 +330,41 @@ class TblLessonContent extends Element
         return $this->getServiceTblPerson()
             ? Digital::useService()->getTeacherString($this->getServiceTblPerson(), $IsToolTip)
             : '';
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsCanceled()
+    {
+        return $this->IsCanceled || ($this->getServiceTblSubject() && $this->getServiceTblSubstituteSubject());
+    }
+
+    /**
+     * @param bool $IsCanceled
+     */
+    public function setIsCanceled($IsCanceled): void
+    {
+        $this->IsCanceled = (bool) $IsCanceled;
+    }
+
+    /**
+     * @param bool $isAcronymOnly
+     *
+     * @return string
+     */
+    public function getDisplaySubject(bool $isAcronymOnly): string
+    {
+        $tblSubject = $this->getServiceTblSubject();
+        $tblSubstituteSubject = $this->getServiceTblSubstituteSubject();
+        $subject = '';
+        if ($this->getIsCanceled()) {
+            $subject = ($tblSubject ? new Strikethrough($isAcronymOnly ? $tblSubject->getAcronym() : $tblSubject->getDisplayName()) . ' ' : '')
+                . ($tblSubstituteSubject ? ($isAcronymOnly ? $tblSubstituteSubject->getAcronym() : $tblSubstituteSubject->getDisplayName()) : '');
+        } elseif ($tblSubject) {
+            $subject = $isAcronymOnly ? $tblSubject->getAcronym() : $tblSubject->getDisplayName();
+        }
+
+        return $subject;
     }
 }

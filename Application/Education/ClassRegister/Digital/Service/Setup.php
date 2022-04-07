@@ -47,6 +47,8 @@ class Setup  extends AbstractSetup
         $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblSubstituteSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'IsCanceled', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->createColumn($Table, 'Date', self::FIELD_TYPE_DATETIME);
         $this->createColumn($Table, 'Lesson', self::FIELD_TYPE_INTEGER);
         $this->createColumn($Table, 'Content', self::FIELD_TYPE_TEXT);

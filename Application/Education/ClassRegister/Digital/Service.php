@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Digital;
 
+use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreementReadOnly;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
@@ -12,6 +13,7 @@ use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseC
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Setup;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Data;
+use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
@@ -356,7 +358,9 @@ class Service extends AbstractService
             $tblGroup ?: null,
             $tblYear ?: null,
             $tblPerson ?: null,
-            ($tblSubject = Subject::useService()->getSubjectById($Data['serviceTblSubject'])) ? $tblSubject : null
+            ($tblSubject = Subject::useService()->getSubjectById($Data['serviceTblSubject'])) ? $tblSubject : null,
+            ($tblSubstituteSubject = Subject::useService()->getSubjectById($Data['serviceTblSubstituteSubject'])) ? $tblSubstituteSubject : null,
+            isset($Data['IsCanceled'])
         );
 
         return  true;
@@ -381,7 +385,9 @@ class Service extends AbstractService
             $Data['Homework'],
             $Data['Room'],
             $tblPerson ?: null,
-            ($tblSubject = Subject::useService()->getSubjectById($Data['serviceTblSubject'])) ? $tblSubject : null
+            ($tblSubject = Subject::useService()->getSubjectById($Data['serviceTblSubject'])) ? $tblSubject : null,
+            ($tblSubstituteSubject = Subject::useService()->getSubjectById($Data['serviceTblSubstituteSubject'])) ? $tblSubstituteSubject : null,
+            isset($Data['IsCanceled'])
         );
     }
 
@@ -467,6 +473,14 @@ class Service extends AbstractService
         }
         if (isset($Data['Lesson']) && $Data['Lesson'] < 1) {
             $form->setError('Data[Lesson]', 'Bitte geben Sie eine Unterrichtseinheit an');
+            $error = true;
+        }
+
+        // bei einem gesetzten Vertretungsfach muss auch ein Fach ausgewählt werden
+        if (Subject::useService()->getSubjectById($Data['serviceTblSubstituteSubject'])
+            && empty($Data['serviceTblSubject'])
+        ) {
+            $form->setError('Data[serviceTblSubject]', 'Bitte geben Sie ein Fach an');
             $error = true;
         }
 
@@ -840,5 +854,101 @@ class Service extends AbstractService
 
         return (new TableData($dataList, new Title('Klasse ' . $tblDivision->getDisplayName()), $columns, null))
             ->setHash('Table_Division_' . $tblDivision->getId());
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return false|TblLessonContent[]
+     */
+    public function getLessonContentAllByBetween(DateTime $fromDate, DateTime $toDate, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByBetween($fromDate, $toDate, $tblDivision, $tblGroup);
+    }
+
+    /**
+     * @param DateTime $dateTime
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return Panel|string
+     */
+    public function getCanceledSubjectOverview(DateTime $dateTime, ?TblDivision $tblDivision, ?TblGroup $tblGroup)
+    {
+        $fromDate = Timetable::useService()->getStartDateOfWeek($dateTime);
+        $toDate = new DateTime($fromDate->format('d.m.Y'));
+        $toDate = $toDate->add(new DateInterval('P4D'));
+
+        $canceledSubjectList = array();
+        $additionalSubjectList = array();
+        if (($tblLessonContentList =  $this->getLessonContentAllByBetween($fromDate, $toDate, $tblDivision, $tblGroup))) {
+            foreach ($tblLessonContentList as $tblLessonContent) {
+                if ($tblLessonContent->getIsCanceled() && ($tblSubject = $tblLessonContent->getServiceTblSubject())) {
+                    if (isset($canceledSubjectList[$tblSubject->getAcronym()])) {
+                        $canceledSubjectList[$tblSubject->getAcronym()]++;
+                    } else {
+                        $canceledSubjectList[$tblSubject->getAcronym()] = 1;
+                    }
+                }
+                if (($tblSubstituteSubject = $tblLessonContent->getServiceTblSubstituteSubject())) {
+                    if (isset($additionalSubjectList[$tblSubstituteSubject->getAcronym()])) {
+                        $additionalSubjectList[$tblSubstituteSubject->getAcronym()]++;
+                    } else {
+                        $additionalSubjectList[$tblSubstituteSubject->getAcronym()] = 1;
+                    }
+                }
+            }
+        }
+
+        $subjectList = array();
+        if ($tblDivision) {
+            $this->setSubjectListByDivision($tblDivision, $subjectList);
+        } elseif ($tblGroup) {
+            if (($tblDivisionList = $tblGroup->getCurrentDivisionList())) {
+                foreach ($tblDivisionList as $tblDivisionItem) {
+                    $this->setSubjectListByDivision($tblDivisionItem, $subjectList);
+                }
+            }
+        }
+
+        if ($subjectList) {
+            $columns = array();
+            $dataList = array();
+            ksort($subjectList);
+            $columns['Name'] = 'Fach';
+            $dataList['Canceled']['Name'] = 'Ausgefallene Stunden';
+            $dataList['Additional']['Name'] = 'Zusätzlich erteilte Stunden';
+            foreach ($subjectList as $acronym => $subject) {
+                $columns[$acronym] = $acronym;
+                $dataList['Canceled'][$acronym] = $canceledSubjectList[$acronym] ?? 0;
+                $dataList['Additional'][$acronym] = $additionalSubjectList[$acronym] ?? 0;
+            }
+
+            return new Panel(
+                'Wochenübersicht',
+                (new TableData($dataList, null, $columns, false))->setHash('Week'),
+                Panel::PANEL_TYPE_INFO
+            );
+        }
+
+        return '';
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param array $subjectList
+     */
+    private function setSubjectListByDivision(TblDivision $tblDivision, array &$subjectList)
+    {
+        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
+            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
+                    $subjectList[$tblSubject->getAcronym()] = $tblSubject;
+                }
+            }
+        }
     }
 }

@@ -199,7 +199,7 @@ class Service extends AbstractService
      *
      * @return DateTime
      */
-    private function getStartDateOfWeek(DateTime $dateTime): DateTime
+    public function getStartDateOfWeek(DateTime $dateTime): DateTime
     {
         $year = $dateTime->format('Y');
         $currentWeek = (int)$dateTime->format('W');

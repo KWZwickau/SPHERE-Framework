@@ -32,6 +32,8 @@ class Data  extends AbstractData
      * @param TblYear|null $tblYear
      * @param TblPerson|null $tblPerson
      * @param TblSubject|null $tblSubject
+     * @param TblSubject|null $tblSubstituteSubject
+     * @param bool $IsCanceled
      *
      * @return TblLessonContent
      */
@@ -45,7 +47,9 @@ class Data  extends AbstractData
         TblGroup $tblGroup = null,
         TblYear $tblYear = null,
         TblPerson $tblPerson = null,
-        TblSubject $tblSubject = null
+        TblSubject $tblSubject = null,
+        TblSubject $tblSubstituteSubject = null,
+        bool $IsCanceled = false
     ): TblLessonContent {
 
         $Manager = $this->getEntityManager();
@@ -61,6 +65,8 @@ class Data  extends AbstractData
         $Entity->setServiceTblYear($tblYear);
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setServiceTblSubject($tblSubject);
+        $Entity->setServiceTblSubstituteSubject($tblSubstituteSubject);
+        $Entity->setIsCanceled($IsCanceled);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -77,6 +83,8 @@ class Data  extends AbstractData
      * @param $Room
      * @param TblPerson|null $tblPerson
      * @param TblSubject|null $tblSubject
+     * @param TblSubject|null $tblSubstituteSubject
+     * @param bool $IsCanceled
      *
      * @return bool
      */
@@ -88,7 +96,9 @@ class Data  extends AbstractData
         $Homework,
         $Room,
         TblPerson $tblPerson = null,
-        TblSubject $tblSubject = null
+        TblSubject $tblSubject = null,
+        TblSubject $tblSubstituteSubject = null,
+        bool $IsCanceled = false
     ): bool {
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblLessonContent $Entity */
@@ -102,6 +112,8 @@ class Data  extends AbstractData
             $Entity->setRoom($Room);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setServiceTblSubstituteSubject($tblSubstituteSubject);
+            $Entity->setIsCanceled($IsCanceled);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -156,6 +168,52 @@ class Data  extends AbstractData
             TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
             TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
         ), array(TblLessonContent::ATTR_LESSON => self::ORDER_ASC) );
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return false|TblLessonContent[]
+     */
+    public function getLessonContentAllByBetween(DateTime $fromDate, DateTime $toDate, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        if ($tblDivision) {
+            $query = $queryBuilder->select('t')
+                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
+                ->where(
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->between('t.Date', '?1', '?2'),
+                        $queryBuilder->expr()->eq('t.serviceTblDivision', '?3')
+                    )
+                )
+                ->setParameter(1, $fromDate)
+                ->setParameter(2, $toDate)
+                ->setParameter(3, $tblDivision->getId())
+                ->getQuery();
+        } else {
+            $query = $queryBuilder->select('t')
+                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
+                ->where(
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->between('t.Date', '?1', '?2'),
+                        $queryBuilder->expr()->eq('t.serviceTblGroup', '?3')
+                    )
+                )
+                ->setParameter(1, $fromDate)
+                ->setParameter(2, $toDate)
+                ->setParameter(3, $tblGroup->getId())
+                ->getQuery();
+        }
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**

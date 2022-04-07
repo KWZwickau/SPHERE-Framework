@@ -702,7 +702,7 @@ class Frontend extends Extension implements IFrontendInterface
         $isCurrentDay = (new DateTime('today'))->format('d.m.Y') ==  $date->format('d.m.Y');
 
         $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), '30px');
-        $headerList['Subject'] = $this->getTableHeadColumn('Fach', '50px');
+        $headerList['Subject'] = $this->getTableHeadColumn('Fach', '80px');
         $headerList['Room'] = $this->getTableHeadColumn('Raum', '50px');
         $headerList['Teacher'] = $this->getTableHeadColumn('Lehrer', '50px');
         $headerList['Content'] = $this->getTableHeadColumn('Thema');
@@ -796,9 +796,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $lessonContentId = $tblLessonContent->getId();
                 $bodyList[$index] = array(
                     'Lesson' => $this->getLessonsEditLink(new Bold(new Center($lesson)), $lessonContentId, $lesson),
-                    'Subject' => $this->getLessonsEditLink(
-                        ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getAcronym() : '',
-                        $lessonContentId, $lesson),
+                    'Subject' => $this->getLessonsEditLink($tblLessonContent->getDisplaySubject(true), $lessonContentId, $lesson),
                     'Room' => $this->getLessonsEditLink($tblLessonContent->getRoom(), $lessonContentId, $lesson),
                     'Teacher' => $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson),
                     'Content' => $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson),
@@ -918,7 +916,7 @@ class Frontend extends Extension implements IFrontendInterface
             ))
         );
 
-        return $content . ' ';
+        return $content . Digital::useService()->getCanceledSubjectOverview($date, $tblDivision, $tblGroup) . ' ';
     }
 
     /**
@@ -1054,7 +1052,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $item = $this->getLessonsEditLink(
-                        (($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '')
+                        $tblLessonContent->getDisplaySubject(false)
                         . ($teacher ? ' (' . $teacher . ')' : '')
                         . ($tblLessonContent->getContent() ? new Container('Inhalt: ' . $tblLessonContent->getContent())  : '')
                         . ($tblLessonContent->getHomework() ? new Container('Hausaufgaben: ' . $tblLessonContent->getHomework())  : '')
@@ -1147,7 +1145,7 @@ class Frontend extends Extension implements IFrontendInterface
             ))
         );
 
-        return $content . ' ';
+        return $content . Digital::useService()->getCanceledSubjectOverview($date, $tblDivision, $tblGroup) . ' ';
     }
 
     /**
@@ -1218,9 +1216,12 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Data']['Lesson'] = $tblLessonContent->getLesson();
             $Global->POST['Data']['serviceTblSubject'] =
                 ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+            $Global->POST['Data']['serviceTblSubstituteSubject'] =
+                ($tblSubstituteSubject = $tblLessonContent->getServiceTblSubstituteSubject()) ? $tblSubstituteSubject->getId() : 0;
+            $Global->POST['Data']['IsCanceled'] = $tblLessonContent->getIsCanceled();
             $Global->POST['Data']['serviceTblPerson'] =
                 ($tblPerson = $tblLessonContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
-            $Global->POST['Data']['Content'] = $tblLessonContent->getContent();
+            $Global->POST['Data']['Content'] = $tblLessonContent->getContent(false);
             $Global->POST['Data']['Homework'] = $tblLessonContent->getHomework();
             $Global->POST['Data']['Room'] = $tblLessonContent->getRoom();
 
@@ -1288,9 +1289,17 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new SelectBox('Data[serviceTblSubject]', 'Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
                         , 6),
+                    new FormColumn(
+                        new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
+                        , 6),
 //                    new FormColumn(
 //                        new SelectBox('Data[serviceTblPerson]', 'Lehrer', array('{{ FullName }}' => $tblTeacherList))
 //                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new CheckBox('Data[IsCanceled]', 'Fach ist ausgefallen', 1)
+                    ),
                 )),
                 new FormRow(array(
                     new FormColumn(
