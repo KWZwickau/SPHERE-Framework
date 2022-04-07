@@ -341,8 +341,19 @@ class Service extends AbstractService
                 }
             }
 
+            $dayName = array(
+                '0' => 'Sonntag',
+                '1' => 'Montag',
+                '2' => 'Dienstag',
+                '3' => 'Mittwoch',
+                '4' => 'Donnerstag',
+                '5' => 'Freitag',
+                '6' => 'Samstag',
+            );
+            $dayAtWeek = $dateTime->format('w');
+
             return new Panel(
-                'Stundenplan',
+                'Stundenplan am ' . $dayName[$dayAtWeek] . ', den ' . $dateTime->format('d.m.Y'),
                 new TableData($dataList, null, array(
                     'Lesson' => 'UE',
                     'Division' => 'Klasse',

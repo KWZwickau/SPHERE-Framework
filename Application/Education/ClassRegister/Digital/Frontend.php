@@ -1715,7 +1715,7 @@ class Frontend extends Extension implements IFrontendInterface
                             , 3),
                         new LayoutColumn(
                             new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Krankenakte'),
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $name . ' Krankenakte'),
                                 '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
@@ -1723,7 +1723,7 @@ class Frontend extends Extension implements IFrontendInterface
                             , 3),
                         new LayoutColumn(
                             new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Einverständniserklärung'),
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständniserklärung'),
                                 '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
@@ -1731,7 +1731,7 @@ class Frontend extends Extension implements IFrontendInterface
                             , 3),
                         new LayoutColumn(
                             new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' zeugnisrelevante Fehlzeiten'),
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnisrelevante Fehlzeiten'),
                                 '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
