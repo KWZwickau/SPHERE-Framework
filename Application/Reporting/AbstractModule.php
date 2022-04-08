@@ -126,28 +126,28 @@ abstract class AbstractModule implements IModuleInterface
      *
      * @return PhpExcel
      */
-    static public function setGenderFooter(PhpExcel $export,array $tblPersonList, int &$Row, int $StartColumn = 0): PhpExcel
+    static public function setGenderFooter(PhpExcel $export,array $tblPersonList, int &$Row, int $StartColumn = 0, $ValuePosition = 1): PhpExcel
     {
 
         $export->setValue($export->getCell($StartColumn, $Row), 'Weiblich:');
-        $export->setValue($export->getCell($StartColumn + 1, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
+        $export->setValue($export->getCell($StartColumn + $ValuePosition, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
         $Row++;
         $export->setValue($export->getCell($StartColumn, $Row), 'Männlich:');
-        $export->setValue($export->getCell($StartColumn + 1, $Row), Person::countMaleGenderByPersonList($tblPersonList));
+        $export->setValue($export->getCell($StartColumn + $ValuePosition, $Row), Person::countMaleGenderByPersonList($tblPersonList));
         $Row++;
         if(($DiversCount = Person::countDiversGenderByPersonList($tblPersonList))){
             $export->setValue($export->getCell($StartColumn, $Row), 'Divers:');
-            $export->setValue($export->getCell($StartColumn + 1, $Row), $DiversCount);
+            $export->setValue($export->getCell($StartColumn + $ValuePosition, $Row), $DiversCount);
             $Row++;
         }
         if(($OtherCount = Person::countOtherGenderByPersonList($tblPersonList))){
             $export->setValue($export->getCell($StartColumn, $Row), 'Ohne Angabe:');
-            $export->setValue($export->getCell($StartColumn + 1, $Row), $OtherCount);
+            $export->setValue($export->getCell($StartColumn + $ValuePosition, $Row), $OtherCount);
             $Row++;
         }
 
         $export->setValue($export->getCell($StartColumn, $Row), 'Gesamt:');
-        $export->setValue($export->getCell($StartColumn + 1, $Row), count($tblPersonList));
+        $export->setValue($export->getCell($StartColumn + $ValuePosition, $Row), count($tblPersonList));
         return $export;
     }
 }

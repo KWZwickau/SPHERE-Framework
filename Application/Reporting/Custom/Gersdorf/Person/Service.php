@@ -362,9 +362,6 @@ class Service extends Extension
                         $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
                         $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
                             $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking);
-                        if ($tblPerson->getId() == 15) {
-                            echo new Code(print_r($tblStudentSubject, true));
-                        }
 
                         if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject()) && ($tblDivisionLevel = $tblDivision->getTblLevel())) {
                             $Item['ForeignLanguage'. $i] = $tblSubject->getAcronym();
@@ -387,9 +384,6 @@ class Service extends Extension
                                 }
                             }
                         }
-                    }
-                    if ($tblPerson->getId() == 15) {
-                        exit;
                     }
 
 //                    // Profil
