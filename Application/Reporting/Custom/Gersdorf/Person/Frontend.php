@@ -648,13 +648,14 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($PersonList, null,
                                 array(
-                                    'Number'   => '#',
-                                    'Name'     => 'Name',
-                                    'Gender'   => 'Geschlecht',
-                                    'Address'  => 'Anschrift',
-                                    'Phone'    => 'Telefon',
-                                    'Birthday' => 'Geburtsdatum',
-                                    'Group'    => 'Personengruppe',
+                                    'Number'    => '#',
+                                    'LastName'  => 'Name',
+                                    'FirstName' => 'Vorname',
+                                    'Gender'    => 'Geschlecht',
+                                    'Address'   => 'Anschrift',
+                                    'Phone'     => 'Telefon',
+                                    'Birthday'  => 'Geburtsdatum',
+                                    'Group'     => 'Personengruppe',
                                 ),
                                 array(
                                     "columnDefs" => array(
