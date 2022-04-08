@@ -1328,6 +1328,11 @@ class Service extends AbstractService
                                     $tblPerson))
                                 && $tblTest->getServiceTblSubject()
                             ) {
+                                // leere Zensuren bei Zeugnissen ignorieren, bei optionalen Zeugnisfächern
+                                if ($tblGradeItem->getGrade() == '' && $tblGradeItem->getTblGradeText() == null) {
+                                    continue;
+                                }
+
                                 // keine Tendenzen auf Zeugnissen
                                 $withTrend = true;
                                 if ($tblPrepareStudent
@@ -1375,6 +1380,11 @@ class Service extends AbstractService
                 );
                 if ($tblPrepareGradeSubjectList) {
                     foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
+                        // leere Zensuren bei Zeugnissen ignorieren, bei optionalen Zeugnisfächern
+                        if ($tblPrepareGrade->getGrade() == '') {
+                            continue;
+                        }
+
                         if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
                             if ($isGradeVerbalOnDiploma) {
                                 $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());
