@@ -453,7 +453,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                         {% endif %}'
                         : '&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($isGradeUnderlined ? '1px' : '0px', '#000')
                 ->styleMarginTop($marginTop)
                 , '12%');

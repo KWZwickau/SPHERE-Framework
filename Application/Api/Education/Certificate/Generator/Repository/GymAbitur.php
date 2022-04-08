@@ -915,7 +915,7 @@ class GymAbitur extends Certificate
     private function setSubjectRow($personId, $subjectName = '&nbsp;', $hasAdvancedCourse = true, $isLastRow = false)
     {
 
-        $color = '#BBB';
+        $color = self::BACKGROUND_GRADE_FIELD;
         $isAdvancedSubject = false;
         $postfix = false;
         $width = '5%';
@@ -1127,7 +1127,7 @@ class GymAbitur extends Certificate
 
     private function setExamRows($personId, $isBellUsed)
     {
-        $color = '#BBB';
+        $color = self::BACKGROUND_GRADE_FIELD;
         $sectionList = array();
 
         for ($i = 1; $i < 6; $i++) {

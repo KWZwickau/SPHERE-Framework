@@ -408,7 +408,7 @@ class MsAbsRs extends Certificate
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P' . $personId . '.AdditionalGrade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
