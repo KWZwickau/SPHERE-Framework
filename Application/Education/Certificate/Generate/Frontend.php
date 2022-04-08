@@ -319,6 +319,9 @@ class Frontend extends Extension
                             )->setRequired(),
                             (new TextField('Data[Name]', '', 'Name des Zeugnisauftrags'))->setRequired(),
                             (new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()))->setRequired(),
+                            (new DatePicker('Data[AppointedDateForAbsence]', '', new ToolTip('Optionaler Stichtag für Fehlzeiten',
+                                'Für die Fehlzeiten kann ein optionaler Stichtag gesetzt werden, ansonsten wird
+                                das Zeugnisdatum als Stichtag verwendet.'), new Calendar())),
                             (new SelectBox('Data[Type]', 'Typ', array('Name' => $certificateTypeList)))->setRequired()
                         ),
                         Panel::PANEL_TYPE_INFO
@@ -1018,6 +1021,7 @@ class Frontend extends Extension
             if (!$Global->POST) {
 
                 $Global->POST['Data']['Date'] = $tblGenerateCertificate->getDate();
+                $Global->POST['Data']['AppointedDateForAbsence'] = $tblGenerateCertificate->getAppointedDateForAbsence();
                 $Global->POST['Data']['Name'] = $tblGenerateCertificate->getName();
                 $Global->POST['Data']['IsTeacherAvailable'] = $tblGenerateCertificate->isDivisionTeacherAvailable();
                 $Global->POST['Data']['HeadmasterName'] = $tblGenerateCertificate->getHeadmasterName();
@@ -1125,6 +1129,9 @@ class Frontend extends Extension
                         array(
                             (new TextField('Data[Name]', '', 'Name des Zeugnisauftrags'))->setRequired(),
                             (new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()))->setRequired(),
+                            (new DatePicker('Data[AppointedDateForAbsence]', '', new ToolTip('Optionaler Stichtag für Fehlzeiten',
+                                'Für die Fehlzeiten kann ein optionaler Stichtag gesetzt werden, ansonsten wird
+                                das Zeugnisdatum als Stichtag verwendet.'), new Calendar()))
                         ),
                         Panel::PANEL_TYPE_INFO
                     ), 4

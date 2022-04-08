@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare\Service;
 
+use DateTime;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
@@ -800,6 +801,14 @@ class Data extends AbstractData
 
                 $divisionPersonList[$tblPerson->getId()] = 1;
 
+                if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                    && $tblGenerateCertificate->getAppointedDateForAbsence()
+                ) {
+                    $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                } else {
+                    $date = new DateTime($tblPrepare->getDate());
+                }
+
                 // Freigabe setzen
                 if ($tblPrepareStudent) {
                     // Update
@@ -815,12 +824,12 @@ class Data extends AbstractData
                             $Entity->setExcusedDays(Absence::useService()->getExcusedDaysByPerson(
                                 $tblPerson,
                                 $tblDivision,
-                                new \DateTime($tblPrepare->getDate())
+                                $date
                             ));
                             $Entity->setUnexcusedDays(Absence::useService()->getUnexcusedDaysByPerson(
                                 $tblPerson,
                                 $tblDivision,
-                                new \DateTime($tblPrepare->getDate())
+                                $date
                             ));
                         }
 
@@ -846,12 +855,12 @@ class Data extends AbstractData
                             $Entity->setExcusedDays(Absence::useService()->getExcusedDaysByPerson(
                                 $tblPerson,
                                 $tblDivision,
-                                new \DateTime($tblPrepare->getDate())
+                                $date
                             ));
                             $Entity->setUnexcusedDays(Absence::useService()->getUnexcusedDaysByPerson(
                                 $tblPerson,
                                 $tblDivision,
-                                new \DateTime($tblPrepare->getDate())
+                                $date
                             ));
                         }
 
@@ -1048,17 +1057,25 @@ class Data extends AbstractData
                     $Entity->setApproved(true);
                     $Entity->setPrinted(false);
 
+                    if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                        && $tblGenerateCertificate->getAppointedDateForAbsence()
+                    ) {
+                        $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                    } else {
+                        $date = new DateTime($tblPrepare->getDate());
+                    }
+
                     // Fehlzeiten aus dem Klassenbuch übernehmen
                     if ($useClassRegisterForAbsence) {
                         $Entity->setExcusedDays(Absence::useService()->getExcusedDaysByPerson(
                             $tblPerson,
                             $tblDivision,
-                            new \DateTime($tblPrepare->getDate())
+                            $date
                         ));
                         $Entity->setUnexcusedDays(Absence::useService()->getUnexcusedDaysByPerson(
                             $tblPerson,
                             $tblDivision,
-                            new \DateTime($tblPrepare->getDate())
+                            $date
                         ));
                     }
 
