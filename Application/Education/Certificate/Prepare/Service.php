@@ -5372,4 +5372,40 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->getPrepareStudentAllWherePrintedByPerson($tblPerson, $IsPrinted);
     }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblGroup|null $tblGroup
+     * @param bool $IsPrepared
+     */
+    public function setIsPrepared(TblPrepareCertificate $tblPrepare, TblGroup $tblGroup = null, bool $IsPrepared = false)
+    {
+        $tblPrepareList = false;
+        $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
+        if ($tblGroup) {
+            if (($tblGenerateCertificate)) {
+                $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
+            }
+        } else {
+            $tblPrepareList = array(0 => $tblPrepare);
+        }
+
+        if ($tblPrepareList) {
+            foreach ($tblPrepareList as $tblPrepareItem) {
+                if (($tblPrepareStudentList = $this->getPrepareStudentAllByPrepare($tblPrepareItem))) {
+                    foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                        if (!$tblGroup
+                            || (($tblPersonTemp = $tblPrepareStudent->getServiceTblPerson())
+                                && Group::useService()->existsGroupPerson($tblGroup, $tblPersonTemp))
+                        ) {
+                            (new Data($this->getBinding()))->updatePrepareStudentSetIsPrepared(
+                                $tblPrepareStudent,
+                                $IsPrepared
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

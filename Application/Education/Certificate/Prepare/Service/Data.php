@@ -550,6 +550,7 @@ class Data extends AbstractData
             $Entity->setPrinted($IsPrinted);
             $Entity->setExcusedDays($ExcusedDays);
             $Entity->setUnexcusedDays($UnexcusedDays);
+            $Entity->setIsPrepared(false);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -2280,5 +2281,34 @@ class Data extends AbstractData
                 TblPrepareStudent::ATTR_IS_PRINTED => $IsPrinted
             )
         );
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     * @param $IsPrepared
+     *
+     * @return bool
+     */
+    public function updatePrepareStudentSetIsPrepared(
+        TblPrepareStudent $tblPrepareStudent,
+        $IsPrepared
+    ) : bool
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPrepareStudent $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareStudent', $tblPrepareStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsPrepared($IsPrepared);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

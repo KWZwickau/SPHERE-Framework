@@ -66,6 +66,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -84,6 +85,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
+use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -2624,6 +2626,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             }
         }
 
+        $hasSetIsPrepareButton = false;
+        $hasResetIsPrepareButton = false;
         $personSignerList = array();
         if ($tblPrepareList) {
             $studentTable = array();
@@ -2768,6 +2772,14 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             $excusedDays = null;
                             $unexcusedDays = null;
                             if ($tblPrepareStudent && $tblCertificate) {
+                                if ($tblPrepareStudent->getIsPrepared()) {
+                                    $hasResetIsPrepareButton = true;
+                                    $prepareStatus = new Success(new Check());
+                                } else {
+                                    $hasSetIsPrepareButton = true;
+                                    $prepareStatus = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked());
+                                }
+
                                 if (isset($certificateList[$tblCertificate->getId()])) {
                                     $hasCertificateAbsence = $certificateList[$tblCertificate->getId()];
                                 } else {
@@ -2825,6 +2837,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             } else {
                                 $excusedDays = '&nbsp;';
                                 $unexcusedDays = '&nbsp;';
+                                $prepareStatus = '&nbsp;';
                             }
 
                             $number = count($studentTable) + 1;
@@ -2870,6 +2883,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 'BehaviorGrades' => $behaviorGradesDisplayText,
                                 'CheckSubjects' => $checkSubjectsString,
                                 'Signer' => $signer,
+                                'PrepareStatus' => $prepareStatus,
                                 'Option' =>
                                     $isDiploma && $isMuted ? '' : ($tblCertificate
                                         ? (new Standard(
@@ -2990,6 +3004,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             }
             $personSignerDisplayData[] = $buttonSigner;
 
+            $columnTable['PrepareStatus'] = 'Zeugnis&shy;vorbereitung';
             $columnTable['Option'] = '';
 
             $columnDef = array(
@@ -3058,7 +3073,31 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                         'Name' => 'Musterzeugnis'
                                     ),
                                     false
-                                )
+                                ),
+                                $hasSetIsPrepareButton
+                                    ? new Standard(
+                                        'Zeugnisvorbereitung abgeschlossen',
+                                        '/Education/Certificate/Prepare/SetIsPrepared',
+                                        new Check(),
+                                        array(
+                                            'PrepareId' => $PrepareId,
+                                            'GroupId' => $GroupId,
+                                            'Route' => $Route,
+                                            'IsPrepared' => 1
+                                        )
+                                    ) : null,
+                                $hasResetIsPrepareButton
+                                    ? new Standard(
+                                    'Zeugnisvorbereitung abgeschlossen entfernen',
+                                    '/Education/Certificate/Prepare/SetIsPrepared',
+                                    new Remove(),
+                                    array(
+                                        'PrepareId' => $PrepareId,
+                                        'GroupId' => $GroupId,
+                                        'Route' => $Route,
+                                        'IsPrepared' => 0
+                                    )
+                                ) : null,
                             ))
                         )),
                     )),
@@ -6579,5 +6618,35 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 . new Danger('Schüler nicht gefunden', new Ban())
                 . new Redirect('/Education/Certificate/Prepare/Leave', Redirect::TIMEOUT_ERROR);
         }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $GroupId
+     * @param null $Route
+     * @param int $IsPrepared
+     *
+     * @return Stage|string
+     */
+    public function frontendSetIsPrepared($PrepareId = null, $GroupId = null, $Route = null, int $IsPrepared = 0)
+    {
+        $IsPrepared = (bool) $IsPrepared;
+        $stage = new Stage('Zeugnisvorbeitung', $IsPrepared ? 'abgeschlossen' : 'abgeschlossen entfernen');
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if ($tblPrepare) {
+            Prepare::useService()->setIsPrepared($tblPrepare, $tblGroup ? $tblGroup : null, $IsPrepared);
+            return $stage . new \SPHERE\Common\Frontend\Message\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                    . ' Zeugnisvorbereitung abgeschlossen wurde ' . ($IsPrepared ? ' gesetzt.' : ' entfernt.'))
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                    'PrepareId' => $tblPrepare->getId(),
+                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                    'Route' => $Route
+                ));
+        }
+
+        return $stage;
     }
 }
