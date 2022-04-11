@@ -67,6 +67,8 @@ class ApiDigital extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('loadLessonWeekContent');
         $Dispatcher->registerMethod('saveLessonWeekCheck');
+        $Dispatcher->registerMethod('openEditLessonWeekRemarkModal');
+        $Dispatcher->registerMethod('saveEditLessonWeekRemarkModal');
 
         $Dispatcher->registerMethod('loadCourseContentContent');
         $Dispatcher->registerMethod('openCreateCourseContentModal');
@@ -623,14 +625,120 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if ($tblLessonWeek) {
-            Digital::useService()->updateLessonWeek($tblLessonWeek, $tblLessonWeek->getRemark(), $DateDivisionTeacher, $serviceTblPersonDivisionTeacher,
-                $DateHeadmaster, $serviceTblPersonHeadmaster);
+            Digital::useService()->updateLessonWeek($tblLessonWeek, $tblLessonWeek->getRemark(), $DateDivisionTeacher, $serviceTblPersonDivisionTeacher ?: null,
+                $DateHeadmaster, $serviceTblPersonHeadmaster ?: null);
         } else {
-            Digital::useService()->createLessonWeek($tblDivision ?: null, $tblGroup ?: null, $tblYear, $Date->format('d.m.Y'), '', $DateDivisionTeacher, $serviceTblPersonDivisionTeacher ?: null,
-            $DateHeadmaster, $serviceTblPersonHeadmaster ?: null);
+            Digital::useService()->createLessonWeek($tblDivision ?: null, $tblGroup ?: null, $tblYear, $Date->format('d.m.Y'), '', $DateDivisionTeacher,
+                $serviceTblPersonDivisionTeacher ?: null, $DateHeadmaster, $serviceTblPersonHeadmaster ?: null);
         }
 
         return self::pipelineLoadLessonWeekContent($DivisionId, $GroupId, $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1');
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $GroupId
+     * @param string|null $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditLessonWeekRemarkModal(string $DivisionId = null, string $GroupId = null, string $Date = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openEditLessonWeekRemarkModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionId' => $DivisionId,
+            'GroupId' => $GroupId,
+            'Date' => $Date,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $GroupId
+     * @param string|null $Date
+     *
+     * @return string
+     */
+    public function openEditLessonWeekRemarkModal(string $DivisionId = null, string $GroupId = null, string $Date = null): string
+    {
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if (!($tblDivision || $tblGroup)) {
+            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Well(Digital::useFrontend()->formLessonWeekRemark($tblDivision ?: null, $tblGroup ?: null, new DateTime($Date)));
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $GroupId
+     * @param string|null $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditLessonWeekRemarkSave(string $DivisionId = null, string $GroupId = null, string $Date = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditLessonWeekRemarkModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionId' => $DivisionId,
+            'GroupId' => $GroupId,
+            'Date' => $Date,
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $GroupId
+     * @param string|null $Date
+     * @param $Data
+     *
+     * @return string
+     */
+    public function saveEditLessonWeekRemarkModal(string $DivisionId = null, string $GroupId = null, string $Date = null, $Data = null): string
+    {
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if (!($tblDivision || $tblGroup)) {
+            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        }
+
+        if ($tblDivision) {
+            $tblYear = $tblDivision->getServiceTblYear();
+        } else {
+            $tblYear = $tblGroup->getCurrentYear();
+        }
+
+        if ($tblYear) {
+            if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivision ?: null, $tblGroup ?: null, new DateTime($Date)))) {
+                Digital::useService()->updateLessonWeekRemark($tblLessonWeek, $Data['Remark']);
+            } else {
+                Digital::useService()->createLessonWeek($tblDivision ?: null, $tblGroup ?: null, $tblYear, $Date, $Data['Remark'], null, null, null, null);
+            }
+        }
+
+        return new Success('Wochenbemerkung wurde erfolgreich gespeichert.')
+            . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null, $Date,
+                ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+            . self::pipelineClose();
     }
 
     /**

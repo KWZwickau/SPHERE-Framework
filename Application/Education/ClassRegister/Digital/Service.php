@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital;
 
 use DateInterval;
 use DateTime;
+use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreementReadOnly;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
@@ -51,6 +52,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -888,10 +890,11 @@ class Service extends AbstractService
      * @param DateTime $dateTime
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
+     * @param bool $hasEdit
      *
      * @return Panel|string
      */
-    public function getCanceledSubjectOverview(DateTime $dateTime, ?TblDivision $tblDivision, ?TblGroup $tblGroup)
+    public function getCanceledSubjectOverview(DateTime $dateTime, ?TblDivision $tblDivision, ?TblGroup $tblGroup, bool $hasEdit = true)
     {
         $fromDate = Timetable::useService()->getStartDateOfWeek($dateTime);
         $toDate = new DateTime($fromDate->format('d.m.Y'));
@@ -942,9 +945,36 @@ class Service extends AbstractService
                 $dataList['Additional'][$acronym] = $additionalSubjectList[$acronym] ?? 0;
             }
 
+            $remark = '&nbsp;';
+            $checking = new Container('&nbsp;');
+            if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivision, $tblGroup, $fromDate))) {
+                $remark = str_replace("\n", '<br>', $tblLessonWeek->getRemark());
+                if ($tblLessonWeek->getDateDivisionTeacher()) {
+                    $checking .= new Container(new Success(new Check() . ' am ' . $tblLessonWeek->getDateDivisionTeacher() . ' von '
+                            . (($divisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher())
+                                ? $divisionTeacher->getLastName() : '') . ' für die Vollständigkeit der Angaben (Klassenlehrer) geprüft'));
+                }
+
+                if ($tblLessonWeek->getDateHeadmaster()) {
+                    $checking .= new Container(new Success(new Check() . ' am ' . $tblLessonWeek->getDateHeadmaster() . ' von '
+                        . (($headmaster = $tblLessonWeek->getServiceTblPersonHeadmaster())
+                            ? $headmaster->getLastName() : '') . ' zur Kenntnis genommen (Schulleitung)'));
+                }
+            }
+
             return new Panel(
                 'Wochenübersicht',
-                (new TableData($dataList, null, $columns, false))->setHash('Week'),
+                (new TableData($dataList, null, $columns, false))->setHash('Week')
+                    . new Bold('Wochenbemerkung:')
+                    . new Container($remark)
+                    . ($hasEdit
+                        ? new Container((new Primary(
+                            new Edit() . ' Bearbeiten',
+                            ApiDigital::getEndpoint()
+                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditLessonWeekRemarkModal($tblDivision ? $tblDivision->getId() : null,
+                            $tblGroup ? $tblGroup->getId() : null, $fromDate->format('d.m.Y'))))
+                        . new Container($checking)
+                        : ''),
                 Panel::PANEL_TYPE_INFO
             );
         }
@@ -1019,5 +1049,18 @@ class Service extends AbstractService
     ): bool {
         return (new Data($this->getBinding()))->updateLessonWeek($tblLessonWeek, $Remark, $DateDivisionTeacher, $serviceTblPersonDivisionTeacher,
             $DateHeadmaster, $serviceTblPersonHeadmaster);
+    }
+
+    /**
+     * @param TblLessonWeek $tblLessonWeek
+     * @param $Remark
+     *
+     * @return bool
+     */
+    public function updateLessonWeekRemark(
+        TblLessonWeek $tblLessonWeek,
+        $Remark
+    ): bool {
+        return (new Data($this->getBinding()))->updateLessonWeekRemark($tblLessonWeek, $Remark);
     }
 }

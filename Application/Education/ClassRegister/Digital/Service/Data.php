@@ -437,6 +437,32 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param TblLessonWeek $tblLessonWeek
+     * @param $Remark
+     *
+     * @return bool
+     */
+    public function updateLessonWeekRemark(
+        TblLessonWeek $tblLessonWeek,
+        $Remark
+    ): bool {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblLessonWeek $Entity */
+        $Entity = $Manager->getEntityById('TblLessonWeek', $tblLessonWeek->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setRemark($Remark);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
      * @param DateTime $dateTime

@@ -28,6 +28,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -1158,7 +1159,7 @@ class Frontend extends Extension implements IFrontendInterface
             ))
         );
 
-        return $content . Digital::useService()->getCanceledSubjectOverview($date, $tblDivision, $tblGroup) . ' ';
+        return $content . Digital::useService()->getCanceledSubjectOverview($date, $tblDivision, $tblGroup, !$isReadOnly) . ' ';
     }
 
     /**
@@ -2039,7 +2040,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblLessonWeek->getDateDivisionTeacher()) {
                         $divisionTeacherText = new Success(new Check() . ' am ' . $tblLessonWeek->getDateDivisionTeacher() . ' von '
                             . (($divisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher())
-                                ? $divisionTeacher->getLastName() : ' bestätigt.')) . new PullRight('|');
+                                ? $divisionTeacher->getLastName() : '') . ' bestätigt.') . new PullRight('|');
                     } else {
                         $divisionTeacherText = $newDivisionTeacher;
                     }
@@ -2047,7 +2048,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblLessonWeek->getDateHeadmaster()) {
                         $headmasterText = new Success(new Check() . ' am ' . $tblLessonWeek->getDateHeadmaster() . ' von '
                             . (($headmaster = $tblLessonWeek->getServiceTblPersonHeadmaster())
-                                ? $headmaster->getLastName() : ' bestätigt.'));
+                                ? $headmaster->getLastName() : '') . ' bestätigt.');
                     } else {
                         $headmasterText = $newHeadmaster;
                     }
@@ -2098,5 +2099,38 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $content;
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     * @param DateTime $Date
+     *
+     * @return Form
+     */
+    public function formLessonWeekRemark(?TblDivision $tblDivision, ?TblGroup $tblGroup, DateTime $Date): Form
+    {
+        if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivision, $tblGroup, $Date))) {
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['Remark'] = $tblLessonWeek->getRemark();
+            $Global->savePost();
+        }
+
+        return (new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new TextArea('Data[Remark]', 'Wochenbemerkung', 'Wochenbemerkung', new Edit())
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiDigital::pipelineEditLessonWeekRemarkSave($tblDivision ? $tblDivision->getId() : null,
+                                $tblGroup ? $tblGroup->getId() : null, $Date->format('d.m.Y')))
+                    )
+                )),
+            ))
+        ))->disableSubmitAction();
     }
 }
