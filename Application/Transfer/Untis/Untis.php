@@ -7,6 +7,7 @@ use SPHERE\Application\Transfer\Untis\Export\Meta\Meta;
 use SPHERE\Application\Transfer\Untis\Import\Import;
 use SPHERE\Application\Transfer\Untis\Import\Lectureship as ImportLectureship;
 use SPHERE\Application\Transfer\Untis\Import\StudentCourse as ImportStudentCourse;
+use SPHERE\Application\Transfer\Untis\Import\Timetable as ImportTimetable;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -23,6 +24,7 @@ class Untis implements IApplicationInterface
         Import::registerModule();
         ImportLectureship::registerModule();
         ImportStudentCourse::registerModule();
+        ImportTimetable::registerModule();
         Meta::registerModule();
         Export::registerModule();
 //        ExportLectureship::registerModule();
