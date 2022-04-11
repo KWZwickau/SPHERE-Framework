@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Term;
 
+use DateInterval;
 use DateTime;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -110,7 +111,7 @@ class Service extends AbstractService
     public function getYearAllSinceYears($Year)
     {
 
-        $Now = (new DateTime('now'))->sub(new \DateInterval('P' . $Year . 'Y'));
+        $Now = (new DateTime('now'))->sub(new DateInterval('P' . $Year . 'Y'));
 
         $EntityList = array();
         $tblYearAll = Term::useService()->getYearAll();
@@ -153,7 +154,7 @@ class Service extends AbstractService
     public function getYearAllFutureYears($Year)
     {
 
-        $Now = (new DateTime('now'))->add(new \DateInterval('P' . $Year . 'Y'));
+        $Now = (new DateTime('now'))->add(new DateInterval('P' . $Year . 'Y'));
 
         $EntityList = array();
         $tblYearAll = Term::useService()->getYearAll();
@@ -1182,5 +1183,39 @@ class Service extends AbstractService
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param string $date
+     * @param TblYear $tblYear
+     * @param array $tblCompanyList
+     *
+     * @return bool
+     */
+    public function getIsSchoolWeekHoliday(string $date, TblYear $tblYear, array $tblCompanyList)
+    {
+        $date = new DateTime($date);
+        $isHoliday = false;
+        for ($i = 0; $i < 5; $i++) {
+            if ($i > 0) {
+                $date->add(new DateInterval('P1D'));
+            }
+
+            if ($tblCompanyList) {
+                foreach ($tblCompanyList as $tblCompany) {
+                    if (($isHoliday = Term::useService()->getHolidayByDay($tblYear, $date, $tblCompany))) {
+                        break;
+                    }
+                }
+            } else {
+                $isHoliday = Term::useService()->getHolidayByDay($tblYear, $date, null);
+            }
+
+            if (!$isHoliday) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -494,11 +494,14 @@ class ApiDigital extends Extension implements IApiInterface
     /**
      * @param string|null $DivisionId
      * @param string|null $GroupId
-     * @param string|null $YearId
+     * @param string|null $hasDivisionTeacherRight
+     * @param string|null $hasHeadmasterRight
+     * @param string|null $Date
      *
      * @return Pipeline
      */
-    public static function pipelineLoadLessonWeekContent(string $DivisionId = null, string $GroupId = null, string $YearId = null): Pipeline
+    public static function pipelineLoadLessonWeekContent(string $DivisionId = null, string $GroupId = null, string $hasDivisionTeacherRight = null,
+        string $hasHeadmasterRight = null, string $Date = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent'), self::getEndpoint());
@@ -508,7 +511,9 @@ class ApiDigital extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionId' => $DivisionId,
             'GroupId' => $GroupId,
-            'YearId' => $YearId
+            'Date' => $Date,
+            'hasDivisionTeacherRight' => $hasDivisionTeacherRight,
+            'hasHeadmasterRight' => $hasHeadmasterRight,
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -518,35 +523,38 @@ class ApiDigital extends Extension implements IApiInterface
     /**
      * @param string|null $DivisionId
      * @param string|null $GroupId
-     * @param string|null $YearId
+     * @param string|null $hasDivisionTeacherRight
+     * @param string|null $hasHeadmasterRight
+     * @param string|null $Date
      *
      * @return string
      */
-    public function loadLessonWeekContent(string $DivisionId = null, string $GroupId = null, string $YearId = null) : string
+    public function loadLessonWeekContent(string $DivisionId = null, string $GroupId = null, string $hasDivisionTeacherRight = null,
+        string $hasHeadmasterRight = null, string $Date = null) : string
     {
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
-        $tblYear = Term::useService()->getYearById($YearId);
-
-        if (!$tblYear) {
-            return new Danger('Das Schuljahr wurde nicht gefunden', new Exclamation());
-        }
 
         if (!($tblDivision || $tblGroup)) {
             return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadLessonWeekTable($tblYear, $tblDivision ?: null, $tblGroup ?: null);
+        return Digital::useFrontend()->loadLessonWeekTable($tblDivision ?: null, $tblGroup ?: null, $hasDivisionTeacherRight == '1',
+            $hasHeadmasterRight == '1', $Date);
     }
 
     /**
      * @param string|null $DivisionId
      * @param string|null $GroupId
+     * @param string|null $YearId
      * @param string $Date
-     *
+     * @param string $Type
+     * @param string|null $hasDivisionTeacherRight
+     * @param string|null $hasHeadmasterRight
      * @return Pipeline
      */
-    public static function pipelineSaveLessonWeekCheck(string $DivisionId = null, string $GroupId = null, string $YearId = null, string $Date = '', string $Type = ''): Pipeline
+    public static function pipelineSaveLessonWeekCheck(string $DivisionId = null, string $GroupId = null, string $YearId = null, string $Date = '',
+        string $Type = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent'), self::getEndpoint());
@@ -558,7 +566,9 @@ class ApiDigital extends Extension implements IApiInterface
             'GroupId' => $GroupId,
             'YearId' => $YearId,
             'Date' => $Date,
-            'Type' => $Type
+            'Type' => $Type,
+            'hasDivisionTeacherRight' => $hasDivisionTeacherRight,
+            'hasHeadmasterRight' => $hasHeadmasterRight
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -571,10 +581,13 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $YearId
      * @param string $Date
      * @param string $Type
+     * @param string|null $hasDivisionTeacherRight
+     * @param string|null $hasHeadmasterRight
      *
      * @return Pipeline
      */
-    public function saveLessonWeekCheck(string $DivisionId = null, string $GroupId = null, string $YearId = null, string $Date = '', string $Type = '')
+    public function saveLessonWeekCheck(string $DivisionId = null, string $GroupId = null, string $YearId = null, string $Date = '', string $Type = '',
+        string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
     {
         $tblPerson = Account::useService()->getPersonByLogin();
         $Date = new DateTime($Date);
@@ -617,8 +630,7 @@ class ApiDigital extends Extension implements IApiInterface
             $DateHeadmaster, $serviceTblPersonHeadmaster ?: null);
         }
 
-
-        return self::pipelineLoadLessonWeekContent($DivisionId, $GroupId, $YearId);
+        return self::pipelineLoadLessonWeekContent($DivisionId, $GroupId, $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1');
     }
 
     /**
