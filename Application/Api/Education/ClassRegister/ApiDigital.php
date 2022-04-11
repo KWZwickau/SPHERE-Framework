@@ -2,13 +2,16 @@
 
 namespace SPHERE\Application\Api\Education\ClassRegister;
 
+use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -61,6 +64,9 @@ class ApiDigital extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveEditLessonContentModal');
         $Dispatcher->registerMethod('openDeleteLessonContentModal');
         $Dispatcher->registerMethod('saveDeleteLessonContentModal');
+
+        $Dispatcher->registerMethod('loadLessonWeekContent');
+        $Dispatcher->registerMethod('saveLessonWeekCheck');
 
         $Dispatcher->registerMethod('loadCourseContentContent');
         $Dispatcher->registerMethod('openCreateCourseContentModal');
@@ -483,6 +489,136 @@ class ApiDigital extends Extension implements IApiInterface
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gelöscht werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $GroupId
+     * @param string|null $YearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadLessonWeekContent(string $DivisionId = null, string $GroupId = null, string $YearId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadLessonWeekContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionId' => $DivisionId,
+            'GroupId' => $GroupId,
+            'YearId' => $YearId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $GroupId
+     * @param string|null $YearId
+     *
+     * @return string
+     */
+    public function loadLessonWeekContent(string $DivisionId = null, string $GroupId = null, string $YearId = null) : string
+    {
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+        $tblYear = Term::useService()->getYearById($YearId);
+
+        if (!$tblYear) {
+            return new Danger('Das Schuljahr wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblDivision || $tblGroup)) {
+            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        }
+
+        return Digital::useFrontend()->loadLessonWeekTable($tblYear, $tblDivision ?: null, $tblGroup ?: null);
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $GroupId
+     * @param string $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveLessonWeekCheck(string $DivisionId = null, string $GroupId = null, string $YearId = null, string $Date = '', string $Type = ''): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveLessonWeekCheck',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionId' => $DivisionId,
+            'GroupId' => $GroupId,
+            'YearId' => $YearId,
+            'Date' => $Date,
+            'Type' => $Type
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $GroupId
+     * @param string|null $YearId
+     * @param string $Date
+     * @param string $Type
+     *
+     * @return Pipeline
+     */
+    public function saveLessonWeekCheck(string $DivisionId = null, string $GroupId = null, string $YearId = null, string $Date = '', string $Type = '')
+    {
+        $tblPerson = Account::useService()->getPersonByLogin();
+        $Date = new DateTime($Date);
+        $now = new DateTime('now');
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+        $tblYear = Term::useService()->getYearById($YearId);
+        $tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivision ?: null, $tblGroup ?: null, $Date);
+
+        if ($Type == 'DivisionTeacher') {
+            $serviceTblPersonDivisionTeacher = $tblPerson;
+            $DateDivisionTeacher = $now->format('d.m.Y');
+
+            if ($tblLessonWeek) {
+                $serviceTblPersonHeadmaster = $tblLessonWeek->getServiceTblPersonHeadmaster();
+                $DateHeadmaster = $tblLessonWeek->getDateHeadmaster();
+            } else {
+                $serviceTblPersonHeadmaster = null;
+                $DateHeadmaster = '';
+            }
+        } else {
+            $serviceTblPersonHeadmaster = $tblPerson;
+            $DateHeadmaster = $now->format('d.m.Y');
+
+            if ($tblLessonWeek) {
+                $serviceTblPersonDivisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher();
+                $DateDivisionTeacher = $tblLessonWeek->getDateDivisionTeacher();
+            } else {
+                $serviceTblPersonDivisionTeacher = null;
+                $DateDivisionTeacher = '';
+            }
+        }
+
+        if ($tblLessonWeek) {
+            Digital::useService()->updateLessonWeek($tblLessonWeek, $tblLessonWeek->getRemark(), $DateDivisionTeacher, $serviceTblPersonDivisionTeacher,
+                $DateHeadmaster, $serviceTblPersonHeadmaster);
+        } else {
+            Digital::useService()->createLessonWeek($tblDivision ?: null, $tblGroup ?: null, $tblYear, $Date->format('d.m.Y'), '', $DateDivisionTeacher, $serviceTblPersonDivisionTeacher ?: null,
+            $DateHeadmaster, $serviceTblPersonHeadmaster ?: null);
+        }
+
+
+        return self::pipelineLoadLessonWeekContent($DivisionId, $GroupId, $YearId);
     }
 
     /**

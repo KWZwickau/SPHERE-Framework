@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Setup;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
@@ -41,6 +42,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
@@ -60,7 +62,6 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class Service extends AbstractService
 {
@@ -262,6 +263,8 @@ class Service extends AbstractService
 
         $buttonList[] = $this->getButton('Klassentagebuch', '/Education/ClassRegister/Digital/LessonContent', new Book(),
             $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonContent');
+        $buttonList[] = $this->getButton('Klassentagebuch Kontrolle', '/Education/ClassRegister/Digital/LessonWeek', new Ok(),
+            $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonWeek');
         $buttonList[] = $this->getButton('Schülerliste', '/Education/ClassRegister/Digital/Student', new PersonGroup(),
             $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Student');
 
@@ -950,5 +953,59 @@ class Service extends AbstractService
                 }
             }
         }
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     * @param DateTime $dateTime
+     *
+     * @return false|TblLessonWeek
+     */
+    public function getLessonWeekByDate(?TblDivision $tblDivision, ?TblGroup $tblGroup, DateTime $dateTime)
+    {
+        return (new Data($this->getBinding()))->getLessonWeekAllByDate($tblDivision, $tblGroup, $dateTime);
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     * @param TblYear $tblYear
+     * @param $date
+     * @param $Remark
+     * @param $DateDivisionTeacher
+     * @param TblPerson|null $serviceTblPersonDivisionTeacher
+     * @param $DateHeadmaster
+     * @param TblPerson|null $serviceTblPersonHeadmaster
+     *
+     * @return TblLessonWeek
+     */
+    public function createLessonWeek(?TblDivision $tblDivision, ?TblGroup $tblGroup, TblYear $tblYear, $date, $Remark, $DateDivisionTeacher,
+        ?TblPerson $serviceTblPersonDivisionTeacher, $DateHeadmaster, ?TblPerson $serviceTblPersonHeadmaster
+    ): TblLessonWeek {
+        return (new Data($this->getBinding()))->createLessonWeek($tblDivision, $tblGroup, $tblYear, $date, $Remark, $DateDivisionTeacher,
+            $serviceTblPersonDivisionTeacher, $DateHeadmaster, $serviceTblPersonHeadmaster);
+    }
+
+    /**
+     * @param TblLessonWeek $tblLessonWeek
+     * @param $Remark
+     * @param $DateDivisionTeacher
+     * @param TblPerson|null $serviceTblPersonDivisionTeacher
+     * @param $DateHeadmaster
+     * @param TblPerson|null $serviceTblPersonHeadmaster
+     *
+     * @return bool
+     */
+    public function updateLessonWeek(
+        TblLessonWeek $tblLessonWeek,
+        $Remark,
+        $DateDivisionTeacher,
+        ?TblPerson $serviceTblPersonDivisionTeacher,
+        $DateHeadmaster,
+        ?TblPerson $serviceTblPersonHeadmaster
+    ): bool {
+        return (new Data($this->getBinding()))->updateLessonWeek($tblLessonWeek, $Remark, $DateDivisionTeacher, $serviceTblPersonDivisionTeacher,
+            $DateHeadmaster, $serviceTblPersonHeadmaster);
     }
 }

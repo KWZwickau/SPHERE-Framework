@@ -20,6 +20,7 @@ class Setup  extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $this->setTableLessonContent($Schema);
+        $this->setTableLessonWeek($Schema);
         $this->setTableCourseContent($Schema);
 
         /**
@@ -54,6 +55,24 @@ class Setup  extends AbstractSetup
         $this->createColumn($Table, 'Content', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'Homework', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'Room', self::FIELD_TYPE_STRING);
+    }
+
+    /**
+     * @param Schema $Schema
+     */
+    private function setTableLessonWeek(Schema &$Schema)
+    {
+        $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterLessonWeek');
+
+        $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblGroup', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Date', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'Remark', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'DateDivisionTeacher', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'serviceTblPersonDivisionTeacher', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'DateHeadmaster', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'serviceTblPersonHeadmaster', self::FIELD_TYPE_BIGINT, true);
     }
 
     /**

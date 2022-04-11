@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -35,6 +36,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -43,11 +45,13 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Home;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
+use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -75,10 +79,12 @@ use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class Frontend extends Extension implements IFrontendInterface
@@ -1892,5 +1898,142 @@ class Frontend extends Extension implements IFrontendInterface
             $dataList,
             Panel::PANEL_TYPE_INFO
         );
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
+    public function frontendLessonWeek(
+        $DivisionId = null,
+        $GroupId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ) {
+        $stage = new Stage('Digitales Klassenbuch', 'Kontrolle');
+
+        $stage->addButton(new Standard(
+            'Zurück', $BasicRoute, new ChevronLeft()
+        ));
+        $tblYear = null;
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if ($tblDivision || $tblGroup) {
+            $content = '';
+            $layoutRow = Digital::useService()->getHeadLayoutRow(
+                $tblDivision ?: null, $tblGroup ?: null, $tblYear
+            );
+            if ($tblYear) {
+                $content = ApiDigital::receiverBlock($this->loadLessonWeekTable($tblYear, $tblDivision ?: null, $tblGroup ?: null), 'LessonWeekContent');
+            }
+            $stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        $layoutRow,
+                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
+                            '/Education/ClassRegister/Digital/LessonWeek', $BasicRoute)
+                    )),
+                    new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        $content
+                    )), new Title(new Ok() . ' Klassentagebuch Kontrolle'))
+                ))
+            );
+        } else {
+            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return string
+     */
+    public function loadLessonWeekTable(TblYear $tblYear, ?TblDivision $tblDivision, ?TblGroup  $tblGroup): string
+    {
+        $content = '';
+        $DivisionId = $tblDivision ? $tblDivision->getId() : null;
+        $GroupId = $tblGroup ? $tblGroup->getId() : null;
+        $YearId = $tblYear->getId();
+
+
+        // todo rechte
+
+        /** @var DateTime $startDate */
+        /** @var DateTime $endDate */
+        list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+        if ($startDate && $endDate) {
+            $dayOfWeek = $startDate->format('w');
+            // wenn Schuljahresbeginn ein Samstag oder Sonntag dann beginne mit der nächsten Woche
+            if ($dayOfWeek == 6 || $dayOfWeek == 0) {
+                $startDate->add(new DateInterval('P7D'));
+            }
+            $startDate = Timetable::useService()->getStartDateOfWeek($startDate);
+            $dataList = array();
+            $count = 0;
+            while ($startDate <= $endDate) {
+                $divisionTeacherText = '';
+                $headmasterText = '';
+                $dateString = $startDate->format('d.m.Y');
+
+                if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivision, $tblGroup, $startDate))) {
+                    if ($tblLessonWeek->getDateDivisionTeacher()) {
+                        $divisionTeacherText = new Success(new Check() . ' am ' . $tblLessonWeek->getDateDivisionTeacher() . ' von '
+                            . (($divisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher())
+                                ? $divisionTeacher->getLastName() : ' bestätigt.'));
+                    } else {
+                        $divisionTeacherText = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
+                            . new PullRight((new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
+                            ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'DivisionTeacher'))
+                        );
+                    }
+
+                    if ($tblLessonWeek->getDateHeadmaster()) {
+                        $headmasterText = new Success(new Check() . ' am ' . $tblLessonWeek->getDateHeadmaster() . ' von '
+                            . (($headmaster = $tblLessonWeek->getServiceTblPersonHeadmaster())
+                                ? $headmaster->getLastName() : ' bestätigt.'));
+                    } else {
+                        $headmasterText = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
+                            . new PullRight((new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
+                                ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'Headmaster'))
+                            );
+                    }
+                } else {
+                    $divisionTeacherText = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
+                        . new PullRight((new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
+                            ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'DivisionTeacher'))
+                        );
+                    $headmasterText = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
+                        . new PullRight((new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
+                            ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'Headmaster'))
+                        );
+                }
+
+                $dataList[] = array(
+                    'Count' => ++$count,
+                    'Name' => 'KW' . $startDate->format('W'),
+                    'DivisionTeacher' => $divisionTeacherText,
+                    'Headmaster' => $headmasterText
+                );
+
+                $startDate->add(new DateInterval('P7D'));
+            }
+
+            $content = new TableData($dataList, null, array(
+                'Count' => '#',
+                'Name' => 'Woche',
+                'DivisionTeacher' => 'Kontrolle Klasserlehrer',
+                'Headmaster' => 'Kontrolle Schulleitung'
+            ), null);
+        }
+
+        return $content;
     }
 }

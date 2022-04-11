@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 use DateTime;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -350,6 +351,104 @@ class Data  extends AbstractData
             TblCourseContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
             TblCourseContent::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
             TblCourseContent::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
+        ));
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     * @param TblYear|null $tblYear
+     * @param $Date
+     * @param $Remark
+     * @param $DateDivisionTeacher
+     * @param TblPerson|null $serviceTblPersonDivisionTeacher
+     * @param $DateHeadmaster
+     * @param TblPerson|null $serviceTblPersonHeadmaster
+     *
+     * @return TblLessonWeek
+     */
+    public function createLessonWeek(
+        ?TblDivision $tblDivision,
+        ?TblGroup $tblGroup,
+        ?TblYear $tblYear,
+        $Date,
+        $Remark,
+        $DateDivisionTeacher,
+        ?TblPerson $serviceTblPersonDivisionTeacher,
+        $DateHeadmaster,
+        ?TblPerson $serviceTblPersonHeadmaster
+    ): TblLessonWeek {
+
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblLessonWeek();
+        $Entity->setServiceTblDivision($tblDivision);
+        $Entity->setServiceTblGroup($tblGroup);
+        $Entity->setServiceTblYear($tblYear);
+        $Entity->setDate($Date ? new DateTime($Date) : null);
+        $Entity->setRemark($Remark);
+        $Entity->setDateDivisionTeacher($DateDivisionTeacher ? new DateTime($DateDivisionTeacher) : null);
+        $Entity->setServiceTblPersonDivisionTeacher($serviceTblPersonDivisionTeacher);
+        $Entity->setDateHeadmaster($DateHeadmaster ? new DateTime($DateHeadmaster) : null);
+        $Entity->setServiceTblPersonHeadmaster($serviceTblPersonHeadmaster);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblLessonWeek $tblLessonWeek
+     * @param $Remark
+     * @param $DateDivisionTeacher
+     * @param TblPerson|null $serviceTblPersonDivisionTeacher
+     * @param $DateHeadmaster
+     * @param TblPerson|null $serviceTblPersonHeadmaster
+     *
+     * @return bool
+     */
+    public function updateLessonWeek(
+        TblLessonWeek $tblLessonWeek,
+        $Remark,
+        $DateDivisionTeacher,
+        ?TblPerson $serviceTblPersonDivisionTeacher,
+        $DateHeadmaster,
+        ?TblPerson $serviceTblPersonHeadmaster
+    ): bool {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblLessonWeek $Entity */
+        $Entity = $Manager->getEntityById('TblLessonWeek', $tblLessonWeek->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setRemark($Remark);
+            $Entity->setDateDivisionTeacher($DateDivisionTeacher ? new DateTime($DateDivisionTeacher) : null);
+            $Entity->setServiceTblPersonDivisionTeacher($serviceTblPersonDivisionTeacher);
+            $Entity->setDateHeadmaster($DateHeadmaster ? new DateTime($DateHeadmaster) : null);
+            $Entity->setServiceTblPersonHeadmaster($serviceTblPersonHeadmaster);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     * @param DateTime $dateTime
+     *
+     * @return false|TblLessonWeek
+     */
+    public function getLessonWeekAllByDate(?TblDivision $tblDivision, ?TblGroup $tblGroup, DateTime $dateTime)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLessonWeek', array(
+            TblLessonWeek::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
+            TblLessonWeek::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null,
+            TblLessonWeek::ATTR_DATE => $dateTime
         ));
     }
 }
