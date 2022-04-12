@@ -44,10 +44,10 @@ class Service extends Extension
                     : '');
                 $PersonAccountList[$tblPerson->getId()]['Identification'] = '';
                 $PersonAccountList[$tblPerson->getId()]['AccountName'] = ($Account
-                    ? utf8_encode($Account->getUsername())
+                    ? $Account->getUsername()
                     : '');
-                $PersonAccountList[$tblPerson->getId()]['FirstName'] = utf8_encode($tblPerson->getFirstName());
-                $PersonAccountList[$tblPerson->getId()]['LastName'] = utf8_encode($tblPerson->getLastName());
+                $PersonAccountList[$tblPerson->getId()]['FirstName'] = $tblPerson->getFirstName();
+                $PersonAccountList[$tblPerson->getId()]['LastName'] = $tblPerson->getLastName();
 
                 // Aktuelle Klasse
                 $Level = '';
@@ -61,10 +61,10 @@ class Service extends Extension
                     }
                 }
 
-                $PersonAccountList[$tblPerson->getId()]['Level'] = utf8_encode($Level);
-                $PersonAccountList[$tblPerson->getId()]['Division'] = utf8_encode($Division);
+                $PersonAccountList[$tblPerson->getId()]['Level'] = $Level;
+                $PersonAccountList[$tblPerson->getId()]['Division'] = $Division;
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                    $PersonAccountList[$tblPerson->getId()]['Identification'] = utf8_encode($tblStudent->getIdentifierComplete());
+                    $PersonAccountList[$tblPerson->getId()]['Identification'] = $tblStudent->getIdentifierComplete();
                 }
 
                 // Sorgeberechtigte, Bevollmächtigte, Vormund
@@ -112,10 +112,10 @@ class Service extends Extension
                                     ? $AccountGuardian->getId()
                                     : '');
                                 $PersonAccountList[$tblPerson->getId()]['Custody'][$tblPersonGuardian->getId()]['AccountName'] = ($AccountGuardian
-                                    ? utf8_encode($AccountGuardian->getUsername())
+                                    ? $AccountGuardian->getUsername()
                                     : '');
-                                $PersonAccountList[$tblPerson->getId()]['Custody'][$tblPersonGuardian->getId()]['FirstName'] = utf8_encode($tblPersonGuardian->getFirstName());
-                                $PersonAccountList[$tblPerson->getId()]['Custody'][$tblPersonGuardian->getId()]['LastName'] = utf8_encode($tblPersonGuardian->getLastName());
+                                $PersonAccountList[$tblPerson->getId()]['Custody'][$tblPersonGuardian->getId()]['FirstName'] = $tblPersonGuardian->getFirstName();
+                                $PersonAccountList[$tblPerson->getId()]['Custody'][$tblPersonGuardian->getId()]['LastName'] = $tblPersonGuardian->getLastName();
                                 $PersonAccountList[$tblPerson->getId()]['Custody'][$tblPersonGuardian->getId()]['Mail'] = '';
                                 if(($tblPersonToMailList = Mail::useService()->getMailAllByPerson($tblPersonGuardian))){
                                     foreach($tblPersonToMailList as $tblPersonToMail){
