@@ -1751,6 +1751,15 @@ class Frontend extends Extension implements IFrontendInterface
                                     'GroupId'    => $GroupId
                                 ))
                             , 3),
+                        new LayoutColumn(
+                            new Link(new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'), ' Klassenbuch'),
+                                '/Api/Document/Standard/ClassRegister/Create', null, array(
+                                    'DivisionId' => $DivisionId,
+                                    'GroupId'    => $GroupId,
+                                    'YearId'     => $tblYear ? $tblYear->getId() : null
+                                ))
+                            , 3),
                     )), new Title(new Download() . ' Download'))
                 ))
             );

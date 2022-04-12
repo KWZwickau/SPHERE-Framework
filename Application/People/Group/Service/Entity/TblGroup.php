@@ -250,6 +250,18 @@ class TblGroup extends Element
     }
 
     /**
+     * @return false|TblCompany
+     */
+    public function getCurrentCompanySingle()
+    {
+        if (($list = $this->getCurrentCompanyList())) {
+            return reset($list);
+        }
+
+        return false;
+    }
+
+    /**
      * @return false|TblDivision[]
      */
     public function getCurrentDivisionList()

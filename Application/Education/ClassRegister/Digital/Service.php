@@ -64,6 +64,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class Service extends AbstractService
 {
@@ -871,6 +872,50 @@ class Service extends AbstractService
 
         return (new TableData($dataList, new Title('Klasse ' . $tblDivision->getDisplayName()), $columns, null))
             ->setHash('Table_Division_' . $tblDivision->getId());
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return array
+     */
+    public function getSubjectsAndLectureshipByDivisionForDownload(TblDivision $tblDivision): array
+    {
+        $dataList = array();
+        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false))) {
+            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
+                    $teacherList = array();
+                    if (($list = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                        $tblDivision, $tblSubject
+                    ))) {
+                        foreach ($list as $item) {
+                            if (($tblSubjectGroup = $item->getTblSubjectGroup())
+                                && ($subList = Division::useService()->getSubjectTeacherList($tblDivision, $tblSubject, $tblSubjectGroup))
+                            ) {
+                                foreach ($subList as $personId => $name) {
+                                    if (!isset($teacherList[$personId])) {
+                                        $teacherList[$personId] = $name;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $teacherList = Division::useService()->getSubjectTeacherList($tblDivision, $tblSubject);
+                    }
+
+                    $dataList[$tblSubject->getAcronym()] = array(
+                        'Subject' => $tblSubject->getDisplayName(),
+//                        'Teacher' => empty($teacherList) ? '&nbsp;' : implode(', ', $teacherList),
+                        'TeacherArray' => $teacherList
+                    );
+                }
+            }
+
+            ksort($dataList);
+        }
+
+        return $dataList;
     }
 
     /**

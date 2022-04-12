@@ -2385,14 +2385,29 @@ class Service extends AbstractService
      *
      * @return string
      */
-    public
-    function getSubjectTeacherNameList(
+    public function getSubjectTeacherNameList(
         TblDivision $tblDivision,
         TblSubject $tblSubject,
         TblSubjectGroup $tblSubjectGroup = null
     ) {
+        $nameList = $this->getSubjectTeacherList($tblDivision, $tblSubject, $tblSubjectGroup);
 
-        $nameList = array();
+        return empty($nameList) ? '' : implode(', ', $nameList);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     *
+     * @return array
+     */
+    public function getSubjectTeacherList(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null
+    ): array {
+        $list = array();
         $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision(
             $tblSubject, $tblDivision
         );
@@ -2412,7 +2427,7 @@ class Service extends AbstractService
                     if ($tblSubjectTeacherList) {
                         foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
                             if ($tblSubjectTeacher->getServiceTblPerson()) {
-                                $nameList[$tblSubjectTeacher->getServiceTblPerson()->getId()]
+                                $list[$tblSubjectTeacher->getServiceTblPerson()->getId()]
                                     = $tblSubjectTeacher->getServiceTblPerson()->getFullName();
                             }
                         }
@@ -2421,7 +2436,7 @@ class Service extends AbstractService
             }
         }
 
-        return empty($nameList) ? '' : implode(', ', $nameList);
+        return $list;
     }
 
     /**
