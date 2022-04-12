@@ -55,7 +55,7 @@ class Frontend extends Extension
             .new Container('Die Daten der Eltern werden automatisch mit ergänzt, wenn entsprechende Benutzeraccounts vorhanden sind.')
         .new Container('Die Spalte "Kind-Nr." wird anhand der Sorgeberechtigtenbeziehungen automatisch generiert und dient zur manuellen Bearbeitung der CSV Datei vor dem
             Import nach itslearning.')
-        .new Container('('.(new Link('Support Indiware', 'https://support.itslearning.com/de/support/solutions/articles/7000057991-nutzerimport-der-erziehungsberechtigten',
+        .new Container('('.(new Link('Support itslearning', 'https://support.itslearning.com/de/support/solutions/articles/7000057991-nutzerimport-der-erziehungsberechtigten',
                     new LinkIcon(), array(), 'Link zu externem Support'))->setExternal().')')
         );
 
