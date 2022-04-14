@@ -1753,7 +1753,8 @@ class Frontend extends Extension implements IFrontendInterface
                             , 3),
                         new LayoutColumn(
                             new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'), ' Klassenbuch'),
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
+                                $tblDivision ? ' Klassentagebuch' : 'Stammgruppentagebuch'),
                                 '/Api/Document/Standard/ClassRegister/Create', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId,
