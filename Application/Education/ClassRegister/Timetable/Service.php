@@ -1,10 +1,11 @@
 <?php
 namespace SPHERE\Application\Education\ClassRegister\Timetable;
 
+use DateTime;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Setup;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -56,12 +57,12 @@ class Service extends AbstractService
 
     /**
      * @param string $Name
-     * @param \DateTime $DateFrom
-     * @param \DateTime $DateTo
+     * @param DateTime $DateFrom
+     * @param DateTime $DateTo
      * @return TblTimetable|null
      * @throws \Exception
      */
-    public function getTimetableByNameAndTime(string $Name, \DateTime $DateFrom, \DateTime $DateTo)
+    public function getTimetableByNameAndTime(string $Name, DateTime $DateFrom, DateTime $DateTo)
     {
         return (new Data($this->getBinding()))->getTimetableByNameAndTime($Name, $DateFrom, $DateTo);
     }
@@ -87,13 +88,38 @@ class Service extends AbstractService
     }
 
     /**
+     * @param DateTime $Date
+     * @param $tblPerson
+     * @param $tblCourse
+     * @param $Hour
+     * @return TblTimetableReplacement[]|null
+     */
+    public function getTimetableReplacementByTime(DateTime $Date, $tblPerson = null, $tblCourse = null, $Hour = null)
+    {
+
+        return (new Data($this->getBinding()))->getTimetableReplacementByTime($Date, $tblPerson, $tblCourse, $Hour);
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblTimetableReplacement[]|bool
+     */
+    public function getTimetableReplacementByDate(DateTime $fromDate, DateTime $toDate)
+    {
+
+        return (new Data($this->getBinding()))->getTimetableReplacementByDate($fromDate, $toDate);
+    }
+
+    /**
      * @param string $Name
      * @param string $Description
-     * @param \DateTime $DateFrom
-     * @param \DateTime $DateTo
+     * @param DateTime $DateFrom
+     * @param DateTime $DateTo
      * @return TblTimetable|null
      */
-    public function createTimetable(string $Name, string $Description, \DateTime $DateFrom, \DateTime $DateTo): ?TblTimetable
+    public function createTimetable(string $Name, string $Description, DateTime $DateFrom, DateTime $DateTo): ?TblTimetable
     {
 
         return (new Data($this->getBinding()))->createTimetable($Name, $Description, $DateFrom, $DateTo);
@@ -138,6 +164,25 @@ class Service extends AbstractService
     }
 
     /**
+     * @param array $ImportList
+     * required ArrayKeys
+     * [hour]
+     * [room]
+     * [subjectGroup]
+     * [Date]
+     * [tblSubject]
+     * [tblCourse]
+     * [tblPerson]
+     *
+     * @return bool
+     */
+    public function createTimetableReplacementBulk($ImportList)
+    {
+
+        return (new Data($this->getBinding()))->createTimetableReplacementBulk($ImportList);
+    }
+
+    /**
      * @param TblTimetable $tblTimetable
      * @return bool
      */
@@ -160,5 +205,14 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroyTimetableAllBulk();
+    }
+
+    /**
+     * @return bool
+     */
+    public function destroyTimetableReplacementBulk($RemoveList): bool
+    {
+
+        return (new Data($this->getBinding()))->destroyTimetableReplacementBulk($RemoveList);
     }
 }

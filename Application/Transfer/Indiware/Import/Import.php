@@ -112,6 +112,8 @@ class Import extends Extension implements IModuleInterface
         }
         $PanelTimetable[] = new PullClear('Stundenplan aus Indiware: '.
             new Center(new Standard('', '/Transfer/Indiware/Import/Timetable', new Upload())));
+        $PanelTimetableReplacement[] = new PullClear('Vertretungsplan aus Indiware: '.
+            new Center(new Standard('', '/Transfer/Indiware/Import/Replacement', new Upload())));
 
         $Stage->setMessage('Importvorbereitung / Daten importieren');
 
@@ -150,6 +152,10 @@ class Import extends Extension implements IModuleInterface
                 , 4),
                 new LayoutColumn(
                     new Panel('Import Stundenplan:', $PanelTimetable
+                        , Panel::PANEL_TYPE_INFO)
+                , 4),
+                new LayoutColumn(
+                    new Panel('Import Vertretungsplan:', $PanelTimetableReplacement
                         , Panel::PANEL_TYPE_INFO)
                 , 4),
             )))))

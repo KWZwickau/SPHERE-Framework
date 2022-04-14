@@ -310,7 +310,7 @@ class TimetableService
                 if($tblYearList){
                     // Suche nach SSW Klasse
                     foreach ($tblYearList as $tblYear) {
-                        //ToDO Change Division to Course
+                        //ToDO Course
                         if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['Course'], $tblYear))) {
                             $Row['tblCourse'] = $tblDivision;
                             break;
