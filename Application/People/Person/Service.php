@@ -307,11 +307,15 @@ class Service extends AbstractService
                 return current($tblPersonListTemp);
             }
         } elseif($Birthday) {
+            $tblPersonListTemp = array();
             foreach($tblPersonList as $tblPerson) {
                 $BirthdayTemp = $tblPerson->getBirthday();
                 if ($Birthday == $BirthdayTemp) {
-                    return $tblPerson;
+                    $tblPersonListTemp[] = $tblPerson;
                 }
+            }
+            if(count($tblPersonListTemp) == 1){
+                return current($tblPersonListTemp);
             }
         } elseif($Code) {
             $tblPersonListTemp = array();
