@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\Api\Document\Standard\Repository\ClassRegister;
 
+use DateInterval;
+use DateTime;
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -10,7 +12,9 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -28,13 +32,25 @@ class ClassRegister extends AbstractDocument
 {
     private ?TblDivision $tblDivision = null;
     private ?TblGroup $tblGroup = null;
-    private ?TblCompany $tblCompany = null;
     private ?TblYear $tblYear = null;
+    private ?TblCompany $tblCompany = null;
+    private array $tblCompanyList = array();
     private string $name = '&nbsp;';
     private string $displayName = '&nbsp;';
     private string $typeName = '&nbsp;';
     private string $tudors = '&nbsp;';
-    private $tblPersonList = array();
+    private array $tblPersonList = array();
+    private array $personNumberAbsenceList = array();
+
+    private array $dayName = array(
+        '0' => 'Sonntag',
+        '1' => 'Montag',
+        '2' => 'Dienstag',
+        '3' => 'Mittwoch',
+        '4' => 'Donnerstag',
+        '5' => 'Freitag',
+        '6' => 'Samstag',
+    );
 
     public function __construct(?TblDivision $tblDivision, ?TblGroup $tblGroup)
     {
@@ -43,8 +59,11 @@ class ClassRegister extends AbstractDocument
             $this->name = 'Klassentagebuch';
             $this->typeName = 'Klasse';
             $this->displayName = $tblDivision->getDisplayName();
-            $this->tblCompany = ($tblDivision->getServiceTblCompany()) ?: null;
             $this->tblYear = ($tblDivision->getServiceTblYear()) ?: null;
+            if (($this->tblCompany = ($tblDivision->getServiceTblCompany()) ?: null)) {
+                $this->tblCompanyList[] = $this->tblCompany;
+            }
+
             if (($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))) {
                 $teachers = array();
                 foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
@@ -64,8 +83,9 @@ class ClassRegister extends AbstractDocument
             $this->name = 'Stammgruppentagebuch';
             $this->typeName = 'Gruppe';
             $this->displayName = $tblGroup->getName();
-            $this->tblCompany = ($tblGroup->getCurrentCompanySingle()) ?: null;
             $this->tblYear = ($tblGroup->getCurrentYear()) ?: null;
+            $this->tblCompany = ($tblGroup->getCurrentCompanySingle()) ?: null;
+            $this->tblCompanyList = ($tblGroup->getCurrentCompanyList()) ?: array();
             $this->tudors = $tblGroup->getTudorsString(false);
             if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                 $this->tblPersonList = (new Extension)->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
@@ -113,11 +133,12 @@ class ClassRegister extends AbstractDocument
         $pageList[] = $this->getCoverSheet();
         $pageList[] = new Page();
         $pageList[] = $this->getFirstPage();
+        // ist erforderlich für Anzeige der Fehlzeiten Schülernummer
         $pageList[] = $this->getStudentPage(true);
         $pageList[] = $this->getStudentPage(false);
-        if ($this->tblDivision) {
-            $pageList[] = $this->getRepresentativeHolidayPage();
-        }
+        $pageList[] = $this->getRepresentativeHolidayPage();
+        $pageList[] = new Page();
+        $this->setLessonContentPageList($pageList);
 
         return $pageList;
     }
@@ -444,11 +465,16 @@ class ClassRegister extends AbstractDocument
         $count = 0;
         /** @var TblPerson $tblPerson */
         foreach ($this->tblPersonList as $tblPerson) {
+            $count++;
+
             if ($IsAddress) {
                 $content = ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : '&nbsp;';
                 $textSize = '14px';
                 $padding = '5px';
                 $height = 'auto';
+
+                // für Fehlzeitenanzeige erforderlich
+                $this->personNumberAbsenceList[$tblPerson->getId()] = $count;
             } else {
                 // Kontakt-Daten
                 $contacts = array();
@@ -459,7 +485,6 @@ class ClassRegister extends AbstractDocument
                 $height = '21px';
             }
 
-            $count++;
             $backgroundColor = $count % 2 ? '#FFF' : '#CCC';
             $slice->addSection((new Section())
                 ->addElementColumn((new Element())
@@ -511,10 +536,31 @@ class ClassRegister extends AbstractDocument
      */
     public function getRepresentativeHolidayPage(): Page
     {
+        $page = (new Page());
+        if ($this->tblDivision) {
+            $page->addSliceArray($this->getRepresentativeSliceList());
+        }
+        $page->addSliceArray($this->getHolidaySliceList());
+
+        return $page;
+    }
+
+    /**
+     * @return array
+     */
+    private function getRepresentativeSliceList(): array
+    {
         $width[1] = '20%';
         $width[2] = '80%';
 
         $padding = '5px';
+
+        $sliceList[] = (new Slice())
+            ->addElement((new Element())
+                ->setContent('Elternvertreter / Klassensprecher')
+                ->styleTextBold()
+                ->styleTextSize('18px')
+            );
 
         $slice = (new Slice())
             ->styleMarginTop('5px')
@@ -595,7 +641,7 @@ class ClassRegister extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight()
                     ->styleHeight('174px')
-                , $width[1])
+                    , $width[1])
                 ->addSliceColumn($subSliceCustody, $width[2])
             )
             ->addSection((new Section())
@@ -610,16 +656,9 @@ class ClassRegister extends AbstractDocument
                 ->addSliceColumn($subSliceRepresentative, $width[2])
             );
 
-        return (new Page())
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Elternvertreter / Klassensprecher')
-                    ->styleTextBold()
-                    ->styleTextSize('18px')
-                )
-            )
-            ->addSlice($slice)
-            ->addSliceArray($this->getHolidaySliceList());
+        $sliceList[] = $slice;
+
+        return $sliceList;
     }
 
     /**
@@ -656,9 +695,9 @@ class ClassRegister extends AbstractDocument
                     , $width[2])
             );
 
-        if ($this->tblYear && $this->tblCompany) {
+        if ($this->tblYear) {
             $list = array();
-            if (($tblYearHolidayAllByYearAndCompany = Term::useService()->getYearHolidayAllByYear($this->tblYear, $this->tblCompany))) {
+            if ($this->tblCompany && ($tblYearHolidayAllByYearAndCompany = Term::useService()->getYearHolidayAllByYear($this->tblYear, $this->tblCompany))) {
                 $list = $tblYearHolidayAllByYearAndCompany;
             }
             if (($tblYearHolidayAllByYear = Term::useService()->getYearHolidayAllByYear($this->tblYear))) {
@@ -708,5 +747,450 @@ class ClassRegister extends AbstractDocument
         $sliceList[] = $slice;
 
         return $sliceList;
+    }
+
+    /**
+     * @param array $pageList
+     */
+    private function setLessonContentPageList(array &$pageList)
+    {
+        if ($this->tblYear) {
+            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($this->tblYear);
+            if ($startDate && $endDate) {
+                $dayOfWeek = $startDate->format('w');
+
+                // wenn Schuljahresbeginn ein Samstag oder Sonntag dann beginne mit der nächsten Woche
+                if ($dayOfWeek == 6 || $dayOfWeek == 0) {
+                    $startDate->add(new DateInterval('P7D'));
+                }
+                $startDate = Timetable::useService()->getStartDateOfWeek($startDate);
+
+                $sliceList = array();
+                while ($startDate <= $endDate) {
+                    $dateString = $startDate->format('d.m.Y');
+                    $dayOfWeek = $startDate->format('w');
+
+                    // Samstag und Sonntag überspringen
+                    if ($dayOfWeek == 6 || $dayOfWeek == 0) {
+                        $startDate->add(new DateInterval('P1D'));
+                        continue;
+                    }
+
+                    // Prüfung, ob die gesamte Woche Ferien sind, dann diese überspringen
+                    if ($dayOfWeek == 1 && Term::useService()->getIsSchoolWeekHoliday($dateString, $this->tblYear, $this->tblCompanyList)) {
+                        $startDate->add(new DateInterval('P7D'));
+                        continue;
+                    }
+
+                    // Montag und Donnerstag
+                    if ($dayOfWeek == 1 || $dayOfWeek == 4) {
+                        if (!empty($sliceList)) {
+                            $pageList[] = (new Page())->addSliceArray($sliceList);
+                            $sliceList = array();
+                        }
+                        // Montag
+                        if ($dayOfWeek == 1) {
+                            $sliceList[] = $this->getHeaderWeekSlice($dateString);
+                        }
+                        $sliceList[] = $this->getLessonContentHeaderSlice();
+                    }
+
+                    $sliceList[] = $this->getLessonContentDaySlice($startDate, $dayOfWeek);
+
+                    // Freitag
+                    if ($dayOfWeek == 5) {
+                        $sliceList[] = $this->getWeekSummarySlice($startDate);
+                    }
+
+                    $startDate->add(new DateInterval('P1D'));
+                }
+
+                // letzte Seite hinzufügen
+                if (!empty($sliceList)) {
+                    $pageList[] = (new Page())->addSliceArray($sliceList);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param DateTime $dateTime
+     * @param int $dayOfWeek
+     *
+     * @return Slice
+     */
+    private function getLessonContentDaySlice(DateTime $dateTime, int $dayOfWeek): Slice
+    {
+        $width[1] = '4%';
+        $width[2] = '4%';
+        $width[3] = '10%';
+        $width[4] = '32%';
+        $width[5] = '32%';
+        $width[6] = '10%';
+        $width[7] = '8%';
+
+        // unterrichtsfreier Tag
+        if ($this->tblYear && $this->tblCompany
+            && ($tblHoliday = Term::useService()->getHolidayByDay($this->tblYear, $dateTime, $this->tblCompany))
+        ) {
+            $count = 10;
+            $isHoliday = true;
+
+            $slice = (new Slice())
+                ->styleBorderAll()
+                ->styleHeight(($count * 28) . 'px')
+                ->styleBackgroundColor('#EEE')
+                ->addElement((new Element())
+                    ->setContent($tblHoliday->getName() . ' (' . $tblHoliday->getTblHolidayType()->getName() . ')')
+                    ->stylePaddingTop('120px')
+                    ->styleAlignCenter()
+                );
+        } else {
+            $isHoliday = false;
+
+            // Fehlzeiten für den Tag ermitteln
+            $divisionList = $this->tblDivision ? array('0' => $this->tblDivision) : array();
+            $groupList = $this->tblGroup ? array('0' => $this->tblGroup) : array();
+            $absenceContent = array();
+            if (($AbsenceList = Absence::useService()->getAbsenceAllByDay($dateTime, null, null, $divisionList, $groupList,
+                $hasTypeOption, null)
+            )) {
+                foreach ($AbsenceList as $Absence) {
+                    if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
+                        if (($tblPerson = $tblAbsence->getServiceTblPerson()) && isset($this->personNumberAbsenceList[$tblPerson->getId()])) {
+                            $item = $this->personNumberAbsenceList[$tblPerson->getId()];
+                            if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
+                                foreach ($tblAbsenceLessonList as $tblAbsenceLesson) {
+                                    if (!isset($absenceContent[$tblAbsenceLesson->getLesson()])) {
+                                        $absenceContent[$tblAbsenceLesson->getLesson()] = array('0' => $item);
+                                    } else {
+                                        $absenceContent[$tblAbsenceLesson->getLesson()][] = $item;
+                                    }
+                                }
+                            } else {
+                                if (!isset($absenceContent['Day'])) {
+                                    $absenceContent['Day'] = array('0' => $item);
+                                } else {
+                                    $absenceContent['Day'][] = $item;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $count = 0;
+            $slice = (new Slice())
+                ->styleBorderTop()
+                ->styleBorderLeft();
+            for ($i = 1; $i < 11; $i++) {
+                // mehrere UEs zur selben Zeit sind möglich
+                if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDateAndLesson($dateTime, $i, $this->tblDivision, $this->tblGroup))) {
+                    foreach ($tblLessonContentList as $tblLessonContent) {
+                        $absence = '';
+                        if (isset($absenceContent['Day'])) {
+                            $absence .= implode(', ', $absenceContent['Day']);
+                        }
+                        if (isset($absenceContent[$i])) {
+                            $absence .= ($absence ? ', ' : '') . implode(', ', $absenceContent[$i]);
+                        }
+
+                        $slice->addSection((new Section())
+                            ->addElementColumn($this->getElement($i . '.')->styleAlignCenter(), $width[2])
+                            ->addElementColumn($this->getElement($tblLessonContent->getDisplaySubject(true)), $width[3])
+                            ->addElementColumn($this->getElement($tblLessonContent->getContent(), 32, 80), $width[4])
+                            ->addElementColumn($this->getElement($tblLessonContent->getHomework(), 32, 80), $width[5])
+                            ->addElementColumn($this->getElement($absence, 11), $width[6])
+                            ->addElementColumn($this->getElement($tblLessonContent->getTeacherString()), $width[7])
+                        );
+                        $count++;
+                    }
+                } else {
+                    $slice->addSection((new Section())
+                        ->addElementColumn($this->getElement($i . '.')->styleAlignCenter(), $width[2])
+                        ->addElementColumn($this->getElement('&nbsp;'), $width[3])
+                        ->addElementColumn($this->getElement('&nbsp;'), $width[4])
+                        ->addElementColumn($this->getElement('&nbsp;'), $width[5])
+                        ->addElementColumn($this->getElement('&nbsp;'), $width[6])
+                        ->addElementColumn($this->getElement('&nbsp;'), $width[7])
+                    );
+                    $count++;
+                }
+            }
+        }
+
+        return (new Slice())
+            ->addSection((new Section())
+                ->addSliceColumn((new Slice())
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->addElement((new Element())
+                        ->setContent($this->setRotatedContent($this->dayName[$dayOfWeek]))
+                        ->styleHeight(($count * 28) . 'px')
+                        ->styleBorderBottom()
+                        ->styleBackgroundColor($isHoliday ? '#EEE' : '#FFF')
+                    )
+                    , $width[1])
+                ->addSliceColumn($slice)
+            );
+    }
+
+    /**
+     * @param DateTime $dateTime
+     *
+     * @return Slice
+     */
+    private function getWeekSummarySlice(DateTime $dateTime): Slice
+    {
+        list($fromDate, $canceledSubjectList, $additionalSubjectList, $subjectList)
+            = Digital::useService()->getCanceledSubjectList($dateTime, $this->tblDivision, $this->tblGroup);
+
+        $slice = (new Slice())->styleBorderLeft();
+        if ($subjectList) {
+            ksort($subjectList);
+
+            $width = 18;
+            $widthString = $width . '%';
+            $widthItemString  = ((100.0 - $width) / count($subjectList)) . '%';
+
+            $sectionHeader = (new Section())->addElementColumn($this->getHeaderElement('Fach'), $widthString);
+            $sectionCanceled = (new Section())->addElementColumn($this->getElement('Anzahl ausgefallene Stunden', 10), $widthString);
+            $sectionAdditional = (new Section())->addElementColumn($this->getElement('Anzahl zusätzlich erteilte Stunden', 10), $widthString);
+
+            foreach ($subjectList as $acronym => $subject) {
+                $sectionHeader->addElementColumn($this->getHeaderElement($acronym), $widthItemString);
+                $sectionCanceled->addElementColumn($this->getElement($canceledSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
+                $sectionAdditional->addElementColumn($this->getElement($additionalSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
+            }
+
+            $slice
+                ->addSection($sectionHeader)
+                ->addSection($sectionCanceled)
+                ->addSection($sectionAdditional);
+        }
+
+        $remark = '';
+        $descriptionDivisionTeacher = 'Klassenlehrerin/Klassenlehrer';
+        $descriptionHeadmaster = 'Schulleiterin/Schulleiter';
+        $divisionTeacher = '&nbsp;';
+        $headmaster = '&nbsp;';
+        if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($this->tblDivision, $this->tblGroup, $fromDate))) {
+            $remark = str_replace("\n", '<br/>', $tblLessonWeek->getRemark());
+            if ($tblLessonWeek->getDateDivisionTeacher()) {
+                $divisionTeacher = $tblLessonWeek->getDateDivisionTeacher();
+                if (($tblPersonDivisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher())) {
+                    $divisionTeacher .= ' ' . $tblPersonDivisionTeacher->getLastName();
+                    if (($salutation = $tblPersonDivisionTeacher->getSalutation())) {
+                        if($salutation == 'Frau') {
+                            $descriptionDivisionTeacher = 'Klassenlehrerin';
+                        } elseif ($salutation == 'Herr') {
+                            $descriptionDivisionTeacher = 'Klassenlehrer';
+                        }
+                    }
+                }
+            }
+            if ($tblLessonWeek->getDateHeadmaster()) {
+                $headmaster = $tblLessonWeek->getDateHeadmaster();
+                if (($tblPersonHeadmaster = $tblLessonWeek->getServiceTblPersonHeadmaster())) {
+                    $headmaster .= ' ' . $tblPersonHeadmaster->getLastName();
+                    if (($salutation = $tblPersonHeadmaster->getSalutation())) {
+                        if($salutation == 'Frau') {
+                            $descriptionHeadmaster = 'Schulleiterin';
+                        } elseif ($salutation == 'Herr') {
+                            $descriptionHeadmaster = 'Schulleiter';
+                        }
+                    }
+                }
+            }
+        }
+
+        // Wochenbemerkung
+        $slice->addElement((new Element())
+            ->setContent($remark ?: '&nbsp;')
+            ->stylePaddingTop('5px')
+            ->stylePaddingLeft('5px')
+            ->styleBorderRight()
+            ->styleBorderBottom()
+            ->styleHeight('200px')
+        );
+
+        // Bestätigung KL und SL
+        $slice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Für die Vollständigkeit der Angaben:')
+                    ->stylePaddingTop('2px')
+                    ->stylePaddingLeft('8px')
+                    ->stylePaddingBottom('15px')
+                    ->styleBorderRight()
+                    , '50%')
+                ->addElementColumn((new Element())
+                    ->setContent('Kenntnis genommen:')
+                    ->stylePaddingTop('2px')
+                    ->stylePaddingLeft('8px')
+                    ->stylePaddingBottom('15px')
+                    ->styleBorderRight()
+                    , '50%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())->setContent('&nbsp;'), '1%')
+                ->addElementColumn((new Element())
+                    ->setContent($divisionTeacher)
+                    ->styleBorderBottom('0.5px')
+                    ->stylePaddingLeft('5px')
+                    , '47%')
+                ->addElementColumn((new Element())->setContent('&nbsp;')->styleBorderRight(), '2%')
+
+                ->addElementColumn((new Element())->setContent('&nbsp;'), '1%')
+                ->addElementColumn((new Element())
+                    ->setContent($headmaster)
+                    ->styleBorderBottom('0.5px')
+                    ->stylePaddingLeft('5px')
+                    , '47%')
+                ->addElementColumn((new Element())->setContent('&nbsp;')->styleBorderRight(), '2%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($descriptionDivisionTeacher)
+                    ->styleTextSize('10px')
+                    ->stylePaddingTop('2px')
+                    ->stylePaddingLeft('8px')
+                    ->stylePaddingBottom('5px')
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                    , '50%')
+                ->addElementColumn((new Element())
+                    ->setContent($descriptionHeadmaster)
+                    ->styleTextSize('10px')
+                    ->stylePaddingTop('2px')
+                    ->stylePaddingLeft('8px')
+                    ->stylePaddingBottom('5px')
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                    , '50%')
+            );
+
+
+        return $slice;
+    }
+
+    /**
+     * @param string $name
+     * @param int $maxStrLengthLine
+     * @param int $cutLength
+     *
+     * @return Element
+     */
+    private function getElement(string $name, int $maxStrLengthLine = 0, int $cutLength = 0): Element
+    {
+        if ($maxStrLengthLine && strlen($name) > $maxStrLengthLine) {
+            // Zulange Texte abschneiden
+            if ($cutLength && strlen($name) > $cutLength) {
+                $name = substr($name, 0, $cutLength);
+            }
+            return (new Element())
+                ->setContent($name !== '' ? $name : '&nbsp;')
+                ->styleTextSize('10px')
+                ->styleHeight('27px')
+                ->styleBorderBottom()
+                ->styleBorderRight()
+                ->stylePaddingLeft('3px');
+        }
+
+        return (new Element())
+            ->setContent($name !== '' ? $name : '&nbsp;')
+            ->styleBorderBottom()
+            ->styleBorderRight()
+            ->stylePaddingLeft('3px')
+            ->stylePaddingTop('5px')
+            ->stylePaddingBottom('5px');
+    }
+
+    /**
+     * @param string $text
+     * @param string $paddingTop
+     * @param string $paddingLeft
+     *
+     * @return string
+     */
+    protected function setRotatedContent(string $text = '&nbsp;', string $paddingTop = '-45px', string $paddingLeft = '-90px'): string
+    {
+
+        return
+            '<div style="padding-top: ' . $paddingTop
+            . '!important;padding-left: ' . $paddingLeft
+            . '!important;transform: rotate(-90deg)!important;">'
+            . $text
+            . '</div>';
+    }
+
+    /**
+     * @return Slice
+     */
+    private function getLessonContentHeaderSlice(): Slice
+    {
+        $width[1] = '4%';
+        $width[2] = '4%';
+        $width[3] = '10%';
+        $width[4] = '32%';
+        $width[5] = '32%';
+        $width[6] = '10%';
+        $width[7] = '8%';
+
+        return (new Slice())
+            ->styleMarginTop('5px')
+            ->styleBorderLeft()
+            ->addSection((new Section())
+                ->addElementColumn($this->getHeaderElement('&nbsp;'), $width[1])
+                ->addElementColumn($this->getHeaderElement('Std.'), $width[2])
+                ->addElementColumn($this->getHeaderElement('Fach'), $width[3])
+                ->addElementColumn($this->getHeaderElement('Unterrichtsgegenstand'), $width[4])
+                ->addElementColumn($this->getHeaderElement('Hausaufgaben'), $width[5])
+                ->addElementColumn((new Element())
+                    ->setContent('Fehlende' . new Container('SuS (Nr.)'))
+                    ->styleAlignCenter()
+                    ->stylePaddingTop('1.5px')
+                    ->stylePaddingBottom('1.5px')
+                    ->styleBackgroundColor('#CCC')
+                    ->styleBorderTop()
+                    ->styleBorderBottom()
+                    ->styleBorderRight()
+                    , $width[6])
+                ->addElementColumn($this->getHeaderElement('Signum'), $width[7])
+            );
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Element
+     */
+    private function getHeaderElement(string $name): Element
+    {
+        return (new Element())
+            ->setContent($name)
+            ->styleAlignCenter()
+            ->stylePaddingTop('10px')
+            ->stylePaddingBottom('10px')
+            ->styleBackgroundColor('#CCC')
+            ->styleBorderTop()
+            ->styleBorderBottom()
+            ->styleBorderRight();
+    }
+
+    /**
+     * @param string $fromDateString
+     *
+     * @return Slice
+     */
+    private function getHeaderWeekSlice(string $fromDateString): Slice
+    {
+        $toDate = new DateTime($fromDateString);
+        $toDate = $toDate->add(new DateInterval('P4D'));
+
+        return (new Slice())->addElement((new Element())
+            ->setContent('Wochenbericht im Klassenbuch vom ' . $fromDateString . ' bis ' . $toDate->format('d.m.Y'))
+            ->styleTextBold()
+        );
     }
 }

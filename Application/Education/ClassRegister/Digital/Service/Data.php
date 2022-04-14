@@ -14,6 +14,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 class Data  extends AbstractData
 {
@@ -169,6 +170,24 @@ class Data  extends AbstractData
             TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
             TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
         ), array(TblLessonContent::ATTR_LESSON => self::ORDER_ASC) );
+    }
+
+    /**
+     * @param DateTime $date
+     * @param int $lesson
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return false|TblLessonContent[]
+     */
+    public function getLessonContentAllByDateAndLesson(DateTime $date, int $lesson, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', array(
+            TblLessonContent::ATTR_DATE => $date,
+            TblLessonContent::ATTR_LESSON => $lesson,
+            TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
+            TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
+        ), array(Element::ENTITY_CREATE => self::ORDER_ASC) );
     }
 
     /**

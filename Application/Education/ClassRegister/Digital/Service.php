@@ -442,6 +442,19 @@ class Service extends AbstractService
     }
 
     /**
+     * @param DateTime $date
+     * @param int $lesson
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return false|TblLessonContent[]
+     */
+    public function getLessonContentAllByDateAndLesson(DateTime $date, int $lesson, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByDateAndLesson($date, $lesson, $tblDivision, $tblGroup);
+    }
+
+    /**
      * @param $Data
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
@@ -941,41 +954,7 @@ class Service extends AbstractService
      */
     public function getCanceledSubjectOverview(DateTime $dateTime, ?TblDivision $tblDivision, ?TblGroup $tblGroup, bool $hasEdit = true)
     {
-        $fromDate = Timetable::useService()->getStartDateOfWeek($dateTime);
-        $toDate = new DateTime($fromDate->format('d.m.Y'));
-        $toDate = $toDate->add(new DateInterval('P4D'));
-
-        $canceledSubjectList = array();
-        $additionalSubjectList = array();
-        if (($tblLessonContentList =  $this->getLessonContentAllByBetween($fromDate, $toDate, $tblDivision, $tblGroup))) {
-            foreach ($tblLessonContentList as $tblLessonContent) {
-                if ($tblLessonContent->getIsCanceled() && ($tblSubject = $tblLessonContent->getServiceTblSubject())) {
-                    if (isset($canceledSubjectList[$tblSubject->getAcronym()])) {
-                        $canceledSubjectList[$tblSubject->getAcronym()]++;
-                    } else {
-                        $canceledSubjectList[$tblSubject->getAcronym()] = 1;
-                    }
-                }
-                if (($tblSubstituteSubject = $tblLessonContent->getServiceTblSubstituteSubject())) {
-                    if (isset($additionalSubjectList[$tblSubstituteSubject->getAcronym()])) {
-                        $additionalSubjectList[$tblSubstituteSubject->getAcronym()]++;
-                    } else {
-                        $additionalSubjectList[$tblSubstituteSubject->getAcronym()] = 1;
-                    }
-                }
-            }
-        }
-
-        $subjectList = array();
-        if ($tblDivision) {
-            $this->setSubjectListByDivision($tblDivision, $subjectList);
-        } elseif ($tblGroup) {
-            if (($tblDivisionList = $tblGroup->getCurrentDivisionList())) {
-                foreach ($tblDivisionList as $tblDivisionItem) {
-                    $this->setSubjectListByDivision($tblDivisionItem, $subjectList);
-                }
-            }
-        }
+        list($fromDate, $canceledSubjectList, $additionalSubjectList, $subjectList) = $this->getCanceledSubjectList($dateTime, $tblDivision, $tblGroup);
 
         if ($subjectList) {
             $columns = array();
@@ -1025,6 +1004,53 @@ class Service extends AbstractService
         }
 
         return '';
+    }
+
+    /**
+     * @param DateTime $dateTime
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return array
+     */
+    public function getCanceledSubjectList(DateTime $dateTime, ?TblDivision $tblDivision, ?TblGroup $tblGroup): array
+    {
+        $fromDate = Timetable::useService()->getStartDateOfWeek($dateTime);
+        $toDate = new DateTime($fromDate->format('d.m.Y'));
+        $toDate = $toDate->add(new DateInterval('P4D'));
+
+        $canceledSubjectList = array();
+        $additionalSubjectList = array();
+        if (($tblLessonContentList = $this->getLessonContentAllByBetween($fromDate, $toDate, $tblDivision, $tblGroup))) {
+            foreach ($tblLessonContentList as $tblLessonContent) {
+                if ($tblLessonContent->getIsCanceled() && ($tblSubject = $tblLessonContent->getServiceTblSubject())) {
+                    if (isset($canceledSubjectList[$tblSubject->getAcronym()])) {
+                        $canceledSubjectList[$tblSubject->getAcronym()]++;
+                    } else {
+                        $canceledSubjectList[$tblSubject->getAcronym()] = 1;
+                    }
+                }
+                if (($tblSubstituteSubject = $tblLessonContent->getServiceTblSubstituteSubject())) {
+                    if (isset($additionalSubjectList[$tblSubstituteSubject->getAcronym()])) {
+                        $additionalSubjectList[$tblSubstituteSubject->getAcronym()]++;
+                    } else {
+                        $additionalSubjectList[$tblSubstituteSubject->getAcronym()] = 1;
+                    }
+                }
+            }
+        }
+
+        $subjectList = array();
+        if ($tblDivision) {
+            $this->setSubjectListByDivision($tblDivision, $subjectList);
+        } elseif ($tblGroup) {
+            if (($tblDivisionList = $tblGroup->getCurrentDivisionList())) {
+                foreach ($tblDivisionList as $tblDivisionItem) {
+                    $this->setSubjectListByDivision($tblDivisionItem, $subjectList);
+                }
+            }
+        }
+        return array($fromDate, $canceledSubjectList, $additionalSubjectList, $subjectList);
     }
 
     /**
