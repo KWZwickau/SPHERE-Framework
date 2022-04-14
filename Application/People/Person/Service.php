@@ -246,11 +246,11 @@ class Service extends AbstractService
         $tblPerson = null;
         if(($tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName))){
             $countPersonList = count($tblPersonList);
-            if($countPersonList == 1){
-                return current($tblPersonList);
+            if($Birthday || $Code) {
+                $tblPerson = $this->getPersonSearchByOptions($tblPersonList, $Birthday, $Code);
             } else {
-                if($Birthday || $Code) {
-                    $tblPerson = $this->getPersonSearchByOptions($tblPersonList, $Birthday, $Code);
+                if($countPersonList == 1){
+                    return current($tblPersonList);
                 }
             }
         } else {
@@ -267,12 +267,13 @@ class Service extends AbstractService
                 }
             }
             if(($tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndSecondNameAndLastName($FirstName, $SecondName, $LastName))){
-                $countPersonList = count($tblPersonList);
-                if($countPersonList == 1){
-                    return current($tblPersonList);
+
+                if($Birthday || $Code) {
+                    $tblPerson = $this->getPersonSearchByOptions($tblPersonList, $Birthday, $Code);
                 } else {
-                    if($Birthday || $Code) {
-                        $tblPerson = $this->getPersonSearchByOptions($tblPersonList, $Birthday, $Code);
+                    $countPersonList = count($tblPersonList);
+                    if ($countPersonList == 1) {
+                        return current($tblPersonList);
                     }
                 }
             }
@@ -338,11 +339,8 @@ class Service extends AbstractService
     public function getPersonAllByNameExtended($FirstName, $LastName, $Birthday = null, $Code = null)
     {
         if(($tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName))){
-            $countPersonList = count($tblPersonList);
-            if($countPersonList != 1) {
-                if ($Birthday || $Code) {
-                    $tblPersonList = $this->getPersonListSearchByOptions($tblPersonList, $Birthday, $Code);
-                }
+            if ($Birthday || $Code) {
+                $tblPersonList = $this->getPersonListSearchByOptions($tblPersonList, $Birthday, $Code);
             }
         } else {
             $NameList = explode(' ', $FirstName);
@@ -357,15 +355,11 @@ class Service extends AbstractService
                     $SecondName .= $NameList[$i];
                 }
             }
+
             if(($tblPersonListTemp = (new Data($this->getBinding()))->getPersonAllByFirstNameAndSecondNameAndLastName($FirstName, $SecondName, $LastName))){
                 $tblPersonList = $tblPersonListTemp;
-                $countPersonList = count($tblPersonList);
-                if($countPersonList >= 1){
-                    return $tblPersonListTemp;
-                } else {
-                    if($Birthday || $Code) {
-                        $tblPersonList = $this->getPersonListSearchByOptions($tblPersonList, $Birthday, $Code);
-                    }
+                if($Birthday || $Code) {
+                    $tblPersonList = $this->getPersonListSearchByOptions($tblPersonList, $Birthday, $Code);
                 }
             }
         }
