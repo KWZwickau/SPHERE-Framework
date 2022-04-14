@@ -304,7 +304,7 @@ class Service extends AbstractService
                 }
             }
             if(count($tblPersonListTemp) == 1){
-                return current($tblPerson);
+                return current($tblPersonListTemp);
             }
         } elseif($Birthday) {
             foreach($tblPersonList as $tblPerson) {
@@ -428,6 +428,7 @@ class Service extends AbstractService
         $tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
 
         if ($tblPersonList) {
+            $tblPersonListTemp = array();
             foreach ($tblPersonList as $tblPerson) {
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if (!$tblCommon) {
@@ -439,8 +440,11 @@ class Service extends AbstractService
                 }
 
                 if ($Birthday == $tblCommonBirthDates->getBirthday()) {
-                    return $tblPerson;
+                    $tblPersonListTemp[] = $tblPerson;
                 }
+            }
+            if(count($tblPersonListTemp) == 1){
+                return current($tblPersonListTemp);
             }
         }
         return false;
