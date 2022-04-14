@@ -290,6 +290,7 @@ class Service extends AbstractService
     private function getPersonSearchByOptions($tblPersonList, $Birthday, $Code)
     {
         if($Birthday && $Code){
+            $tblPersonListTemp = array();
             foreach($tblPersonList as $tblPerson){
                 $CodeTemp = null;
                 if(($tblAddress = Address::useService()->getAddressByPerson($tblPerson))){
@@ -299,8 +300,11 @@ class Service extends AbstractService
                 }
                 $BirthdayTemp = $tblPerson->getBirthday();
                 if($Birthday == $BirthdayTemp && $Code == $CodeTemp){
-                    return $tblPerson;
+                    $tblPersonListTemp[] = $tblPerson;
                 }
+            }
+            if(count($tblPersonListTemp) == 1){
+                return current($tblPerson);
             }
         } elseif($Birthday) {
             foreach($tblPersonList as $tblPerson) {
