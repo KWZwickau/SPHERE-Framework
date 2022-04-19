@@ -117,7 +117,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         )
                                     )
                                 )
-                                , 12)
+                            , 12)
                         ), new Title(new Listing().' Übersicht')
                     )
                 )
@@ -626,12 +626,16 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setTitle('Auswertung');
         $Stage->setDescription('Lehrerliste');
 
-        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER));
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF));
         $PersonList = Person::useService()->createTeacherList();
         if ($PersonList) {
             $Stage->addButton(
-                new Primary('Herunterladen',
+                new Primary('Download Mitarbeiterliste',
                     '/Api/Reporting/Custom/Gersdorf/Common/TeacherList/Download', new Download())
+            );
+            $Stage->addButton(
+                new Primary('Download Lehrerliste',
+                    '/Api/Reporting/Custom/Gersdorf/Common/TeacherList/Download', new Download(), array('isTeacher' => true))
             );
             $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
@@ -644,12 +648,14 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($PersonList, null,
                                 array(
-                                    'Number'   => '#',
-                                    'Name'     => 'Name',
-                                    'Gender'   => 'Geschlecht',
-                                    'Address'  => 'Anschrift',
-                                    'Phone'    => 'Telefon',
-                                    'Birthday' => 'Geburtsdatum',
+                                    'Number'    => '#',
+                                    'LastName'  => 'Name',
+                                    'FirstName' => 'Vorname',
+                                    'Gender'    => 'Geschlecht',
+                                    'Address'   => 'Anschrift',
+                                    'Phone'     => 'Telefon',
+                                    'Birthday'  => 'Geburtsdatum',
+                                    'Group'     => 'Personengruppe',
                                 ),
                                 array(
                                     "columnDefs" => array(

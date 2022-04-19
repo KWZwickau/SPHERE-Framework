@@ -22,6 +22,7 @@ class Transfer implements IApplicationInterface
         ApiAppointmentGrade::registerApi();
         AppointmentGrade::registerModule();
         Meta::registerModule();
+        \SPHERE\Application\Api\Transfer\Untis\Meta\Meta::registerModule();
         ErrorExcel::registerModule();
         ItsLearning::registerModule();
     }

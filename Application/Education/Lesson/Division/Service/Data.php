@@ -477,6 +477,10 @@ class Data extends AbstractData
                             $key = $tblDivisionStudent->getSortOrder() !== null
                                 ? $tblDivisionStudent->getSortOrder()
                                 : $max + $count++;
+                            // falls die Sortiernummer schon vorhanden ist
+                            if (isset($EntityList[$key])) {
+                                $key .= '_' . $tblSubjectStudent->getServiceTblPerson()->getId();
+                            }
                             $EntityList[$key] = $tblSubjectStudent->getServiceTblPerson();
                         }
                     } else {

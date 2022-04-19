@@ -2418,4 +2418,34 @@ class Service extends ServiceScoreRule
 
         return $protocol;
     }
+
+    /**
+     * @param TblGrade $tblGrade
+     * @param TblPeriod $tblPeriod
+     *
+     * @return bool
+     */
+    public function isAppointedDateGradeInPeriod(TblGrade $tblGrade, TblPeriod $tblPeriod): bool
+    {
+        $dateFromPeriod = $tblPeriod->getFromDate();
+        $dateToPeriod = $tblPeriod->getToDate();
+        if (($tblTest = $tblGrade->getServiceTblTest())) {
+            $dateGrade = $tblTest->getDate();
+        } else {
+            $dateGrade = false;
+        }
+        if ($dateFromPeriod && $dateToPeriod && $dateGrade) {
+            // Karenzzeit fürs Halbjahr
+            $dateInterval = new \DateInterval('P21D');
+            $dateFromPeriod = (new DateTime($dateFromPeriod))->add($dateInterval);
+            $dateToPeriod = (new DateTime($dateToPeriod))->add($dateInterval);
+            $dateGrade = new DateTime($dateGrade);
+
+            if ($dateGrade > $dateFromPeriod && $dateGrade < $dateToPeriod) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

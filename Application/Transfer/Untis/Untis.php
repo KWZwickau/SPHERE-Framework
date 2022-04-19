@@ -2,7 +2,8 @@
 namespace SPHERE\Application\Transfer\Untis;
 
 use SPHERE\Application\IApplicationInterface;
-//use SPHERE\Application\Transfer\Untis\Export\Lectureship as ExportLectureship;
+use SPHERE\Application\Transfer\Untis\Export\Export;
+use SPHERE\Application\Transfer\Untis\Export\Meta\Meta;
 use SPHERE\Application\Transfer\Untis\Import\Import;
 use SPHERE\Application\Transfer\Untis\Import\Lectureship as ImportLectureship;
 use SPHERE\Application\Transfer\Untis\Import\StudentCourse as ImportStudentCourse;
@@ -23,6 +24,8 @@ class Untis implements IApplicationInterface
         Import::registerModule();
         ImportLectureship::registerModule();
         ImportStudentCourse::registerModule();
+        Meta::registerModule();
+        Export::registerModule();
         ImportTimetable::registerModule();
 //        ExportLectureship::registerModule();
 

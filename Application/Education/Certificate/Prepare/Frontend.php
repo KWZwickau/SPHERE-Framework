@@ -3229,6 +3229,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             $tableHeaderList = array();
             $divisionList = array();
             $divisionPersonList = array();
+            $averageGradeList = array();
 
             if ($tblPrepareList
                 && $tblGenerateCertificate
@@ -3272,6 +3273,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     $tblSubject = $tblTest->getServiceTblSubject();
                                     if ($tblSubject && $tblTest->getServiceTblDivision()) {
                                         $tableHeaderList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
+                                        $studentList[0][$tblSubject->getAcronym()] = '';
 
                                         $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
                                             $tblTest->getServiceTblDivision(),
@@ -3297,7 +3299,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                                     $tblTest, $tblSubject, $tblPerson, $studentList,
                                                                     $tblDivisionSubject->getTblSubjectGroup()
                                                                         ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                                                    $tblPrepareItem
+                                                                    $tblPrepareItem,
+                                                                    $averageGradeList
                                                                 );
                                                             }
                                                         }
@@ -3329,7 +3332,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                                 $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                                     $tblTest, $tblSubject, $tblPerson, $studentList,
                                                                     null,
-                                                                    $tblPrepareItem);
+                                                                    $tblPrepareItem,
+                                                                    $averageGradeList
+                                                                );
                                                             }
                                                         }
                                                     }
@@ -3351,6 +3356,17 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     if (!isset($studentList[$personId][$column])) {
                         $studentList[$personId][$column] = '';
                     }
+                }
+            }
+
+            // Durchschnitte pro Fach-Klasse
+            $studentList[0]['Number'] = '';
+            $studentList[0]['Name'] = new Muted('&#216; Fach-Klasse');
+            foreach ($averageGradeList as $subjectId => $grades) {
+                $countGrades = count($grades);
+                if (($item = Subject::useService()->getSubjectById($subjectId))) {
+                    $studentList[0][$item->getAcronym()] = $countGrades > 0
+                        ? round(array_sum($grades) / $countGrades, 2) : '';
                 }
             }
 
@@ -3410,7 +3426,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
         TblPerson $tblPerson,
         $studentList,
         TblSubjectGroup $tblSubjectGroup = null,
-        TblPrepareCertificate $tblPrepare = null
+        TblPrepareCertificate $tblPrepare = null,
+        &$averageGradeList = array()
     ) {
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
@@ -3447,6 +3464,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             }
 
             $gradeValue = $tblGrade->getGrade();
+
+            if ($gradeValue !== null && $gradeValue !== '') {
+                $averageGradeList[$tblSubject->getId()][$tblPerson->getId()] = $gradeValue;
+            }
 
             $isGradeInRange = true;
             if ($average !== ' ' && $average && $gradeValue !== null) {

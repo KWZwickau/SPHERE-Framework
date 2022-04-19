@@ -44,6 +44,7 @@ class AccountingDownload implements IModuleInterface
      */
     public function downloadAccountingList()
     {
+        ini_set('memory_limit', '1G');
 
         if(($ExcelContent = Export::useService()->getAccountingContentByGroup())){
 

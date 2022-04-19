@@ -1585,7 +1585,7 @@ class Frontend extends FrontendScoreRule
 
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
                                 $tblTestType, $isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror,
-                                $tableHeaderList, true);
+                                $tableHeaderList, true, false);
                         }
                     }
                 }
@@ -2607,18 +2607,25 @@ class Frontend extends FrontendScoreRule
         $gradeMirror = array();
         $testAverage = Gradebook::useService()->getAverageByTest($tblTest, $gradeMirror);
         $description = $tblTest->getDescription();
-        $text = new Small(new Muted($date)) . '<br>'
-            . ($tblTest->getServiceTblGradeType()->isHighlighted()
-                ? $tblTest->getServiceTblGradeType()->getCode()
-                : new Muted($tblTest->getServiceTblGradeType()->getCode()));
-
+        $tblGradeTypeTest = $tblTest->getServiceTblGradeType();
+        $text = new Small(new Muted($date)) . '<br>';
+        if ($tblGradeTypeTest) {
+            $alternativeDescription = '';
+            $text .= $tblGradeTypeTest->isHighlighted()
+                    ? $tblGradeTypeTest->getCode()
+                    : new Muted($tblGradeTypeTest->getCode());
+        } else {
+            // Stichtagsnote
+            $text .= 'SN';
+            $alternativeDescription = 'Stichtagsnote';
+        }
 
         if ($showDivisionInToolTip && ($tblDivision = $tblTest->getServiceTblDivision())) {
             $toolTip = 'Klasse: ' . $tblDivision->getDisplayName() . '<br />';
         } else {
             $toolTip = '';
         }
-        $toolTip .= $description ? 'Thema: ' . $description : '';
+        $toolTip .= $description ? 'Thema: ' . $description : $alternativeDescription;
         if ($isShownGradeMirror) {
             if (!empty($gradeMirror)) {
                 $toolTip .= ($toolTip ? '<br />' : '');
@@ -2689,6 +2696,7 @@ class Frontend extends FrontendScoreRule
      * @param $isShownGradeMirror
      * @param $tableHeaderList
      * @param $isParentView
+     * @param $isShownAppointedDateGrade
      */
     private function setGradeOverview(
         TblYear $tblYear,
@@ -2701,11 +2709,13 @@ class Frontend extends FrontendScoreRule
         $isShownDivisionSubjectScore,
         $isShownGradeMirror,
         $tableHeaderList,
-        $isParentView
+        $isParentView,
+        $isShownAppointedDateGrade
     ) {
 
         /** @var TblDivision $tblDivision */
         foreach ($divisionList as $tblDivision) {
+            $tblTestTypeAppointedDateTask = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
             if ($tblDivision && $tblDivision->getServiceTblYear()) {
                 // alle Klassen zum aktuellen Jahr
                 if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()) {
@@ -2758,15 +2768,25 @@ class Frontend extends FrontendScoreRule
                                         $tableDataList[$tblSubject->getId()]['Subject'] = $tblSubject->getName();
 
                                         if ($tblPeriodList) {
-                                            if ($isParentView
-                                                && ($tblTestTypeAppointedDateTask = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))
-                                            ) {
+                                            if ($isParentView && $tblTestTypeAppointedDateTask) {
                                                 $tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestTypeAppointedDateTask);
                                                 if ($tblTaskList) {
                                                     $tblTaskList = $this->getSorter($tblTaskList)->sortObjectBy('Date', new DateTimeSorter(), Sorter::ORDER_DESC);
                                                 }
                                             } else {
                                                 $tblTaskList = false;
+                                            }
+
+                                            // Stichtagsnoten anzeigen
+                                            if ($isShownAppointedDateGrade) {
+                                                $appointedDateGradeList = Gradebook::useService()->getGradesAllByStudentAndYearAndSubject(
+                                                    $tblPerson,
+                                                    $tblYear,
+                                                    $tblSubject,
+                                                    $tblTestTypeAppointedDateTask
+                                                );
+                                            } else {
+                                                $appointedDateGradeList = false;
                                             }
 
                                             /**@var TblPeriod $tblPeriod **/
@@ -2779,6 +2799,19 @@ class Frontend extends FrontendScoreRule
                                                     $tblTestType,
                                                     $tblPeriod
                                                 );
+
+                                                // Stichtagsnoten den Halbjahren zuordnen
+                                                if ($appointedDateGradeList) {
+                                                    if (!$tblGradeList) {
+                                                        $tblGradeList = array();
+                                                    }
+                                                    /**@var TblGrade $appointedDateGrade **/
+                                                    foreach ($appointedDateGradeList as $appointedDateGrade) {
+                                                        if (Gradebook::useService()->isAppointedDateGradeInPeriod($appointedDateGrade, $tblPeriod)) {
+                                                            $tblGradeList[] = $appointedDateGrade;
+                                                        }
+                                                    }
+                                                }
 
                                                 $subTableHeaderList = array();
                                                 $subTableDataList = array();
@@ -2898,7 +2931,9 @@ class Frontend extends FrontendScoreRule
                                                                     $showDivisionInToolTip
                                                                 );
 
-                                                                $gradeListForAverage[] = $tblGrade;
+                                                                if ($tblGrade->getTblGradeType()) {
+                                                                    $gradeListForAverage[] = $tblGrade;
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -3085,9 +3120,17 @@ class Frontend extends FrontendScoreRule
             $tableHeaderList['Name'] = 'Name';
             $tableHeaderList['Integration'] = 'Integration';
             $tblDivisionList = array();
+            $sumSubjectAverage = array();
+            $countSubjectAverage = array();
+            $averageData = array(
+                'Number' => '',
+                'Name' => new Muted('&#216; Fach-Klasse'),
+                'Integration' => ''
+            );
 
             if ($tblGroup) {
                 $tableHeaderList['Division'] = 'Klasse';
+                $averageData['Division'] = '';
                 if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                     foreach ($tblPersonList as $tblPerson) {
                         if (($tblDivisionListByPerson = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
@@ -3141,6 +3184,7 @@ class Frontend extends FrontendScoreRule
             }
             if ($showCourse) {
                 $tableHeaderList['Course'] = 'Bildungsgang';
+                $averageData['Course'] = '';
             }
 
             $SubjectList = array();
@@ -3164,6 +3208,9 @@ class Frontend extends FrontendScoreRule
             if (!empty($SubjectList)) {
                 foreach ($SubjectList as $Acronym => $SubjectId) {
                     $tableHeaderList[$SubjectId . 'Id'] = $Acronym;
+                    $averageData[$SubjectId . 'Id'] = '';
+                    $sumSubjectAverage[$SubjectId . 'Id'] = 0;
+                    $countSubjectAverage[$SubjectId . 'Id'] = 0;
                 }
             }
 
@@ -3267,6 +3314,9 @@ class Frontend extends FrontendScoreRule
                                             $average = 'Fehler';
                                         } elseif (is_string($average) && strpos($average, '(')) {
                                             $average = substr($average, 0, strpos($average, '('));
+
+                                            $sumSubjectAverage[$tblSubject->getId() . 'Id'] += $average;
+                                            $countSubjectAverage[$tblSubject->getId() . 'Id']++;
                                         }
 
 
@@ -3305,6 +3355,14 @@ class Frontend extends FrontendScoreRule
                     $studentTable[] = $data;
                 }
             }
+
+            foreach($sumSubjectAverage as $key => $value) {
+                if (isset($countSubjectAverage[$key])) {
+                    $averageData[$key] = $countSubjectAverage[$key] > 0
+                        ? '&#216; ' . round($value / $countSubjectAverage[$key], 2) : '';
+                }
+            }
+            $studentTable[] = $averageData;
 
             $Stage->addButton(new External(
                 'Alle Schülerübersichten dieser Klasse herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
@@ -3474,10 +3532,12 @@ class Frontend extends FrontendScoreRule
         if ($IsParentView) {
              list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear)
                  = $this->getConsumerSettingsForGradeOverview();
+            $isShownAppointedDateGrade = false;
         } else {
             $isShownAverage = true;
             $isShownDivisionSubjectScore = true;
             $isShownGradeMirror = true;
+            $isShownAppointedDateGrade = true;
             $tblSchoolTypeList = false;
             $startYear = '';
         }
@@ -3530,7 +3590,7 @@ class Frontend extends FrontendScoreRule
 
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
                                 $tblTestType, $isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror,
-                                $tableHeaderList, $IsParentView);
+                                $tableHeaderList, $IsParentView, $isShownAppointedDateGrade);
                         }
                     }
                 }

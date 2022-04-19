@@ -177,6 +177,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     public function frontendDebtorView($GroupId = null)
     {
+        ini_set('memory_limit', '256M');
 
         $GroupName = '';
         if(($tblGroup = Group::useService()->getGroupById($GroupId))){
