@@ -371,6 +371,8 @@ class Data extends AbstractData
                 $Entity->setDate($Row['Date']);
                 $Entity->setHour($Row['hour']);
                 $Entity->setRoom($Row['room']);
+                //ToDO aus Import übermitteln
+                $Entity->setIsCanceled(false);
                 $Entity->setSubjectGroup($Row['subjectGroup']);
                 $Entity->setServiceTblSubject($Row['tblSubject']);
                 $Entity->setServiceTblCourse($Row['tblCourse']);

@@ -115,6 +115,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Date', self::FIELD_TYPE_DATETIME);
         $this->createColumn($Table, 'Hour', self::FIELD_TYPE_SMALLINT); // 1 - 12
         $this->createColumn($Table, 'Room', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IsCanceled', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->createColumn($Table, 'SubjectGroup', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);

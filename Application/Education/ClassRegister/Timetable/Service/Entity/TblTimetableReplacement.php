@@ -24,6 +24,7 @@ class TblTimetableReplacement extends Element
     const ATTR_DATE = 'Date';
     const ATTR_HOUR = 'Hour';
     const ATTR_ROOM = 'Room';
+    const ATTR_IS_CANCELED = 'IsCanceled';
     const ATTR_SUBJECT_GROUP = 'SubjectGroup';
     const ATTR_SERVICE_TBL_COURSE = 'serviceTblCourse';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
@@ -42,6 +43,10 @@ class TblTimetableReplacement extends Element
      * @Column(type="string")
      */
     protected string $Room;
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsCanceled;
     /**
      * @Column(type="string")
      */
@@ -136,6 +141,25 @@ class TblTimetableReplacement extends Element
     {
 
         $this->Room = $Room;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIsCanceled():string
+    {
+
+        return $this->IsCanceled;
+    }
+
+    /**
+     * @param bool $IsCanceled
+     * @return void
+     */
+    public function setIsCanceled(bool $IsCanceled): void
+    {
+
+        $this->IsCanceled = $IsCanceled;
     }
 
     /**
