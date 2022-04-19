@@ -273,7 +273,7 @@ class Service extends AbstractService
                 || ($tblGroup && ($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
                     && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson))
-                || strpos($BasicRoute, 'Headmaster')
+                || Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting')
             )
         ) {
             $buttonList[] = $this->getButton('Klassentagebuch Kontrolle', '/Education/ClassRegister/Digital/LessonWeek', new Ok(),

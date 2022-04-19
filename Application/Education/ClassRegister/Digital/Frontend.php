@@ -1749,7 +1749,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
-                            , 3),
+                            , 2),
                         new LayoutColumn(
                             new Link(new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $name . ' Krankenakte'),
@@ -1757,15 +1757,15 @@ class Frontend extends Extension implements IFrontendInterface
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
-                            , 3),
+                            , 2),
                         new LayoutColumn(
                             new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständniserklärung'),
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständnis&shy;erklärung'),
                                 '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
-                            , 3),
+                            , 2),
                         new LayoutColumn(
                             new Link(new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnisrelevante Fehlzeiten'),
@@ -1773,17 +1773,17 @@ class Frontend extends Extension implements IFrontendInterface
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
-                            , 3),
+                            , 2),
                         new LayoutColumn(
                             new Link(new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
-                                $tblDivision ? ' Klassentagebuch' : 'Stammgruppentagebuch'),
+                                $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'),
                                 '/Api/Document/Standard/ClassRegister/Create', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId,
                                     'YearId'     => $tblYear ? $tblYear->getId() : null
                                 ))
-                            , 3),
+                            , 2),
                     )), new Title(new Download() . ' Download'))
                 ))
             );
@@ -1968,7 +1968,7 @@ class Frontend extends Extension implements IFrontendInterface
                     && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson))
             );
-        $hasHeadmasterRight = strpos($BasicRoute, 'Headmaster');
+        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
 
         if ($tblDivision || $tblGroup) {
             $content = '';
