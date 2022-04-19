@@ -11,6 +11,8 @@ use SPHERE\Application\Api\Document\Standard\Repository\Account\AccountApp;
 use SPHERE\Application\Api\Document\Standard\Repository\Account\AccountToken;
 use SPHERE\Application\Api\Document\Standard\Repository\Billing\Billing;
 use SPHERE\Application\Api\Document\Standard\Repository\Billing\DocumentWarning;
+use SPHERE\Application\Api\Document\Standard\Repository\ClassRegister\ClassRegister;
+use SPHERE\Application\Api\Document\Standard\Repository\ClassRegister\CourseContent;
 use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
@@ -31,7 +33,9 @@ use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
@@ -1108,5 +1112,83 @@ class Creator extends Extension
         }
 
         return "Keine Schulbescheinigungen vorhanden!";
+    }
+
+    /**
+     * @param $DivisionId
+     * @param $GroupId
+     * @param $YearId
+     * @param $Redirect
+     *
+     * @return string
+     */
+    public static function createClassRegisterPdf($DivisionId, $GroupId, $YearId, $Redirect): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/ClassRegister/Create',
+                array(
+                    'DivisionId' => $DivisionId,
+                    'GroupId' => $GroupId,
+                    'YearId' => $YearId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        $tblGroup = false;
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
+            || ($tblGroup = Group::useService()->getGroupById($GroupId))
+        ) {
+            $Document = new ClassRegister($tblDivision ?: null, $tblGroup ?: null);
+            $pageList[] = $Document->getPageList();
+
+            $File = self::buildDummyFile($Document, array(), $pageList);
+
+            $FileName = $Document->getName() . ' ' . date("Y-m-d") . ".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return "Kein Klassenbuch vorhanden!";
+    }
+
+    /**
+     * @param $DivisionId
+     * @param $SubjectId
+     * @param $SubjectGroupId
+     * @param $Redirect
+     *
+     * @return string
+     */
+    public static function createCourseContentPdf($DivisionId, $SubjectId, $SubjectGroupId, $Redirect): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/CourseContent/Create',
+                array(
+                    'DivisionId' => $DivisionId,
+                    'SubjectId' => $SubjectId,
+                    'SubjectGroupId' => $SubjectGroupId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
+            && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
+            && ($tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId))
+        ) {
+            $Document = new CourseContent($tblDivision, $tblSubject, $tblSubjectGroup);
+            $pageList[] = $Document->getPageList();
+
+            $File = self::buildDummyFile($Document, array(), $pageList);
+
+            $FileName = $Document->getName() . ' ' . date("Y-m-d") . ".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return "Kein Kursheft vorhanden!";
     }
 }

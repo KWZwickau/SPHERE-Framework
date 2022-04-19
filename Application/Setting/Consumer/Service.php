@@ -3,6 +3,7 @@ namespace SPHERE\Application\Setting\Consumer;
 
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Service\Data;
@@ -330,5 +331,38 @@ class Service extends AbstractService
         $identifier
     ) {
         return (new Data($this->getBinding()))->getAccountDownloadLock($tblAccount, $identifier);
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $Value
+     */
+    public function createAccountSetting(
+        string $Identifier,
+        string $Value
+    ) {
+        if (($tblAccount = Account::useService()->getAccountBySession())) {
+            (new Data($this->getBinding()))->createAccountSetting(
+                $tblAccount,
+                $Identifier,
+                $Value
+            );
+        }
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return string|false
+     */
+    public function getAccountSettingValue(
+        string $Identifier
+    ) {
+        if (($tblAccount = Account::useService()->getAccountBySession())
+            && ($tblAccountSetting = (new Data($this->getBinding()))->getAccountSetting($tblAccount, $Identifier))) {
+            return $tblAccountSetting->getValue();
+        } else {
+            return false;
+        }
     }
 }

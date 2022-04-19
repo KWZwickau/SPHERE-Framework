@@ -1175,7 +1175,7 @@ class Service extends AbstractService
      *
      * @return bool|Layout
      */
-    public function getTeacherWelcome(TblPerson $tblPerson)
+    public function getTeacherWelcomeGradeTask(TblPerson $tblPerson)
     {
 
         $appointedDateTaskList = array();

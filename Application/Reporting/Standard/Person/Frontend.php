@@ -153,7 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-        $PersonList = Person::useService()->createClassList($tblDivision);
+        $PersonList = Person::useService()->createClassList($tblPersonList);
 
         if ($tblDivision) {
             if ($PersonList) {

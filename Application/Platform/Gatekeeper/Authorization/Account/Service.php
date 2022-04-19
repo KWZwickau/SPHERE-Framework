@@ -1174,4 +1174,19 @@ class Service extends AbstractService
 
         return false;
     }
+
+    /**
+     * @return false|TblPerson
+     */
+    public function getPersonByLogin()
+    {
+        $tblPerson = false;
+        if (($tblAccount = $this->getAccountBySession())
+            && ($tblPersonAllByAccount = $this->getPersonAllByAccount($tblAccount))
+        ) {
+            $tblPerson = $tblPersonAllByAccount[0];
+        }
+
+        return $tblPerson;
+    }
 }

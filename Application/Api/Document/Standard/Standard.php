@@ -75,6 +75,12 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/EnrollmentDocument/CreateMulti', __CLASS__ . '::createEnrollmentDocumentMultiPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/ClassRegister/Create', __CLASS__ . '::createClassRegisterPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/CourseContent/Create', __CLASS__ . '::createCourseContentPdf'
+        ));
     }
 
     /**
@@ -227,6 +233,32 @@ class Standard extends Extension implements IModuleInterface
     public static function createEnrollmentDocumentMultiPdf(string $DivisionId, bool $Redirect = true): string
     {
         return Creator::createMultiEnrollmentDocumentPdf($DivisionId, $Redirect);
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param null $YearId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createClassRegisterPdf($DivisionId = null, $GroupId = null, $YearId = null, bool $Redirect = true): string
+    {
+        return Creator::createClassRegisterPdf($DivisionId, $GroupId, $YearId, $Redirect);
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $SubjectId
+     * @param null $SubjectGroupId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createCourseContentPdf($DivisionId = null, $SubjectId = null, $SubjectGroupId = null, bool $Redirect = true): string
+    {
+        return Creator::createCourseContentPdf($DivisionId, $SubjectId, $SubjectGroupId, $Redirect);
     }
 
     /**

@@ -29,6 +29,7 @@ class Setup extends AbstractSetup
         $this->setTableSetting($Schema);
         $this->setTableStudentCustody($Schema);
         $this->setTableAccountDownloadLock($Schema);
+        $this->setTableAccountSetting($Schema);
 
         /**
          * Migration & Protocol
@@ -90,5 +91,18 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'IsLockedLastLoad', self::FIELD_TYPE_BOOLEAN);
 
         $this->createIndex($table, array('serviceTblAccount'));
+    }
+
+    /**
+     * @param Schema $Schema
+     */
+    private function setTableAccountSetting(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblAccountSetting');
+        $this->createColumn($table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Value', self::FIELD_TYPE_STRING);
+
+        $this->createIndex($table, array('serviceTblAccount', 'Identifier'));
     }
 }

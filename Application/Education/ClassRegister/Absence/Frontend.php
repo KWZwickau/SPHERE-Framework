@@ -11,6 +11,7 @@ namespace SPHERE\Application\Education\ClassRegister\Absence;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -40,6 +41,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -53,6 +55,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -67,27 +70,28 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $DivisionId
      * @param null $PersonId
      * @param string $BasicRoute
+     * @param string $ReturnRoute
+     * @param null $GroupId
      *
-     * @return Stage|string
+     * @return string
      */
-    public function frontendAbsence(
-        $DivisionId = null,
-        $PersonId = null,
-        $BasicRoute = '/Education/ClassRegister/Teacher'
-    ) {
-
-        $Stage = new Stage('Fehlzeiten', 'Übersicht');
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $Stage->addButton(new Standard(
-                'Zurück', $BasicRoute . '/Selected', new ChevronLeft(),
-                array('DivisionId' => $tblDivision->getId())
-            ));
-        } else {
-            $Stage->addButton(new Standard(
-                'Zurück', $BasicRoute, new ChevronLeft()
-            ));
+    public function frontendAbsenceStudent($DivisionId = null, $PersonId = null, string $BasicRoute = '', string $ReturnRoute = '',
+        $GroupId = null): string
+    {
+        $Stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten Übersicht des Schülers');
+        if ($ReturnRoute) {
+            $Stage->addButton(new Standard('Zurück', $ReturnRoute, new ChevronLeft(),
+                    array(
+                        'DivisionId' => $GroupId ? null : $DivisionId,
+                        'GroupId'    => $GroupId,
+                        'BasicRoute' => $BasicRoute,
+                    ))
+            );
         }
+
+//
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblPerson = Person::useService()->getPersonById($PersonId);
         if ($tblPerson && $tblDivision) {
             $Stage->setContent(
@@ -100,7 +104,14 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblPerson->getLastFirstName(),
                                         Panel::PANEL_TYPE_INFO
                                     )
-                                ))
+                                ), 6),
+                                new LayoutColumn(array(
+                                    new Panel(
+                                        'Klasse, Schulart',
+                                        $tblDivision->getDisplayName() . ', ' . $tblDivision->getTypeName(),
+                                        Panel::PANEL_TYPE_INFO
+                                    )
+                                ), 6)
                             ))
                         )),
                         new LayoutGroup(array(
@@ -137,6 +148,67 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
+    public function frontendAbsenceMonth(
+        $DivisionId = null,
+        $GroupId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ) {
+        $stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten (Kalenderansicht)');
+
+        $stage->addButton(new Standard(
+            'Zurück', $BasicRoute, new ChevronLeft()
+        ));
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+
+        if ($tblDivision) {
+            $currentDate = new DateTime('now');
+            // wenn der aktuelle Tag im Schuljahr ist dann diesen Anzeigen, ansonsten erster Tag des Schuljahres
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                if ($startDate && $endDate
+                    && ($currentDate < $startDate || $currentDate > $endDate)
+                ) {
+                    $currentDate = $startDate;
+                }
+            }
+
+            $stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        Digital::useService()->getHeadLayoutRow(
+                            $tblDivision, null, $tblYear
+                        ),
+                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision, null,
+                            '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
+                    )),
+                    new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        ApiAbsence::receiverModal()
+                        . ApiAbsence::receiverBlock(
+                            ApiAbsence::generateOrganizerForDivisionWeekly(
+                                $tblDivision->getId(),
+                                $currentDate->format('W'),
+                                $currentDate->format('Y')
+                            ),
+                            'CalendarContent'
+                        )
+                    )), new Title(new Calendar() . ' Fehlzeiten (Kalenderansicht)'))
+                ))
+            );
+        } else {
+            return new Danger('Klasse nicht gefunden', new Exclamation())
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        return $stage;
+    }
+
+    /**
      * @param null $AbsenceId
      * @param bool $hasSearch
      * @param string $Search
@@ -145,8 +217,10 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $DivisionId
      * @param IMessageInterface|null $messageSearch
      * @param IMessageInterface|null $messageLesson
-     *
      * @param null $Date
+     * @param null $Type
+     * @param null $TypeId
+     *
      * @return Form
      */
     public function formAbsence(
@@ -158,7 +232,9 @@ class Frontend extends Extension implements IFrontendInterface
         $DivisionId = null,
         IMessageInterface $messageSearch = null,
         IMessageInterface $messageLesson = null,
-        $Date = null
+        $Date = null,
+        $Type = null,
+        $TypeId = null
     ) {
         if ($Data === null && $AbsenceId === null) {
             $isFullDay = true;
@@ -201,11 +277,36 @@ class Frontend extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(ApiAbsence::pipelineEditAbsenceSave($AbsenceId));
         } else {
             $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave($PersonId, $DivisionId, $hasSearch));
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave($PersonId, $DivisionId, $hasSearch, $Type, $TypeId));
         }
 
         $formRows = array();
-        if ($hasSearch) {
+        if ($Type && $TypeId) {
+            $tblPersonList = false;
+            switch ($Type) {
+                case 'Division':
+                    if (($tblDivision = Division::useService()->getDivisionById($TypeId))) {
+                        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                    }
+                    break;
+                case 'Group':
+                    if (($tblGroup = Group::useService()->getGroupById($TypeId))) {
+                        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+                    }
+                    break;
+                case 'DivisionSubject':
+                    if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($TypeId))) {
+                        $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+                    }
+                    break;
+            }
+
+            if ($tblPersonList) {
+                $formRows[] = new FormRow(new FormColumn(
+                    (new SelectBox('Data[PersonId]', 'Schüler', array('{{ LastFirstName }}' => $tblPersonList)))->setRequired()
+                ));
+            }
+        } elseif ($hasSearch) {
             $formRows[] = new FormRow(array(
                 new FormColumn(array(
                     new Panel(
@@ -421,79 +522,6 @@ class Frontend extends Extension implements IFrontendInterface
     private function setCheckBoxLesson($i)
     {
         return new CheckBox('Data[UE][' . $i . ']', $i . '. Unterrichtseinheit', 1);
-    }
-
-    /**
-     * @param null $DivisionId
-     * @param string $BasicRoute
-     *
-     * @return Stage|string
-     */
-    public function frontendAbsenceMonth($DivisionId = null, $BasicRoute = '')
-    {
-        $Stage = new Stage('Fehlzeiten', 'Kalenderansicht');
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $Stage->addButton(new Standard(
-                'Zurück', $BasicRoute . '/Selected', new ChevronLeft(),
-                array('DivisionId' => $tblDivision->getId())
-            ));
-
-            $currentDate = new DateTime('now');
-            // wenn der aktuelle Tag im Schuljahr ist dann diesen Anzeigen, ansonsten erster Tag des Schuljahres
-            if (($tblYear = $tblDivision->getServiceTblYear())) {
-                list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-                if ($startDate && $endDate
-                    && ($currentDate < $startDate || $currentDate > $endDate)
-                ) {
-                    $currentDate = $startDate;
-                }
-            }
-
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel(
-                                    'Klasse',
-                                    $tblDivision->getDisplayName(),
-                                    Panel::PANEL_TYPE_INFO
-                                )
-                            , 6),
-                            new LayoutColumn(
-                                new Panel(
-                                    'Schuljahr',
-                                    $tblYear ? $tblYear->getDisplayName() : '',
-                                    Panel::PANEL_TYPE_INFO
-                                )
-                            , 6)
-                        )),
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                ApiAbsence::receiverModal()
-                                . ApiAbsence::receiverBlock(
-                                    ApiAbsence::generateOrganizerForDivisionWeekly(
-                                        $tblDivision->getId(),
-                                        $currentDate->format('W'),
-                                        $currentDate->format('Y')
-                                    ),
-                                    'CalendarContent'
-                                )
-                            )
-                        ))
-                    )),
-                ))
-            );
-
-            return $Stage;
-        } else {
-            $Stage->addButton(new Standard(
-                'Zurück', $BasicRoute, new ChevronLeft()
-            ));
-
-            return $Stage . new Danger('Person nicht gefunden.', new Ban());
-        }
     }
 
     /**

@@ -296,6 +296,23 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $FirstName
+     * @param $LastName
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllByFirstNameAndSecondNameAndLastName($FirstName, $SecondName, $LastName)
+    {
+
+        return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', array(
+            TblPerson::ATTR_FIRST_NAME => $FirstName,
+            TblPerson::ATTR_SECOND_NAME => $SecondName,
+            TblPerson::ATTR_LAST_NAME  => $LastName,
+            TblPerson::ENTITY_REMOVE => null
+        ));
+    }
+
+    /**
      * @param $Name
      *
      * @return false|TblPerson[]
@@ -446,6 +463,8 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     *
+     * @return bool
      */
     public function softRemovePersonReferences(TblPerson $tblPerson)
     {
@@ -477,6 +496,7 @@ class Data extends AbstractData
         Relationship::useService()->removeRelationshipAllByPerson($tblPerson, $IsSoftRemove);
         Absence::useService()->destroyAbsenceAllByPerson($tblPerson, $IsSoftRemove);
         Group::useService()->removeMemberAllByPerson($tblPerson, $IsSoftRemove);
+        return true;
     }
 
     /**

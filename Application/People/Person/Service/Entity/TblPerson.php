@@ -25,6 +25,7 @@ class TblPerson extends Element
 {
 
     const ATTR_FIRST_NAME = 'FirstName';
+    const ATTR_SECOND_NAME = 'SecondName';
     const ATTR_LAST_NAME = 'LastName';
     const ATTR_IMPORT_ID = 'ImportId';
 

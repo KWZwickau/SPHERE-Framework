@@ -284,31 +284,29 @@ class ImportGateway extends AbstractConverter
     private function getPerson($FirstName, $LastName, $Birthday = '', TblPerson $tblPersonStudent = null)
     {
 
-        $tblPersonList = array();
-        if ($Birthday){
-            $tblPersonList = Person::useService()->getPersonAllByNameAndBirthday($FirstName, $LastName, $Birthday);
-        }
-        if (empty($tblPersonList)){
-            $tblPersonList = Person::useService()->getPersonAllByName($FirstName, $LastName);
-        }
-        /** @var TblPerson|false $tblPerson */
         $tblPerson = false;
-        if ($tblPersonList && count($tblPersonList) == 1){
-            $tblPerson = current($tblPersonList);
-        } elseif($tblPersonList) {
-            //ToDO zu viele Personen die zugeordnet sein können (bei Schülern)
-
-
-            // Wenn ein Schüler vorhanden ist, kann geprüft werden ob die gefundene Person über Personenverknüpfungen miteinander verbunden ist
-            // wird nur geprüft, wenn keine eindeutigen treffer vorliegen
-            if($tblPersonStudent){
-                foreach($tblPersonList as $tblPersonDebtor){
-                    if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonDebtor, $tblPersonStudent)){
-                        $tblPerson = $tblPersonDebtor;
-                        continue;
+        // bei vorhandenem Schüler wird geprüft ob Person über Personenverknüpfungen vorhanden ist
+        if($tblPersonStudent){
+            // Suchen einer Person, wenn gefunden dann abgleich auf Personenbeziehung
+            $tblPersonGuard = Person::useService()->getPersonByNameExtended($FirstName, $LastName);
+            if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
+                $tblPerson = $tblPersonGuard;
+            }
+            if(!$tblPerson){
+                // wird nur geprüft, wenn keine eindeutigen treffer vorliegen
+                // Suchen aller Person, wenn gefunden dann abgleich auf Personenbeziehung
+                $tblPersonList = Person::useService()->getPersonAllByNameExtended($FirstName, $LastName);
+                foreach($tblPersonList as $tblPersonGuard){
+                    if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
+                        $tblPerson = $tblPersonGuard;
+                        break;
                     }
                 }
             }
+        } else {
+            // Schüler
+            // oder Person ohne erkannten Schüler
+            $tblPerson = Person::useService()->getPersonByNameExtended($FirstName, $LastName, $Birthday);
         }
         return $tblPerson;
     }
