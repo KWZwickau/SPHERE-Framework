@@ -74,7 +74,7 @@ class Service extends Extension
 
             $count = 1;
 
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count, $tblDivision) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count) {
                 if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $tblToPersonAddress = $tblToPersonAddressList[0];
                 } else {
@@ -130,13 +130,15 @@ class Service extends Extension
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 // NK/Profil
                 if ($tblStudent) {
+                    $tblMainDivision = $tblStudent->getCurrentMainDivision();
                     for ($i = 1; $i <= 3; $i++) {
                         $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
                         $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
                         $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
                             $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking);
 
-                        if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject()) && ($tblDivisionLevel = $tblDivision->getTblLevel())) {
+                        if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject()) && $tblMainDivision
+                            && ($tblDivisionLevel = $tblMainDivision->getTblLevel())) {
                             $Item['ForeignLanguage'. $i] = $tblSubject->getAcronym();
 
                             if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())
@@ -281,7 +283,7 @@ class Service extends Extension
             $isOrientation = false;
             $isElective = false;
 
-            if(($tblLevel = $tblDivision->getTblLevel())){
+            if($tblDivision && ($tblLevel = $tblDivision->getTblLevel())){
                 if(($tblType = $tblLevel->getServiceTblType())){
                     // Profil
                     if(($tblLevel->getName() == 8
@@ -446,10 +448,10 @@ class Service extends Extension
             $RowDescription = $Row;
             if ($tblDivision) {
                 $export->setValue($export->getCell("0", $Row), 'Klasse:');
-                $export->setValue($export->getCell("1", $Row), $tblDivision->getDisplayName());
+                $export->setValue($export->getCell("2", $Row), $tblDivision->getDisplayName());
             } elseif ($tblGroup) {
                 $export->setValue($export->getCell("0", $Row), 'Stammgruppe:');
-                $export->setValue($export->getCell("1", $Row), $tblGroup->getName());
+                $export->setValue($export->getCell("2", $Row), $tblGroup->getName());
             }
             $Row++;
             Person::setGenderFooter($export, $tblPersonList, $Row, 0, 2);
@@ -465,11 +467,11 @@ class Service extends Extension
                         }
                     }
                     $TeacherString = implode(', ', $TeacherList);
-                    $export->setValue($export->getCell("1", $Row), $TeacherString);
+                    $export->setValue($export->getCell("2", $Row), $TeacherString);
                 }
             } elseif ($tblGroup) {
                 $export->setValue($export->getCell("0", $Row), 'Tudor/Mentor:');
-                $export->setValue($export->getCell("1", $Row), $tblGroup->getTudorsString(false));
+                $export->setValue($export->getCell("2", $Row), $tblGroup->getTudorsString(false));
             }
             $Row++;
             if ($tblDivision) {
@@ -483,7 +485,7 @@ class Service extends Extension
                             . ($Description ? ' (' . $Description . ')' : '');
                     }
                     $RepresentationString = implode(', ', $Representation);
-                    $export->setValue($export->getCell("1", $Row), $RepresentationString);
+                    $export->setValue($export->getCell("2", $Row), $RepresentationString);
                 }
             }
 
