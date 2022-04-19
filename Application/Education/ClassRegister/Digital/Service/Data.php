@@ -244,6 +244,7 @@ class Data  extends AbstractData
      * @param $Lesson
      * @param $Content
      * @param $Homework
+     * @param $Remark
      * @param $Room
      * @param $IsDoubleLesson
      * @param TblPerson|null $tblPerson
@@ -258,6 +259,7 @@ class Data  extends AbstractData
         $Lesson,
         $Content,
         $Homework,
+        $Remark,
         $Room,
         $IsDoubleLesson,
         TblPerson $tblPerson = null
@@ -274,6 +276,7 @@ class Data  extends AbstractData
         $Entity->setLesson($Lesson);
         $Entity->setContent($Content);
         $Entity->setHomework($Homework);
+        $Entity->setRemark($Remark);
         $Entity->setRoom($Room);
         $Entity->setIsDoubleLesson($IsDoubleLesson);
 
@@ -289,6 +292,7 @@ class Data  extends AbstractData
      * @param $Lesson
      * @param $Content
      * @param $Homework
+     * @param $Remark
      * @param $Room
      * @param $IsDoubleLesson
      * @param TblPerson|null $tblPerson
@@ -301,6 +305,7 @@ class Data  extends AbstractData
         $Lesson,
         $Content,
         $Homework,
+        $Remark,
         $Room,
         $IsDoubleLesson,
         TblPerson $tblPerson = null
@@ -314,6 +319,7 @@ class Data  extends AbstractData
             $Entity->setLesson($Lesson);
             $Entity->setContent($Content);
             $Entity->setHomework($Homework);
+            $Entity->setRemark($Remark);
             $Entity->setRoom($Room);
             $Entity->setIsDoubleLesson($IsDoubleLesson);
             $Entity->setServiceTblPerson($tblPerson);

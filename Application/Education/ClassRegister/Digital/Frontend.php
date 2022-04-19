@@ -39,6 +39,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -65,6 +66,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -1395,7 +1397,19 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiAbsence::getEndpoint()
                             ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId, null,
                                 'DivisionSubject', $tblDivisionSubject->getId()))
-                        )
+                        , 8),
+                        new LayoutColumn(
+                            new PullRight(new External(
+                                'Download',
+                                '/Api/Document/Standard/CourseContent/Create',
+                                new Download(),
+                                array(
+                                    'DivisionId' => $DivisionId,
+                                    'SubjectId' => $SubjectId,
+                                    'SubjectGroupId' => $SubjectGroupId
+                                )
+                            ))
+                        , 4)
                     ))
                 )))
                 . new Container('&nbsp;')
@@ -1429,15 +1443,16 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblCourseContentList as $tblCourseContent) {
                 $absenceList = array();
                 $lessonArray = array();
+                $lesson = $tblCourseContent->getLesson();
+                $lessonArray[$lesson] = $lesson;
+                if ($tblCourseContent->getIsDoubleLesson()) {
+                    $lesson++;
+                    $lessonArray[$lesson] = $lesson;
+                }
+
                 if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(new DateTime($tblCourseContent->getDate()),
                     null, null, $divisionList, array(), $hasTypeOption, null))
                 ) {
-                    $lesson = $tblCourseContent->getLesson();
-                    $lessonArray[$lesson] = $lesson;
-                    if ($tblCourseContent->getIsDoubleLesson()) {
-                        $lesson++;
-                        $lessonArray[$lesson] = $lesson;
-                    }
                     foreach ($AbsenceList as $Absence) {
                         if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
                             $isAdd = false;
@@ -1482,6 +1497,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'IsDoubleLesson' => new Center($tblCourseContent->getIsDoubleLesson() ? 'X' : ''),
                     'Content' => $tblCourseContent->getContent(),
                     'Homework' => $tblCourseContent->getHomework(),
+                    'Remark' => $tblCourseContent->getRemark(),
                     'Room' => $tblCourseContent->getRoom(),
                     'Absence' => implode(' ', $absenceList),
                     'Teacher' => $tblCourseContent->getTeacherString(),
@@ -1514,6 +1530,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Room' => 'Raum',
                 'Content' => 'Thema',
                 'Homework' => 'Hausaufgaben',
+                'Remark' => 'Bemerkungen',
                 'Absence' => 'Fehlzeiten',
                 'Teacher' => 'Lehrer',
                 'Option' => ''
@@ -1559,6 +1576,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ($tblPerson = $tblCourseContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
             $Global->POST['Data']['Content'] = $tblCourseContent->getContent();
             $Global->POST['Data']['Homework'] = $tblCourseContent->getHomework();
+            $Global->POST['Data']['Remark'] = $tblCourseContent->getRemark();
             $Global->POST['Data']['Room'] = $tblCourseContent->getRoom();
             $Global->POST['Data']['IsDoubleLesson'] = $tblCourseContent->getIsDoubleLesson() ? 1 : 0;
 
@@ -1616,6 +1634,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Data[Remark]', 'Bemerkungen', 'Bemerkungen', new Comment())
                     ),
                 )),
                 new FormRow(array(

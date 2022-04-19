@@ -609,6 +609,7 @@ class Service extends AbstractService
             $Data['Lesson'],
             $Data['Content'],
             $Data['Homework'],
+            $Data['Remark'],
             $Data['Room'],
             isset($Data['IsDoubleLesson']),
             ($tblPerson = Account::useService()->getPersonByLogin()) ? $tblPerson : null
@@ -631,6 +632,7 @@ class Service extends AbstractService
             $Data['Lesson'],
             $Data['Content'],
             $Data['Homework'],
+            $Data['Remark'],
             $Data['Room'],
             isset($Data['IsDoubleLesson']),
             ($tblPerson = Account::useService()->getPersonByLogin()) ? $tblPerson : null

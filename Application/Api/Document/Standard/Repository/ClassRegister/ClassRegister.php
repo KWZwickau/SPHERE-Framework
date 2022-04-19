@@ -32,17 +32,17 @@ use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class ClassRegister extends AbstractDocument
 {
-    private ?TblDivision $tblDivision = null;
+    protected ?TblDivision $tblDivision = null;
     private ?TblGroup $tblGroup = null;
     private ?TblYear $tblYear = null;
-    private ?TblCompany $tblCompany = null;
+    protected ?TblCompany $tblCompany = null;
     private array $tblCompanyList = array();
-    private string $name = '&nbsp;';
-    private string $displayName = '&nbsp;';
+    protected string $name = '&nbsp;';
+    protected string $displayName = '&nbsp;';
     private string $typeName = '&nbsp;';
     private string $tudors = '&nbsp;';
-    private array $tblPersonList = array();
-    private array $personNumberAbsenceList = array();
+    protected array $tblPersonList = array();
+    protected array $personNumberAbsenceList = array();
 
     private array $dayName = array(
         '0' => 'Sonntag',
@@ -54,6 +54,10 @@ class ClassRegister extends AbstractDocument
         '6' => 'Samstag',
     );
 
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     */
     public function __construct(?TblDivision $tblDivision, ?TblGroup $tblGroup)
     {
         if ($tblDivision) {
@@ -149,7 +153,7 @@ class ClassRegister extends AbstractDocument
     /**
      * @return Page
      */
-    public function getCoverSheet(): Page
+    private function getCoverSheet(): Page
     {
         $textSize = '16px';
         $borderPercentage = '15%';
@@ -420,7 +424,7 @@ class ClassRegister extends AbstractDocument
      *
      * @return Page
      */
-    public function getStudentPage(bool $IsAddress): Page
+    protected function getStudentPage(bool $IsAddress): Page
     {
         $width[1] = '6%';
         $width[2] = '30%';
@@ -537,7 +541,7 @@ class ClassRegister extends AbstractDocument
     /**
      * @return Page
      */
-    public function getRepresentativeHolidayPage(): Page
+    private function getRepresentativeHolidayPage(): Page
     {
         $page = (new Page());
         if ($this->tblDivision) {
@@ -1113,16 +1117,19 @@ class ClassRegister extends AbstractDocument
      * @param string $text
      * @param string $paddingTop
      * @param string $paddingLeft
+     * @param string $paddingRight
      *
      * @return string
      */
-    protected function setRotatedContent(string $text = '&nbsp;', string $paddingTop = '-45px', string $paddingLeft = '-90px'): string
+    protected function setRotatedContent(string $text = '&nbsp;', string $paddingTop = '-45px', string $paddingLeft = '-90px', string $paddingRight = ''): string
     {
-
         return
-            '<div style="padding-top: ' . $paddingTop
-            . '!important;padding-left: ' . $paddingLeft
-            . '!important;transform: rotate(-90deg)!important;">'
+            '<div style="padding-top: ' . $paddingTop . '!important;'
+            . 'padding-left: ' . $paddingLeft . '!important;'
+            . ($paddingRight ? 'padding-right: ' . $paddingRight . '!important;' : '')
+            . 'white-space: nowrap;'
+            . 'transform: rotate(-90deg)!important;'
+            . '">'
             . $text
             . '</div>';
     }
@@ -1256,6 +1263,11 @@ class ClassRegister extends AbstractDocument
             );
     }
 
+    /**
+     * @param TblInstruction $tblInstruction
+     *
+     * @return Slice
+     */
     private function getInstructionSlice(TblInstruction $tblInstruction): Slice
     {
         $height = '140px';

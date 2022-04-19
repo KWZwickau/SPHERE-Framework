@@ -72,6 +72,11 @@ class TblCourseContent extends Element
     /**
      * @Column(type="string")
      */
+    protected string $Remark;
+
+    /**
+     * @Column(type="string")
+     */
     protected string $Room;
 
     /**
@@ -282,5 +287,21 @@ class TblCourseContent extends Element
         return $this->getServiceTblPerson()
             ? Digital::useService()->getTeacherString($this->getServiceTblPerson(), $IsToolTip)
             : '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getRemark(): string
+    {
+        return $this->Remark;
+    }
+
+    /**
+     * @param string $Remark
+     */
+    public function setRemark(string $Remark): void
+    {
+        $this->Remark = $Remark;
     }
 }
