@@ -43,6 +43,7 @@ class ClassRegister extends AbstractDocument
     private string $tudors = '&nbsp;';
     protected array $tblPersonList = array();
     protected array $personNumberAbsenceList = array();
+    private array $totalCanceledSubjectList = array();
 
     private array $dayName = array(
         '0' => 'Sonntag',
@@ -949,7 +950,7 @@ class ClassRegister extends AbstractDocument
      */
     private function getWeekSummarySlice(DateTime $dateTime): Slice
     {
-        list($fromDate, $canceledSubjectList, $additionalSubjectList, $subjectList)
+        list($fromDate, $toDate, $canceledSubjectList, $additionalSubjectList, $subjectList)
             = Digital::useService()->getCanceledSubjectList($dateTime, $this->tblDivision, $this->tblGroup);
 
         $slice = (new Slice())->styleBorderLeft();
@@ -963,17 +964,28 @@ class ClassRegister extends AbstractDocument
             $sectionHeader = (new Section())->addElementColumn($this->getHeaderElement('Fach'), $widthString);
             $sectionCanceled = (new Section())->addElementColumn($this->getElement('Anzahl ausgefallene Stunden', 10), $widthString);
             $sectionAdditional = (new Section())->addElementColumn($this->getElement('Anzahl zusätzlich erteilte Stunden', 10), $widthString);
+            $sectionTotalCanceled = (new Section())->addElementColumn($this->getElement('absoluter Ausfall', 10), $widthString);
 
             foreach ($subjectList as $acronym => $subject) {
+
+                // absoluter Ausfall aufsummieren
+                if (isset($this->totalCanceledSubjectList[$acronym]) && isset($canceledSubjectList[$acronym])) {
+                    $this->totalCanceledSubjectList[$acronym] += $canceledSubjectList[$acronym];
+                } elseif (isset($canceledSubjectList[$acronym])) {
+                    $this->totalCanceledSubjectList[$acronym] = $canceledSubjectList[$acronym];
+                }
+
                 $sectionHeader->addElementColumn($this->getHeaderElement($acronym), $widthItemString);
                 $sectionCanceled->addElementColumn($this->getElement($canceledSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
                 $sectionAdditional->addElementColumn($this->getElement($additionalSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
+                $sectionTotalCanceled->addElementColumn($this->getElement($this->totalCanceledSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
             }
 
             $slice
                 ->addSection($sectionHeader)
                 ->addSection($sectionCanceled)
-                ->addSection($sectionAdditional);
+                ->addSection($sectionAdditional)
+                ->addSection($sectionTotalCanceled);
         }
 
         $remark = '';

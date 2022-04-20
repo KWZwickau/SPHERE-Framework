@@ -994,6 +994,31 @@ class Service extends AbstractService
     }
 
     /**
+     * @param DateTime $toDate
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return array
+     */
+    public function getLessonContentCanceledSubjectList(DateTime $toDate, TblDivision $tblDivision = null, TblGroup $tblGroup = null): array
+    {
+        $subjectList = array();
+        if (($tblLessonContentList = (new Data($this->getBinding()))->getLessonContentCanceledAllByToDate($toDate, $tblDivision, $tblGroup))) {
+            foreach ($tblLessonContentList as $tblLessonContent) {
+                if (($tblSubject = $tblLessonContent->getServiceTblSubject())) {
+                    if (isset($subjectList[$tblSubject->getAcronym()])) {
+                        $subjectList[$tblSubject->getAcronym()]++;
+                    } else {
+                        $subjectList[$tblSubject->getAcronym()] = 1;
+                    }
+                }
+            }
+        }
+
+        return $subjectList;
+    }
+
+    /**
      * @param DateTime $dateTime
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
@@ -1003,7 +1028,9 @@ class Service extends AbstractService
      */
     public function getCanceledSubjectOverview(DateTime $dateTime, ?TblDivision $tblDivision, ?TblGroup $tblGroup, bool $hasEdit = true)
     {
-        list($fromDate, $canceledSubjectList, $additionalSubjectList, $subjectList) = $this->getCanceledSubjectList($dateTime, $tblDivision, $tblGroup);
+        list($fromDate, $toDate, $canceledSubjectList, $additionalSubjectList, $subjectList) = $this->getCanceledSubjectList($dateTime, $tblDivision, $tblGroup);
+
+        $subjectTotalCanceledList = $this->getLessonContentCanceledSubjectList($toDate, $tblDivision, $tblGroup);
 
         if ($subjectList) {
             $columns = array();
@@ -1012,10 +1039,12 @@ class Service extends AbstractService
             $columns['Name'] = 'Fach';
             $dataList['Canceled']['Name'] = 'Ausgefallene Stunden';
             $dataList['Additional']['Name'] = 'Zusätzlich erteilte Stunden';
+            $dataList['TotalCanceled']['Name'] = 'Absoluter Ausfall';
             foreach ($subjectList as $acronym => $subject) {
                 $columns[$acronym] = $acronym;
                 $dataList['Canceled'][$acronym] = $canceledSubjectList[$acronym] ?? 0;
                 $dataList['Additional'][$acronym] = $additionalSubjectList[$acronym] ?? 0;
+                $dataList['TotalCanceled'][$acronym] = $subjectTotalCanceledList[$acronym] ?? 0;
             }
 
             $remark = '&nbsp;';
@@ -1099,7 +1128,7 @@ class Service extends AbstractService
                 }
             }
         }
-        return array($fromDate, $canceledSubjectList, $additionalSubjectList, $subjectList);
+        return array($fromDate, $toDate, $canceledSubjectList, $additionalSubjectList, $subjectList);
     }
 
     /**

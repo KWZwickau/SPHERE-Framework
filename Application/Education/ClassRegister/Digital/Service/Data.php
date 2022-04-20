@@ -237,6 +237,59 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param DateTime $toDate
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return TblCourseContent[]|false
+     */
+    public function getLessonContentCanceledAllByToDate(DateTime $toDate, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        if ($tblDivision) {
+            $query = $queryBuilder->select('t')
+                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
+                ->where(
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->lte('t.Date', '?1'),
+                        $queryBuilder->expr()->eq('t.serviceTblDivision', '?2'),
+                        $queryBuilder->expr()->orX(
+                            $queryBuilder->expr()->eq('t.IsCanceled', '?3'),
+                            $queryBuilder->expr()->isNotNull('t.serviceTblSubstituteSubject'),
+                        )
+                    )
+                )
+                ->setParameter(1, $toDate)
+                ->setParameter(2, $tblDivision->getId())
+                ->setParameter(3, 1)
+                ->getQuery();
+        } else {
+            $query = $queryBuilder->select('t')
+                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
+                ->where(
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->lte('t.Date', '?1'),
+                        $queryBuilder->expr()->eq('t.serviceTblGroup', '?2'),
+                        $queryBuilder->expr()->orX(
+                            $queryBuilder->expr()->eq('t.IsCanceled', '?3'),
+                            $queryBuilder->expr()->isNotNull('t.serviceTblSubstituteSubject'),
+                        )
+                    )
+                )
+                ->setParameter(1, $toDate)
+                ->setParameter(2, $tblGroup->getId())
+                ->setParameter(3, 1)
+                ->getQuery();
+        }
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
      * @param TblSubjectGroup $tblSubjectGroup
