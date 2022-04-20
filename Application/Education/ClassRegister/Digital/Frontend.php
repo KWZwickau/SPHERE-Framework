@@ -433,10 +433,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Auswahl der SEKII-Kurshefte
         if ($tblDivision
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && ($tblSchoolType = $tblLevel->getServiceTblType())
-            && (($tblSchoolType->getShortName() == 'Gy' && preg_match('!(11|12)!is', $tblLevel->getName()))
-                || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(12|13)!is', $tblLevel->getName())))
+            && Division::useService()->getIsDivisionCourseSystem($tblDivision)
         ) {
             // Klassenlehrer sieht alle Kurshefte
             if ($tblPerson && (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson))) {

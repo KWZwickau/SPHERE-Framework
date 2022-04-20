@@ -288,7 +288,7 @@ class Service extends AbstractService
         $buttonList[] = $this->getButton('Klassentagebuch', '/Education/ClassRegister/Digital/LessonContent', new Book(),
             $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonContent');
 
-        // nur für Klassenlehrer, Tudor oder Schulleitung
+        // Klassentagebuch Kontrolle: nur für Klassenlehrer, Tudor oder Schulleitung
         if (($tblPerson = Account::useService()->getPersonByLogin())
             && (($tblDivision && Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson))
                 || ($tblGroup && ($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
@@ -297,8 +297,11 @@ class Service extends AbstractService
                 || Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting')
             )
         ) {
-            $buttonList[] = $this->getButton('Klassentagebuch Kontrolle', '/Education/ClassRegister/Digital/LessonWeek', new Ok(),
-                $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonWeek');
+            // Klassentagebuch Kontrolle: nicht bei Kurssystemen
+            if (!($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))) {
+                $buttonList[] = $this->getButton('Klassentagebuch Kontrolle', '/Education/ClassRegister/Digital/LessonWeek', new Ok(),
+                    $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonWeek');
+            }
         }
 
         $buttonList[] = $this->getButton('Schülerliste', '/Education/ClassRegister/Digital/Student', new PersonGroup(),

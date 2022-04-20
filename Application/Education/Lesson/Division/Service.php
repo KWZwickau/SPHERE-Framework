@@ -3253,4 +3253,22 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->existsSubjectTeacher($tblPerson, $tblDivisionSubject);
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool
+     */
+    public function getIsDivisionCourseSystem(TblDivision $tblDivision): bool
+    {
+        if (($tblLevel = $tblDivision->getTblLevel())
+            && ($tblSchoolType = $tblLevel->getServiceTblType())
+            && (($tblSchoolType->getShortName() == 'Gy' && preg_match('!(11|12)!is', $tblLevel->getName()))
+                || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(12|13)!is', $tblLevel->getName())))
+        ) {
+            return true;
+        }
+
+        return false;
+    }
 }
