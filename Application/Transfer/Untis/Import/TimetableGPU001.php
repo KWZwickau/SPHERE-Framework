@@ -73,11 +73,11 @@ class TimetableGPU001 extends AbstractConverter
     }
 
     /**
-     * @return int
+     * @return array
      */
-    public function getWarningCount()
+    public function getWarningList()
     {
-        return count($this->WarningList);
+        return $this->WarningList;
     }
 
     /**

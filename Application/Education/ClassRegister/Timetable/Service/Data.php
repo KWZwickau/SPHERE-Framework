@@ -351,10 +351,11 @@ class Data extends AbstractData
     /**
      * @param array $ImportList
      * required ArrayKeys
-     * [hour]
-     * [room]
-     * [subjectGroup]
      * [Date]
+     * [Hour]
+     * [Room]
+     * [subjectGroup]
+     * [IsCanceled]
      * [tblSubject]
      * [tblCourse]
      * [tblPerson]
@@ -369,11 +370,14 @@ class Data extends AbstractData
             foreach ($ImportList as $Row) {
                 $Entity = new TblTimetableReplacement();
                 $Entity->setDate($Row['Date']);
-                $Entity->setHour($Row['hour']);
-                $Entity->setRoom($Row['room']);
-                //ToDO aus Import übermitteln
-                $Entity->setIsCanceled(false);
-                $Entity->setSubjectGroup($Row['subjectGroup']);
+                $Entity->setHour($Row['Hour']);
+                $Entity->setRoom($Row['Room']);
+                if(isset($Row['IsCanceled'])){
+                    $Entity->setIsCanceled($Row['IsCanceled']);
+                } else {
+                    $Entity->setIsCanceled(false);
+                }
+                $Entity->setSubjectGroup($Row['SubjectGroup']);
                 $Entity->setServiceTblSubject($Row['tblSubject']);
                 $Entity->setServiceTblCourse($Row['tblCourse']);
                 $Entity->setServiceTblPerson($Row['tblPerson']);

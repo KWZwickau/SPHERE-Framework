@@ -190,6 +190,7 @@ class Service extends AbstractService
      * [room]
      * [subjectGroup]
      * [Date]
+     * [IsCanceled]
      * [tblSubject]
      * [tblCourse]
      * [tblPerson]

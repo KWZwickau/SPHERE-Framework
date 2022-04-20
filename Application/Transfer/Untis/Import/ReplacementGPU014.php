@@ -54,7 +54,6 @@ namespace SPHERE\Application\Transfer\Untis\Import;
 
 use DateTime;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
@@ -75,6 +74,8 @@ class ReplacementGPU014 extends AbstractConverter
     private $ImportList = array();
     private $CountImport = array();
     private $tblYearList;
+    private $DateList = array();
+    private $CourseList = array();
 
     /**
      * GPU014 constructor.
@@ -83,47 +84,67 @@ class ReplacementGPU014 extends AbstractConverter
      */
     public function __construct($File, $Data)
     {
+
+        $Date = new \DateTime();
+        $DayCount = $Date->format('N');
+        for ($i = 1; $i <= 5; $i++){
+            $DateTemp = clone($Date);
+            if($i < $DayCount){
+                $Diff = $DayCount - $i;
+                $DateTemp->sub(new \DateInterval('P'.$Diff.'D'));
+                $this->DateList[$i] = $DateTemp->format('Y-m-d');
+            } elseif($i > $DayCount) {
+                $Diff = $i - $DayCount;
+                $DateTemp->add(new \DateInterval('P'.$Diff.'D'));
+                $this->DateList[$i] = $DateTemp->format('Y-m-d');
+            } else {
+                $this->DateList[$i] = $DateTemp->format('Y-m-d');
+            }
+        }
+        $this->tblYearList = Term::useService()->getYearAllByDate(new DateTime());
+
         $this->loadFile($File);
-        $DateFrom = new DateTime($Data['DateFrom']);
-        $this->tblYearList = Term::useService()->getYearAllByDate($DateFrom);
 
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
 
         $this->setPointer(new FieldPointer('B', 'Date'));
         $this->setSanitizer(new FieldSanitizer('B', 'Date', array($this, 'sanitizeDate')));
+
         $this->setPointer(new FieldPointer('C', 'Hour'));
         $this->setPointer(new FieldPointer('F', 'Person'));
-        $this->setPointer(new FieldPointer('F', 'TblPerson'));
-        $this->setSanitizer(new FieldSanitizer('F', 'TblPerson', array($this, 'sanitizePerson')));
+        $this->setPointer(new FieldPointer('F', 'tblPerson'));
+        $this->setSanitizer(new FieldSanitizer('F', 'tblPerson', array($this, 'sanitizePerson')));
         $this->setPointer(new FieldPointer('G', 'PersonTo'));
-        $this->setPointer(new FieldPointer('G', 'TblPersonTo'));
-        $this->setSanitizer(new FieldSanitizer('G', 'TblPersonTo', array($this, 'sanitizePerson')));
+        $this->setPointer(new FieldPointer('G', 'tblPersonTo'));
+        $this->setSanitizer(new FieldSanitizer('G', 'tblPersonTo', array($this, 'sanitizePerson')));
         $this->setPointer(new FieldPointer('H', 'Subject'));
         $this->setPointer(new FieldPointer('H', 'tblSubject'));
-        $this->setPointer(new FieldPointer('H', 'SubjectGroup'));
         $this->setSanitizer(new FieldSanitizer('H', 'tblSubject', array($this, 'sanitizeSubject')));
+        $this->setPointer(new FieldPointer('H', 'SubjectGroup'));
         $this->setSanitizer(new FieldSanitizer('H', 'SubjectGroup', array($this, 'sanitizeSubjectGroup')));
         $this->setPointer(new FieldPointer('I', 'SubjectTo'));
         $this->setPointer(new FieldPointer('I', 'tblSubjectTo'));
-        $this->setPointer(new FieldPointer('I', 'SubjectGroupTo'));
         $this->setSanitizer(new FieldSanitizer('I', 'tblSubjectTo', array($this, 'sanitizeSubject')));
+        $this->setPointer(new FieldPointer('I', 'SubjectGroupTo'));
         $this->setSanitizer(new FieldSanitizer('I', 'SubjectGroupTo', array($this, 'sanitizeSubjectGroup')));
         $this->setPointer(new FieldPointer('L', 'Room'));
         $this->setPointer(new FieldPointer('M', 'RoomTo'));
         $this->setPointer(new FieldPointer('O', 'Division'));
         // ToDO Liste aus Klassen im String getrent durch "~"
+        $this->setPointer(new FieldPointer('O', 'tblCourseString'));
         $this->setPointer(new FieldPointer('O', 'tblCourseList'));
-        $this->setSanitizer(new FieldSanitizer('O', 'tblCourse', array($this, 'sanitizeCourse')));
+        $this->setSanitizer(new FieldSanitizer('O', 'tblCourseList', array($this, 'sanitizeCourse')));
+        $this->setPointer(new FieldPointer('R', 'IsCanceled'));
 
         $this->scanFile(0);
     }
 
     /**
-     * @return int
+     * @return array
      */
-    public function getWarningCount()
+    public function getWarningList()
     {
-        return count($this->WarningList);
+        return $this->WarningList;
     }
 
     /**
@@ -143,6 +164,22 @@ class ReplacementGPU014 extends AbstractConverter
     }
 
     /**
+     * @return array
+     */
+    public function getDateList()
+    {
+        return $this->DateList;
+    }
+
+    /**
+     * @return array
+     */
+    public function getCourseList()
+    {
+        return $this->CourseList;
+    }
+
+    /**
      * @param array $Row
      *
      * @return void
@@ -156,57 +193,54 @@ class ReplacementGPU014 extends AbstractConverter
         }
 
         //kurze schreibweise von ($Result['tblCourse'] ? $Result['tblCourse'] : null);
-        $tblCourse = ($Result['tblCourse'] ? : null);
+        $tblCourseList = ($Result['tblCourseList'] ? : null);
         $tblPerson = ($Result['tblPerson'] ? : null);
         $tblSubject = ($Result['tblSubject'] ? : null);
 
-        /** @var TblDivision $tblCourse */
-        $Level = '';
-        if($tblCourse){
-            if($tblCourse->getTblLevel()) {
-                $Level = $tblCourse->getTblLevel()->getName();
+        if($Result['Date'] && $tblCourseList){
+            foreach($tblCourseList as $tblCourse){
+                if($Result['tblCourseString'] === '' || $Result['tblPerson'] === false || $Result['tblSubject'] === false){
+                    // ignore Row complete
+                } elseif($tblCourse && $tblSubject && $tblPerson){ // && $Result['Room'] != ''
+                    $ImportRow = array(
+                        'Date'         => $Result['Date'],
+                        'Hour'         => $Result['Hour'],
+                        'Room'         => $Result['Room'],
+                        'IsCanceled'   => ($Result['IsCanceled'] == '0' ? 1 : 0),
+                        'SubjectGroup' => $Result['SubjectGroup'],
+                        'tblCourse'    => $tblCourse,
+                        'tblSubject'   => $tblSubject,
+                        'tblPerson'    => $tblPerson,
+                    );
+                    $this->ImportList[] = $ImportRow;
+                } else {
+                    $this->WarningList[] = $Result;
+                }
             }
         }
 
-        if($Result['tblCourse'] === false || $Result['tblPerson'] === false || $Result['tblSubject'] === false){
-            // ignore Row complete
-        } elseif($tblCourse && $tblSubject && $tblPerson){ // && $Result['Room'] != ''
-            $ImportRow = array(
-                'Hour'         => $Result['Hour'],
-                'Day'          => $Result['Day'],
-                'Week'         => '',
-                'Room'         => $Result['Room'],
-                'SubjectGroup' => $Result['SubjectGroup'],
-                'Level'        => $Level,
-                'tblCourse'    => $tblCourse,
-                'tblSubject'   => $tblSubject,
-                'tblPerson'    => $tblPerson,
-            );
-            $this->ImportList[] = $ImportRow;
-        } else {
-            $this->WarningList[] = $Result;
-        }
     }
 
     /**
      * @param $Value
      *
-     * @return null|Danger|int
+     * @return array|false
      */
     protected function sanitizeCourse($Value)
     {
         $result = array();
         if($Value == ''){
 //            $this->CountImport['Course']['Keine Klasse'][] = 'Klasse nicht gefunden';
+            $result = false;
             return $result;
         }
 
-        //ToDO Klassen aus einer Liste erkennen + Fehlermeldung anpassen
+        //ToDO Course
         $CourseList = explode('~', $Value);
         foreach($CourseList as $Course){
             $LevelName = null;
             $DivisionName = null;
-            Division::useService()->matchDivision($Value, $LevelName, $DivisionName);
+            Division::useService()->matchDivision($Course, $LevelName, $DivisionName);
             $tblLevel = null;
 
             $tblDivisionList = array();
@@ -235,14 +269,31 @@ class ReplacementGPU014 extends AbstractConverter
                 }
             }
             if(!empty($tblDivisionList) && count($tblDivisionList) == 1){
-                $result[] = $tblDivisionList[0];
-            }
-            if($result == '' && $Value != ''){
-                $this->CountImport['Course'][$Value][] = 'Klasse nicht gefunden';
+                $tblDivision = current($tblDivisionList);
+                $result[] = $tblDivision;
+                $this->CourseList[$tblDivision->getId()] = $tblDivision;
+            } else {
+                $this->CountImport['Course'][$Course][] = 'Klasse nicht gefunden';
             }
         }
 
         return $result;
+    }
+
+    /**
+     * @param $Value
+     * @return string
+     */
+    protected function sanitizeDate($Value)
+    {
+
+        if(strlen($Value) == 8){
+            $Value = substr($Value, 0, 4).'-'.substr($Value, 4, 2).'-'.substr($Value, 6, 2);
+            if(in_array($Value, $this->DateList)){
+                return new DateTime($Value);
+            }
+        }
+        return false;
     }
 
     /**

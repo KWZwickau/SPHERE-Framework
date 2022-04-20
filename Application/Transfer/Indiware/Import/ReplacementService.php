@@ -172,9 +172,9 @@ class ReplacementService
                         $plTag = $Pl->getChild('pl_tag');
                         $item['Tag'] = $plTag->getContent();
                         if(($plStunde = $Pl->getChild('pl_stunde'))){
-                            $item['hour'] = $plStunde->getContent();
+                            $item['Hour'] = $plStunde->getContent();
                         } else {
-                            $item['hour'] = '';
+                            $item['Hour'] = '';
                         }
                         if(($plFach = $Pl->getChild('pl_fach'))){
                             $item['Subject'] = utf8_encode($plFach->getContent());
@@ -192,14 +192,14 @@ class ReplacementService
                             $item['Person'] = '';
                         }
                         if(($plRaum = $Pl->getChild('pl_raum'))){
-                            $item['room'] = utf8_encode($plRaum->getContent());
+                            $item['Room'] = utf8_encode($plRaum->getContent());
                         } else {
-                            $item['room'] = '';
+                            $item['Room'] = '';
                         }
                         if(($plGruppe = $Pl->getChild('pl_gruppe'))){
-                            $item['subjectGroup'] = utf8_encode($plGruppe->getContent());
+                            $item['SubjectGroup'] = utf8_encode($plGruppe->getContent());
                         } else {
-                            $item['subjectGroup'] = '';
+                            $item['SubjectGroup'] = '';
                         }
 
                         $Difference = $Day - $plTag->getContent();

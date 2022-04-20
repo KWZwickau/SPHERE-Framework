@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\Transfer\Untis\Import;
 
-use MOC\V\Component\Document\Component\Bridge\Repository\UniversalXml;
+use DateTime;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeException;
 use MOC\V\Component\Document\Vendor\UniversalXml\Source\Node;
@@ -99,30 +99,12 @@ class ReplacementService
                 $Form->setError('File', 'Fehler: '.$File->getError());
                 return new Well($Form);
             }
-            if (strtoupper($File->getClientOriginalExtension()) != 'XML') {
-                $Form->setError('File', 'Fehler: Datei muss eine XML sein');
-                return new Well($Form);
-            }
-            /** Prepare */
-            $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
-            /** Read */
-            $Document = Document::getDocument($File->getPathname());
-            // Prüfung auf Verwendbarkeit
-            /** @var Node $Node */
-            // note = "upsp"
-            $Node = $Document->getContent();
-            if(!($Node->getChild('kopf'))
-                || !($Node->getChild('plan'))){
-                $Form->setError('File', 'Fehler im Inhalt der Datei');
+            if (strtoupper($File->getClientOriginalExtension()) !== 'TXT') {
+                $Form->setError('File', 'Fehler: Datei muss eine TXT Datei sein');
                 return new Well($Form);
             }
 
-            if (!$Document instanceof UniversalXml) {
-                $Form->setError('File', 'XML kann nicht ausgelesen werden');
-                return new Well($Form);
-            }
-
-            return Replacement::useFrontend()->frontendImportReplacement($File, $Data);
+            return (new Replacement)->frontendImportReplacement($File, $Data);
         }
         return new Danger('File nicht gefunden');
     }
@@ -235,7 +217,7 @@ class ReplacementService
             $Year = $match[3];
             $Month = $this->getMonth($Month);
             if($Month){
-                $Date = new \DateTime($Day.'.'.$Month.'.'.$Year);
+                $Date = new DateTime($Day.'.'.$Month.'.'.$Year);
             }
         }
         return $Date;
@@ -323,9 +305,11 @@ class ReplacementService
 
     public function removeExistingReplacementByDateListAndDivisionList($DateList, $CourseList)
     {
+
         $removeList = array();
         if(!empty($DateList) && !empty($CourseList)){
             foreach($DateList as $Date){
+                $Date = new DateTime($Date);
                 foreach($CourseList as $tblCourse){
                     if(($tblTimetableReplacementList = TimetableClassRegister::useService()->getTimetableReplacementByTime($Date, null, $tblCourse))){
                         foreach($tblTimetableReplacementList as $tblTimetableReplacement){

@@ -123,9 +123,6 @@ class Timetable implements IModuleInterface
         if(!isset($_POST['Data']['IsImport'])){
             $_POST['Data']['IsImport'] = '0';
         }
-//        $_POST['Data']['Name'] = 'Test123';
-//        $_POST['Data']['DateFrom'] = '01.03.2022';
-//        $_POST['Data']['DateTo'] = '02.03.2022';
 
         $Stage = new Stage('Import', 'Stundenplan aus Untis');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Untis/Import/Timetable', new ChevronLeft()));
@@ -194,15 +191,15 @@ class Timetable implements IModuleInterface
     public function frontendImportTimetable(File $File, array $Data = array())
     {
 
-        $Payload01 = new FilePointer('csv');
-        $Payload01->setFileContent(file_get_contents($File->getRealPath()));
-        $Payload01->saveFile();
+        $Payload001 = new FilePointer('csv');
+        $Payload001->setFileContent(file_get_contents($File->getRealPath()));
+        $Payload001->saveFile();
 
 //        $WeekImport = Timetable::useService()->getWeekDataFromFile($File);
 //        $WeekImport = array();
 
-        $Gateway001 = new TimetableGPU001($Payload01->getRealPath(), $Data);
-        $WarningCount = $Gateway001->getWarningCount();
+        $Gateway001 = new TimetableGPU001($Payload001->getRealPath(), $Data);
+        $WarningList = $Gateway001->getWarningList();
         $ImportList = $Gateway001->getImportList();
 
         $ImportReady = new Success(count($ImportList).' Importierbare Stundenzuweisungen', null, false, 5, 5);
@@ -219,7 +216,7 @@ class Timetable implements IModuleInterface
         $LayoutColumnList = array();
         if(!empty($ImportList)){
 
-            $LayoutColumnList[] = new LayoutColumn(new \SPHERE\Common\Frontend\Message\Repository\Warning($WarningCount.' Fehlerhafte Einträge können nicht importiert werden', null, false, 5,5));
+            $LayoutColumnList[] = new LayoutColumn(new \SPHERE\Common\Frontend\Message\Repository\Warning(count($WarningList).' Fehlerhafte Einträge können nicht importiert werden', null, false, 5,5));
 
             $Count = $Gateway001->getCountImport();
             if(isset($Count['Course'])){
