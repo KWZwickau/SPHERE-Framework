@@ -270,6 +270,7 @@ class CourseContent extends ClassRegister
     private function setCourseContentPageList(array &$pageList)
     {
         $count = 0;
+        $noticed = '';
         $sliceList = array();
         $divisionList = array('0' => $this->tblDivision);
         if (($tblCourseContentList = Digital::useService()->getCourseContentListBy($this->tblDivision, $this->tblSubject, $this->tblSubjectGroup))) {
@@ -314,14 +315,19 @@ class CourseContent extends ClassRegister
                 $count++;
                 $sliceList[] = $this->getCourseContentSlice($tblCourseContent, $personNumberList ? implode(', ', $personNumberList) : '');
 
+                if (($temp = $tblCourseContent->getNoticedString(true))) {
+                    $noticed = $temp;
+                }
+
                 // Neue Seite
                 if ($count == 8) {
                     $count = 0;
                     $pageList[] = (new Page())
                         ->addSliceArray($this->getCourseContentHeaderSliceList())
                         ->addSliceArray($sliceList)
-                        ->addSlice($this->getSignSlice());
+                        ->addSlice($this->getSignSlice($noticed));
                     $sliceList = array();
+                    $noticed = '';
                 }
             }
         }
@@ -331,7 +337,7 @@ class CourseContent extends ClassRegister
             $pageList[] = (new Page())
                 ->addSliceArray($this->getCourseContentHeaderSliceList())
                 ->addSliceArray($sliceList)
-                ->addSlice($this->getSignSlice());
+                ->addSlice($this->getSignSlice($noticed));
         }
     }
 
@@ -403,9 +409,11 @@ class CourseContent extends ClassRegister
     }
 
     /**
+     * @param string $noticed
+     *
      * @return Slice
      */
-    private function getSignSlice(): Slice
+    private function getSignSlice(string $noticed): Slice
     {
         return (new Slice())
             ->styleMarginTop('30px')
@@ -414,7 +422,8 @@ class CourseContent extends ClassRegister
                     ->setContent('Kenntnis genommmen:')
                     , '25%')
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent($noticed ?: '&nbsp;')
+                    ->styleAlignCenter()
                     ->styleBorderBottom()
                     , '75%')
             )
@@ -423,7 +432,7 @@ class CourseContent extends ClassRegister
                     ->setContent('&nbsp;')
                     , '25%')
                 ->addElementColumn((new Element())
-                    ->setContent('Datum und Unterschrift Schulleiterin / Schulleiter')
+                    ->setContent('Datum und Schulleiterin / Schulleiter')
                     ->styleTextSize('11px')
                     ->styleAlignCenter()
                     , '75%')

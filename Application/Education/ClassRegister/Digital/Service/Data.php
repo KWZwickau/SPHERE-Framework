@@ -334,6 +334,31 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param array $tblCourseContentList
+     * @param string $dateHeadmaster
+     * @param TblPerson $tblPersonHeadmaster
+     */
+    public function updateBulkCourseContent(array $tblCourseContentList, string $dateHeadmaster, TblPerson $tblPersonHeadmaster)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCourseContent $Entity */
+        foreach ($tblCourseContentList as $tblCourseContent) {
+            $Entity = $Manager->getEntityById('TblCourseContent', $tblCourseContent->getId());
+            $Protocol = clone $Entity;
+            if (null !== $Entity) {
+                $Entity->setDateHeadmaster($dateHeadmaster ? new DateTime($dateHeadmaster) : null);
+                $Entity->setServiceTblPersonHeadmaster($tblPersonHeadmaster);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+    }
+
+    /**
      * @param TblCourseContent $tblCourseContent
      *
      * @return bool

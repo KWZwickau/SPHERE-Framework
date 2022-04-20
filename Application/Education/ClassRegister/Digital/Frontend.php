@@ -7,6 +7,7 @@ use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
+use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
@@ -43,6 +44,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Home;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
@@ -1398,18 +1400,34 @@ class Frontend extends Extension implements IFrontendInterface
                                 ApiAbsence::getEndpoint()
                             ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId, null,
                                 'DivisionSubject', $tblDivisionSubject->getId()))
+                            . (new Primary(
+                                new Check() . ' Kenntnis genommen (SL)',
+                                ApiInstructionSetting::getEndpoint()
+                            ))->ajaxPipelineOnClick(ApiInstructionSetting::pipelineSaveHeadmasterNoticed($DivisionId, $SubjectId, $SubjectGroupId))
                         , 8),
                         new LayoutColumn(
-                            new PullRight(new External(
-                                'Download',
-                                '/Api/Document/Standard/CourseContent/Create',
-                                new Download(),
-                                array(
-                                    'DivisionId' => $DivisionId,
-                                    'SubjectId' => $SubjectId,
-                                    'SubjectGroupId' => $SubjectGroupId
-                                )
-                            ))
+                            new PullRight(
+                                (new External(
+                                    'zum Notenbuch',
+                                    '/Education/Graduation/Gradebook/Gradebook/Teacher/Selected',
+                                    new Extern(),
+                                    array(
+                                        'DivisionSubjectId' => $tblDivisionSubject->getId()
+                                    ),
+                                    'Zum Notenbuch wechseln'
+                                ))
+                                . (new External(
+                                    'Download',
+                                    '/Api/Document/Standard/CourseContent/Create',
+                                    new Download(),
+                                    array(
+                                        'DivisionId' => $DivisionId,
+                                        'SubjectId' => $SubjectId,
+                                        'SubjectGroupId' => $SubjectGroupId
+                                    ),
+                                    'Kursheft herunterladen'
+                                ))
+                            )
                         , 4)
                     ))
                 )))
@@ -1502,6 +1520,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Room' => $tblCourseContent->getRoom(),
                     'Absence' => implode(' ', $absenceList),
                     'Teacher' => $tblCourseContent->getTeacherString(),
+                    'Noticed' => $tblCourseContent->getNoticedString(false),
                     'Option' =>
                         (new Standard(
                             '',
@@ -1534,6 +1553,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Remark' => 'Bemerkungen',
                 'Absence' => 'Fehlzeiten',
                 'Teacher' => 'Lehrer',
+                'Noticed' => 'Kenntnis genommen (SL)',
                 'Option' => ''
             ),
             array(
@@ -1546,7 +1566,7 @@ class Frontend extends Extension implements IFrontendInterface
                     array('width' => '25px', 'targets' => 1),
                     array('width' => '25px', 'targets' => 2),
                     array('width' => '25px', 'targets' => 3),
-                    array('width' => '50px', 'targets' => 7),
+                    array('width' => '50px', 'targets' => 8),
                     array('width' => '60px', 'targets' => -1),
                 ),
                 'responsive' => false

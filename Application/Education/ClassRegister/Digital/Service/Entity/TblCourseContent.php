@@ -15,6 +15,10 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
+use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -83,6 +87,16 @@ class TblCourseContent extends Element
      * @Column(type="boolean")
      */
     protected $IsDoubleLesson;
+
+    /**
+     * @Column(type="datetime")
+     */
+    protected $DateHeadmaster;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPersonHeadmaster;
 
     /**
      * @return bool|TblDivision
@@ -303,5 +317,74 @@ class TblCourseContent extends Element
     public function setRemark(string $Remark): void
     {
         $this->Remark = $Remark;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDateHeadmaster()
+    {
+        if (null === $this->DateHeadmaster) {
+            return false;
+        }
+        /** @var DateTime $DateHeadmaster */
+        $DateHeadmaster = $this->DateHeadmaster;
+        if ($DateHeadmaster instanceof DateTime) {
+            return $DateHeadmaster->format('d.m.Y');
+        } else {
+            return (string)$DateHeadmaster;
+        }
+    }
+
+    /**
+     * @param null|DateTime $DateHeadmaster
+     */
+    public function setDateHeadmaster(DateTime $DateHeadmaster = null)
+    {
+        $this->DateHeadmaster = $DateHeadmaster;
+    }
+
+    /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPersonHeadmaster()
+    {
+        if (null === $this->serviceTblPersonHeadmaster) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonHeadmaster);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServiceTblPersonHeadmaster(TblPerson $tblPerson = null)
+    {
+        $this->serviceTblPersonHeadmaster = (null === $tblPerson ? null : $tblPerson->getId());
+    }
+
+    /**
+     * @param bool $isPrintVersion
+     *
+     * @return string
+     */
+    public function getNoticedString(bool $isPrintVersion): string
+    {
+        if (($date = $this->getDateHeadmaster())) {
+            $text = 'am ' . $date . ' durch ' . (($headmaster = $this->getServiceTblPersonHeadmaster()) ? $headmaster->getLastName() : '');
+
+            if ($isPrintVersion) {
+                return $text;
+            } else {
+                return new Success(new Check() . ' ' . $text);
+            }
+        }
+
+        if ($isPrintVersion) {
+            return '';
+        } else {
+            return new Warning(new Unchecked() . ' noch nicht bestätigt');
+        }
     }
 }

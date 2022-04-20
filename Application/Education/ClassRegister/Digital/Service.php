@@ -663,6 +663,27 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     */
+    public function updateBulkCourseContentHeadmaster(TblDivision $tblDivision, TblSubject $tblSubject, TblSubjectGroup $tblSubjectGroup)
+    {
+        $updateList = array();
+        if (($tblCourseContentList = $this->getCourseContentListBy($tblDivision, $tblSubject, $tblSubjectGroup))) {
+            foreach ($tblCourseContentList as $tblCourseContent) {
+                if (!$tblCourseContent->getDateHeadmaster() || !$tblCourseContent->getServiceTblPersonHeadmaster()) {
+                    $updateList[] = $tblCourseContent;
+                }
+            }
+        }
+
+        if ($updateList && ($tblPerson = Account::useService()->getPersonByLogin())) {
+            (new Data($this->getBinding()))->updateBulkCourseContent($updateList, (new DateTime('today'))->format('d.m.Y'), $tblPerson);
+        }
+    }
+
+    /**
      * @param TblCourseContent $tblCourseContent
      *
      * @return bool

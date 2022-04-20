@@ -93,5 +93,7 @@ class Setup  extends AbstractSetup
         $this->createColumn($Table, 'Remark', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'Room', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'IsDoubleLesson', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'DateHeadmaster', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'serviceTblPersonHeadmaster', self::FIELD_TYPE_BIGINT, true);
     }
 }
