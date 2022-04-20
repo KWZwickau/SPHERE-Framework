@@ -745,7 +745,7 @@ class ClassRegister extends AbstractDocument
         $sliceList[] = ((new Slice())
             ->styleMarginTop('30px')
             ->addElement((new Element())
-                ->setContent('Ferien')
+                ->setContent('Ferien / Unterrichtsfreie Tage')
                 ->styleTextBold()
                 ->styleTextSize('18px')
             )

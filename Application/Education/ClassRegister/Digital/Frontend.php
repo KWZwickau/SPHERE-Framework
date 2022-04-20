@@ -43,6 +43,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Home;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
@@ -2165,5 +2166,102 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         ))->disableSubmitAction();
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
+    public function frontendHoliday(
+        $DivisionId = null,
+        $GroupId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ) {
+        $stage = new Stage('Digitales Klassenbuch', 'Ferien / Unterrichtsfreie Tage');
+
+        $stage->addButton(new Standard(
+            'Zurück', $BasicRoute, new ChevronLeft()
+        ));
+        $tblYear = null;
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if ($tblDivision || $tblGroup) {
+            $header = Digital::useService()->getHeadLayoutRow(
+                $tblDivision ?: null, $tblGroup ?: null, $tblYear
+            );
+
+            $tblCompany = false;
+            if ($tblDivision) {
+                $tblCompany = $tblDivision->getServiceTblCompany();
+            } elseif ($tblGroup) {
+                $tblCompany = $tblGroup->getCurrentCompanySingle();
+            }
+
+            if ($tblYear) {
+                $list = array();
+                $dataList = array();
+                if ($tblCompany && ($tblYearHolidayAllByYearAndCompany = Term::useService()->getYearHolidayAllByYear($tblYear, $tblCompany))) {
+                    $list = $tblYearHolidayAllByYearAndCompany;
+                }
+                if (($tblYearHolidayAllByYear = Term::useService()->getYearHolidayAllByYear($tblYear))) {
+                    $list = array_merge($list, $tblYearHolidayAllByYear);
+                }
+
+                $tblHolidayList = array();
+                foreach ($list as $tblYearHoliday) {
+                    if (($item = $tblYearHoliday->getTblHoliday())) {
+                        $tblHolidayList[$item->getId()] = $item;
+                    }
+                }
+                foreach ($tblHolidayList as $tblHoliday) {
+                    $dataList[] = array(
+                        'FromDate' => $tblHoliday->getFromDate(),
+                        'ToDate' => $tblHoliday->getToDate(),
+                        'Name' => $tblHoliday->getName(),
+                        'Type' => $tblHoliday->getTblHolidayType()->getName()
+                    );
+                }
+                $content = new TableData($dataList, null, array(
+                        'FromDate' => 'Datum von',
+                        'ToDate' => 'Datum bis',
+                        'Name' => 'Name',
+                        'Type' => 'Typ'
+                    ),
+                    array(
+                        'order' => array(
+                            array(0, 'desc'),
+                            array(1, 'desc')
+                        ),
+                        'columnDefs' => array(
+                            array('type' => 'de_date', 'targets' => array(0,1)),
+                        )
+                    )
+                );
+            } else {
+                $content = new Warning('Kein Schuljahr gefunden', new Exclamation());
+            }
+
+            $stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        $header,
+                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
+                            '/Education/ClassRegister/Digital/Holiday', $BasicRoute)
+                    )),
+                    new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        $content
+                    )), new Title(new Holiday() . ' Ferien / Unterrichtsfreie Tage'))
+                ))
+            );
+        } else {
+            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        return $stage;
     }
 }

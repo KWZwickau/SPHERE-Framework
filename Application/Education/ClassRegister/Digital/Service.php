@@ -41,6 +41,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Commodity;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -232,12 +233,32 @@ class Service extends AbstractService
                     }
                 }
                 if (!empty($TeacherArray)) {
-                    $content[] .= 'Klassenlehrer: ' . implode(', ', $TeacherArray);
+                    $content[] = 'Klassenlehrer: ' . implode(', ', $TeacherArray);
                 }
             }
+            // Elternvertreter
+            if (($tblCustodyList = Division::useService()->getCustodyAllByDivision($tblDivision))) {
+                $custodyList = array();
+                $count = 0;
+                foreach ($tblCustodyList as $tblPerson) {
+                    $Description = Division::useService()->getDivisionCustodyByDivisionAndPerson($tblDivision, $tblPerson)->getDescription();
+                    $custodyList[$count++] = $tblPerson->getFullName() . ($Description ? ' (' . $Description . ')' : '');
+                }
+                $content[] = 'Elternvertreter: ' . implode(', ', $custodyList);
+            }
+            // Klassensprecher
+            if (($tblDivisionRepresentativeList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))) {
+                $representativeList = array();
+                $count = 0;
+                foreach($tblDivisionRepresentativeList as $tblDivisionRepresentative){
+                    $tblPersonRepresentative = $tblDivisionRepresentative->getServiceTblPerson();
+                    $Description = $tblDivisionRepresentative->getDescription();
+                    $representativeList[$count++] = $tblPersonRepresentative->getFirstSecondName() . ' ' . $tblPersonRepresentative->getLastName()
+                        . ($Description ? ' (' . $Description . ')' : '');
+                }
+                $content[] = 'Klassensprecher: ' . implode(', ', $representativeList);
+            }
             $tblYear = $tblDivision->getServiceTblYear();
-
-
         } else {
             $title = '';
             $content = '';
@@ -293,6 +314,8 @@ class Service extends AbstractService
             new CommodityItem(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Instruction');
         $buttonList[] = $this->getButton('Unterrichtete Fächer / Lehrer', '/Education/ClassRegister/Digital/Lectureship',
             new Listing(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
+        $buttonList[] = $this->getButton('Ferien', '/Education/ClassRegister/Digital/Holiday',
+            new Holiday(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Holiday');
         $buttonList[] = $this->getButton('Download', '/Education/ClassRegister/Digital/Download',
             new Download(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
 
