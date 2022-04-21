@@ -8,6 +8,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
@@ -37,6 +38,7 @@ class Frontend
             $Item['Acronym'] = $tblConsumer->getAcronym();
             $Item['Name'] = $tblConsumer->getName();
             $Item['Alias'] = $tblConsumer->getAlias();
+            $Item['Type'] = $tblConsumer->getType();
             array_push($TableContent, $Item);
         });
         $Form = new Form(new FormGroup(
@@ -56,18 +58,20 @@ class Frontend
                             'ConsumerAlias', 'Alias des Mandanten', 'Alias des Mandanten'
                         )
                         , 4),
-                )), new \SPHERE\Common\Frontend\Form\Repository\Title('Mandant anlegen'))
+                )))
             , new Primary('Hinzufügen')
         );
         $Stage->setContent(
             new TableData($TableContent, new Title('Bestehende Mandanten'), array(
                 'Acronym' => 'Mandanten-Kürzel',
                 'Name'    => 'Mandanten-Name',
-                'Alias' => 'Mandanten-Alias'
+                'Alias' => 'Mandanten-Alias',
+                'Type' => 'Mandanten-Typ'
             ))
-            .Consumer::useService()->createConsumer(
+            . new \SPHERE\Common\Frontend\Layout\Repository\Title('Mandant anlegen')
+            . new Well(Consumer::useService()->createConsumer(
                 $Form, $ConsumerAcronym, $ConsumerName, $ConsumerAlias
-            )
+            ))
         );
         return $Stage;
     }

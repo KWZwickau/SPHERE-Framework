@@ -46,7 +46,6 @@ class Billing extends AbstractDocument
     public function __construct(TblItem $tblItem, TblDocument $tblDocument, $Data)
     {
         $this->Acronym = Account::useService()->getMandantAcronym();
-//        $this->Acronym = 'HOGA';
         $this->tblItem = $tblItem;
         $this->tblDocument = $tblDocument;
         $this->Data = $Data;

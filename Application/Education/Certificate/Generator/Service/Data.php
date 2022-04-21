@@ -219,30 +219,31 @@ class Data extends AbstractData
 
     public function setupDatabaseContent()
     {
-
-        // Informationen der Zeugnisse
-        $this->tblCertificateTypeHalfYear = $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis', 'HALF_YEAR');
-        $this->tblCertificateTypeYear = $this->createCertificateType('Jahreszeugnis', 'YEAR');
-        $this->tblCertificateTypeGradeInformation = $this->createCertificateType('Noteninformation', 'GRADE_INFORMATION');
-        $this->tblCertificateTypeRecommendation = $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
-        $this->tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
-        $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
-        $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
-        $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
-        $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
-        $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
-        $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
-        $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
-        $this->tblSchoolTypeFachoberschule = Type::useService()->getTypeByName('Fachoberschule');
-        $this->tblSchoolTypeBerufsgrundbildungsjahr = Type::useService()->getTypeByName('Berufsgrundbildungsjahr');
-        $this->tblSchoolTypeBeruflichesGymnasium = Type::useService()->getTypeByName('Berufliches Gymnasium');
-        $this->tblCourseMain = Course::useService()->getCourseByName('Hauptschule');
-        $this->tblCourseReal = Course::useService()->getCourseByName('Realschule');
         $tblConsumer = $this->tblConsumer = Consumer::useService()->getConsumerBySession();
 
-        $this->setCertificateGradeInformation($tblConsumer);
+        if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
 
-        if ($tblConsumer) {
+            // Informationen der Zeugnisse
+            $this->tblCertificateTypeHalfYear = $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis', 'HALF_YEAR');
+            $this->tblCertificateTypeYear = $this->createCertificateType('Jahreszeugnis', 'YEAR');
+            $this->tblCertificateTypeGradeInformation = $this->createCertificateType('Noteninformation', 'GRADE_INFORMATION');
+            $this->tblCertificateTypeRecommendation = $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
+            $this->tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
+            $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
+            $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
+            $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
+            $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+            $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
+            $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
+            $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
+            $this->tblSchoolTypeFachoberschule = Type::useService()->getTypeByName('Fachoberschule');
+            $this->tblSchoolTypeBerufsgrundbildungsjahr = Type::useService()->getTypeByName('Berufsgrundbildungsjahr');
+            $this->tblSchoolTypeBeruflichesGymnasium = Type::useService()->getTypeByName('Berufliches Gymnasium');
+            $this->tblCourseMain = Course::useService()->getCourseByName('Hauptschule');
+            $this->tblCourseReal = Course::useService()->getCourseByName('Realschule');
+
+            $this->setCertificateGradeInformation();
+
             if ($tblConsumer->getAcronym() == 'ESZC') {
                 IDataESZC::setCertificateIndividually($this);
             }
@@ -304,53 +305,48 @@ class Data extends AbstractData
      */
     public function insertCertificate($Type)
     {
+        // nur bei Sachsen
+        if (Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)) {
+            // Informationen der Zeugnisse
+            $this->tblCertificateTypeHalfYear = $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis', 'HALF_YEAR');
+            $this->tblCertificateTypeYear = $this->createCertificateType('Jahreszeugnis', 'YEAR');
+            $this->tblCertificateTypeGradeInformation = $this->createCertificateType('Noteninformation', 'GRADE_INFORMATION');
+            $this->tblCertificateTypeRecommendation = $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
+            $this->tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
+            $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
+            $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
+            $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
+            $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+            $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
+            $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
+            $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
+            $this->tblSchoolTypeFachoberschule = Type::useService()->getTypeByName('Fachoberschule');
+            $this->tblCourseMain = Course::useService()->getCourseByName('Hauptschule');
+            $this->tblCourseReal = Course::useService()->getCourseByName('Realschule');
 
-        // Informationen der Zeugnisse
-        $this->tblCertificateTypeHalfYear = $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis', 'HALF_YEAR');
-        $this->tblCertificateTypeYear = $this->createCertificateType('Jahreszeugnis', 'YEAR');
-        $this->tblCertificateTypeGradeInformation = $this->createCertificateType('Noteninformation', 'GRADE_INFORMATION');
-        $this->tblCertificateTypeRecommendation = $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
-        $this->tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
-        $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
-        $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
-        $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
-        $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
-        $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
-        $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
-        $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
-        $this->tblSchoolTypeFachoberschule = Type::useService()->getTypeByName('Fachoberschule');
-        $this->tblCourseMain = Course::useService()->getCourseByName('Hauptschule');
-        $this->tblCourseReal = Course::useService()->getCourseByName('Realschule');
-
-        switch ($Type) {
-            case TblCertificate::CERTIFICATE_TYPE_PRIMARY :
-                SDataPrimary::setCertificateStandard($this);
-                return true;
-            break;
-            case TblCertificate::CERTIFICATE_TYPE_SECONDARY :
-                SDataSecondary::setCertificateStandard($this);
-                return true;
-            break;
-            case TblCertificate::CERTIFICATE_TYPE_GYM :
-                SDataGym::setCertificateStandard($this);
-                return true;
-            break;
-            case TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE :
-                SDataBerufsfachschule::setCertificateStandard($this);
-                return true;
-            break;
-            case TblCertificate::CERTIFICATE_TYPE_FACHSCHULE :
-                SDataFachschule::setCertificateStandard($this);
-                return true;
-            break;
+            switch ($Type) {
+                case TblCertificate::CERTIFICATE_TYPE_PRIMARY :
+                    SDataPrimary::setCertificateStandard($this);
+                    return true;
+                case TblCertificate::CERTIFICATE_TYPE_SECONDARY :
+                    SDataSecondary::setCertificateStandard($this);
+                    return true;
+                case TblCertificate::CERTIFICATE_TYPE_GYM :
+                    SDataGym::setCertificateStandard($this);
+                    return true;
+                case TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE :
+                    SDataBerufsfachschule::setCertificateStandard($this);
+                    return true;
+                case TblCertificate::CERTIFICATE_TYPE_FACHSCHULE :
+                    SDataFachschule::setCertificateStandard($this);
+                    return true;
+            }
         }
+
         return false;
     }
 
-    /**
-     * @param TblConsumer        $tblConsumer
-     */
-    private function setCertificateGradeInformation(TblConsumer $tblConsumer)
+    private function setCertificateGradeInformation()
     {
 
         /*
@@ -365,31 +361,17 @@ class Data extends AbstractData
             $this->setCertificateGradeAllStandard($tblCertificate);
         }
         if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-            if ($tblConsumer->getAcronym() == 'ESZC') {
-                $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
-                $this->setCertificateSubject($tblCertificate, 'MA', 1, 2);
-                $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);
-                $this->setCertificateSubject($tblCertificate, 'BIO', 1, 4);
-                $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
-                $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
-                $this->setCertificateSubject($tblCertificate, 'TC', 1, 7);
-                $this->setCertificateSubject($tblCertificate, 'KU', 1, 8);
-                $this->setCertificateSubject($tblCertificate, 'MU', 1, 9);
-                $this->setCertificateSubject($tblCertificate, 'RE/e', 1, 10);
-                $this->setCertificateSubject($tblCertificate, 'SPO', 1, 11);
-            } else {
-                $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
-                $this->setCertificateSubject($tblCertificate, 'MA', 1, 2);
-                $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);
-                $this->setCertificateSubject($tblCertificate, 'BIO', 1, 4);
-                $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
-                $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
-                $this->setCertificateSubject($tblCertificate, 'INF', 1, 7);
-                $this->setCertificateSubject($tblCertificate, 'KU', 1, 8);
-                $this->setCertificateSubject($tblCertificate, 'MU', 1, 9);
-                $this->setCertificateSubject($tblCertificate, 'RE/e', 1, 10);
-                $this->setCertificateSubject($tblCertificate, 'SPO', 1, 11);
-            }
+            $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $this->setCertificateSubject($tblCertificate, 'MA', 1, 2);
+            $this->setCertificateSubject($tblCertificate, 'EN', 1, 3);
+            $this->setCertificateSubject($tblCertificate, 'BIO', 1, 4);
+            $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+            $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
+            $this->setCertificateSubject($tblCertificate, 'INF', 1, 7);
+            $this->setCertificateSubject($tblCertificate, 'KU', 1, 8);
+            $this->setCertificateSubject($tblCertificate, 'MU', 1, 9);
+            $this->setCertificateSubject($tblCertificate, 'RE/e', 1, 10);
+            $this->setCertificateSubject($tblCertificate, 'SPO', 1, 11);
         }
     }
 

@@ -22,6 +22,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -563,10 +564,7 @@ class Service extends AbstractService
             'Content.Input.IndustrialPlacementDuration' => 'TextField'
         );
 
-        $Acronym = Account::useService()->getMandantAcronym();
-        if($Acronym == 'EVAB'
-//        || $Acronym == 'REF'
-        ){
+        if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVAB')){
             $FieldConfiguration['Content.Input.Remark'] = 'Editor';
         }
 

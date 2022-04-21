@@ -40,7 +40,6 @@ class DocumentWarning
     {
 
         $this->Acronym = Account::useService()->getMandantAcronym();
-//        $this->Acronym = 'HOGA';
         $this->tblItem = $tblItem;
         $this->Data = $Data;
     }
