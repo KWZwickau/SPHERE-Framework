@@ -1,6 +1,23 @@
 <?php
 namespace SPHERE\Application\Transfer\Untis\Import;
-
+/**
+ * GPU015.TXT
+ * https://platform.untis.at/HTML/WebHelp/de/untis/hid_export.htm
+ * A Student Kurzname
+ * B Unterrichtsnummer
+ * C Fach
+ * D Unterrichtsalias
+ * E Klasse
+ * F Statistikkennzeichen
+ * G Studentennummer (nur Export)
+ * H reserviert
+ * I reserviert
+ * Mit Modul Kursplanung
+ * J Unterrichtsnummern der Alternativkurse (mit Tilde ~ getrennt)
+ * K Fächer der Alternativkurse (mit ~ getrennt)
+ * L reserviert
+ * M Prioritäten der Alternativkurse (mit ~ getrennt)
+ */
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;

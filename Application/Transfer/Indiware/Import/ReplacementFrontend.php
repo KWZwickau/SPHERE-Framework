@@ -157,7 +157,10 @@ class ReplacementFrontend extends Extension implements IFrontendInterface
         $WarningList = $Service->getWarningList();
         $DateList = $Service->getDateList();
         $CourseList = $Service->getCourseList();
-        $ImportList = $Service->getUploadList();
+        $UploadList = $Service->getUploadList();
+
+        $ImportList = $Service->getCompareImportList($UploadList);
+
         if(count($ImportList) > 0){
             $ImportReady = new Success(count($ImportList).' Importierbare Stundenzuweisungen', null, false, 5, 5);
             if($Data['IsImport'] == '1'){

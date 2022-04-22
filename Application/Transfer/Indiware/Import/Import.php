@@ -136,20 +136,21 @@ class Import extends Extension implements IModuleInterface
                     new Panel('Indiware-Import für Lehraufträge', $PanelLectureshipImport
                         , Panel::PANEL_TYPE_INFO)
                 , 4),
-            )),
-            new LayoutRow(array(
                 new LayoutColumn(
                     new Ruler()
                 ),
                 new LayoutColumn(
                     new Panel(
-                        'Indiware-Import der Kurseinbringung fürs Abitur',
+                        'Indiware-Import der Kurseinbringung für das Abitur',
                         new PullClear('Kurseinbringung importieren: '
                             . new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/SelectedCourse/Import', new Upload()))
                         ),
                         Panel::PANEL_TYPE_INFO
                     )
                 , 4),
+                new LayoutColumn(
+                    new Ruler()
+                ),
                 new LayoutColumn(
                     new Panel('Import Stundenplan:', $PanelTimetable
                         , Panel::PANEL_TYPE_INFO)

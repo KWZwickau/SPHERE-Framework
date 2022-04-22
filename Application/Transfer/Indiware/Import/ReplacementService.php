@@ -1,10 +1,12 @@
 <?php
 namespace SPHERE\Application\Transfer\Indiware\Import;
 
+use DateTime;
 use MOC\V\Component\Document\Component\Bridge\Repository\UniversalXml;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeException;
 use MOC\V\Component\Document\Vendor\UniversalXml\Source\Node;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassRegister;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -15,6 +17,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -235,7 +238,7 @@ class ReplacementService
             $Year = $match[3];
             $Month = $this->getMonth($Month);
             if($Month){
-                $Date = new \DateTime($Day.'.'.$Month.'.'.$Year);
+                $Date = new DateTime($Day.'.'.$Month.'.'.$Year);
             }
         }
         return $Date;
@@ -290,6 +293,7 @@ class ReplacementService
                         //ToDO Course
                         if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['Course'], $tblYear))) {
                             $Row['tblCourse'] = $tblDivision;
+                            $Row['CourseId'] = $tblDivision;
                             break;
                         }
                     }
@@ -319,6 +323,95 @@ class ReplacementService
                 array_push($this->WarningList, $Row);
             }
         }
+    }
+
+    /**
+     * @param $ImportList
+     * @return array
+     */
+    public function getCompareImportList($ImportList)
+    {
+
+        $tblCourseList = $this->getCourseList();
+
+        $ReplaceList = array();
+        foreach($ImportList as $ImportRow){
+            $Day = (string)$ImportRow['Tag'];
+            $Hour = (string)$ImportRow['Hour'];
+            $CourseId = (string)$ImportRow['CourseId'];
+            $ReplaceList[$Day][$Hour][$CourseId][] = $ImportRow;
+        }
+        $TimeTableList = array();
+        if(($tblTimeTableList = TimetableClassRegister::useService()->getTimetableListByDateTime(new DateTime()))){
+            foreach($tblTimeTableList as $tblTimeTable){
+                if(($tblTimeTableNodeList = TimetableClassRegister::useService()->getTimetableNodeListByTimetable($tblTimeTable))){
+                    foreach($tblTimeTableNodeList as $tblTimeTableNode){
+                        if(key_exists($tblTimeTableNode->getServiceTblCourse()->getId(), $tblCourseList)){
+                            $Day = (string)$tblTimeTableNode->getDay();
+                            $Hour = (string)$tblTimeTableNode->getHour();
+                            $CourseId = (string)$tblTimeTableNode->getServiceTblCourse()->getId();
+                            $TimeTableList[$Day][$Hour][$CourseId][] = $tblTimeTableNode;
+                        }
+                    }
+                }
+            }
+        }
+
+        $DayList = $this->getDateList();
+        $DifferenceList = array();
+        // Day / Wochentag
+        for($DayCount = 1; $DayCount <= 5; $DayCount++){
+            // Hour / Unterrichtsstunde
+            for($HourCount = 1; $HourCount <= 10; $HourCount++){
+                foreach($tblCourseList as $CourseId => $tblCourse){
+                    if(isset($TimeTableList[$DayCount][$HourCount][$CourseId])
+                    && isset($ReplaceList[$DayCount][$HourCount][$CourseId])){
+                        // Vergleich der 2 Unterrichtseinträge (beides Listen)
+                        /** @var TblTimetableNode $tblTimeTableNode */
+                        foreach($TimeTableList[$DayCount][$HourCount][$CourseId] as $tblTimeTableNode){
+                            foreach($ReplaceList[$DayCount][$HourCount][$CourseId] as &$Row) {
+                                if($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
+                                && $Row['Room'] == $tblTimeTableNode->getRoom()
+                                && $Row['SubjectGroup'] == $tblTimeTableNode->getSubjectGroup()
+                                && $Row['tblSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
+                                && $Row['tblCourse']->getId() == $tblTimeTableNode->getServiceTblCourse()->getId()
+                                && $Row['tblPerson']->getId() == $tblTimeTableNode->getServiceTblPerson()->getId()){
+                                    $Row['found'] = true;
+                                }
+                            }
+                        }
+                        foreach($ReplaceList[$DayCount][$HourCount][$CourseId] as $Row) {
+                            if(!isset($Row['found'])){
+                                $DifferenceList[] = $Row;
+                            }
+                        }
+
+                    } elseif(isset($TimeTableList[$DayCount][$HourCount][$CourseId])){
+                        /** @var TblTimetableNode $tblTimeTableNode */
+                        foreach($TimeTableList[$DayCount][$HourCount][$CourseId] as $tblTimeTableNode){
+                            $Row = array();
+                            $Row['Date'] = $DayList[$tblTimeTableNode->getDay()];
+                            $Row['Hour'] = $tblTimeTableNode->getHour();
+                            $Row['Room'] = $tblTimeTableNode->getRoom();
+                            $Row['SubjectGroup'] = $tblTimeTableNode->getSubjectGroup();
+                            $Row['tblSubject'] = $tblTimeTableNode->getServiceTblSubject();
+                            $Row['tblCourse'] = $tblTimeTableNode->getServiceTblCourse();
+                            $Row['tblPerson'] = $tblTimeTableNode->getServiceTblPerson();
+                            $Row['IsCanceled'] = true;
+                            $DifferenceList[] = $Row;
+                        }
+                    } elseif(isset($ReplaceList[$DayCount][$HourCount][$CourseId])) {
+                        // zusätzlicher Unterricht aus dem Import
+                        foreach($ReplaceList[$DayCount][$HourCount][$CourseId] as &$Row) {
+                            $Row['IsCanceled'] = false;
+                            $DifferenceList[] = $Row;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $DifferenceList;
     }
 
     public function removeExistingReplacementByDateListAndDivisionList($DateList, $CourseList)

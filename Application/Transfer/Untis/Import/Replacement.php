@@ -6,6 +6,7 @@ use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassregister;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -28,6 +29,8 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Stage;
@@ -70,6 +73,7 @@ class Replacement implements IModuleInterface
     {
 
         $Stage = new Stage('Vertretungsplan', 'Übersicht');
+        $Stage->setMessage('Übersicht aller Klassen mit abweichungen zum Stundenplan');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Untis/Import', new ChevronLeft()));
         $Stage->addButton(new Standard('Import Vertretungsplan', '/Transfer/Untis/Import/Replacement/Prepare', new Upload()));
 
@@ -153,7 +157,10 @@ class Replacement implements IModuleInterface
                 new FormColumn(
                     (new FileUpload('File', 'Datei auswählen', 'Datei auswählen '.new WarningText(new Exclamation().' GPU014.TXT'), null,
                         array('showPreview' => false)))->setRequired()
-                    , 4),
+                , 4),
+                new FormColumn(
+                    new DatePicker('Data[Date]', '','Datum '.new Small(new Muted('(Optional, wenn die Importdaten nicht der aktuellen Woche entsprechen)')))
+                , 4),
             )),
             new FormRow(
                 new FormColumn(new Listing(

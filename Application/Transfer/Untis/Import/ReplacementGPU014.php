@@ -51,7 +51,6 @@ namespace SPHERE\Application\Transfer\Untis\Import;
  *    "E" Klausur
  * U Zeit der letzten Änderung (JJJJMMTTHHMM)
  */
-
 use DateTime;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -85,7 +84,13 @@ class ReplacementGPU014 extends AbstractConverter
     public function __construct($File, $Data)
     {
 
-        $Date = new \DateTime();
+        //ToDO Ist das Datum relevant oder soll der Nutzer beim Export entscheiden?
+        if(isset($Data['Date']) && $Data['Date'] != ''){
+            $Date = new \DateTime($Data['Date']);
+        } else {
+            $Date = new \DateTime();
+        }
+
         $DayCount = $Date->format('N');
         for ($i = 1; $i <= 5; $i++){
             $DateTemp = clone($Date);
@@ -122,15 +127,15 @@ class ReplacementGPU014 extends AbstractConverter
         $this->setSanitizer(new FieldSanitizer('H', 'tblSubject', array($this, 'sanitizeSubject')));
         $this->setPointer(new FieldPointer('H', 'SubjectGroup'));
         $this->setSanitizer(new FieldSanitizer('H', 'SubjectGroup', array($this, 'sanitizeSubjectGroup')));
-        $this->setPointer(new FieldPointer('I', 'SubjectTo'));
-        $this->setPointer(new FieldPointer('I', 'tblSubjectTo'));
-        $this->setSanitizer(new FieldSanitizer('I', 'tblSubjectTo', array($this, 'sanitizeSubject')));
-        $this->setPointer(new FieldPointer('I', 'SubjectGroupTo'));
-        $this->setSanitizer(new FieldSanitizer('I', 'SubjectGroupTo', array($this, 'sanitizeSubjectGroup')));
+        $this->setPointer(new FieldPointer('J', 'SubjectTo'));
+        $this->setPointer(new FieldPointer('J', 'tblSubjectTo'));
+        $this->setSanitizer(new FieldSanitizer('J', 'tblSubjectTo', array($this, 'sanitizeSubject')));
+        $this->setPointer(new FieldPointer('J', 'SubjectGroupTo'));
+        $this->setSanitizer(new FieldSanitizer('J', 'SubjectGroupTo', array($this, 'sanitizeSubjectGroup')));
         $this->setPointer(new FieldPointer('L', 'Room'));
         $this->setPointer(new FieldPointer('M', 'RoomTo'));
         $this->setPointer(new FieldPointer('O', 'Division'));
-        // ToDO Liste aus Klassen im String getrent durch "~"
+        // Liste aus Klassen im String getrent durch "~"
         $this->setPointer(new FieldPointer('O', 'tblCourseString'));
         $this->setPointer(new FieldPointer('O', 'tblCourseList'));
         $this->setSanitizer(new FieldSanitizer('O', 'tblCourseList', array($this, 'sanitizeCourse')));
@@ -192,10 +197,14 @@ class ReplacementGPU014 extends AbstractConverter
             $Result = array_merge($Result, $Part);
         }
 
-        //kurze schreibweise von ($Result['tblCourse'] ? $Result['tblCourse'] : null);
+        //kurze schreibweise von ($Result['tblCourseList'] ? $Result['tblCourseList'] : null);
         $tblCourseList = ($Result['tblCourseList'] ? : null);
-        $tblPerson = ($Result['tblPerson'] ? : null);
-        $tblSubject = ($Result['tblSubject'] ? : null);
+        // Vertretungseintrag hat Vorrang
+        $Room = ($Result['RoomTo'] ? : ($Result['Room']));
+        $tblPerson = ($Result['tblPersonTo'] ? : ($Result['tblPerson'] ? : null));
+        $tblSubject = ($Result['tblSubjectTo'] ? : ($Result['tblSubject'] ? : null));
+        // Gruppe nur wählen, wenn es auch ein Vertretungsfach gibt
+        $tblSubjectGroup = ($Result['tblSubjectTo'] ? $Result['SubjectGroupTo'] : ($Result['SubjectGroupTo']));
 
         if($Result['Date'] && $tblCourseList){
             foreach($tblCourseList as $tblCourse){
@@ -205,9 +214,9 @@ class ReplacementGPU014 extends AbstractConverter
                     $ImportRow = array(
                         'Date'         => $Result['Date'],
                         'Hour'         => $Result['Hour'],
-                        'Room'         => $Result['Room'],
+                        'Room'         => $Room,
                         'IsCanceled'   => ($Result['IsCanceled'] == '0' ? 1 : 0),
-                        'SubjectGroup' => $Result['SubjectGroup'],
+                        'SubjectGroup' => $tblSubjectGroup,
                         'tblCourse'    => $tblCourse,
                         'tblSubject'   => $tblSubject,
                         'tblPerson'    => $tblPerson,

@@ -10,6 +10,7 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -117,6 +118,9 @@ class Import extends Extension implements IModuleInterface
                         new Panel('Untis-Import für Lehraufträge:', $PanelLectureshipImport
                             , Panel::PANEL_TYPE_INFO)
                     , 4),
+                    new LayoutColumn(
+                        new Ruler()
+                    ),
                     new LayoutColumn(
                         new Panel('Import Stundenplan:', $PanelTimetable
                             , Panel::PANEL_TYPE_INFO)

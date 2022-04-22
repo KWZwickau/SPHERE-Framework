@@ -1,6 +1,23 @@
 <?php
 namespace SPHERE\Application\Transfer\Untis\Import;
-
+/**
+ * GPU010.TXT
+ * https://platform.untis.at/HTML/WebHelp/de/untis/hid_export.htm
+ * A Name
+ * B Langname
+ * C Text
+ * D Beschreibung
+ * E Statistik 1
+ * F Statistik 2
+ * G Kennzeichen
+ * H Vorname
+ * I Schülernummer
+ * J Klasse
+ * K Geschlecht (1 = weiblich, 2 = männlich)
+ * L (Kurs-)Optimierungskennzeichen
+ * M Geburtsdatum JJJJMMTT
+ * N E-Mail Adresse (ab Version 2012)
+ */
 use DateTime;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;

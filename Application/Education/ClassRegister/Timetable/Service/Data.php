@@ -85,7 +85,7 @@ class Data extends AbstractData
 
     /**
      * @param TblTimetable $tblTimetable
-     * @return mixed
+     * @return false|TblTimetableNode[]|null
      */
     public function getTimetableNodeListByTimetable(TblTimetable $tblTimetable)
     {

@@ -13,7 +13,6 @@ namespace SPHERE\Application\Transfer\Untis\Import;
  * G Stunde
  * H Stundenlänge (hh:mm) (nur in Minute, sonst leer)
  */
-
 use DateTime;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
