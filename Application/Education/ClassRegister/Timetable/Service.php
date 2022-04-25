@@ -192,6 +192,7 @@ class Service extends AbstractService
      * [Date]
      * [IsCanceled]
      * [tblSubject]
+     * [tblSubstituteSubject]
      * [tblCourse]
      * [tblPerson]
      *

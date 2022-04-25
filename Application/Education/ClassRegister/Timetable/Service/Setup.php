@@ -63,6 +63,7 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     * @param Table $tblTimeTable
      *
      * @return Table
      */
@@ -87,6 +88,7 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     * @param Table $tblTimeTable
      *
      * @return Table
      */
@@ -118,10 +120,11 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'IsCanceled', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->createColumn($Table, 'SubjectGroup', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT);
-        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblSubstituteSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
 
-        $this->createIndex($Table, array('Date', 'Hour', 'serviceTblCourse'));
+        $this->createIndex($Table, array('Date', 'Hour', 'serviceTblCourse'), false);
 
         return $Table;
     }

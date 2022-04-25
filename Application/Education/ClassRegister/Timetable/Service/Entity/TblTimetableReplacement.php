@@ -28,6 +28,7 @@ class TblTimetableReplacement extends Element
     const ATTR_SUBJECT_GROUP = 'SubjectGroup';
     const ATTR_SERVICE_TBL_COURSE = 'serviceTblCourse';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const ATTR_SERVICE_TBL_SUBSTITUTE_SUBJECT = 'serviceTblSubstituteSubject';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
 
 
@@ -63,6 +64,10 @@ class TblTimetableReplacement extends Element
      * @Column(type="bigint")
      */
     protected int $serviceTblSubject;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblSubstituteSubject;
     /**
      * @Column(type="bigint")
      */
@@ -218,13 +223,34 @@ class TblTimetableReplacement extends Element
     }
 
     /**
-     * @param TblSubject $tblSubject
+     * @param TblSubject|null $tblSubject
      * @return void
      */
-    public function setServiceTblSubject(TblSubject $tblSubject): void
+    public function setServiceTblSubject(TblSubject $tblSubject = null): void
     {
 
-        $this->serviceTblSubject = $tblSubject->getId();
+        $this->serviceTblSubject = ( !$tblSubject ? false : $tblSubject->getId() );
+    }
+
+    /**
+     * @return TblSubject|null
+     */
+    public function getServiceTblSubstituteSubject()
+    {
+        if (null !== $this->serviceTblSubstituteSubject) {
+            $tblSubstituteSubject = Subject::useService()->getSubjectById($this->serviceTblSubstituteSubject);
+            return $this->changeFalseToNull($tblSubstituteSubject);
+        }
+        return null;
+    }
+
+    /**
+     * @param TblSubject|null $tblSubstituteSubject
+     * @return void
+     */
+    public function setServiceTblSubstituteSubject(TblSubject $tblSubstituteSubject = null): void
+    {
+        $this->serviceTblSubstituteSubject = ( !$tblSubstituteSubject ? false : $tblSubstituteSubject->getId() );
     }
 
     /**
