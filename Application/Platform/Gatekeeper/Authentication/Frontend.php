@@ -116,7 +116,7 @@ class Frontend extends Extension implements IFrontendInterface
                     && ($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
                 ) {
-                    $contentTeacherWelcome = Timetable::useService()->getTimetablePanelForTeacher($tblPerson)
+                    $contentTeacherWelcome = Timetable::useService()->getTimetablePanelForTeacher()
                         . Evaluation::useService()->getTeacherWelcomeGradeTask($tblPerson);
                 }
 

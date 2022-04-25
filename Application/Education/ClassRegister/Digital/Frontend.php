@@ -1263,11 +1263,16 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             // befüllen bei neuen Einträge aus dem importierten Stundenplan
             if ($tblDivision && $Date && $Lesson
-                && ($tblTimetableNode = Timetable::useService()->getTimeTableNodeBy($tblDivision, new DateTime($Date), (int) $Lesson))
+                && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                    $tblDivision, new DateTime($Date), (int) $Lesson))
             ) {
                 $Global = $this->getGlobal();
-                $Global->POST['Data']['serviceTblSubject'] = $tblTimetableNode->getServiceTblSubject() ? $tblTimetableNode->getServiceTblSubject()->getId() : 0;
-                $Global->POST['Data']['Room'] =$tblTimetableNode->getRoom();
+
+                $Global->POST['Data']['serviceTblSubject'] = $tblLessonContentTemp->getServiceTblSubject() ? $tblLessonContentTemp->getServiceTblSubject()->getId() : 0;
+                $Global->POST['Data']['serviceTblSubstituteSubject'] = $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
+                $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
+                $Global->POST['Data']['IsCanceled'] = $tblLessonContentTemp->getIsCanceled() ? 1 : 0;
+
                 $Global->savePost();
             }
 

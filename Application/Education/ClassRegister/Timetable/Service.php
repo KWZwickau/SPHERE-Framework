@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\ClassRegister\Timetable;
 
 use DateTime;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
@@ -271,7 +272,7 @@ class Service extends AbstractService
 
         if (($tblTimeTableList = $this->getTimetableListByDateTime($dateTime))) {
             // Suche mit aktueller Person
-            if (($result = $this->searchTimeTableNode($tblTimeTableList, $tblDivision, $day, $lesson, $startDateOfWeek, $tblPerson))) {
+            if (($result = $this->searchTimeTableNode($tblTimeTableList, $tblDivision, $day, $lesson, $startDateOfWeek, $tblPerson ?: null))) {
                 return $result;
             }
 
@@ -319,11 +320,53 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param DateTime $dateTime
+     * @param Int $lesson
      *
+     * @return false|TblLessonContent
+     */
+    public function getLessonContentFromTimeTableNodeWithReplacementBy(TblDivision $tblDivision, DateTime $dateTime, Int $lesson)
+    {
+        $tblPerson = Account::useService()->getPersonByLogin();
+        if (!($replacementList = $this->getTimetableReplacementByTime($dateTime, $tblPerson ?: null, $tblDivision, $lesson))) {
+            // Suche ohne aktuelle Person als Fallback
+            $replacementList = $this->getTimetableReplacementByTime($dateTime, null, $tblDivision, $lesson);
+        }
+
+        if ($replacementList) {
+            // Vertretungsplan gefunden
+            if (count($replacementList) == 1) {
+                /** @var TblTimetableReplacement $tblTimetableReplacement */
+                $tblTimetableReplacement = reset($replacementList);
+                $tblLessonContent = new TblLessonContent();
+                $tblLessonContent->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubject() ?: null);
+                $tblLessonContent->setServiceTblSubstituteSubject($tblTimetableReplacement->getServiceTblSubstituteSubject() ?: null);
+                $tblLessonContent->setRoom($tblTimetableReplacement->getRoom());
+                $tblLessonContent->setIsCanceled($tblTimetableReplacement->getIsCanceled() || $tblTimetableReplacement->getServiceTblSubstituteSubject());
+
+                return $tblLessonContent;
+            } else {
+                return false;
+            }
+        } else {
+            // kein Vertretungsplan -> normaler Stundenplan
+            if (($tblTimeTableNode = $this->getTimeTableNodeBy($tblDivision, $dateTime, $lesson))) {
+                $tblLessonContent = new TblLessonContent();
+                $tblLessonContent->setServiceTblSubject($tblTimeTableNode->getServiceTblSubject() ?: null);
+                $tblLessonContent->setRoom($tblTimeTableNode->getRoom());
+
+                return $tblLessonContent;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    /**
      * @return string
      */
-    public function getTimetablePanelForTeacher(TblPerson $tblPerson)
+    public function getTimetablePanelForTeacher()
     {
         $dateTime = new DateTime('today');
         $day = (int) $dateTime->format('w');
@@ -331,17 +374,35 @@ class Service extends AbstractService
         $tblPerson = Account::useService()->getPersonByLogin();
 
         $resultList = array();
-        if (($tblTimeTableList = $this->getTimetableListByDateTime($dateTime))) {
+        if ($tblPerson && ($tblTimeTableList = $this->getTimetableListByDateTime($dateTime))) {
             foreach ($tblTimeTableList as $tblTimetable) {
                 if (($tblTimeTableNodeList = (new Data($this->getBinding()))->getTimetableNodeListByDayAndPerson($tblTimetable, $day, $tblPerson))) {
                     foreach ($tblTimeTableNodeList as $tblTimeTableNode) {
-                        // Woche prüfen
-                        if ($tblTimeTableNode->getWeek()) {
-                            if ($this->getTimetableWeekByTimeTableAndWeekAndDate($tblTimetable, $tblTimeTableNode->getWeek(), $startDateOfWeek)) {
+                        // aus dem Vertretungsplan wird ermittelt, ob die Stunde ausfällt
+                        $isCanceled = false;
+                        if (($tblDivisionTemp = $tblTimeTableNode->getServiceTblCourse())
+                            && ($tblTimetableReplacementList = $this->getTimetableReplacementByTime($dateTime, null, $tblDivisionTemp, $tblTimeTableNode->getHour()))
+                        ) {
+                            foreach ($tblTimetableReplacementList as $tblTimetableReplacement) {
+                                if ($tblTimeTableNode->getServiceTblSubject()
+                                    && $tblTimetableReplacement->getServiceTblSubject()
+                                    && $tblTimeTableNode->getServiceTblSubject()->getId() == $tblTimetableReplacement->getServiceTblSubject()->getId()
+                                ) {
+                                    $isCanceled = true;
+                                }
+                            }
+                        }
+
+                        // nur Einträge hinzufügen, welche nicht ausgefallen sind
+                        if (!$isCanceled) {
+                            // Woche prüfen
+                            if ($tblTimeTableNode->getWeek()) {
+                                if ($this->getTimetableWeekByTimeTableAndWeekAndDate($tblTimetable, $tblTimeTableNode->getWeek(), $startDateOfWeek)) {
+                                    $resultList[] = $tblTimeTableNode;
+                                }
+                            } else {
                                 $resultList[] = $tblTimeTableNode;
                             }
-                        } else {
-                            $resultList[] = $tblTimeTableNode;
                         }
                     }
                 }
@@ -349,6 +410,27 @@ class Service extends AbstractService
                 // nur aktuellen Stundenplan-Import verwenden
                 if ($resultList) {
                     break;
+                }
+            }
+        }
+
+        // Vertetungsplan -> alle Vertretungen für den Lehrer hinzufügen
+        if ($tblPerson && ($tblTimetableReplacementList = $this->getTimetableReplacementByTime($dateTime, $tblPerson))) {
+            foreach ($tblTimetableReplacementList as $tblTimetableReplacement) {
+                $tblLessonContent = new TblLessonContent();
+                $tblLessonContent->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubject() ?: null);
+                $tblLessonContent->setServiceTblSubstituteSubject($tblTimetableReplacement->getServiceTblSubstituteSubject() ?: null);
+                $tblLessonContent->setRoom($tblTimetableReplacement->getRoom());
+                $tblLessonContent->setIsCanceled($tblTimetableReplacement->getIsCanceled() || $tblTimetableReplacement->getServiceTblSubstituteSubject());
+
+                if (($tblTimetableReplacement->getServiceTblSubstituteSubject())) {
+                    $item = new TblTimetableNode();
+                    $item->setServiceTblCourse($tblTimetableReplacement->getServiceTblCourse() ?: null);
+                    $item->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubstituteSubject() ?: null);
+                    $item->setRoom($tblTimetableReplacement->getRoom());
+                    $item->setHour($tblTimetableReplacement->getHour());
+
+                    $resultList[] = $item;
                 }
             }
         }
