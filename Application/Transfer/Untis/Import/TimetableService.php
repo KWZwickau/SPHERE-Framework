@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Transfer\Untis\Import;
 
+use DateTime;
 use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeException;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassRegister;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -61,7 +62,7 @@ class TimetableService
             return new Well($Form);
         }
         $IsError = false;
-        if (null === $File || $File->getError() || strtolower($File->getClientOriginalExtension()) !== 'txt') {
+        if (null === $File || $File->getError() || strtoupper($File->getClientOriginalExtension()) !== 'TXT') {
             $Form->setError('File', 'Wählen Sie eine Datei aus');
             $IsError = true;
         }
@@ -90,8 +91,8 @@ class TimetableService
 
         // Datum zueinander kontrollieren
         if(!$IsError){
-            $DateTimeFrom = new \DateTime($DateFrom);
-            $DateTimeTo = new \DateTime($DateTo);
+            $DateTimeFrom = new DateTime($DateFrom);
+            $DateTimeTo = new DateTime($DateTo);
             if($DateTimeFrom > $DateTimeTo){
                 $Form->setError('Data[DateFrom]', '"Gültig ab" muss vor "Gültig bis" sein');
                 $Form->setError('Data[DateTo]', '"Gültig bis" muss nach "Gültig ab" sein');
@@ -116,12 +117,12 @@ class TimetableService
     /**
      * @param string $Name
      * @param string $Description
-     * @param \DateTime $DateFrom
-     * @param \DateTime $DateTo
+     * @param DateTime $DateFrom
+     * @param DateTime $DateTo
      * @param array $ImportList
      * @return bool
      */
-    public function importTimetable(string $Name, string $Description, \DateTime $DateFrom, \DateTime $DateTo, $ImportList)
+    public function importTimetable(string $Name, string $Description, DateTime $DateFrom, DateTime $DateTo, $ImportList)
     {
 
         // insert

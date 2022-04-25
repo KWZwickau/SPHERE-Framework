@@ -29,6 +29,7 @@ class Setup extends AbstractSetup
         $tblTimeTable = $this->setTableTimetable($Schema);
         $this->setTableTimetableNode($Schema, $tblTimeTable);
         $this->setTableTimetableWeek($Schema, $tblTimeTable);
+        $this->setTableTimetableReplacement($Schema);
 
         /**
          * Migration & Protocol
@@ -56,7 +57,6 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Description', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'DateFrom', self::FIELD_TYPE_DATETIME);
         $this->createColumn($Table, 'DateTo', self::FIELD_TYPE_DATETIME);
-
 
         return $Table;
     }
@@ -99,6 +99,29 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Date', self::FIELD_TYPE_STRING);
 
         $this->createForeignKey($Table, $tblTimeTable);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableTimetableReplacement(Schema &$Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblClassRegisterTimetableReplacement');
+        $this->createColumn($Table, 'Date', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'Hour', self::FIELD_TYPE_SMALLINT); // 1 - 12
+        $this->createColumn($Table, 'Room', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IsCanceled', self::FIELD_TYPE_BOOLEAN, false, false);
+        $this->createColumn($Table, 'SubjectGroup', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+
+        $this->createIndex($Table, array('Date', 'Hour', 'serviceTblCourse'));
 
         return $Table;
     }

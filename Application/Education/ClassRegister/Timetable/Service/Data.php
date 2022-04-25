@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\ClassRegister\Timetable\Service;
 use DateTime;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -84,7 +85,7 @@ class Data extends AbstractData
 
     /**
      * @param TblTimetable $tblTimetable
-     * @return mixed
+     * @return false|TblTimetableNode[]|null
      */
     public function getTimetableNodeListByTimetable(TblTimetable $tblTimetable)
     {
@@ -173,6 +174,61 @@ class Data extends AbstractData
             TblTimetableWeek::ATTR_WEEK => $week,
             TblTimetableWeek::ATTR_DATE => $dateTime,
         ));
+    }
+
+    /**
+     * @param DateTime $Date
+     * @param $tblPerson
+     * @param $tblCourse
+     * @param $Hour
+     * @return TblTimetableReplacement[]|null
+     */
+    public function getTimetableReplacementByTime(DateTime $Date, $tblPerson = null, $tblCourse = null, $Hour = null)
+    {
+
+        $Search = array(TblTimetableReplacement::ATTR_DATE => $Date);
+        if($tblCourse){
+            //ToDO Course
+            /** @var TblDivision $tblCourse */
+            $Search[TblTimetableReplacement::ATTR_SERVICE_TBL_COURSE] = $tblCourse->getId();
+        }
+        if($Hour){
+            $Search[TblTimetableReplacement::ATTR_HOUR] = $Hour;
+        }
+        if($tblPerson){
+            /** @var TblPerson $tblPerson */
+            $Search[TblTimetableReplacement::ATTR_SERVICE_TBL_PERSON] = $tblPerson->getId();
+        }
+
+        /* @var TblTimetableReplacement[] $EntityList */
+        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetableReplacement',
+            $Search);
+        return (false === $EntityList ? null : $EntityList);
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblTimetableReplacement[]|bool
+     */
+    public function getTimetableReplacementByDate(DateTime $fromDate, DateTime $toDate)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblTimetableReplacement', 't')
+            ->where($queryBuilder->expr()->orX(
+                $queryBuilder->expr()->between('t.Date', '?1', '?2'),
+            ))
+            ->setParameter(1, $fromDate)
+            ->setParameter(2, $toDate)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**
@@ -293,6 +349,50 @@ class Data extends AbstractData
     }
 
     /**
+     * @param array $ImportList
+     * required ArrayKeys
+     * [Date]
+     * [Hour]
+     * [Room]
+     * [subjectGroup]
+     * [IsCanceled]
+     * [tblSubject]
+     * [tblCourse]
+     * [tblPerson]
+     *
+     * @return bool
+     */
+    public function createTimetableReplacementBulk($ImportList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if (!empty($ImportList)) {
+            foreach ($ImportList as $Row) {
+                $Entity = new TblTimetableReplacement();
+                $Entity->setDate($Row['Date']);
+                $Entity->setHour($Row['Hour']);
+                $Entity->setRoom($Row['Room']);
+                if(isset($Row['IsCanceled'])){
+                    $Entity->setIsCanceled($Row['IsCanceled']);
+                } else {
+                    $Entity->setIsCanceled(false);
+                }
+                $Entity->setSubjectGroup($Row['SubjectGroup']);
+                $Entity->setServiceTblSubject($Row['tblSubject']);
+                $Entity->setServiceTblCourse($Row['tblCourse']);
+                $Entity->setServiceTblPerson($Row['tblPerson']);
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+
+    }
+
+    /**
      * @param $tblTimetableNodeList
      * @return bool
      */
@@ -353,9 +453,27 @@ class Data extends AbstractData
     {
 
         $Manager = $this->getConnection()->getEntityManager();
-        // Test - ToDO nur die Einträge löschen, welche nicht beim erneuten Import dabei sind
         $EntityList = $Manager->getEntity('TblTimetable')
             ->findAll();
+        if (!empty($EntityList)) {
+            foreach ($EntityList as $Entity) {
+                $Manager->bulkKillEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function destroyTimetableReplacementBulk($EntityList): bool
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
         if (!empty($EntityList)) {
             foreach ($EntityList as $Entity) {
                 $Manager->bulkKillEntity($Entity);

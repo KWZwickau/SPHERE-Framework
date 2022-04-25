@@ -13,7 +13,6 @@ namespace SPHERE\Application\Transfer\Untis\Import;
  * G Stunde
  * H Stundenlänge (hh:mm) (nur in Minute, sonst leer)
  */
-
 use DateTime;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -73,11 +72,11 @@ class TimetableGPU001 extends AbstractConverter
     }
 
     /**
-     * @return int
+     * @return array
      */
-    public function getWarningCount()
+    public function getWarningList()
     {
-        return count($this->WarningList);
+        return $this->WarningList;
     }
 
     /**

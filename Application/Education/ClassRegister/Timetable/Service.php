@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\ClassRegister\Timetable;
 use DateTime;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Setup;
@@ -88,7 +89,7 @@ class Service extends AbstractService
 
     /**
      * @param TblTimetable $tblTimetable
-     * @return mixed
+     * @return false|TblTimetableNode[]|null
      */
     public function getTimetableNodeListByTimetable(TblTimetable $tblTimetable)
     {
@@ -104,6 +105,31 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTimetableWeekListByTimetable($tblTimetable);
+    }
+
+    /**
+     * @param DateTime $Date
+     * @param $tblPerson
+     * @param $tblCourse
+     * @param $Hour
+     * @return TblTimetableReplacement[]|null
+     */
+    public function getTimetableReplacementByTime(DateTime $Date, $tblPerson = null, $tblCourse = null, $Hour = null)
+    {
+
+        return (new Data($this->getBinding()))->getTimetableReplacementByTime($Date, $tblPerson, $tblCourse, $Hour);
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblTimetableReplacement[]|bool
+     */
+    public function getTimetableReplacementByDate(DateTime $fromDate, DateTime $toDate)
+    {
+
+        return (new Data($this->getBinding()))->getTimetableReplacementByDate($fromDate, $toDate);
     }
 
     /**
@@ -155,6 +181,26 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->createTimetableWeekBulk($tblTimetable, $ImportList);
+    }
+
+    /**
+     * @param array $ImportList
+     * required ArrayKeys
+     * [hour]
+     * [room]
+     * [subjectGroup]
+     * [Date]
+     * [IsCanceled]
+     * [tblSubject]
+     * [tblCourse]
+     * [tblPerson]
+     *
+     * @return bool
+     */
+    public function createTimetableReplacementBulk($ImportList)
+    {
+
+        return (new Data($this->getBinding()))->createTimetableReplacementBulk($ImportList);
     }
 
     /**
@@ -367,5 +413,14 @@ class Service extends AbstractService
         }
 
         return '';
+    }
+
+    /**
+     * @return bool
+     */
+    public function destroyTimetableReplacementBulk($RemoveList): bool
+    {
+
+        return (new Data($this->getBinding()))->destroyTimetableReplacementBulk($RemoveList);
     }
 }
