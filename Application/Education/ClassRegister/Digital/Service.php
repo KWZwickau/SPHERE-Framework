@@ -298,7 +298,9 @@ class Service extends AbstractService
             )
         ) {
             // Klassentagebuch Kontrolle: nicht bei Kurssystemen
-            if (!($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))) {
+            if (!($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))
+                && !($tblGroup && $tblGroup->getIsGroupCourseSystem())
+            ) {
                 $buttonList[] = $this->getButton('Klassentagebuch Kontrolle', '/Education/ClassRegister/Digital/LessonWeek', new Ok(),
                     $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonWeek');
             }

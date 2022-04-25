@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Group\Group;
@@ -279,5 +280,21 @@ class TblGroup extends Element
         }
 
         return empty($list) ? false : $list;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsGroupCourseSystem(): bool
+    {
+        if (($tblDivisionList = $this->getCurrentDivisionList())) {
+            foreach ($tblDivisionList as $tblDivision) {
+                if (Division::useService()->getIsDivisionCourseSystem($tblDivision)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
