@@ -3,6 +3,9 @@ namespace SPHERE\Application\Education\ClassRegister\Timetable\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
@@ -83,6 +86,13 @@ class Setup extends AbstractSetup
 
         $this->createForeignKey($Table, $tblTimeTable);
 
+        $this->createIndex($Table, array(TblTimetableNode::ATTR_SERVICE_TBL_COURSE, TblTimetableNode::ATTR_DAY, TblTimetableNode::ATTR_HOUR,
+            TblTimetableNode::ATTR_SERVICE_TBL_PERSON, TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE), false);
+        $this->createIndex($Table, array(TblTimetableNode::ATTR_SERVICE_TBL_COURSE, TblTimetableNode::ATTR_DAY, TblTimetableNode::ATTR_HOUR,
+            TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE), false);
+        $this->createIndex($Table, array(TblTimetableNode::ATTR_DAY, TblTimetableNode::ATTR_SERVICE_TBL_PERSON,
+            TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE), false);
+
         return $Table;
     }
 
@@ -101,6 +111,8 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Date', self::FIELD_TYPE_STRING);
 
         $this->createForeignKey($Table, $tblTimeTable);
+
+        $this->createIndex($Table, array(TblTimetableWeek::ATTR_WEEK, TblTimetableWeek::ATTR_DATE, TblTimetableWeek::ATTR_TBL_CLASS_REGISTER_TIMETABLE));
 
         return $Table;
     }
@@ -124,7 +136,9 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblSubstituteSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
 
+        $this->createIndex($Table, array('Date', 'Hour', 'serviceTblCourse', TblTimetableReplacement::ATTR_SERVICE_TBL_PERSON), false);
         $this->createIndex($Table, array('Date', 'Hour', 'serviceTblCourse'), false);
+        $this->createIndex($Table, array(TblTimetableReplacement::ATTR_DATE, TblTimetableReplacement::ATTR_SERVICE_TBL_PERSON), false);
 
         return $Table;
     }
