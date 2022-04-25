@@ -279,11 +279,11 @@ class ReplacementService
 
         $tblYearList = Term::useService()->getYearByNow();
         foreach($result as $Row){
-            $Row['tblPerson'] = $Row['tblCourse'] = $Row['tblSubject'] = false;
+            $Row['tblPerson'] = $Row['tblCourse'] = $Row['tblSubstituteSubject'] = false;
             if(isset($Row['Subject']) && $Row['Subject'] !== ''){
-                $Row['tblSubject'] = Subject::useService()->getSubjectByAcronym($Row['Subject']);
+                $Row['tblSubstituteSubject'] = Subject::useService()->getSubjectByAcronym($Row['Subject']);
             }
-            if (!$Row['tblSubject']) {
+            if (!$Row['tblSubstituteSubject']) {
                 $this->CountImport['Subject'][$Row['Subject']][] = 'Fach nicht gefunden';
             }
             if(isset($Row['Course']) && $Row['Course'] !== ''){
@@ -312,7 +312,7 @@ class ReplacementService
                 $this->CountImport['Person'][$Row['Person']][] = 'Lehrerkürzel nicht gefunden';
             }
             // Pflichtangaben
-            if($Row['tblSubject'] && $Row['tblCourse'] && $Row['tblPerson']) { // && $isRoom
+            if($Row['tblSubstituteSubject'] && $Row['tblCourse'] && $Row['tblPerson']) { // && $isRoom
                 // Löschliste für Klassen
                 if(isset($tblDivision) && $tblDivision){
                     $this->CourseList[$tblDivision->getId()] = $tblDivision;
@@ -373,13 +373,19 @@ class ReplacementService
                                 if($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
                                 && $Row['Room'] == $tblTimeTableNode->getRoom()
                                 && $Row['SubjectGroup'] == $tblTimeTableNode->getSubjectGroup()
-                                && $Row['tblSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
+                                && $Row['tblSubstituteSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
                                 && $Row['tblCourse']->getId() == $tblTimeTableNode->getServiceTblCourse()->getId()
                                 && $Row['tblPerson']->getId() == $tblTimeTableNode->getServiceTblPerson()->getId()){
                                     $Row['found'] = true;
                                 }
+                                // Vorhandenes Fach anfügen, wenn eindeutig
+                                if(count($TimeTableList[$DayCount][$HourCount][$CourseId]) == 1
+                                && count($ReplaceList[$DayCount][$HourCount][$CourseId]) == 1){
+                                    $Row['tblSubject'] = $tblTimeTableNode->getServiceTblSubject();
+                                }
                             }
                         }
+
                         foreach($ReplaceList[$DayCount][$HourCount][$CourseId] as $Row) {
                             if(!isset($Row['found'])){
                                 $DifferenceList[] = $Row;
@@ -394,7 +400,8 @@ class ReplacementService
                             $Row['Hour'] = $tblTimeTableNode->getHour();
                             $Row['Room'] = $tblTimeTableNode->getRoom();
                             $Row['SubjectGroup'] = $tblTimeTableNode->getSubjectGroup();
-                            $Row['tblSubject'] = $tblTimeTableNode->getServiceTblSubject();
+                            $Row['tblSubject'] = false;
+                            $Row['tblSubstituteSubject'] = $tblTimeTableNode->getServiceTblSubject();
                             $Row['tblCourse'] = $tblTimeTableNode->getServiceTblCourse();
                             $Row['tblPerson'] = $tblTimeTableNode->getServiceTblPerson();
                             $Row['IsCanceled'] = true;
@@ -403,6 +410,7 @@ class ReplacementService
                     } elseif(isset($ReplaceList[$DayCount][$HourCount][$CourseId])) {
                         // zusätzlicher Unterricht aus dem Import
                         foreach($ReplaceList[$DayCount][$HourCount][$CourseId] as &$Row) {
+                            $Row['tblSubject'] = false;
                             $Row['IsCanceled'] = false;
                             $DifferenceList[] = $Row;
                         }

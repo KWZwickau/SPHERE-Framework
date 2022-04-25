@@ -202,7 +202,8 @@ class ReplacementGPU014 extends AbstractConverter
         // Vertretungseintrag hat Vorrang
         $Room = ($Result['RoomTo'] ? : ($Result['Room']));
         $tblPerson = ($Result['tblPersonTo'] ? : ($Result['tblPerson'] ? : null));
-        $tblSubject = ($Result['tblSubjectTo'] ? : ($Result['tblSubject'] ? : null));
+        $tblSubject = ($Result['tblSubject'] ? : null);
+        $tblSubstituteSubject = ($Result['tblSubjectTo'] ? : ($Result['tblSubject'] ? : null));
         // Gruppe nur wählen, wenn es auch ein Vertretungsfach gibt
         $tblSubjectGroup = ($Result['tblSubjectTo'] ? $Result['SubjectGroupTo'] : ($Result['SubjectGroupTo']));
 
@@ -212,14 +213,15 @@ class ReplacementGPU014 extends AbstractConverter
                     // ignore Row complete
                 } elseif($tblCourse && $tblSubject && $tblPerson){ // && $Result['Room'] != ''
                     $ImportRow = array(
-                        'Date'         => $Result['Date'],
-                        'Hour'         => $Result['Hour'],
-                        'Room'         => $Room,
-                        'IsCanceled'   => ($Result['IsCanceled'] == '0' ? 1 : 0),
-                        'SubjectGroup' => $tblSubjectGroup,
-                        'tblCourse'    => $tblCourse,
-                        'tblSubject'   => $tblSubject,
-                        'tblPerson'    => $tblPerson,
+                        'Date'                 => $Result['Date'],
+                        'Hour'                 => $Result['Hour'],
+                        'Room'                 => $Room,
+                        'IsCanceled'           => ($Result['IsCanceled'] == '0' ? 1 : 0),
+                        'SubjectGroup'         => $tblSubjectGroup,
+                        'tblCourse'            => $tblCourse,
+                        'tblSubject'           => $tblSubject,
+                        'tblSubstituteSubject' => $tblSubstituteSubject,
+                        'tblPerson'            => $tblPerson,
                     );
                     $this->ImportList[] = $ImportRow;
                 } else {

@@ -357,6 +357,7 @@ class Data extends AbstractData
      * [subjectGroup]
      * [IsCanceled]
      * [tblSubject]
+     * [tblSubstituteSubject]
      * [tblCourse]
      * [tblPerson]
      *
@@ -378,7 +379,14 @@ class Data extends AbstractData
                     $Entity->setIsCanceled(false);
                 }
                 $Entity->setSubjectGroup($Row['SubjectGroup']);
+                if(!$Row['tblSubject']){
+                    $Row['tblSubject'] = null;
+                }
                 $Entity->setServiceTblSubject($Row['tblSubject']);
+                if(!$Row['tblSubstituteSubject']){
+                    $Row['tblSubstituteSubject'] = null;
+                }
+                $Entity->setServiceTblSubstituteSubject($Row['tblSubstituteSubject']);
                 $Entity->setServiceTblCourse($Row['tblCourse']);
                 $Entity->setServiceTblPerson($Row['tblPerson']);
                 $Manager->bulkSaveEntity($Entity);
