@@ -356,11 +356,11 @@ class Service extends AbstractService
             // Klasse 5-2
             $LevelName = $Match[0];
             $DivisionName = $Match[1];
-        } elseif (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
+        } elseif (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z0-9-\/]*?)$!is', $Value, $Match)) {
             // Klasse 5a
             $LevelName = $Match[1];
             $DivisionName = $Match[2];
-        } elseif (preg_match('!^(\d+) ([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
+        } elseif (preg_match('!^(\d+) ([äöüÄÖÜa-zA-Z0-9-\/]*?)$!is', $Value, $Match)) {
             // Klasse 5 a
             $LevelName = $Match[1];
             $DivisionName = $Match[2];

@@ -36,6 +36,7 @@ class TimetableGPU001 extends AbstractConverter
     private $ImportList = array();
     private $CountImport = array();
     private $tblYearList;
+    private $CombineList = array();
 
     /**
      * GPU001 constructor.
@@ -124,18 +125,23 @@ class TimetableGPU001 extends AbstractConverter
         if($Result['tblCourse'] === false || $Result['tblPerson'] === false || $Result['tblSubject'] === false){
             // ignore Row complete
         } elseif($tblCourse && $tblSubject && $tblPerson){ // && $Result['Room'] != ''
-            $ImportRow = array(
-                'Hour'         => $Result['Hour'],
-                'Day'          => $Result['Day'],
-                'Week'         => '',
-                'Room'         => $Result['Room'],
-                'SubjectGroup' => $Result['SubjectGroup'],
-                'Level'        => $Level,
-                'tblCourse'    => $tblCourse,
-                'tblSubject'   => $tblSubject,
-                'tblPerson'    => $tblPerson,
-            );
-            $this->ImportList[] = $ImportRow;
+            $CombineString = $Result['Hour'].'*'.$Result['Day'].'*'.$Result['Room'].'*'.$tblCourse->getId().'*'.$tblSubject->getId().'*'.$tblPerson->getId();
+            if(!isset($this->CombineList[$CombineString])){
+                $ImportRow = array(
+                    'Hour'         => $Result['Hour'],
+                    'Day'          => $Result['Day'],
+                    'Week'         => '',
+                    'Room'         => $Result['Room'],
+                    'SubjectGroup' => $Result['SubjectGroup'],
+                    'Level'        => $Level,
+                    'tblCourse'    => $tblCourse,
+                    'tblSubject'   => $tblSubject,
+                    'tblPerson'    => $tblPerson,
+                );
+                $this->ImportList[] = $ImportRow;
+                $this->CombineList[$CombineString] = true;
+            }
+
         } else {
             $this->WarningList[] = $Result;
         }

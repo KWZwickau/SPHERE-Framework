@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -159,17 +160,20 @@ class Replacement implements IModuleInterface
                         array('showPreview' => false)))->setRequired()
                 , 4),
                 new FormColumn(
-                    new DatePicker('Data[Date]', '','Datum '.new Small(new Muted('(Optional, wenn die Importdaten nicht der aktuellen Woche entsprechen)')))
+                    new Info('Importiert wird grundsätzlich die aktuelle Kalenderwoche, soll eine andere Kalenderwoche importiert werden, so wählen Sie ein Datum, welches der gewünschten Kalenderwoche entspricht', null, false, 3,10)
                 , 4),
             )),
-            new FormRow(
+            new FormRow(array(
                 new FormColumn(new Listing(
                     array(
                         new RadioBox('Data[IsImport]', 'Test des Imports', '0'),
                         new RadioBox('Data[IsImport]', 'Importieren', '1')
                     )
-                ), 4)
-            )
+                ), 4),
+                new FormColumn(
+                    new DatePicker('Data[Date]', '','Datum '.new Small(new Muted('(Optional)')))
+                , 4)
+            ))
         )), new Primary('Hochladen')
         );
     }

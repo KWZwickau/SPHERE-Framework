@@ -134,9 +134,8 @@ class ReplacementGPU014 extends AbstractConverter
         $this->setSanitizer(new FieldSanitizer('J', 'SubjectGroupTo', array($this, 'sanitizeSubjectGroup')));
         $this->setPointer(new FieldPointer('L', 'Room'));
         $this->setPointer(new FieldPointer('M', 'RoomTo'));
-        $this->setPointer(new FieldPointer('O', 'Division'));
+        $this->setPointer(new FieldPointer('O', 'Course'));
         // Liste aus Klassen im String getrent durch "~"
-        $this->setPointer(new FieldPointer('O', 'tblCourseString'));
         $this->setPointer(new FieldPointer('O', 'tblCourseList'));
         $this->setSanitizer(new FieldSanitizer('O', 'tblCourseList', array($this, 'sanitizeCourse')));
         $this->setPointer(new FieldPointer('R', 'IsCanceled'));
@@ -201,7 +200,9 @@ class ReplacementGPU014 extends AbstractConverter
         $tblCourseList = ($Result['tblCourseList'] ? : null);
         // Vertretungseintrag hat Vorrang
         $Room = ($Result['RoomTo'] ? : ($Result['Room']));
+        $Person = ($Result['PersonTo'] ? : ($Result['Person'] ? : ''));
         $tblPerson = ($Result['tblPersonTo'] ? : ($Result['tblPerson'] ? : null));
+        $Subject = ($Result['SubjectTo'] ? : ($Result['Subject'] ? : ''));
         $tblSubject = ($Result['tblSubject'] ? : null);
         $tblSubstituteSubject = ($Result['tblSubjectTo'] ? : ($Result['tblSubject'] ? : null));
         // Gruppe nur wählen, wenn es auch ein Vertretungsfach gibt
@@ -209,9 +210,7 @@ class ReplacementGPU014 extends AbstractConverter
 
         if($Result['Date'] && $tblCourseList){
             foreach($tblCourseList as $tblCourse){
-                if($Result['tblCourseString'] === '' || $Result['tblPerson'] === false || $Result['tblSubject'] === false){
-                    // ignore Row complete
-                } elseif($tblCourse && $tblSubject && $tblPerson){ // && $Result['Room'] != ''
+                if($tblCourse && $tblSubject && $tblPerson){ // && $Result['Room'] != ''
                     $ImportRow = array(
                         'Date'                 => $Result['Date'],
                         'Hour'                 => $Result['Hour'],
@@ -224,7 +223,7 @@ class ReplacementGPU014 extends AbstractConverter
                         'tblPerson'            => $tblPerson,
                     );
                     $this->ImportList[] = $ImportRow;
-                } else {
+                } elseif($Result['Course'] != '' || $Person != '' || $Subject != '') {
                     $this->WarningList[] = $Result;
                 }
             }
