@@ -3,6 +3,7 @@ namespace SPHERE\Application\Transfer\Indiware\Import;
 
 use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeException;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassregister;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
@@ -41,6 +42,7 @@ class ReplacementFrontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Vertretungsplan', 'Übersicht');
+        $Stage->setMessage('Übersicht aller Klassen mit abweichungen zum Stundenplan');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft()));
         $Stage->addButton(new Standard('Import Vertretungsplan', '/Transfer/Indiware/Import/Replacement/Prepare', new Upload()));
 
@@ -56,16 +58,21 @@ class ReplacementFrontend extends Extension implements IFrontendInterface
         if(($tblTimetableReplacementList = TimetableClassregister::useService()->getTimetableReplacementByDate($DateFrom, $DateTo))){
             foreach($tblTimetableReplacementList as $tblTimetableReplacement){
                 $tblDivision = $tblTimetableReplacement->getServiceTblCourse();
-                $TableContentTemp[$tblTimetableReplacement->getDate()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                $TableContentTemp[$tblTimetableReplacement->getDate()][$tblDivision->getId()] = $tblDivision;
             }
         }
         $TableContent = array();
         if(!empty($TableContentTemp)){
-            foreach($TableContentTemp as $Date => $Division){
+            foreach($TableContentTemp as $Date => $DivisionList){
                 $item = array();
                 $item['Date'] = $Date;
-                sort($Division);
-                $item['Course'] = implode(', ', $Division);
+                $DivisionList = $this->getSorter($DivisionList)->sortObjectBy('DisplayName');
+                $DivList = array();
+                /** @var TblDivision $Division */
+                foreach($DivisionList as $Division){
+                    $DivList[] = $Division->getDisplayName();
+                }
+                $item['Course'] = implode(', ', $DivList);
                 array_push($TableContent, $item);
             }
         }
