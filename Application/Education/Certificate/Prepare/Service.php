@@ -55,6 +55,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -1024,7 +1025,7 @@ class Service extends AbstractService
                         }
                     } elseif ($tblPrepareInformation->getField() == 'IndividualTransfer') {
                         // SSWHD-262
-                        if ($tblConsumer && $tblConsumer->getAcronym() == 'ESZC') {
+                        if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC')) {
                             $text = '';
                         } else {
                             $text = $tblPerson->getFirstSecondName() . ' ';
@@ -1069,17 +1070,14 @@ class Service extends AbstractService
 
                     if ($team || $remark) {
                         if ($team) {
-                            if ($tblConsumer->getAcronym() == 'EVSR') {
+                            if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EVSR')) {
                                 // Arbeitsgemeinschaften am Ende der Bemerkungnen
                                 $remark = $remark . " \n\n " . $team;
-                            } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                                && $tblConsumer->getAcronym() == 'ESZC'
+                            } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC')
                                 && $tblLevel && intval($tblLevel->getName()) <= 4
                             ) {
                                 $remark = $teamChange . " \n " . $remark;
-                            } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                                && $tblConsumer->getAcronym() == 'HOGA'
-                            ) {
+                            } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
                                 $remark = $teamChange . " \n " . $remark;
                             } else {
                                 $remark = $team . " \n\n " . $remark;
@@ -1117,74 +1115,76 @@ class Service extends AbstractService
             $divisionTeacherDescription = 'Klassenlehrer';
 
             if($isDivisionTeacherAvailable){
-                $ConsumerAcronym = '';
                 $tblConsumer = Consumer::useService()->getConsumerBySession();
-                if($tblConsumer){
+                if($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN){
                     $ConsumerAcronym = $tblConsumer->getAcronym();
-                }
-                switch ($ConsumerAcronym) {
-                    case 'EVSR':
-                        $firstName = $tblPersonSigner->getFirstName();
-                        if (strlen($firstName) > 1) {
-                            $firstName = substr($firstName, 0, 1) . '.';
-                        }
-                        $Content['P' . $personId]['DivisionTeacher']['Name'] = $firstName . ' '
-                            . $tblPersonSigner->getLastName();
-                    break;
-                    case 'ESZC':
-                        $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getSalutation()
-                            . " " . $tblPersonSigner->getLastName());
-                    break;
-                    case 'EVSC':
-                    case 'EMSP':
-                        $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
-                            . " " . $tblPersonSigner->getLastName());
-                        $divisionTeacherDescription = 'Klassenleiter';
-                    break;
-                    case 'EGE':
-                        $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
-                        if ($tblLevel
-                            && $tblSchoolType
-                            && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
-                            && ($level = intval($tblLevel->getName()))
-                            && $level < 9
-                        ) {
-                            $divisionTeacherDescription = 'Gruppenleiter';
-                        }
-                    break;
-                    case 'EVAMTL':
-                        $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
-                        if ($tblLevel
-                            && $tblSchoolType
-                            && $tblSchoolType->getName() != 'Grundschule'
-                        ){
-                            $divisionTeacherDescription = 'Mentor';
-                        }
-                    break;
-                    case 'CSW':
-                        if ($tblLevel
-                            && $tblSchoolType
-                            && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
-                        ) {
-                            $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFirstSecondName()
-                                . ' ' . $tblPersonSigner->getLastName();
-                        } else {
+                    // nur Sachsen
+                    switch ($ConsumerAcronym) {
+                        case 'EVSR':
+                            $firstName = $tblPersonSigner->getFirstName();
+                            if (strlen($firstName) > 1) {
+                                $firstName = substr($firstName, 0, 1) . '.';
+                            }
+                            $Content['P' . $personId]['DivisionTeacher']['Name'] = $firstName . ' '
+                                . $tblPersonSigner->getLastName();
+                            break;
+                        case 'ESZC':
+                            $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getSalutation()
+                                . " " . $tblPersonSigner->getLastName());
+                            break;
+                        case 'EVSC':
+                        case 'EMSP':
+                            $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
+                                . " " . $tblPersonSigner->getLastName());
+                            $divisionTeacherDescription = 'Klassenleiter';
+                            break;
+                        case 'EGE':
                             $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
-                        }
-                    break;
-                    case 'FESH':
-                    case 'ESS':
-                    case 'ESBD':
-                        $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
-                            . " " . $tblPersonSigner->getLastName());
-                    break;
-                    default:
-                        $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
-                    break;
+                            if ($tblLevel
+                                && $tblSchoolType
+                                && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+                                && ($level = intval($tblLevel->getName()))
+                                && $level < 9
+                            ) {
+                                $divisionTeacherDescription = 'Gruppenleiter';
+                            }
+                            break;
+                        case 'EVAMTL':
+                            $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                            if ($tblLevel
+                                && $tblSchoolType
+                                && $tblSchoolType->getName() != 'Grundschule'
+                            ){
+                                $divisionTeacherDescription = 'Mentor';
+                            }
+                            break;
+                        case 'CSW':
+                            if ($tblLevel
+                                && $tblSchoolType
+                                && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+                            ) {
+                                $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFirstSecondName()
+                                    . ' ' . $tblPersonSigner->getLastName();
+                            } else {
+                                $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                            }
+                            break;
+                        case 'FESH':
+                        case 'ESS':
+                        case 'ESBD':
+                            $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
+                                . " " . $tblPersonSigner->getLastName());
+                            break;
+                        default:
+                            $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                            break;
+                    }
+                } else {
+                    $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                 }
 
                 // Spezialfall: alle Klassenlehrer aus der Klassenverwaltung
-                if ($ConsumerAcronym == 'EVSC') {
+                if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVSC')) {
                     if ($tblDivision
                         && ($tblDivisionTeacherList = Division::useService()->getTeacherAllByDivision($tblDivision))
                     ) {
@@ -1300,13 +1300,13 @@ class Service extends AbstractService
                             if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
                                 if ($isGradeVerbalOnDiploma) {
                                     $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
-                                    if ($tblConsumer && $tblConsumer->getAcronym() != 'EZSH') {
+                                    if ($tblConsumer && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')) {
                                         $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                                     }
                                 } else {
                                     $grade = $tblPrepareAdditionalGrade->getGrade();
                                     if ((Gradebook::useService()->getGradeTextByName($grade))
-                                        && $tblConsumer && $tblConsumer->getAcronym() != 'EZSH'
+                                        && $tblConsumer && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')
                                         && $grade != '&ndash;'
 //                                        && $grade != 'befreit'
                                     ) {
@@ -1388,12 +1388,12 @@ class Service extends AbstractService
                         if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
                             if ($isGradeVerbalOnDiploma) {
                                 $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());
-                                if ($tblConsumer && $tblConsumer->getAcronym() != 'EZSH') {
+                                if ($tblConsumer && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')) {
                                     $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                                 }
                             } elseif ($isGradeVerbal) {
                                 $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());
-                                if ($tblConsumer && $tblConsumer->getAcronym() != 'EZSH') {
+                                if ($tblConsumer && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')) {
                                     $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                                 }
                             } else {

@@ -14,7 +14,8 @@ use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Library\NumberToWord\NumberToWord;
 
@@ -32,23 +33,14 @@ class Billing extends AbstractDocument
     /** @var null|TblItem $tblItem */
     private $tblItem = null;
 
-    /** @var null|TblDocument $tblDocument */
-    private $tblDocument = null;
-
     /** @var null|array $Data  */
     private $Data = null;
 
-    /** @var string */
-    private string $Acronym;
-
     const TEXT_SIZE = '14px';
 
-    public function __construct(TblItem $tblItem, TblDocument $tblDocument, $Data)
+    public function __construct(TblItem $tblItem, $Data)
     {
-        $this->Acronym = Account::useService()->getMandantAcronym();
-//        $this->Acronym = 'HOGA';
         $this->tblItem = $tblItem;
-        $this->tblDocument = $tblDocument;
         $this->Data = $Data;
     }
 
@@ -99,7 +91,7 @@ class Billing extends AbstractDocument
             }
         }
 
-        if($this->Acronym == 'HOGA'){
+        if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
             $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: -0.5cm !important; }';
         } else {
             $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; }';
@@ -226,7 +218,7 @@ class Billing extends AbstractDocument
 
         $TextWith = '100%';
         $EmptyWith = '0%';
-        if($this->Acronym == 'HOGA'){
+        if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
             $TextWith = '70%';
             $EmptyWith = '30%';
         }
@@ -296,7 +288,7 @@ class Billing extends AbstractDocument
      */
     private function getHeaderSlice($Height = '200px')
     {
-        if($this->Acronym == 'HOGA'){
+        if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
             $pictureAddress = 'Common/Style/Resource/Document/Hoga/HOGA-Briefbogen_without_space.png';
             $pictureHeight = '370';
         } else {

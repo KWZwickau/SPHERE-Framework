@@ -3,6 +3,7 @@ namespace SPHERE\Application\Reporting\Custom;
 
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person as ChemnitzPerson;
 use SPHERE\Application\Reporting\Custom\Hormersdorf\Person\Person as HormersdorfPerson;
 use SPHERE\Application\Reporting\Custom\Herrnhut\Person\Person as HerrnhutPerson;
@@ -27,47 +28,50 @@ class Custom implements IApplicationInterface
 
     public static function registerApplication()
     {
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
+            $consumerAcronym = $tblConsumer->getAcronym();
 
-        $consumerAcronym = ( Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '' );
-        // Chemitz
-        if ($consumerAcronym === 'ESZC') {
-            ChemnitzPerson::registerModule();
-        }
-        // Coswig
-        if ($consumerAcronym === 'EVSC') {
-            CoswigPerson::registerModule();
-        }
-        // Herrnhut
-        if ($consumerAcronym === 'EZSH') {
-            HerrnhutPerson::registerModule();
-        }
-        // Hormersdorf
-        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
-            HormersdorfPerson::registerModule();
-        }
-        // Muldental
-        if ($consumerAcronym === 'EVAMTL') {
-            MuldentalPerson::registerModule();
-        }
-        // Radebeul
-        if ($consumerAcronym === 'EVSR') {
-            RadebeulPerson::registerModule();
-        }
-        // Schneeberg
-        if ($consumerAcronym === 'ESS') {
-            SchneebergPerson::registerModule();
-        }
-        // Bad Düben
-        if ($consumerAcronym === 'ESBD') {
-            BadDuebenPerson::registerModule();
-        }
-        // Annaberg
-        if ($consumerAcronym === 'EGE') {
-            AnnabergPerson::registerModule();
-        }
-        // ToDO nach der Veröffentlichung kann der Ref für die Einstellung wieder entfernt werden
-        if ($consumerAcronym === 'EVOSG' || $consumerAcronym === 'REF') {
-            GersdorfPerson::registerModule();
+            // Chemitz
+            if ($consumerAcronym === 'ESZC') {
+                ChemnitzPerson::registerModule();
+            }
+            // Coswig
+            if ($consumerAcronym === 'EVSC') {
+                CoswigPerson::registerModule();
+            }
+            // Herrnhut
+            if ($consumerAcronym === 'EZSH') {
+                HerrnhutPerson::registerModule();
+            }
+            // Hormersdorf
+            if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
+                HormersdorfPerson::registerModule();
+            }
+            // Muldental
+            if ($consumerAcronym === 'EVAMTL') {
+                MuldentalPerson::registerModule();
+            }
+            // Radebeul
+            if ($consumerAcronym === 'EVSR') {
+                RadebeulPerson::registerModule();
+            }
+            // Schneeberg
+            if ($consumerAcronym === 'ESS') {
+                SchneebergPerson::registerModule();
+            }
+            // Bad Düben
+            if ($consumerAcronym === 'ESBD') {
+                BadDuebenPerson::registerModule();
+            }
+            // Annaberg
+            if ($consumerAcronym === 'EGE') {
+                AnnabergPerson::registerModule();
+            }
+            // Gersdorf
+            if ($consumerAcronym === 'EVOSG') {
+                GersdorfPerson::registerModule();
+            }
         }
 
         Main::getDisplay()->addApplicationNavigation(

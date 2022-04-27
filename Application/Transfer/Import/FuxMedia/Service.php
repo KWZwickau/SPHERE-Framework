@@ -23,6 +23,7 @@ use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Transfer\Import\FuxMedia\Service\Person;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -308,10 +309,12 @@ class Service
                     $tblCommonGenderMale = Common::useService()->getCommonGenderByName('Männlich');
                     $tblCommonGenderFemale = Common::useService()->getCommonGenderByName('Weiblich');
 
-                    if (($tblConsumer = Consumer::useService()->getConsumerBySession())) {
-                        $consumerAcronym = $tblConsumer->getAcronym();
+                    $tblConsumer = Consumer::useService()->getConsumerBySession();
+                    if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
+                        // nur bei Sachsen aktuell
+                        $consumerAcronymSachsen = $tblConsumer->getAcronym();
                     } else {
-                        $consumerAcronym = '';
+                        $consumerAcronymSachsen = '';
                     }
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
@@ -439,7 +442,7 @@ class Service
                             $tblStudentLocker = null;
                             $LockerNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schließfachnummer'],
                                 $RunY)));
-                            if ($consumerAcronym == 'EVOSG' || $consumerAcronym == 'EVOS') {
+                            if ($consumerAcronymSachsen == 'EVOSG' || $consumerAcronymSachsen == 'EVOS') {
                                 $LockerLocation = trim($Document->getValue($Document->getCell($Location['Zusatzfeld1'],
                                     $RunY)));
                             } else {
@@ -447,7 +450,7 @@ class Service
                             }
                             $KeyNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schließfach_Schlüsselnummer'],
                                 $RunY)));
-                            if ($consumerAcronym == 'EVOSG' || $consumerAcronym == 'EVOS') {
+                            if ($consumerAcronymSachsen == 'EVOSG' || $consumerAcronymSachsen == 'EVOS') {
                                 $CombinationLockNumber = $this->getValue('Zusatzfeld10', $Location, $Document, $RunY);
                             } else {
                                 $CombinationLockNumber = '';
@@ -906,7 +909,7 @@ class Service
                                     $tblCommonGenderFemale,
                                     $countCustody,
                                     $countCustodyExists,
-                                    $consumerAcronym
+                                    $consumerAcronymSachsen
                                 );
 
                                 if ($tblPersonCustody) {
@@ -920,7 +923,7 @@ class Service
                                     $RunY)));
                                 if ($phoneNumber != '') {
                                     $remarkPhone = '';
-                                    if ($consumerAcronym == 'HOGA') {
+                                    if ($consumerAcronymSachsen == 'HOGA') {
                                         switch ($i) {
                                             case 1: $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
                                                 $tblPhoneType = Phone::useService()->getTypeById(1);
@@ -964,7 +967,7 @@ class Service
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Telefon' . $i . ':' . $phoneNumber
                                                 . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
                                         }
-                                    } elseif ($consumerAcronym == 'EOSL') {
+                                    } elseif ($consumerAcronymSachsen == 'EOSL') {
                                         switch ($i) {
                                             case 1: $tblPersonContact = $tblPerson;
                                                 $tblPhoneType = Phone::useService()->getTypeById(1);
@@ -997,7 +1000,7 @@ class Service
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Telefon' . $i . ':' . $phoneNumber
                                                 . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
                                         }
-                                    } elseif ($consumerAcronym == 'EVOSG' || $consumerAcronym == 'EVOS') {
+                                    } elseif ($consumerAcronymSachsen == 'EVOSG' || $consumerAcronymSachsen == 'EVOS') {
                                         switch ($i) {
                                             case 1: $tblPersonContact = $tblPerson;
                                                 $tblPhoneType = Phone::useService()->getTypeById(1);
@@ -1078,7 +1081,7 @@ class Service
                                 $mailAddress = trim($Document->getValue($Document->getCell($Location['Kommunikation_Email' . ($i == 0 ? '' : $i)],
                                     $RunY)));
                                 if ($mailAddress != '') {
-                                    if ($consumerAcronym == 'HOGA') {
+                                    if ($consumerAcronymSachsen == 'HOGA') {
                                         switch ($i) {
                                             case 1:
                                                 $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
@@ -1101,7 +1104,7 @@ class Service
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Email' . ($i == 0 ? '' : $i) . ':' . $mailAddress
                                                 . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
                                         }
-                                    } elseif ($consumerAcronym == 'EOSL') {
+                                    } elseif ($consumerAcronymSachsen == 'EOSL') {
                                         switch ($i) {
                                             case 1:
                                                 $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
@@ -1118,7 +1121,7 @@ class Service
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Email' . ($i == 0 ? '' : $i) . ':' . $mailAddress
                                                 . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
                                         }
-                                    } else if ($consumerAcronym == 'EVOSG' || $consumerAcronym == 'EVOS') {
+                                    } else if ($consumerAcronymSachsen == 'EVOSG' || $consumerAcronymSachsen == 'EVOS') {
                                         switch ($i) {
                                             case 1:
                                                 $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
