@@ -289,17 +289,20 @@ class ImportGateway extends AbstractConverter
         if($tblPersonStudent){
             // Suchen einer Person, wenn gefunden dann abgleich auf Personenbeziehung
             $tblPersonGuard = Person::useService()->getPersonByNameExtended($FirstName, $LastName);
-            if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
-                $tblPerson = $tblPersonGuard;
+            if($tblPersonGuard){
+                if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
+                    $tblPerson = $tblPersonGuard;
+                }
             }
             if(!$tblPerson){
                 // wird nur geprüft, wenn keine eindeutigen treffer vorliegen
                 // Suchen aller Person, wenn gefunden dann abgleich auf Personenbeziehung
-                $tblPersonList = Person::useService()->getPersonAllByNameExtended($FirstName, $LastName);
-                foreach($tblPersonList as $tblPersonGuard){
-                    if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
-                        $tblPerson = $tblPersonGuard;
-                        break;
+                if(($tblPersonList = Person::useService()->getPersonAllByNameExtended($FirstName, $LastName))){
+                    foreach($tblPersonList as $tblPersonGuard){
+                        if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
+                            $tblPerson = $tblPersonGuard;
+                            break;
+                        }
                     }
                 }
             }

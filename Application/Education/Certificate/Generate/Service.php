@@ -155,7 +155,8 @@ class Service extends AbstractService
             isset($Data['IsTeacherAvailable']),
             isset($Data['GenderHeadmaster'])
             && ($tblCommonGender = Common::useService()->getCommonGenderById($Data['GenderHeadmaster']))
-                ? $tblCommonGender : null
+                ? $tblCommonGender : null,
+            $Data['AppointedDateForAbsence']
         )
         ) {
             return new Success('Die Zeugniserstellung ist angelegt worden',
@@ -584,7 +585,8 @@ class Service extends AbstractService
                 ? $tblCommonGender : null,
             $tblAppointedDateTask ? $tblAppointedDateTask : null,
             $tblBehaviorTask ? $tblBehaviorTask : null,
-            $Data['Name']
+            $Data['Name'],
+            $Data['AppointedDateForAbsence']
         )
         ) {
             if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {

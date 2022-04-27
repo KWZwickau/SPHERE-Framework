@@ -694,7 +694,7 @@ class EzshGymAbg extends EzshStyle
             ->styleAlignCenter()
             ->stylePaddingTop('4px')
             ->stylePaddingBottom('4px')
-            ->styleBackgroundColor('#E6E6E6')
+            ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
             ->styleFontFamily(self::FONT_FAMILY)
             ->styleLineHeight(self::LINE_HEIGHT)
         );

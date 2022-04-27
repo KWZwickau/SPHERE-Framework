@@ -105,6 +105,9 @@ class Prepare implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Leave\Student\Abitur\Information', __NAMESPACE__ . '\Frontend::frontendLeaveStudentAbiturInformation')
         );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\SetIsPrepared', __NAMESPACE__ . '\Frontend::frontendSetIsPrepared')
+        );
     }
 
     /**

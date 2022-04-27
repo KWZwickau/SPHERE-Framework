@@ -21,7 +21,7 @@ abstract class CmsStyle extends Certificate
 {
 
     const TEXT_SIZE = '10pt';
-    const BACKGROUND_COLOR = '#CCC';
+    const BACKGROUND_COLOR = self::BACKGROUND_GRADE_FIELD;
 
     /**
      * @param int $PictureHeight

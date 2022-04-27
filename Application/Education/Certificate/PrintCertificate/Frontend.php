@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Group;
@@ -39,6 +40,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -164,6 +166,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'CertificateType' =>
                         ($tblCertificateType = $tblPrepare->getCertificateType()) ? $tblCertificateType->getName() : '',
                     'Name' => $tblPrepare->getName(),
+                    'PrepareStatus' => $this->checkIsPreparedStatus($tblPrepare),
                     'Option' => new Standard(
                         'Zeugnisse herunterladen und revisionssicher speichern',
                         '/Education/Certificate/PrintCertificate/Confirm',
@@ -211,6 +214,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Division' => 'Klasse',
                                     'Name' => 'Name',
                                     'CertificateType' => 'Zeugnistyp',
+                                    'PrepareStatus' => 'Zeugnis&shy;vorbereitung',
                                     'Option' => ''
                                 ),
                                 array(
@@ -377,6 +381,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'CertificateType' =>
                         ($tblCertificateType = $tblPrepare->getCertificateType()) ? $tblCertificateType->getName() : '',
                     'Name' => $tblPrepare->getName(),
+                    'PrepareStatus' => $this->checkIsPreparedStatus($tblPrepare),
                     'Option' => new Standard(
                         'Zeugnisse herunterladen und revisionssicher speichern',
                         '/Education/Certificate/PrintCertificate/Confirm',
@@ -405,6 +410,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Division' => 'Klasse/Gruppe',
                                     'Name' => 'Name',
                                     'CertificateType' => 'Zeugnistyp',
+                                    'PrepareStatus' => 'Zeugnis&shy;vorbereitung',
                                     'Option' => ''
                                 ),
                                 array(
@@ -927,5 +933,57 @@ class Frontend extends Extension implements IFrontendInterface
                 . new Danger('Klasse nicht gefunden', new Ban())
                 . new Redirect('/Education/Certificate/PrintCertificate/History/Division', Redirect::TIMEOUT_ERROR);
         }
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     *
+     * @return string
+     */
+    private function checkIsPreparedStatus(TblPrepareCertificate $tblPrepare) : string
+    {
+        if (($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))) {
+            $countStudents = 0;
+            $countPrepared = 0;
+            $isInEdit = false;
+            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                    && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                    && $tblPrepareStudent->getServiceTblCertificate()
+                    && !$tblPrepareStudent->isPrinted()
+                    && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
+                    && ($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivisionItem, $tblPerson))
+                    && (!$tblDivisionStudent->isInActive())
+                    && ($tblCertificateType = $tblPrepareStudent->getServiceTblCertificate()->getTblCertificateType())
+                    && ($tblPrepareStudent->isApproved()
+                        || $tblCertificateType->isAutomaticallyApproved())
+                ) {
+                    $countStudents++;
+                    if ($tblPrepareStudent->getIsPrepared()) {
+                        $countPrepared++;
+                    } else {
+                        if (!$isInEdit
+                            && (Prepare::useService()->getPrepareGradeAllByPerson(
+                                    $tblPrepare, $tblPerson, Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
+                                || Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare, $tblPerson))
+                        ) {
+                            $isInEdit = true;
+                        }
+                    }
+                }
+            }
+
+            if ($countPrepared == $countStudents) {
+                $prepareStatus = new Success('abgeschlossen');
+            } elseif ($isInEdit) {
+                $prepareStatus = new \SPHERE\Common\Frontend\Text\Repository\Warning('in Bearbeitung');
+            } else {
+                $prepareStatus = new \SPHERE\Common\Frontend\Text\Repository\Danger('offen');
+            }
+        } else {
+            $prepareStatus = '&nbsp;';
+        }
+
+        return $prepareStatus;
     }
 }

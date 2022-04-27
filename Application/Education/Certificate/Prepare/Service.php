@@ -1328,6 +1328,11 @@ class Service extends AbstractService
                                     $tblPerson))
                                 && $tblTest->getServiceTblSubject()
                             ) {
+                                // leere Zensuren bei Zeugnissen ignorieren, bei optionalen Zeugnisfächern
+                                if ($tblGradeItem->getGrade() == '' && $tblGradeItem->getTblGradeText() == null) {
+                                    continue;
+                                }
+
                                 // keine Tendenzen auf Zeugnissen
                                 $withTrend = true;
                                 if ($tblPrepareStudent
@@ -1375,6 +1380,11 @@ class Service extends AbstractService
                 );
                 if ($tblPrepareGradeSubjectList) {
                     foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
+                        // leere Zensuren bei Zeugnissen ignorieren, bei optionalen Zeugnisfächern
+                        if ($tblPrepareGrade->getGrade() == '') {
+                            continue;
+                        }
+
                         if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
                             if ($isGradeVerbalOnDiploma) {
                                 $grade = $this->getVerbalGrade($tblPrepareGrade->getGrade());
@@ -1491,13 +1501,19 @@ class Service extends AbstractService
 
             if ($useClassRegisterForAbsence) {
                 // Fehlzeiten werden im Klassenbuch gepflegt
+                if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                    && $tblGenerateCertificate->getAppointedDateForAbsence()
+                ) {
+                    $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                } else {
+                    $date = new DateTime($tblPrepare->getDate());
+                }
+
                 if ($excusedDays === null) {
-                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
-                        new DateTime($tblPrepare->getDate()));
+                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision, $date);
                 }
                 if ($unexcusedDays === null) {
-                    $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision,
-                        new DateTime($tblPrepare->getDate()));
+                    $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision, $date);
                 }
 
                 // Zusatztage für die fehlenden Unterrichtseinheiten addieren
@@ -5365,5 +5381,41 @@ class Service extends AbstractService
     public function getPrepareStudentAllWherePrintedByPerson(TblPerson $tblPerson, $IsPrinted = false)
     {
         return (new Data($this->getBinding()))->getPrepareStudentAllWherePrintedByPerson($tblPerson, $IsPrinted);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblGroup|null $tblGroup
+     * @param bool $IsPrepared
+     */
+    public function setIsPrepared(TblPrepareCertificate $tblPrepare, TblGroup $tblGroup = null, bool $IsPrepared = false)
+    {
+        $tblPrepareList = false;
+        $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
+        if ($tblGroup) {
+            if (($tblGenerateCertificate)) {
+                $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
+            }
+        } else {
+            $tblPrepareList = array(0 => $tblPrepare);
+        }
+
+        if ($tblPrepareList) {
+            foreach ($tblPrepareList as $tblPrepareItem) {
+                if (($tblPrepareStudentList = $this->getPrepareStudentAllByPrepare($tblPrepareItem))) {
+                    foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                        if (!$tblGroup
+                            || (($tblPersonTemp = $tblPrepareStudent->getServiceTblPerson())
+                                && Group::useService()->existsGroupPerson($tblGroup, $tblPersonTemp))
+                        ) {
+                            (new Data($this->getBinding()))->updatePrepareStudentSetIsPrepared(
+                                $tblPrepareStudent,
+                                $IsPrepared
+                            );
+                        }
+                    }
+                }
+            }
+        }
     }
 }

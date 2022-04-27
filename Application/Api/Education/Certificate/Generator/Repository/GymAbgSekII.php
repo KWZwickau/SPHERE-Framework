@@ -656,7 +656,7 @@ class GymAbgSekII extends Certificate
 
         $textSize = '13px';
         $textSizeSmall = '12px';
-        $colorPoints = '#BBB';
+        $colorPoints = self::BACKGROUND_GRADE_FIELD;
         $colorForeignLanguage = 'lightgrey';
 
         $tblLeaveStudent = false;

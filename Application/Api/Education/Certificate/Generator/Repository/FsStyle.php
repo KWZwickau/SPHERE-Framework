@@ -569,7 +569,7 @@ abstract class FsStyle extends Certificate
                              &ndash;
                          {% endif %}')
                     ->styleAlignCenter()
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                     ->styleMarginTop('15px')
                     ->stylePaddingTop('2px')
                     ->stylePaddingBottom('1.5px')
@@ -584,7 +584,7 @@ abstract class FsStyle extends Certificate
                              &ndash;
                          {% endif %}')
                     ->styleAlignCenter()
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                     ->styleMarginTop('15px')
                     ->stylePaddingTop('2px')
                     ->stylePaddingBottom('1.5px')
@@ -1240,7 +1240,7 @@ abstract class FsStyle extends Certificate
                              &ndash;
                          {% endif %}')
                     ->styleAlignCenter()
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                     ->styleMarginTop('10px')
                     ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -1287,7 +1287,7 @@ abstract class FsStyle extends Certificate
 
                 $Section->addElementColumn((new Element())
                     ->setContent('&nbsp;')
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                     ->styleMarginTop('10px')
                     ->stylePaddingTop('2px')
                     ->stylePaddingBottom('1.5px')
@@ -1473,7 +1473,7 @@ abstract class FsStyle extends Certificate
                {% endif %}
             {% endif %}')
             ->styleAlignCenter()
-            ->styleBackgroundColor('#BBB')
+            ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
             ->styleMarginTop('10px')
             ->stylePaddingTop('{% if(Content.P'.$personId.'.Input.AddEducation_GradeText is not empty) %}
                      5.3px
@@ -1529,7 +1529,7 @@ abstract class FsStyle extends Certificate
                              &ndash;
                          {% endif %}')
             ->styleAlignCenter()
-            ->styleBackgroundColor('#BBB')
+            ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
             ->styleMarginTop('10px')
             ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -1603,7 +1603,7 @@ abstract class FsStyle extends Certificate
                                  &ndash;
                              {% endif %}')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleMarginTop('15px')
                 ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -1782,7 +1782,7 @@ abstract class FsStyle extends Certificate
 
             $Section->addElementColumn((new Element())
                 ->setContent('&nbsp;')
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleMarginTop('10px')
                 ->stylePaddingTop('2px')
                 ->stylePaddingBottom('1.5px')
@@ -2354,7 +2354,7 @@ abstract class FsStyle extends Certificate
         $SubjectSection->addElementColumn((new Element())
             ->setContent($subjectGrade)
             ->styleAlignCenter()
-            ->styleBackgroundColor('#BBB')
+            ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
 //                    ->styleMarginTop('9px')
             ->styleMarginTop($checkTwoRows
                 ? '{% if(' . $checkTwoRows . ' is not empty) %} ' . $marginTopGradeTwoRow . ' {% else %} ' . $marginTopGradeOneRow . ' {% endif %} '
