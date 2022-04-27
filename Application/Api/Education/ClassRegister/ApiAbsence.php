@@ -765,7 +765,9 @@ class ApiAbsence extends Extension implements IApiInterface
 
                         $startDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
 
-                        $bodyList[$tblDivision->getId()]['Division'] = (new TableColumn(new Center(new Bold($tblDivision->getDisplayName()))))
+                        $countStudent = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+                        $bodyList[$tblDivision->getId()]['Division'] = (new TableColumn(new Center(new Bold($tblDivision->getDisplayName())
+                            . new ToolTip(new Small(' (' .  $countStudent  . ')'), $countStudent . ' Schüler'))))
                             ->setBackgroundColor($backgroundColor)
                             ->setVerticalAlign('middle')
                             ->setMinHeight($minHeightBody)
