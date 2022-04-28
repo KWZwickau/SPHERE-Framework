@@ -187,7 +187,7 @@ class SchoolContract extends AbstractDocument
                                 ->addElementColumn((new Element())
                                     ->setContent('Evangelischer Schulverein Limbach-Oberfrohna e.V.<br/>
                                                   Vertreten durch den Vorstand<br/>
-                                                  Friedrichstraße 10<br/>
+                                                  Heinrich-Mauersberger-Ring 13<br/>
                                                   09212 Limbach-Oberfrohna')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->stylePaddingLeft('90px')
