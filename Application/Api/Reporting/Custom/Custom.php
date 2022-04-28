@@ -245,7 +245,7 @@ class Custom implements IModuleInterface
             case 'downloadSignList': return (new Common())->downloadSignList($DivisionId);
             case 'downloadElectiveClassList': return (new Common())->downloadElectiveClassList($DivisionId);
             case 'downloadClassPhoneList': return (new Common())->downloadClassPhoneList($DivisionId);
-            default: return 'Keine enstsprechende Auswertung gefunden';
+            default: return 'Keine entsprechende Auswertung gefunden';
         }
     }
 }
