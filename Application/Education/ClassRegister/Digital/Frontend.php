@@ -6,6 +6,7 @@ use DateInterval;
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
+use SPHERE\Application\Api\Education\ClassRegister\ApiCustomDownload;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Education\Certificate\Prepare\View;
@@ -25,6 +26,8 @@ use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -1826,7 +1829,43 @@ class Frontend extends Extension implements IFrontendInterface
                                     'YearId'     => $tblYear ? $tblYear->getId() : null
                                 ))
                             , 2),
-                    )), new Title(new Download() . ' Download'))
+                    )), new Title(new Download() . ' Download')),
+                    ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG') && $tblDivision
+                        ? new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                new Link(new Thumbnail(
+                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste'),
+                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                        'DivisionId' => $DivisionId,
+                                        'Type'    => 'downloadClassList'
+                                    ))
+                                , 2),
+                            new LayoutColumn(
+                                new Link(new Thumbnail(
+                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'),
+                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                        'DivisionId' => $DivisionId,
+                                        'Type'    => 'downloadSignList'
+                                    ))
+                                , 2),
+                            new LayoutColumn(
+                                new Link(new Thumbnail(
+                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste Fremdsprachen'),
+                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                        'DivisionId' => $DivisionId,
+                                        'Type'    => 'downloadElectiveClassList'
+                                    ))
+                                , 2),
+                            new LayoutColumn(
+                                new Link(new Thumbnail(
+                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Telefonliste'),
+                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                        'DivisionId' => $DivisionId,
+                                        'Type'    => 'downloadClassPhoneList'
+                                    ))
+                                , 2),
+                            )), new Title(new Download() . ' Individual Download'))
+                        : null
                 ))
             );
         } else {

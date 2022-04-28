@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Reporting\Custom;
 
+use SPHERE\Application\Api\Reporting\Custom\Gersdorf\Common;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -209,6 +210,10 @@ class Custom implements IModuleInterface
                 ));
             }
         }
+
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/IndividualClassRegisterDownload', __CLASS__ . '::downloadCustomReporting'
+        ));
     }
 
     /**
@@ -227,4 +232,20 @@ class Custom implements IModuleInterface
         // Implement useFrontend() method.
     }
 
+    /**
+     * @param null $DivisionId
+     * @param null $Type
+     *
+     * @return bool|string
+     */
+    public function downloadCustomReporting($DivisionId = null, $Type = null)
+    {
+        switch ($Type) {
+            case 'downloadClassList': return (new Common())->downloadClassList($DivisionId);
+            case 'downloadSignList': return (new Common())->downloadSignList($DivisionId);
+            case 'downloadElectiveClassList': return (new Common())->downloadElectiveClassList($DivisionId);
+            case 'downloadClassPhoneList': return (new Common())->downloadClassPhoneList($DivisionId);
+            default: return 'Keine enstsprechende Auswertung gefunden';
+        }
+    }
 }
