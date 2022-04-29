@@ -97,8 +97,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Willkommen', '', '');
-        $Date = '2022-01-14 ';
-        $IsMaintenance = (new DateTime('now') >= new DateTime($Date.'15:00:00')
+        $Date = '2022-04-29 ';
+        $IsMaintenance = (new DateTime('now') >= new DateTime($Date.'13:00:00')
                        && new DateTime('now') <= new DateTime($Date.'23:59:59'));
         $maintenanceMessage = '';
         $contentTeacherWelcome = false;
