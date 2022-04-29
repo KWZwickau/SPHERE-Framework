@@ -559,7 +559,9 @@ class Frontend extends Extension implements IFrontendInterface
         switch (strtolower($this->getRequest()->getHost())) {
             case 'www.schulsoftware.schule':
             case 'www.kreda.schule':
+            case 'ekbo.schulsoftware.schule':
                 return new InfoText('');
+            case 'ekbodemo.schulsoftware.schule':
             case 'demo.schulsoftware.schule':
             case 'demo.kreda.schule':
                 return new Danger(new Picture().' Demo-Umgebung');
