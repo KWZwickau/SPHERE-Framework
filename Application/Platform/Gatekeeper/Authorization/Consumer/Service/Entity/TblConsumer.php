@@ -38,7 +38,7 @@ class TblConsumer extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Type;
+    protected string $Type = '';
 
     /**
      * @param string $Acronym
@@ -112,7 +112,7 @@ class TblConsumer extends Element
     /**
      * @param string $Type
      */
-    public function setType(string $Type): void
+    public function setType($Type): void
     {
         $this->Type = $Type;
     }
