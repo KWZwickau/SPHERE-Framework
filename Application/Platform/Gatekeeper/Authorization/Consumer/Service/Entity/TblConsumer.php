@@ -38,7 +38,7 @@ class TblConsumer extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Type = '';
+    protected string $Type;
 
     /**
      * @param string $Acronym
