@@ -9,6 +9,7 @@ use SPHERE\Application\Document\Custom\Radebeul\Radebeul;
 use SPHERE\Application\Document\Custom\Zwickau\Zwickau;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -24,26 +25,29 @@ class Custom implements IApplicationInterface
     public static function registerApplication()
     {
 
-        $consumerAcronym = ( Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '' );
-        // Lebenswelt
-        if ($consumerAcronym === 'LWSZ') {
-            Lebenswelt::registerModule();
-        }
-        if ($consumerAcronym === 'EVSR') {
-            Radebeul::registerModule();
-        }
-        if ($consumerAcronym === 'CMS') {
-            Zwickau::registerModule();
-        }
-        if ($consumerAcronym === 'FELS') { // local test  || $consumerAcronym === 'REF'
-            Limbach::registerModule();
-        }
-        if ($consumerAcronym === 'HOGA') {
-            Hoga::registerModule();
-        }
-        // ToDO nach der Veröffentlichung kann der Ref für die Einstellung wieder entfernt werden
-        if ($consumerAcronym === 'EVOSG'|| $consumerAcronym === 'REF') {
-            Gersdorf::registerModule();
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
+            $consumerAcronym = $tblConsumer->getAcronym();
+            // Lebenswelt
+            if ($consumerAcronym === 'LWSZ') {
+                Lebenswelt::registerModule();
+            }
+            if ($consumerAcronym === 'EVSR') {
+                Radebeul::registerModule();
+            }
+            if ($consumerAcronym === 'CMS') {
+                Zwickau::registerModule();
+            }
+            if ($consumerAcronym === 'FELS') { // local test  || $consumerAcronym === 'REF'
+                Limbach::registerModule();
+            }
+            if ($consumerAcronym === 'HOGA') {
+                Hoga::registerModule();
+            }
+            // Gersdorf
+            if ($consumerAcronym === 'EVOSG') {
+                Gersdorf::registerModule();
+            }
         }
 
         Main::getDisplay()->addApplicationNavigation(

@@ -11,6 +11,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 
 class Service
 {
@@ -68,8 +69,7 @@ class Service
                 // todo Jens Ticket Auswahl für den Anzeigenamen erstellen über Formular + Möglichkeit Kennzeichnung "N" zu setzen, steht für nicht drucken
                 // Hintergrund aus Datenschutzgründen wird im Beruflichen Gym als Anzeigename die Schülernummer, statt des Schülernamens verwendet
                 $displayName = $tblPerson->getLastName() . ' : ' . $tblPerson->getFirstSecondName();
-                if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                    && $tblConsumer->getAcronym() == 'REF'
+                if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
                     && $tblDivision
                     && ($tblLevel = $tblDivision->getTblLevel())
                     && ($tblSchoolType = $tblLevel->getServiceTblType())

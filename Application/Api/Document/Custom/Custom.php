@@ -17,6 +17,7 @@ use SPHERE\Application\Api\Document\Custom\Zwickau\Zwickau;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\System\Extension\Extension;
 
@@ -31,29 +32,33 @@ class Custom extends Extension implements IModuleInterface
     public static function registerModule()
     {
 
-        $consumerAcronym = ( Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '' );
-        // Lebenswelt
-        if ($consumerAcronym === 'LWSZ') {
-            Lebenswelt::registerModule();
-        }
-        // Radebeul
-        if ($consumerAcronym === 'EVSR') {
-            Radebeul::registerModule();
-        }
-        // Zwickau
-        if ($consumerAcronym === 'CMS') {
-            Zwickau::registerModule();
-        }
-        // Zwickau
-        if ($consumerAcronym === 'FELS') { // local test || $consumerAcronym === 'REF'
-            Limbach::registerModule();
-        }
-        if ($consumerAcronym === 'HOGA') {
-            Hoga::registerModule();
-        }
-        // ToDO nach der Veröffentlichung kann der Ref für die Einstellung wieder entfernt werden
-        if ($consumerAcronym === 'EVOSG'|| $consumerAcronym === 'REF') {
-            Gersdorf::registerModule();
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
+            $consumerAcronym = $tblConsumer->getAcronym();
+
+            // Lebenswelt
+            if ($consumerAcronym === 'LWSZ') {
+                Lebenswelt::registerModule();
+            }
+            // Radebeul
+            if ($consumerAcronym === 'EVSR') {
+                Radebeul::registerModule();
+            }
+            // Zwickau
+            if ($consumerAcronym === 'CMS') {
+                Zwickau::registerModule();
+            }
+            // Zwickau
+            if ($consumerAcronym === 'FELS') { // local test || $consumerAcronym === 'REF'
+                Limbach::registerModule();
+            }
+            if ($consumerAcronym === 'HOGA') {
+                Hoga::registerModule();
+            }
+            // Gersdorf
+            if ($consumerAcronym === 'EVOSG') {
+                Gersdorf::registerModule();
+            }
         }
     }
 

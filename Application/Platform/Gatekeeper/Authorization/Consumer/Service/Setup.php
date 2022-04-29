@@ -3,6 +3,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\System\Database\Binding\AbstractSetup;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -61,6 +62,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('Name', 'string');
         }
         $this->createColumn($Table, 'Alias', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Type', self::FIELD_TYPE_STRING, false, Consumer::useService()->getConsumerTypeFromServerHost());
 
         return $Table;
     }

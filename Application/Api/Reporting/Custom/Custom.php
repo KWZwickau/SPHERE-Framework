@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Reporting\Custom;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 
@@ -17,195 +18,196 @@ class Custom implements IModuleInterface
 
     public static function registerModule()
     {
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
 
-        $consumerAcronym = ( Consumer::useService()->getConsumerBySession() ? Consumer::useService()->getConsumerBySession()->getAcronym() : '' );
+            $consumerAcronym = $tblConsumer->getAcronym();
 
-        /*
-         * Chemnitz
-         */
-        if ($consumerAcronym === 'ESZC') {
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Chemnitz/Common/ClassList/Download', __NAMESPACE__.'\Chemnitz\Common::downloadClassList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Chemnitz/Common/PrintClassList/Download',
-                __NAMESPACE__.'\Chemnitz\Common::downloadPrintClassList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Chemnitz/Common/StaffList/Download', __NAMESPACE__.'\Chemnitz\Common::downloadStaffList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Chemnitz/Common/SchoolFeeList/Download',
-                __NAMESPACE__.'\Chemnitz\Common::downloadSchoolFeeList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Chemnitz/Common/MedicList/Download', __NAMESPACE__.'\Chemnitz\Common::downloadMedicList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Chemnitz/Common/InterestedPersonList/Download',
-                __NAMESPACE__.'\Chemnitz\Common::downloadInterestedPersonList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Chemnitz/Common/ParentTeacherConferenceList/Download',
-                __NAMESPACE__.'\Chemnitz\Common::downloadParentTeacherConferenceList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Chemnitz/Common/ClubMemberList/Download',
-                __NAMESPACE__.'\Chemnitz\Common::downloadClubMemberList'
-            ));
-        }
+            /*
+             * Chemnitz
+             */
+            if ($consumerAcronym === 'ESZC') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Chemnitz/Common/ClassList/Download', __NAMESPACE__ . '\Chemnitz\Common::downloadClassList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Chemnitz/Common/PrintClassList/Download',
+                    __NAMESPACE__ . '\Chemnitz\Common::downloadPrintClassList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Chemnitz/Common/StaffList/Download', __NAMESPACE__ . '\Chemnitz\Common::downloadStaffList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Chemnitz/Common/SchoolFeeList/Download',
+                    __NAMESPACE__ . '\Chemnitz\Common::downloadSchoolFeeList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Chemnitz/Common/MedicList/Download', __NAMESPACE__ . '\Chemnitz\Common::downloadMedicList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Chemnitz/Common/InterestedPersonList/Download',
+                    __NAMESPACE__ . '\Chemnitz\Common::downloadInterestedPersonList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Chemnitz/Common/ParentTeacherConferenceList/Download',
+                    __NAMESPACE__ . '\Chemnitz\Common::downloadParentTeacherConferenceList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Chemnitz/Common/ClubMemberList/Download',
+                    __NAMESPACE__ . '\Chemnitz\Common::downloadClubMemberList'
+                ));
+            }
 
-        /*
-        * Hormersdorf
-        */
-        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Hormersdorf/Person/ClassList/Download',
-                __NAMESPACE__.'\Hormersdorf\Person::downloadClassList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Hormersdorf/Person/StaffList/Download',
-                __NAMESPACE__.'\Hormersdorf\Person::downloadStaffList'
-            ));
-        }
+            /*
+            * Hormersdorf
+            */
+            if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Hormersdorf/Person/ClassList/Download',
+                    __NAMESPACE__ . '\Hormersdorf\Person::downloadClassList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Hormersdorf/Person/StaffList/Download',
+                    __NAMESPACE__ . '\Hormersdorf\Person::downloadStaffList'
+                ));
+            }
 
-        /*
-         * Herrnhut
-         */
-        if ($consumerAcronym === 'EZSH') {
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Herrnhut/Common/ProfileList/Download',
-                __NAMESPACE__.'\Herrnhut\Common::downloadProfileList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Herrnhut/Common/SignList/Download',
-                __NAMESPACE__.'\Herrnhut\Common::downloadSignList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Herrnhut/Common/LanguageList/Download',
-                __NAMESPACE__.'\Herrnhut\Common::downloadLanguageList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Herrnhut/Common/ClassList/Download',
-                __NAMESPACE__.'\Herrnhut\Common::downloadClassList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Herrnhut/Common/ExtendedClassList/Download',
-                __NAMESPACE__.'\Herrnhut\Common::downloadExtendedClassList'
-            ));
-        }
+            /*
+             * Herrnhut
+             */
+            if ($consumerAcronym === 'EZSH') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Herrnhut/Common/ProfileList/Download',
+                    __NAMESPACE__ . '\Herrnhut\Common::downloadProfileList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Herrnhut/Common/SignList/Download',
+                    __NAMESPACE__ . '\Herrnhut\Common::downloadSignList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Herrnhut/Common/LanguageList/Download',
+                    __NAMESPACE__ . '\Herrnhut\Common::downloadLanguageList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Herrnhut/Common/ClassList/Download',
+                    __NAMESPACE__ . '\Herrnhut\Common::downloadClassList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Herrnhut/Common/ExtendedClassList/Download',
+                    __NAMESPACE__ . '\Herrnhut\Common::downloadExtendedClassList'
+                ));
+            }
 
-        /*
-         * Coswig
-         */
-        if ($consumerAcronym === 'EVSC') {
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Coswig/Common/ClassList/Download',
-                __NAMESPACE__.'\Coswig\Common::downloadClassList'
-            ));
-        }
+            /*
+             * Coswig
+             */
+            if ($consumerAcronym === 'EVSC') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Coswig/Common/ClassList/Download',
+                    __NAMESPACE__ . '\Coswig\Common::downloadClassList'
+                ));
+            }
 
-        /*
-         * Schneeberg
-         */
-        if ($consumerAcronym === 'ESS') {
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Schneeberg/Person/ClassList/Download',
-                __NAMESPACE__.'\Schneeberg\Person::downloadClassList'
-            ));
-        }
+            /*
+             * Schneeberg
+             */
+            if ($consumerAcronym === 'ESS') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Schneeberg/Person/ClassList/Download',
+                    __NAMESPACE__ . '\Schneeberg\Person::downloadClassList'
+                ));
+            }
 
-        /*
-        * Radebeul
-        */
-        if ($consumerAcronym === 'EVSR') {
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Radebeul/Person/ParentTeacherConferenceList/Download',
-                __NAMESPACE__.'\Radebeul\Person::downloadParentTeacherConferenceList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Radebeul/Person/DenominationList/Download',
-                __NAMESPACE__.'\Radebeul\Person::downloadDenominationList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Radebeul/Person/PhoneList/Download',
-                __NAMESPACE__.'\Radebeul\Person::downloadPhoneList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Radebeul/Person/KindergartenList/Download',
-                __NAMESPACE__.'\Radebeul\Person::downloadKindergartenList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Radebeul/Person/RegularSchoolList/Download',
-                __NAMESPACE__.'\Radebeul\Person::downloadRegularSchoolList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Radebeul/Person/DiseaseList/Download',
-                __NAMESPACE__.'\Radebeul\Person::downloadDiseaseList'
-            ));
+            /*
+            * Radebeul
+            */
+            if ($consumerAcronym === 'EVSR') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Radebeul/Person/ParentTeacherConferenceList/Download',
+                    __NAMESPACE__ . '\Radebeul\Person::downloadParentTeacherConferenceList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Radebeul/Person/DenominationList/Download',
+                    __NAMESPACE__ . '\Radebeul\Person::downloadDenominationList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Radebeul/Person/PhoneList/Download',
+                    __NAMESPACE__ . '\Radebeul\Person::downloadPhoneList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Radebeul/Person/KindergartenList/Download',
+                    __NAMESPACE__ . '\Radebeul\Person::downloadKindergartenList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Radebeul/Person/RegularSchoolList/Download',
+                    __NAMESPACE__ . '\Radebeul\Person::downloadRegularSchoolList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Radebeul/Person/DiseaseList/Download',
+                    __NAMESPACE__ . '\Radebeul\Person::downloadDiseaseList'
+                ));
 
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Radebeul/Person/Nursery/Download',
-                __NAMESPACE__.'\Radebeul\Person::downloadNursery'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Radebeul/Person/NurseryList/Download',
-                __NAMESPACE__.'\Radebeul\Person::downloadNurseryList'
-            ));
-        }
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Radebeul/Person/Nursery/Download',
+                    __NAMESPACE__ . '\Radebeul\Person::downloadNursery'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Radebeul/Person/NurseryList/Download',
+                    __NAMESPACE__ . '\Radebeul\Person::downloadNurseryList'
+                ));
+            }
 
-        // Muldental
-        if ($consumerAcronym === 'EVAMTL') {
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Muldental/Common/ClassList/Download',
-                __NAMESPACE__.'\Muldental\Common::downloadClassList'
-            ));
-        }
+            // Muldental
+            if ($consumerAcronym === 'EVAMTL') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Muldental/Common/ClassList/Download',
+                    __NAMESPACE__ . '\Muldental\Common::downloadClassList'
+                ));
+            }
 
-        // Bad Düben
-        if ($consumerAcronym === 'ESBD') {
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/BadDueben/Common/ClassList/Download',
-                __NAMESPACE__.'\BadDueben\Common::downloadClassList'
-            ));
-        }
+            // Bad Düben
+            if ($consumerAcronym === 'ESBD') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/BadDueben/Common/ClassList/Download',
+                    __NAMESPACE__ . '\BadDueben\Common::downloadClassList'
+                ));
+            }
 
-        /*
-         * Annaberg
-         */
-        if ($consumerAcronym === 'EGE') {
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Annaberg/Common/PrintClassList/Download',
-                __NAMESPACE__.'\Annaberg\Common::downloadPrintClassList'
-            ));
-        }
+            /*
+             * Annaberg
+             */
+            if ($consumerAcronym === 'EGE') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Annaberg/Common/PrintClassList/Download',
+                    __NAMESPACE__ . '\Annaberg\Common::downloadPrintClassList'
+                ));
+            }
 
-
-        // ToDO nach der Veröffentlichung kann der Ref für die Einstellung wieder entfernt werden
-        /*
-         * Gersdorf
-         */
-        if ($consumerAcronym === 'EVOSG' || $consumerAcronym === 'REF') {
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Gersdorf/Common/ClassList/Download',
-                __NAMESPACE__.'\Gersdorf\Common::downloadClassList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Gersdorf/Common/SignList/Download',
-                __NAMESPACE__.'\Gersdorf\Common::downloadSignList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Gersdorf/Common/ElectiveClassList/Download',
-                __NAMESPACE__.'\Gersdorf\Common::downloadElectiveClassList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Gersdorf/Common/ClassPhoneList/Download',
-                __NAMESPACE__.'\Gersdorf\Common::downloadClassPhoneList'
-            ));
-            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-                __NAMESPACE__.'/Gersdorf/Common/TeacherList/Download',
-                __NAMESPACE__.'\Gersdorf\Common::downloadTeacherList'
-            ));
+            /*
+             * Gersdorf
+             */
+            if ($consumerAcronym === 'EVOSG') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Gersdorf/Common/ClassList/Download',
+                    __NAMESPACE__ . '\Gersdorf\Common::downloadClassList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Gersdorf/Common/SignList/Download',
+                    __NAMESPACE__ . '\Gersdorf\Common::downloadSignList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Gersdorf/Common/ElectiveClassList/Download',
+                    __NAMESPACE__ . '\Gersdorf\Common::downloadElectiveClassList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Gersdorf/Common/ClassPhoneList/Download',
+                    __NAMESPACE__ . '\Gersdorf\Common::downloadClassPhoneList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Gersdorf/Common/TeacherList/Download',
+                    __NAMESPACE__ . '\Gersdorf\Common::downloadTeacherList'
+                ));
+            }
         }
     }
 

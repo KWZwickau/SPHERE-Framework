@@ -7,6 +7,8 @@ use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBo
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -179,26 +181,25 @@ class Frontend extends Extension implements IFrontendInterface
         $stage->addButton(new Standard('Zurück', '/Setting/Consumer/Setting', new ChevronLeft()));
         if (($tblSetting = Consumer::useService()->getSettingById($SettingId))) {
             $content = array();
-            if (($tblConsumerAll = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerAll())) {
-                //  aktuell nicht genutzte Mandanten
+            if (($tblConsumerAll = GatekeeperConsumer::useService()->getConsumerAll())) {
                 $blackList = array();
-                $blackList['DWO'] = 1;
-                $blackList['EMSP'] = 1;
-                $blackList['ESA'] = 1;
-                $blackList['ESL'] = 1;
-                $blackList['ESVL'] = 1;
-                $blackList['EVAP'] = 1;
-                $blackList['EVMS'] = 1;
-                $blackList['EVMSH'] = 1;
-                $blackList['EVOSG'] = 1;
-                $blackList['EVSB'] = 1;
-                $blackList['EVSL'] = 1;
-                $blackList['EWM'] = 1;
-                $blackList['EWS'] = 1;
-                $blackList['FV'] = 1;
-
-                $selectBoxContent[] = new SelectBoxItem(TblAddress::VALUE_PLZ_ORT_OT_STR_NR, 'PLZ_ORT_OT_STR_NR');
-                $selectBoxContent[] = new SelectBoxItem(TblAddress::VALUE_OT_STR_NR_PLZ_ORT, 'OT_STR_NR_PLZ_ORT');
+                //  aktuell nicht genutzte Mandanten in Sachsen
+                if (GatekeeperConsumer::useService()->getConsumerTypeFromServerHost() == TblConsumer::TYPE_SACHSEN) {
+                    $blackList['DWO'] = 1;
+                    $blackList['EMSP'] = 1;
+                    $blackList['ESA'] = 1;
+                    $blackList['ESL'] = 1;
+                    $blackList['ESVL'] = 1;
+                    $blackList['EVAP'] = 1;
+                    $blackList['EVMS'] = 1;
+                    $blackList['EVMSH'] = 1;
+                    $blackList['EVOSG'] = 1;
+                    $blackList['EVSB'] = 1;
+                    $blackList['EVSL'] = 1;
+                    $blackList['EWM'] = 1;
+                    $blackList['EWS'] = 1;
+                    $blackList['FV'] = 1;
+                }
 
                 foreach ($tblConsumerAll as $tblConsumer) {
                     if (!isset($blackList[$tblConsumer->getAcronym()])) {

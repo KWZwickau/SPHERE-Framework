@@ -10,6 +10,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
@@ -61,7 +62,6 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblGroup) {
             // result by Views
             $ContentArray = Individual::useService()->getPersonListByGroup($tblGroup);
-            $Acronym = Consumer::useService()->getConsumerBySession()->getAcronym();
             $filterWarning = false;
             $showDivision = false;
 
@@ -73,7 +73,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblRelationshipList = Relationship::useService()->getPersonRelationshipArrayByType($tblRelationshipType);
                 $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE);
 
-                array_walk($ContentArray, function($contentRow) use (&$tableContent, $tblGroup, $Acronym, $tblRelationshipList,
+                array_walk($ContentArray, function($contentRow) use (&$tableContent, $tblGroup, $tblRelationshipList,
                     $tblStudentTransferType, &$showDivision
                 ){
 
@@ -217,7 +217,7 @@ class Frontend extends Extension implements IFrontendInterface
             $YearNow = $Date;
 
             if($tblGroup->getMetaTable() == TblGroup::META_TABLE_CUSTODY){
-                if($Acronym == 'ESZC'){
+                if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC')){
                     $ColumnArray = array(
                         'FullName' => 'Name',
                         'Address'  => 'Adresse',
