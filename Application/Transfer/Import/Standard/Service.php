@@ -34,6 +34,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType as TblTypeRelationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -298,7 +299,7 @@ class Service
                 // Schulverlauf aus zweiter Datei KWS
                 if(($tblAccount =  Account::useService()->getAccountBySession())
                     && ($tblConsumer = $tblAccount->getServiceTblConsumer())
-                    && ($tblConsumer->getAcronym() == 'KWS' || $tblConsumer->getAcronym() == 'HOGA')
+                    && ($tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'KWS') || $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA'))
                 ){
                     // division
                     $divisionString = $this->getValue('Klasse/Kurs');

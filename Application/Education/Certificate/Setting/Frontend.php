@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
@@ -861,11 +862,14 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new LayoutRow(array(
                         new LayoutColumn(
-                            $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_PRIMARY, 'Zeugnisse Grundschule', 'GsJa')
-                            .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_SECONDARY, 'Zeugnisse Oberschule', 'MsJ')
-                            .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_GYM, 'Zeugnisse Gymnasium', 'GymJ')
-                            .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE, 'Zeugnisse Berufsfachschule', 'BfsHj')
-                            .$this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_FACHSCHULE, 'Zeugnisse Fachschule', 'FsHj')
+                            // nur Sachsen
+                            Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)
+                                ? $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_PRIMARY, 'Zeugnisse Grundschule', 'GsJa')
+                                . $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_SECONDARY, 'Zeugnisse Oberschule', 'MsJ')
+                                . $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_GYM, 'Zeugnisse Gymnasium', 'GymJ')
+                                . $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE, 'Zeugnisse Berufsfachschule', 'BfsHj')
+                                . $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_FACHSCHULE, 'Zeugnisse Fachschule', 'FsHj')
+                                : ''
                         )
                     ))
                 ))

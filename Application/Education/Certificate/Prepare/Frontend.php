@@ -48,6 +48,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -1551,11 +1552,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                             /*
                                             * Individuelle Zeugnisse EVGSM Meerane Klassename vorsetzen
                                             */
-                                            if ($tblConsumer
-                                                && $tblConsumer->getAcronym() == 'EVGSM'
+                                            if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EVGSM')
                                                 && ($tblCertificateStudent = $tblPrepareStudent->getServiceTblCertificate())
-                                                && strpos($tblCertificateStudent->getCertificate(),
-                                                    'EVGSM') !== false
+                                                && strpos($tblCertificateStudent->getCertificate(), 'EVGSM') !== false
                                             ) {
                                                 $Global->POST['Data'][$tblPrepareStudent->getId()]['DivisionName']
                                                     = $tblDivisionItem->getDisplayName();
@@ -1730,7 +1729,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     // if using false table, need to be space between buttons & table
                     // same consumer as those who using Editor ad inputfield
                     if($tblConsumer
-                        && ($tblConsumer->getAcronym() == 'REF' || $tblConsumer->getAcronym() == 'EVAB')
+                        && ($tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'REF') || $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EVAB'))
                     ) {
                         $Interactive = false;
                         $SpaceWithFalseTable = new Container('&nbsp;');
@@ -1977,8 +1976,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                         // Coswig Versetzungsvermerk in die Bemerkung vorsetzten
                         if (!$hasRemarkText
-                            && ($tblConsumer = Consumer::useService()->getConsumerBySession())
-                            && $tblConsumer->getAcronym() == 'EVSC'
+                            && Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVSC')
                             && ($tblCertificateType = $tblCertificate->getTblCertificateType())
                             && $tblCertificateType->getIdentifier() == 'YEAR'
                         ) {
@@ -2113,8 +2111,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         $isSupportForPrimarySchool = false;
                         // Seelitz Förderbedarf-Satz in die Bemerkung vorsetzen
                         if (!$hasRemarkText
-                            && ($tblConsumer = Consumer::useService()->getConsumerBySession())
-                            && $tblConsumer->getAcronym() ==  'ESRL'//'REF' für Lokale Test's
+                            && Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESRL')
                         ) {
                            $isSupportForPrimarySchool = true;
                         // staatliche und pseudostaatliche Grundschulzeugnisse Förderbedarf-Satz in die Bemerkung vorsetzen
@@ -5358,13 +5355,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         } elseif ($tblType->getName() == 'Gymnasium') {
                             if ($tblLevel) {
                                 // Herrnhut hat ein individuelles Abgangszeugnis
-                                if ($tblConsumer
-                                    && $tblConsumer->getAcronym() == 'EZSH'
+                                if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')
                                     && intval($tblLevel->getName()) == 10
                                 ) {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshGymAbg');
-                                } elseif ($tblConsumer
-                                    && $tblConsumer->getAcronym() == 'HOGA'
+                                } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
                                     && intval($tblLevel->getName()) <= 10
                                 ) {
                                     // HOGA hat ein individuelles Abgangszeugnis
@@ -5386,7 +5381,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BfsAbg');
                         } elseif ($tblType->getName() == 'Fachschule') {
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('FsAbg');
-                        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'HOGA' && $tblType->getName() == 'Fachoberschule') {
+                        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA') && $tblType->getName() == 'Fachoberschule') {
                             // HOGA hat ein individuelles Abgangszeugnis
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('HOGA\FosAbg');
                         }

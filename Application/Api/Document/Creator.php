@@ -801,7 +801,7 @@ class Creator extends Extension
                 $Data['CompanyAddress'] = $Data['CompanyStreet'] . '<br/>' . $Data['CompanyCity']
                     . ($Data['CompanyDistrict'] ? '  OT ' . $Data['CompanyDistrict'] : '');
 
-                $template = new Billing($tblItem, $tblDocument, $Data);
+                $template = new Billing($tblItem, $Data);
                 $pageList = array();
 
                 ini_set('memory_limit', '2G');
