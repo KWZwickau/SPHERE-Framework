@@ -155,7 +155,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new DangerMessage(new Container(new Center(new Bold('Achtung laufende Wartungsarbeiten seit 22:00
                         bis vorraussichtlich 0:00.')))
                     .new Container(new Center(new Bold('Es wird empfohlen, sich wegen der Wartung abzumelden,
-                     um Datenverlust zu vermeiden.')))
+                     um Datenverlust der getätigten Eingaben zu vermeiden.')))
                     .new Container((new ProgressBar(0,100,0, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER))
                     , null, false, '8', '5'), $PanelColor);
             } elseif ($now >= new DateTime('20:00')) {
@@ -169,7 +169,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
                     new DangerMessage(new Container(new Center('Achtung heute ('.$now->format('d.m.Y')
                             .') ab 22:00 Wartungsarbeiten, voraussichtlich 2 Stunden.')).new Container(new Center(new Bold('Es wird empfohlen, sich 
-                        vor der Wartung abzumelden, um Datenverlust zu vermeiden.').' ('.new Italic('noch '.$Minutes.' Minuten').')'))
+                        vor der Wartung abzumelden, um Datenverlust von den Eingaben zu vermeiden.').' ('.new Italic('noch '.$Minutes.' Minuten').')'))
                         .new Container((new ProgressBar(0, $doneProgressbar, $aktiveProgressbar, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_SUCCESS))
                         , null, false, '8', '5'), $PanelColor
                 );
