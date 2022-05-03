@@ -634,6 +634,7 @@ class Data extends AbstractData
                             $Entity->setServiceTblCertificate($tblCertificate);
                             $Entity->setApproved(false);
                             $Entity->setPrinted(false);
+                            $Entity->setIsPrepared(false);
 
                             $Manager->bulkSaveEntity($Entity);
                             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
@@ -850,6 +851,7 @@ class Data extends AbstractData
                         $Entity->setServiceTblPerson($tblPerson);
                         $Entity->setApproved(true);
                         $Entity->setPrinted(false);
+                        $Entity->setIsPrepared(false);
 
                         // Fehlzeiten aus dem Klassenbuch übernehmen
                         if ($useClassRegisterForAbsence) {
@@ -1096,6 +1098,7 @@ class Data extends AbstractData
                     $Entity->setServiceTblPerson($tblPerson);
                     $Entity->setApproved(true);
                     $Entity->setPrinted(false);
+                    $Entity->setIsPrepared(false);
 
                     $Manager->bulkSaveEntity($Entity);
                     Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
