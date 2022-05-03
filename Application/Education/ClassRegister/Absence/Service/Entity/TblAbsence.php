@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use phpDocumentor\Reflection\Types\Boolean;
+use phpDocumentor\Reflection\Types\Integer;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -31,7 +31,6 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblAbsence extends Element
 {
-
     const VALUE_STATUS_NULL = 0;
     const VALUE_STATUS_EXCUSED = 1;
     const VALUE_STATUS_UNEXCUSED = 2;
@@ -39,6 +38,10 @@ class TblAbsence extends Element
     const VALUE_TYPE_NULL = 0;
     const VALUE_TYPE_PRACTICE = 1;
     const VALUE_TYPE_THEORY = 2;
+
+    const VALUE_SOURCE_STAFF = 0;
+    const VALUE_SOURCE_ONLINE_CUSTODY = 1;
+    const VALUE_SOURCE_ONLINE_STUDENT = 2;
 
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
@@ -89,6 +92,16 @@ class TblAbsence extends Element
      * @Column(type="boolean")
      */
     protected $IsCertificateRelevant;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPersonCreator;
+
+    /**
+     * @Column(type="smallint")
+     */
+    protected $Source;
 
     /**
      * @return bool|TblPerson
@@ -372,7 +385,7 @@ class TblAbsence extends Element
     }
 
     /**
-     * @param integer $Type
+     * @param int $Type
      */
     public function setType($Type)
     {
@@ -399,6 +412,26 @@ class TblAbsence extends Element
     {
 
         $this->serviceTblPersonStaff = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPersonCreator()
+    {
+        if (null === $this->serviceTblPersonCreator) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonCreator);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServiceTblPersonCreator(TblPerson $tblPerson = null)
+    {
+        $this->serviceTblPersonCreator = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
@@ -481,5 +514,42 @@ class TblAbsence extends Element
     public function setIsCertificateRelevant(bool $IsCertificateRelevant): void
     {
         $this->IsCertificateRelevant = $IsCertificateRelevant;
+    }
+
+    /**
+     * @return int
+     */
+    public function getSource(): int
+    {
+        return $this->Source;
+    }
+
+    /**
+     * @param int $Source
+     */
+    public function setSource(int $Source): void
+    {
+        $this->Source = $Source;
+    }
+
+    public function getDisplayPersonCreator(bool $isOnlineAbsenceView = true): string
+    {
+        if (($tblPerson = $this->getServiceTblPersonCreator())){
+            if ($this->getSource() == self::VALUE_SOURCE_STAFF) {
+                if ($isOnlineAbsenceView) {
+                    return 'Schule';
+                } else {
+                    if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson)) && $tblTeacher->getAcronym()) {
+                        return $tblTeacher->getAcronym();
+                    } else {
+                        return $tblPerson->getLastName();
+                    }
+                }
+            } else {
+                return $tblPerson->getFullName();
+            }
+        }
+
+        return $isOnlineAbsenceView ? 'Schule' : '';
     }
 }

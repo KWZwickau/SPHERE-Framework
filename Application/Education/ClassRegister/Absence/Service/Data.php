@@ -118,6 +118,8 @@ class Data extends AbstractData
      * @param int $Type
      * @param TblPerson|null $tblPersonStaff
      * @param bool $IsCertificateRelevant
+     * @param TblPerson|null $tblPersonCreator
+     * @param int $Source
      *
      * @return TblAbsence
      */
@@ -127,11 +129,13 @@ class Data extends AbstractData
         $FromDate,
         $ToDate,
         $Status,
-        $Remark = '',
-        $Type = TblAbsence::VALUE_TYPE_NULL,
+        string $Remark = '',
+        int $Type = TblAbsence::VALUE_TYPE_NULL,
+        bool $IsCertificateRelevant = true,
+        TblPerson $tblPersonCreator = null,
         TblPerson $tblPersonStaff = null,
-        bool $IsCertificateRelevant = true
-    ) {
+        int $Source = TblAbsence::VALUE_SOURCE_STAFF
+    ): TblAbsence {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblAbsence')->findOneBy(array(
@@ -152,6 +156,8 @@ class Data extends AbstractData
             $Entity->setType($Type);
             $Entity->setServiceTblPersonStaff($tblPersonStaff);
             $Entity->setIsCertificateRelevant($IsCertificateRelevant);
+            $Entity->setSource($Source);
+            $Entity->setServiceTblPersonCreator($tblPersonCreator);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
