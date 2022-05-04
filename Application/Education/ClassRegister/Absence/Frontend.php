@@ -582,9 +582,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
                 }
 
+                $isOnlineAbsence = $tblAbsence->getIsAbsenceOnline();
+
                 $item = array(
-                    'FromDate' => $tblAbsence->getFromDate(),
-                    'ToDate' => $tblAbsence->getToDate(),
+                    'FromDate' => $isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getFromDate() . '</span>' : $tblAbsence->getFromDate(),
+                    'ToDate' => $isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getToDate() . '</span>' : $tblAbsence->getToDate(),
                     'Days' => ($days = $tblAbsence->getDays(
                         null,
                         $count,
@@ -595,6 +597,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Remark' => $tblAbsence->getRemark(),
                     'Status' => $status,
                     'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein',
+                    'PersonCreator' => $tblAbsence->getDisplayPersonCreator(false),
                     'PersonStaff' => $tblAbsence->getDisplayStaff(),
                     'Option' =>
                         (new Standard(
@@ -629,6 +632,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Lessons' => 'Unterrichts&shy;einheiten',
                 'Type' => 'Typ',
                 'Remark' => 'Bemerkung',
+                'PersonCreator' => 'Ersteller',
                 'PersonStaff' => 'Bearbeiter',
                 'IsCertificateRelevant' => 'Zeugnisrelevant',
                 'Status' => 'Status',
@@ -641,6 +645,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Days' => 'Tage',
                 'Lessons' => 'Unterrichts&shy;einheiten',
                 'Remark' => 'Bemerkung',
+                'PersonCreator' => 'Ersteller',
                 'PersonStaff' => 'Bearbeiter',
                 'IsCertificateRelevant' => 'Zeugnisrelevant',
                 'Status' => 'Status',

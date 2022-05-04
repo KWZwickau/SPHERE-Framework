@@ -3715,11 +3715,12 @@ class Service extends Extension
      * @param string $DivisionName
      * @param string $GroupName
      * @param int $IsCertificateRelevant
+     * @param bool $IsAbsenceOnlineOnly
      *
      * @return false|FilePointer
      */
     public function createAbsenceListExcel(DateTime $dateTimeFrom, DateTime $dateTimeTo = null, $Type = null,
-        $DivisionName = '', $GroupName = '', int $IsCertificateRelevant = 0)
+        $DivisionName = '', $GroupName = '', int $IsCertificateRelevant = 0, bool $IsAbsenceOnlineOnly = false)
     {
 
         if ($Type != null) {
@@ -3746,7 +3747,8 @@ class Service extends Extension
                     $divisionList,
                     array(),
                     $hasAbsenceTypeOptions,
-                    $IsCertificateRelevant
+                    $IsCertificateRelevant,
+                    $IsAbsenceOnlineOnly
                 );
             } else {
                 $absenceList = array();
@@ -3762,7 +3764,8 @@ class Service extends Extension
                     array(),
                     $groupList,
                     $hasAbsenceTypeOptions,
-                    $IsCertificateRelevant
+                    $IsCertificateRelevant,
+                    $IsAbsenceOnlineOnly
                 );
             } else {
                 $absenceList = array();
@@ -3775,7 +3778,8 @@ class Service extends Extension
                 array(),
                 array(),
                 $hasAbsenceTypeOptions,
-                $IsCertificateRelevant
+                $IsCertificateRelevant,
+                $IsAbsenceOnlineOnly
             );
         }
 

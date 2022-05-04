@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -1433,7 +1434,8 @@ class Frontend extends Extension implements IFrontendInterface
         $groupTextField = new TextField('Data[GroupName]', '', 'oder Personengruppe');
         $certificateRelevantSelectBox = new SelectBox('Data[IsCertificateRelevant]', 'Fehlzeit zeugnisrelevant',
             array('Name' => $certificateRelevantList));
-        $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent());
+        $optionAbsenceOnline = new CheckBox('Data[IsAbsenceOnline]', 'Nur unbearbeitete Online Fehlzeiten von Eltern/Schülern anzeigen', 1);
+        $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineReloadAbsenceContent());
 
         $stage->setContent(
            new Form(new FormGroup(new FormRow(array(
@@ -1461,6 +1463,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 ),
                                 new LayoutColumn(
                                     $groupTextField, 4
+                                ),
+                            )),
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    $optionAbsenceOnline . new Container('&nbsp;')
                                 ),
                             )),
                             new LayoutRow(array(

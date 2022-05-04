@@ -6,7 +6,6 @@ use DateInterval;
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
-use SPHERE\Application\Api\Education\ClassRegister\ApiCustomDownload;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Education\Certificate\Prepare\View;
@@ -741,7 +740,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $type = $tblAbsence->getTypeDisplayShortName();
                     $remark = $tblAbsence->getRemark();
                     $toolTip = ($lesson ? $lesson . ' / ' : '') . ($type ? $type . ' / ' : '') . $tblAbsence->getStatusDisplayShortName()
-                        . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
+                        . (($tblPersonStaff = $tblAbsence->getDisplayStaffToolTip()) ? ' - ' . $tblPersonStaff : '')
                         . ($remark ? ' - ' . $remark : '');
 
                     $item = (new Link(
@@ -751,7 +750,7 @@ class Frontend extends Extension implements IFrontendInterface
                         array(),
                         $toolTip,
                         null,
-                        $tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK
+                        $tblAbsence->getLinkType()
                     ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $Type, $TypeId));
 
                     if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
@@ -1516,7 +1515,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $type = $tblAbsence->getTypeDisplayShortName();
                                 $remark = $tblAbsence->getRemark();
                                 $toolTip = ($lessonString ? $lessonString . ' / ' : '') . ($type ? $type . ' / ' : '') . $tblAbsence->getStatusDisplayShortName()
-                                    . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
+                                    . (($tblPersonStaff = $tblAbsence->getDisplayStaffToolTip()) ? ' - ' . $tblPersonStaff : '')
                                     . ($remark ? ' - ' . $remark : '');
 
                                 $absenceList[] = new Container((new Link(
@@ -1526,7 +1525,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array(),
                                     $toolTip,
                                     null,
-                                    $tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK
+                                    $tblAbsence->getLinkType()
                                 ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(),
                                     'DivisionSubject', $tblDivisionSubject ? $tblDivisionSubject->getId(): null)));
                             }

@@ -237,6 +237,7 @@ class Service extends AbstractService
      * @param array $groupList
      * @param bool $hasAbsenceTypeOptions
      * @param null|bool $IsCertificateRelevant
+     * @param bool $IsAbsenceOnlineOnly
      *
      * @return array
      */
@@ -247,7 +248,8 @@ class Service extends AbstractService
         $divisionList = array(),
         $groupList = array(),
         &$hasAbsenceTypeOptions = false,
-        $IsCertificateRelevant = true
+        $IsCertificateRelevant = true,
+        bool $IsAbsenceOnlineOnly = false
     ) {
         $resultList = array();
         $tblAbsenceList = array();
@@ -293,6 +295,11 @@ class Service extends AbstractService
                 ) {
                     // Zeugnisrelevant filtern
                     if ($IsCertificateRelevant !== null && $IsCertificateRelevant !== $tblAbsence->getIsCertificateRelevant()) {
+                        continue;
+                    }
+
+                    // Nur Online Fehlzeiten filtern
+                    if ($IsAbsenceOnlineOnly && !$tblAbsence->getIsAbsenceOnline()) {
                         continue;
                     }
 

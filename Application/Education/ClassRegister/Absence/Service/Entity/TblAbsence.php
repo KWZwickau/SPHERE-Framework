@@ -22,6 +22,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -546,10 +547,46 @@ class TblAbsence extends Element
                     }
                 }
             } else {
-                return $tblPerson->getFullName();
+                return $tblPerson->getSalutation() . ' ' . $tblPerson->getLastName();
             }
         }
 
         return $isOnlineAbsenceView ? 'Schule' : '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getLinkType(): string
+    {
+        if ($this->getIsAbsenceOnline()) {
+            return AbstractLink::TYPE_ORANGE_LINK;
+        } elseif (!$this->getIsCertificateRelevant()) {
+            return AbstractLink::TYPE_MUTED_LINK;
+        } else {
+            return AbstractLink::TYPE_LINK;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayStaffToolTip(): string
+    {
+        if (($tblPersonStaff = $this->getDisplayStaff())) {
+            return $tblPersonStaff;
+        } else {
+            return $this->getDisplayPersonCreator(false);
+        }
+    }
+
+    /**
+     * Noch nicht bearbeitete Online Fehlzeit
+     *
+     * @return bool
+     */
+    public function getIsAbsenceOnline(): bool
+    {
+        return $this->getSource() != TblAbsence::VALUE_SOURCE_STAFF && $this->getServiceTblPersonStaff() == false;
     }
 }

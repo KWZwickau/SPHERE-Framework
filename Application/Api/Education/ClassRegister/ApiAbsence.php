@@ -193,12 +193,17 @@ class ApiAbsence extends Extension implements IApiInterface
     {
         $tblPerson = false;
         $tblDivision = false;
+        $message = '';
         if ($AbsenceId) {
-            $title = new Title(new Edit() . ' Fehlzeit bearbeiten');
             if (($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
                 $tblPerson = $tblAbsence->getServiceTblPerson();
                 $tblDivision = $tblAbsence->getServiceTblDivision();
+                $createDate = $tblAbsence->getEntityCreate();
+                if (($creator = $tblAbsence->getDisplayPersonCreator(false))) {
+                    $message = new Small(new Muted('erstellt von: ' . $creator . ' am: ' . $createDate->format('d.m.Y H:i:s')));
+                }
             }
+            $title = new Title(new Edit() . ' Fehlzeit bearbeiten' . new PullRight($message));
         } else {
             $title = new Title(new Plus() . ' Fehlzeit hinzufügen');
             if ($PersonId) {
@@ -993,6 +998,7 @@ class ApiAbsence extends Extension implements IApiInterface
         $lesson = $tblAbsence->getLessonStringByAbsence($countLessons);
         $type = $tblAbsence->getTypeDisplayShortName();
         $tblPersonStaff = $tblAbsence->getDisplayStaff();
+        $tblPersonStaffToolTip = $tblAbsence->getDisplayStaffToolTip();
         $remark = $tblAbsence->getRemark();
 
         $dataList[$tblDivision->getId()][$date][$tblPerson->getId() . '_' . $tblAbsence->getId()] = (new Link(
@@ -1006,10 +1012,10 @@ class ApiAbsence extends Extension implements IApiInterface
             null,
             array(),
             ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
-            . ($tblPersonStaff ? ' - ' . $tblPersonStaff : '')
+            . ($tblPersonStaffToolTip ? ' - ' . $tblPersonStaffToolTip : '')
             . ($remark ? ' - ' . $remark : ''),
             null,
-            $tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK
+            $tblAbsence->getLinkType()
         ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
     }
 
@@ -1646,7 +1652,10 @@ class ApiAbsence extends Extension implements IApiInterface
 
         $isWhiteLink = false;
 
-        if (($tblAbsenceType = $tblAbsence->getType())) {
+        if ($tblAbsence->getIsAbsenceOnline()) {
+            $backgroundColor = 'orange';
+            $isWhiteLink = true;
+        } elseif (($tblAbsenceType = $tblAbsence->getType())) {
             if ($tblAbsenceType == TblAbsence::VALUE_TYPE_THEORY) {
                 $backgroundColor = '#E0F0FF';
             }
@@ -1664,7 +1673,7 @@ class ApiAbsence extends Extension implements IApiInterface
 
         if ($hasToolTip) {
             $toolTip = ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
-                . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
+                . (($tblPersonStaff = $tblAbsence->getDisplayStaffToolTip()) ? ' - ' . $tblPersonStaff : '')
                 . ($remark ? ' - ' . $remark : '');
             $name = $tblAbsence->getStatusDisplayShortName();
         } else {
