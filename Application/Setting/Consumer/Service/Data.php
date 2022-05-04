@@ -264,10 +264,10 @@ class Data extends AbstractData
 
         // Fehlzeiten public
         $this->createSetting('Education', 'ClassRegister', 'Absence', 'OnlineAbsenceAllowedForSchoolTypes', TblSetting::TYPE_STRING, '',
-            'Fehlzeiten', 'Online-Krankmeldung ist für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy) möglich. Mehrere Schularten sind mit
+            'Fehlzeiten', 'Online Fehlzeiten von Eltern/Schüler ist für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy) möglich. Mehrere Schularten sind mit
              Komma zu trennen. [Standard: ]', true, 1);
         $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewOnlineAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
-            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Online-Krankmeldung [Standard: unentschuldigt]', true, 2);
+            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Online Fehlzeiten von Eltern/Schüler [Standard: unentschuldigt]', true, 2);
         $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
             'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Fehlzeit [Standard: unentschuldigt]', true, 3);
         if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence', TblSetting::TYPE_BOOLEAN,
