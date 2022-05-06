@@ -668,11 +668,16 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             foreach ($tblPrepareAllByDivision as $tblPrepareCertificate) {
                 $tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate();
                 $tblCertificateType = $tblGenerateCertificate ? $tblGenerateCertificate->getServiceTblCertificateType() : false;
+                $tblSchoolType = $tblDivision->getType();
 
                 if ($tblCertificateType) {
                     if ($Route != 'Diploma') {
                         // Abschlusszeugnisse überspringen
-                        if ($tblCertificateType->getIdentifier() == 'DIPLOMA') {
+                        if ($tblCertificateType->getIdentifier() == 'DIPLOMA'
+                            // Ausnahme bei HOGA sollen die Klassenlehrer die Abschlusszeugnisse bearbeiten können, todo später Mandanteneintstellung
+                            && !(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA') && $Route == 'Teacher' && $tblSchoolType
+                                && ($tblSchoolType->getShortName() == 'OS' || $tblSchoolType->getShortName() == 'FOS'))
+                        ) {
                             continue;
                         }
                     } else {
@@ -681,9 +686,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             continue;
                         }
                     }
+                } else {
+                    continue;
                 }
-
-                $tblSchoolType = $tblDivision->getType();
 
                 if ($Route == 'Diploma'
                     && $tblSchoolType
@@ -701,7 +706,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 } else {
                     $options = (new Standard(
                         '', '/Education/Certificate/Prepare/Prepare'
-                        . ($Route == 'Diploma'
+                        . ($tblCertificateType->getIdentifier() == 'DIPLOMA'
                             ? '/Diploma' . ($tblSchoolType
                                 && ($tblSchoolType->getName() == 'Berufsfachschule'
                                     || $tblSchoolType->getName() == 'Fachschule'
@@ -4163,7 +4168,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
      * @param null $Data
      * @param null $CertificateList
      *
-     * Schulart Mittelschule / Oberschule
+     * Schulart Mittelschule / Oberschule, Fachoberschule
      *
      * @return Stage|string
      */
