@@ -1325,22 +1325,13 @@ class Service extends AbstractService
                                     }
                                 }
 
-                                // Fachoberschule FHR - Durchschnittsnote berechnen
-                                if ($tblSchoolType->getShortName() == 'FOS' && $tblPrepareAdditionalGrade->getGrade()
-                                    && intval($tblPrepareAdditionalGrade->getGrade())
-                                ) {
-                                    if (strpos($tblSubject->getName(), 'Sport') === false && strpos($tblSubject->getName(), 'Facharbeit') === false) {
-                                        $gradeListFOS[] = $tblPrepareAdditionalGrade->getGrade();
-                                    }
-                                }
-
                                 $Content['P' . $personId]['Grade']['Data'][$tblSubject->getAcronym()]
                                     = $grade;
                             }
                         }
 
                         if ($gradeListFOS) {
-                            $Content = $this->setCalcValueFOS($gradeListFOS, $Content, $personId);
+                            $Content = $this->setCalcValueFOS($gradeListFOS, $Content, $tblPerson, $tblPrepare);
                         }
                     }
                 } else {
@@ -1445,7 +1436,7 @@ class Service extends AbstractService
                     }
 
                     if ($gradeListFOS) {
-                        $Content = $this->setCalcValueFOS($gradeListFOS, $Content, $personId);
+                        $Content = $this->setCalcValueFOS($gradeListFOS, $Content, $tblPerson, $tblPrepare);
                     }
                 }
             }
@@ -5458,16 +5449,24 @@ class Service extends AbstractService
     /**
      * @param array $gradeListFOS
      * @param array $Content
-     * @param int $personId
+     * @param TblPerson $tblPerson
+     * @param TblPrepareCertificate $tblPrepareCertificate
      *
      * @return array
      */
-    private function setCalcValueFOS(array $gradeListFOS, array $Content, int $personId): array
+    private function setCalcValueFOS(array $gradeListFOS, array $Content, TblPerson $tblPerson, TblPrepareCertificate $tblPrepareCertificate): array
     {
+        // die Noten für "Fachpraktischer Teil der Ausbildung" wird bei den Sonstigen Informationen gespeichert
+        if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareCertificate, $tblPerson, 'Job_Grade'))) {
+            if ($tblPrepareInformation->getValue() && intval($tblPrepareInformation->getValue())) {
+                $gradeListFOS[] = $tblPrepareInformation->getValue();
+            }
+        }
+
         $calcValueFOS = round(floatval(array_sum($gradeListFOS)) / count($gradeListFOS), 1);
         $calcValueFOS = str_replace('.', ',', $calcValueFOS);
-        $Content['P' . $personId]['Calc']['AddEducation_Average'] = $calcValueFOS;
-        $Content['P' . $personId]['Calc']['AddEducation_AverageInWord'] = Gradebook::useService()->getAverageInWord($calcValueFOS, ',');
+        $Content['P' . $tblPerson->getId()]['Calc']['AddEducation_Average'] = $calcValueFOS;
+        $Content['P' . $tblPerson->getId()]['Calc']['AddEducation_AverageInWord'] = Gradebook::useService()->getAverageInWord($calcValueFOS, ',');
 
         return $Content;
     }
