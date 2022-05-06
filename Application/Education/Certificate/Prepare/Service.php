@@ -1288,7 +1288,8 @@ class Service extends AbstractService
                     && $tblSchoolType->getName() != 'Fachschule'
                     && $tblSchoolType->getName() != 'Berufsfachschule'
                     && $tblSchoolType->getName() != 'Berufsgrundbildungsjahr'
-                    && $tblSchoolType->getName() != 'Fachoberschule'
+//                    Fachoberschule verhält sich wie Oberschule
+//                    && $tblSchoolType->getName() != 'Fachoberschule'
                 ) {
                     // Abiturnoten werden direkt im Certificate in der API gedruckt
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
@@ -1296,6 +1297,7 @@ class Service extends AbstractService
                             $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
                         ))
                     ) {
+                        $gradeListFOS = array();
                         foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                             if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
                                 if ($isGradeVerbalOnDiploma) {
@@ -1314,9 +1316,31 @@ class Service extends AbstractService
                                     }
                                 }
 
+                                // Fachoberschule FHR - Durchschnittsnote berechnen
+                                if ($tblSchoolType->getShortName() == 'FOS' && $tblPrepareAdditionalGrade->getGrade()
+                                    && intval($tblPrepareAdditionalGrade->getGrade())
+                                ) {
+                                    if (strpos($tblSubject->getName(), 'Sport') === false && strpos($tblSubject->getName(), 'Facharbeit') === false) {
+                                        $gradeListFOS[] = $tblPrepareAdditionalGrade->getGrade();
+                                    }
+                                }
+
+                                // Fachoberschule FHR - Durchschnittsnote berechnen
+                                if ($tblSchoolType->getShortName() == 'FOS' && $tblPrepareAdditionalGrade->getGrade()
+                                    && intval($tblPrepareAdditionalGrade->getGrade())
+                                ) {
+                                    if (strpos($tblSubject->getName(), 'Sport') === false && strpos($tblSubject->getName(), 'Facharbeit') === false) {
+                                        $gradeListFOS[] = $tblPrepareAdditionalGrade->getGrade();
+                                    }
+                                }
+
                                 $Content['P' . $personId]['Grade']['Data'][$tblSubject->getAcronym()]
                                     = $grade;
                             }
+                        }
+
+                        if ($gradeListFOS) {
+                            $Content = $this->setCalcValueFOS($gradeListFOS, $Content, $personId);
                         }
                     }
                 } else {
@@ -1379,6 +1403,7 @@ class Service extends AbstractService
                     true
                 );
                 if ($tblPrepareGradeSubjectList) {
+                    $gradeListFOS = array();
                     foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
                         // leere Zensuren bei Zeugnissen ignorieren, bei optionalen Zeugnisfächern
                         if ($tblPrepareGrade->getGrade() == '') {
@@ -1407,9 +1432,20 @@ class Service extends AbstractService
                                 $grade = $tblPrepareGrade->getGrade();
                             }
 
+                            // Fachoberschule FHR - Durchschnittsnote berechnen
+                            if ($tblSchoolType->getShortName() == 'FOS' && $tblPrepareGrade->getGrade() && intval($tblPrepareGrade->getGrade())) {
+                                if (strpos($tblSubject->getName(), 'Sport') === false && strpos($tblSubject->getName(), 'Facharbeit') === false) {
+                                    $gradeListFOS[] = $tblPrepareGrade->getGrade();
+                                }
+                            }
+
                             $Content['P' . $personId]['Grade']['Data'][$tblPrepareGrade->getServiceTblSubject()->getAcronym()]
                                 = $grade;
                         }
+                    }
+
+                    if ($gradeListFOS) {
+                        $Content = $this->setCalcValueFOS($gradeListFOS, $Content, $personId);
                     }
                 }
             }
@@ -5417,5 +5453,22 @@ class Service extends AbstractService
                 }
             }
         }
+    }
+
+    /**
+     * @param array $gradeListFOS
+     * @param array $Content
+     * @param int $personId
+     *
+     * @return array
+     */
+    private function setCalcValueFOS(array $gradeListFOS, array $Content, int $personId): array
+    {
+        $calcValueFOS = round(floatval(array_sum($gradeListFOS)) / count($gradeListFOS), 1);
+        $calcValueFOS = str_replace('.', ',', $calcValueFOS);
+        $Content['P' . $personId]['Calc']['AddEducation_Average'] = $calcValueFOS;
+        $Content['P' . $personId]['Calc']['AddEducation_AverageInWord'] = Gradebook::useService()->getAverageInWord($calcValueFOS, ',');
+
+        return $Content;
     }
 }

@@ -10,6 +10,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
@@ -466,7 +468,7 @@ class MsAbsRs extends Certificate
             if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
                 && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
             ) {
-                $leaderName = $tblPersonLeader->getFullName();
+                $leaderName = $this->getPersonDisplayName($tblPersonLeader);
                 if (($tblCommon = $tblPersonLeader->getCommon())
                     && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
                     && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
@@ -478,17 +480,16 @@ class MsAbsRs extends Certificate
                     }
                 }
             }
-
             if (($tblGenerateCertificateSettingFirstMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'FirstMember'))
                 && ($tblPersonFirstMember = Person::useService()->getPersonById($tblGenerateCertificateSettingFirstMember->getValue()))
             ) {
-                $firstMemberName = $tblPersonFirstMember->getFullName();
+                $firstMemberName = $this->getPersonDisplayName($tblPersonFirstMember);
             }
 
             if (($tblGenerateCertificateSettingSecondMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'SecondMember'))
                 && ($tblPersonSecondMember = Person::useService()->getPersonById($tblGenerateCertificateSettingSecondMember->getValue()))
             ) {
-                $secondMemberName = $tblPersonSecondMember->getFullName();
+                $secondMemberName = $this->getPersonDisplayName($tblPersonSecondMember);
             }
         }
 
@@ -594,6 +595,20 @@ class MsAbsRs extends Certificate
         ;
 
         return $slice;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private function getPersonDisplayName(TblPerson $tblPerson): string
+    {
+        if (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'CSW')) {
+            return $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName();
+        } else {
+            return $tblPerson->getFullName();
+        }
     }
 
     /**
