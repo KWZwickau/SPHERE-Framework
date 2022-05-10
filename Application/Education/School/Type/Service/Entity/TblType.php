@@ -26,6 +26,8 @@ class TblType extends Element
     const IDENT_GYMNASIUM = 'Gymnasium';
     const IDENT_OBER_SCHULE = 'Mittelschule / Oberschule';
     const IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE = 'Förderschule';
+    // Berlin
+    const IDENT_INTEGRIERTE_SEKUNDAR_SCHULE = 'Integrierte Sekundarschule';
 
     const ATTR_NAME = 'Name';
     const ATTR_SHORT_NAME = 'ShortName';

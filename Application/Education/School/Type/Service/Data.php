@@ -20,27 +20,26 @@ class Data extends AbstractData
         $tblCategoryTechnical = $this->createCategory(TblCategory::TECHNICAL, 'Berufsbildende Schulen');
         $tblCategorySecondCourse = $this->createCategory(TblCategory::SECOND_COURSE, 'Schulen des zweiten Bildungsweges');
 
+        // Allgemeinbildend
+        $this->createType('Grundschule', 'GS', $tblCategoryCommon, true);
+        $this->createType('Gymnasium', 'Gy', $tblCategoryCommon, true);
+        $this->createType('Mittelschule / Oberschule', 'OS', $tblCategoryCommon, true);
+        $this->createType('Förderschule', 'FöS', $tblCategoryCommon, true);
+        $this->createType('Gemeinschaftsschule', '', $tblCategoryCommon, true);
+        // // Berlin
+        $this->createType('Integrierte Sekundarschule', 'ISS', $tblCategoryCommon, true);
+
+        // Berufsbildend
         $this->createType('Berufliches Gymnasium', 'BGy', $tblCategoryTechnical, true);
         $this->createType('Berufsfachschule', 'BFS', $tblCategoryTechnical, true);
         $this->createType('Berufsschule', 'BS', $tblCategoryTechnical, true);
         $this->createType('Fachoberschule', 'FOS', $tblCategoryTechnical, true);
         $this->createType('Fachschule', 'FS', $tblCategoryTechnical, true);
-        $this->createType('Grundschule', 'GS', $tblCategoryCommon, true);
-        $this->createType('Gymnasium', 'Gy', $tblCategoryCommon, true);
-        $this->createType('Mittelschule / Oberschule', 'OS', $tblCategoryCommon, true);
-        $this->createType('Förderschule', 'FöS', $tblCategoryCommon, true);
 
-        $this->createType('Gemeinschaftsschule', '', $tblCategoryCommon, true);
-
+        // zweiter Bildungsweg
         $this->createType('Abendoberschule', '', $tblCategorySecondCourse, true);
         $this->createType('Abendgymnasium', '', $tblCategorySecondCourse, true);
         $this->createType('Kolleg', '', $tblCategorySecondCourse, true);
-
-//        $this->createType('Hotelmanagementschule', 'HOFA', $tblCategoryTechnical, true);
-        // einmalig löschen kann später wieder entfernt werden
-        if (($tblType = $this->getTypeByShortName('HOFA'))) {
-            $this->destroyType($tblType);
-        }
 
         /**
          * Kamenz BFS, FS

@@ -137,6 +137,8 @@ class Setup extends AbstractSetup
         $Table = $this->createTable($Schema, 'tblCommonInformation');
         $this->createColumn( $Table, 'Nationality', self::FIELD_TYPE_STRING);
         $this->createColumn( $Table, 'Denomination', self::FIELD_TYPE_STRING);
+        $this->createColumn( $Table, 'ContractNumber', self::FIELD_TYPE_STRING);
+        $this->createColumn( $Table, 'ContactNumber', self::FIELD_TYPE_STRING);
         $this->createColumn( $Table, 'AssistanceActivity', self::FIELD_TYPE_TEXT);
         $this->createColumn( $Table, 'IsAssistance', self::FIELD_TYPE_SMALLINT);
         if ($Table->hasColumn('AuthorizedToCollect')) {

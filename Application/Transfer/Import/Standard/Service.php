@@ -334,7 +334,10 @@ class Service
             if ($remark != '') {
                 $remark = 'Abholberechtigte: ' . $remark;
             }
-            $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, $this->RunY, $Nr, $error);
+            $contractNumber = $this->getValue('BC_Vertragsnummer');
+            $contactNumber = $this->getValue('BC_Kontakt_Nr');
+
+            $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, $contractNumber, $contactNumber, $this->RunY, $Nr, $error);
 
             // student
             $Identification = $this->getValue('Schüler_Nr');
@@ -388,7 +391,8 @@ class Service
                     $title_S1 = $this->getValue('S1_Titel');
                     $memberNumber_S1 = $this->getValue('S1_Mitgliedsnummer');
                     $assistance_S1 = $this->getValue('S1_Mitarbeitbereitschaft');
-                    $tblPerson_S1 = $this->setPersonCustody($salutation_S1, $title_S1, $firstName_S1, $lastName_S1, $memberNumber_S1, $assistance_S1);
+                    $contactNumber_S1 = $this->getValue('S1_BC_Kontakt_Nr');
+                    $tblPerson_S1 = $this->setPersonCustody($salutation_S1, $title_S1, $firstName_S1, $lastName_S1, $memberNumber_S1, $assistance_S1, $contactNumber_S1);
                     $countS1++;
                 } else {
                     $info[] = new Muted(new Small(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($this->RunY + 1)).' Der Sorgeberechtigte S1 ('.$lastName_S1.' PLZ '.$cityCode_S1.') wurde nicht angelegt, da schon eine 
@@ -466,7 +470,8 @@ class Service
                     $title_S2 = $this->getValue('S2_Titel');
                     $memberNumber_S2 = $this->getValue('S2_Mitgliedsnummer');
                     $assistance_S2 = $this->getValue('S2_Mitarbeitbereitschaft');
-                    $tblPerson_S2 = $this->setPersonCustody($salutation_S2, $title_S2, $firstName_S2, $lastName_S2, $memberNumber_S2, $assistance_S2);
+                    $contactNumber_S1 = $this->getValue('S1_BC_Kontakt_Nr');
+                    $tblPerson_S2 = $this->setPersonCustody($salutation_S2, $title_S2, $firstName_S2, $lastName_S2, $memberNumber_S2, $assistance_S2, $contactNumber_S1);
                     $countS2++;
                 } else {
                     $info[] = new Muted(new Small(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($this->RunY + 1)).' Der Sorgeberechtigte S2 ('.$lastName_S2.' PLZ '.$cityCode_S2.') wurde nicht angelegt, da schon eine 
@@ -1282,7 +1287,7 @@ class Service
      *
      * @return bool|TblPerson
      */
-    private function setPersonCustody($salutation, $title, $firstName, $lastName, $memberNumber, $assistance)
+    private function setPersonCustody($salutation, $title, $firstName, $lastName, $memberNumber, $assistance, $contactNumber = '')
     {
 
         $GroupList = array();
@@ -1339,7 +1344,9 @@ class Service
             '',
             $isAssistance,
             $assistance,
-            ''
+            '',
+            '',
+            $contactNumber
         );
 
         Club::useService()->insertMeta($tblPerson, $memberNumber);
@@ -1359,7 +1366,8 @@ class Service
      * @param string    $Nr
      * @param array     $error
      */
-    private function setPersonBirth(TblPerson $tblPerson, $birthdayString, $birthPlace, $gender, $nationality, $denomination, $remark, $RunY, $Nr, &$error)
+    private function setPersonBirth(TblPerson $tblPerson, $birthdayString, $birthPlace, $gender, $nationality, $denomination,
+        $remark, $contractNumber, $contactNumber, $RunY, $Nr, &$error)
     {
         // controll conform DateTime string
         $tblCommonGender = false;
@@ -1397,7 +1405,9 @@ class Service
             $denomination,
             TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
             '',
-            $remark
+            $remark,
+            $contractNumber,
+            $contactNumber
         );
     }
 
@@ -1444,7 +1454,18 @@ class Service
                     }
                 }
 
-                if (strlen($divisionString) > 1) {
+                if($divisionString == preg_match('!^(WK \d)!is')){
+                    switch(strtolower($divisionString)) {
+                        case 'wk i':
+                            $level = 1;
+                            $division = ' WK';
+                            break;
+                        case 'wk ii':
+                            $level = 2;
+                            $division = ' WK';
+                            break;
+                    }
+                } elseif (strlen($divisionString) > 1) {
                     if (is_numeric(substr($divisionString, 0, 2))) {
                         $pos = 2;
                         $level = substr($divisionString, 0, $pos);
@@ -1501,6 +1522,13 @@ class Service
                     case 'bvj':
                     case 'berufsvorbereitungsjahr':
                     $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_BERUFS_VORBEREITUNGS_JAHR);
+                    break;
+                    case 'iss';
+                    case 'iss sek i gt';
+                    case 'iss sek i';
+                    case 'iss sek ii gt';
+                    case 'iss sek ii';
+                    $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_INTEGRIERTE_SEKUNDAR_SCHULE);
                     break;
                     default:
                         $tblSchoolType = false;
