@@ -144,7 +144,14 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'Integration:_Datum_F_oE_rderantrag',
         'Integration:_Datum_F_oE_rderbescheid_SBA',
         'Verein:_Eintrittsdatum',
-        'Verein:_Austrittsdatum'
+        'Verein:_Austrittsdatum',
+        'S1:_Geburtsdatum',
+        'S2:_Geburtsdatum',
+        'S3:_Geburtsdatum',
+        'Bev:_Geburtsdatum',
+        'Termin:_Eingangsdatum',
+        'Termin:_Aufnahmegespr_aE_che',
+        'Termin:_Schnuppertag'
     );
 
     // sortieren der Spalten nach GermanString
