@@ -10,7 +10,9 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
@@ -44,24 +46,68 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('Zeugnisse auswerten', 'Übersicht');
 
-        $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                new Panel(
-                    'Abschlusszeugnisse',
+        $serialMailItemList = array();
+        $typeList = School::useService()->getConsumerSchoolTypeAll();
+        if (!$typeList || isset($typeList['OS'])) {
+            $serialMailItemList[] = 'Oberschule - Hauptschule ' . new PullRight((new Standard(
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
+                    new Download(),
                     array(
-                        'Hauptschule ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
-                            'View' => View::HS
-                        ), 'Hauptschulabschlusszeugnisse auswählen'))),
-                        'Realschule ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
-                            'View' => View::RS
-                        ), 'Realschulabschlusszeugnisse auswählen'))),
-                        'Gymnasium - Abitur ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
-                            'View' => View::ABI
-                        ), 'Abiturabschlusszeugnisse auswählen'))),
+                        'View' => View::HS
                     ),
-                    Panel::PANEL_TYPE_INFO
-                )
-            , 4))))
+                    'Serien E-Mail mit Prüfungsnoten für Hauptschulabschlusszeugnisse herunterladen'
+                )));
+            $serialMailItemList[] = 'Oberschule - Realschule ' . new PullRight((new Standard(
+                '',
+                '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
+                new Download(),
+                array(
+                    'View' => View::RS
+                ),
+                'Serien E-Mail mit Prüfungsnoten für Realschulabschlusszeugnisse herunterladen'
+            )));
+        }
+        if (!$typeList || isset($typeList['FOS'])) {
+            $serialMailItemList[] = 'Fachoberschule ' . new PullRight((new Standard(
+                '',
+                '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
+                new Download(),
+                array(
+                    'View' => View::FOS
+                ),
+                'Serien E-Mail mit Prüfungsnoten für Fachoberschulabschlusszeugnisse herunterladen'
+            )));
+        }
+
+        if ($serialMailItemList) {
+            $panelSerialMail = new Panel('Serien-E-Mail für Prüfungsnoten', $serialMailItemList, Panel::PANEL_TYPE_INFO);
+        } else {
+            $panelSerialMail = false;
+        }
+
+
+        $Stage->setContent(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                $panelSerialMail ? new LayoutColumn($panelSerialMail, 4) : null,
+                new LayoutColumn(
+                    new Panel(
+                        'Abschlusszeugnisse',
+                        array(
+                            'Hauptschule ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
+                                'View' => View::HS
+                            ), 'Hauptschulabschlusszeugnisse auswählen'))),
+                            'Realschule ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
+                                'View' => View::RS
+                            ), 'Realschulabschlusszeugnisse auswählen'))),
+                            'Gymnasium - Abitur ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
+                                'View' => View::ABI
+                            ), 'Abiturabschlusszeugnisse auswählen'))),
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                , 4)
+            ))))
         );
 
         return $Stage;

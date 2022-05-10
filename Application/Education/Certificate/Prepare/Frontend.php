@@ -3968,7 +3968,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('Data[Subject]', 'Fach', array('Name' => $availableSubjectList)), 6
+                        new SelectBox('Data[Subject]', 'Fach', array('DisplayName' => $availableSubjectList)), 6
                     ),
                     new FormColumn(
                         new TextField('Data[Grade]', '', 'Zensur'), 6
