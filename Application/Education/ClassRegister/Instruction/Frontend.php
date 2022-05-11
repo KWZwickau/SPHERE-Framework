@@ -339,11 +339,12 @@ class Frontend extends Extension implements IFrontendInterface
         $tblMainInstructionItem = Instruction::useService()->getMainInstructionItemBy($tblInstruction, $tblDivision, $tblGroup);
 
         $tblInstructionItem = false;
+        if ($InstructionItemId) {
+            $tblInstructionItem = Instruction::useService()->getInstructionItemById($InstructionItemId);
+        }
         $Global = $this->getGlobal();
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
-        if ($setPost && $InstructionItemId
-            && ($tblInstructionItem = Instruction::useService()->getInstructionItemById($InstructionItemId))
-        ) {
+        if ($setPost && $tblInstructionItem) {
             $Global->POST['Data']['Date'] = $tblInstructionItem->getDate();
             if ($tblInstructionItem->getIsMain()) {
                 $Global->POST['Data']['Content'] = $tblInstructionItem->getContent();
@@ -401,7 +402,7 @@ class Frontend extends Extension implements IFrontendInterface
         $buttonList[] = $saveButton;
 
         // Belehrung löschen
-        if ($InstructionItemId
+        if ($InstructionItemId && $tblInstructionItem
             // Hauptbelehrung erst löschen wenn alle Nachbelehrungen gelöscht wurden
             && (!$tblInstructionItem->getIsMain() || count(Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivision, $tblGroup)) == 1)
         ) {
