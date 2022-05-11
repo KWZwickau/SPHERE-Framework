@@ -408,4 +408,36 @@ class Person
 
         return 'Keine Daten vorhanden!';
     }
+
+    /**
+     * @param int $View
+     *
+     * @return string
+     */
+    public function downloadDiplomaStatistic(int $View): string
+    {
+        $tblCourse = false;
+        switch ($View) {
+            case View::HS: $tblCourse = Course::useService()->getCourseByName('Hauptschule');
+                $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                break;
+            case View::RS: $tblCourse = Course::useService()->getCourseByName('Realschule');
+                $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                break;
+            case View::FOS: $tblSchoolType = Type::useService()->getTypeByShortName('FOS');
+                break;
+            default: $tblSchoolType = false;
+        }
+
+        if($tblSchoolType
+            && ($content = Reporting::useService()->getDiplomaStatisticContent($tblSchoolType, $tblCourse ?: null))
+            && ($fileLocation = Reporting::useService()->createDiplomaStatisticContentExcel($content))
+        ){
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                'Auswertung der Prüfungsnoten für die LaSuB ' . $tblSchoolType->getShortName()
+                . ($tblCourse ? ' ' . $tblCourse->getName() : '') . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return 'Keine Daten vorhanden!';
+    }
 }

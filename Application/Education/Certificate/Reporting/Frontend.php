@@ -42,11 +42,13 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendSelect()
+    public function frontendSelect(): Stage
     {
         $Stage = new Stage('Zeugnisse auswerten', 'Übersicht');
 
         $serialMailItemList = array();
+        $statisticItemList = array();
+        $rankingItemList = array();
         $typeList = School::useService()->getConsumerSchoolTypeAll();
         if (!$typeList || isset($typeList['OS'])) {
             $serialMailItemList[] = 'Oberschule - Hauptschule ' . new PullRight((new Standard(
@@ -67,6 +69,53 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
                 'Serien E-Mail mit Prüfungsnoten für Realschulabschlusszeugnisse herunterladen'
             )));
+            $statisticItemList[] = 'Oberschule - Hauptschule ' . new PullRight((new Standard(
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/Statistic/Download',
+                    new Download(),
+                    array(
+                        'View' => View::HS
+                    ),
+                    'Auswertung der Prüfungsnoten für die LaSuB für Hauptschulabschlusszeugnisse herunterladen'
+                )));
+            $statisticItemList[] = 'Oberschule - Realschule ' . new PullRight((new Standard(
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/Statistic/Download',
+                    new Download(),
+                    array(
+                        'View' => View::RS
+                    ),
+                    'Auswertung der Prüfungsnoten für die LaSuB für Realschulabschlusszeugnisse herunterladen'
+                )));
+            $rankingItemList[] = 'Oberschule - Hauptschule ' . new PullRight((new Standard(
+                    '',
+                    '/Education/Certificate/Reporting/Diploma',
+                    new Select(),
+                    array(
+                        'View' => View::HS
+                    ),
+                    'Hauptschulabschlusszeugnisse auswählen'
+                )));
+            $rankingItemList[] = 'Oberschule - Realschule ' . new PullRight((new Standard(
+                    '',
+                    '/Education/Certificate/Reporting/Diploma',
+                    new Select(),
+                    array(
+                        'View' => View::RS
+                    ),
+                    'Realschulabschlusszeugnisse auswählen'
+                )));
+        }
+        if (!$typeList || isset($typeList['Gy'])) {
+            $rankingItemList[] = 'Gymnasium - Abitur ' . new PullRight((new Standard(
+                    '',
+                    '/Education/Certificate/Reporting/Diploma',
+                    new Select(),
+                    array(
+                        'View' => View::ABI
+                    ),
+                    'Abiturabschlusszeugnisse auswählen'
+                )));
         }
         if (!$typeList || isset($typeList['FOS'])) {
             $serialMailItemList[] = 'Fachoberschule ' . new PullRight((new Standard(
@@ -78,6 +127,15 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
                 'Serien E-Mail mit Prüfungsnoten für Fachoberschulabschlusszeugnisse herunterladen'
             )));
+            $statisticItemList[] = 'Fachoberschule ' . new PullRight((new Standard(
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/Statistic/Download',
+                    new Download(),
+                    array(
+                        'View' => View::FOS
+                    ),
+                    'Auswertung der Prüfungsnoten für die LaSuB für Fachoberschulabschlusszeugnisse herunterladen'
+                )));
         }
 
         if ($serialMailItemList) {
@@ -86,27 +144,24 @@ class Frontend extends Extension implements IFrontendInterface
             $panelSerialMail = false;
         }
 
+        if ($statisticItemList) {
+            $panelStatistic = new Panel('Auswertung der Prüfungsnoten für die LaSuB', $statisticItemList, Panel::PANEL_TYPE_INFO);
+        } else {
+            $panelStatistic = false;
+        }
+
+        if ($rankingItemList) {
+            $panelRanking = new Panel('Ranklisten für Abschlusszeugnisse', $rankingItemList, Panel::PANEL_TYPE_INFO);
+        } else {
+            $panelRanking = false;
+        }
+
 
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
                 $panelSerialMail ? new LayoutColumn($panelSerialMail, 4) : null,
-                new LayoutColumn(
-                    new Panel(
-                        'Abschlusszeugnisse',
-                        array(
-                            'Hauptschule ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
-                                'View' => View::HS
-                            ), 'Hauptschulabschlusszeugnisse auswählen'))),
-                            'Realschule ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
-                                'View' => View::RS
-                            ), 'Realschulabschlusszeugnisse auswählen'))),
-                            'Gymnasium - Abitur ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
-                                'View' => View::ABI
-                            ), 'Abiturabschlusszeugnisse auswählen'))),
-                        ),
-                        Panel::PANEL_TYPE_INFO
-                    )
-                , 4)
+                $panelStatistic ? new LayoutColumn($panelStatistic, 4) : null,
+                $panelRanking ? new LayoutColumn($panelRanking, 4) : null,
             ))))
         );
 
@@ -119,7 +174,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendDiploma($View = null, $YearId = null)
+    public function frontendDiploma($View = null, $YearId = null): Stage
     {
         switch ($View) {
             case View::HS: $description = 'Hauptschulabschlusszeugnisse'; break;
