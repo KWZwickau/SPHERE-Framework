@@ -6,6 +6,8 @@ use SPHERE\Application\Api\Education\Term\YearPeriod;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\BasicData\BasicData;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -857,10 +859,19 @@ class Frontend extends Extension implements IFrontendInterface
             $list = array();
             if (($tblState = BasicData::useService()->getStateByName('Sachsen'))) {
                 $list[$tblState->getId()] = $tblState->getName();
-
-                $global = $this->getGlobal();
-                $global->POST['Data'] = $tblState->getId();
-                $global->savePost();
+                if (Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)) {
+                    $global = $this->getGlobal();
+                    $global->POST['Data'] = $tblState->getId();
+                    $global->savePost();
+                }
+            }
+            if (($tblState = BasicData::useService()->getStateByName('Berlin'))) {
+                $list[$tblState->getId()] = $tblState->getName();
+                if (Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+                    $global = $this->getGlobal();
+                    $global->POST['Data'] = $tblState->getId();
+                    $global->savePost();
+                }
             }
 
             $form = new Form(new FormGroup(new FormRow(new FormColumn(
