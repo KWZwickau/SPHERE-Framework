@@ -179,6 +179,14 @@ class Service extends Extension
                     $export->setValue($export->getCell($column, $row), $acronym . ' PZ');
                     $array['PZ'] = $column++;
                 }
+                if (isset($array['LS'])) {
+                    $export->setValue($export->getCell($column, $row), $acronym . ' LS');
+                    $array['LS'] = $column++;
+                }
+                if (isset($array['LM'])) {
+                    $export->setValue($export->getCell($column, $row), $acronym . ' LM');
+                    $array['LM'] = $column++;
+                }
                 if (isset($array['EN'])) {
                     $export->setValue($export->getCell($column, $row), $acronym . ' EN');
                     $array['EN'] = $column++;
@@ -205,7 +213,7 @@ class Service extends Extension
                 if (isset($item['Grades'])) {
                     foreach ($item['Grades'] as $subjectAcronym => $gradeList) {
                         foreach ($gradeList as $identifier => $grade) {
-                            if (isset($subjectList[$subjectAcronym][$identifier])) {
+                            if (isset($subjectList[$subjectAcronym][$identifier]) && intval($subjectList[$subjectAcronym][$identifier])) {
                                 $export->setValue($export->getCell($subjectList[$subjectAcronym][$identifier], $row), $grade);
                             }
                         }
@@ -345,7 +353,7 @@ class Service extends Extension
                                 }
 
                                 if (isset($gradeList[$tblPerson->getId()])) {
-                                    $this->setGradesForStatistic($content, $gradeList[$tblPerson->getId()], $tblPerson, $tblPrepareDiploma);
+                                    $this->setGradesForStatistic($content, $gradeList[$tblPerson->getId()], $tblPerson, $tblPrepareDiploma, $isMainCourse);
                                 }
                             }
                         }
@@ -353,10 +361,6 @@ class Service extends Extension
                 }
             }
         }
-
-//        $content = array();
-//        $content['DE'] = array();
-//        $content['MA'] = array();
 
         return $content;
     }
@@ -366,12 +370,13 @@ class Service extends Extension
      * @param array $gradeListPerson
      * @param TblPerson $tblPerson
      * @param TblPrepareCertificate|null $tblPrepareDiploma
+     * @param bool $isMainCourse
      */
-    private function setGradesForStatistic(array &$content, array $gradeListPerson, TblPerson $tblPerson, ?TblPrepareCertificate $tblPrepareDiploma)
+    private function setGradesForStatistic(array &$content, array $gradeListPerson, TblPerson $tblPerson, ?TblPrepareCertificate $tblPrepareDiploma, bool $isMainCourse)
     {
         if ($tblPrepareDiploma
             && ($tblCommonGender = $tblPerson->getGender())
-            && ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PS'))
+            && ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier($isMainCourse ? 'LS' : 'PS'))
             && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepareDiploma, $tblPerson, $tblPrepareAdditionalGradeType))
         ) {
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {

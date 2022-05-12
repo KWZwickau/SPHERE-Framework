@@ -4500,14 +4500,6 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             if (($tblSchoolType = $tblDivision->getType()) && $tblSchoolType->getShortName() == 'OS') {
                 $columnTable['Course'] = 'Bildungsgang';
             }
-            $columnTable['JN'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('JN'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Jn';
-            $columnTable['PS'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PS'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Ps';
-            $columnTable['PM'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PM'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Pm';
-            $columnTable['PZ'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PZ'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Pz';
             if ($IsFinalGrade) {
                 $columnTable['Average'] = '&#216;';
                 $columnTable['EN'] = 'En (Endnote)';
