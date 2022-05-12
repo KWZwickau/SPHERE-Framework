@@ -122,6 +122,8 @@ class Service extends Extension
                                 if (isset($gradeList[$tblPerson->getId()])) {
                                     $item['Grades'] = $gradeList[$tblPerson->getId()];
                                 }
+                                $tblPrepareHalfYear = $tblPrepareHalfYear? :null;
+                                $tblPrepareDiploma = $tblPrepareDiploma? :null;
                                 $this->getGradesForSerialMail($item, $subjectList, $tblPerson, $tblPrepareHalfYear, $tblPrepareDiploma);
 
                                 $content[$tblPerson->getId()] = $item;
