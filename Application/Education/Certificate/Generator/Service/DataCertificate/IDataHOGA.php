@@ -667,7 +667,7 @@ class IDataHOGA
             }
 
             $Data->createCertificateInformation($tblCertificate, 'SubjectArea', 1);
-            $Data->createCertificateInformation($tblCertificate, 'AddEducation_Average', 1);
+//            $Data->createCertificateInformation($tblCertificate, 'AddEducation_Average', 1);
             $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 1);
             $Data->createCertificateInformation($tblCertificate, 'Job_Grade', 1);
 
