@@ -25,7 +25,15 @@ class Data extends AbstractData
         $this->createType('Gymnasium', 'Gy', $tblCategoryCommon, true);
         $this->createType('Mittelschule / Oberschule', 'OS', $tblCategoryCommon, true);
         $this->createType('Förderschule', 'FöS', $tblCategoryCommon, true);
-        $this->createType('Gemeinschaftsschule', '', $tblCategoryCommon, true);
+        if(($tblType =  $this->getTypeByName('Gemeinschaftsschule'))){
+            if($tblType->getShortName() != 'GMS'){
+                $this->updateTypeOnce($tblType, 'GMS', $tblCategoryCommon, true);
+            }
+        } else {
+            $this->createType('Gemeinschaftsschule', 'GMS', $tblCategoryCommon, true);
+        }
+
+
         // // Berlin
         $this->createType('Integrierte Sekundarschule', 'ISS', $tblCategoryCommon, true);
 

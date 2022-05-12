@@ -28,6 +28,7 @@ class TblType extends Element
     const IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE = 'Förderschule';
     // Berlin
     const IDENT_INTEGRIERTE_SEKUNDAR_SCHULE = 'Integrierte Sekundarschule';
+    const IDENT_GEMEINSCHAFTS_SCHULE = 'Gemeinschaftsschule';
 
     const ATTR_NAME = 'Name';
     const ATTR_SHORT_NAME = 'ShortName';

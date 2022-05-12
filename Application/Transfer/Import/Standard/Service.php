@@ -34,6 +34,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType as TblTypeRelationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -236,6 +237,19 @@ class Service
             'Krankenkasse'         => null,
             'Hort'                 => null,
             'Abholberechtigte'     => null,
+
+            // Zusatz EKBO -> ESBZ
+            'CUST_UserName' => null,
+            'ImpUserName' => null,
+            'BC_Vertragsnummer' => null,
+            'BC_Kontakt_Nr' => null,
+            'S1_BC_Kontakt_Nr' => null,
+            'S1_E_Mail_privat' => null,
+            'S2_BC_Kontakt_Nr' => null,
+            'S2_E_Mail_privat' => null,
+            'KL' => null,
+            'Team' => null,
+            'Gruppe' => null,
         );
 
         $unKnownColumns = array();
@@ -322,6 +336,22 @@ class Service
             $Hort = $this->getValue('Hort');
             $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort,
                 false, $this->RunY + 1);
+
+            // Klassen werden auch als Personengruppen angelegt (ESBZ)
+            if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
+                $divisionString = $this->getValue('Klasse/Kurs');
+                if(preg_match('!^[(\d)]+ (JG)!is', $divisionString)){
+                    $divisionString = str_replace(' ', '', $divisionString);
+                    $this->setPersonGroup($tblPerson, $divisionString);
+                }
+            }
+
+            $Group = $this->getValue('Gruppe');
+            if($Group !== ''){
+                $Group = 'Gruppe '.$Group;
+                $this->setPersonGroup($tblPerson, $Group);
+            }
+
             $countStudent++;
 
             // common & birthday
@@ -359,6 +389,14 @@ class Service
             $schoolType = $this->getValue('Schulart');
             $school = $this->getValue('Schule');
             $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $school, $this->RunY, $Nr, $error);
+
+            $DivisionChecked = $this->getValue('KL');
+            if($DivisionChecked != ''){
+                if(strlen($DivisionChecked) < 2){
+                    $DivisionChecked = '0'.$DivisionChecked;
+                }
+                $this->setPersonDivision($tblPerson, $YearString, $DivisionChecked, $schoolType, $school, $this->RunY, $Nr, $error, true);
+            }
 
             // address
             $streetName = $this->getValue('Straße');
@@ -470,7 +508,7 @@ class Service
                     $title_S2 = $this->getValue('S2_Titel');
                     $memberNumber_S2 = $this->getValue('S2_Mitgliedsnummer');
                     $assistance_S2 = $this->getValue('S2_Mitarbeitbereitschaft');
-                    $contactNumber_S1 = $this->getValue('S1_BC_Kontakt_Nr');
+                    $contactNumber_S1 = $this->getValue('S2_BC_Kontakt_Nr');
                     $tblPerson_S2 = $this->setPersonCustody($salutation_S2, $title_S2, $firstName_S2, $lastName_S2, $memberNumber_S2, $assistance_S2, $contactNumber_S1);
                     $countS2++;
                 } else {
@@ -801,7 +839,7 @@ class Service
                         $nationality = trim($Document->getValue($Document->getCell($Location['Staatsangehörigkeit'], $RunY)));
                         $denomination = trim($Document->getValue($Document->getCell($Location['Konfession'], $RunY)));
                         $remark = '';
-                        $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, $RunY, $Nr, $error);
+                        $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, '', '', $RunY, $Nr, $error);
 
                         // address
                         $streetName = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
@@ -1102,6 +1140,11 @@ class Service
                     'E_Mail_Geschäftlich'   => null,
                     'E_Mail_Privat'         => null,
                 );
+
+                // EKBO -> ESBZ
+                if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
+                    $Location['BC_Kontakt_Nr'] = null;
+                }
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 1)));
                     if (array_key_exists($Value, $Location)) {
@@ -1155,7 +1198,11 @@ class Service
                                     $remark = $remarkTemp;
                                 }
                             }
-                            $this->setPersonBirth($tblPerson, $birth, $birthPlace, $gender, $nationality, $denomination, $remark, $RunY, $Nr, $error);
+                            // EKBO -> ESBZ "die Personalnummer => kommt in die Personenbemerkung"
+                            if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
+                                $remark .= 'Personalnummer: '.trim($Document->getValue($Document->getCell($Location['BC_Kontakt_Nr'], $RunY)));
+                            }
+                            $this->setPersonBirth($tblPerson, $birth, $birthPlace, $gender, $nationality, $denomination, $remark, '', '', $RunY, $Nr, $error);
 
                             // address
                             $streetName = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
@@ -1275,6 +1322,19 @@ class Service
             $ImportId,
             $callName
         );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string    $Group
+     *
+     * @return void
+     */
+    private function setPersonGroup(TblPerson $tblPerson, string $Group)
+    {
+
+        $tblGroup = Group::useService()->insertGroup($Group);
+        Group::useService()->addGroupPerson($tblGroup, $tblPerson);
     }
 
     /**
@@ -1421,7 +1481,7 @@ class Service
      * @param string    $Nr
      * @param array     $error
      */
-    private function setPersonDivision(TblPerson $tblPerson, $YearString, $divisionString, $schoolType, $school, $RunY, $Nr, &$error)
+    private function setPersonDivision(TblPerson $tblPerson, $YearString, $divisionString, $schoolType, $school, $RunY, $Nr, &$error, $isChecked = false)
     {
 
         $year = (int)$YearString;
@@ -1454,36 +1514,32 @@ class Service
                     }
                 }
 
-                if($divisionString == preg_match('!^(WK \d)!is')){
-                    switch(strtolower($divisionString)) {
-                        case 'wk i':
-                            $level = 1;
-                            $division = ' WK';
-                            break;
-                        case 'wk ii':
-                            $level = 2;
-                            $division = ' WK';
-                            break;
-                    }
-                } elseif (strlen($divisionString) > 1) {
-                    if (is_numeric(substr($divisionString, 0, 2))) {
-                        $pos = 2;
-                        $level = substr($divisionString, 0, $pos);
-                        // remove the "-"
-                        if (substr($divisionString, $pos, 1) == '-') {
-                            $pos = 3;
-                            $division = trim(substr($divisionString, $pos));
+                if($isChecked){
+                    // Klassenübergreifende Klassen
+                    $level = '';
+                    $division = $divisionString;
+                } else {
+                    // normale Klassen
+                    if (strlen($divisionString) > 1) {
+                        if (is_numeric(substr($divisionString, 0, 2))) {
+                            $pos = 2;
+                            $level = substr($divisionString, 0, $pos);
+                            // remove the "-"
+                            if (substr($divisionString, $pos, 1) == '-') {
+                                $pos = 3;
+                                $division = trim(substr($divisionString, $pos));
+                            } else {
+                                $division = trim(substr($divisionString, $pos));
+                            }
                         } else {
+                            $pos = 1;
+                            $level = substr($divisionString, 0, $pos);
                             $division = trim(substr($divisionString, $pos));
                         }
                     } else {
-                        $pos = 1;
-                        $level = substr($divisionString, 0, $pos);
-                        $division = trim(substr($divisionString, $pos));
+                        $level = $divisionString;
+                        $division = '';
                     }
-                } else {
-                    $level = $divisionString;
-                    $division = '';
                 }
 
                 $schoolType = strtolower($schoolType);
@@ -1530,6 +1586,10 @@ class Service
                     case 'iss sek ii';
                     $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_INTEGRIERTE_SEKUNDAR_SCHULE);
                     break;
+                    case 'gms';
+                    case 'gemeinschaftsschule';
+                    $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_GEMEINSCHAFTS_SCHULE);
+                    break;
                     default:
                         $tblSchoolType = false;
                 }
@@ -1538,8 +1598,8 @@ class Service
                     $tblCompany = null;
                 }
 
-                if($tblSchoolType){
-                    $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
+                if($tblSchoolType && $level !== false){
+                    $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level, '', $isChecked);
                     if ($tblLevel) {
                         $tblDivision = Division::useService()->insertDivision(
                             $tblYear,

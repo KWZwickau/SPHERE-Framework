@@ -161,7 +161,7 @@ class TblDivision extends Element
     public function getDisplayName()
     {
 
-        if ($this->getTblLevel()) {
+        if ($this->getTblLevel() && !$this->getTblLevel()->getIsChecked()) {
             // Zahlen werden durch ein Minus getrennt. (5-1)
             if(is_numeric($this->getName())){
                 return $this->getTblLevel()->getName().'-'.$this->getName();
