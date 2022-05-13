@@ -978,7 +978,6 @@ class Data extends Support
     }
 
     /**
-     * @param $IsMultipleHandicapped
      * @param $IsHeavyMultipleHandicapped
      * @param $IncreaseFactorHeavyMultipleHandicappedSchool
      * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
@@ -991,7 +990,6 @@ class Data extends Support
      * @return TblStudentSpecialNeeds
      */
     public function createStudentSpecialNeeds(
-        $IsMultipleHandicapped,
         $IsHeavyMultipleHandicapped,
         $IncreaseFactorHeavyMultipleHandicappedSchool,
         $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
@@ -1005,7 +1003,6 @@ class Data extends Support
         $Manager = $this->getEntityManager();
 
         $Entity = new TblStudentSpecialNeeds();
-        $Entity->setIsMultipleHandicapped($IsMultipleHandicapped);
         $Entity->setIsHeavyMultipleHandicapped($IsHeavyMultipleHandicapped);
         $Entity->setIncreaseFactorHeavyMultipleHandicappedSchool($IncreaseFactorHeavyMultipleHandicappedSchool);
         $Entity->setIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities($IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities);
@@ -1023,7 +1020,6 @@ class Data extends Support
 
     /**
      * @param TblStudentSpecialNeeds $tblStudentSpecialNeeds
-     * @param $IsMultipleHandicapped
      * @param $IsHeavyMultipleHandicapped
      * @param $IncreaseFactorHeavyMultipleHandicappedSchool
      * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
@@ -1037,7 +1033,6 @@ class Data extends Support
      */
     public function updateStudentSpecialNeeds(
         TblStudentSpecialNeeds $tblStudentSpecialNeeds,
-        $IsMultipleHandicapped,
         $IsHeavyMultipleHandicapped,
         $IncreaseFactorHeavyMultipleHandicappedSchool,
         $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
@@ -1053,8 +1048,6 @@ class Data extends Support
         $Entity = $Manager->getEntityById('TblStudentSpecialNeeds', $tblStudentSpecialNeeds->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
-
-            $Entity->setIsMultipleHandicapped($IsMultipleHandicapped);
             $Entity->setIsHeavyMultipleHandicapped($IsHeavyMultipleHandicapped);
             $Entity->setIncreaseFactorHeavyMultipleHandicappedSchool($IncreaseFactorHeavyMultipleHandicappedSchool);
             $Entity->setIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities($IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities);

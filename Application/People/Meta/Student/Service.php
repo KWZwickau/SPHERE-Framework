@@ -1409,7 +1409,6 @@ class Service extends Support
     }
 
     /**
-     * @param $IsMultipleHandicapped
      * @param $IsHeavyMultipleHandicapped
      * @param $IncreaseFactorHeavyMultipleHandicappedSchool
      * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
@@ -1422,7 +1421,6 @@ class Service extends Support
      * @return TblStudentSpecialNeeds
      */
     public function createStudentSpecialNeeds(
-        $IsMultipleHandicapped,
         $IsHeavyMultipleHandicapped,
         $IncreaseFactorHeavyMultipleHandicappedSchool,
         $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
@@ -1433,7 +1431,6 @@ class Service extends Support
         TblStudentSpecialNeedsLevel $tblStudentSpecialNeedsLevel = null
     ) {
         return (new Data($this->getBinding()))->createStudentSpecialNeeds(
-            $IsMultipleHandicapped,
             $IsHeavyMultipleHandicapped,
             $IncreaseFactorHeavyMultipleHandicappedSchool,
             $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
@@ -1506,7 +1503,6 @@ class Service extends Support
             if (($tblStudentSpecialNeeds = $tblStudent->getTblStudentSpecialNeeds())) {
                 (new Data($this->getBinding()))->updateStudentSpecialNeeds(
                     $tblStudentSpecialNeeds,
-                    isset($Meta['SpecialNeeds']['IsMultipleHandicapped']),
                     isset($Meta['SpecialNeeds']['IsHeavyMultipleHandicapped']),
                     $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedSchool'],
                     $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities'],
@@ -1519,7 +1515,6 @@ class Service extends Support
             } else {
 
                 $tblStudentSpecialNeeds = (new Data($this->getBinding()))->createStudentSpecialNeeds(
-                    isset($Meta['SpecialNeeds']['IsMultipleHandicapped']),
                     isset($Meta['SpecialNeeds']['IsHeavyMultipleHandicapped']),
                     $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedSchool'],
                     $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities'],
