@@ -15,6 +15,7 @@ use SPHERE\Application\Document\LegalNotice;
 use SPHERE\Application\Document\License;
 use SPHERE\Application\Education\Education;
 use SPHERE\Application\Manual\Manual;
+use SPHERE\Application\ParentStudentAccess\ParentStudentAccess;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -353,7 +354,6 @@ class Main extends Extension
 
     public static function registerGuiPlatform()
     {
-
         People::registerCluster();
         Corporation::registerCluster();
         Education::registerCluster();
@@ -367,5 +367,6 @@ class Main extends Extension
         License::registerCluster();
         LegalNotice::registerCluster();
         DataProtectionOrdinance::registerCluster();
+        ParentStudentAccess::registerCluster();
     }
 }
