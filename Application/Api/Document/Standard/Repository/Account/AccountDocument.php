@@ -8,6 +8,8 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 
@@ -128,6 +130,15 @@ abstract class AccountDocument extends AbstractDocument
      */
     protected function setAccountInformation($marginTop = '15px')
     {
+
+        $Live = 'https://schulsoftware.schule';
+        $Demo = 'https://demo.schulsoftware.schule';
+
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+            $Live = 'https://ekbo.schulsoftware.schule';
+            $Demo = 'https://ekbodemo.schulsoftware.schule';
+        }
+
         return (new Slice())
             ->addElement((new Element())
                 ->setContent('Benutzername: ' . ($this->tblAccount ? $this->tblAccount->getUsername() : '-'))
@@ -137,10 +148,8 @@ abstract class AccountDocument extends AbstractDocument
                 ->setContent('Passwort: ...')
             )
             ->addElement((new Element())
-                ->setContent('Die Live-Version der Schulsoftware erreichen Sie unter folgender Internetadresse:
-                    https://schulsoftware.schule<br>
-                    Die Demo-Version der Schulsoftware erreichen Sie unter folgender Internetadresse:
-                    https://demo.schulsoftware.schule'
+                ->setContent('Die Live-Version der Schulsoftware erreichen Sie unter folgender Internetadresse: '.$Live.'<br>
+                    Die Demo-Version der Schulsoftware erreichen Sie unter folgender Internetadresse: '.$Demo
                 )
                 ->styleMarginTop('25px')
             )
