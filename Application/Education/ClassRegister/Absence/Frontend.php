@@ -10,7 +10,6 @@ namespace SPHERE\Application\Education\ClassRegister\Absence;
 
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
-use SPHERE\Application\Api\Education\ClassRegister\ApiAbsenceOnline;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -20,8 +19,6 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -582,7 +579,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
                 }
 
-                $isOnlineAbsence = $tblAbsence->getIsAbsenceOnline();
+                $isOnlineAbsence = $tblAbsence->getIsOnlineAbsence();
 
                 $item = array(
                     'FromDate' => $isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getFromDate() . '</span>' : $tblAbsence->getFromDate(),
@@ -669,250 +666,5 @@ class Frontend extends Extension implements IFrontendInterface
                 'responsive' => false
             )
         );
-    }
-
-    /**
-     * @return Stage
-     */
-    public function frontendAbsenceOnline(): Stage
-    {
-        $stage = new Stage('Online Fehlzeiten', 'Übersicht');
-
-        $layoutGroupList = array();
-        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'OnlineAbsenceAllowedForSchoolTypes'))
-            && ($tblSchoolTypeAllowedList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
-            && ($tblLoginPerson = Account::useService()->getPersonByLogin())
-        ) {
-            // Schüler die mindestens 18 Jahre alt sind
-            if (($birthday = $tblLoginPerson->getBirthday())
-                && (new DateTime($birthday)) <= ((new DateTime('now'))->modify('-18 year'))
-            ) {
-                if (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblLoginPerson))
-                    && ($tblType = $tblDivision->getType())
-                    && isset($tblSchoolTypeAllowedList[$tblType->getId()])
-                ) {
-                    $layoutGroupList[] = $this->getPersonAbsenceOnlineLayoutGroup($tblLoginPerson, $tblDivision, TblAbsence::VALUE_SOURCE_ONLINE_STUDENT);
-                }
-            }
-
-            // Sorgeberechtigt, Bevollmächtigt, Vormund
-            if (($tblPersonList = $this->getPersonListForStudent($tblLoginPerson))) {
-                foreach ($tblPersonList as $tblPerson) {
-                    if (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
-                        && ($tblType = $tblDivision->getType())
-                        && isset($tblSchoolTypeAllowedList[$tblType->getId()])
-                    ) {
-                        $layoutGroupList[] = $this->getPersonAbsenceOnlineLayoutGroup($tblPerson, $tblDivision, TblAbsence::VALUE_SOURCE_ONLINE_CUSTODY);
-                    }
-                }
-            }
-        }
-
-        $stage->setContent(ApiAbsenceOnline::receiverModal() . new Layout($layoutGroupList));
-
-        return $stage;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return array|false
-     */
-    private function getPersonListForStudent(TblPerson $tblPerson)
-    {
-        if (($tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
-            foreach ($tblPersonRelationshipList as $relationship) {
-                if ($relationship->getServiceTblPersonTo()
-                    && ($relationship->getTblType()->getName() == 'Sorgeberechtigt'
-                        || $relationship->getTblType()->getName() == 'Bevollmächtigt'
-                        || $relationship->getTblType()->getName() == 'Vormund')
-                ) {
-                    $tblPersonList[] = $relationship->getServiceTblPersonTo();
-                }
-            }
-        }
-
-        return empty($tblPersonList) ? false : $tblPersonList;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     * @param int $Source
-     *
-     * @return LayoutGroup|null
-     */
-    private function getPersonAbsenceOnlineLayoutGroup(TblPerson $tblPerson, TblDivision $tblDivision, int $Source): ?LayoutGroup
-    {
-        return new LayoutGroup(array(
-            new LayoutRow(new LayoutColumn(
-                new Title($tblPerson->getLastFirstName() . new Small(new Muted(' Klasse ' . $tblDivision->getDisplayName())))
-            )),
-            new LayoutRow(new LayoutColumn(
-                (new PrimaryLink(
-                    new Plus() . ' Fehlzeit hinzufügen',
-                    ApiAbsenceOnline::getEndpoint()
-                ))->ajaxPipelineOnClick(ApiAbsenceOnline::pipelineOpenCreateAbsenceOnlineModal($tblPerson->getId(), $tblDivision->getId(), $Source))
-            )),
-            new LayoutRow(new LayoutColumn(
-                ApiAbsenceOnline::receiverBlock($this->loadAbsenceOnlineTable($tblPerson, $tblDivision), 'AbsenceOnlineContent_' . $tblPerson->getId())
-            ))
-        ));
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     *
-     * @return TableData
-     */
-    public function loadAbsenceOnlineTable(TblPerson $tblPerson, TblDivision $tblDivision): TableData
-    {
-        $hasAbsenceTypeOptions = Absence::useService()->hasAbsenceTypeOptions($tblDivision);
-        $tableData = array();
-        $tblAbsenceAllByPerson = Absence::useService()->getAbsenceAllByPerson($tblPerson, $tblDivision);
-        if ($tblAbsenceAllByPerson) {
-            foreach ($tblAbsenceAllByPerson as $tblAbsence) {
-                $status = '';
-                if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                    $status = new Success('entschuldigt');
-                } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                    $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
-                }
-
-                $item = array(
-                    'FromDate' => $tblAbsence->getFromDate(),
-                    'ToDate' => $tblAbsence->getToDate(),
-                    'Days' => ($days = $tblAbsence->getDays(
-                        null,
-                        $count,
-                        ($tblCompany = $tblDivision->getServiceTblCompany()) ? $tblCompany : null)) == 1
-                        ? $days . ' ' . new Small(new Muted($tblAbsence->getWeekDay()))
-                        : $days,
-                    'Lessons' => $tblAbsence->getLessonStringByAbsence(),
-//                    'Remark' => $tblAbsence->getRemark(),
-                    'Status' => $status,
-                    'PersonCreator' => $tblAbsence->getDisplayPersonCreator(),
-                    'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein'
-                );
-
-                if ($hasAbsenceTypeOptions) {
-                    $item['Type'] = $tblAbsence->getTypeDisplayName();
-                }
-
-                $tableData[] = $item;
-            }
-        }
-
-        if ($hasAbsenceTypeOptions) {
-            $columns = array(
-                'FromDate' => 'Datum von',
-                'ToDate' => 'Datum bis',
-                'Days' => 'Tage',
-                'Lessons' => 'Unterrichts&shy;einheiten',
-                'Type' => 'Typ',
-//                'Remark' => 'Bemerkung',
-                'PersonCreator' => 'Ersteller',
-                'IsCertificateRelevant' => 'Zeugnisrelevant',
-                'Status' => 'Status',
-            );
-        } else {
-            $columns = array(
-                'FromDate' => 'Datum von',
-                'ToDate' => 'Datum bis',
-                'Days' => 'Tage',
-                'Lessons' => 'Unterrichts&shy;einheiten',
-//                'Remark' => 'Bemerkung',
-                'PersonCreator' => 'Ersteller',
-                'IsCertificateRelevant' => 'Zeugnisrelevant',
-                'Status' => 'Status',
-            );
-        }
-
-        return (new TableData(
-            $tableData,
-            null,
-            $columns,
-            array(
-                'order' => array(
-                    array(0, 'desc'),
-                    array(1, 'desc'),
-                ),
-                'columnDefs' => array(
-                    array('type' => 'de_date', 'targets' => 0),
-                    array('type' => 'de_date', 'targets' => 1),
-                ),
-                'pageLength' => -1,
-                'paging' => false,
-                'info' => false,
-                'searching' => false,
-                'responsive' => false
-            )
-        ))->setHash('OnlineAbsence-' . $tblPerson->getId());
-    }
-
-    /**
-     * @param null $Data
-     * @param null $PersonId
-     * @param null $DivisionId
-     * @param null $Source
-     * @param IMessageInterface|null $messageLesson
-     *
-     * @return Form
-     */
-    public function formAbsenceOnline(
-        $Data = null,
-        $PersonId = null,
-        $DivisionId = null,
-        $Source = null,
-        IMessageInterface $messageLesson = null
-    ): Form {
-        if ($Data === null) {
-            $isFullDay = true;
-
-            $global = $this->getGlobal();
-            $global->POST['Data']['IsFullDay'] = $isFullDay;
-            $global->POST['Data']['FromDate'] = (new DateTime('now'))->format('d.m.Y');
-
-            $global->savePost();
-        } else {
-            $isFullDay = $Data['IsFullDay'] ?? false;
-        }
-
-
-        $formRows[] = new FormRow(array(
-            new FormColumn(
-                new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()), 6
-            ),
-            new FormColumn(
-                new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar()), 6
-            ),
-        ));
-        $formRows[] = new FormRow(array(
-            new FormColumn(array(
-                (new CheckBox('Data[IsFullDay]', 'ganztägig', 1))->ajaxPipelineOnClick(ApiAbsence::pipelineLoadLesson()),
-                ApiAbsence::receiverBlock($this->loadLesson($isFullDay, $messageLesson), 'loadLesson')
-            ))
-        ));
-        $formRows[] = new FormRow(array(
-            new FormColumn(
-                ApiAbsence::receiverBlock($this->loadType($PersonId, $DivisionId), 'loadType')
-            )
-        ));
-        $formRows[] = new FormRow(array(
-            new FormColumn(
-                new TextField('Data[Remark]', '', 'Bemerkung'), 12
-            ),
-        ));
-        $formRows[] = new FormRow(array(
-            new FormColumn(
-                (new PrimaryLink('Speichern', ApiAbsenceOnline::getEndpoint(), new Save()))
-                    ->ajaxPipelineOnClick(ApiAbsenceOnline::pipelineCreateAbsenceOnlineSave($PersonId, $DivisionId, $Source))
-            )
-        ));
-
-        return (new Form(new FormGroup(
-            $formRows
-        )))->disableSubmitAction();
     }
 }

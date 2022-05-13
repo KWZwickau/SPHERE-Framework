@@ -3,6 +3,7 @@
 namespace SPHERE\Application\ParentStudentAccess;
 
 use SPHERE\Application\IClusterInterface;
+use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
 use SPHERE\Application\ParentStudentAccess\ContactDetails\ContactDetails;
 use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Main;
@@ -13,6 +14,7 @@ class ParentStudentAccess implements IClusterInterface
 {
     public static function registerCluster()
     {
+        OnlineAbsence::registerApplication();
         ContactDetails::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(

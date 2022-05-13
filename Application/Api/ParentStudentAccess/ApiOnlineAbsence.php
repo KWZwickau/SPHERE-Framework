@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Api\Education\ClassRegister;
+namespace SPHERE\Application\Api\ParentStudentAccess;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
@@ -8,6 +8,7 @@ use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -29,7 +30,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Extension\Extension;
 
-class ApiAbsenceOnline extends Extension implements IApiInterface
+class ApiOnlineAbsence extends Extension implements IApiInterface
 {
     use ApiTrait;
 
@@ -42,10 +43,10 @@ class ApiAbsenceOnline extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
-        $Dispatcher->registerMethod('openCreateAbsenceOnlineModal');
-        $Dispatcher->registerMethod('saveCreateAbsenceOnlineModal');
+        $Dispatcher->registerMethod('openCreateOnlineAbsenceModal');
+        $Dispatcher->registerMethod('saveCreateOnlineAbsenceModal');
 
-        $Dispatcher->registerMethod('loadAbsenceOnlineContent');
+        $Dispatcher->registerMethod('loadOnlineAbsenceContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -87,12 +88,12 @@ class ApiAbsenceOnline extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineLoadAbsenceOnlineContent($PersonId = null, $DivisionId = null): Pipeline
+    public static function pipelineLoadOnlineAbsenceContent($PersonId = null, $DivisionId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'AbsenceOnlineContent_' . $PersonId), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'OnlineAbsenceContent_' . $PersonId), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'loadAbsenceOnlineContent',
+            self::API_TARGET => 'loadOnlineAbsenceContent',
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
@@ -109,7 +110,7 @@ class ApiAbsenceOnline extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function loadAbsenceOnlineContent($PersonId = null, $DivisionId = null): string
+    public function loadOnlineAbsenceContent($PersonId = null, $DivisionId = null): string
     {
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblPerson = Person::useService()->getPersonById($PersonId);
@@ -118,7 +119,7 @@ class ApiAbsenceOnline extends Extension implements IApiInterface
             return new Danger('Die Klasse oder Person wurde nicht gefunden', new Exclamation());
         }
 
-        return Absence::useFrontend()->loadAbsenceOnlineTable($tblPerson, $tblDivision);
+        return OnlineAbsence::useFrontend()->loadOnlineAbsenceTable($tblPerson, $tblDivision);
     }
 
     /**
@@ -128,12 +129,12 @@ class ApiAbsenceOnline extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateAbsenceOnlineModal($PersonId = null, $DivisionId = null, $Source = null): Pipeline
+    public static function pipelineOpenCreateOnlineAbsenceModal($PersonId = null, $DivisionId = null, $Source = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openCreateAbsenceOnlineModal',
+            self::API_TARGET => 'openCreateOnlineAbsenceModal',
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
@@ -152,7 +153,7 @@ class ApiAbsenceOnline extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function openCreateAbsenceOnlineModal($PersonId = null, $DivisionId = null, $Source = null, $Data = null)
+    public function openCreateOnlineAbsenceModal($PersonId = null, $DivisionId = null, $Source = null, $Data = null)
     {
         $tblPerson = Person::useService()->getPersonById($PersonId);
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
@@ -161,7 +162,7 @@ class ApiAbsenceOnline extends Extension implements IApiInterface
             return new Danger('Die Klasse oder Person wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getAbsenceOnlineModal(Absence::useFrontend()->formAbsenceOnline($Data, $PersonId, $DivisionId, $Source), $tblPerson, $tblDivision);
+        return $this->getOnlineAbsenceModal(OnlineAbsence::useFrontend()->formOnlineAbsence($Data, $PersonId, $DivisionId, $Source), $tblPerson, $tblDivision);
     }
 
     /**
@@ -171,7 +172,7 @@ class ApiAbsenceOnline extends Extension implements IApiInterface
      *
      * @return string
      */
-    private function getAbsenceOnlineModal($form, TblPerson $tblPerson, TblDivision $tblDivision): string
+    private function getOnlineAbsenceModal($form, TblPerson $tblPerson, TblDivision $tblDivision): string
     {
         return new Title(new Plus() . ' Fehlzeit hinzufügen')
             . new Layout(array(
@@ -206,12 +207,12 @@ class ApiAbsenceOnline extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineCreateAbsenceOnlineSave($PersonId = null, $DivisionId = null, $Source = null): Pipeline
+    public static function pipelineCreateOnlineAbsenceSave($PersonId = null, $DivisionId = null, $Source = null): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveCreateAbsenceOnlineModal'
+            self::API_TARGET => 'saveCreateOnlineAbsenceModal'
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
@@ -233,7 +234,7 @@ class ApiAbsenceOnline extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function saveCreateAbsenceOnlineModal($Data, $PersonId = null, $DivisionId = null, $Source = null): string
+    public function saveCreateOnlineAbsenceModal($Data, $PersonId = null, $DivisionId = null, $Source = null): string
     {
         $tblPerson = Person::useService()->getPersonById($PersonId);
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
@@ -242,19 +243,19 @@ class ApiAbsenceOnline extends Extension implements IApiInterface
             return new Danger('Die Klasse oder Person wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Absence::useService()->checkFormAbsenceOnline($Data, $tblPerson, $tblDivision, $Source))) {
+        if (($form = Absence::useService()->checkFormOnlineAbsence($Data, $tblPerson, $tblDivision, $Source))) {
             // display Errors on form
-            return $this->getAbsenceOnlineModal($form, $tblPerson, $tblDivision);
+            return $this->getOnlineAbsenceModal($form, $tblPerson, $tblDivision);
         }
 
-        if (Absence::useService()->createAbsenceOnline(
+        if (Absence::useService()->createOnlineAbsence(
             $Data,
             $tblPerson,
             $tblDivision,
             $Source
         )) {
             return new Success('Die Fehlzeit wurde erfolgreich gespeichert.')
-                . self::pipelineLoadAbsenceOnlineContent($PersonId, $DivisionId) . self::pipelineClose();
+                . self::pipelineLoadOnlineAbsenceContent($PersonId, $DivisionId) . self::pipelineClose();
         } else {
             return new Danger('Die Fehlzeit konnte nicht gespeichert werden.') . self::pipelineClose();
         }

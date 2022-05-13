@@ -1652,7 +1652,7 @@ class ApiAbsence extends Extension implements IApiInterface
 
         $isWhiteLink = false;
 
-        if ($tblAbsence->getIsAbsenceOnline()) {
+        if ($tblAbsence->getIsOnlineAbsence()) {
             $backgroundColor = 'orange';
             $isWhiteLink = true;
         } elseif (($tblAbsenceType = $tblAbsence->getType())) {

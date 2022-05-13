@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -237,7 +238,7 @@ class Service extends AbstractService
      * @param array $groupList
      * @param bool $hasAbsenceTypeOptions
      * @param null|bool $IsCertificateRelevant
-     * @param bool $IsAbsenceOnlineOnly
+     * @param bool $IsOnlineAbsenceOnly
      *
      * @return array
      */
@@ -249,7 +250,7 @@ class Service extends AbstractService
         $groupList = array(),
         &$hasAbsenceTypeOptions = false,
         $IsCertificateRelevant = true,
-        bool $IsAbsenceOnlineOnly = false
+        bool $IsOnlineAbsenceOnly = false
     ) {
         $resultList = array();
         $tblAbsenceList = array();
@@ -299,7 +300,7 @@ class Service extends AbstractService
                     }
 
                     // Nur Online Fehlzeiten filtern
-                    if ($IsAbsenceOnlineOnly && !$tblAbsence->getIsAbsenceOnline()) {
+                    if ($IsOnlineAbsenceOnly && !$tblAbsence->getIsOnlineAbsence()) {
                         continue;
                     }
 
@@ -560,7 +561,7 @@ class Service extends AbstractService
      *
      * @return false|Form
      */
-    public function checkFormAbsenceOnline(
+    public function checkFormOnlineAbsence(
         $Data,
         TblPerson $tblPerson,
         TblDivision $tblDivision,
@@ -575,7 +576,7 @@ class Service extends AbstractService
             $error = true;
         }
 
-        $form = Absence::useFrontend()->formAbsenceOnline(
+        $form = OnlineAbsence::useFrontend()->formOnlineAbsence(
             $Data,
             $tblPerson->getId(),
             $tblDivision->getId(),
@@ -722,7 +723,7 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function createAbsenceOnline($Data, TblPerson $tblPerson, TblDivision $tblDivision, int $Source): bool
+    public function createOnlineAbsence($Data, TblPerson $tblPerson, TblDivision $tblDivision, int $Source): bool
     {
         $tblPersonCreator = Account::useService()->getPersonByLogin();
         if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewOnlineAbsence'))) {

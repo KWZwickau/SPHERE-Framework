@@ -29,8 +29,5 @@ class ClassRegister implements IApplicationInterface
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route('SPHERE\Application\Education\Absence'), new Link\Name('Fehlzeiten'))
         );
-        Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route('SPHERE\Application\Education\OnlineAbsence'), new Link\Name('Online Fehlzeiten'))
-        );
     }
 }

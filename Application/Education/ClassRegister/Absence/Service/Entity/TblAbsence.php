@@ -559,7 +559,7 @@ class TblAbsence extends Element
      */
     public function getLinkType(): string
     {
-        if ($this->getIsAbsenceOnline()) {
+        if ($this->getIsOnlineAbsence()) {
             return AbstractLink::TYPE_ORANGE_LINK;
         } elseif (!$this->getIsCertificateRelevant()) {
             return AbstractLink::TYPE_MUTED_LINK;
@@ -585,7 +585,7 @@ class TblAbsence extends Element
      *
      * @return bool
      */
-    public function getIsAbsenceOnline(): bool
+    public function getIsOnlineAbsence(): bool
     {
         return $this->getSource() != TblAbsence::VALUE_SOURCE_STAFF && $this->getServiceTblPersonStaff() == false;
     }
