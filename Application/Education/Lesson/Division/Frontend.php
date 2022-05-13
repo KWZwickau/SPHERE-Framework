@@ -406,7 +406,8 @@ class Frontend extends Extension implements IFrontendInterface
         if($tblLevel == null && $tblDivision == null){
             if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
                 $FormRow->addColumn(new FormColumn(
-                    new CheckBox('Level[isChecked]', 'Jahrgangsübergreifende Klasse', 1)
+                    (new CheckBox('Level[isChecked]', 'Jahrgangsübergreifende Klasse', 1))
+                        ->ajaxPipelineOnChange(array(AddDivision::pipelineCreateLevelNameInput($receiver)))
                 ));
             }
         }
