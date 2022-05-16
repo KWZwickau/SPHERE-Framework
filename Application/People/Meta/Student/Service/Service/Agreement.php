@@ -28,6 +28,17 @@ abstract class Agreement extends Liberation
 
     /**
      * @param TblStudentAgreementType $tblStudentAgreementType
+     *
+     * @return false|TblStudentAgreement[]
+     */
+    public function getStudentAgreementAllByType(TblStudentAgreementType $tblStudentAgreementType)
+    {
+
+        return (new Data($this->getBinding()))->getStudentAgreementAllByType($tblStudentAgreementType);
+    }
+
+    /**
+     * @param TblStudentAgreementType $tblStudentAgreementType
      * @param TblStudent $tblStudent
      *
      * @return false|TblStudentAgreement
@@ -63,6 +74,17 @@ abstract class Agreement extends Liberation
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblStudentAgreementType
+     */
+    public function getStudentAgreementTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getStudentAgreementTypeByName($Name);
+    }
+
+    /**
      * @return bool|TblStudentAgreementType[]
      */
     public function getStudentAgreementTypeAll()
@@ -94,11 +116,116 @@ abstract class Agreement extends Liberation
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblStudentAgreementCategory
+     */
+    public function getStudentAgreementCategoryByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getStudentAgreementCategoryByName($Name);
+    }
+
+    /**
      * @return bool|TblStudentAgreementCategory[]
      */
     public function getStudentAgreementCategoryAll()
     {
 
         return (new Data($this->getBinding()))->getStudentAgreementCategoryAll();
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblStudentAgreementCategory
+     */
+    public function createStudentAgreementCategory($Name, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->createStudentAgreementCategory($Name, $Description);
+    }
+
+    /**
+     * @param TblStudentAgreementCategory $tblStudentAgreementCategory
+     * @param string                      $Name
+     * @param string                      $Description
+     *
+     * @return TblStudentAgreementType
+     */
+    public function createStudentAgreementType(TblStudentAgreementCategory $tblStudentAgreementCategory, $Name, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->createStudentAgreementType($tblStudentAgreementCategory, $Name, $Description);
+    }
+
+    /**
+     * @param TblStudentAgreementCategory $tblStudentAgreementCategory
+     * @param string                      $Name
+     * @param string                      $Description
+     *
+     * @return bool
+     */
+    public function updateStudentAgreementCategory(TblStudentAgreementCategory $tblStudentAgreementCategory, $Name, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->updateStudentAgreementCategory($tblStudentAgreementCategory, $Name, $Description);
+    }
+
+    /**
+     * @param TblStudentAgreementType $tblStudentAgreementType
+     * @param string                  $Name
+     * @param string                  $Description
+     *
+     * @return bool
+     */
+    public function updateStudentAgreementType(TblStudentAgreementType $tblStudentAgreementType, $Name, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->updateStudentAgreementType($tblStudentAgreementType, $Name, $Description);
+    }
+
+    /**
+     * @param TblStudentAgreementCategory $tblStudentAgreementCategory
+     *
+     * @return bool
+     */
+    public function destroyStudentAgreementCategory(TblStudentAgreementCategory $tblStudentAgreementCategory)
+    {
+
+        if(($tblStudentAgreementTypeList = $this->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory))){
+            foreach($tblStudentAgreementTypeList as $tblStudentAgreementType){
+                $this->destroyStudentAgreementType($tblStudentAgreementType);
+            }
+        }
+        return (new Data($this->getBinding()))->destroyStudentAgreementCategory($tblStudentAgreementCategory);
+    }
+
+    /**
+     * @param TblStudentAgreementType $tblStudentAgreementType
+     *
+     * @return bool
+     */
+    public function destroyStudentAgreementType(TblStudentAgreementType $tblStudentAgreementType)
+    {
+
+        if(($tblStudentAgreementList = $this->getStudentAgreementAllByType($tblStudentAgreementType))){
+            foreach($tblStudentAgreementList as $tblStudentAgreement){
+                $this->removeStudentAgreement($tblStudentAgreement);
+            }
+        }
+        return (new Data($this->getBinding()))->destroyStudentAgreementType($tblStudentAgreementType);
+    }
+
+    /**
+     * @param TblStudentAgreement $tblStudentAgreement
+     *
+     * @return bool
+     */
+    public function removeStudentAgreement(TblStudentAgreement $tblStudentAgreement)
+    {
+
+        return (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
     }
 }

@@ -894,6 +894,26 @@ class Service extends Support
                     }
                 }
             }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param           $Meta
+     *
+     * @return bool
+     */
+    public function updateStudentAgreement(TblPerson $tblPerson, $Meta)
+    {
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
 
             /*
              * Agreement
@@ -911,7 +931,7 @@ class Service extends Support
                     }
                 }
             }
-            if (isset( $Meta['Agreement'] )) {
+            if (isset($Meta['Agreement'])) {
                 foreach ($Meta['Agreement'] as $Category => $Items) {
                     $tblStudentAgreementCategory = $this->getStudentAgreementTypeById($Category);
                     if ($tblStudentAgreementCategory) {
@@ -925,10 +945,8 @@ class Service extends Support
                     }
                 }
             }
-
             return true;
         }
-
         return false;
     }
 
