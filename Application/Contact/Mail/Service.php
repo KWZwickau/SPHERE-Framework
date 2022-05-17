@@ -742,4 +742,26 @@ class Service extends AbstractService
 
         return empty($result) ? false : $result;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblMail $tblMail
+     *
+     * @return false|TblToPerson
+     */
+    public function getMailToPersonByPersonAndMail(TblPerson $tblPerson, TblMail $tblMail)
+    {
+        return (new Data($this->getBinding()))->getMailToPersonByPersonAndMail($tblPerson, $tblMail);
+    }
+
+    /**
+     * @param $Address
+     *
+     * @return TblMail
+     */
+    public function insertMail(
+        $Address
+    ): TblMail {
+        return (new Data($this->getBinding()))->createMail($Address);
+    }
 }

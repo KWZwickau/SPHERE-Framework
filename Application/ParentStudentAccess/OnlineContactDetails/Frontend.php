@@ -4,6 +4,7 @@ namespace SPHERE\Application\ParentStudentAccess\OnlineContactDetails;
 
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineContactDetails;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -21,6 +22,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -100,6 +102,8 @@ class Frontend extends Extension implements IFrontendInterface
                     ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal($tblPerson->getId(), null, $personIdList))
                 . (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
                     ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal($tblPerson->getId(), null, $personIdList))
+                . (new PrimaryLink('Neue E-Mail-Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal($tblPerson->getId(), null, $personIdList))
             )),
             new LayoutRow(new LayoutColumn(
                 $this->loadContactDetailsContent($tblPerson, $personIdList)
@@ -152,21 +156,24 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-//        if (($tblMailList = Mail::useService()->getMailAllByPerson($tblPerson))) {
-//            foreach ($tblMailList as $tblMailToPerson) {
-//                $dataList[] = array(
-//                    'Category' => 'Telefonnummer',
-//                    'Type' => $tblMailToPerson->getTblType()->getName(),
-//                    'Content' => $tblMailToPerson->getTblMail()->getAddress(),
-//                    'OtherPersons' => OnlineContactDetails::useService()->getPersonListWithFilter(
-//                        Mail::useService()->getPersonAllByMail($tblMailToPerson->getTblMail()),
-//                        $personIdList,
-//                        true
-//                    ),
-//
-//                );
-//            }
-//        }
+        if (($tblMailList = Mail::useService()->getMailAllByPerson($tblPerson))) {
+            foreach ($tblMailList as $tblMailToPerson) {
+                $list = OnlineContactDetails::useService()->getPersonListWithFilter(
+                    Mail::useService()->getPersonAllByMail($tblMailToPerson->getTblMail()),
+                    $personIdList,
+                );
+                $dataList[] = array(
+                    'Category' => 'E-Mail-Adresse',
+                    'Type' => $tblMailToPerson->getTblType()->getName(),
+                    'Content' => $tblMailToPerson->getTblMail()->getAddress(),
+                    'OtherPersons' => OnlineContactDetails::useService()->getNameStringFromPersonIdList($list),
+                    'OnlineContactDetails' => OnlineContactDetails::useService()->getOnlineContactStringByToPerson(TblOnlineContact::VALUE_TYPE_MAIL, $tblMailToPerson),
+                    'Options' => (new Standard('', ApiOnlineContactDetails::getEndpoint(), new Edit(), array(), 'Änderungswunsch für diese E-Mail-Adresse abgeben'))
+                        ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal(
+                            $tblPerson->getId(), $tblMailToPerson->getId(), $list))
+                );
+            }
+        }
 
         // neue Kontaktdaten, welche noch nicht angenommen wurden
         if (($tblOnlineContactList = OnlineContactDetails::useService()->getOnlineContactAllByPerson($tblPerson))) {
@@ -349,6 +356,61 @@ class Frontend extends Extension implements IFrontendInterface
             new FormColumn(
                 (new PrimaryLink(new Save() . ' Speichern', ApiOnlineContactDetails::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineCreateAddressSave($PersonId, $ToPersonId, $PersonIdList))
+            )
+        ));
+
+        return (new Form(new FormGroup($rows)))->disableSubmitAction();
+    }
+
+    /**
+     * @param $PersonId
+     * @param null $ToPersonId
+     * @param $PersonIdList
+     *
+     * @return Form
+     */
+    public function formMail($PersonId, $ToPersonId, $PersonIdList): Form
+    {
+        $panelContent = array();
+        if ($PersonIdList) {
+            foreach ($PersonIdList as $value) {
+                if (($tblPersonItem = Person::useService()->getPersonById($value)) && $tblPersonItem->getId() != $PersonId) {
+                    $panelContent[] = new CheckBox('Data[PersonList][' . $value . ']', $tblPersonItem->getFullName(), 1);
+                }
+            }
+        }
+
+        if ($ToPersonId) {
+            $titleEditPanel = 'Änderungswunsch für bestehende E-Mail-Adresse';
+            $remarkLabel = 'Änderungsbemerkung';
+            $titlePersonPanel = 'Änderungswunsch für weitere Personen übernehmen';
+        } else {
+            $titleEditPanel = 'Neue E-Mail-Adresse';
+            $remarkLabel = 'Bemerkung';
+            $titlePersonPanel = 'Neue E-Mail-Adresse für weitere Personen übernehmen';
+        }
+
+        $rows[] = new FormRow(array(
+            new FormColumn(
+                new Panel(
+                    $titleEditPanel,
+                    array(
+                        (new TextField('Data[Address]', 'E-Mail-Adresse', 'E-Mail-Adresse', new MailIcon()))->setRequired(),
+                        new TextArea('Data[Remark]', $remarkLabel, $remarkLabel, new Comment())
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                )
+            )
+        ));
+        if ($panelContent) {
+            $rows[] = new FormRow(new FormColumn(
+                new Panel($titlePersonPanel, $panelContent, Panel::PANEL_TYPE_INFO)
+            ));
+        }
+        $rows[] = new FormRow(array(
+            new FormColumn(
+                (new PrimaryLink(new Save() . ' Speichern', ApiOnlineContactDetails::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineCreateMailSave($PersonId, $ToPersonId, $PersonIdList))
             )
         ));
 

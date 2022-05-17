@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\ParentStudentAccess;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
@@ -53,6 +54,9 @@ class ApiOnlineContactDetails extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('openCreateAddressModal');
         $Dispatcher->registerMethod('saveCreateAddressModal');
+
+        $Dispatcher->registerMethod('openCreateMailModal');
+        $Dispatcher->registerMethod('saveCreateMailModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -381,6 +385,143 @@ class ApiOnlineContactDetails extends Extension implements IApiInterface
                 . self::pipelineClose();
         } else {
             return new Danger('Die Adresse konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param string|null $PersonId
+     * @param string|null $ToPersonId
+     * @param array $PersonIdList
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenCreateMailModal(string $PersonId = null, string $ToPersonId = null, array $PersonIdList = array()): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openCreateMailModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'ToPersonId' => $ToPersonId,
+            'PersonIdList' => $PersonIdList
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     * @param $ToPersonId
+     * @param $PersonIdList
+     *
+     * @return string
+     */
+    public function openCreateMailModal($PersonId, $ToPersonId, $PersonIdList)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getMailModal(OnlineContactDetails::useFrontend()->formMail($PersonId, $ToPersonId, $PersonIdList), $tblPerson, $ToPersonId);
+    }
+
+    /**
+     * @param $form
+     * @param TblPerson $tblPerson
+     * @param null $ToPersonId
+     *
+     * @return string
+     */
+    private function getMailModal($form, TblPerson $tblPerson,  $ToPersonId = null): string
+    {
+        if ($ToPersonId) {
+            $title = new Title(new Edit() . ' E-Mail-Adresse bearbeiten (Änderungswunsch)');
+        } else {
+            $title = new Title(new Plus() . ' E-Mail-Adresse hinzufügen');
+        }
+
+        return $title
+            . new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(new PersonIcon() . ' Person',
+                                    new Bold($tblPerson->getFullName()),
+                                    Panel::PANEL_TYPE_SUCCESS
+                                )
+                                , $ToPersonId ? 6: 12),
+                            $ToPersonId && ($tblToPerson = Mail::useService()->getMailToPersonById($ToPersonId))
+                                ? new LayoutColumn(new Panel(new \SPHERE\Common\Frontend\Icon\Repository\Mail() . ' E-Mail-Adresse',
+                                new Bold($tblToPerson->getTblMail()->getAddress()),
+                                Panel::PANEL_TYPE_SUCCESS), 6)
+                                : null
+                        )),
+                    )),
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Well(
+                                    $form
+                                )
+                            )
+                        )
+                    ))
+            );
+    }
+
+    /**
+     * @param $PersonId
+     * @param $ToPersonId
+     * @param $PersonIdList
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCreateMailSave($PersonId, $ToPersonId, $PersonIdList): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreateMailModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'ToPersonId' => $ToPersonId,
+            'PersonIdList' => $PersonIdList
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     * @param $ToPersonId
+     * @param $PersonIdList
+     * @param $Data
+     *
+     * @return string
+     */
+    public function saveCreateMailModal($PersonId, $ToPersonId, $PersonIdList, $Data): string
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = OnlineContactDetails::useService()->checkFormMail($tblPerson, $ToPersonId, $PersonIdList, $Data))) {
+            // display Errors on form
+            return $this->getMailModal($form, $tblPerson, $ToPersonId);
+        }
+
+        if (OnlineContactDetails::useService()->createMail($tblPerson, $ToPersonId, $Data)) {
+            return new Success('Die E-Mail-Adresse wurde erfolgreich gespeichert.')
+                . self::pipelineLoadContactDetailsStageContent()
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die E-Mail-Adresse konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 }

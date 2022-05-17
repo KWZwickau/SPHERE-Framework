@@ -4,6 +4,7 @@ namespace SPHERE\Application\ParentStudentAccess\OnlineContactDetails;
 
 use DateTime;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Data;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
@@ -364,6 +365,74 @@ class Service extends AbstractService
 
                         (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_ADDRESS, $tblToPersonTemp ?: null, $tblAddress,
                             $tblPersonItem, $Data['Remark'], $tblPersonLogin);
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $MailId
+     * @param $PersonIdList
+     * @param array $Data
+     *
+     * @return false|Form
+     */
+    public function checkFormMail(
+        TblPerson $tblPerson,
+        $MailId,
+        $PersonIdList,
+        array $Data
+    ) {
+        $error = false;
+        $form = OnlineContactDetails::useFrontend()->formMail($tblPerson->getId(), $MailId, $PersonIdList);
+        if (isset($Data['Address']) && empty($Data['Address'])) {
+            $form->setError('Data[Address]', 'Bitte geben Sie eine gültige E-Mail-Adresse an');
+            $error = true;
+        } else {
+            $form->setSuccess('Address');
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $ToPersonId
+     * @param array $Data
+     *
+     * @return bool
+     */
+    public function createMail(
+        TblPerson $tblPerson,
+        $ToPersonId,
+        array $Data
+    ): bool {
+
+        if (($tblMail = Mail::useService()->insertMail($Data['Address']))
+            && ($tblPersonLogin = Account::useService()->getPersonByLogin())
+        ) {
+            $tblToPerson = $ToPersonId ? Mail::useService()->getMailToPersonById($ToPersonId) : null;
+
+            (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_MAIL, $tblToPerson ?: null, $tblMail, $tblPerson,
+                $Data['Remark'], $tblPersonLogin);
+
+            if (isset($Data['PersonList'])) {
+                foreach ($Data['PersonList'] as $personId => $value) {
+                    if ($tblPersonItem = Person::useService()->getPersonById($personId)) {
+                        if ($tblToPerson)  {
+                            $tblToPersonTemp = Mail::useService()->getMailToPersonByPersonAndMail($tblPersonItem, $tblToPerson->getTblMail());
+                        } else {
+                            $tblToPersonTemp = null;
+                        }
+
+                        (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_MAIL, $tblToPersonTemp ?: null, $tblMail, $tblPersonItem,
+                            $Data['Remark'], $tblPersonLogin);
                     }
                 }
             }
