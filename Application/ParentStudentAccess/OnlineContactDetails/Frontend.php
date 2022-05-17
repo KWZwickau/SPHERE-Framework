@@ -3,6 +3,7 @@
 namespace SPHERE\Application\ParentStudentAccess\OnlineContactDetails;
 
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineContactDetails;
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -18,6 +19,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -94,7 +96,9 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             )),
             new LayoutRow(new LayoutColumn(
-                (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+                (new PrimaryLink('Neue Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal($tblPerson->getId(), null, $personIdList))
+                . (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
                     ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal($tblPerson->getId(), null, $personIdList))
             )),
             new LayoutRow(new LayoutColumn(
@@ -108,22 +112,26 @@ class Frontend extends Extension implements IFrontendInterface
         if (isset($personIdList[$tblPerson->getId()])) {
             unset($personIdList[$tblPerson->getId()]);
         }
-
         $dataList = array();
-//        if (($tblAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
-//            foreach ($tblAddressList as $tblAddressToPerson) {
-//                $dataList[] = array(
-//                    'Category' => 'Adresse',
-//                    'Type' => $tblAddressToPerson->getTblType()->getName(),
-//                    'Content' => $tblAddressToPerson->getTblAddress()->getGuiString(),
-//                    'OtherPersons' => OnlineContactDetails::useService()->getPersonListWithFilter(
-//                        Address::useService()->getPersonAllByAddress($tblAddressToPerson->getTblAddress()),
-//                        $personIdList,
-//                        true
-//                    )
-//                );
-//            }
-//        }
+
+        if (($tblAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
+            foreach ($tblAddressList as $tblAddressToPerson) {
+                $list = OnlineContactDetails::useService()->getPersonListWithFilter(
+                    Address::useService()->getPersonAllByAddress($tblAddressToPerson->getTblAddress()),
+                    $personIdList,
+                );
+                $dataList[] = array(
+                    'Category' => 'Adresse',
+                    'Type' => $tblAddressToPerson->getTblType()->getName(),
+                    'Content' => $tblAddressToPerson->getTblAddress()->getGuiString(),
+                    'OtherPersons' => OnlineContactDetails::useService()->getNameStringFromPersonIdList($list),
+                    'OnlineContactDetails' => OnlineContactDetails::useService()->getOnlineContactStringByToPerson(TblOnlineContact::VALUE_TYPE_ADDRESS, $tblAddressToPerson),
+                    'Options' => (new Standard('', ApiOnlineContactDetails::getEndpoint(), new Edit(), array(), 'Änderungswunsch für diese Telefonnummer abgeben'))
+                        ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal(
+                            $tblPerson->getId(), $tblAddressToPerson->getId(), $list))
+                );
+            }
+        }
 
         if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))) {
             foreach ($tblPhoneList as $tblPhoneToPerson) {
@@ -163,14 +171,16 @@ class Frontend extends Extension implements IFrontendInterface
         // neue Kontaktdaten, welche noch nicht angenommen wurden
         if (($tblOnlineContactList = OnlineContactDetails::useService()->getOnlineContactAllByPerson($tblPerson))) {
             foreach($tblOnlineContactList as $tblOnlineContact) {
-                $dataList[] = array(
-                    'Category' => $tblOnlineContact->getContactTypeName(),
-                    'Type' => '',
-                    'Content' => $tblOnlineContact->getContactString(),
-                    'OtherPersons' => '',
-                    'OnlineContactDetails' => '',
-                    'Options' => ''
-                );
+                if (!$tblOnlineContact->getServiceTblToPerson()) {
+                    $dataList[] = array(
+                        'Category' => $tblOnlineContact->getContactTypeName(),
+                        'Type' => '',
+                        'Content' => $tblOnlineContact->getContactString(),
+                        'OtherPersons' => '',
+                        'OnlineContactDetails' => '',
+                        'Options' => ''
+                    );
+                }
             }
         }
 
@@ -205,11 +215,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param $PersonId
      * @param null $ToPersonId
-     * @param array|null $PersonIdList
+     * @param $PersonIdList
      *
      * @return Form
      */
-    public function formPhone($PersonId, $ToPersonId = null, ?array $PersonIdList = array()): Form
+    public function formPhone($PersonId, $ToPersonId, $PersonIdList): Form
     {
         $panelContent = array();
         if ($PersonIdList) {
@@ -230,33 +240,118 @@ class Frontend extends Extension implements IFrontendInterface
             $titlePersonPanel = 'Neue Telefonnummer für weitere Personen übernehmen';
         }
 
-        return (new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel(
-                            $titleEditPanel,
-                            array(
-                                (new TextField('Data[Number]', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()))->setRequired(),
-                                new TextArea('Data[Remark]', $remarkLabel, $remarkLabel, new Edit())
-                            ),
-                            Panel::PANEL_TYPE_INFO
-                        )
+        $rows[] = new FormRow(array(
+            new FormColumn(
+                new Panel(
+                    $titleEditPanel,
+                    array(
+                        (new TextField('Data[Number]', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()))->setRequired(),
+                        new TextArea('Data[Remark]', $remarkLabel, $remarkLabel, new Comment())
                     ),
-                    $panelContent
-                        ? new FormColumn(new Panel(
-                            $titlePersonPanel,
-                            $panelContent,
-                            Panel::PANEL_TYPE_INFO
-                        )) : null
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        (new PrimaryLink(new Save() . ' Speichern', ApiOnlineContactDetails::getEndpoint()))
-                            ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineCreatePhoneSave($PersonId, $ToPersonId, $PersonIdList))
-                    )
-                ))
-            ))
-        ))->disableSubmitAction();
+                    Panel::PANEL_TYPE_INFO
+                )
+            )
+        ));
+        if ($panelContent) {
+            $rows[] = new FormRow(new FormColumn(
+                new Panel($titlePersonPanel, $panelContent, Panel::PANEL_TYPE_INFO)
+            ));
+        }
+        $rows[] = new FormRow(array(
+            new FormColumn(
+                (new PrimaryLink(new Save() . ' Speichern', ApiOnlineContactDetails::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineCreatePhoneSave($PersonId, $ToPersonId, $PersonIdList))
+            )
+        ));
+
+        return (new Form(new FormGroup($rows)))->disableSubmitAction();
+    }
+
+    /**
+     * @param $PersonId
+     * @param $ToPersonId
+     * @param $PersonIdList
+     *
+     * @return Form
+     */
+    public function formAddress($PersonId, $ToPersonId, $PersonIdList): Form
+    {
+        $panelContent = array();
+        if ($PersonIdList) {
+            foreach ($PersonIdList as $value) {
+                if (($tblPersonItem = Person::useService()->getPersonById($value)) && $tblPersonItem->getId() != $PersonId) {
+                    $panelContent[] = new CheckBox('Data[PersonList][' . $value . ']', $tblPersonItem->getFullName(), 1);
+                }
+            }
+        }
+
+        if ($ToPersonId) {
+            $titleEditPanel = 'Änderungswunsch für bestehende Adresse';
+            $remarkLabel = 'Änderungsbemerkung';
+            $titlePersonPanel = 'Änderungswunsch für weitere Personen übernehmen';
+        } else {
+            $titleEditPanel = 'Neue Adresse';
+            $remarkLabel = 'Bemerkung';
+            $titlePersonPanel = 'Neue Adresse für weitere Personen übernehmen';
+        }
+
+        $rows[] = new FormRow(array(
+            new FormColumn(
+                new Panel(
+                    $titleEditPanel,
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                (new TextField('Data[Street][Name]', 'Straße', 'Straße'))->setRequired()
+                                , 8),
+                            new LayoutColumn(
+                                (new TextField('Data[Street][Number]', 'Hausnummer', 'Hausnummer'))->setRequired()
+                                , 4)
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                (new TextField('Data[City][Code]', 'Postleitzahl', 'Postleitzahl'))->setRequired()
+                                , 3),
+                            new LayoutColumn(
+                                (new TextField('Data[City][Name]', 'Ort', 'Ort'))->setRequired()
+                                , 5),
+                            new LayoutColumn(
+                                new TextField('Data[City][District]', 'Ortsteil', 'Ortsteil')
+                                , 4)
+                        )),
+//                                new LayoutRow(array(
+//                                    new LayoutColumn(
+//                                        new TextField('Data[County]', 'Landkreis', 'Landkreis')
+//                                    , 4),
+//                                    new LayoutColumn(
+//                                        new SelectBox('Data[State]', 'Bundesland', array('Name' => Address::useService()->getStateAll()))
+//                                    , 4),
+//                                    new LayoutColumn(
+//                                        new TextField('Data[Nation]', 'Land', 'Land')
+//                                    , 4)
+//                                )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new TextArea('Data[Remark]', $remarkLabel, $remarkLabel, new Comment())
+                            )
+                        ))
+                    ))),
+                    Panel::PANEL_TYPE_INFO
+                )
+            )
+        ));
+        if ($panelContent) {
+            $rows[] = new FormRow(new FormColumn(
+                new Panel($titlePersonPanel, $panelContent, Panel::PANEL_TYPE_INFO)
+            ));
+        }
+        $rows[] = new FormRow(array(
+            new FormColumn(
+                (new PrimaryLink(new Save() . ' Speichern', ApiOnlineContactDetails::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineCreateAddressSave($PersonId, $ToPersonId, $PersonIdList))
+            )
+        ));
+
+        return (new Form(new FormGroup($rows)))->disableSubmitAction();
     }
 }

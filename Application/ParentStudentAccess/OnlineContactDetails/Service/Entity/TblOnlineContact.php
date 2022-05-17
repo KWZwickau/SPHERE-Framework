@@ -87,9 +87,9 @@ class TblOnlineContact extends Element
     {
         if ($this->serviceTblToPerson) {
             switch ($this->getContactType()) {
-                case self::VALUE_TYPE_ADDRESS: Address::useService()->getAddressToPersonById($this->serviceTblToPerson); break;
-                case self::VALUE_TYPE_PHONE: Phone::useService()->getPhoneToPersonById($this->serviceTblToPerson); break;
-                case self::VALUE_TYPE_MAIL: Mail::useService()->getMailToPersonById($this->serviceTblToPerson); break;
+                case self::VALUE_TYPE_ADDRESS: return Address::useService()->getAddressToPersonById($this->serviceTblToPerson);
+                case self::VALUE_TYPE_PHONE: return Phone::useService()->getPhoneToPersonById($this->serviceTblToPerson);
+                case self::VALUE_TYPE_MAIL: return Mail::useService()->getMailToPersonById($this->serviceTblToPerson);
             }
         }
 

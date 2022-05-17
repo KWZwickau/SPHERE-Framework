@@ -947,4 +947,54 @@ class Service extends AbstractService
 
         return empty($result) ? false : $result;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblAddress $tblAddress
+     *
+     * @return false|TblToPerson
+     */
+    public function getAddressToPersonByPersonAndAddress(TblPerson $tblPerson, TblAddress $tblAddress)
+    {
+        return (new Data($this->getBinding()))->getAddressToPersonByPersonAndAddress($tblPerson, $tblAddress);
+    }
+
+    /**
+     * @param $StreetName
+     * @param $StreetNumber
+     * @param $CityCode
+     * @param $CityName
+     * @param $CityDistrict
+     * @param string $PostOfficeBox
+     * @param string $County
+     * @param string $Nation
+     * @param TblState|null $tblState
+     *
+     * @return false|TblAddress
+     */
+    public function insertAddress(
+        $StreetName,
+        $StreetNumber,
+        $CityCode,
+        $CityName,
+        $CityDistrict,
+        string $PostOfficeBox = '',
+        string $County = '',
+        string $Nation = '',
+        TblState $tblState = null
+    ) {
+        if (($tblCity = (new Data($this->getBinding()))->createCity($CityCode, $CityName, $CityDistrict))) {
+            return (new Data($this->getBinding()))->createAddress(
+                $tblState,
+                $tblCity,
+                $StreetName,
+                $StreetNumber,
+                $PostOfficeBox,
+                $County,
+                $Nation
+            );
+        }
+
+        return false;
+    }
 }

@@ -3,6 +3,7 @@
 namespace SPHERE\Application\ParentStudentAccess\OnlineContactDetails;
 
 use DateTime;
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Data;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
@@ -217,7 +218,7 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param $PhoneId
-     * @param array $PersonIdList
+     * @param $PersonIdList
      * @param array $Data
      *
      * @return false|Form
@@ -225,7 +226,7 @@ class Service extends AbstractService
     public function checkFormPhone(
         TblPerson $tblPerson,
         $PhoneId,
-        array $PersonIdList,
+        $PersonIdList,
         array $Data
     ) {
         $error = false;
@@ -272,6 +273,97 @@ class Service extends AbstractService
 
                         (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_PHONE, $tblToPersonTemp ?: null, $tblPhone, $tblPersonItem,
                             $Data['Remark'], $tblPersonLogin);
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $AddressId
+     * @param $PersonIdList
+     * @param array $Data
+     *
+     * @return false|Form
+     */
+    public function checkFormAddress(
+        TblPerson $tblPerson,
+        $AddressId,
+        $PersonIdList,
+        array $Data
+    ) {
+        $error = false;
+        $form = OnlineContactDetails::useFrontend()->formAddress($tblPerson->getId(), $AddressId, $PersonIdList);
+        if (isset($Data['Street']['Name']) && empty($Data['Street']['Name'])) {
+            $form->setError('Data[Street][Name]', 'Bitte geben Sie eine Straße an');
+            $error = true;
+        } else {
+            $form->setSuccess('Data[Street][Name]');
+        }
+        if (isset($Data['Street']['Number']) && empty($Data['Street']['Number'])) {
+            $form->setError('Data[Street][Number]', 'Bitte geben Sie eine Hausnummer an');
+            $error = true;
+        } else {
+            $form->setSuccess('Data[Street][Number]');
+        }
+        if (isset($Data['City']['Code']) && empty($Data['City']['Code'])) {
+            $form->setError('Data[City][Code]', 'Bitte geben Sie eine Postleitzahl an');
+            $error = true;
+        } else {
+            $form->setSuccess('Data[City][Code]');
+        }
+        if (isset($Data['City']['Name']) && empty($Data['City']['Name'])) {
+            $form->setError('Data[City][Name]', 'Bitte geben Sie einen Ort an');
+            $error = true;
+        } else {
+            $form->setSuccess('Data[City][Name]');
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $ToPersonId
+     * @param array $Data
+     *
+     * @return bool
+     */
+    public function createAddress(
+        TblPerson $tblPerson,
+        $ToPersonId,
+        array $Data
+    ): bool {
+
+        if (($tblAddress = Address::useService()->insertAddress(
+                $Data['Street']['Name'],
+                $Data['Street']['Number'],
+                $Data['City']['Code'],
+                $Data['City']['Name'],
+                $Data['City']['District']
+            )) && ($tblPersonLogin = Account::useService()->getPersonByLogin())
+        ) {
+            $tblToPerson = $ToPersonId ? Address::useService()->getAddressToPersonById($ToPersonId) : null;
+
+            (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_ADDRESS, $tblToPerson ?: null, $tblAddress, $tblPerson,
+                $Data['Remark'], $tblPersonLogin);
+
+            if (isset($Data['PersonList'])) {
+                foreach ($Data['PersonList'] as $personId => $value) {
+                    if ($tblPersonItem = Person::useService()->getPersonById($personId)) {
+                        if ($tblToPerson)  {
+                            $tblToPersonTemp = Address::useService()->getAddressToPersonByPersonAndAddress($tblPersonItem, $tblToPerson->getTblAddress());
+                        } else {
+                            $tblToPersonTemp = null;
+                        }
+
+                        (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_ADDRESS, $tblToPersonTemp ?: null, $tblAddress,
+                            $tblPersonItem, $Data['Remark'], $tblPersonLogin);
                     }
                 }
             }
