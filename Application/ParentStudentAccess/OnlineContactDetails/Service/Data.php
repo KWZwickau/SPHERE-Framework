@@ -62,4 +62,24 @@ class Data extends AbstractData
             TblOnlineContact::ATTR_SERVICE_TBL_TO_PERSON => $tblToPerson->getId()
         ));
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string|null $ContactType
+     *
+     * @return false|TblOnlineContact[]
+     */
+    public function getOnlineContactAllByPerson(TblPerson $tblPerson, ?string $ContactType = null)
+    {
+        if ($ContactType) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblOnlineContact', array(
+                TblOnlineContact::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblOnlineContact::ATTR_CONTACT_TYPE => $ContactType
+            ));
+        }
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblOnlineContact', array(
+            TblOnlineContact::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
+    }
 }

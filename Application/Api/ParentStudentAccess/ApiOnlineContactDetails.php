@@ -44,7 +44,7 @@ class ApiOnlineContactDetails extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
-        $Dispatcher->registerMethod('loadContactDetailsContent');
+        $Dispatcher->registerMethod('loadContactDetailsStageContent');
 
         $Dispatcher->registerMethod('openCreatePhoneModal');
         $Dispatcher->registerMethod('saveCreatePhoneModal');
@@ -84,21 +84,14 @@ class ApiOnlineContactDetails extends Extension implements IApiInterface
     }
 
     /**
-     * @param null $PersonId
-     * @param array $personIdList
-     *
      * @return Pipeline
      */
-    public static function pipelineLoadContactDetailsContent($PersonId = null, array $personIdList = array()): Pipeline
+    public static function pipelineLoadContactDetailsStageContent(): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ContactDetailsContent_' . $PersonId), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ContactDetailsStageContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'loadContactDetailsContent',
-        ));
-        $ModalEmitter->setPostPayload(array(
-            'PersonId' => $PersonId,
-            'personIdList' => $personIdList
+            self::API_TARGET => 'loadContactDetailsStageContent',
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -106,18 +99,11 @@ class ApiOnlineContactDetails extends Extension implements IApiInterface
     }
 
     /**
-     * @param null $PersonId
-     * @param array $personIdList
-     *
      * @return string
      */
-    public function loadContactDetailsContent($PersonId = null, array $personIdList = array()): string
+    public function loadContactDetailsStageContent(): string
     {
-        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            return new Danger('Die Klasse oder Person wurde nicht gefunden', new Exclamation());
-        }
-
-        return OnlineContactDetails::useFrontend()->loadContactDetailsContent($tblPerson, $personIdList);
+        return OnlineContactDetails::useFrontend()->loadContactDetailsStageContent();
     }
 
     /**
@@ -171,7 +157,7 @@ class ApiOnlineContactDetails extends Extension implements IApiInterface
     private function getPhoneModal($form, TblPerson $tblPerson,  $ToPersonId = null): string
     {
         if ($ToPersonId) {
-            $title = new Title(new Edit() . ' Telefonnummer bearbeiten');
+            $title = new Title(new Edit() . ' Telefonnummer bearbeiten (Änderungswunsch)');
         } else {
             $title = new Title(new Plus() . ' Telefonnummer hinzufügen');
         }
@@ -253,20 +239,10 @@ class ApiOnlineContactDetails extends Extension implements IApiInterface
 
         if (OnlineContactDetails::useService()->createPhone($tblPerson, $ToPersonId, $Data)) {
             return new Success('Die Telefonnummer wurde erfolgreich gespeichert.')
-                . self::reloadContent($PersonId, $PersonIdList)
+                . self::pipelineLoadContactDetailsStageContent()
                 . self::pipelineClose();
         } else {
             return new Danger('Die Telefonnummer konnte nicht gespeichert werden.') . self::pipelineClose();
         }
-    }
-
-    private static function reloadContent($PersonId, $PersonIdList): string
-    {
-        $result = '';
-        foreach ($PersonIdList as $id) {
-            $result .= self::pipelineLoadContactDetailsContent($id, $PersonIdList);
-        }
-
-        return $result;
     }
 }

@@ -205,6 +205,17 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param string|null $ContactType
+     *
+     * @return false|TblOnlineContact[]
+     */
+    public function getOnlineContactAllByPerson(TblPerson $tblPerson, ?string $ContactType = null)
+    {
+        return (new Data($this->getBinding()))->getOnlineContactAllByPerson($tblPerson, $ContactType);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      * @param $PhoneId
      * @param array $PersonIdList
      * @param array $Data

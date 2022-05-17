@@ -201,4 +201,18 @@ class TblOnlineContact extends Element
 
         return '';
     }
+
+    /**
+     * @return string
+     */
+    public function getContactTypeName(): string
+    {
+        switch ($this->getContactType()) {
+            case self::VALUE_TYPE_ADDRESS: return 'Adresse';
+            case self::VALUE_TYPE_PHONE: return 'Telefonnummer';
+            case self::VALUE_TYPE_MAIL: return 'E-Mail-Adresse';
+        }
+
+        return '';
+    }
 }

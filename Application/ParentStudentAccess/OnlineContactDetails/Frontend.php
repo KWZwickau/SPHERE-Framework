@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -43,9 +44,15 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendOnlineContactDetails(): Stage
     {
-        // todo muss als ganze seite neu geladen werden
         $stage = new Stage('Kontakt-Daten', 'Übersicht');
 
+        $stage->setContent(ApiOnlineContactDetails::receiverBlock($this->loadContactDetailsStageContent(), 'ContactDetailsStageContent'));
+
+        return $stage;
+    }
+
+    public function loadContactDetailsStageContent(): string
+    {
         $layoutGroupList = array();
 
         if (($tblAccount = Account::useService()->getAccountBySession())
@@ -66,12 +73,15 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $stage->setContent(ApiOnlineContactDetails::receiverModal() . new Layout($layoutGroupList));
-
-        return $stage;
+        return ApiOnlineContactDetails::receiverModal() . new Layout($layoutGroupList);
     }
 
-
+    /**
+     * @param TblPerson $tblPerson
+     * @param array $personIdList
+     *
+     * @return LayoutGroup|null
+     */
     private function getPersonContactDetailsLayoutGroup(TblPerson $tblPerson, array $personIdList): ?LayoutGroup
     {
         return new LayoutGroup(array(
@@ -84,15 +94,17 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             )),
             new LayoutRow(new LayoutColumn(
-                ApiOnlineContactDetails::receiverBlock($this->loadContactDetailsContent($tblPerson, $personIdList), 'ContactDetailsContent_' . $tblPerson->getId())
+                (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal($tblPerson->getId(), null, $personIdList))
+            )),
+            new LayoutRow(new LayoutColumn(
+                $this->loadContactDetailsContent($tblPerson, $personIdList)
             ))
         ));
     }
 
-    public function loadContactDetailsContent(TblPerson $tblPerson, array $personIdList): string
+    private function loadContactDetailsContent(TblPerson $tblPerson, array $personIdList): string
     {
-//        todo anzeige bereits eingereichte Änderungswünsche und von wem, die noch nicht von der schule angenommen wurden
-
         if (isset($personIdList[$tblPerson->getId()])) {
             unset($personIdList[$tblPerson->getId()]);
         }
@@ -148,6 +160,19 @@ class Frontend extends Extension implements IFrontendInterface
 //            }
 //        }
 
+        // neue Kontaktdaten, welche noch nicht angenommen wurden
+        if (($tblOnlineContactList = OnlineContactDetails::useService()->getOnlineContactAllByPerson($tblPerson))) {
+            foreach($tblOnlineContactList as $tblOnlineContact) {
+                $dataList[] = array(
+                    'Category' => $tblOnlineContact->getContactTypeName(),
+                    'Type' => '',
+                    'Content' => $tblOnlineContact->getContactString(),
+                    'OtherPersons' => '',
+                    'OnlineContactDetails' => '',
+                    'Options' => ''
+                );
+            }
+        }
 
         $columns = array(
             'Category' => 'Kategorie',
@@ -177,26 +202,32 @@ class Frontend extends Extension implements IFrontendInterface
         ))->setHash('ContactDetails-' . $tblPerson->getId());
     }
 
-    public function formPhone($PersonId, $ToPersonId = null, $PersonIdList = array()): Form
+    /**
+     * @param $PersonId
+     * @param null $ToPersonId
+     * @param array|null $PersonIdList
+     *
+     * @return Form
+     */
+    public function formPhone($PersonId, $ToPersonId = null, ?array $PersonIdList = array()): Form
     {
-
-//        if ($ToPersonId) {
-//            $saveButton = (new PrimaryLink('Speichern', ApiPhoneToPerson::getEndpoint(), new Save()))
-//                ->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineEditPhoneToPersonSave($PersonId, $ToPersonId));
-//        } else {
-//            $saveButton = (new PrimaryLink('Speichern', ApiPhoneToPerson::getEndpoint(), new Save()))
-//                ->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineCreatePhoneToPersonSave($PersonId));
-//        }
-
-        // todo delete button
-
         $panelContent = array();
         if ($PersonIdList) {
             foreach ($PersonIdList as $value) {
-                if (($tblPersonItem = Person::useService()->getPersonById($value))) {
+                if (($tblPersonItem = Person::useService()->getPersonById($value)) && $tblPersonItem->getId() != $PersonId) {
                    $panelContent[] = new CheckBox('Data[PersonList][' . $value . ']', $tblPersonItem->getFullName(), 1);
                 }
             }
+        }
+
+        if ($ToPersonId) {
+            $titleEditPanel = 'Änderungswunsch für bestehende Telefonnummer';
+            $remarkLabel = 'Änderungsbemerkung';
+            $titlePersonPanel = 'Änderungswunsch für weitere Personen übernehmen';
+        } else {
+            $titleEditPanel = 'Neue Telefonnummer';
+            $remarkLabel = 'Bemerkung';
+            $titlePersonPanel = 'Neue Telefonnummer für weitere Personen übernehmen';
         }
 
         return (new Form(
@@ -204,17 +235,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel(
-                            'Änderungswunsch für Telefonnummer',
+                            $titleEditPanel,
                             array(
                                 (new TextField('Data[Number]', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()))->setRequired(),
-                                new TextArea('Data[Remark]', 'Änderungsbemerkung', 'Änderungsbemerkung', new Edit())
+                                new TextArea('Data[Remark]', $remarkLabel, $remarkLabel, new Edit())
                             ),
                             Panel::PANEL_TYPE_INFO
                         )
                     ),
                     $panelContent
                         ? new FormColumn(new Panel(
-                            'Änderungswunsch für weitere Personen übernehmen',
+                            $titlePersonPanel,
                             $panelContent,
                             Panel::PANEL_TYPE_INFO
                         )) : null
