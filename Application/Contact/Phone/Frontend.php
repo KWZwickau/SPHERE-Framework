@@ -10,9 +10,9 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -66,7 +66,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblPhoneAll = Phone::useService()->getPhoneAll();
         $tblTypeAll = Phone::useService()->getTypeAll();
 
         if ($ToPersonId) {
@@ -86,8 +85,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 (new SelectBox('Type[Type]', 'Typ',
                                     array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
                                 ))->setRequired(),
-                                (new AutoCompleter('Number', 'Telefonnummer', 'Telefonnummer',
-                                    array('Number' => $tblPhoneAll), new PhoneIcon()
+                                (new TextField('Number', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()
                                 ))->setRequired()
                             ), Panel::PANEL_TYPE_INFO
                         ), 6
@@ -126,7 +124,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblPhoneAll = Phone::useService()->getPhoneAll();
         $tblTypeAll = Phone::useService()->getTypeAll();
 
         if ($ToCompanyId) {
@@ -146,8 +143,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 (new SelectBox('Type[Type]', 'Typ',
                                     array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
                                 ))->setRequired(),
-                                (new AutoCompleter('Number', 'Telefonnummer', 'Telefonnummer',
-                                    array('Number' => $tblPhoneAll), new PhoneIcon()
+                                (new TextField('Number', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()
                                 ))->setRequired()
                             ), Panel::PANEL_TYPE_INFO
                         ), 6
