@@ -918,4 +918,33 @@ class Service extends AbstractService
 
         return true;
     }
+
+    /**
+     * @param TblAddress $tblAddress
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByAddress(TblAddress $tblAddress)
+    {
+        return (new Data($this->getBinding()))->getToPersonAllByAddress($tblAddress);
+    }
+
+    /**
+     * @param TblAddress $tblAddress
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonAllByAddress(TblAddress $tblAddress)
+    {
+        $result = array();
+        if (($tblToPersonList = $this->getToPersonAllByAddress($tblAddress))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if (($tblPerson = $tblToPerson->getServiceTblPerson())) {
+                    $result[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
 }

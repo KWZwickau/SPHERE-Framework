@@ -429,4 +429,14 @@ class Data extends AbstractData
 
         return false;
     }
+
+    /**
+     * @param TblMail $tblMail
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByMail(TblMail $tblMail)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(TblToPerson::ATT_TBL_MAIL => $tblMail->getId()));
+    }
 }

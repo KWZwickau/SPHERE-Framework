@@ -713,4 +713,33 @@ class Service extends AbstractService
     public function getToPersonListByAddress(string $address) {
         return (new Data($this->getBinding()))->getToPersonListByAddress($address);
     }
+
+    /**
+     * @param TblMail $tblMail
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByMail(TblMail $tblMail)
+    {
+        return (new Data($this->getBinding()))->getToPersonAllByMail($tblMail);
+    }
+
+    /**
+     * @param TblMail $tblMail
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonAllByMail(TblMail $tblMail)
+    {
+        $result = array();
+        if (($tblToPersonList = $this->getToPersonAllByMail($tblMail))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if (($tblPerson = $tblToPerson->getServiceTblPerson())) {
+                    $result[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
 }

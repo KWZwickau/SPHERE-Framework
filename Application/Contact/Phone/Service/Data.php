@@ -348,4 +348,28 @@ class Data extends AbstractData
         }
         return false;
     }
+
+    /**
+     * @param TblPhone $tblPhone
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByPhone(TblPhone $tblPhone)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(TblToPerson::ATT_TBL_PHONE => $tblPhone->getId()));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblPhone $tblPhone
+     *
+     * @return false|TblToPerson
+     */
+    public function getPhoneToPersonByPersonAndPhone(TblPerson $tblPerson, TblPhone $tblPhone)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(
+            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblToPerson::ATT_TBL_PHONE => $tblPhone->getId()
+        ));
+    }
 }

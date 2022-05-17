@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\ParentStudentAccess\ContactDetails;
+namespace SPHERE\Application\ParentStudentAccess\OnlineContactDetails;
 
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
@@ -13,7 +13,7 @@ use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 
-class ContactDetails extends Extension implements IApplicationInterface, IModuleInterface
+class OnlineContactDetails extends Extension implements IApplicationInterface, IModuleInterface
 {
 
     public static function registerApplication()
@@ -35,20 +35,20 @@ class ContactDetails extends Extension implements IApplicationInterface, IModule
                 && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
             ) {
                 // Schüler-Zugang
-                $isRegistered = ContactDetails::useService()->getPersonListFromStudentLogin();
+                $isRegistered = OnlineContactDetails::useService()->getPersonListFromStudentLogin();
             } else {
                 // Mitarbeiter oder Eltern-Zugang
-                $isRegistered = ContactDetails::useService()->getPersonListFromCustodyLogin();
+                $isRegistered = OnlineContactDetails::useService()->getPersonListFromCustodyLogin();
             }
         }
 
         if ($isRegistered) {
             Main::getDisplay()->addApplicationNavigation(
-                new Link(new Link\Route(__NAMESPACE__), new Link\Name('Online Kontakt-Daten'))
+                new Link(new Link\Route(__NAMESPACE__), new Link\Name('Kontakt-Daten'))
             );
 
             Main::getDispatcher()->registerRoute(
-                Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendAbsenceOnline')
+                Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendOnlineContactDetails')
             );
         }
     }

@@ -875,4 +875,14 @@ class Data extends AbstractData
         }
         return false;
     }
+
+    /**
+     * @param TblAddress $tblAddress
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByAddress(TblAddress $tblAddress)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(TblToPerson::ATT_TBL_ADDRESS => $tblAddress->getId()));
+    }
 }

@@ -487,4 +487,55 @@ class Service extends AbstractService
 
         return false;
     }
+
+    /**
+     * @param TblPhone $tblPhone
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByPhone(TblPhone $tblPhone)
+    {
+        return (new Data($this->getBinding()))->getToPersonAllByPhone($tblPhone);
+    }
+
+    /**
+     * @param TblPhone $tblPhone
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonAllByPhone(TblPhone $tblPhone)
+    {
+        $result = array();
+        if (($tblToPersonList = $this->getToPersonAllByPhone($tblPhone))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if (($tblPerson = $tblToPerson->getServiceTblPerson())) {
+                    $result[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblPhone $tblPhone
+     *
+     * @return false|TblToPerson
+     */
+    public function getPhoneToPersonByPersonAndPhone(TblPerson $tblPerson, TblPhone $tblPhone)
+    {
+        return (new Data($this->getBinding()))->getPhoneToPersonByPersonAndPhone($tblPerson, $tblPhone);
+    }
+
+    /**
+     * @param $Number
+     *
+     * @return TblPhone
+     */
+    public function insertPhone(
+        $Number
+    ): TblPhone {
+        return (new Data($this->getBinding()))->createPhone($Number);
+    }
 }

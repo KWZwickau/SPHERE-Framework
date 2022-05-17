@@ -46,7 +46,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendOnlineAbsence(): Stage
     {
-        $stage = new Stage('Online Fehlzeiten', 'Übersicht');
+        $stage = new Stage('Fehlzeiten', 'Übersicht');
 
         $layoutGroupList = array();
 
