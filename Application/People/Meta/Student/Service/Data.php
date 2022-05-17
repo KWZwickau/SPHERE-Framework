@@ -196,29 +196,32 @@ class Data extends Support
         $this->createStudentInsuranceState('Familie Vater');
         $this->createStudentInsuranceState('Familie Mutter');
 
-        $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
-            'Foto des Schülers',
-            'Sowohl Einzelaufnahmen als auch in Gruppen (z.B. zufällig)'
-        );
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
+        // Werte nur bei der Initialisierung verwenden
+        if(!$this->getStudentAgreementCategoryAll()){
+            $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
+                'Foto des Schülers',
+                'Sowohl Einzelaufnahmen als auch in Gruppen (z.B. zufällig)'
+            );
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
 
-        $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
-            'Namentliche Erwähnung des Schülers',
-            ''
-        );
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
+            $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
+                'Namentliche Erwähnung des Schülers',
+                ''
+            );
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
+        }
 
         $Entity = $this->getStudentSubjectTypeByIdentifier('ORIENTATION');
         if ($Entity) {

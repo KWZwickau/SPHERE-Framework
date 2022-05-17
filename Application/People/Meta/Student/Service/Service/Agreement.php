@@ -154,10 +154,10 @@ abstract class Agreement extends Liberation
      *
      * @return TblStudentAgreementType
      */
-    public function createStudentAgreementType(TblStudentAgreementCategory $tblStudentAgreementCategory, $Name, $Description = '')
+    public function createStudentAgreementType(TblStudentAgreementCategory $tblStudentAgreementCategory, $Name, $Description = '', $isUnlocked = false)
     {
 
-        return (new Data($this->getBinding()))->createStudentAgreementType($tblStudentAgreementCategory, $Name, $Description);
+        return (new Data($this->getBinding()))->createStudentAgreementType($tblStudentAgreementCategory, $Name, $Description, $isUnlocked);
     }
 
     /**
@@ -177,13 +177,14 @@ abstract class Agreement extends Liberation
      * @param TblStudentAgreementType $tblStudentAgreementType
      * @param string                  $Name
      * @param string                  $Description
+     * @param bool                    $isUnlocked
      *
      * @return bool
      */
-    public function updateStudentAgreementType(TblStudentAgreementType $tblStudentAgreementType, $Name, $Description = '')
+    public function updateStudentAgreementType(TblStudentAgreementType $tblStudentAgreementType, $Name, $Description = '', $isUnlocked = false)
     {
 
-        return (new Data($this->getBinding()))->updateStudentAgreementType($tblStudentAgreementType, $Name, $Description);
+        return (new Data($this->getBinding()))->updateStudentAgreementType($tblStudentAgreementType, $Name, $Description, $isUnlocked);
     }
 
     /**

@@ -183,6 +183,51 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param           $Meta
+     *
+     * @return bool
+     */
+    public function updatePersonAgreement(TblPerson $tblPerson, $Meta)
+    {
+
+        if ($tblPerson) {
+            /*
+             * Agreement
+             */
+            $tblPersonAgreementAllByPerson = $this->getPersonAgreementAllByPerson($tblPerson);
+            if ($tblPersonAgreementAllByPerson) {
+                foreach ($tblPersonAgreementAllByPerson as $tblPersonAgreement) {
+                    if (!isset(
+                        $Meta['Agreement']
+                        [$tblPersonAgreement->getTblPersonAgreementType()->getTblPersonAgreementCategory()->getId()]
+                        [$tblPersonAgreement->getTblPersonAgreementType()->getId()]
+                    )
+                    ) {
+                        (new Data($this->getBinding()))->removePersonAgreement($tblPersonAgreement);
+                    }
+                }
+            }
+            if (isset($Meta['Agreement'])) {
+                foreach ($Meta['Agreement'] as $Category => $Items) {
+                    $tblPersonAgreementCategory = $this->getPersonAgreementTypeById($Category);
+                    if ($tblPersonAgreementCategory) {
+                        foreach ($Items as $Type => $Value) {
+                            $tblPersonAgreementType = $this->getPersonAgreementTypeById($Type);
+                            if ($tblPersonAgreementType) {
+                                (new Data($this->getBinding()))->addPersonAgreement($tblPerson,
+                                    $tblPersonAgreementType);
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblPersonAgreementCategory $tblPersonAgreementCategory
      * @param string                      $Name
      * @param string                      $Description

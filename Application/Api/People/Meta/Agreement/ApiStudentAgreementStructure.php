@@ -38,6 +38,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -376,14 +377,28 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
             foreach($tblStudentAgreementCategoryList as $tblStudentAgreementCategory){
                 $CategoryList[$tblStudentAgreementCategory->getName()][] = new Bold($tblStudentAgreementCategory->getName()) .new PullRight(
                     (new Link(new Edit(), '#'))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenEditCategoryModal($PersonId, $tblStudentAgreementCategory->getId()))
-                    .(new Link(new DangerText(new Disable()), '#'))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenDestroyCategoryModal($PersonId, $tblStudentAgreementCategory->getId()))
+                    .(new Link(new DangerText(new Disable()), '#'))
+                        ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenDestroyCategoryModal($PersonId, $tblStudentAgreementCategory->getId()))
                 );
                 if(($tblStudentAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory))){
                     foreach($tblStudentAgreementTypeList as $tblStudentAgreementType){
-                        $CategoryList[$tblStudentAgreementCategory->getName()][] = $tblStudentAgreementType->getName().new PullRight(
-                            (new Link(new Edit(), '#'))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenEditTypeModal($PersonId, $tblStudentAgreementType->getId()))
-                            .(new Link(new DangerText(new Disable()), '#'))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenDestroyTypeModal($PersonId, $tblStudentAgreementType->getId()))
-                        );
+                        // Kursiv + Mouse Over Info
+                        if($tblStudentAgreementType->getIsUnlocked()){
+                            $CategoryList[$tblStudentAgreementCategory->getName()][] = new Italic(new ToolTip(
+                                $tblStudentAgreementType->getName().'*', 'Lehrer können diesen Wert setzen').new PullRight(
+                                    (new Link(new Edit(), '#'))
+                                        ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenEditTypeModal($PersonId, $tblStudentAgreementType->getId()))
+                                    .(new Link(new DangerText(new Disable()), '#'))
+                                        ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenDestroyTypeModal($PersonId, $tblStudentAgreementType->getId()))
+                                ));
+                        } else {
+                            $CategoryList[$tblStudentAgreementCategory->getName()][] = $tblStudentAgreementType->getName().new PullRight(
+                                    (new Link(new Edit(), '#'))
+                                        ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenEditTypeModal($PersonId, $tblStudentAgreementType->getId()))
+                                    .(new Link(new DangerText(new Disable()), '#'))
+                                        ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenDestroyTypeModal($PersonId, $tblStudentAgreementType->getId()))
+                                );
+                        }
                     }
                 }
                 if(count($CategoryList[$tblStudentAgreementCategory->getName()]) < 9
@@ -652,7 +667,8 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
         if(!$isError){
             $Name = $Meta['Type'];
             $Description = isset($Meta['Description']) ?? $Meta['Description'];
-            Student::useService()->createStudentAgreementType($tblStudentAgreementCategory, $Name, $Description);
+            $isUnlocked = isset($Meta['isUnlocked']);
+            Student::useService()->createStudentAgreementType($tblStudentAgreementCategory, $Name, $Description, $isUnlocked);
             return new Success('Anlegen war Erfolgreich!')
                 .ApiStudentAgreementStructure::pipelineEditStudentAgreementStructure($PersonId)
                 .ApiStudentAgreementStructure::pipelineCloseModal('ModalAgreementStructureCreateType');
@@ -670,6 +686,7 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
 
         if(($tblStudentAgreementType = Student::useService()->getStudentAgreementTypeById($TypeId))){
             $_POST['Meta']['Type'] = $tblStudentAgreementType->getName();
+            $_POST['Meta']['isUnlocked'] = $tblStudentAgreementType->getIsUnlocked();
         }
 
         $form = FrontendStudentAgreement::getTypeForm();
@@ -718,7 +735,8 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
         if(!$isError){
             $Name = $Meta['Type'];
             $Description = isset($Meta['Description']) ?? $Meta['Description'];
-            Student::useService()->updateStudentAgreementType($tblStudentAgreementType, $Name, $Description);
+            $isUnlocked = isset($Meta['isUnlocked']);
+            Student::useService()->updateStudentAgreementType($tblStudentAgreementType, $Name, $Description, $isUnlocked);
             return new Success('Bearbeiten war Erfolgreich!')
                 .ApiStudentAgreementStructure::pipelineEditStudentAgreementStructure($PersonId)
                 .ApiStudentAgreementStructure::pipelineCloseModal('ModalAgreementStructureEditType');

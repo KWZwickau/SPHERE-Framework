@@ -516,6 +516,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentAgreementType', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+        $this->createColumn($Table, 'isUnlocked', self::FIELD_TYPE_BOOLEAN);
         $this->getConnection()->addForeignKey($Table, $tblStudentAgreementCategory);
         return $Table;
     }

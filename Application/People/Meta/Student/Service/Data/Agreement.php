@@ -196,7 +196,7 @@ abstract class Agreement extends Liberation
      *
      * @return TblStudentAgreementType
      */
-    public function createStudentAgreementType(TblStudentAgreementCategory $tblStudentAgreementCategory, $Name, $Description = '')
+    public function createStudentAgreementType(TblStudentAgreementCategory $tblStudentAgreementCategory, $Name, $Description = '', $isUnlocked = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -209,6 +209,7 @@ abstract class Agreement extends Liberation
             $Entity->setTblStudentAgreementCategory($tblStudentAgreementCategory);
             $Entity->setName($Name);
             $Entity->setDescription($Description);
+            $Entity->setIsUnlocked($isUnlocked);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -274,7 +275,7 @@ abstract class Agreement extends Liberation
      *
      * @return bool
      */
-    public function updateStudentAgreementType(TblStudentAgreementType $tblStudentAgreementType, $Name, $Description = '')
+    public function updateStudentAgreementType(TblStudentAgreementType $tblStudentAgreementType, $Name, $Description = '', $isUnlocked = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -284,6 +285,7 @@ abstract class Agreement extends Liberation
             $Protocol = clone $Entity;
             $Entity->setName($Name);
             $Entity->setDescription($Description);
+            $Entity->setIsUnlocked($isUnlocked);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
         }

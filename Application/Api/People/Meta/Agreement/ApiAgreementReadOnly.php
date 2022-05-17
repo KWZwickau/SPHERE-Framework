@@ -103,53 +103,32 @@ class ApiAgreementReadOnly extends Extension implements IApiInterface
                 }
                 $Global->savePost();
 
+                // ToDO Dynmaische Abbildung der Kategorien mit Funktionierender Form auf für Lehrer änderbarer Werte
                 if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
                     array_walk($tblAgreementCategoryAll,
                         function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementNameList, &$AgreementPictureList) {
+                            $AgreementPictureList[] = new Aspect(new Bold($tblStudentAgreementCategory->getName()));
+                            $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
+                            if ($tblAgreementTypeAll) {
+                                $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
+                                array_walk($tblAgreementTypeAll,
+                                    function (TblStudentAgreementType $tblStudentAgreementType) use (
+                                        &$AgreementPictureList,
+                                        $tblStudentAgreementCategory
+                                    ) {
 
-                            if($tblStudentAgreementCategory->getName() == 'Namentliche Erwähnung des Schülers'){
-                                $AgreementNameList[] = new Aspect(new Bold($tblStudentAgreementCategory->getName()));
-                                $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
-                                if ($tblAgreementTypeAll) {
-                                    $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
-                                    array_walk($tblAgreementTypeAll,
-                                        function (TblStudentAgreementType $tblStudentAgreementType) use (
-                                            &$AgreementNameList,
-                                            $tblStudentAgreementCategory
-                                        ) {
-
-                                            $Row = new Layout(new LayoutGroup(new LayoutRow(array(
-                                                new LayoutColumn((new CheckBox('Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']',
-                                                    ' ', 1))->setDisabled()
-                                                    , 1),
-                                                new LayoutColumn($tblStudentAgreementType->getName()
-                                                    , 11),
-                                            ))));
-                                            array_push($AgreementNameList, $Row);
+                                        $Checkbox = new CheckBox('Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']',
+                                            ' ', 1);
+                                        if(!$tblStudentAgreementType->getIsUnlocked()){
+                                            $Checkbox->setDisabled();
                                         }
-                                    );
-                                }
-                            } else {
-                                $AgreementPictureList[] = new Aspect(new Bold($tblStudentAgreementCategory->getName()));
-                                $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
-                                if ($tblAgreementTypeAll) {
-                                    $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
-                                    array_walk($tblAgreementTypeAll,
-                                        function (TblStudentAgreementType $tblStudentAgreementType) use (
-                                            &$AgreementPictureList,
-                                            $tblStudentAgreementCategory
-                                        ) {
-                                            $Row = new Layout(new LayoutGroup(new LayoutRow(array(
-                                                new LayoutColumn((new CheckBox('Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']',
-                                                    ' ', 1))->setDisabled()
-                                                    , 1),
-                                                new LayoutColumn($tblStudentAgreementType->getName()
-                                                    , 11),
-                                            ))));
-                                            array_push($AgreementPictureList, $Row);
-                                        }
-                                    );
-                                }
+                                        $Row = new Layout(new LayoutGroup(new LayoutRow(array(
+                                            new LayoutColumn($Checkbox, 1),
+                                            new LayoutColumn($tblStudentAgreementType->getName(), 11),
+                                        ))));
+                                        array_push($AgreementPictureList, $Row);
+                                    }
+                                );
                             }
                         }
                     );

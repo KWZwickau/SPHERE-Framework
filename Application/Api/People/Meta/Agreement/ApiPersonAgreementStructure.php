@@ -5,7 +5,9 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Meta\Agreement\Agreement;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentAgreement;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -24,6 +26,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -372,25 +375,27 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
 
         $CategoryList = array();
         //ToDO neue Anbindung
-        if(($tblStudentAgreementCategoryList = Student::useService()->getStudentAgreementCategoryAll())){
-            foreach($tblStudentAgreementCategoryList as $tblStudentAgreementCategory){
-                $CategoryList[$tblStudentAgreementCategory->getName()][] = new Bold($tblStudentAgreementCategory->getName()) .new PullRight(
-                    (new Link(new Edit(), '#'))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenEditCategoryModal($PersonId, $tblStudentAgreementCategory->getId()))
-                    .(new Link(new DangerText(new Disable()), '#'))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenDestroyCategoryModal($PersonId, $tblStudentAgreementCategory->getId()))
-                );
-                if(($tblStudentAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory))){
-                    foreach($tblStudentAgreementTypeList as $tblStudentAgreementType){
-                        $CategoryList[$tblStudentAgreementCategory->getName()][] = $tblStudentAgreementType->getName().new PullRight(
-                            (new Link(new Edit(), '#'))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenEditTypeModal($PersonId, $tblStudentAgreementType->getId()))
-                            .(new Link(new DangerText(new Disable()), '#'))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenDestroyTypeModal($PersonId, $tblStudentAgreementType->getId()))
-                        );
+        if(($tblPersonAgreementCategoryList = Agreement::useService()->getPersonAgreementCategoryAll())){
+            foreach($tblPersonAgreementCategoryList as $tblPersonAgreementCategory){
+                $CategoryList[$tblPersonAgreementCategory->getName()][] = new PullClear(
+                    new Bold($tblPersonAgreementCategory->getName()) .new PullRight(
+                        (new Link(new Edit(), '#'))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineOpenEditCategoryModal($PersonId, $tblPersonAgreementCategory->getId()))
+                        .(new Link(new DangerText(new Disable()), '#'))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineOpenDestroyCategoryModal($PersonId, $tblPersonAgreementCategory->getId()))
+                ));
+                if(($tblPersonAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblPersonAgreementCategory))){
+                    foreach($tblPersonAgreementTypeList as $tblPersonAgreementType){
+                        $CategoryList[$tblPersonAgreementCategory->getName()][] = new PullClear(
+                            $tblPersonAgreementType->getName().new PullRight(
+                                (new Link(new Edit(), '#'))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineOpenEditTypeModal($PersonId, $tblPersonAgreementType->getId()))
+                                .(new Link(new DangerText(new Disable()), '#'))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineOpenDestroyTypeModal($PersonId, $tblPersonAgreementType->getId()))
+                        ));
                     }
                 }
-                if(count($CategoryList[$tblStudentAgreementCategory->getName()]) < 9
-                    || count($CategoryList[$tblStudentAgreementCategory->getName()]) == 0
+                if(count($CategoryList[$tblPersonAgreementCategory->getName()]) < 9
+                    || count($CategoryList[$tblPersonAgreementCategory->getName()]) == 0
                 ){
-                    $CategoryList[$tblStudentAgreementCategory->getName()][] = (new Link(new Plus().'Typ hinzufügen', '#'))
-                    ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenCreateTypeModal($PersonId, $tblStudentAgreementCategory->getId()));
+                    $CategoryList[$tblPersonAgreementCategory->getName()][] = (new Link(new Plus().'Typ hinzufügen', '#'))
+                    ->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineOpenCreateTypeModal($PersonId, $tblPersonAgreementCategory->getId()));
                 }
             }
         }
@@ -406,7 +411,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
         }
 
         //ToDO neues Frontend
-        return (new FrontendStudentAgreement())->getEditStudentAgreementStructure($PersonId)
+        return (new FrontendPersonAgreement())->getEditPersonAgreementStructure($PersonId)
             .new Well(
                 ApiPersonAgreementStructure::receiverModal('Kategorie hinzufügen', 'ModalAgreementStructureCreateCategory')
                 .ApiPersonAgreementStructure::receiverModal('Kategorie bearbeiten', 'ModalAgreementStructureEditCategory')
@@ -434,6 +439,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
             (new Primary('Speichern', '#', new Save()))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineSaveCreateCategory($PersonId)),
             (new DangerLink('Abbrechen', '#', new Disable()))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineCloseModal('ModalAgreementStructureCreateCategory'))
         )))));
+        $form->disableSubmitAction();
         return new Well($form);
     }
 
@@ -470,11 +476,12 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
                 $isError = true;
             }
         }
+        $form->disableSubmitAction();
         if(!$isError){
             $Name = $Meta['Category'];
             $Description = isset($Meta['Description']) ?? $Meta['Description'];
             //ToDO neue Anbindung
-            Student::useService()->createPersonAgreementCategory($Name, $Description);
+            Agreement::useService()->createPersonAgreementCategory($Name, $Description);
             return new Success('Anlegen war Erfolgreich!')
                 .ApiPersonAgreementStructure::pipelineEditPersonAgreementStructure($PersonId)
                 .ApiPersonAgreementStructure::pipelineCloseModal('ModalAgreementStructureCreateCategory');
@@ -490,7 +497,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
     public function openEditCategoryModal($PersonId, $CategoryId)
     {
         //ToDO neue Anbindung
-        if(($tblPersonAgreementCategory = Student::useService()->getPersonAgreementCategoryById($CategoryId))){
+        if(($tblPersonAgreementCategory = Agreement::useService()->getPersonAgreementCategoryById($CategoryId))){
             $_POST['Meta']['Category'] = $tblPersonAgreementCategory->getName();
         }
 
@@ -513,7 +520,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
 
         $isError = false;
         //ToDO neue Anbindung
-        $tblPersonAgreementCategory = Student::useService()->getPersonAgreementCategoryById($CategoryId);
+        $tblPersonAgreementCategory = Agreement::useService()->getPersonAgreementCategoryById($CategoryId);
         if(!isset($Meta['Category']) || $Meta['Category'] == ''){
             $form = FrontendPersonAgreement::getCategoryForm();
             // Fehler
@@ -527,7 +534,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
         } else {
             if($Meta['Category'] != $tblPersonAgreementCategory->getName()
                 //ToDO neue Anbindung
-            && Student::useService()->getPersonAgreementCategoryByName($Meta['Category'])){
+            && Agreement::useService()->getPersonAgreementCategoryByName($Meta['Category'])){
                 $form = FrontendPersonAgreement::getCategoryForm();
                 // Fehler
                 $form->setError('Meta[Category]', 'Name der Kategorie ist bereits in Verwendung');
@@ -542,7 +549,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
         if(!$isError){
             $Name = $Meta['Category'];
             $Description = isset($Meta['Description']) ?? $Meta['Description'];
-            Student::useService()->updatePersonAgreementCategory($tblPersonAgreementCategory, $Name, $Description);
+            Agreement::useService()->updatePersonAgreementCategory($tblPersonAgreementCategory, $Name, $Description);
             return new Success('Bearbeiten war Erfolgreich!')
                 .ApiPersonAgreementStructure::pipelineEditPersonAgreementStructure($PersonId)
                 .ApiPersonAgreementStructure::pipelineCloseModal('ModalAgreementStructureEditCategory');
@@ -559,13 +566,13 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
     {
 
         //ToDO neue Anbindung
-        $tblPersonAgreementCategory = Student::useService()->getPersonAgreementCategoryById($CategoryId);
+        $tblPersonAgreementCategory = Agreement::useService()->getPersonAgreementCategoryById($CategoryId);
         $CategoryName = $tblPersonAgreementCategory->getName();
         $TypeWithCount = array();
-        if(($tblPersonAgreementTypeList = Student::useService()->getPersonAgreementTypeAllByCategory($tblPersonAgreementCategory))){
+        if(($tblPersonAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblPersonAgreementCategory))){
             foreach($tblPersonAgreementTypeList as $tblPersonAgreementType){
                 $AgreementCount = 0;
-                $tblPersonAgreementList = Student::useService()->getPersonAgreementAllByType($tblPersonAgreementType);
+                $tblPersonAgreementList = Agreement::useService()->getPersonAgreementAllByType($tblPersonAgreementType);
                 if($tblPersonAgreementList){
                     $AgreementCount = count($tblPersonAgreementList);
                 }
@@ -595,8 +602,8 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
     public function saveDestroyCategoryModal($PersonId, $CategoryId)
     {
 
-        $tblPersonAgreementCategory = Student::useService()->getPersonAgreementCategoryById($CategoryId);
-        if(Student::useService()->destroyPersonAgreementCategory($tblPersonAgreementCategory)){
+        $tblPersonAgreementCategory = Agreement::useService()->getPersonAgreementCategoryById($CategoryId);
+        if(Agreement::useService()->destroyPersonAgreementCategory($tblPersonAgreementCategory)){
             return new Success('Kategorie wurde entfernt')
                 .ApiPersonAgreementStructure::pipelineEditPersonAgreementStructure($PersonId)
                 .ApiPersonAgreementStructure::pipelineCloseModal('ModalAgreementStructureDestroyCategory');
@@ -630,7 +637,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
     {
 
         $isError = false;
-        $tblPersonAgreementCategory = Student::useService()->getPersonAgreementCategoryById($CategoryId);
+        $tblPersonAgreementCategory = Agreement::useService()->getPersonAgreementCategoryById($CategoryId);
         if(!isset($Meta['Type']) || $Meta['Type'] == ''){
             $form = FrontendPersonAgreement::getTypeForm();
             // Fehler
@@ -642,7 +649,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
             )))));
             $isError = true;
         } else {
-            if(Student::useService()->getPersonAgreementTypeByName($Meta['Type'])){
+            if(Agreement::useService()->getPersonAgreementTypeByName($Meta['Type'])){
                 $form = FrontendPersonAgreement::getTypeForm();
                 // Fehler
                 $form->setError('Meta[Type]', 'Name des Typ\'s ist bereits in Verwendung');
@@ -657,7 +664,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
         if(!$isError){
             $Name = $Meta['Type'];
             $Description = isset($Meta['Description']) ?? $Meta['Description'];
-            Student::useService()->createPersonAgreementType($tblPersonAgreementCategory, $Name, $Description);
+            Agreement::useService()->createPersonAgreementType($tblPersonAgreementCategory, $Name, $Description);
             return new Success('Anlegen war Erfolgreich!')
                 .ApiPersonAgreementStructure::pipelineEditPersonAgreementStructure($PersonId)
                 .ApiPersonAgreementStructure::pipelineCloseModal('ModalAgreementStructureCreateType');
@@ -673,7 +680,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
     public function openEditTypeModal($PersonId, $TypeId)
     {
 
-        if(($tblPersonAgreementType = Student::useService()->getPersonAgreementTypeById($TypeId))){
+        if(($tblPersonAgreementType = Agreement::useService()->getPersonAgreementTypeById($TypeId))){
             $_POST['Meta']['Type'] = $tblPersonAgreementType->getName();
         }
 
@@ -695,7 +702,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
     {
 
         $isError = false;
-        $tblPersonAgreementType = Student::useService()->getPersonAgreementTypeById($TypeId);
+        $tblPersonAgreementType = Agreement::useService()->getPersonAgreementTypeById($TypeId);
         if(!isset($Meta['Type']) || $Meta['Type'] == ''){
             $form = FrontendPersonAgreement::getTypeForm();
             // Fehler
@@ -708,7 +715,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
             $isError = true;
         } else {
             if($Meta['Type'] != $tblPersonAgreementType->getName()
-            && Student::useService()->getPersonAgreementTypeByName($Meta['Type'])){
+            && Agreement::useService()->getPersonAgreementTypeByName($Meta['Type'])){
                 $form = FrontendPersonAgreement::getTypeForm();
                 // Fehler
                 $form->setError('Meta[Type]', 'Name der Kategorie ist bereits in Verwendung');
@@ -723,7 +730,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
         if(!$isError){
             $Name = $Meta['Type'];
             $Description = isset($Meta['Description']) ?? $Meta['Description'];
-            Student::useService()->updatePersonAgreementType($tblPersonAgreementType, $Name, $Description);
+            Agreement::useService()->updatePersonAgreementType($tblPersonAgreementType, $Name, $Description);
             return new Success('Bearbeiten war Erfolgreich!')
                 .ApiPersonAgreementStructure::pipelineEditPersonAgreementStructure($PersonId)
                 .ApiPersonAgreementStructure::pipelineCloseModal('ModalAgreementStructureEditType');
@@ -739,11 +746,11 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
     public function openDestroyTypeModal($PersonId, $TypeId)
     {
 
-        $tblPersonAgreementType = Student::useService()->getPersonAgreementTypeById($TypeId);
+        $tblPersonAgreementType = Agreement::useService()->getPersonAgreementTypeById($TypeId);
         $TypeName = $tblPersonAgreementType->getName();
         $Agreement = '';
         $AgreementCount = 0;
-        $tblPersonAgreementList = Student::useService()->getPersonAgreementAllByType($tblPersonAgreementType);
+        $tblPersonAgreementList = Agreement::useService()->getPersonAgreementAllByType($tblPersonAgreementType);
         if($tblPersonAgreementList){
             $AgreementCount = count($tblPersonAgreementList);
             $Agreement = new Warning('Dieser Typ wird '.$AgreementCount.' mal verwendet');
@@ -771,8 +778,8 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
     public function saveDestroyTypeModal($PersonId, $TypeId)
     {
 
-        $tblPersonAgreementType = Student::useService()->getPersonAgreementTypeById($TypeId);
-        if(Student::useService()->destroyPersonAgreementType($tblPersonAgreementType)){
+        $tblPersonAgreementType = Agreement::useService()->getPersonAgreementTypeById($TypeId);
+        if(Agreement::useService()->destroyPersonAgreementType($tblPersonAgreementType)){
             return new Success('Kategorie wurde entfernt')
                 .ApiPersonAgreementStructure::pipelineEditPersonAgreementStructure($PersonId)
                 .ApiPersonAgreementStructure::pipelineCloseModal('ModalAgreementStructureDestroyType');

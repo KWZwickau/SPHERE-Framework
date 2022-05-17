@@ -10,6 +10,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendChild;
 use SPHERE\Application\People\Person\Frontend\FrontendClub;
 use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Application\People\Person\Frontend\FrontendCustody;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentAgreement;
@@ -48,6 +49,7 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('loadBasicContent');
         $Dispatcher->registerMethod('loadCommonContent');
+        $Dispatcher->registerMethod('loadPersonAgreementContent');
         $Dispatcher->registerMethod('loadProspectContent');
         $Dispatcher->registerMethod('loadTeacherContent');
         $Dispatcher->registerMethod('loadCustodyContent');
@@ -117,6 +119,27 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $emitter = new ServerEmitter(self::receiverBlock('', 'CommonContent'), self::getEndpoint());
         $emitter->setGetPayload(array(
             self::API_TARGET => 'loadCommonContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadPersonAgreementContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'PersonAgreementContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadPersonAgreementContent',
         ));
         $emitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -526,6 +549,17 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     {
 
         return FrontendCommon::getCommonContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadPersonAgreementContent($PersonId = null)
+    {
+
+        return FrontendPersonAgreement::getPersonAgreementContent($PersonId);
     }
 
     /**

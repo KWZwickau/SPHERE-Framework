@@ -19,29 +19,32 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $tblPersonAgreementCategory = $this->createPersonAgreementCategory(
-            'Foto der Person',
-            'Sowohl Einzelaufnahmen als auch in Gruppen (z.B. zufällig)'
-        );
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'in Schulschriften');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'in Veröffentlichungen');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'auf Internetpräsenz');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'auf Facebookseite');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'für Druckpresse');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'durch Ton/Video/Film');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'für Werbung in eigener Sache');
+        // Werte nur bei der Initialisierung verwenden
+        if(!$this->getPersonAgreementCategoryAll()){
+            $tblPersonAgreementCategory = $this->createPersonAgreementCategory(
+                'Foto der Person',
+                'Sowohl Einzelaufnahmen als auch in Gruppen (z.B. zufällig)'
+            );
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'in Schulschriften');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'in Veröffentlichungen');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'auf Internetpräsenz');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'auf Facebookseite');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'für Druckpresse');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'durch Ton/Video/Film');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'für Werbung in eigener Sache');
 
-        $tblPersonAgreementCategory = $this->createPersonAgreementCategory(
-            'Namentliche Erwähnung der Person',
-            ''
-        );
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'in Schulschriften');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'in Veröffentlichungen');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'auf Internetpräsenz');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'auf Facebookseite');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'für Druckpresse');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'durch Ton/Video/Film');
-        $this->createPersonAgreementType($tblPersonAgreementCategory, 'für Werbung in eigener Sache');
+            $tblPersonAgreementCategory = $this->createPersonAgreementCategory(
+                'Namentliche Erwähnung der Person',
+                ''
+            );
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'in Schulschriften');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'in Veröffentlichungen');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'auf Internetpräsenz');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'auf Facebookseite');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'für Druckpresse');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'durch Ton/Video/Film');
+            $this->createPersonAgreementType($tblPersonAgreementCategory, 'für Werbung in eigener Sache');
+        }
     }
 
     /**

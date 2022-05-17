@@ -197,7 +197,7 @@ class FrontendStudentAgreement extends FrontendReadOnly
                 .new PullRight(new ToggleSelective('wählen/abwählen', $CategoryCheckboxList))
                 ));
                 if ($tblAgreementTypeAll) {
-                    $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
+//                    $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
                     array_walk($tblAgreementTypeAll,
                     function (TblStudentAgreementType $tblStudentAgreementType) use (&$AgreementPanel, &$CheckboxList,
                         $tblStudentAgreementCategory, &$PanelCount) {
@@ -218,13 +218,12 @@ class FrontendStudentAgreement extends FrontendReadOnly
         $AgreementLayout = array();
         if(!empty($AgreementPanel)){
             foreach($AgreementPanel as $AgreementPanelOne){
-
-                $AgreementLayout[] = new LayoutCOlumn(new Panel(new PullClear('Einverständniserklärung zur Datennutzung') // .new PullRight($CheckboxButton)
+                $AgreementLayout[] = new LayoutColumn(new Panel(new PullClear('Einverständniserklärung zur Datennutzung') // .new PullRight($CheckboxButton)
                     , $AgreementPanelOne, Panel::PANEL_TYPE_INFO), 3);
             }
         }
 
-        $Form = (new Form(array(
+        $Form = new Form(array(
             new FormGroup(array(
                 new FormRow(
                     $AgreementLayout
@@ -238,7 +237,7 @@ class FrontendStudentAgreement extends FrontendReadOnly
                     ))
                 ))
             ))
-        )))->disableSubmitAction();
+        ));
 
         return $Form;
     }
@@ -249,9 +248,10 @@ class FrontendStudentAgreement extends FrontendReadOnly
     public static function getCategoryForm()
     {
 
-        return new Form(new FormGroup(new FormRow(array(
+        return (new Form(new FormGroup(new FormRow(array(
             new FormColumn(new TextField('Meta[Category]', '', 'Name der Kategorie')),
-        ))));
+            new FormColumn(new Success('<div style="height:5px"></div>')),
+        )))))->disableSubmitAction();
     }
 
     /**
@@ -260,8 +260,10 @@ class FrontendStudentAgreement extends FrontendReadOnly
     public static function getTypeForm()
     {
 
-        return new Form(new FormGroup(new FormRow(array(
+        return (new Form(new FormGroup(new FormRow(array(
             new FormColumn(new TextField('Meta[Type]', '', 'Name des Typ\'s')),
-        ))));
+            new FormColumn(new CheckBox('Meta[isUnlocked]', 'Typ kann vom Lehrer gesetzt werden', true)),
+            new FormColumn(new Success('<div style="height:10px"></div>')),
+        )))))->disableSubmitAction();
     }
 }
