@@ -14,9 +14,10 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
+use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
+use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -176,26 +177,29 @@ class TblOnlineContact extends Element
         $this->serviceTblPersonCreator = $tblPerson->getId();
     }
 
+    public function getContactCreate(): string
+    {
+        return ($tblPerson = $this->getServiceTblPersonCreator())
+            ? new Muted($tblPerson->getFullName() . ' am ' . $this->EntityCreate->format('d.m.Y'))
+            : '';
+    }
+
     /**
      * @return string
      */
-    public function getContactString(): string
+    public function getContactContent(): string
     {
         if (($tblContact = $this->getServiceTblContact())) {
-            $creator = ($tblPerson = $this->getServiceTblPersonCreator())
-                ? new PullRight(new Muted(new Small(' (' . $tblPerson->getFullName() . ' am ' . $this->EntityCreate->format('d.m.Y') . ')')))
-                : '';
-
             switch ($this->getContactType()) {
                 case self::VALUE_TYPE_ADDRESS:
                     /** @var TblAddress $tblContact */
-                    return $tblContact->getGuiString() . $creator;
+                    return $tblContact->getGuiTwoRowString();
                 case self::VALUE_TYPE_PHONE:
                     /** @var TblPhone $tblContact */
-                    return $tblContact->getNumber() . $creator;
+                    return $tblContact->getNumber();
                 case self::VALUE_TYPE_MAIL:
                     /** @var TblMail $tblContact */
-                    return $tblContact->getAddress() . $creator;
+                    return $tblContact->getAddress();
             }
         }
 
@@ -211,6 +215,20 @@ class TblOnlineContact extends Element
             case self::VALUE_TYPE_ADDRESS: return 'Adresse';
             case self::VALUE_TYPE_PHONE: return 'Telefonnummer';
             case self::VALUE_TYPE_MAIL: return 'E-Mail-Adresse';
+        }
+
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getContactTypeIcon(): string
+    {
+        switch ($this->getContactType()) {
+            case self::VALUE_TYPE_ADDRESS: return new MapMarker();
+            case self::VALUE_TYPE_PHONE: return new PhoneIcon();
+            case self::VALUE_TYPE_MAIL: return new MailIcon();
         }
 
         return '';

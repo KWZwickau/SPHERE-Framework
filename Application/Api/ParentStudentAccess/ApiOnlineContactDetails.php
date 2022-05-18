@@ -318,7 +318,7 @@ class ApiOnlineContactDetails extends Extension implements IApiInterface
                                 , $ToPersonId ? 6: 12),
                             $ToPersonId && ($tblToPerson = Address::useService()->getAddressToPersonById($ToPersonId))
                                 ? new LayoutColumn(new Panel(new MapMarker() . ' Adresse',
-                                new Bold($tblToPerson->getTblAddress()->getGuiString()),
+                                new Bold($tblToPerson->getTblAddress()->getGuiTwoRowString()),
                                 Panel::PANEL_TYPE_SUCCESS), 6)
                                 : null
                         )),

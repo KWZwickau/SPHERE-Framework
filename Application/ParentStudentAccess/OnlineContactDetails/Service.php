@@ -16,7 +16,6 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -177,6 +176,25 @@ class Service extends AbstractService
     }
 
     /**
+     * @param array|false $personIdList
+     *
+     * @return array
+     */
+    public function getNameListFromPersonIdList($personIdList): array
+    {
+        $result = array();
+        if ($personIdList) {
+            foreach ($personIdList as $personId) {
+                if ($tblPerson = Person::useService()->getPersonById($personId)) {
+                    $result[$personId] = $tblPerson->getFullName();
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * @param string $ContactType
      * @param Element $tblToPerson
      *
@@ -185,24 +203,6 @@ class Service extends AbstractService
     public function getOnlineContactAllByToPerson(string $ContactType, Element $tblToPerson)
     {
         return (new Data($this->getBinding()))->getOnlineContactAllByToPerson($ContactType, $tblToPerson);
-    }
-
-    /**
-     * @param string $ContactType
-     * @param Element $tblToPerson
-     *
-     * @return string
-     */
-    public function getOnlineContactStringByToPerson(string $ContactType, Element $tblToPerson): string
-    {
-        $list = array();
-        if (($tblOnlineContactDetailList = $this->getOnlineContactAllByToPerson($ContactType, $tblToPerson))) {
-            foreach ($tblOnlineContactDetailList as $tblOnlineContact) {
-                $list[] = new Container($tblOnlineContact->getContactString());
-            }
-        }
-
-        return empty($list) ? '' : implode(' ', $list);
     }
 
     /**

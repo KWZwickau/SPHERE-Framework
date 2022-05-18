@@ -4,8 +4,11 @@ namespace SPHERE\Application\ParentStudentAccess\OnlineContactDetails;
 
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineContactDetails;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson as TblAddressToPerson;
 use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblMailToPerson;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblPhoneToPerson;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -22,20 +25,26 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
+use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
+use SPHERE\Common\Frontend\Icon\Repository\PhoneFax;
+use SPHERE\Common\Frontend\Icon\Repository\PhoneMobil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Stage;
@@ -97,14 +106,14 @@ class Frontend extends Extension implements IFrontendInterface
                         : '')
                 )
             )),
-            new LayoutRow(new LayoutColumn(
-                (new PrimaryLink('Neue Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
-                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal($tblPerson->getId(), null, $personIdList))
-                . (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
-                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal($tblPerson->getId(), null, $personIdList))
-                . (new PrimaryLink('Neue E-Mail-Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
-                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal($tblPerson->getId(), null, $personIdList))
-            )),
+//            new LayoutRow(new LayoutColumn(
+//                (new PrimaryLink('Neue Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+//                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal($tblPerson->getId(), null, $personIdList))
+//                . (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+//                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal($tblPerson->getId(), null, $personIdList))
+//                . (new PrimaryLink('Neue E-Mail-Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+//                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal($tblPerson->getId(), null, $personIdList))
+//            )),
             new LayoutRow(new LayoutColumn(
                 $this->loadContactDetailsContent($tblPerson, $personIdList)
             ))
@@ -116,62 +125,37 @@ class Frontend extends Extension implements IFrontendInterface
         if (isset($personIdList[$tblPerson->getId()])) {
             unset($personIdList[$tblPerson->getId()]);
         }
-        $dataList = array();
 
+        $addressPanelList = array();
         if (($tblAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
             foreach ($tblAddressList as $tblAddressToPerson) {
                 $list = OnlineContactDetails::useService()->getPersonListWithFilter(
                     Address::useService()->getPersonAllByAddress($tblAddressToPerson->getTblAddress()),
                     $personIdList,
                 );
-                $dataList[] = array(
-                    'Category' => 'Adresse',
-                    'Type' => $tblAddressToPerson->getTblType()->getName(),
-                    'Content' => $tblAddressToPerson->getTblAddress()->getGuiString(),
-                    'OtherPersons' => OnlineContactDetails::useService()->getNameStringFromPersonIdList($list),
-                    'OnlineContactDetails' => OnlineContactDetails::useService()->getOnlineContactStringByToPerson(TblOnlineContact::VALUE_TYPE_ADDRESS, $tblAddressToPerson),
-                    'Options' => (new Standard('', ApiOnlineContactDetails::getEndpoint(), new Edit(), array(), 'Änderungswunsch für diese Telefonnummer abgeben'))
-                        ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal(
-                            $tblPerson->getId(), $tblAddressToPerson->getId(), $list))
-                );
+                $addressPanelList[] = new LayoutColumn($this->getAddressPanel($tblPerson, $tblAddressToPerson, $list), 3);
             }
         }
 
+        $phonePanelList = array();
         if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))) {
             foreach ($tblPhoneList as $tblPhoneToPerson) {
                 $list = OnlineContactDetails::useService()->getPersonListWithFilter(
                     Phone::useService()->getPersonAllByPhone($tblPhoneToPerson->getTblPhone()),
                     $personIdList,
                 );
-                $dataList[] = array(
-                    'Category' => 'Telefonnummer',
-                    'Type' => $tblPhoneToPerson->getTblType()->getName(),
-                    'Content' => $tblPhoneToPerson->getTblPhone()->getNumber(),
-                    'OtherPersons' => OnlineContactDetails::useService()->getNameStringFromPersonIdList($list),
-                    'OnlineContactDetails' => OnlineContactDetails::useService()->getOnlineContactStringByToPerson(TblOnlineContact::VALUE_TYPE_PHONE, $tblPhoneToPerson),
-                    'Options' => (new Standard('', ApiOnlineContactDetails::getEndpoint(), new Edit(), array(), 'Änderungswunsch für diese Telefonnummer abgeben'))
-                        ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal(
-                            $tblPerson->getId(), $tblPhoneToPerson->getId(), $list))
-                );
+                $phonePanelList[] = new LayoutColumn($this->getPhonePanel($tblPerson, $tblPhoneToPerson, $list), 3);
             }
         }
 
+        $mailPanelList = array();
         if (($tblMailList = Mail::useService()->getMailAllByPerson($tblPerson))) {
             foreach ($tblMailList as $tblMailToPerson) {
                 $list = OnlineContactDetails::useService()->getPersonListWithFilter(
                     Mail::useService()->getPersonAllByMail($tblMailToPerson->getTblMail()),
                     $personIdList,
                 );
-                $dataList[] = array(
-                    'Category' => 'E-Mail-Adresse',
-                    'Type' => $tblMailToPerson->getTblType()->getName(),
-                    'Content' => $tblMailToPerson->getTblMail()->getAddress(),
-                    'OtherPersons' => OnlineContactDetails::useService()->getNameStringFromPersonIdList($list),
-                    'OnlineContactDetails' => OnlineContactDetails::useService()->getOnlineContactStringByToPerson(TblOnlineContact::VALUE_TYPE_MAIL, $tblMailToPerson),
-                    'Options' => (new Standard('', ApiOnlineContactDetails::getEndpoint(), new Edit(), array(), 'Änderungswunsch für diese E-Mail-Adresse abgeben'))
-                        ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal(
-                            $tblPerson->getId(), $tblMailToPerson->getId(), $list))
-                );
+                $mailPanelList[] = new LayoutColumn($this->getMailPanel($tblPerson, $tblMailToPerson, $list), 3);
             }
         }
 
@@ -179,44 +163,73 @@ class Frontend extends Extension implements IFrontendInterface
         if (($tblOnlineContactList = OnlineContactDetails::useService()->getOnlineContactAllByPerson($tblPerson))) {
             foreach($tblOnlineContactList as $tblOnlineContact) {
                 if (!$tblOnlineContact->getServiceTblToPerson()) {
-                    $dataList[] = array(
-                        'Category' => $tblOnlineContact->getContactTypeName(),
-                        'Type' => '',
-                        'Content' => $tblOnlineContact->getContactString(),
-                        'OtherPersons' => '',
-                        'OnlineContactDetails' => '',
-                        'Options' => ''
-                    );
+                    switch ($tblOnlineContact->getContactType()) {
+                        case TblOnlineContact::VALUE_TYPE_ADDRESS: $addressPanelList[] = new LayoutColumn($this->getOnlineContactPanel($tblOnlineContact), 3); break;
+                        case TblOnlineContact::VALUE_TYPE_PHONE: $phonePanelList[] = new LayoutColumn($this->getOnlineContactPanel($tblOnlineContact), 3); break;
+                        case TblOnlineContact::VALUE_TYPE_MAIL: $mailPanelList[] = new LayoutColumn($this->getOnlineContactPanel($tblOnlineContact), 3); break;
+                    }
                 }
             }
         }
 
-        $columns = array(
-            'Category' => 'Kategorie',
-            'Type' => 'Typ',
-            'Content' => 'Inhalt',
-            'OtherPersons' => 'weitere Personen',
-            'OnlineContactDetails' => 'Änderungswünsche',
-            'Options' => ''
-        );
+        $rows[] = new LayoutRow(new LayoutColumn(
+            (new PrimaryLink('Neue Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal($tblPerson->getId(), null, $personIdList)) . new Container('&nbsp;')
+        ));
+        if (!empty($addressPanelList)) {
+            $layoutRowCount = 0;
+            $layoutRow = null;
+            foreach ($addressPanelList as $addressColumn) {
+                if ($layoutRowCount % 4 == 0) {
+                    $layoutRow = new LayoutRow(array());
+                    $rows[] = $layoutRow;
+                }
+                $layoutRow->addColumn($addressColumn);
+                $layoutRowCount++;
+            }
+        } else {
+            $rows[] = new LayoutRow(new LayoutColumn(new Warning('Keine Adresse hinterlegt.', new Exclamation())));
+        }
 
-        return (new TableData($dataList, null, $columns,
-            array(
-                'order' => array(
-                    array(0, 'desc'),
-                    array(1, 'desc'),
-                ),
-                'columnDefs' => array(
-                    array('type' => 'de_date', 'targets' => 0),
-                    array('type' => 'de_date', 'targets' => 1),
-                ),
-                'pageLength' => -1,
-                'paging' => false,
-                'info' => false,
-                'searching' => false,
-                'responsive' => false
-            )
-        ))->setHash('ContactDetails-' . $tblPerson->getId());
+        $rows[] = new LayoutRow(new LayoutColumn(
+            (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal($tblPerson->getId(), null, $personIdList)) . new Container('&nbsp;')
+        ));
+        if (!empty($phonePanelList)) {
+            $layoutRowCount = 0;
+            $layoutRow = null;
+            foreach ($phonePanelList as $phoneColumn) {
+                if ($layoutRowCount % 4 == 0) {
+                    $layoutRow = new LayoutRow(array());
+                    $rows[] = $layoutRow;
+                }
+                $layoutRow->addColumn($phoneColumn);
+                $layoutRowCount++;
+            }
+        } else {
+            $rows[] = new LayoutRow(new LayoutColumn(new Warning('Keine Telefonnummern hinterlegt.', new Exclamation())));
+        }
+
+        $rows[] = new LayoutRow(new LayoutColumn(
+            (new PrimaryLink('Neue E-Mail-Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal($tblPerson->getId(), null, $personIdList)) . new Container('&nbsp;')
+        ));
+        if (!empty($mailPanelList)) {
+            $layoutRowCount = 0;
+            $layoutRow = null;
+            foreach ($mailPanelList as $mailColumn) {
+                if ($layoutRowCount % 4 == 0) {
+                    $layoutRow = new LayoutRow(array());
+                    $rows[] = $layoutRow;
+                }
+                $layoutRow->addColumn($mailColumn);
+                $layoutRowCount++;
+            }
+        } else {
+            $rows[] = new LayoutRow(new LayoutColumn(new Warning('Keine E-Mail-Adresse hinterlegt.', new Exclamation())));
+        }
+
+        return new Layout(new LayoutGroup($rows));
     }
 
     /**
@@ -415,5 +428,128 @@ class Frontend extends Extension implements IFrontendInterface
         ));
 
         return (new Form(new FormGroup($rows)))->disableSubmitAction();
+    }
+
+    /**
+     * @param TblOnlineContact $tblOnlineContact
+     *
+     * @return Panel
+     */
+    private function getOnlineContactPanel(TblOnlineContact $tblOnlineContact): Panel
+    {
+        $content[] = $tblOnlineContact->getContactContent();
+        $content[] = $tblOnlineContact->getContactCreate();
+        return new Panel(
+            $tblOnlineContact->getContactTypeIcon() . ' Neue ' . $tblOnlineContact->getContactTypeName(),
+            $content,
+            Panel::PANEL_TYPE_DEFAULT
+        );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblPhoneToPerson $tblPhoneToPerson
+     * @param array $personIdList
+     *
+     * @return Panel
+     */
+    private function getPhonePanel(TblPerson $tblPerson, TblPhoneToPerson $tblPhoneToPerson, array $personIdList): Panel
+    {
+        $tblType = $tblPhoneToPerson->getTblType();
+        if ($tblType->getName() == 'Fax') {
+            $icon = new PhoneFax();
+        } elseif ($tblType->getDescription() == 'Mobil') {
+            $icon = new PhoneMobil();
+        } else {
+            $icon = new PhoneIcon();
+        }
+
+        $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(), 'Änderungswunsch für diese Telefonnummer abgeben'))
+            ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal(
+                $tblPerson->getId(), $tblPhoneToPerson->getId(), $personIdList));
+        $content[] = $tblPhoneToPerson->getTblPhone()->getNumber() . new PullRight($editLink);
+
+        $hasOnlineContacts = false;
+        if (($tblOnlineContactList = OnlineContactDetails::useService()->getOnlineContactAllByToPerson(TblOnlineContact::VALUE_TYPE_PHONE, $tblPhoneToPerson))) {
+            $hasOnlineContacts = true;
+            foreach ($tblOnlineContactList as $tblOnlineContact) {
+                $content[] = new Container($tblOnlineContact->getContactContent()) . new Container($tblOnlineContact->getContactCreate());
+            }
+        }
+
+//        if (!empty($personIdList)) {
+//            $nameList = '';
+//            foreach (OnlineContactDetails::useService()->getNameListFromPersonIdList($personIdList) as $name) {
+//                $nameList .= new Container($name);
+//            }
+//            $content[] = new Container('weitere Personen: ') . $nameList;
+//        }
+
+        return new Panel(
+            $icon . ' Telefonnummer',
+            $content,
+            $hasOnlineContacts ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_INFO,
+            !empty($personIdList) ? 'weitere Personen: ' . implode(', ' , OnlineContactDetails::useService()->getNameListFromPersonIdList($personIdList)) : null
+        );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblAddressToPerson $tblAddressToPerson
+     * @param array $personIdList
+     *
+     * @return Panel
+     */
+    private function getAddressPanel(TblPerson $tblPerson, TblAddressToPerson $tblAddressToPerson, array $personIdList): Panel
+    {
+        $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(), 'Änderungswunsch für diese Adresse abgeben'))
+            ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal(
+                $tblPerson->getId(), $tblAddressToPerson->getId(), $personIdList));
+        $content[] = $tblAddressToPerson->getTblAddress()->getGuiTwoRowString() . new PullRight($editLink);
+
+        $hasOnlineContacts = false;
+        if (($tblOnlineContactList = OnlineContactDetails::useService()->getOnlineContactAllByToPerson(TblOnlineContact::VALUE_TYPE_ADDRESS, $tblAddressToPerson))) {
+            $hasOnlineContacts = true;
+            foreach ($tblOnlineContactList as $tblOnlineContact) {
+                $content[] = new Container($tblOnlineContact->getContactContent()) . new Container($tblOnlineContact->getContactCreate());
+            }
+        }
+
+        return new Panel(
+            new MapMarker() . ' ' . $tblAddressToPerson->getTblType()->getName(),
+            $content,
+            $hasOnlineContacts ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_INFO,
+            !empty($personIdList) ? 'weitere Personen: ' . implode(', ' , OnlineContactDetails::useService()->getNameListFromPersonIdList($personIdList)) : null
+        );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblMailToPerson $tblMailToPerson
+     * @param array $personIdList
+     *
+     * @return Panel
+     */
+    private function getMailPanel(TblPerson $tblPerson, TblMailToPerson $tblMailToPerson, array $personIdList): Panel
+    {
+        $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(), 'Änderungswunsch für diese E-Mail-Adresse abgeben'))
+            ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal(
+                $tblPerson->getId(), $tblMailToPerson->getId(), $personIdList));
+        $content[] = $tblMailToPerson->getTblMail()->getAddress() . new PullRight($editLink);
+
+        $hasOnlineContacts = false;
+        if (($tblOnlineContactList = OnlineContactDetails::useService()->getOnlineContactAllByToPerson(TblOnlineContact::VALUE_TYPE_MAIL, $tblMailToPerson))) {
+            $hasOnlineContacts = true;
+            foreach ($tblOnlineContactList as $tblOnlineContact) {
+                $content[] = new Container($tblOnlineContact->getContactContent()) . new Container($tblOnlineContact->getContactCreate());
+            }
+        }
+
+        return new Panel(
+            new MailIcon() . ' E-Mail-Adresse',
+            $content,
+            $hasOnlineContacts ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_INFO,
+            !empty($personIdList) ? 'weitere Personen: ' . implode(', ' , OnlineContactDetails::useService()->getNameListFromPersonIdList($personIdList)) : null
+        );
     }
 }
