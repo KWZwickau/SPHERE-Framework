@@ -106,14 +106,14 @@ class Frontend extends Extension implements IFrontendInterface
                         : '')
                 )
             )),
-//            new LayoutRow(new LayoutColumn(
-//                (new PrimaryLink('Neue Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
-//                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal($tblPerson->getId(), null, $personIdList))
-//                . (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
-//                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal($tblPerson->getId(), null, $personIdList))
-//                . (new PrimaryLink('Neue E-Mail-Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
-//                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal($tblPerson->getId(), null, $personIdList))
-//            )),
+            new LayoutRow(new LayoutColumn(
+                (new PrimaryLink('Neue Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal($tblPerson->getId(), null, $personIdList))
+                . (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal($tblPerson->getId(), null, $personIdList))
+                . (new PrimaryLink('Neue E-Mail-Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+                    ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal($tblPerson->getId(), null, $personIdList))
+            )),
             new LayoutRow(new LayoutColumn(
                 $this->loadContactDetailsContent($tblPerson, $personIdList)
             ))
@@ -172,62 +172,80 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $rows[] = new LayoutRow(new LayoutColumn(
-            (new PrimaryLink('Neue Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
-                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal($tblPerson->getId(), null, $personIdList)) . new Container('&nbsp;')
-        ));
-        if (!empty($addressPanelList)) {
-            $layoutRowCount = 0;
-            $layoutRow = null;
-            foreach ($addressPanelList as $addressColumn) {
-                if ($layoutRowCount % 4 == 0) {
-                    $layoutRow = new LayoutRow(array());
-                    $rows[] = $layoutRow;
-                }
-                $layoutRow->addColumn($addressColumn);
-                $layoutRowCount++;
-            }
-        } else {
-            $rows[] = new LayoutRow(new LayoutColumn(new Warning('Keine Adresse hinterlegt.', new Exclamation())));
-        }
+//        $rows[] = new LayoutRow(new LayoutColumn(
+//            (new PrimaryLink('Neue Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+//                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal($tblPerson->getId(), null, $personIdList)) . new Container('&nbsp;')
+//        ));
+//        if (!empty($addressPanelList)) {
+//            $layoutRowCount = 0;
+//            $layoutRow = null;
+//            foreach ($addressPanelList as $addressColumn) {
+//                if ($layoutRowCount % 4 == 0) {
+//                    $layoutRow = new LayoutRow(array());
+//                    $rows[] = $layoutRow;
+//                }
+//                $layoutRow->addColumn($addressColumn);
+//                $layoutRowCount++;
+//            }
+//        } else {
+//            $rows[] = new LayoutRow(new LayoutColumn(new Warning('Keine Adresse hinterlegt.', new Exclamation())));
+//        }
+//
+//        $rows[] = new LayoutRow(new LayoutColumn(
+//            (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+//                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal($tblPerson->getId(), null, $personIdList)) . new Container('&nbsp;')
+//        ));
+//        if (!empty($phonePanelList)) {
+//            $layoutRowCount = 0;
+//            $layoutRow = null;
+//            foreach ($phonePanelList as $phoneColumn) {
+//                if ($layoutRowCount % 4 == 0) {
+//                    $layoutRow = new LayoutRow(array());
+//                    $rows[] = $layoutRow;
+//                }
+//                $layoutRow->addColumn($phoneColumn);
+//                $layoutRowCount++;
+//            }
+//        } else {
+//            $rows[] = new LayoutRow(new LayoutColumn(new Warning('Keine Telefonnummern hinterlegt.', new Exclamation())));
+//        }
+//
+//        $rows[] = new LayoutRow(new LayoutColumn(
+//            (new PrimaryLink('Neue E-Mail-Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
+//                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal($tblPerson->getId(), null, $personIdList)) . new Container('&nbsp;')
+//        ));
+//        if (!empty($mailPanelList)) {
+//            $layoutRowCount = 0;
+//            $layoutRow = null;
+//            foreach ($mailPanelList as $mailColumn) {
+//                if ($layoutRowCount % 4 == 0) {
+//                    $layoutRow = new LayoutRow(array());
+//                    $rows[] = $layoutRow;
+//                }
+//                $layoutRow->addColumn($mailColumn);
+//                $layoutRowCount++;
+//            }
+//        } else {
+//            $rows[] = new LayoutRow(new LayoutColumn(new Warning('Keine E-Mail-Adresse hinterlegt.', new Exclamation())));
+//        }
 
-        $rows[] = new LayoutRow(new LayoutColumn(
-            (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
-                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal($tblPerson->getId(), null, $personIdList)) . new Container('&nbsp;')
-        ));
-        if (!empty($phonePanelList)) {
+        $rows[] = new LayoutRow(new LayoutColumn('&nbsp;'));
+        $allList = array_merge($addressPanelList, $phonePanelList, $mailPanelList);
+        if (!empty($allList)) {
             $layoutRowCount = 0;
             $layoutRow = null;
-            foreach ($phonePanelList as $phoneColumn) {
+            foreach ($allList as $layoutColumn) {
                 if ($layoutRowCount % 4 == 0) {
                     $layoutRow = new LayoutRow(array());
                     $rows[] = $layoutRow;
                 }
-                $layoutRow->addColumn($phoneColumn);
-                $layoutRowCount++;
-            }
-        } else {
-            $rows[] = new LayoutRow(new LayoutColumn(new Warning('Keine Telefonnummern hinterlegt.', new Exclamation())));
-        }
-
-        $rows[] = new LayoutRow(new LayoutColumn(
-            (new PrimaryLink('Neue E-Mail-Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
-                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal($tblPerson->getId(), null, $personIdList)) . new Container('&nbsp;')
-        ));
-        if (!empty($mailPanelList)) {
-            $layoutRowCount = 0;
-            $layoutRow = null;
-            foreach ($mailPanelList as $mailColumn) {
-                if ($layoutRowCount % 4 == 0) {
-                    $layoutRow = new LayoutRow(array());
-                    $rows[] = $layoutRow;
-                }
-                $layoutRow->addColumn($mailColumn);
+                $layoutRow->addColumn($layoutColumn);
                 $layoutRowCount++;
             }
         } else {
             $rows[] = new LayoutRow(new LayoutColumn(new Warning('Keine E-Mail-Adresse hinterlegt.', new Exclamation())));
         }
+
 
         return new Layout(new LayoutGroup($rows));
     }
