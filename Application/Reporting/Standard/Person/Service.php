@@ -4011,6 +4011,7 @@ class Service extends Extension
                     $Item['FirstName'] = '';
                     $Item['LastName'] = '';
                     $Item['activeDivision'] = '';
+                    $Item['Year'] = '';
                     if($tblYearList){
                         foreach($tblYearList as $tblYear){
                             if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPersonStudent, $tblYear))){

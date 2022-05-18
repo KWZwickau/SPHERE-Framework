@@ -1036,6 +1036,11 @@ class Creator extends Extension
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=Benutzerrechte_Schulsoftware.pdf");
             header("Content-Length: ".filesize($file));
+        } elseif($Select == 'DigitalClassBook') {
+            $file = "Common/Style/Resource/Document/Manual/SSWDigitalClassBook.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Digitales_Klassenbuch_05.05.2022.pdf");
+            header("Content-Length: ".filesize($file));
         } elseif($Select == 'Billing') {
             $file = "Common/Style/Resource/Document/Manual/AnleitungFakturierung.pdf";
             header("Content-Type: application/pdf");
