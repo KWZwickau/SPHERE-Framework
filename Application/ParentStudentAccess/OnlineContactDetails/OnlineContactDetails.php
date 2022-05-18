@@ -8,6 +8,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
+use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
@@ -44,7 +45,7 @@ class OnlineContactDetails extends Extension implements IApplicationInterface, I
 
         if ($isRegistered) {
             Main::getDisplay()->addApplicationNavigation(
-                new Link(new Link\Route(__NAMESPACE__), new Link\Name('Kontakt-Daten'))
+                new Link(new Link\Route(__NAMESPACE__), new Link\Name('Kontakt-Daten'), new Link\Icon(new Conversation()))
             );
 
             Main::getDispatcher()->registerRoute(

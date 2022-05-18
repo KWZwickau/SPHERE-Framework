@@ -61,7 +61,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendOnlineGradebook($YearId = null, $ParentAccount = null)
     {
-        $Stage = new Stage('Notenübersicht', 'Schüler/Eltern');
+        $Stage = new Stage('Notenübersicht', 'Eltern/Schüler');
         $Stage->setMessage(
             new Container('Anzeige der Zensuren für die Schüler und Eltern.')
             .new Container('Der angemeldete Schüler sieht nur seine eigenen Zensuren.')

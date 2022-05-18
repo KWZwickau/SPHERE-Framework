@@ -7,6 +7,7 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
+use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Extension\Extension;
@@ -42,7 +43,7 @@ class OnlineAbsence extends Extension implements IApplicationInterface, IModuleI
 
         if ($isRegistered) {
             Main::getDisplay()->addApplicationNavigation(
-                new Link(new Link\Route(__NAMESPACE__), new Link\Name('Fehlzeiten'))
+                new Link(new Link\Route(__NAMESPACE__), new Link\Name('Fehlzeiten'), new Link\Icon(new Extern()))
             );
 
             Main::getDispatcher()->registerRoute(
