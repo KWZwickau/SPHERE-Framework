@@ -458,7 +458,7 @@ class Frontend extends Extension implements IFrontendInterface
         $content[] = $tblOnlineContact->getContactContent();
         $content[] = $tblOnlineContact->getContactCreate();
         return new Panel(
-            $tblOnlineContact->getContactTypeIcon() . ' Neue ' . $tblOnlineContact->getContactTypeName(),
+            $tblOnlineContact->getContactTypeIcon() . $tblOnlineContact->getContactTypeName(),
             $content,
             Panel::PANEL_TYPE_DEFAULT
         );

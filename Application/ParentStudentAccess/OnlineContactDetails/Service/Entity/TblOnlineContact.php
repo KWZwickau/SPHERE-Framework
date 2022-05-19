@@ -8,10 +8,13 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson as TblAddressToPerson;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblMailToPerson;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblPhoneToPerson;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
@@ -209,15 +212,47 @@ class TblOnlineContact extends Element
     /**
      * @return string
      */
-    public function getContactTypeName(): string
+    public function getOriginalContent(): string
     {
-        switch ($this->getContactType()) {
-            case self::VALUE_TYPE_ADDRESS: return 'Adresse';
-            case self::VALUE_TYPE_PHONE: return 'Telefonnummer';
-            case self::VALUE_TYPE_MAIL: return 'E-Mail-Adresse';
+        if (($tblToPerson = $this->getServiceTblToPerson())) {
+            switch ($this->getContactType()) {
+                case self::VALUE_TYPE_ADDRESS:
+                    /** @var TblAddressToPerson $tblToPerson */
+                    return $tblToPerson->getTblAddress()->getGuiTwoRowString();
+                case self::VALUE_TYPE_PHONE:
+                    /** @var TblPhoneToPerson $tblToPerson */
+                    return $tblToPerson->getTblPhone()->getNumber();
+                case self::VALUE_TYPE_MAIL:
+                    /** @var TblMailToPerson $tblToPerson */
+                    return $tblToPerson->getTblMail()->getAddress();
+            }
         }
 
         return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getContactTypeName(): string
+    {
+        if (!$this->getContactType()) {
+            return '';
+        }
+
+        switch ($this->getContactType()) {
+            case self::VALUE_TYPE_ADDRESS: $result =  'Adresse'; break;
+            case self::VALUE_TYPE_PHONE: $result = 'Telefonnummer'; break;
+            case self::VALUE_TYPE_MAIL: $result = 'E-Mail-Adresse'; break;
+            default: $result =  '';
+
+        }
+
+        if ($this->getServiceTblToPerson()) {
+            return $result . ' (Änderungswunsch)';
+        } else {
+            return ' Neue ' . $result;
+        }
     }
 
     /**

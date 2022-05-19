@@ -442,4 +442,32 @@ class Service extends AbstractService
 
         return false;
     }
+
+    /**
+     * @param TblOnlineContact $tblOnlineContact
+     *
+     * @return bool
+     */
+    public function deleteOnlineContact(TblOnlineContact $tblOnlineContact): bool
+    {
+        return (new Data($this->getBinding()))->deleteOnlineContact($tblOnlineContact);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblOnlineContact
+     */
+    public function getOnlineContactById($Id)
+    {
+        return (new Data($this->getBinding()))->getOnlineContactById($Id);
+    }
+
+    /**
+     * @return false|TblOnlineContact[]
+     */
+    public function getOnlineContactAll()
+    {
+        return (new Data($this->getBinding()))->getOnlineContactAll();
+    }
 }

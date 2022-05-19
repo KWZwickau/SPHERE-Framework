@@ -50,6 +50,26 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblOnlineContact $tblOnlineContact
+     *
+     * @return bool
+     */
+    public function deleteOnlineContact(TblOnlineContact $tblOnlineContact): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var TblOnlineContact $Entity */
+        $Entity = $Manager->getEntityById('TblOnlineContact', $tblOnlineContact->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param string $ContactType
      * @param Element $tblToPerson
      *
@@ -81,5 +101,23 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblOnlineContact', array(
             TblOnlineContact::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblOnlineContact
+     */
+    public function getOnlineContactById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblOnlineContact', $Id);
+    }
+
+    /**
+     * @return false|TblOnlineContact[]
+     */
+    public function getOnlineContactAll()
+    {
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblOnlineContact');
     }
 }
