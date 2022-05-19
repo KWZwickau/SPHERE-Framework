@@ -133,8 +133,9 @@ class FosAbs extends Style
                     ->addElementColumn($this->getElement('Durchschnittsnote' . $this->setSup('2)'), $textSize)
                         ->styleMarginTop('15px')
                         , '25%')
-                    ->addElementColumn($this->getElement('{% if(Content.P'.$personId.'.Input.AddEducation_Average is not empty) %}
-                             {{ Content.P'.$personId.'.Input.AddEducation_Average }}
+                    // kein Input Feld mehr direkte Berechnung
+                    ->addElementColumn($this->getElement('{% if(Content.P'.$personId.'.Calc.AddEducation_Average is not empty) %}
+                             {{ Content.P'.$personId.'.Calc.AddEducation_Average }}
                          {% else %}
                              &ndash;
                          {% endif %}', $textSize)
@@ -145,8 +146,8 @@ class FosAbs extends Style
                         , '14%')
                     ->addElementColumn($this->getElement('&nbsp;', $textSize)
                         , '10%')
-                    ->addElementColumn($this->getElement('{% if(Content.P'.$personId.'.Input.AddEducation_AverageInWord is not empty) %}
-                             {{ Content.P'.$personId.'.Input.AddEducation_AverageInWord }}
+                    ->addElementColumn($this->getElement('{% if(Content.P'.$personId.'.Calc.AddEducation_AverageInWord is not empty) %}
+                             {{ Content.P'.$personId.'.Calc.AddEducation_AverageInWord }}
                          {% else %}
                              &ndash;
                          {% endif %}', $textSize)

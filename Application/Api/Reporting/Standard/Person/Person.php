@@ -3,8 +3,13 @@ namespace SPHERE\Application\Api\Reporting\Standard\Person;
 
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Education\Certificate\Reporting\Reporting;
+use SPHERE\Application\Education\Certificate\Reporting\View;
+use SPHERE\Application\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
@@ -399,5 +404,70 @@ class Person
         }
 
         return false;
+    }
+
+    /**
+     * @param int $View
+     *
+     * @return string
+     */
+    public function downloadDiplomaSerialMail(int $View): string
+    {
+        $tblCourse = false;
+        switch ($View) {
+            case View::HS: $tblCourse = Course::useService()->getCourseByName('Hauptschule');
+                $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                break;
+            case View::RS: $tblCourse = Course::useService()->getCourseByName('Realschule');
+                $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                break;
+            case View::FOS: $tblSchoolType = Type::useService()->getTypeByShortName('FOS');
+                break;
+            default: $tblSchoolType = false;
+        }
+
+        $subjectList = array();
+        if($tblSchoolType
+            && ($content = Reporting::useService()->getDiplomaSerialMailContent($tblSchoolType, $tblCourse ?: null, $subjectList))
+            && ($fileLocation = Reporting::useService()->createDiplomaSerialMailContentExcel($content, $subjectList))
+        ){
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                'Serien E-Mail für Prüfungsnoten ' . $tblSchoolType->getShortName()
+                . ($tblCourse ? ' ' . $tblCourse->getName() : '') . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return 'Keine Daten vorhanden!';
+    }
+
+    /**
+     * @param int $View
+     *
+     * @return string
+     */
+    public function downloadDiplomaStatistic(int $View): string
+    {
+        $tblCourse = false;
+        switch ($View) {
+            case View::HS: $tblCourse = Course::useService()->getCourseByName('Hauptschule');
+                $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                break;
+            case View::RS: $tblCourse = Course::useService()->getCourseByName('Realschule');
+                $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                break;
+            case View::FOS: $tblSchoolType = Type::useService()->getTypeByShortName('FOS');
+                break;
+            default: $tblSchoolType = false;
+        }
+
+        if($tblSchoolType
+            && ($content = Reporting::useService()->getDiplomaStatisticContent($tblSchoolType, $tblCourse ?: null))
+            && ($fileLocation = Reporting::useService()->createDiplomaStatisticContentExcel($content))
+        ){
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                'Auswertung der Prüfungsnoten für die LaSuB ' . $tblSchoolType->getShortName()
+                . ($tblCourse ? ' ' . $tblCourse->getName() : '') . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return 'Keine Daten vorhanden!';
     }
 }

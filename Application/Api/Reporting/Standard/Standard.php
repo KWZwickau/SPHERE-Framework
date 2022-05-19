@@ -76,6 +76,14 @@ class Standard implements IModuleInterface
             __NAMESPACE__.'/Person/ClassRegister/Absence/Download',
             __NAMESPACE__.'\Person\Person::downloadClassRegisterAbsence'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Person/Certificate/Diploma/SerialMail/Download',
+            __NAMESPACE__.'\Person\Person::downloadDiplomaSerialMail'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Person/Certificate/Diploma/Statistic/Download',
+            __NAMESPACE__.'\Person\Person::downloadDiplomaStatistic'
+        ));
 
     }
 
