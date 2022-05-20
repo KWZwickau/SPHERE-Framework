@@ -54,6 +54,7 @@ class EssGsJThree extends EssStyle
                     ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
                         ->styleHeight('1px')
+                        ->stylePaddingTop('-110px')
                     )
                     ->addElementColumn((new Element())
                         , '25%')
@@ -63,7 +64,6 @@ class EssGsJThree extends EssStyle
         }
 
         return (new Page())
-            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -73,6 +73,7 @@ class EssGsJThree extends EssStyle
                     ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.jpg', '700px')))
                 )
             )
+            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -248,7 +249,7 @@ class EssGsJThree extends EssStyle
                         , '75%'
                     )
                 )
-                ->styleHeight('150px')
+                ->styleHeight('140px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -285,7 +286,7 @@ class EssGsJThree extends EssStyle
                         ->styleLineHeight(self::LINE_HEIGHT_RATING)
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->stylePaddingTop('15px')
-                        ->stylePaddingBottom('15px')
+                        ->stylePaddingBottom('20px')
                         , '100%'
                     )
                 )
@@ -325,7 +326,7 @@ class EssGsJThree extends EssStyle
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%')
                 )
-                ->stylePaddingBottom('25px')
+                ->stylePaddingBottom('30px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
