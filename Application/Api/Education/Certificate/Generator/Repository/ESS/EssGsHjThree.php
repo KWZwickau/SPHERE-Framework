@@ -39,6 +39,7 @@ class EssGsHjThree extends EssStyle
                     ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
                         ->styleHeight('1px')
+                        ->stylePaddingTop('-110px')
                     )
                     ->addElementColumn((new Element())
                         , '25%')
@@ -48,7 +49,6 @@ class EssGsHjThree extends EssStyle
         }
 
         return (new Page())
-            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -58,6 +58,7 @@ class EssGsHjThree extends EssStyle
                     ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.jpg', '700px')))
                 )
             )
+            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -209,7 +210,7 @@ class EssGsHjThree extends EssStyle
                         , '75%'
                     )
                 )
-                ->styleHeight('90px')
+                ->styleHeight('99px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
