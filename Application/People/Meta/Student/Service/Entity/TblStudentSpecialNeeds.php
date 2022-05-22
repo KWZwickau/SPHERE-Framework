@@ -16,10 +16,10 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblStudentSpecialNeeds extends Element
 {
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsMultipleHandicapped;
+//    /**
+//     * @Column(type="boolean")
+//     */
+//    protected $IsMultipleHandicapped;
     /**
      * @Column(type="boolean")
      */
@@ -53,21 +53,21 @@ class TblStudentSpecialNeeds extends Element
      */
     protected $tblStudentSpecialNeedsLevel;
 
-    /**
-     * @return boolean
-     */
-    public function getIsMultipleHandicapped()
-    {
-        return $this->IsMultipleHandicapped;
-    }
-
-    /**
-     * @param boolean $IsMultipleHandicapped
-     */
-    public function setIsMultipleHandicapped($IsMultipleHandicapped)
-    {
-        $this->IsMultipleHandicapped = $IsMultipleHandicapped;
-    }
+//    /**
+//     * @return boolean
+//     */
+//    public function getIsMultipleHandicapped()
+//    {
+//        return $this->IsMultipleHandicapped;
+//    }
+//
+//    /**
+//     * @param boolean $IsMultipleHandicapped
+//     */
+//    public function setIsMultipleHandicapped($IsMultipleHandicapped)
+//    {
+//        $this->IsMultipleHandicapped = $IsMultipleHandicapped;
+//    }
 
     /**
      * @return boolean

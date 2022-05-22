@@ -47,7 +47,6 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
                 && ($tblStudentSpecialNeeds = $tblStudent->getTblStudentSpecialNeeds())
             ) {
-                $isMultipleHandicapped = $tblStudentSpecialNeeds->getIsMultipleHandicapped() ? 'Ja' : 'Nein';
                 $isHeavyMultipleHandicapped = $tblStudentSpecialNeeds->getIsHeavyMultipleHandicapped() ? 'Ja' : 'Nein';
                 $increaseFactorHeavyMultipleHandicappedSchool = $tblStudentSpecialNeeds->getIncreaseFactorHeavyMultipleHandicappedSchool();
                 $increaseFactorHeavyMultipleHandicappedRegionalAuthorities = $tblStudentSpecialNeeds->getIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities();
@@ -58,7 +57,6 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
                 $level = ($tblStudentSpecialNeedsLevel = $tblStudentSpecialNeeds->getTblStudentSpecialNeedsLevel())
                     ? $tblStudentSpecialNeedsLevel->getName() : '';
             } else {
-                $isMultipleHandicapped = '';
                 $isHeavyMultipleHandicapped = '';
                 $increaseFactorHeavyMultipleHandicappedSchool = '';
                 $increaseFactorHeavyMultipleHandicappedRegionalAuthorities = '';
@@ -91,26 +89,15 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
                                 )),
                             )))
                         ),
-                    ), 3),
-                    new LayoutColumn(array(
-                        FrontendReadOnly::getSubContent(
-                            '',
-                            new Layout(new LayoutGroup(array(
-                                new LayoutRow(array(
-                                    self::getLayoutColumnLabel('mehrfachbehindert', 10),
-                                    self::getLayoutColumnValue($isMultipleHandicapped, 2),
-                                )),
-                                new LayoutRow(array(
-                                    self::getLayoutColumnLabel('schwerstmehrfachbehindert', 10),
-                                    self::getLayoutColumnValue($isHeavyMultipleHandicapped, 2),
-                                )),
-                            )))
-                        ),
-                    ), 3),
+                    ), 4),
                     new LayoutColumn(array(
                         FrontendReadOnly::getSubContent(
                             'Behinderung',
                             new Layout(new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    self::getLayoutColumnLabel('schwerstmehrfachbehindert', 6),
+                                    self::getLayoutColumnValue($isHeavyMultipleHandicapped, 6),
+                                )),
                                 new LayoutRow(array(
                                     self::getLayoutColumnLabel('Bemerkung', 6),
                                     self::getLayoutColumnValue($remarkHeavyMultipleHandicapped, 6),
@@ -129,7 +116,7 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
                                 )),
                             )))
                         ),
-                    ), 3),
+                    ), 4),
                     new LayoutColumn(array(
                         FrontendReadOnly::getSubContent(
                             'Erhöhungsfaktor',
@@ -144,7 +131,7 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
                                 )),
                             )))
                         ),
-                    ), 3),
+                    ), 4),
                 )),
             )));
 
@@ -180,8 +167,6 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
                 && ($tblStudentSpecialNeeds = $tblStudent->getTblStudentSpecialNeeds())
             ) {
-
-                $Global->POST['Meta']['SpecialNeeds']['IsMultipleHandicapped'] = $tblStudentSpecialNeeds->getIsMultipleHandicapped();
                 $Global->POST['Meta']['SpecialNeeds']['IsHeavyMultipleHandicapped'] = $tblStudentSpecialNeeds->getIsHeavyMultipleHandicapped();
                 $Global->POST['Meta']['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedSchool'] = $tblStudentSpecialNeeds->getIncreaseFactorHeavyMultipleHandicappedSchool();
                 $Global->POST['Meta']['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities'] = $tblStudentSpecialNeeds->getIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities();
@@ -251,27 +236,22 @@ class FrontendStudentSpecialNeeds extends FrontendReadOnly
                                 array('{{ Name }}' => $tblStudentSpecialNeedsLevelList), null, true, null))
                             ->configureLibrary(SelectBox::LIBRARY_SELECT2)
                         ), Panel::PANEL_TYPE_INFO)
-                    , 3),
-                    new FormColumn(
-                        new Panel('&nbsp;', array(
-                            new CheckBox('Meta[SpecialNeeds][IsMultipleHandicapped]', 'mehrfachbehindert', 1),
-                            new CheckBox('Meta[SpecialNeeds][IsHeavyMultipleHandicapped]', 'schwerstmehrfachbehindert', 1),
-                        ), Panel::PANEL_TYPE_INFO)
-                    , 3),
+                    , 4),
                     new FormColumn(
                         new Panel('Behinderung', array(
+                            new CheckBox('Meta[SpecialNeeds][IsHeavyMultipleHandicapped]', 'schwerstmehrfachbehindert', 1),
                             new TextField('Meta[SpecialNeeds][RemarkHeavyMultipleHandicapped]', 'Bemerkung zu SMB', 'Bemerkung zu SMB'),
                             new TextField('Meta[SpecialNeeds][DegreeOfHandicap]', 'Grad der Behinderung', 'Grad der Behinderung'),
                             new TextField('Meta[SpecialNeeds][Sign]', 'Merkzeichen', 'Merkzeichen'),
                             new TextField('Meta[SpecialNeeds][ValidTo]', 'gültig bis', 'gültig bis')
                         ), Panel::PANEL_TYPE_INFO)
-                    , 3),
+                    , 4),
                     new FormColumn(
                         new Panel('Erhöhungsfaktor', array(
                             new TextField('Meta[SpecialNeeds][IncreaseFactorHeavyMultipleHandicappedSchool]', '', 'Erhöhungsfaktor Schule in %'),
                             new TextField('Meta[SpecialNeeds][IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities]', '', 'Erhöhungsfaktor LaSuB in %'),
                         ), Panel::PANEL_TYPE_INFO)
-                    , 3),
+                    , 4),
                 )),
                 new FormRow(array(
                     new FormColumn(array(

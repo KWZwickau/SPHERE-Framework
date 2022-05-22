@@ -20,6 +20,7 @@ class TblLevel extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_IS_CHECKED = 'IsChecked';
     const SERVICE_TBL_TYPE = 'serviceTblType';
 
     /**

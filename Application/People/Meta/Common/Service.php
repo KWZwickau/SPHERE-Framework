@@ -125,15 +125,17 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson $tblPerson
-     * @param $Birthday
-     * @param $Birthplace
+     * @param TblPerson            $tblPerson
+     * @param string               $Birthday
+     * @param string               $Birthplace
      * @param TblCommonGender|null $tblCommonGender
-     * @param $Nationality
-     * @param $Denomination
-     * @param $IsAssistance
-     * @param $AssistanceActivity
-     * @param $Remark
+     * @param string               $Nationality
+     * @param string               $Denomination
+     * @param int                  $IsAssistance
+     * @param string               $AssistanceActivity
+     * @param string               $Remark
+     * @param string               $ContractNumber
+     * @param string               $ContactNumber
      */
     public function insertMeta(
         TblPerson $tblPerson,
@@ -144,7 +146,9 @@ class Service extends AbstractService
         $Denomination,
         $IsAssistance,
         $AssistanceActivity,
-        $Remark
+        $Remark,
+        $ContractNumber = '',
+        $ContactNumber = ''
     ) {
 
         $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
@@ -156,7 +160,9 @@ class Service extends AbstractService
             $Nationality,
             $Denomination,
             $IsAssistance,
-            $AssistanceActivity
+            $AssistanceActivity,
+            $ContractNumber,
+            $ContactNumber
         );
         (new Data($this->getBinding()))->createCommon(
             $tblPerson,
