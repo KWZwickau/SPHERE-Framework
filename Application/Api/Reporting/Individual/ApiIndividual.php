@@ -19,6 +19,8 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblWorkSpace;
@@ -28,6 +30,7 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupClub;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspect;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentBasic;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentSpecialNeeds;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentSubject;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTechnicalSchool;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTransfer;
@@ -104,7 +107,6 @@ use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Debugger\Logger\QueryLogger;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class ApiIndividual
@@ -1231,6 +1233,17 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Dropdown( 'Bildung:', new Scrollable( $Block ) );
                     }
                 }
+                if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'WVSZ')) {
+                    $Block = $this->getPanelList(new ViewGroupStudentSpecialNeeds(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+                    if( !empty( $Block ) ) {
+                        if( isset($ViewList['ViewGroupStudentSpecialNeeds']) ) {
+                            $AccordionList[] = new Panel( 'Förderschüler:', new Scrollable( $Block, 245 ));
+                        } else {
+                            $AccordionList[] = new Dropdown( 'Förderschüler:', new Scrollable( $Block ) );
+                        }
+                    }
+                }
+
                 // Ladebedingung -> muss Berufs-, Berufsfach- oder Fachschule eingestellt haben
                 if (School::useService()->hasConsumerTechnicalSchool()){
                     $Block = $this->getPanelList(new ViewGroupStudentTechnicalSchool(), $WorkSpaceList,
