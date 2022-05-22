@@ -109,7 +109,8 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager(false);
         $Entity = $Manager->getEntity('TblLevel')->findOneBy(array(
             TblLevel::ATTR_NAME => $Name,
-            TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
+            TblLevel::SERVICE_TBL_TYPE => $tblType->getId(),
+            TblLevel::ATTR_IS_CHECKED => $Checked
         ));
         if (null === $Entity) {
             $Entity = new TblLevel();
