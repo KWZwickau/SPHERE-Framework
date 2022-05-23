@@ -837,21 +837,16 @@ class Frontend extends Extension implements IFrontendInterface
                         'SchoolType'           => 'Schulart',
                         'SchoolCourse'         => 'Bildungsgang',
                         'Division'             => 'aktuelle Klasse',
-                        'PictureSchoolWriting' => 'Einverständnis Foto Schulschriften',
-                        'PicturePublication'   => 'Einverständnis Foto Veröffentlichungen',
-                        'PictureWeb'           => 'Einverständnis Foto Internetpräsenz',
-                        'PictureFacebook'      => 'Einverständnis Foto Facebookseite',
-                        'PicturePrint'         => 'Einverständnis Foto Druckpresse',
-                        'PictureFilm'          => 'Einverständnis Foto Ton/Video/Film',
-                        'PictureAdd'           => 'Einverständnis Foto Werbung in eigener Sache',
-                        'NameSchoolWriting'    => 'Einverständnis Name Schulschriften',
-                        'NamePublication'      => 'Einverständnis Name Veröffentlichungen',
-                        'NameWeb'              => 'Einverständnis Name Internetpräsenz',
-                        'NameFacebook'         => 'Einverständnis Name Facebookseite',
-                        'NamePrint'            => 'Einverständnis Name Druckpresse',
-                        'NameFilm'             => 'Einverständnis Name Ton/Video/Film',
-                        'NameAdd'              => 'Einverständnis Name Werbung in eigener Sache',
                     );
+                    //Agreement Head
+                    if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+                        foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                            $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
+                            foreach($tblAgreementTypeList as $tblAgreementType){
+                                $ColumnCustom['AgreementType'.$tblAgreementType->getId()] = $tblAgreementType->getName();
+                            }
+                        }
+                    }
                 }
                 if ($tblGroup->getMetaTable() == 'CUSTODY') {
                     $ColumnCustom = array(

@@ -21,6 +21,7 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreement;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
@@ -905,7 +906,7 @@ class Service extends Support
      *
      * @return bool
      */
-    public function updateStudentAgreement(TblPerson $tblPerson, $Meta)
+    public function updateStudentAgreement(TblPerson $tblPerson, $Meta, $isUnlocked = false)
     {
         // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
         $tblStudent = $tblPerson->getStudent(true);
@@ -914,22 +915,26 @@ class Service extends Support
         }
 
         if ($tblStudent) {
-
             /*
              * Agreement
              */
             $tblStudentAgreementAllByStudent = $this->getStudentAgreementAllByStudent($tblStudent);
             if ($tblStudentAgreementAllByStudent) {
-                foreach ($tblStudentAgreementAllByStudent as $tblStudentAgreement) {
-                    if (!isset(
-                        $Meta['Agreement']
-                        [$tblStudentAgreement->getTblStudentAgreementType()->getTblStudentAgreementCategory()->getId()]
-                        [$tblStudentAgreement->getTblStudentAgreementType()->getId()]
-                    )
-                    ) {
-                        (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
+                array_walk($tblStudentAgreementAllByStudent, function (TblStudentAgreement $tblStudentAgreement) use (&$isUnlocked){
+                    $tblCategory = false;
+                    if(($tblType = $tblStudentAgreement->getTblStudentAgreementType())){
+                        $tblCategory = $tblType->getTblStudentAgreementCategory();
                     }
-                }
+                    if(!$isUnlocked){
+                        if (!isset($Meta['Agreement'][$tblCategory->getId()][$tblType->getId()])) {
+                            (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
+                        }
+                    } else {
+                        if (!isset($Meta['Agreement'][$tblCategory->getId()][$tblType->getId()]) && $tblType->getIsUnlocked()) {
+                            (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
+                        }
+                    }
+                });
             }
             if (isset($Meta['Agreement'])) {
                 foreach ($Meta['Agreement'] as $Category => $Items) {

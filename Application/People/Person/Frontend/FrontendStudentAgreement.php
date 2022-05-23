@@ -178,47 +178,33 @@ class FrontendStudentAgreement extends FrontendReadOnly
          * Panel: Agreement
          */
         $AgreementPanel = array();
-        $CheckboxList = array();
-        if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+        $AgreementPanelHead = array();
+        if(($tblStudentAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
             $PanelCount = 1;
-            array_walk($tblAgreementCategoryAll,
-                function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementPanel, &$CheckboxList, &$PanelCount) {
+            array_walk($tblStudentAgreementCategoryAll, function (TblStudentAgreementCategory $tblCategory) use (&$AgreementPanel, &$AgreementPanelHead, &$PanelCount) {
                 $AgreementPanel[$PanelCount] = array();
-                $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
-                // Extra Toggle on Category
+                $tblStudentAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblCategory);
+                // Toggle on Category
                 $CategoryCheckboxList = array();
-                array_walk($tblAgreementTypeAll,
-                    function (TblStudentAgreementType $tblStudentAgreementType) use (&$AgreementPanel, &$CategoryCheckboxList,
-                        $tblStudentAgreementCategory) {
-                        $CategoryCheckboxList[] = 'Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']';
-                    }
-                );
-                array_push($AgreementPanel[$PanelCount],new PullClear(new PullLeft(new Bold($tblStudentAgreementCategory->getName()))
-                .new PullRight(new ToggleSelective('wählen/abwählen', $CategoryCheckboxList))
-                ));
-                if ($tblAgreementTypeAll) {
-//                    $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
-                    array_walk($tblAgreementTypeAll,
-                    function (TblStudentAgreementType $tblStudentAgreementType) use (&$AgreementPanel, &$CheckboxList,
-                        $tblStudentAgreementCategory, &$PanelCount) {
-                        $CheckboxList[] = 'Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']';
-                        array_push($AgreementPanel[$PanelCount],
-                            new CheckBox('Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']',
-                                $tblStudentAgreementType->getName(), 1)
-                        );
+                array_walk($tblStudentAgreementTypeAll, function (TblStudentAgreementType $tblType) use (&$AgreementPanel, &$CategoryCheckboxList, $tblCategory) {
+                    $CategoryCheckboxList[] = 'Meta[Agreement]['.$tblCategory->getId().']['.$tblType->getId().']';
+                });
+                $AgreementPanelHead[$PanelCount] = new PullClear(new PullLeft(new Bold($tblCategory->getName()))
+                .new PullRight(new ToggleSelective('wählen/abwählen', $CategoryCheckboxList)));
+
+                if ($tblStudentAgreementTypeAll) {
+//                    $tblStudentAgreementTypeAll = $this->getSorter($tblStudentAgreementTypeAll)->sortObjectBy('Name');
+                    array_walk($tblStudentAgreementTypeAll, function (TblStudentAgreementType $tblType) use (&$AgreementPanel, $tblCategory, &$PanelCount) {
+                        $AgreementPanel[$PanelCount][] = new CheckBox('Meta[Agreement]['.$tblCategory->getId().']['.$tblType->getId().']', $tblType->getName(), 1);
                     });
                 }
                 $PanelCount++;
             });
         }
-
-//        $CheckboxButton = new ToggleSelective('Alle wählen/abwählen', $CheckboxList);
-//        $AgreementPanel = new Panel(new PullClear('Einverständniserklärung zur Datennutzung') // .new PullRight($CheckboxButton)
-//            , $AgreementPanel, Panel::PANEL_TYPE_INFO);
         $AgreementLayout = array();
         if(!empty($AgreementPanel)){
-            foreach($AgreementPanel as $AgreementPanelOne){
-                $AgreementLayout[] = new LayoutColumn(new Panel(new PullClear('Einverständniserklärung zur Datennutzung') // .new PullRight($CheckboxButton)
+            foreach($AgreementPanel as $Key => $AgreementPanelOne){
+                $AgreementLayout[] = new LayoutColumn(new Panel($AgreementPanelHead[$Key]
                     , $AgreementPanelOne, Panel::PANEL_TYPE_INFO), 3);
             }
         }

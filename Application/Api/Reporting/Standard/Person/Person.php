@@ -268,10 +268,10 @@ class Person
     {
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-            $name = 'Einverständniserklärung_Klassenliste ' . $tblDivision->getDisplayName();
+            $name = 'Datennutzung_Klassenliste ' . $tblDivision->getDisplayName();
         } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
             $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-            $name = 'Einverständniserklärung_Stammgruppenliste ' . $tblGroup->getName();
+            $name = 'Datennutzung_Stammgruppenliste ' . $tblGroup->getName();
         } else {
             return false;
         }

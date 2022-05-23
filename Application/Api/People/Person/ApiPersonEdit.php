@@ -1438,7 +1438,11 @@ class ApiPersonEdit extends Extension implements IApiInterface
         }
 
         $Global = $this->getGlobal();
-        $Meta = $Global->POST['Meta'];
+        $Meta = array();
+        if(isset($Global->POST['Meta'])){
+            $Meta = $Global->POST['Meta'];
+        }
+
         if (($form = (new FrontendCommon())->checkInputCommonContent($tblPerson, $Meta))) {
             // display Errors on form
             return $form;
@@ -1475,7 +1479,10 @@ class ApiPersonEdit extends Extension implements IApiInterface
         }
 
         $Global = $this->getGlobal();
-        $Meta = $Global->POST['Meta'];
+        $Meta = array();
+        if(isset($Global->POST['Meta'])){
+            $Meta = $Global->POST['Meta'];
+        }
 
         if (Agreement::useService()->updatePersonAgreement($tblPerson, $Meta)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
@@ -1814,7 +1821,10 @@ class ApiPersonEdit extends Extension implements IApiInterface
         }
 
         $Global = $this->getGlobal();
-        $Meta = $Global->POST['Meta'];
+        $Meta = array();
+        if(isset($Global->POST['Meta'])){
+            $Meta = $Global->POST['Meta'];
+        }
 
         if (Student::useService()->updateStudentAgreement($tblPerson, $Meta)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
@@ -1847,7 +1857,10 @@ class ApiPersonEdit extends Extension implements IApiInterface
         }
 
         $Global = $this->getGlobal();
-        $Meta = $Global->POST['Meta'];
+        $Meta = array();
+        if(isset($Global->POST['Meta'])){
+            $Meta = $Global->POST['Meta'];
+        }
 
         if (Student::useService()->updateStudentSubject($tblPerson, $Meta)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())

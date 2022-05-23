@@ -24,6 +24,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -375,29 +376,29 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
 
         if(($tblStudentAgreementCategoryList = Student::useService()->getStudentAgreementCategoryAll())){
             foreach($tblStudentAgreementCategoryList as $tblStudentAgreementCategory){
-                $CategoryList[$tblStudentAgreementCategory->getName()][] = new Bold($tblStudentAgreementCategory->getName()) .new PullRight(
+                $CategoryList[$tblStudentAgreementCategory->getName()][] = new PullClear(new Bold($tblStudentAgreementCategory->getName()) .new PullRight(
                     (new Link(new Edit(), '#'))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenEditCategoryModal($PersonId, $tblStudentAgreementCategory->getId()))
                     .(new Link(new DangerText(new Disable()), '#'))
                         ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenDestroyCategoryModal($PersonId, $tblStudentAgreementCategory->getId()))
-                );
+                ));
                 if(($tblStudentAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory))){
                     foreach($tblStudentAgreementTypeList as $tblStudentAgreementType){
                         // Kursiv + Mouse Over Info
                         if($tblStudentAgreementType->getIsUnlocked()){
-                            $CategoryList[$tblStudentAgreementCategory->getName()][] = new Italic(new ToolTip(
+                            $CategoryList[$tblStudentAgreementCategory->getName()][] = new PullClear(new Italic(new ToolTip(
                                 $tblStudentAgreementType->getName().'*', 'Lehrer können diesen Wert setzen').new PullRight(
                                     (new Link(new Edit(), '#'))
                                         ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenEditTypeModal($PersonId, $tblStudentAgreementType->getId()))
                                     .(new Link(new DangerText(new Disable()), '#'))
                                         ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenDestroyTypeModal($PersonId, $tblStudentAgreementType->getId()))
-                                ));
+                                )));
                         } else {
-                            $CategoryList[$tblStudentAgreementCategory->getName()][] = $tblStudentAgreementType->getName().new PullRight(
+                            $CategoryList[$tblStudentAgreementCategory->getName()][] = new PullClear($tblStudentAgreementType->getName().new PullRight(
                                     (new Link(new Edit(), '#'))
                                         ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenEditTypeModal($PersonId, $tblStudentAgreementType->getId()))
                                     .(new Link(new DangerText(new Disable()), '#'))
                                         ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenDestroyTypeModal($PersonId, $tblStudentAgreementType->getId()))
-                                );
+                                ));
                         }
                     }
                 }

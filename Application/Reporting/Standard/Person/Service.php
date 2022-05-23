@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Reporting\Standard\Person;
 
 use DateTime;
@@ -43,6 +42,7 @@ use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
@@ -1206,7 +1206,6 @@ class Service extends Extension
         if (!empty($tblPersonList)) {
 
             $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy(TblPerson::ATTR_LAST_NAME, new StringGermanOrderSorter());
-
             $All = 0;
 
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All, $tblGroup) {
@@ -1377,48 +1376,20 @@ class Service extends Extension
                         $Item['SchoolCourse'] = (Student::useService()->getCourseByStudent($tblStudent)
                             ? Student::useService()->getCourseByStudent($tblStudent)->getName()
                             : '');
-                        $tblAgreementList = Student::useService()->getStudentAgreementAllByStudent($tblStudent);
-                        if ($tblAgreementList) {
-                            $MarkValue = 'Ja';
-                            foreach ($tblAgreementList as $tblAgreement) {
-                                $tblAgreementType = $tblAgreement->getTblStudentAgreementType();
-                                $CategoryString = $tblAgreementType->getTblStudentAgreementCategory()->getName();
-                                switch ($tblAgreementType->getName()) {
-                                    case 'in Schulschriften':
-                                        ($CategoryString == 'Foto des Schülers'
-                                            ? $Item['PictureSchoolWriting'] = $MarkValue
-                                            : $Item['NameSchoolWriting'] = $MarkValue);
-                                        break;
-                                    case 'in Veröffentlichungen':
-                                        ($CategoryString == 'Foto des Schülers'
-                                            ? $Item['PicturePublication'] = $MarkValue
-                                            : $Item['NamePublication'] = $MarkValue);
-                                        break;
-                                    case 'auf Internetpräsenz':
-                                        ($CategoryString == 'Foto des Schülers'
-                                            ? $Item['PictureWeb'] = $MarkValue
-                                            : $Item['NameWeb'] = $MarkValue);
-                                        break;
-                                    case 'auf Facebookseite':
-                                        ($CategoryString == 'Foto des Schülers'
-                                            ? $Item['PictureFacebook'] = $MarkValue
-                                            : $Item['NameFacebook'] = $MarkValue);
-                                        break;
-                                    case 'für Druckpresse':
-                                        ($CategoryString == 'Foto des Schülers'
-                                            ? $Item['PicturePrint'] = $MarkValue
-                                            : $Item['NamePrint'] = $MarkValue);
-                                        break;
-                                    case 'durch Ton/Video/Film':
-                                        ($CategoryString == 'Foto des Schülers'
-                                            ? $Item['PictureFilm'] = $MarkValue
-                                            : $Item['NameFilm'] = $MarkValue);
-                                        break;
-                                    case 'für Werbung in eigener Sache':
-                                        ($CategoryString == 'Foto des Schülers'
-                                            ? $Item['PictureAdd'] = $MarkValue
-                                            : $Item['NameAdd'] = $MarkValue);
-                                        break;
+                        // leer befüllen
+                        if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+                            foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                                $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
+                                foreach($tblAgreementTypeList as $tblAgreementType){
+                                    $Item['AgreementType'.$tblAgreementType->getId()] = '';
+                                }
+                            }
+                        }
+                        // befüllen was Gesetzt ist
+                        if(($tblAgreementList = Student::useService()->getStudentAgreementAllByStudent($tblStudent))){
+                            foreach($tblAgreementList as $tblAgreement){
+                                if(($tblAgreementType = $tblAgreement->getTblStudentAgreementType())){
+                                    $Item['AgreementType'.$tblAgreementType->getId()] = 'Ja';
                                 }
                             }
                         }
@@ -1513,27 +1484,23 @@ class Service extends Extension
                 );
             }
             if ($tblGroup->getMetaTable() == 'STUDENT') {
+
                 $ColumnCustom = array(
                     'Identifier'           => 'Schülernummer',
                     'School'               => 'Schule',
                     'SchoolType'           => 'Schulart',
                     'SchoolCourse'         => 'Bildungsgang',
                     'Division'             => 'aktuelle Klasse',
-                    'PictureSchoolWriting' => 'Einverständnis Foto Schulschriften',
-                    'PicturePublication'   => 'Einverständnis Foto Veröffentlichungen',
-                    'PictureWeb'           => 'Einverständnis Foto Internetpräsenz',
-                    'PictureFacebook'      => 'Einverständnis Foto Facebookseite',
-                    'PicturePrint'         => 'Einverständnis Foto Druckpresse',
-                    'PictureFilm'          => 'Einverständnis Foto Ton/Video/Film',
-                    'PictureAdd'           => 'Einverständnis Foto Werbung in eigener Sache',
-                    'NameSchoolWriting'    => 'Einverständnis Name Schulschriften',
-                    'NamePublication'      => 'Einverständnis Name Veröffentlichungen',
-                    'NameWeb'              => 'Einverständnis Name Internetpräsenz',
-                    'NameFacebook'         => 'Einverständnis Name Facebookseite',
-                    'NamePrint'            => 'Einverständnis Name Druckpresse',
-                    'NameFilm'             => 'Einverständnis Name Ton/Video/Film',
-                    'NameAdd'              => 'Einverständnis Name Werbung in eigener Sache',
                 );
+                //Agreement Head
+                if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+                    foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                        $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
+                        foreach($tblAgreementTypeList as $tblAgreementType){
+                            $ColumnCustom['AgreementType'.$tblAgreementType->getId()] = $tblAgreementType->getName();
+                        }
+                    }
+                }
             }
             if ($tblGroup->getMetaTable() == 'CUSTODY') {
                 $ColumnCustom = array(
@@ -3512,26 +3479,32 @@ class Service extends Extension
     {
         $TableContent = array();
         if ($tblPersonList) {
+
+            //Agreement Head
+            if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+                foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                    $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
+                    foreach($tblAgreementTypeList as $tblAgreementType){
+                        $ColumnCustom['AgreementType'.$tblAgreementType->getId()] = $tblAgreementType->getName();
+                    }
+                }
+            }
+
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
                 $Item['Name'] = $tblPerson->getLastFirstName();
                 $Item['StudentNumber'] = '';
                 $Item['Birthday'] = '';
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                 $Item['Address'] = '';
-                $Item['Name1'] = 'Nein';    // Schulschriften
-                $Item['Name2'] = 'Nein';    // Veröffentlichungen
-                $Item['Name3'] = 'Nein';    // Internetpräsenz
-                $Item['Name4'] = 'Nein';    // Facebookseite
-                $Item['Name5'] = 'Nein';    // Druckpresse
-                $Item['Name6'] = 'Nein';    // Ton/Video/Film
-                $Item['Name7'] = 'Nein';    // Werbung in eigener Sache
-                $Item['Picture1'] = 'Nein'; // Schulschriften
-                $Item['Picture2'] = 'Nein'; // Veröffentlichungen
-                $Item['Picture3'] = 'Nein'; // Internetpräsenz
-                $Item['Picture4'] = 'Nein'; // Facebookseite
-                $Item['Picture5'] = 'Nein'; // Druckpresse
-                $Item['Picture6'] = 'Nein'; // Ton/Video/Film
-                $Item['Picture7'] = 'Nein'; // Werbung in eigener Sache
+                // Grundlegend setzen und befüllen
+                if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+                    foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                        $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
+                        foreach($tblAgreementTypeList as $tblAgreementType){
+                            $Item['AgreementType'][$tblAgreementType->getId()] = 'Nein';
+                        }
+                    }
+                }
 
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
@@ -3543,60 +3516,11 @@ class Service extends Extension
 
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
                     $Item['StudentNumber'] = $tblStudent->getIdentifier();
-                    if($tblStudentAgreementList = Student::useService()->getStudentAgreementAllByStudent($tblStudent)){
-                        foreach($tblStudentAgreementList as $tblStudentAgreement){
-                            $tblStudentAgreementType = $tblStudentAgreement->getTblStudentAgreementType();
-                            $tblStudentAgreementCategory = $tblStudentAgreementType->getTblStudentAgreementCategory();
-                            if($tblStudentAgreementType && $tblStudentAgreementCategory){
-                                if($tblStudentAgreementCategory->getName() == 'Foto des Schülers') {
-                                    switch($tblStudentAgreement->getTblStudentAgreementType()->getName()){
-                                        case 'in Schulschriften':
-                                            $Item['Picture1'] = 'Ja';
-                                        break;
-                                        case 'in Veröffentlichungen':
-                                            $Item['Picture2'] = 'Ja';
-                                        break;
-                                        case 'auf Internetpräsenz':
-                                            $Item['Picture3'] = 'Ja';
-                                        break;
-                                        case 'auf Facebookseite':
-                                            $Item['Picture4'] = 'Ja';
-                                        break;
-                                        case 'für Druckpresse':
-                                            $Item['Picture5'] = 'Ja';
-                                        break;
-                                        case 'durch Ton/Video/Film':
-                                            $Item['Picture6'] = 'Ja';
-                                        break;
-                                        case 'für Werbung in eigener Sache':
-                                            $Item['Picture7'] = 'Ja';
-                                        break;
-                                    }
-                                } else {
-                                    switch($tblStudentAgreement->getTblStudentAgreementType()->getName()){
-                                        case 'in Schulschriften':
-                                            $Item['Name1'] = 'Ja';
-                                        break;
-                                        case 'in Veröffentlichungen':
-                                            $Item['Name2'] = 'Ja';
-                                        break;
-                                        case 'auf Internetpräsenz':
-                                            $Item['Name3'] = 'Ja';
-                                        break;
-                                        case 'auf Facebookseite':
-                                            $Item['Name4'] = 'Ja';
-                                        break;
-                                        case 'für Druckpresse':
-                                            $Item['Name5'] = 'Ja';
-                                        break;
-                                        case 'durch Ton/Video/Film':
-                                            $Item['Name6'] = 'Ja';
-                                        break;
-                                        case 'für Werbung in eigener Sache':
-                                            $Item['Name7'] = 'Ja';
-                                        break;
-                                    }
-                                }
+                    // Bestätigung Setzen
+                    if(($tblAgreementList = Student::useService()->getStudentAgreementAllByStudent($tblStudent))){
+                        foreach($tblAgreementList as $tblAgreement){
+                            if(($tblAgreementType = $tblAgreement->getTblStudentAgreementType())){
+                                $Item['AgreementType'][$tblAgreementType->getId()] = 'Ja';
                             }
                         }
                     }
@@ -3643,28 +3567,21 @@ class Service extends Extension
             $export->setValue($export->getCell($Column++, $Row), "Name, Vorname");
             $export->setValue($export->getCell($Column++, $Row), "Anschrift");
             $export->setValue($export->getCell($Column++, $Row), "Geburtsdatum");
-            $export->setValue($export->getCell($Column, $Row - 1), "Namentliche Erwähnung des Schülers");
-            //Header für Namentliche Erwähnung
-            $export->setStyle($export->getCell($Column, $Row - 1), $export->getCell($Column + 6, $Row - 1))->mergeCells();
 
-            $export->setValue($export->getCell($Column++, $Row), "Schulschriften");
-            $export->setValue($export->getCell($Column++, $Row), "Veröffentlichungen");
-            $export->setValue($export->getCell($Column++, $Row), "Internetpräsenz");
-            $export->setValue($export->getCell($Column++, $Row), "Facebookseite");
-            $export->setValue($export->getCell($Column++, $Row), "Druckpresse");
-            $export->setValue($export->getCell($Column++, $Row), "Ton/Video/Film");
-            $export->setValue($export->getCell($Column++, $Row), "Werbung in eigener Sache");
-            $export->setValue($export->getCell($Column, $Row - 1), "Foto des Schülers");
-            //Header für Foto
-            $export->setStyle($export->getCell($Column, $Row - 1), $export->getCell($Column + 6, $Row - 1))->mergeCells();
-
-            $export->setValue($export->getCell($Column++, $Row), "Schulschriften");
-            $export->setValue($export->getCell($Column++, $Row), "Veröffentlichungen");
-            $export->setValue($export->getCell($Column++, $Row), "Internetpräsenz");
-            $export->setValue($export->getCell($Column++, $Row), "Facebookseite");
-            $export->setValue($export->getCell($Column++, $Row), "Druckpresse");
-            $export->setValue($export->getCell($Column++, $Row), "Ton/Video/Film");
-            $export->setValue($export->getCell($Column, $Row), "Werbung in eigener Sache");
+            //Agreement Head
+            if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+                foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                    // Header für Ketegorie
+                    $export->setValue($export->getCell($Column, $Row - 1), $tblAgreementCategory->getName());
+                    if(($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))){
+                        // Header für Ketegorie (Breite)
+                        $export->setStyle($export->getCell($Column, $Row - 1), $export->getCell($Column + (count($tblAgreementTypeList) - 1), $Row - 1))->mergeCells();
+                        foreach($tblAgreementTypeList as $tblAgreementType){
+                            $export->setValue($export->getCell($Column++, $Row), $tblAgreementType->getName());
+                        }
+                    }
+                }
+            }
 
             $Row = 2;
 
@@ -3674,20 +3591,11 @@ class Service extends Extension
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Name']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Address']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Birthday']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Name1']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Name2']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Name3']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Name4']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Name5']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Name6']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Name7']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Picture1']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Picture2']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Picture3']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Picture4']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Picture5']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Picture6']);
-                $export->setValue($export->getCell($Column, $Row), $PersonData['Picture7']);
+
+                foreach($PersonData['AgreementType'] as $AgreementTypeContent){
+                    $export->setValue($export->getCell($Column++, $Row), $AgreementTypeContent);
+                }
+
                 $Row++;
             }
 

@@ -46,7 +46,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
  */
 class FrontendPersonAgreement extends FrontendReadOnly
 {
-    const TITLE = 'Einverständnis - Datenschutz';
+    const TITLE = 'Datennutzung';
 
     /**
      * @param null $PersonId
@@ -190,48 +190,33 @@ class FrontendPersonAgreement extends FrontendReadOnly
          * Panel: Agreement
          */
         $AgreementPanel = array();
-        $CheckboxList = array();
+        $AgreementPanelHead = array();
         if(($tblAgreementCategoryAll = Agreement::useService()->getPersonAgreementCategoryAll())){
             $PanelCount = 1;
-            array_walk($tblAgreementCategoryAll,
-                function (TblPersonAgreementCategory $tblPersonAgreementCategory) use (&$AgreementPanel, &$CheckboxList, &$PanelCount) {
+            array_walk($tblAgreementCategoryAll, function (TblPersonAgreementCategory $tblCategory) use (&$AgreementPanel, &$AgreementPanelHead, &$PanelCount) {
                 $AgreementPanel[$PanelCount] = array();
-                $tblAgreementTypeAll = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblPersonAgreementCategory);
-                // Extra Toggle on Category
+                $tblAgreementTypeAll = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblCategory);
+                // Toggle on Category
                 $CategoryCheckboxList = array();
-                array_walk($tblAgreementTypeAll,
-                    function (TblPersonAgreementType $tblPersonAgreementType) use (&$AgreementPanel, &$CategoryCheckboxList,
-                        $tblPersonAgreementCategory) {
-                        $CategoryCheckboxList[] = 'Meta[Agreement]['.$tblPersonAgreementCategory->getId().']['.$tblPersonAgreementType->getId().']';
-                    }
-                );
-                array_push($AgreementPanel[$PanelCount],new PullClear(new PullLeft(new Bold($tblPersonAgreementCategory->getName()))
-                .new PullRight(new ToggleSelective('wählen/abwählen', $CategoryCheckboxList))
-                ));
+                array_walk($tblAgreementTypeAll, function (TblPersonAgreementType $tblType) use (&$AgreementPanel, &$CategoryCheckboxList, $tblCategory) {
+                    $CategoryCheckboxList[] = 'Meta[Agreement]['.$tblCategory->getId().']['.$tblType->getId().']';
+                });
+                $AgreementPanelHead[$PanelCount] = new PullClear(new PullLeft(new Bold($tblCategory->getName()))
+                .new PullRight(new ToggleSelective('wählen/abwählen', $CategoryCheckboxList)));
+
                 if ($tblAgreementTypeAll) {
 //                    $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
-                    array_walk($tblAgreementTypeAll,
-                    function (TblPersonAgreementType $tblPersonAgreementType) use (&$AgreementPanel, &$CheckboxList,
-                        $tblPersonAgreementCategory, &$PanelCount) {
-                        $CheckboxList[] = 'Meta[Agreement]['.$tblPersonAgreementCategory->getId().']['.$tblPersonAgreementType->getId().']';
-                        array_push($AgreementPanel[$PanelCount],
-                            new CheckBox('Meta[Agreement]['.$tblPersonAgreementCategory->getId().']['.$tblPersonAgreementType->getId().']',
-                                $tblPersonAgreementType->getName(), 1)
-                        );
+                    array_walk($tblAgreementTypeAll, function (TblPersonAgreementType $tblType) use (&$AgreementPanel, $tblCategory, &$PanelCount) {
+                        $AgreementPanel[$PanelCount][] =new CheckBox('Meta[Agreement]['.$tblCategory->getId().']['.$tblType->getId().']', $tblType->getName(), 1);
                     });
                 }
                 $PanelCount++;
             });
         }
-
-//        $CheckboxButton = new ToggleSelective('Alle wählen/abwählen', $CheckboxList);
-//        $AgreementPanel = new Panel(new PullClear('Einverständniserklärung zur Datennutzung') // .new PullRight($CheckboxButton)
-//            , $AgreementPanel, Panel::PANEL_TYPE_INFO);
         $AgreementLayout = array();
         if(!empty($AgreementPanel)){
-            foreach($AgreementPanel as $AgreementPanelOne){
-
-                $AgreementLayout[] = new LayoutColumn(new Panel(new PullClear('Einverständniserklärung zur Datennutzung') // .new PullRight($CheckboxButton)
+            foreach($AgreementPanel as $Key => $AgreementPanelOne){
+                $AgreementLayout[] = new LayoutColumn(new Panel($AgreementPanelHead[$Key]
                     , $AgreementPanelOne, Panel::PANEL_TYPE_INFO), 3);
             }
         }
