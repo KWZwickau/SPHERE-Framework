@@ -1287,10 +1287,13 @@ class Service extends AbstractService
                 $firstName = $person['FirstName'];
                 $lastName = $person['LastName'];
                 $birthName = $person['BirthName'];
+                $occupation = $person['Occupation'];
+                $employment = $person['Employment'];
+
                 $tblCommonGender = Common::useService()->getCommonGenderById($person['Gender']);
                 $isSingleParent = isset($person['IsSingleParent']);
 
-                if ($tblSalutation || $title || $firstName || $lastName || $birthName || $tblCommonGender) {
+                if ($tblSalutation || $title || $firstName || $lastName || $birthName || $occupation || $employment || $tblCommonGender) {
                     $isAdd = true;
                     $this->setMessage($firstName, $key, 'FirstName', 'Bitte geben Sie einen Vornamen ein.', $Errors, $errorCustody);
                     $this->setMessage($lastName, $key, 'LastName', 'Bitte geben Sie einen Nachnamen ein.', $Errors, $errorCustody);
@@ -1327,6 +1330,8 @@ class Service extends AbstractService
                         'FirstName' => $firstName,
                         'LastName' => $lastName,
                         'BirthName' => $birthName,
+                        'Occupation' => $occupation,
+                        'Employment' => $employment,
                         'tblCommonGender' => $tblCommonGender,
                         'Ranking' => $rankingCustody,
                         'IsSingleParent' => $isSingleParent
@@ -1395,6 +1400,8 @@ class Service extends AbstractService
                         '',
                         ''
                     );
+
+                    Custody::useService()->insertMeta($tblPerson, $custody['Occupation'], $custody['Employment'], '');
 
                     foreach ($custodyRelationships as $child) {
                         Relationship::useService()->insertRelationshipToPerson(

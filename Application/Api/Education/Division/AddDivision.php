@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Education\Division;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -71,10 +72,17 @@ class AddDivision extends Extension implements IApiInterface
     public function reloadLevelNameInput()
     {
         // todo über neuen Namen oder Kürzel gehen nicht über Id, steckt allerdings noch in einem anderen Ticket
-        if (isset($_POST['Level']['Type']) && ($_POST['Level']['Type'] == 9)) {
-            return '';
-        } else {
-            return (new TextField('Level[Name]', 'z.B: 5', 'Klassenstufe (Nummer)', new Pencil()))->setRequired();
+
+        if (isset($_POST['Level']['Type']) && $_POST['Level']['Type'] != '') {
+            $tblType = Type::useService()->getTypeById($_POST['Level']['Type']);
+            if($tblType && $tblType->getShortName() == 'FöS'){
+                $_POST['Level']['isChecked'] = true;
+                return '';
+            }
         }
+        if (isset($_POST['Level']['isChecked'])) {
+            return '';
+        }
+        return (new TextField('Level[Name]', 'z.B: 5', 'Klassenstufe (Nummer)', new Pencil()))->setRequired();
     }
 }
