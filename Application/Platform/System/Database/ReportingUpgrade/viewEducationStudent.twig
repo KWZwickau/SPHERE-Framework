@@ -15,9 +15,11 @@ SELECT distinct
     tC.Name as TblCompany_Name,
     concat(tC.Name, ' ', tC.ExtendedName) as TblCompany_Name_ExtendedName,
 -- tblType
+    tT.Id AS TblType_Id,
     tT.Name AS TblType_Name,
     tT.Description AS TblType_Description,
 -- tblYear
+    tY.Id as TblYear_Id,
     (CASE WHEN (ISNULL(tY.Year) OR (tY.Year = '')) THEN tY.Name ELSE tY.Year END) AS TblYear_Year,
     tY.Description AS TblYear_Description
 

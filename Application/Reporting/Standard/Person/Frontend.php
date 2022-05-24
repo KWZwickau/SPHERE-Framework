@@ -15,6 +15,9 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Search\Group\Group;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Reporting\Individual\Individual;
+use SPHERE\Application\Reporting\Standard\Person\Service\StudentAgreement;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -50,9 +53,11 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -1721,5 +1726,235 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             )
         ));
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return Stage
+     */
+    public function frontendAgreement($Data = array()) {
+        $Stage = new Stage('Auswertung', 'Datennutzung');
+        $FilterForm = $this->getPersonStudentFilterForm();
+
+        $tblYear = $tblGroup = $tblType = false;
+        if(!empty($Data['Year'])){
+            $tblYear = Term::useService()->getYearById($Data['Year']);
+        }
+        if(!empty($Data['Group'])){
+            $tblGroup = Group::useService()->getGroupById($Data['Group']);
+        }
+        if(!empty($Data['Type'])){
+            $tblType = Type::useService()->getTypeById($Data['Type']);
+        }
+        $Level = !empty($Data['Level']) ? $Data['Level'] : '';
+        $Division = !empty($Data['Division']) ? $Data['Division'] : '';
+        $Result = null;
+        if($tblYear){
+            $Result = Individual::useService()->getStudentPersonListByFilter($tblYear, $tblGroup, $tblType,
+                $Level, $Division);
+        }
+
+
+//        $Service = new StudentAgreement();
+//        $TableContent = $Service->getStudentTableContent($Result, $Option, $PersonGroup);
+//        $MetaComparisonList = $Service->getMetaComparisonList();
+//
+//        $AddCount = 0;
+//
+//        $TableHead = array();
+//        $TableHead['Division'] = 'Klasse';
+//        $TableHead['StudentNumber'] = 'Schülernummer';
+//        $TableHead['FirstName'] = 'Vorname';
+//        $TableHead['LastName'] = 'Nachname';
+//        $TableHead['Gender'] = 'Geschlecht';
+//        $TableHead['Birthday'] = 'Geburtsdatum';
+//        $TableHead['BirthPlace'] = 'Geburtsort';
+//        $TableHead['Nationality'] = 'Staatsangehörigkeit';
+//        $TableHead['Address'] = 'Adresse';
+//        $TableHead['Medication'] = 'Medikamente';
+//        $TableHead['InsuranceState'] = 'Versicherungsstatus';
+//        $TableHead['Insurance'] = 'Krankenkasse';
+//        $TableHead['Religion'] = 'Konfession';
+//        $TableHead['PhoneFixedPrivate'] = 'Festnetz (Privat)';
+//        $TableHead['PhoneFixedWork'] = 'Festnetz (Geschäftl.)';
+//        $TableHead['PhoneFixedEmergency'] = 'Festnetz (Notfall)';
+//        $TableHead['PhoneMobilePrivate'] = 'Mobil (Privat)';
+//        $TableHead['PhoneMobileWork'] = 'Mobil (Geschäftl.)';
+//        $TableHead['PhoneMobileEmergency'] = 'Mobil (Notfall)';
+//        $TableHead['MailPrivate'] = 'E-Mail Privat';
+//        $TableHead['MailWork'] = 'E-Mail Geschäftlich';
+//        if(isset($PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID])
+//            && $PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID] != '0'){
+//            $TableHead['PersonGroup'] = 'Personengruppe';
+//            $AddCount = 1;
+//        }
+//        $TableHead['Sibling_1'] = 'Geschwister1';
+//        $TableHead['Sibling_2'] = 'Geschwister2';
+//        $TableHead['Sibling_3'] = 'Geschwister3';
+//
+//        $ColumnDef = array(
+//            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+//            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+//            // Sibling
+//            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (22 + $AddCount)),
+//            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (23 + $AddCount)),
+//            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (24 + $AddCount)),
+//        );
+//
+//        $SortCount = 0;
+//        foreach($MetaComparisonList as $Type => $TypeCount){
+//            if($TypeCount >= 1){
+//                for($i = 1; $i <= $TypeCount ; $i++) {
+//                    $TableHead[$Type.$i.'_Salutation'] = $Type.' '.$i.' Anrede';
+//                    $TableHead[$Type.$i.'_Title'] = $Type.' '.$i.' Titel';
+//                    $TableHead[$Type.$i.'_FirstName'] = $Type.' '.$i.' Vorname';
+//                    $TableHead[$Type.$i.'_LastName'] = $Type.' '.$i.' Nachname';
+//                    $TableHead[$Type.$i.'_Birthday'] = $Type.' '.$i.' Geburtsdatum';
+//                    $TableHead[$Type.$i.'_BirthPlace'] = $Type.' '.$i.' Geburtsort';
+//                    $TableHead[$Type.$i.'_Job'] = $Type.' '.$i.' Beruf';
+//                    $TableHead[$Type.$i.'_Address'] = $Type.' '.$i.' Adresse';
+//                    $TableHead[$Type.$i.'_PhoneFixedPrivate'] = $Type.' '.$i.' Festnetz (Privat)';
+//                    $TableHead[$Type.$i.'_PhoneFixedWork'] = $Type.' '.$i.' Festnetz (Geschäftl.)';
+//                    $TableHead[$Type.$i.'_PhoneFixedEmergency'] = $Type.' '.$i.' Festnetz (Notfall)';
+//                    $TableHead[$Type.$i.'_PhoneMobilePrivate'] = $Type.' '.$i.' Festnetz (Privat)';
+//                    $TableHead[$Type.$i.'_PhoneMobileWork'] = $Type.' '.$i.' Festnetz (Geschäftl.)';
+//                    $TableHead[$Type.$i.'_PhoneMobileEmergency'] = $Type.' '.$i.' Festnetz (Notfall)';
+//                    $TableHead[$Type.$i.'_Mail_Private'] = $Type.' '.$i.' Mail (Privat)';
+//                    $TableHead[$Type.$i.'_Mail_Work'] = $Type.' '.$i.' Mail (Geschäftl.)';
+//                    $ColumnDef[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (27 + $AddCount + (16 * $SortCount)));
+//                    $ColumnDef[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (28 + $AddCount + (16 * $SortCount)));
+//                    $SortCount++;
+//                }
+//            }
+//        }
+//
+//        $Table = new TableData($TableContent, null, $TableHead,
+//            array(
+//                'order'      => array(array(1, 'asc')),
+//                'columnDefs' => $ColumnDef,
+////                'columnDefs' => array(
+////                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+////                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+////                    // Sibling
+////                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (22 + $AddCount)),
+////                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (23 + $AddCount)),
+////                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (24 + $AddCount)),
+////                    // Custody 1
+////                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (27 + $AddCount)),
+////                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (28 + $AddCount)),
+////                    // Custody 2
+////                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (43 + $AddCount)),
+////                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (44 + $AddCount)),
+////                    // Custody 3
+////                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (59 + $AddCount)),
+////                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (60 + $AddCount)),
+////                ),
+////                'pageLength' => -1,
+////                'paging'     => false,
+////                'searching'  => false,
+//                'responsive' => false,
+//            )
+//        );
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            $FilterForm
+                        ))
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            (null === $Result
+                            ? new Warning('Bitte führen Sie die gewünschte Filterung aus')
+                            : (false === $Result
+                                ? new Danger('Filterung enthält keine Personen')
+                                : new Primary('Download Datennutzung', '/Api/Reporting/Standard/Person/AgreementStudentList/Download', new Download(),
+//                                    array('Data' => $Data)
+                                    array(
+                                        'YearId'   => $tblYear->getId(),
+                                        'GroupId'  => $tblGroup ?? '',
+                                        'TypeId'   => $tblType ?? '',
+                                        'Level'    => $Level,
+                                        'Division' => $Division
+                                    )
+    )
+                                    .print_r(count($Result), true)
+                                )
+                            )
+                        )
+                    )
+//                    new LayoutRow(
+//                        new LayoutColumn(
+//                            new Title('Filterung')
+//                            . (!empty($TableContent) ? new Primary('Herunterladen', '\Api\Reporting\Standard\Person\MetaDataComparison\Download', new Download(),
+//                                    array('Person' => $Person, 'Year' => $Year, 'Division' => $Division, 'Option' => $Option, 'PersonGroup' => $PersonGroup))
+//                                .'<br /><br />' . $Table : new Warning('Keine Personen gefunden'))
+//                        )
+//                    )
+                ))
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Form
+     */
+    private function getPersonStudentFilterForm()
+    {
+        $tblLevelShowList = array(0 => '');
+
+        if(($tblLevelList = Division::useService()->getLevelAll())){
+            foreach($tblLevelList as $tblLevel) {
+                if($tblLevel->getName()){
+                    $tblLevelShowList[$tblLevel->getName()] = $tblLevel->getName();
+                }
+            }
+        }
+        $tblGroupList = Group::useService()->getGroupByNotLocked();
+
+        if(!isset($_POST['Data']['Year'])){
+            $tblYearList = Term::useService()->getYearByNow();
+            if($tblYearList && count($tblYearList) == 1){
+                $_POST['Data']['Year'] = current($tblYearList)->getId();
+            }
+        }
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Bildung', array(
+                            (new SelectBox('Data[Year]', 'Schuljahr',
+                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
+                                ->setRequired(),
+                            new SelectBox('Data[Type]', 'Schulart',
+                                array('Name' => Type::useService()->getTypeAll()))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Klasse', array(
+                            new SelectBox('Data[Level]', 'Stufe', $tblLevelShowList),
+                            new AutoCompleter('Data[Division]', 'Gruppe',
+                                'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Gruppe',
+                            new SelectBox('Data[Group]', 'Personengruppe', array('{{ Name }}' => $tblGroupList))
+                            , Panel::PANEL_TYPE_INFO)
+                        , 4)
+                )),
+                new FormRow(
+                    new FormColumn(
+                        new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Filtern')
+                    )
+                )
+            ))
+        );
     }
 }

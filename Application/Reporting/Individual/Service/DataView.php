@@ -3,7 +3,10 @@
 namespace SPHERE\Application\Reporting\Individual\Service;
 
 use Doctrine\ORM\Query\Expr\Join;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\System\Database\Binding\AbstractData;
 
 /**
@@ -161,6 +164,66 @@ class DataView extends AbstractData
         }
 
         return (!empty($tblContent) ? $tblContent : false);
+    }
+
+    public function getStudentPersonListByFilter(TblYear $tblYear, $tblGroup = false, $tblType = false, $Level = '', $Division = '')
+    {
+
+        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+
+        $SelectString = 'vP.TblPerson_Id';
+        $queryBuilder->select($SelectString)->from(__NAMESPACE__ . '\Entity\ViewPerson', 'vP');
+
+        $queryBuilder->Where($queryBuilder->expr()->eq('vES.TblYear_Id', ':Year'))
+            ->setParameter('Year', $tblYear->getId());
+
+        $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+        $queryBuilder->andWhere($queryBuilder->expr()->eq('vG.TblGroup_Id', ':Student'))
+            ->setParameter('Student', $tblGroupStudent->getId());
+
+        if($tblType){
+            $queryBuilder->andWhere($queryBuilder->expr()->eq('vES.TblType_Id', ':Type'))
+                ->setParameter('Type', $tblType->getId());
+        }
+        if($Level){
+            $queryBuilder->andWhere($queryBuilder->expr()->eq('vES.TblLevel_Name', ':Level'))
+                ->setParameter('Level', $Level);
+        }
+        if($Division){
+            $queryBuilder->andWhere($queryBuilder->expr()->eq('vES.TblDivision_Name', ':Division'))
+                ->setParameter('Division', $Division);
+        }
+
+        $queryBuilder->leftJoin(__NAMESPACE__ . '\Entity\ViewGroup', 'vG', Join::WITH,
+            'vG.TblPerson_Id = vP.TblPerson_Id'
+        );
+        $queryBuilder->leftJoin(__NAMESPACE__ . '\Entity\ViewEducationStudent', 'vES', Join::WITH,
+            'vES.TblPerson_Id = vP.TblPerson_Id'
+        );
+
+        $query = $queryBuilder->getQuery();
+        $resultList = $query->getResult();
+        $tblPersonList = array();
+
+        if(!empty($resultList)){
+            array_walk($resultList, function($resultSingle) use (&$tblPersonList, $tblGroup){
+                $usePerson = true;
+                if(($tblPerson = Person::useService()->getPersonById($resultSingle['TblPerson_Id']))){
+                    // bei angabe einer Gruppe
+                    if($tblGroup){
+                        // Person nicht in der angegebenen Gruppe -> next
+                        if(!Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)){
+                            $usePerson = false;
+                        }
+                    }
+                    if($usePerson){
+                        $tblPersonList[$tblPerson->getId()] = $tblPerson;
+                    }
+                }
+            });
+        }
+
+        return (!empty($tblPersonList) ?$tblPersonList : false);
     }
 
 //    public function getViewProspectCustodyAll(){return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'ViewProspectCustody');}

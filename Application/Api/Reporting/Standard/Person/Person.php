@@ -5,13 +5,13 @@ use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Certificate\Reporting\View;
-use SPHERE\Application\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 
 /**
@@ -285,6 +285,37 @@ class Person
                 $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
+        return false;
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return bool|string
+     */
+    public function downloadAgreementStudentList($YearId, $GroupId = '', $TypeId = '', $Level = '', $Division = '')
+    {
+
+        $tblYear = $tblGroup = $tblType = false;
+        if($YearId){
+            $tblYear = Term::useService()->getYearById($YearId);
+        }
+        if($GroupId){
+            $tblGroup = Group::useService()->getGroupById($GroupId);
+        }
+        if($TypeId){
+            $tblType = Type::useService()->getTypeById($TypeId);
+        }
+
+        if($tblYear){
+            $tblPersonList = Individual::useService()->getStudentPersonListByFilter($tblYear, $tblGroup, $tblType,
+                $Level, $Division);
+            if($tblPersonList && ($DataList = ReportingPerson::useService()->createAgreementClassList($tblPersonList))){
+                $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($DataList, $tblPersonList);
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    'Datennutzung_Klassenliste ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+            }
+        }
         return false;
     }
 

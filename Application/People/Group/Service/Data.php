@@ -186,6 +186,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @return bool|TblGroup[]
+     */
+    public function getGroupByNotLocked()
+    {
+
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
+            ->findBy(array(
+                TblGroup::ATTR_IS_LOCKED  => false
+            ));
+        /** @var TblGroup $Entity */
+        return ( !empty($EntityList) ? $EntityList : false );
+    }
+
+    /**
      * @param bool $isCoreGroup
      *
      * @return false|TblGroup[]
