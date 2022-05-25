@@ -27,6 +27,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
+use SPHERE\Application\People\Meta\Agreement\Agreement;
 use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Custody\Custody;
@@ -42,7 +43,6 @@ use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
@@ -3471,6 +3471,79 @@ class Service extends Extension
     }
 
     /**
+     * @param array $tblPersonList
+     *
+     * @return array
+     */
+    public function createAgreementList($tblPersonList = array())
+    {
+
+        $TableContent = array();
+
+        if (!empty($tblPersonList)) {
+            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy(TblPerson::ATTR_LAST_NAME, new StringGermanOrderSorter());
+            $All = 0;
+
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
+
+                $All++;
+                $Item['StudentNumber'] = '';
+                $Item['Name'] = $tblPerson->getLastFirstName();
+                $Item['FirstName'] = $tblPerson->getFirstSecondName();
+                $Item['LastName'] = $tblPerson->getLastName();
+                $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
+                $Item['Address'] = '';
+                $Item['AddressExcel'] = '';
+                $Item['Birthday'] = '';
+
+                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+                if ($tblCommon) {
+                    if (($tblBirthdates = $tblCommon->getTblCommonBirthDates())) {
+                        $Item['Birthday'] = $tblBirthdates->getBirthday();
+                    }
+                }
+                if (($tblAddress = Address::useService()->getAddressByPerson($tblPerson))) {
+                    $Item['StreetName'] = $tblAddress->getStreetName();
+                    $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                    $Item['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Item['City'] = $tblAddress->getTblCity()->getName();
+                    $Item['District'] = $tblAddress->getTblCity()->getDistrict();
+                    // show in DataTable
+                    $Item['Address'] = $tblAddress->getGuiTwoRowString();
+                    $Item['AddressExcel'] = $tblAddress->getGuiString();
+                }
+
+                // leer befüllen
+                if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+                    foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                        $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
+                        foreach($tblAgreementTypeList as $tblAgreementType){
+                            $Item['AgreementType'][$tblAgreementType->getId()] = 'Nein';
+                            $Item['AgreementType'.$tblAgreementType->getId()] = 'Nein';
+                        }
+                    }
+                }
+
+                if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                    $Item['StudentNumber'] = $tblStudent->getIdentifier();
+                    // befüllen was Gesetzt ist
+                    if(($tblAgreementList = Student::useService()->getStudentAgreementAllByStudent($tblStudent))){
+                        foreach($tblAgreementList as $tblAgreement){
+                            if(($tblAgreementType = $tblAgreement->getTblStudentAgreementType())){
+                                $Item['AgreementType'][$tblAgreementType->getId()] = 'Ja';
+                                $Item['AgreementType'.$tblAgreementType->getId()] = 'Ja';
+                            }
+                        }
+                    }
+                }
+                array_push($TableContent, $Item);
+            });
+        }
+
+        return $TableContent;
+    }
+
+    /**
      * @param $tblPersonList
      *
      * @return array
@@ -3495,7 +3568,7 @@ class Service extends Extension
                 $Item['StudentNumber'] = '';
                 $Item['Birthday'] = '';
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
-                $Item['Address'] = '';
+                $Item['AddressExcel'] = '';
                 // Grundlegend setzen und befüllen
                 if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
                     foreach($tblAgreementCategoryAll as $tblAgreementCategory){
@@ -3589,7 +3662,7 @@ class Service extends Extension
                 $Column = 0;
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['StudentNumber']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Name']);
-                $export->setValue($export->getCell($Column++, $Row), $PersonData['Address']);
+                $export->setValue($export->getCell($Column++, $Row), $PersonData['AddressExcel']);
                 $export->setValue($export->getCell($Column++, $Row), $PersonData['Birthday']);
 
                 foreach($PersonData['AgreementType'] as $AgreementTypeContent){
@@ -3598,15 +3671,140 @@ class Service extends Extension
 
                 $Row++;
             }
-
-            // Style Test
-//            $export->setStyle($export->getCell(4, 0), $export->getCell(10, $Row -1))->setBorderOutline();
-//            $export->setStyle($export->getCell(4, 2), $export->getCell(10, $Row -1))->setBorderVertical();
-//            $export->setStyle($export->getCell(11, 0), $export->getCell(17, $Row -1))->setBorderOutline();
-//            $export->setStyle($export->getCell(11, 2), $export->getCell(17, $Row -1))->setBorderVertical();
-
             $Row++;
             Person::setGenderFooter($export, $tblPersonList, $Row);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $tblPersonList
+     *
+     * @return array
+     */
+    public function createPersonAgreementList($tblPersonList = array())
+    {
+
+        $TableContent = array();
+
+        if (!empty($tblPersonList)) {
+            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy(TblPerson::ATTR_LAST_NAME, new StringGermanOrderSorter());
+            $All = 0;
+
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
+
+                $All++;
+                $Item['Name'] = $tblPerson->getLastFirstName();
+                $Item['FirstName'] = $tblPerson->getFirstSecondName();
+                $Item['LastName'] = $tblPerson->getLastName();
+                $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
+                $Item['Address'] = '';
+                $Item['AddressExcel'] = '';
+                $Item['Birthday'] = '';
+
+                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+                if ($tblCommon) {
+                    if (($tblBirthdates = $tblCommon->getTblCommonBirthDates())) {
+                        $Item['Birthday'] = $tblBirthdates->getBirthday();
+                    }
+                }
+                if (($tblAddress = Address::useService()->getAddressByPerson($tblPerson))) {
+                    $Item['StreetName'] = $tblAddress->getStreetName();
+                    $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                    $Item['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Item['City'] = $tblAddress->getTblCity()->getName();
+                    $Item['District'] = $tblAddress->getTblCity()->getDistrict();
+                    // show in DataTable
+                    $Item['Address'] = $tblAddress->getGuiTwoRowString();
+                    $Item['AddressExcel'] = $tblAddress->getGuiString();
+                }
+                $Item['AgreementType'] = array();
+                // leer befüllen
+                if(($tblAgreementCategoryAll = Agreement::useService()->getPersonAgreementCategoryAll())){
+                    foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                        $tblAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblAgreementCategory);
+                        foreach($tblAgreementTypeList as $tblAgreementType){
+                            $Item['AgreementType'][$tblAgreementType->getId()] = 'Nein';
+                            $Item['AgreementType'.$tblAgreementType->getId()] = 'Nein';
+                        }
+                    }
+                }
+
+                // befüllen was Gesetzt ist
+                if(($tblAgreementList = Agreement::useService()->getPersonAgreementAllByPerson($tblPerson))){
+                    foreach($tblAgreementList as $tblAgreement){
+                        if(($tblAgreementType = $tblAgreement->getTblPersonAgreementType())){
+                            $Item['AgreementType'][$tblAgreementType->getId()] = 'Ja';
+                            $Item['AgreementType'.$tblAgreementType->getId()] = 'Ja';
+                        }
+                    }
+                }
+                array_push($TableContent, $Item);
+            });
+        }
+
+        return $TableContent;
+    }
+
+    /**
+     * @param $PersonList
+     * @param $tblPersonList
+     *
+     * @return bool|FilePointer
+     * @throws TypeFileException
+     * @throws DocumentTypeException
+     */
+    public function createAgreementPersonListExcel($PersonList, $tblPersonList)
+    {
+
+        if (!empty($PersonList)) {
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+
+            $Column = 0;
+            $Row = 1;
+            $export->setValue($export->getCell($Column++, $Row), "Name, Vorname");
+            $export->setValue($export->getCell($Column++, $Row), "Anschrift");
+            $export->setValue($export->getCell($Column++, $Row), "Geburtsdatum");
+
+            //Agreement Head
+            if(($tblAgreementCategoryAll = Agreement::useService()->getPersonAgreementCategoryAll())){
+                foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                    // Header für Ketegorie
+                    $export->setValue($export->getCell($Column, $Row - 1), $tblAgreementCategory->getName());
+                    if(($tblAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblAgreementCategory))){
+                        // Header für Ketegorie (Breite)
+                        $export->setStyle($export->getCell($Column, $Row - 1), $export->getCell($Column + (count($tblAgreementTypeList) - 1), $Row - 1))->mergeCells();
+                        foreach($tblAgreementTypeList as $tblAgreementType){
+                            $export->setValue($export->getCell($Column++, $Row), $tblAgreementType->getName());
+                        }
+                    }
+                }
+            }
+
+            $Row = 2;
+
+            foreach ($PersonList as $PersonData) {
+                $Column = 0;
+                $export->setValue($export->getCell($Column++, $Row), $PersonData['Name']);
+                $export->setValue($export->getCell($Column++, $Row), $PersonData['AddressExcel']);
+                $export->setValue($export->getCell($Column++, $Row), $PersonData['Birthday']);
+
+                foreach($PersonData['AgreementType'] as $AgreementTypeContent){
+                    $export->setValue($export->getCell($Column++, $Row), $AgreementTypeContent);
+                }
+
+                $Row++;
+            }
+//            $Row++;
+//            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

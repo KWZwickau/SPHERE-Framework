@@ -291,30 +291,53 @@ class Person
     /**
      * @param array $Data
      *
-     * @return bool|string
+     * @return false|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @throws \MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
      */
-    public function downloadAgreementStudentList($YearId, $GroupId = '', $TypeId = '', $Level = '', $Division = '')
+    public function downloadAgreementStudentList($Data = array())
     {
 
         $tblYear = $tblGroup = $tblType = false;
-        if($YearId){
-            $tblYear = Term::useService()->getYearById($YearId);
+        if(!empty($Data['Year'])){
+            $tblYear = Term::useService()->getYearById($Data['Year']);
         }
-        if($GroupId){
-            $tblGroup = Group::useService()->getGroupById($GroupId);
+        if(!empty($Data['Group'])){
+            $tblGroup = \SPHERE\Application\People\Search\Group\Group::useService()->getGroupById($Data['Group']);
         }
-        if($TypeId){
-            $tblType = Type::useService()->getTypeById($TypeId);
+        if(!empty($Data['Type'])){
+            $tblType = Type::useService()->getTypeById($Data['Type']);
         }
-
+        $Level = !empty($Data['Level']) ? $Data['Level'] : '';
+        $Division = !empty($Data['Division']) ? $Data['Division'] : '';
         if($tblYear){
             $tblPersonList = Individual::useService()->getStudentPersonListByFilter($tblYear, $tblGroup, $tblType,
                 $Level, $Division);
-            if($tblPersonList && ($DataList = ReportingPerson::useService()->createAgreementClassList($tblPersonList))){
+            if($tblPersonList && ($DataList = ReportingPerson::useService()->createAgreementList($tblPersonList))){
                 $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($DataList, $tblPersonList);
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    'Datennutzung_Klassenliste ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+                    'Datennutzung_Schüler ' . date("Y-m-d H:i:s").".xlsx")->__toString();
             }
+        }
+        return false;
+    }
+
+    /**
+     * @return string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @throws \MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public function downloadAgreementPersonList()
+    {
+
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+        if($tblPersonList && ($DataList = ReportingPerson::useService()->createPersonAgreementList($tblPersonList))){
+            $fileLocation = ReportingPerson::useService()->createAgreementPersonListExcel($DataList, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                'Datennutzung_Mitarbeiter ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
         return false;
     }

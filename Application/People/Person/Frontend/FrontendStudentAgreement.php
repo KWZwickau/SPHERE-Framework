@@ -46,7 +46,7 @@ use SPHERE\System\Extension\Extension;
  */
 class FrontendStudentAgreement extends FrontendReadOnly
 {
-    const TITLE = 'Schülerakte - Datenschutz';
+    const TITLE = 'Schülerakte - Datennutzung';
 
     /**
      * @param null $PersonId
@@ -163,7 +163,7 @@ class FrontendStudentAgreement extends FrontendReadOnly
      */
     private function getEditStudentAgreementStructureTitle()
     {
-        return new Title(new TileSmall() . ' ' . self::TITLE, 'Struktur Datenschutz bearbeiten');
+        return new Title(new TileSmall() . ' ' . self::TITLE, 'Struktur Datennutzung bearbeiten');
     }
 
     /**

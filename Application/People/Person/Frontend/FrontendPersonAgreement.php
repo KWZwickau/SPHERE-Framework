@@ -175,7 +175,7 @@ class FrontendPersonAgreement extends FrontendReadOnly
      */
     private function getEditPersonAgreementStructureTitle()
     {
-        return new Title(new TileSmall() . ' ' . self::TITLE, 'Struktur Datenschutz bearbeiten');
+        return new Title(new TileSmall() . ' ' . self::TITLE, 'Struktur Datennutzung bearbeiten');
     }
 
     /**

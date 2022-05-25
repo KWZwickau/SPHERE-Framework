@@ -130,7 +130,6 @@ class ApiDocument implements IApiInterface
      */
     public function searchPerson($Balance = null)
     {
-//        Debugger::screenDump($Balance);exit;
         return Balance::useFrontend()->loadPersonSearch(isset($Balance['Search']) ? $Balance['Search'] : '');
     }
 
