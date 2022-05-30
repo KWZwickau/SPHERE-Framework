@@ -20,6 +20,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendClub;
 use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Application\People\Person\Frontend\FrontendCustody;
 use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonMasern;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
@@ -95,6 +96,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
             $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id), 'BasicContent');
             $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
             $personAgreementContent = ApiPersonReadOnly::receiverBlock(FrontendPersonAgreement::getPersonAgreementContent($Id), 'PersonAgreementContent');
+            $personMasern = ApiPersonReadOnly::receiverBlock(FrontendPersonMasern::getPersonMasernContent($Id), 'PersonMasernContent');
             $childContent = ApiPersonReadOnly::receiverBlock(FrontendChild::getChildContent($Id), 'ChildContent');
             $prospectContent = ApiPersonReadOnly::receiverBlock(FrontendProspect::getProspectContent($Id), 'ProspectContent');
             $teacherContent = ApiPersonReadOnly::receiverBlock(FrontendTeacher::getTeacherContent($Id), 'TeacherContent');
@@ -183,6 +185,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $childContent
                 . $prospectContent
                 . $teacherContent
+                . $personMasern
                 . $studentContent
                 . $custodyContent
                 . $clubContent

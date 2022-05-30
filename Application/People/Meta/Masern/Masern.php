@@ -1,16 +1,16 @@
 <?php
-namespace SPHERE\Application\People\Meta\Agreement;
+namespace SPHERE\Application\People\Meta\Masern;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\System\Database\Link\Identifier;
 
 /**
- * Class Agreement
+ * Class Masern
  *
- * @package SPHERE\Application\People\Meta\Agreement
+ * @package SPHERE\Application\People\Meta\Masern
  */
-class Agreement implements IModuleInterface
+class Masern implements IModuleInterface
 {
 
     public static function registerModule()
