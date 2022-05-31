@@ -544,22 +544,22 @@ class Frontend extends Extension implements IFrontendInterface
                     $item['Name'] = $tblPerson->getFullName();
                     $item['Picture'] = '';
                     if(($tblPicture = Test::useService()->getPictureByPerson($tblPerson))){
-                        $item['Picture'] = $tblPicture->getFile('100px', '100px');
-                        if($tblPerson->getId() ==1228)
-                        $Picture = $tblPicture->getFile('100px', '100px');
+                        $item['Picture'] = $tblPicture->getFile('70px');
+//                        if($tblPerson->getId() ==1228)
+//                        $Picture = $tblPicture->getFile('40px', '40px');
                     }
                     $item['Option'] = new Standard('', '/Platform/System/Test/TestSite', new Plus(), array('PersonId' => $tblPerson->getId()));
                     array_push($TableContent, $item);
                 }
             }
             $Stage->setContent(
-//                new TableData($TableContent, null, array(
-//                'Name' => 'Vollständiger Name',
-//                'Picture' => 'Bild',
-//                'Option' => '',
-//                )
-//            )
-            $Picture. 'test'
+                new TableData($TableContent, null, array(
+                'Name' => 'Vollständiger Name',
+                'Picture' => 'Bild',
+                'Option' => '',
+                )
+            )
+//            $Picture. 'test'
 //                new Listing($Picture)
             );
         } else {
