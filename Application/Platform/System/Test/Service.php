@@ -2,14 +2,17 @@
 
 namespace SPHERE\Application\Platform\System\Test;
 
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Test\Service\Data;
-use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
+use SPHERE\Application\Platform\System\Test\Service\Entity\TblPicture;
 use SPHERE\Application\Platform\System\Test\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -41,110 +44,92 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
-     * @param UploadedFile        $FileUpload
+     * @param IFormInterface|null $form
+     * @param int|null            $PersonId
+     * @param UploadedFile|null   $FileUpload
      *
-     * @return IFormInterface|string
+     * @return IFormInterface|string|null
      */
-    public function uploadNow(IFormInterface &$Stage = null, $FileUpload)
+    public function uploadNow(IFormInterface &$form = null, $PersonId = null, UploadedFile $FileUpload = null)
     {
 
         /**
          * Skip to Frontend
          */
-        if (false === $FileUpload
+        if (null === $FileUpload
         ) {
-            return $Stage;
+            return $form;
         }
 
         if (!$FileUpload) {
-            $Stage->setError('FileUpload', 'Bitte wählen Sie eine Datei');
-
-        } else {
-
-            try {
-                $Upload = $this->getUpload('FileUpload', __DIR__)
-                    ->validateMaxSize('2M')
-                    ->validateMimeType(array(
-                        'image/png',
-                        'image/gif',
-                        'image/jpeg',
-                        'image/jpg',
-                    ));
-//                    ->doUpload();
-
-                $Dimension = $Upload->getDimensions();
-
-                if (!(new Data($this->getBinding()))->createTestPicture(
-                    $Upload->getName(),
-                    $Upload->getFilename(),
-                    $Upload->getExtension(),
-                    $Upload->getContent(),
-                    $Upload->getMimeType(),
-                    $Upload->getSize(),
-                    $Dimension['width'],
-                    $Dimension['height']
-                )
-                ) {
-                    $Stage .= new Danger('Der Upload konnte nicht erfasst werden');
-//                        .new Redirect('/Platform/System/Test/Upload', 20);
-
-                } else {
-                    $Stage .= new Success('Der Upload ist erfasst');
-//                        .new Redirect('/Platform/System/Test/Upload', 20);
-                }
-
-//                unlink($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename());
-
-            } catch (\Exception $Exception) {
-
-                $Stage->setError('FileUpload', $Exception->getMessage());
-
-                return $Stage;
-            }
+            $form->setError('FileUpload', 'Bitte wählen Sie eine Datei');
+            return $form;
         }
 
-        return $Stage;
+        try {
+            $Upload = $this->getUpload('FileUpload', $FileUpload->getPath())
+                ->validateMaxSize('2M')
+                ->validateMimeType(array(
+                    'image/png',
+//                    'image/gif',
+//                    'image/jpeg',
+//                    'image/jpg',
+                ));
+//                    ->doUpload();
+
+            $Dimension = $Upload->getDimensions();
+            if(!($tblPerson = Person::useService()->getPersonById($PersonId))){
+                $form .= new Danger('Person nicht gefunden');
+            }
+
+            if (!(new Data($this->getBinding()))->createPicture(
+                $tblPerson, $Upload->getContent()
+
+//                $Upload->getName(),
+//                $Upload->getFilename(),
+//                $Upload->getExtension(),
+//                $Upload->getContent(),
+//                $Upload->getMimeType(),
+//                $Upload->getSize(),
+//                $Dimension['width'],
+//                $Dimension['height']
+            )) {
+                $form .= new Danger('Der Upload konnte nicht erfasst werden');
+            } else {
+                $form .= new Success('Der Upload ist erfasst')
+                .new Redirect('/Platform/System/Test/TestSite', Redirect::TIMEOUT_SUCCESS);
+                return $form;
+            }
+            unlink($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename());
+
+        } catch (\Exception $Exception) {
+            $form->setError('FileUpload', $Exception->getMessage());
+        }
+
+        return $form;
     }
 
     /**
-     * @return bool|TblTestPicture[]
-     */
-    public function getTestPictureAll()
-    {
-
-        return (new Data($this->getBinding()))->getTestPictureAll();
-    }
-
-    /**
-     * @param $Id
+     * @param TblPerson $tblPerson
      *
-     * @return bool|TblTestPicture
+     * @return bool|TblPicture
      */
-    public function getTestPictureById($Id)
+    public function getPictureByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->getBinding()))->getTestPictureById($Id);
+        return (new Data($this->getBinding()))->getPictureByPerson($tblPerson);
     }
 
     /**
-     * @param TblTestPicture $tblTestPicture
+     * @param TblPicture $tblPicture
      *
      * @return string
      */
-    public function deleteTblTestPicture(TblTestPicture $tblTestPicture)
+    public function destroyPicture(TblPicture $tblPicture)
     {
 
-        if (null === $tblTestPicture) {
-            return '';
-        }
-
-        if ((new Data($this->getBinding()))->removeTestPicture($tblTestPicture)) {
-            return new Success('Das Bild wurde erfolgreich gelöscht')
-            .new Redirect('/Platform/System/Test/Upload', 1);
-        } else {
-            return new Danger('Das Bild konnte nicht gelöscht werden');
-//            .new Redirect('/Platform/System/Test/Upload', 0);
-        }
+        (new Data($this->getBinding()))->destroyPicture($tblPicture);
+        return new Success('Das Bild wurde erfolgreich gelöscht')
+        .new Redirect('/Platform/System/Test/TestSite', 1);
     }
 }

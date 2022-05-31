@@ -7,6 +7,7 @@ use RecursiveIteratorIterator;
 use SPHERE\Application\Api\Platform\Test\ApiSystemTest;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Button\Reset;
@@ -32,6 +33,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
@@ -65,6 +68,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -457,78 +461,120 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendTestSite()
+    public function frontendTestSite($PersonId = null, $FileUpload = null)
     {
 
-//        Debugger::screenDump($_POST);
+//        Debugger::devDump($_POST);
         $Stage = new Stage('Test Site', '');
 
-        // Editor Beispiel
-        if(!isset($_POST['Feld1'])){
-            $_POST['Feld1'] = '<strong>Wert 1</strong>';
-        }
-        if(!isset($_POST['Ebene1']['Feld2'])){
-            $_POST['Ebene1']['Feld2'] = '<em><strong>Wert 2</strong></em>';
-        }
-        if(!isset($_POST['Ebene1']['Ebene2']['Feld3'])){
-            $_POST['Ebene1']['Ebene2']['Feld3'] = '<span style="text-decoration: underline;"><strong>Wert 3</strong></span>';
-        }
-        if(!isset($_POST['Feld4'])){
-            $_POST['Feld4'] = '<strong>Wert 4</strong>';
-        }
-        if(!isset($_POST['Feld5'])){
-            $_POST['Feld5'] = '<strong>Wert 5</strong>';
-        }
-        if(!isset($_POST['Data']['Feld6'])){
-            $_POST['Data']['Feld6'] = '<strong>Wert 6</strong>';
-        }
+//        // Editor Beispiel
+//        if(!isset($_POST['Feld1'])){
+//            $_POST['Feld1'] = '<strong>Wert 1</strong>';
+//        }
+//        if(!isset($_POST['Ebene1']['Feld2'])){
+//            $_POST['Ebene1']['Feld2'] = '<em><strong>Wert 2</strong></em>';
+//        }
+//        if(!isset($_POST['Ebene1']['Ebene2']['Feld3'])){
+//            $_POST['Ebene1']['Ebene2']['Feld3'] = '<span style="text-decoration: underline;"><strong>Wert 3</strong></span>';
+//        }
+//        if(!isset($_POST['Feld4'])){
+//            $_POST['Feld4'] = '<strong>Wert 4</strong>';
+//        }
+//        if(!isset($_POST['Feld5'])){
+//            $_POST['Feld5'] = '<strong>Wert 5</strong>';
+//        }
+//        if(!isset($_POST['Data']['Feld6'])){
+//            $_POST['Data']['Feld6'] = '<strong>Wert 6</strong>';
+//        }
+//
+//        $TableEditorList = array();
+//        $Editor = array(
+//            'Description' => 'Inputfelder',
+//            'first' => new Editor('Feld1'),
+//            'second' => new Editor('Ebene1[Feld2]'),
+//            'third' => new Editor('Ebene1[Ebene2][Feld3]'),
+//            'fourth' => new TextArea('Feld4'),
+//            'fifth' => new TextField('Feld5'),
+//            'sixth' => new TextField('Data[Feld6]')
+//        );
+//        $TableEditorList[] = $Editor;
+//        $Editor = array('Description' => 'Feldobjekt',
+//                        'first' => 'Editor',
+//                        'second' => 'Editor 2 Ebenen im POST',
+//                        'third' => 'Editor 3 Ebenen im POST',
+//                        'fourth' => 'Text Area',
+//                        'fifth' => 'Text Filed',
+//                        'sixth' => 'Text Filed 2 Ebenen im POST'
+//        );
+//        $TableEditorList[] = $Editor;
+//        $Editor = array('Description' => 'Verhalten',
+//                        'first' => 'behält HTML Tags',
+//                        'second' => 'behält HTML Tags',
+//                        'third' => 'behält HTML Tags',
+//                        'fourth' => 'trimt die HTML Tags weg',
+//                        'fifth' => 'trimt die HTML Tags weg',
+//                        'sixth' => 'trimt die HTML Tags weg'
+//        );
+//        $TableEditorList[] = $Editor;
+//
+//        $Stage->setContent(
+//            new Form(new FormGroup(new FormRow(array(new FormColumn(
+//                new TableData($TableEditorList, null,
+//                    array(
+//                        'Description' => 'Zeilenbeschreibung',
+//                        'first'       => 'Spalte 1',
+//                        'second'      => 'Spalte 2',
+//                        'third'       => 'Spalte 3',
+//                        'fourth'      => 'Spalte 4',
+//                        'fifth'       => 'Spalte 5',
+//                        'sixth'       => 'Spalte 6'
+//                    ),
+//                    false
+//                )),
+//            )), new TitleForm('Editor und das '.htmlspecialchars('<tag>').' verhalten mit POST/REQUEST')), new Primary('Abschicken'))
+//        );
 
-        $TableEditorList = array();
-        $Editor = array(
-            'Description' => 'Inputfelder',
-            'first' => new Editor('Feld1'),
-            'second' => new Editor('Ebene1[Feld2]'),
-            'third' => new Editor('Ebene1[Ebene2][Feld3]'),
-            'fourth' => new TextArea('Feld4'),
-            'fifth' => new TextField('Feld5'),
-            'sixth' => new TextField('Data[Feld6]')
-        );
-        $TableEditorList[] = $Editor;
-        $Editor = array('Description' => 'Feldobjekt',
-                        'first' => 'Editor',
-                        'second' => 'Editor 2 Ebenen im POST',
-                        'third' => 'Editor 3 Ebenen im POST',
-                        'fourth' => 'Text Area',
-                        'fifth' => 'Text Filed',
-                        'sixth' => 'Text Filed 2 Ebenen im POST'
-        );
-        $TableEditorList[] = $Editor;
-        $Editor = array('Description' => 'Verhalten',
-                        'first' => 'behält HTML Tags',
-                        'second' => 'behält HTML Tags',
-                        'third' => 'behält HTML Tags',
-                        'fourth' => 'trimt die HTML Tags weg',
-                        'fifth' => 'trimt die HTML Tags weg',
-                        'sixth' => 'trimt die HTML Tags weg'
-        );
-        $TableEditorList[] = $Editor;
+        if(!$PersonId){
 
-        $Stage->setContent(
-            new Form(new FormGroup(new FormRow(array(new FormColumn(
-                new TableData($TableEditorList, null,
-                    array(
-                        'Description' => 'Zeilenbeschreibung',
-                        'first'       => 'Spalte 1',
-                        'second'      => 'Spalte 2',
-                        'third'       => 'Spalte 3',
-                        'fourth'      => 'Spalte 4',
-                        'fifth'       => 'Spalte 5',
-                        'sixth'       => 'Spalte 6'
-                    ),
-                    false
-                )),
-            )), new TitleForm('Editor und das '.htmlspecialchars('<tag>').' verhalten mit POST/REQUEST')), new Primary('Abschicken'))
-        );
+            $Picture = '';
+            $TableContent = array();
+            if(($tblPersonAll = Person::useService()->getPersonAll())){
+                foreach($tblPersonAll as $tblPerson){
+                    $item = array();
+                    $item['Name'] = $tblPerson->getFullName();
+                    $item['Picture'] = '';
+                    if(($tblPicture = Test::useService()->getPictureByPerson($tblPerson))){
+                        $item['Picture'] = $tblPicture->getFile('100px', '100px');
+                        if($tblPerson->getId() ==1228)
+                        $Picture = $tblPicture->getFile('100px', '100px');
+                    }
+                    $item['Option'] = new Standard('', '/Platform/System/Test/TestSite', new Plus(), array('PersonId' => $tblPerson->getId()));
+                    array_push($TableContent, $item);
+                }
+            }
+            $Stage->setContent(
+//                new TableData($TableContent, null, array(
+//                'Name' => 'Vollständiger Name',
+//                'Picture' => 'Bild',
+//                'Option' => '',
+//                )
+//            )
+            $Picture. 'test'
+//                new Listing($Picture)
+            );
+        } else {
+            $form = new Form(new FormGroup(new FormRow(new FormColumn(
+                new FileUpload('FileUpload', '', 'Photoupload')
+            ))));
+            $form->appendFormButton(new Primary('Speichern', new Save()));
+            $form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+            $Stage->setContent(
+                new Well(
+                    Test::useService()->uploadNow($form, $PersonId, $FileUpload)
+                )
+            );
+        }
 
         return $Stage;
     }
