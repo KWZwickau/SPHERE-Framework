@@ -464,8 +464,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendTestSite($PersonId = null, $FileUpload = null)
     {
 
-//        Debugger::devDump($_POST);
         $Stage = new Stage('Test Site', '');
+//        echo ini_get('upload_max_filesize'), ", " , ini_get('post_max_size');
 
 //        // Editor Beispiel
 //        if(!isset($_POST['Feld1'])){
@@ -558,10 +558,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Picture' => 'Bild',
                 'Option' => '',
                 )
-            )
-//            $Picture. 'test'
-//                new Listing($Picture)
-            );
+            ));
         } else {
             $form = new Form(new FormGroup(new FormRow(new FormColumn(
                 new FileUpload('FileUpload', '', 'Photoupload')

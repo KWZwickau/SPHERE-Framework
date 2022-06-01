@@ -8,6 +8,7 @@ use SPHERE\Application\Platform\System\Test\Service\Data;
 use SPHERE\Application\Platform\System\Test\Service\Entity\TblPicture;
 use SPHERE\Application\Platform\System\Test\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -67,17 +68,26 @@ class Service extends AbstractService
         }
 
         try {
-            $Upload = $this->getUpload('FileUpload', $FileUpload->getPath())
-                ->validateMaxSize('2M')
-                ->validateMimeType(array(
-                    'image/png',
+            $Upload = $this->getUpload('FileUpload', sys_get_temp_dir(), true);
+//                ->validateMaxSize('2M')
+//                ->validateMimeType(array(
+//                    'image/png',
 //                    'image/gif',
 //                    'image/jpeg',
 //                    'image/jpg',
-                ));
-//                    ->doUpload();
+//                ));
+//                ->doUpload();
 
             $Dimension = $Upload->getDimensions();
+            Debugger::devDump($Upload->getName());
+            Debugger::devDump($Upload->getFilename());
+            Debugger::devDump($Upload->getExtension());
+//            Debugger::devDump($Upload->getContent());
+            Debugger::devDump($Upload->getMimeType());
+            $Size = $Upload->getSize() / 1024000;
+            Debugger::devDump($Size);
+            Debugger::devDump($Dimension['width']);
+            Debugger::devDump($Dimension['height']);
             if(!($tblPerson = Person::useService()->getPersonById($PersonId))){
                 $form .= new Danger('Person nicht gefunden');
             }
@@ -96,14 +106,30 @@ class Service extends AbstractService
             )) {
                 $form .= new Danger('Der Upload konnte nicht erfasst werden');
             } else {
-                $form .= new Success('Der Upload ist erfasst')
-                .new Redirect('/Platform/System/Test/TestSite', Redirect::TIMEOUT_SUCCESS);
+                $form .= new Success('Der Upload ist erfasst');
+//                $form .= new Success('Der Upload ist erfasst')
+//                .new Redirect('/Platform/System/Test/TestSite', Redirect::TIMEOUT_SUCCESS);
                 return $form;
             }
             unlink($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename());
 
         } catch (\Exception $Exception) {
-            $form->setError('FileUpload', $Exception->getMessage());
+            Debugger::devDump($Exception->getMessage());
+            $ArrayExeption = json_decode($Exception->getMessage());
+            Debugger::devDump($ArrayExeption);
+            if($ArrayExeption){
+                foreach($ArrayExeption as &$ExeptionMessage){
+                    switch ($ExeptionMessage){
+                        case 'The uploaded file exceeds the upload_max_filesize directive in php.ini':
+                            $ExeptionMessage = 'Der Anhang überschreitet die maximale Größe von '.ini_get('upload_max_filesize').'B';
+                            break;
+                        case 'The uploaded file was not sent with a POST request':
+                            $ExeptionMessage = 'Das Ticket konnte nicht erstellt werden';
+                    }
+                }
+                $form->setError('FileUpload', new Listing($ArrayExeption));
+            }
+            $Error = true;
         }
 
         return $form;
