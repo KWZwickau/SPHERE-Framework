@@ -69,6 +69,7 @@ class Service extends AbstractService
 
         try {
             $Upload = $this->getUpload('FileUpload', sys_get_temp_dir(), true);
+//            $UploadSmall = $this->getUpload($targetFilenameSmall, sys_get_temp_dir(), true);
 //                ->validateMaxSize('2M')
 //                ->validateMimeType(array(
 //                    'image/png',
@@ -77,23 +78,26 @@ class Service extends AbstractService
 //                    'image/jpg',
 //                ));
 //                ->doUpload();
+            Debugger::devDump($Upload);
+//            Debugger::devDump($UploadSmall);
 
             $Dimension = $Upload->getDimensions();
-            Debugger::devDump($Upload->getName());
-            Debugger::devDump($Upload->getFilename());
-            Debugger::devDump($Upload->getExtension());
-//            Debugger::devDump($Upload->getContent());
-            Debugger::devDump($Upload->getMimeType());
-            $Size = $Upload->getSize() / 1024000;
-            Debugger::devDump($Size);
-            Debugger::devDump($Dimension['width']);
-            Debugger::devDump($Dimension['height']);
+//            Debugger::devDump($Upload->getName());
+//            Debugger::devDump($Upload->getFilename());
+//            Debugger::devDump($Upload->getExtension());
+////            Debugger::devDump($Upload->getContent());
+//            Debugger::devDump($Upload->getMimeType());
+//            $Size = $Upload->getSize() / 1024000;
+//            Debugger::devDump($Size);
+//            Debugger::devDump($Dimension['width']);
+//            Debugger::devDump($Dimension['height']);
             if(!($tblPerson = Person::useService()->getPersonById($PersonId))){
                 $form .= new Danger('Person nicht gefunden');
             }
 
+
             if (!(new Data($this->getBinding()))->createPicture(
-                $tblPerson, $Upload->getContent()
+                $tblPerson, stream_get_contents($dstSmall)// $Upload->getContent()
 
 //                $Upload->getName(),
 //                $Upload->getFilename(),
@@ -114,9 +118,11 @@ class Service extends AbstractService
             unlink($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename());
 
         } catch (\Exception $Exception) {
-            Debugger::devDump($Exception->getMessage());
-            $ArrayExeption = json_decode($Exception->getMessage());
-            Debugger::devDump($ArrayExeption);
+            if(json_decode($Exception->getMessage())){
+                $ArrayExeption = json_decode($Exception->getMessage());
+            } else {
+                $ArrayExeption = array($Exception->getMessage());
+            }
             if($ArrayExeption){
                 foreach($ArrayExeption as &$ExeptionMessage){
                     switch ($ExeptionMessage){
