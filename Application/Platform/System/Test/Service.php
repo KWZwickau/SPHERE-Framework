@@ -68,6 +68,86 @@ class Service extends AbstractService
         }
 
         try {
+
+//            Debugger::devDump('Path '.$FileUpload->getPath());                      // /tmp
+//            Debugger::devDump('Pathname '.$FileUpload->getPathname());              // /tmp/phpy26LIk
+//            Debugger::devDump('RealPath '.$FileUpload->getRealPath());              // /tmp/phpy26LIk
+//            Debugger::devDump('FileInfo '.$FileUpload->getFileInfo());              // /tmp/phpy26LIk
+//            Debugger::devDump('ClientMimeType '.$FileUpload->getClientMimeType());  // image/jpeg
+//            Debugger::devDump('MimeType '.$FileUpload->getMimeType());              // image/jpeg
+//            Debugger::devDump('ClientSize '.$FileUpload->getClientSize());          // 376644
+//            Debugger::devDump('Size '.$FileUpload->getSize());                      // 376644
+//            Debugger::devDump('Type '.$FileUpload->getType());                      // file
+//            exit;
+
+            if($_FILES['FileUpload']['error']){
+                $form->setError('FileUpload', 'Datei überschreitet die Grenzwerte.');
+                return $form;
+            }
+            switch ($_FILES['FileUpload']['type']) {
+                case 'image/jpg':
+                case 'image/jpeg':
+                case 'image/png':
+                case 'image/git':
+                break;
+                default:
+                    $form->setError('FileUpload', 'Datei mit dem MimeType ('.$_FILES['FileUpload']['type'].') ist nicht erlaubt.');
+                    return $form;
+
+
+            }
+            Debugger::devDump($_FILES['FileUpload']);
+
+            $maxDim = 800;
+            $smallDim = 70;
+            $fileName = $_FILES['FileUpload']['tmp_name'];
+            Debugger::devDump( getimagesize($fileName ));
+            list($width, $height) = getimagesize( $fileName );
+            $IsDim = false;
+            if ( $width > $maxDim || $height > $maxDim ){
+                $targetFilename = $fileName;
+                $ratio = $width / $height;
+                if($ratio > 1){
+                    $newWidth = $maxDim;
+                    $newHeight = $maxDim / $ratio;
+                } else {
+                    $newWidth = $maxDim * $ratio;
+                    $newHeight = $maxDim;
+                }
+                $IsDim = true;
+            }
+//            if ( $width > $smallDim || $height > $smallDim ){
+                $targetFilenameSmall = $fileName.'_Small';
+                $ratio = $width / $height;
+                if($ratio > 1){
+                    $newSmallWidth = $smallDim;
+                    $newSmallHeight = $smallDim / $ratio;
+                } else {
+                    $newSmallWidth = $smallDim * $ratio;
+                    $newSmallHeight = $smallDim;
+                }
+//            }
+                $src = imagecreatefromstring( file_get_contents( $fileName ) );
+
+                if($IsDim){
+                    $dst = imagecreatetruecolor( $newWidth, $newHeight );
+                    imagecopyresampled( $dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height );
+                    imagejpeg( $dst, $targetFilename ); // adjust format as ne
+                    imagejpeg( $dst, $targetFilename ); // adjust format as needed
+                    imagedestroy( $dst );
+                }
+                $dstSmall = imagecreatetruecolor( $newSmallWidth, $newSmallHeight );
+                imagecopyresampled( $dstSmall, $src, 0, 0, 0, 0, $newSmallWidth, $newSmallHeight, $width, $height );
+                imagejpeg( $dstSmall, sys_get_temp_dir().'/'.$targetFilenameSmall ); // adjust format as ne
+//                imagedestroy( $dst );
+                imagedestroy( $src );
+
+                Debugger::devDump($dstSmall);
+
+//                Debugger::devDump($dst);
+//                Debugger::devDump( getimagesize($file_name ));
+//                Debugger::devDump('<img src="data:image/jpeg;base64,'.base64_encode(stream_get_contents($dst)).'" style="border-radius: 15px;"/>');
+
             $Upload = $this->getUpload('FileUpload', sys_get_temp_dir(), true);
 //            $UploadSmall = $this->getUpload($targetFilenameSmall, sys_get_temp_dir(), true);
 //                ->validateMaxSize('2M')
