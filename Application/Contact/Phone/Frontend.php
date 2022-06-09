@@ -3,8 +3,10 @@ namespace SPHERE\Application\Contact\Phone;
 
 use SPHERE\Application\Api\Contact\ApiPhoneToCompany;
 use SPHERE\Application\Api\Contact\ApiPhoneToPerson;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -47,21 +49,37 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param int $PersonId
-     * @param int|null $ToPersonId
+     * @param $PersonId
+     * @param null $ToPersonId
      * @param bool $setPost
+     * @param null $OnlineContactId
+     * @param bool $isOnlineContactPosted
      *
      * @return Form
      */
-    public function formNumberToPerson($PersonId, $ToPersonId = null, $setPost = false)
+    public function formNumberToPerson($PersonId, $ToPersonId = null, $setPost = false, $OnlineContactId = null, $isOnlineContactPosted = false): Form
     {
+        $tblOnlineContact = $OnlineContactId ? OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId) : false;
+
         if ($ToPersonId && ($tblToPerson = Phone::useService()->getPhoneToPersonById($ToPersonId))) {
             // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
             if ($setPost) {
                 $Global = $this->getGlobal();
-                $Global->POST['Number'] = $tblToPerson->getTblPhone()->getNumber();
+                if ($isOnlineContactPosted) {
+                    $Global->POST['Number'] = $tblOnlineContact->getContactContent();
+                } else {
+                    $Global->POST['Number'] = $tblToPerson->getTblPhone()->getNumber();
+                }
+
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
+                $Global->savePost();
+            }
+        } elseif ($tblOnlineContact) {
+            if ($setPost) {
+                $Global = $this->getGlobal();
+                /** @var TblPhone $tblContact */
+                $Global->POST['Number'] = ($tblContact = $tblOnlineContact->getServiceTblContact()) ? $tblContact->getNumber() : '';
                 $Global->savePost();
             }
         }
@@ -70,38 +88,53 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($ToPersonId) {
             $saveButton = (new PrimaryLink('Speichern', ApiPhoneToPerson::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineEditPhoneToPersonSave($PersonId, $ToPersonId));
+                ->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineEditPhoneToPersonSave($PersonId, $ToPersonId, $OnlineContactId));
         } else {
             $saveButton = (new PrimaryLink('Speichern', ApiPhoneToPerson::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineCreatePhoneToPersonSave($PersonId));
+                ->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineCreatePhoneToPersonSave($PersonId, $OnlineContactId));
         }
 
-        return (new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('Telefonnummer',
-                            array(
-                                (new SelectBox('Type[Type]', 'Typ',
-                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
-                                ))->setRequired(),
-                                (new TextField('Number', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()
-                                ))->setRequired()
-                            ), Panel::PANEL_TYPE_INFO
-                        ), 6
-                    ),
-                    new FormColumn(
-                        new Panel('Sonstiges',
-                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit())
-                            , Panel::PANEL_TYPE_INFO
-                        ), 6
-                    ),
-                    new FormColumn(
-                        $saveButton
-                    )
-                )),
-            ))
-        ))->disableSubmitAction();
+        $typeSelectBox = (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()))->setRequired();
+        $numberTextField = (new TextField('Number', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()))->setRequired();
+        $remarkTextArea = new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit());
+
+        if ($tblOnlineContact) {
+            $form = new Form(
+                new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(
+                            new Panel('Telefonnummer',
+                                array(
+                                    $typeSelectBox,
+                                    $numberTextField,
+                                    $remarkTextArea
+                                ), Panel::PANEL_TYPE_INFO
+                            )
+                        ),
+                        new FormColumn($saveButton)
+                    )),
+                ))
+            );
+        } else {
+            $form = new Form(
+                new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(
+                            new Panel('Telefonnummer',
+                                array(
+                                    $typeSelectBox,
+                                    $numberTextField
+                                ), Panel::PANEL_TYPE_INFO
+                            ), 6
+                        ),
+                        new FormColumn(new Panel('Sonstiges', $remarkTextArea, Panel::PANEL_TYPE_INFO), 6),
+                        new FormColumn($saveButton)
+                    )),
+                ))
+            );
+        }
+
+        return $form->disableSubmitAction();
     }
 
     /**

@@ -3,9 +3,11 @@ namespace SPHERE\Application\Contact\Address;
 
 use SPHERE\Application\Api\Contact\ApiAddressToCompany;
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblState;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -56,10 +58,13 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $ToPersonId
      * @param bool $setPost
      * @param bool $showRelationships
+     * @param null $OnlineContactId
+     * @param bool $isOnlineContactPosted
      *
      * @return Form|Danger
      */
-    public function formAddressToPerson($PersonId, $ToPersonId = null, $setPost = false, $showRelationships = false)
+    public function formAddressToPerson($PersonId, $ToPersonId = null, $setPost = false, $showRelationships = false,
+        $OnlineContactId = null, $isOnlineContactPosted = false)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -75,23 +80,45 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $tblOnlineContact = $OnlineContactId ? OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId) : false;
+
         if ($ToPersonId && ($tblToPerson = Address::useService()->getAddressToPersonById($ToPersonId))) {
             // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
             if ($setPost) {
                 $Global = $this->getGlobal();
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
-                $Global->POST['Street']['Name'] = $tblToPerson->getTblAddress()->getStreetName();
-                $Global->POST['Street']['Number'] = $tblToPerson->getTblAddress()->getStreetNumber();
-                $Global->POST['City']['Code'] = $tblToPerson->getTblAddress()->getTblCity()->getCode();
-                $Global->POST['City']['Name'] = $tblToPerson->getTblAddress()->getTblCity()->getName();
-                $Global->POST['City']['District'] = $tblToPerson->getTblAddress()->getTblCity()->getDistrict();
+
+                if ($isOnlineContactPosted) {
+                    $tblAddress = $tblOnlineContact->getServiceTblContact();
+                } else {
+                    $tblAddress =  $tblToPerson->getTblAddress();
+                }
+                $Global->POST['Street']['Name'] = $tblAddress->getStreetName();
+                $Global->POST['Street']['Number'] = $tblAddress->getStreetNumber();
+                $Global->POST['City']['Code'] = $tblAddress->getTblCity()->getCode();
+                $Global->POST['City']['Name'] = $tblAddress->getTblCity()->getName();
+                $Global->POST['City']['District'] = $tblAddress->getTblCity()->getDistrict();
+
                 if ($tblToPerson->getTblAddress()->getTblState()) {
                     $Global->POST['State'] = $tblToPerson->getTblAddress()->getTblState()->getId();
                 }
                 $Global->POST['County'] = $tblToPerson->getTblAddress()->getCounty();
                 $Global->POST['Nation'] = $tblToPerson->getTblAddress()->getNation();
 
+                $Global->savePost();
+            }
+        } elseif ($tblOnlineContact) {
+            if ($setPost) {
+                $Global = $this->getGlobal();
+                /** @var TblAddress $tblAddress */
+                if (($tblAddress = $tblOnlineContact->getServiceTblContact())) {
+                    $Global->POST['Street']['Name'] = $tblAddress->getStreetName();
+                    $Global->POST['Street']['Number'] = $tblAddress->getStreetNumber();
+                    $Global->POST['City']['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Global->POST['City']['Name'] = $tblAddress->getTblCity()->getName();
+                    $Global->POST['City']['District'] = $tblAddress->getTblCity()->getDistrict();
+                }
                 $Global->savePost();
             }
         }
@@ -103,10 +130,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($ToPersonId) {
             $saveButton = (new PrimaryLink('Speichern', ApiAddressToPerson::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineEditAddressToPersonSave($PersonId, $ToPersonId));
+                ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineEditAddressToPersonSave($PersonId, $ToPersonId, $OnlineContactId));
         } else {
             $saveButton = (new PrimaryLink('Speichern', ApiAddressToPerson::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineCreateAddressToPersonSave($PersonId));
+                ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineCreateAddressToPersonSave($PersonId, $OnlineContactId));
         }
 
         return (new Form(

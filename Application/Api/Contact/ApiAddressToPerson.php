@@ -12,6 +12,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -20,6 +21,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
@@ -35,6 +37,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -82,6 +85,8 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('openAddAddressToPersonModal');
         $Dispatcher->registerMethod('saveAddAddressToPersonModal');
+
+        $Dispatcher->registerMethod('transferAddress');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -139,11 +144,12 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param $PersonId
+     * @param null $OnlineContactId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateAddressToPersonModal($PersonId)
+    public static function pipelineOpenCreateAddressToPersonModal($PersonId, $OnlineContactId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -151,7 +157,8 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             self::API_TARGET => 'openCreateAddressToPersonModal',
         ));
         $ModalEmitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'OnlineContactId' => $OnlineContactId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -160,10 +167,11 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
+     * @param $OnlineContactId
      *
      * @return Pipeline
      */
-    public static function pipelineCreateAddressToPersonSave($PersonId)
+    public static function pipelineCreateAddressToPersonSave($PersonId, $OnlineContactId): Pipeline
     {
 
         $Pipeline = new Pipeline();
@@ -172,7 +180,8 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             self::API_TARGET => 'saveCreateAddressToPersonModal'
         ));
         $ModalEmitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'OnlineContactId' => $OnlineContactId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -181,12 +190,13 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param $PersonId
      * @param $ToPersonId
+     * @param null $OnlineContactId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditAddressToPersonModal($PersonId, $ToPersonId)
+    public static function pipelineOpenEditAddressToPersonModal($PersonId, $ToPersonId, $OnlineContactId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -196,6 +206,7 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
             'ToPersonId' => $ToPersonId,
+            'OnlineContactId' => $OnlineContactId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -205,10 +216,11 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
     /**
      * @param $PersonId
      * @param $ToPersonId
+     * @param $OnlineContactId
      *
      * @return Pipeline
      */
-    public static function pipelineEditAddressToPersonSave($PersonId, $ToPersonId)
+    public static function pipelineEditAddressToPersonSave($PersonId, $ToPersonId, $OnlineContactId): Pipeline
     {
 
         $Pipeline = new Pipeline();
@@ -218,7 +230,8 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
-            'ToPersonId' => $ToPersonId
+            'ToPersonId' => $ToPersonId,
+            'OnlineContactId' => $OnlineContactId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -391,26 +404,29 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
+     * @param $OnlineContactId
      *
      * @return string
      */
-    public function openCreateAddressToPersonModal($PersonId)
+    public function openCreateAddressToPersonModal($PersonId, $OnlineContactId)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getAddressToPersonModal(Address::useFrontend()->formAddressToPerson($PersonId), $tblPerson);
+        return $this->getAddressToPersonModal(Address::useFrontend()->formAddressToPerson($PersonId, null, true, false, $OnlineContactId),
+            $tblPerson, null, $OnlineContactId);
     }
 
     /**
      * @param $PersonId
      * @param $ToPersonId
+     * @param $OnlineContactId
      *
      * @return string
      */
-    public function openEditAddressToPersonModal($PersonId, $ToPersonId)
+    public function openEditAddressToPersonModal($PersonId, $ToPersonId, $OnlineContactId)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -429,17 +445,20 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             $showRelationships = false;
         }
 
-        return $this->getAddressToPersonModal(Address::useFrontend()->formAddressToPerson($PersonId, $ToPersonId, true, $showRelationships), $tblPerson, $ToPersonId);
+        return $this->getAddressToPersonModal(Address::useFrontend()->formAddressToPerson($PersonId, $ToPersonId, true, $showRelationships, $OnlineContactId),
+            $tblPerson, $ToPersonId, $OnlineContactId);
     }
 
     /**
      * @param $form
      * @param TblPerson $tblPerson
      * @param null $ToPersonId
+     * @param null $OnlineContactId
+     * @param bool $isAddressTransfer
      *
      * @return string
      */
-    private function getAddressToPersonModal($form, TblPerson $tblPerson,  $ToPersonId = null)
+    private function getAddressToPersonModal($form, TblPerson $tblPerson,  $ToPersonId = null, $OnlineContactId = null, $isAddressTransfer = false)
     {
         if ($ToPersonId) {
             $title = new Title(new Edit() . ' Adresse bearbeiten');
@@ -447,26 +466,36 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             $title = new Title(new Plus() . ' Adresse hinzufügen');
         }
 
+        if ($OnlineContactId && ($tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId))) {
+            $columns[] = new LayoutColumn(new Panel(
+                $tblOnlineContact->getContactTypeIcon() . $tblOnlineContact->getContactTypeName(),
+                array(
+                    'Adresse: ' . $tblOnlineContact->getContactContent(),
+                    $tblOnlineContact->getContactCreate(),
+                    $tblOnlineContact->getRemark() ? new Muted('Bemerkung vom Ersteller: ' . $tblOnlineContact->getRemark()) : '',
+                    $ToPersonId && !$isAddressTransfer ? (new Primary('Adresse ins Formular übernehmen', self::getEndpoint(), new ChevronLeft()))->ajaxPipelineOnClick(
+                        self::pipelineTransferAddress($tblPerson->getId(), $ToPersonId, $OnlineContactId)
+                    ) : '',
+                ),
+                Panel::PANEL_TYPE_DEFAULT
+            ), 12);
+            $columns[] = new LayoutColumn(new Well($form), 12);
+        } else {
+            $columns[] = new LayoutColumn(new Well($form));
+        }
+
         return $title
             . new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(
                             new LayoutColumn(
-                                new Panel(new PersonIcon() . ' Person',
-                                    new Bold($tblPerson ? $tblPerson->getFullName() : ''),
-                                    Panel::PANEL_TYPE_SUCCESS
-
-                                )
+                                new Panel(new PersonIcon() . ' Person', new Bold($tblPerson->getFullName()), Panel::PANEL_TYPE_SUCCESS)
                             )
                         ),
                     )),
                     new LayoutGroup(
                         new LayoutRow(
-                            new LayoutColumn(
-                                new Well(
-                                    $form
-                                )
-                            )
+                            $columns
                         )
                     ))
             );
@@ -516,6 +545,7 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
+     * @param $OnlineContactId
      * @param $Street
      * @param $City
      * @param $State
@@ -526,16 +556,16 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
      *
      * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form|Danger|string
      */
-    public function saveCreateAddressToPersonModal($PersonId, $Street, $City, $State, $Type, $County, $Nation, $Relationship)
+    public function saveCreateAddressToPersonModal($PersonId, $OnlineContactId, $Street, $City, $State, $Type, $County, $Nation, $Relationship)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Address::useService()->checkFormAddressToPerson($tblPerson, $Street, $City, $Type))) {
+        if (($form = Address::useService()->checkFormAddressToPerson($tblPerson, $Street, $City, $Type, $OnlineContactId))) {
             // display Errors on form
-            return $this->getAddressToPersonModal($form, $tblPerson);
+            return $this->getAddressToPersonModal($form, $tblPerson, null, $OnlineContactId);
         }
 
         if (Address::useService()->createAddressToPersonByApi($tblPerson, $Street, $City, $State, $Type, $County, $Nation)) {
@@ -570,8 +600,13 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
                 }
             }
 
+            if ($OnlineContactId && ($tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId))) {
+                OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContact);
+            }
+
             return new Success('Die Adresse wurde erfolgreich gespeichert.')
                 . self::pipelineLoadAddressToPersonContent($PersonId)
+                . ($OnlineContactId ? ApiContactDetails::pipelineLoadContactDetailsStageContent() : '')
                 . self::pipelineClose();
         } else {
             return new Danger('Die Adresse konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -591,7 +626,7 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
      *
      * @return Danger|string
      */
-    public function saveEditAddressToPersonModal($PersonId, $ToPersonId, $Street, $City, $State, $Type, $County, $Nation, $Relationship)
+    public function saveEditAddressToPersonModal($PersonId, $ToPersonId, $Street, $City, $State, $Type, $County, $Nation, $Relationship, $OnlineContactId)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -602,9 +637,9 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             return new Danger('Die Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Address::useService()->checkFormAddressToPerson($tblPerson, $Street, $City, $Type, $tblToPerson))) {
+        if (($form = Address::useService()->checkFormAddressToPerson($tblPerson, $Street, $City, $Type, $OnlineContactId, $tblToPerson))) {
             // display Errors on form
-            return $this->getAddressToPersonModal($form, $tblPerson, $ToPersonId);
+            return $this->getAddressToPersonModal($form, $tblPerson, $ToPersonId, $OnlineContactId);
         }
 
         if (Address::useService()->updateAddressToPersonByApi($tblToPerson, $Street, $City, $State, $Type, $County, $Nation)) {
@@ -639,8 +674,13 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
                 }
             }
 
+            if ($OnlineContactId && ($tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId))) {
+                OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContact);
+            }
+
             return new Success('Die Adresse wurde erfolgreich gespeichert.')
                 . self::pipelineLoadAddressToPersonContent($PersonId)
+                . ($OnlineContactId ? ApiContactDetails::pipelineLoadContactDetailsStageContent() : '')
                 . self::pipelineClose();
         } else {
             return new Danger('Die Adresse konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -834,5 +874,51 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         } else {
             return new Danger('Die Adresse konnte nicht gespeichert werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param $PersonId
+     * @param $ToPersonId
+     * @param $OnlineContactId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineTransferAddress($PersonId, $ToPersonId, $OnlineContactId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'transferAddress',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'ToPersonId' => $ToPersonId,
+            'OnlineContactId' => $OnlineContactId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     * @param $ToPersonId
+     * @param $OnlineContactId
+     *
+     * @return string
+     */
+    public function transferAddress($PersonId, $ToPersonId, $OnlineContactId)
+    {
+
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblToPerson = Address::useService()->getAddressToPersonById($ToPersonId))) {
+            return new Danger('Die Adresse wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getAddressToPersonModal(Address::useFrontend()->formAddressToPerson($PersonId, $ToPersonId, true, false, $OnlineContactId, true),
+            $tblPerson, $ToPersonId, $OnlineContactId, true);
     }
 }

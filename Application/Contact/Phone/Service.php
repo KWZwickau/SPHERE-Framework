@@ -192,6 +192,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param $Number
      * @param $Type
+     * @param $OnlineContactId
      * @param TblToPerson|null $tblToPerson
      *
      * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
@@ -200,11 +201,12 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         $Number,
         $Type,
+        $OnlineContactId,
         TblToPerson $tblToPerson = null
     ) {
 
         $error = false;
-        $form = Phone::useFrontend()->formNumberToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null);
+        $form = Phone::useFrontend()->formNumberToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null, false, $OnlineContactId);
         if (isset( $Number ) && empty( $Number )) {
             $form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
             $error = true;
