@@ -3,8 +3,10 @@ namespace SPHERE\Application\Contact\Mail;
 
 use SPHERE\Application\Api\Contact\ApiMailToCompany;
 use SPHERE\Application\Api\Contact\ApiMailToPerson;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -54,31 +56,45 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $PersonId
      * @param null $ToPersonId
      * @param bool $setPost
+     * @param null $OnlineContactId
+     * @param bool $isOnlineContactPosted
      *
      * @return Form
      */
-    public function formAddressToPerson($PersonId, $ToPersonId = null, $setPost = false)
+    public function formAddressToPerson($PersonId, $ToPersonId = null, $setPost = false, $OnlineContactId = null, $isOnlineContactPosted = false): Form
     {
+        $tblOnlineContact = $OnlineContactId ? OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId) : false;
 
         if ($ToPersonId && ($tblToPerson = Mail::useService()->getMailToPersonById($ToPersonId))) {
             // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
             if ($setPost) {
                 $Global = $this->getGlobal();
-                $Global->POST['Address']['Mail'] = $tblToPerson->getTblMail()->getAddress();
+                if ($isOnlineContactPosted) {
+                    $Global->POST['Address']['Mail'] = $tblOnlineContact->getContactContent();
+                } else {
+                    $Global->POST['Address']['Mail'] = $tblToPerson->getTblMail()->getAddress();
+                }
                 $Global->POST['Address']['Alias'] = $tblToPerson->isAccountUserAlias();
                 $Global->POST['Address']['IsRecoveryMail'] = $tblToPerson->isAccountRecoveryMail();
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
                 $Global->savePost();
             }
+        } elseif ($tblOnlineContact) {
+            if ($setPost) {
+                $Global = $this->getGlobal();
+                /** @var TblMail $tblContact */
+                $Global->POST['Address']['Mail'] = ($tblContact = $tblOnlineContact->getServiceTblContact()) ? $tblContact->getAddress() : '';
+                $Global->savePost();
+            }
         }
 
         if ($ToPersonId) {
             $saveButton = (new PrimaryLink('Speichern', ApiMailToPerson::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiMailToPerson::pipelineEditMailToPersonSave($PersonId, $ToPersonId));
+                ->ajaxPipelineOnClick(ApiMailToPerson::pipelineEditMailToPersonSave($PersonId, $ToPersonId, $OnlineContactId));
         } else {
             $saveButton = (new PrimaryLink('Speichern', ApiMailToPerson::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiMailToPerson::pipelineCreateMailToPersonSave($PersonId));
+                ->ajaxPipelineOnClick(ApiMailToPerson::pipelineCreateMailToPersonSave($PersonId, $OnlineContactId));
         }
 
         $tblTypeAll = Mail::useService()->getTypeAll();
@@ -103,32 +119,51 @@ class Frontend extends Extension implements IFrontendInterface
                 . ($hasAccount ? '' : new Bold('späteres')) . ' UCS "Passwort vergessen" verwenden', 1);
         }
 
-        return (new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('E-Mail Adresse',
-                            array(
-                                (new SelectBox('Type[Type]', 'Typ',
-                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
-                                ))->setRequired(),
-                                (new MailField('Address[Mail]', 'E-Mail Adresse', 'E-Mail Adresse', new MailIcon() ))->setRequired(),
-                                $CheckBoxAlias,
-                                $CheckBoxRecoveryMail
-                            ), Panel::PANEL_TYPE_INFO
-                        ), 6),
-                    new FormColumn(
-                        new Panel('Sonstiges',
-                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit())
-                            , Panel::PANEL_TYPE_INFO
-                        ), 6
-                    ),
-                    new FormColumn(
-                        $saveButton
-                    )
-                )),
-            ))
-        ))->disableSubmitAction();
+        $typeSelectBox = (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()))->setRequired();
+        $mailField = (new MailField('Address[Mail]', 'E-Mail Adresse', 'E-Mail Adresse', new MailIcon() ))->setRequired();
+        $remarkTextArea = new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit());
+
+        if ($tblOnlineContact) {
+            $form = new Form(
+                new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(
+                            new Panel('E-Mail Adresse',
+                                array(
+                                    $typeSelectBox,
+                                    $mailField,
+                                    $CheckBoxAlias,
+                                    $CheckBoxRecoveryMail,
+                                    $remarkTextArea
+                                ), Panel::PANEL_TYPE_INFO
+                            )
+                        ),
+                        new FormColumn($saveButton)
+                    )),
+                ))
+            );
+        } else {
+            $form = new Form(
+                new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(
+                            new Panel('E-Mail Adresse',
+                                array(
+                                    $typeSelectBox,
+                                    $mailField,
+                                    $CheckBoxAlias,
+                                    $CheckBoxRecoveryMail
+                                ), Panel::PANEL_TYPE_INFO
+                            ), 6
+                        ),
+                        new FormColumn(new Panel('Sonstiges', $remarkTextArea, Panel::PANEL_TYPE_INFO), 6),
+                        new FormColumn($saveButton)
+                    )),
+                ))
+            );
+        }
+
+        return $form->disableSubmitAction();
     }
 
     /**

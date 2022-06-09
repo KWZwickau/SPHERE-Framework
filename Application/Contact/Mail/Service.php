@@ -149,6 +149,7 @@ class Service extends AbstractService
      * @param string $Address
      * @param array $Type
      * @param bool $IsAccountUserAlias
+     * @param $OnlineContactId
      * @param TblToPerson|null $tblToPerson
      *
      * @return bool|Form
@@ -158,12 +159,13 @@ class Service extends AbstractService
         string $Address,
         array $Type,
         bool $IsAccountUserAlias,
+        $OnlineContactId,
         TblToPerson $tblToPerson = null
     ) {
 
         $error = false;
 
-        $form = Mail::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null);
+        $form = Mail::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null, false, $OnlineContactId);
         $Address = $this->validateMailAddress($Address);
         if (isset($Address) && empty($Address)) {
             $form->setError('Address[Mail]', 'Bitte geben Sie eine gültige E-Mail Adresse an');
