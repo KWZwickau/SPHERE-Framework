@@ -13,6 +13,7 @@ use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDet
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -82,6 +83,8 @@ class Frontend extends Extension implements IFrontendInterface
                     'Content' => $tblOnlineContact->getContactContent(),
                     'Remark' => $tblOnlineContact->getRemark(),
                     'Options' => $link
+                        . (new Standard('', ApiContactDetails::getEndpoint(), new Remove()))
+                            ->ajaxPipelineOnClick(ApiContactDetails::pipelineOpenDeleteContactDetailModal($tblPerson->getId(), $tblOnlineContact->getId()))
                 );
             }
 
@@ -96,7 +99,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Options' => ''
             );
 
-            return ApiPhoneToPerson::receiverModal() . ApiAddressToPerson::receiverModal() . ApiMailToPerson::receiverModal()
+            return ApiContactDetails::receiverModal() . ApiPhoneToPerson::receiverModal() . ApiAddressToPerson::receiverModal() . ApiMailToPerson::receiverModal()
                 . new TableData($dataList, null, $columns,
                     array(
                         'order' => array(
