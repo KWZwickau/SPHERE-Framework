@@ -194,13 +194,14 @@ class FrontendPersonAgreement extends FrontendReadOnly
         if(($tblAgreementCategoryAll = Agreement::useService()->getPersonAgreementCategoryAll())){
             $PanelCount = 1;
             array_walk($tblAgreementCategoryAll, function (TblPersonAgreementCategory $tblCategory) use (&$AgreementPanel, &$AgreementPanelHead, &$PanelCount) {
-                $AgreementPanel[$PanelCount] = array();
-                $tblAgreementTypeAll = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblCategory);
                 // Toggle on Category
                 $CategoryCheckboxList = array();
-                array_walk($tblAgreementTypeAll, function (TblPersonAgreementType $tblType) use (&$AgreementPanel, &$CategoryCheckboxList, $tblCategory) {
-                    $CategoryCheckboxList[] = 'Meta[Agreement]['.$tblCategory->getId().']['.$tblType->getId().']';
-                });
+                $AgreementPanel[$PanelCount] = array();
+                if (($tblAgreementTypeAll = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblCategory))) {
+                    array_walk($tblAgreementTypeAll, function (TblPersonAgreementType $tblType) use (&$AgreementPanel, &$CategoryCheckboxList, $tblCategory) {
+                        $CategoryCheckboxList[] = 'Meta[Agreement][' . $tblCategory->getId() . '][' . $tblType->getId() . ']';
+                    });
+                }
                 $AgreementPanelHead[$PanelCount] = new PullClear(new PullLeft(new Bold($tblCategory->getName()))
                 .new PullRight(new ToggleSelective('wählen/abwählen', $CategoryCheckboxList)));
 
@@ -259,7 +260,7 @@ class FrontendPersonAgreement extends FrontendReadOnly
     {
 
         return (new Form(new FormGroup(new FormRow(array(
-            new FormColumn(new TextField('Meta[Type]', '', 'Name des Typ\'s')),
+            new FormColumn(new TextField('Meta[Type]', '', 'Name des Eintrag\'s')),
             new FormColumn(new Success('<div style="height:5px"></div>')),
         )))))->disableSubmitAction();
     }

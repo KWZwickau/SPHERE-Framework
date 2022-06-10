@@ -1768,9 +1768,10 @@ class Frontend extends Extension implements IFrontendInterface
         //Agreement Head
         if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
             foreach($tblAgreementCategoryAll as $tblAgreementCategory){
-                $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
-                foreach($tblAgreementTypeList as $tblAgreementType){
-                    $ColumnHead['AgreementType'.$tblAgreementType->getId()] = '<div style="min-width: 120px">'. $tblAgreementType->getName() .'</div>';
+                if (($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))) {
+                    foreach ($tblAgreementTypeList as $tblAgreementType) {
+                        $ColumnHead['AgreementType' . $tblAgreementType->getId()] = '<div style="min-width: 120px">' . $tblAgreementType->getName() . '</div>';
+                    }
                 }
             }
         }
@@ -1788,7 +1789,7 @@ class Frontend extends Extension implements IFrontendInterface
             $headTableColumnList[] = new TableColumn('',4);
             foreach ($tblAgreementCategoryAll as $tblAgreementCategory) {
                 if(($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))) {
-                $headTableColumnList[] = new TableColumn($tblAgreementCategory->getName(), count($tblAgreementTypeList));
+                    $headTableColumnList[] = new TableColumn($tblAgreementCategory->getName(), count($tblAgreementTypeList));
                 }
             }
             $tableData->prependHead(
@@ -1916,9 +1917,10 @@ class Frontend extends Extension implements IFrontendInterface
         //Agreement Head
         if(($tblAgreementCategoryAll = Agreement::useService()->getPersonAgreementCategoryAll())){
             foreach($tblAgreementCategoryAll as $tblAgreementCategory){
-                $tblAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblAgreementCategory);
-                foreach($tblAgreementTypeList as $tblAgreementType){
-                    $ColumnHead['AgreementType'.$tblAgreementType->getId()] = '<div style="min-width: 120px">'. $tblAgreementType->getName() .'</div>';
+                if (($tblAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblAgreementCategory))) {
+                    foreach ($tblAgreementTypeList as $tblAgreementType) {
+                        $ColumnHead['AgreementType' . $tblAgreementType->getId()] = '<div style="min-width: 120px">' . $tblAgreementType->getName() . '</div>';
+                    }
                 }
             }
         }

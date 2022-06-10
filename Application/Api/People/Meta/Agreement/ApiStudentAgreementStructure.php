@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
@@ -383,15 +384,14 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
                 ));
                 if(($tblStudentAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory))){
                     foreach($tblStudentAgreementTypeList as $tblStudentAgreementType){
-                        // Kursiv + Mouse Over Info
                         if($tblStudentAgreementType->getIsUnlocked()){
-                            $CategoryList[$tblStudentAgreementCategory->getName()][] = new PullClear(new Italic(new ToolTip(
-                                $tblStudentAgreementType->getName().'*', 'Lehrer können diesen Wert setzen').new PullRight(
+                            $CategoryList[$tblStudentAgreementCategory->getName()][] = new PullClear(
+                                $tblStudentAgreementType->getName() . ' ' . new ToolTip(new Info(), 'Lehrer können diesen Wert setzen') . new PullRight(
                                     (new Link(new Edit(), '#'))
                                         ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenEditTypeModal($PersonId, $tblStudentAgreementType->getId()))
                                     .(new Link(new DangerText(new Disable()), '#'))
                                         ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenDestroyTypeModal($PersonId, $tblStudentAgreementType->getId()))
-                                )));
+                                ));
                         } else {
                             $CategoryList[$tblStudentAgreementCategory->getName()][] = new PullClear($tblStudentAgreementType->getName().new PullRight(
                                     (new Link(new Edit(), '#'))
@@ -405,7 +405,7 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
                 if(count($CategoryList[$tblStudentAgreementCategory->getName()]) < 9
                     || count($CategoryList[$tblStudentAgreementCategory->getName()]) == 0
                 ){
-                    $CategoryList[$tblStudentAgreementCategory->getName()][] = (new Link(new Plus().'Typ hinzufügen', '#'))
+                    $CategoryList[$tblStudentAgreementCategory->getName()][] = (new Link(new Plus().'Eintrag hinzufügen', '#'))
                     ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenCreateTypeModal($PersonId, $tblStudentAgreementCategory->getId()));
                 }
             }
@@ -427,11 +427,11 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
                 ApiStudentAgreementStructure::receiverModal('Kategorie hinzufügen', 'ModalAgreementStructureCreateCategory')
                 .ApiStudentAgreementStructure::receiverModal('Kategorie bearbeiten', 'ModalAgreementStructureEditCategory')
                 .ApiStudentAgreementStructure::receiverModal('Kategorie entfernen', 'ModalAgreementStructureDestroyCategory')
-                .ApiStudentAgreementStructure::receiverModal('Typ hinzufügen', 'ModalAgreementStructureCreateType')
-                .ApiStudentAgreementStructure::receiverModal('Typ bearbeiten', 'ModalAgreementStructureEditType')
-                .ApiStudentAgreementStructure::receiverModal('Typ entfernen', 'ModalAgreementStructureDestroyType')
+                .ApiStudentAgreementStructure::receiverModal('Eintrag hinzufügen', 'ModalAgreementStructureCreateType')
+                .ApiStudentAgreementStructure::receiverModal('Eintrag bearbeiten', 'ModalAgreementStructureEditType')
+                .ApiStudentAgreementStructure::receiverModal('Eintrag entfernen', 'ModalAgreementStructureDestroyType')
                 .new Layout(new LayoutGroup(new LayoutRow($LayoutColumnList)))
-                .(new Primary('Zurück', ApiPersonEdit::getEndpoint(), new ChevronLeft()))
+                .(new Primary('Schließen', ApiPersonEdit::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelStudentAgreementContent($PersonId))
             );
     }
@@ -760,14 +760,14 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
         $tblStudentAgreementList = Student::useService()->getStudentAgreementAllByType($tblStudentAgreementType);
         if($tblStudentAgreementList){
             $AgreementCount = count($tblStudentAgreementList);
-            $Agreement = new Warning('Dieser Typ wird '.$AgreementCount.' mal verwendet');
+            $Agreement = new Warning('Dieser Eintrag wird '.$AgreementCount.' mal verwendet');
         }
 
         if(!$Agreement){
-            $Agreement = new Success('der Typ wird nicht verwendet', null, false, 5, 5);
+            $Agreement = new Success('der Eintrag wird nicht verwendet', null, false, 5, 5);
         }
 
-        $Panel = new Panel('Wollen Sie den Typ '.new Bold($TypeName).' wirklich entfernen?', $Agreement, Panel::PANEL_TYPE_DANGER);
+        $Panel = new Panel('Wollen Sie den Eintrag '.new Bold($TypeName).' wirklich entfernen?', $Agreement, Panel::PANEL_TYPE_DANGER);
         $ButtonYes = (new Primary('Ja', '#', new SuccessIcon()))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineSaveDestroyType($PersonId, $TypeId));
         $ButtonNo = (new DangerLink('Abbrechen', '#', new Disable()))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineCloseModal('ModalAgreementStructureDestroyType'));
 

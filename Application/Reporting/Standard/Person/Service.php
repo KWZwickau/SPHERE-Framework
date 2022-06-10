@@ -3516,10 +3516,11 @@ class Service extends Extension
                 // leer befüllen
                 if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
                     foreach($tblAgreementCategoryAll as $tblAgreementCategory){
-                        $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
-                        foreach($tblAgreementTypeList as $tblAgreementType){
-                            $Item['AgreementType'][$tblAgreementType->getId()] = 'Nein';
-                            $Item['AgreementType'.$tblAgreementType->getId()] = 'Nein';
+                        if (($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))) {
+                            foreach ($tblAgreementTypeList as $tblAgreementType) {
+                                $Item['AgreementType'][$tblAgreementType->getId()] = 'Nein';
+                                $Item['AgreementType' . $tblAgreementType->getId()] = 'Nein';
+                            }
                         }
                     }
                 }
@@ -3556,9 +3557,10 @@ class Service extends Extension
             //Agreement Head
             if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
                 foreach($tblAgreementCategoryAll as $tblAgreementCategory){
-                    $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
-                    foreach($tblAgreementTypeList as $tblAgreementType){
-                        $ColumnCustom['AgreementType'.$tblAgreementType->getId()] = $tblAgreementType->getName();
+                    if (($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))) {
+                        foreach ($tblAgreementTypeList as $tblAgreementType) {
+                            $ColumnCustom['AgreementType' . $tblAgreementType->getId()] = $tblAgreementType->getName();
+                        }
                     }
                 }
             }
@@ -3572,9 +3574,10 @@ class Service extends Extension
                 // Grundlegend setzen und befüllen
                 if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
                     foreach($tblAgreementCategoryAll as $tblAgreementCategory){
-                        $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
-                        foreach($tblAgreementTypeList as $tblAgreementType){
-                            $Item['AgreementType'][$tblAgreementType->getId()] = 'Nein';
+                        if (($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))) {
+                            foreach ($tblAgreementTypeList as $tblAgreementType) {
+                                $Item['AgreementType'][$tblAgreementType->getId()] = 'Nein';
+                            }
                         }
                     }
                 }
@@ -3727,10 +3730,11 @@ class Service extends Extension
                 // leer befüllen
                 if(($tblAgreementCategoryAll = Agreement::useService()->getPersonAgreementCategoryAll())){
                     foreach($tblAgreementCategoryAll as $tblAgreementCategory){
-                        $tblAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblAgreementCategory);
-                        foreach($tblAgreementTypeList as $tblAgreementType){
-                            $Item['AgreementType'][$tblAgreementType->getId()] = 'Nein';
-                            $Item['AgreementType'.$tblAgreementType->getId()] = 'Nein';
+                        if (($tblAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblAgreementCategory))) {
+                            foreach ($tblAgreementTypeList as $tblAgreementType) {
+                                $Item['AgreementType'][$tblAgreementType->getId()] = 'Nein';
+                                $Item['AgreementType' . $tblAgreementType->getId()] = 'Nein';
+                            }
                         }
                     }
                 }
