@@ -3,6 +3,7 @@
 namespace SPHERE\Application\People\Person;
 
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
+use SPHERE\Application\Api\Contact\ApiContactDetails;
 use SPHERE\Application\Api\Contact\ApiMailToPerson;
 use SPHERE\Application\Api\Contact\ApiPhoneToPerson;
 use SPHERE\Application\Api\Contact\ApiRelationshipToCompany;
@@ -104,7 +105,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             $addressReceiver = ApiAddressToPerson::receiverBlock(Address::useFrontend()->frontendLayoutPersonNew($tblPerson),
                 'AddressToPersonContent');
-            $addressContent = ApiAddressToPerson::receiverModal()
+            $addressContent = ApiAddressToPerson::receiverModal() . ApiContactDetails::receiverModal()
                 . TemplateReadOnly::getContent(
                     'Adressdaten',
                     $addressReceiver,
@@ -120,7 +121,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             $phoneReceiver = ApiPhoneToPerson::receiverBlock(Phone::useFrontend()->frontendLayoutPersonNew($tblPerson),
                 'PhoneToPersonContent');
-            $phoneContent = ApiPhoneToPerson::receiverModal()
+            $phoneContent = ApiPhoneToPerson::receiverModal() . ApiContactDetails::receiverModal()
                 . TemplateReadOnly::getContent(
                     'Telefonnummern',
                     $phoneReceiver,
@@ -136,7 +137,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             $mailReceiver = ApiMailToPerson::receiverBlock(Mail::useFrontend()->frontendLayoutPersonNew($tblPerson),
                 'MailToPersonContent');
-            $mailContent = ApiMailToPerson::receiverModal()
+            $mailContent = ApiMailToPerson::receiverModal() . ApiContactDetails::receiverModal()
                 . TemplateReadOnly::getContent(
                 'E-Mail Adressen',
                 $mailReceiver,

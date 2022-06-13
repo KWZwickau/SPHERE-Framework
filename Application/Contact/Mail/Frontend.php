@@ -1,12 +1,14 @@
 <?php
 namespace SPHERE\Application\Contact\Mail;
 
+use SPHERE\Application\Api\Contact\ApiContactDetails;
 use SPHERE\Application\Api\Contact\ApiMailToCompany;
 use SPHERE\Application\Api\Contact\ApiMailToPerson;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -31,7 +33,9 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -282,6 +286,7 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($typeArray as $typeId => $personArray) {
                         if (($tblType = Mail::useService()->getTypeById($typeId))) {
                             $content = array();
+                            $hasOnlineContacts = false;
                             if (isset($personArray[$tblPerson->getId()])) {
                                 /** @var TblToPerson $tblToPerson */
                                 $tblToPerson = $personArray[$tblPerson->getId()];
@@ -308,9 +313,12 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblPerson->getId(),
                                         $tblToPerson->getId()
                                     ));
+                                $hasOnlineContactsOptions = true;
                             } else {
+                                $tblToPerson = false;
                                 $panelType = Panel::PANEL_TYPE_DEFAULT;
                                 $options = '';
+                                $hasOnlineContactsOptions = false;
                             }
 
                             $content[] = new Mailto($tblMail->getAddress(), $tblMail->getAddress(), new Envelope());
@@ -331,9 +339,9 @@ class Frontend extends Extension implements IFrontendInterface
                             }
 
                             /**
-                             * @var TblToPerson $tblToPerson
+                             * @var TblToPerson $tblToPersonTemp
                              */
-                            foreach ($personArray as $personId => $tblToPerson) {
+                            foreach ($personArray as $personId => $tblToPersonTemp) {
                                 if (($tblPersonMail = Person::useService()->getPersonById($personId))) {
                                     $content[] = ($tblPerson->getId() != $tblPersonMail->getId()
                                             ? new Link(
@@ -344,7 +352,31 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Zur Person'
                                             )
                                             : $tblPersonMail->getFullName())
-                                        . Relationship::useService()->getRelationshipInformationForContact($tblPerson, $tblPersonMail, $tblToPerson->getRemark());
+                                        . Relationship::useService()->getRelationshipInformationForContact($tblPerson, $tblPersonMail, $tblToPersonTemp->getRemark());
+                                    if (!$tblToPerson) {
+                                        $tblToPerson = $tblToPersonTemp;
+                                    }
+                                }
+                            }
+
+                            if ($tblToPerson
+                                && ($tblOnlineContactList = OnlineContactDetails::useService()->getOnlineContactAllByToPerson(TblOnlineContact::VALUE_TYPE_MAIL, $tblToPerson))
+                            ) {
+                                foreach ($tblOnlineContactList as $tblOnlineContact) {
+                                    $hasOnlineContacts = true;
+                                    if ($hasOnlineContactsOptions) {
+                                        $links = (new Link(new Edit(), ApiMailToPerson::getEndpoint(), null, array(), 'Bearbeiten'))
+                                                ->ajaxPipelineOnClick(ApiMailToPerson::pipelineOpenEditMailToPersonModal($tblPerson->getId(), $tblToPerson->getId(), $tblOnlineContact->getId()))
+                                            . ' | '
+                                            . (new Link(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()), ApiContactDetails::getEndpoint(),
+                                                null, array(), 'Löschen'))
+                                                ->ajaxPipelineOnClick(ApiContactDetails::pipelineOpenDeleteContactDetailModal($tblPerson->getId(), $tblOnlineContact->getId()));
+                                    } else {
+                                        $links = '';
+                                    }
+                                    $content[] = new Container('Änderungswunsch: ')
+                                        . new Container(new MailIcon() . ' ' . $tblOnlineContact->getContactContent() . new PullRight($links))
+                                        . new Container($tblOnlineContact->getContactCreate());
                                 }
                             }
 
@@ -352,7 +384,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new MailIcon() . ' ' . $tblType->getName(),
                                 $content,
                                 $options,
-                                $panelType
+                                $hasOnlineContacts ? Panel::PANEL_TYPE_WARNING : $panelType
                             );
 
                             if ($LayoutRowCount % 4 == 0) {

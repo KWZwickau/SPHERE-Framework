@@ -68,6 +68,13 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $layoutGroupList = array();
 
+        // Legende
+        $layoutGroupList[] = new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(new Panel('Bestehende Kontakt-Daten', '', Panel::PANEL_TYPE_INFO), 12),
+            new LayoutColumn(new Panel('Bestehende Kontakt-Daten mit noch nicht übernommenen Änderungswünschen', '', Panel::PANEL_TYPE_WARNING), 12),
+            new LayoutColumn(new Panel('Neue Kontakt-Daten welche noch nicht übernommenen wurden', '', Panel::PANEL_TYPE_DEFAULT), 12)
+        )), new Title('Legende'));
+
         if (($tblAccount = Account::useService()->getAccountBySession())
             && ($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))
             && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT

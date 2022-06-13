@@ -212,6 +212,9 @@ class ApiContactDetails  extends Extension implements IApiInterface
 
         if (OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContact)) {
             return new Success('Die Kontakt-Daten wurde erfolgreich gelöscht.')
+                . ApiPhoneToPerson::pipelineLoadPhoneToPersonContent($PersonId)
+                . ApiMailToPerson::pipelineLoadMailToPersonContent($PersonId)
+                . ApiAddressToPerson::pipelineLoadAddressToPersonContent($PersonId)
                 . self::pipelineLoadContactDetailsStageContent()
                 . self::pipelineClose();
         } else {
