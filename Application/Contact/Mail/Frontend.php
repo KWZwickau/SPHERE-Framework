@@ -127,45 +127,24 @@ class Frontend extends Extension implements IFrontendInterface
         $mailField = (new MailField('Address[Mail]', 'E-Mail Adresse', 'E-Mail Adresse', new MailIcon() ))->setRequired();
         $remarkTextArea = new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit());
 
-        if ($tblOnlineContact) {
-            $form = new Form(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new Panel('E-Mail Adresse',
-                                array(
-                                    $typeSelectBox,
-                                    $mailField,
-                                    $CheckBoxAlias,
-                                    $CheckBoxRecoveryMail,
-                                    $remarkTextArea
-                                ), Panel::PANEL_TYPE_INFO
-                            )
-                        ),
-                        new FormColumn($saveButton)
-                    )),
-                ))
-            );
-        } else {
-            $form = new Form(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new Panel('E-Mail Adresse',
-                                array(
-                                    $typeSelectBox,
-                                    $mailField,
-                                    $CheckBoxAlias,
-                                    $CheckBoxRecoveryMail
-                                ), Panel::PANEL_TYPE_INFO
-                            ), 6
-                        ),
-                        new FormColumn(new Panel('Sonstiges', $remarkTextArea, Panel::PANEL_TYPE_INFO), 6),
-                        new FormColumn($saveButton)
-                    )),
-                ))
-            );
-        }
+        $form = new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('E-Mail Adresse',
+                            array(
+                                $typeSelectBox,
+                                $mailField,
+                                $CheckBoxAlias,
+                                $CheckBoxRecoveryMail
+                            ), Panel::PANEL_TYPE_INFO
+                        ), 6
+                    ),
+                    new FormColumn(new Panel('Sonstiges', $remarkTextArea, Panel::PANEL_TYPE_INFO), 6),
+                    new FormColumn($saveButton)
+                )),
+            ))
+        );
 
         return $form->disableSubmitAction();
     }

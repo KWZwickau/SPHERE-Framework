@@ -27,12 +27,9 @@ class ContactDetails extends Extension implements IApplicationInterface, IModule
         );
     }
 
-    /**
-     * @return Service
-     */
-    public static function useService(): Service
+    public static function useService()
     {
-        return new Service();
+
     }
 
     /**

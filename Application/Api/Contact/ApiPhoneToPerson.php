@@ -341,22 +341,20 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
         }
 
         if ($OnlineContactId && ($tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId))) {
-            $columns[] = new LayoutColumn(new Well($form), 6);
             $columns[] = new LayoutColumn(new Panel(
                 $tblOnlineContact->getContactTypeIcon() . $tblOnlineContact->getContactTypeName(),
                 array(
                     'Telefonnummer: ' . $tblOnlineContact->getContactContent(),
                     $tblOnlineContact->getContactCreate(),
                     $tblOnlineContact->getRemark() ? new Muted('Bemerkung vom Ersteller: ' . $tblOnlineContact->getRemark()) : '',
-                    $ToPersonId && !$isPhoneTransfer ? (new Primary('Telefonnummer nach links übernehmen', self::getEndpoint(), new ChevronLeft()))->ajaxPipelineOnClick(
+                    $ToPersonId && !$isPhoneTransfer ? (new Primary('Telefonnummer ins Formular übernehmen', self::getEndpoint(), new ChevronLeft()))->ajaxPipelineOnClick(
                         self::pipelineTransferPhone($tblPerson->getId(), $ToPersonId, $OnlineContactId)
                     ) : '',
                 ),
                 Panel::PANEL_TYPE_DEFAULT
-            ), 6);
-        } else {
-            $columns[] = new LayoutColumn(new Well($form));
+            ));
         }
+        $columns[] = new LayoutColumn(new Well($form));
 
         return $title
             . new Layout(array(

@@ -102,41 +102,22 @@ class Frontend extends Extension implements IFrontendInterface
         $numberTextField = (new TextField('Number', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()))->setRequired();
         $remarkTextArea = new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit());
 
-        if ($tblOnlineContact) {
-            $form = new Form(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new Panel('Telefonnummer',
-                                array(
-                                    $typeSelectBox,
-                                    $numberTextField,
-                                    $remarkTextArea
-                                ), Panel::PANEL_TYPE_INFO
-                            )
-                        ),
-                        new FormColumn($saveButton)
-                    )),
-                ))
-            );
-        } else {
-            $form = new Form(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new Panel('Telefonnummer',
-                                array(
-                                    $typeSelectBox,
-                                    $numberTextField
-                                ), Panel::PANEL_TYPE_INFO
-                            ), 6
-                        ),
-                        new FormColumn(new Panel('Sonstiges', $remarkTextArea, Panel::PANEL_TYPE_INFO), 6),
-                        new FormColumn($saveButton)
-                    )),
-                ))
-            );
-        }
+        $form = new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Telefonnummer',
+                            array(
+                                $typeSelectBox,
+                                $numberTextField
+                            ), Panel::PANEL_TYPE_INFO
+                        ), 6
+                    ),
+                    new FormColumn(new Panel('Sonstiges', $remarkTextArea, Panel::PANEL_TYPE_INFO), 6),
+                    new FormColumn($saveButton)
+                )),
+            ))
+        );
 
         return $form->disableSubmitAction();
     }

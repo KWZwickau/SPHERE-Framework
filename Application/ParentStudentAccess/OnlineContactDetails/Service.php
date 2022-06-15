@@ -81,7 +81,8 @@ class Service extends AbstractService
     }
 
     /**
-     * nur eingeloggter Elternteil + Kinder, erstmal nicht die weiteren Elternteile aus Datenschutzgründen
+     * eingeloggter Elternteil (Sorgeberechtigt, Bevollmächtigt, Vormund) + Kinder,
+     * ist das Elternteil ein Sorgeberechtigter, werden auch die weiteren Sorgeberechtigten und Notfallkontakte für das Kind mit angezeigt
      *
      * @return array|false
      */
@@ -95,26 +96,41 @@ class Service extends AbstractService
             // Kinder des Elternteils
             if (($tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
                 foreach ($tblPersonRelationshipList as $relationship) {
-                    if (($tblPersonTo = $relationship->getServiceTblPersonTo())
-                        && $tblPersonTo->getId() != $tblPerson->getId()
+                    if (($tblPersonChild = $relationship->getServiceTblPersonTo())
+                        && $tblPersonChild->getId() != $tblPerson->getId()
                         && ($relationship->getTblType()->getName() == 'Sorgeberechtigt'
                             || $relationship->getTblType()->getName() == 'Bevollmächtigt'
                             || $relationship->getTblType()->getName() == 'Vormund')
                     ) {
                         // prüfen: ob die Schulart freigeben ist
-                        if (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPersonTo))
+                        if (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPersonChild))
                             && ($tblType = $tblDivision->getType())
                             && isset($tblSchoolTypeAllowedList[$tblType->getId()])
                         ) {
-                            $tblPersonList[$tblPersonTo->getId()] = $tblPersonTo;
+                            // eingeloggter Elternteil
+                            if (!isset($tblPersonList[$tblPerson->getId()])) {
+                                $tblPersonList[$tblPerson->getId()] = $tblPerson;
+                            }
+
+                            // für Sorgeberechtigte sollen die weiteren Sorgeberechtigten und Notfallkontakte für das Kind mit angezeigt werden
+                            if ($relationship->getTblType()->getName() == 'Sorgeberechtigt') {
+                                if (($tblPersonRelationshipFromChildList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonChild))) {
+                                    foreach ($tblPersonRelationshipFromChildList as $tblPersonRelationshipFromChild) {
+                                        if (($tblPersonFrom = $tblPersonRelationshipFromChild->getServiceTblPersonFrom())
+                                            && $tblPersonFrom->getId() != $tblPersonChild->getId()
+                                            && ($tblPersonRelationshipFromChild->getTblType()->getName() == 'Sorgeberechtigt'
+                                                || $tblPersonRelationshipFromChild->getTblType()->getName() == 'Notfallkontakt')
+                                        ) {
+                                            $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
+                                        }
+                                    }
+                                }
+                            }
+
+                            $tblPersonList[$tblPersonChild->getId()] = $tblPersonChild;
                         }
                     }
                 }
-            }
-
-            // eingeloggter Elternteil
-            if ($tblPersonList) {
-                $tblPersonList[$tblPerson->getId()] = $tblPerson;
             }
         }
 

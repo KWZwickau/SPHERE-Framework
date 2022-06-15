@@ -478,11 +478,9 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
                     ) : '',
                 ),
                 Panel::PANEL_TYPE_DEFAULT
-            ), 12);
-            $columns[] = new LayoutColumn(new Well($form), 12);
-        } else {
-            $columns[] = new LayoutColumn(new Well($form));
+            ));
         }
+        $columns[] = new LayoutColumn(new Well($form));
 
         return $title
             . new Layout(array(
