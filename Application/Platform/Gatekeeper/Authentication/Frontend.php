@@ -7,6 +7,7 @@ use Exception;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\People\ContactDetails\ContactDetails;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLP;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLPDemo;
@@ -103,6 +104,7 @@ class Frontend extends Extension implements IFrontendInterface
         $maintenanceMessage = '';
         $contentTeacherWelcome = false;
         $contentHeadmasterWelcome = false;
+        $contentSecretariatWelcome = false;
         $IsChangePassword = false;
 
         $tblAccount = Account::useService()->getAccountBySession();
@@ -188,6 +190,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        if (Access::useService()->hasAuthorization('/People/ContactDetails')) {
+            $contentSecretariatWelcome = ContactDetails::useFrontend()->getWelcome();
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -205,9 +211,10 @@ class Frontend extends Extension implements IFrontendInterface
                 ? $this->layoutPasswordChange()
                 : ''
             )
-            . ($contentHeadmasterWelcome ? $contentHeadmasterWelcome : '')
-            .($contentTeacherWelcome ? $contentTeacherWelcome : '')
-            .$this->getCleanLocalStorage()
+            . ($contentHeadmasterWelcome ?: '')
+            . ($contentTeacherWelcome ?: '')
+            . ($contentSecretariatWelcome ?: '')
+            . $this->getCleanLocalStorage()
         );
 
         return $Stage;

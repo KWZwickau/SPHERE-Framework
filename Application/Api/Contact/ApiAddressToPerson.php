@@ -468,7 +468,8 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
 
         if ($OnlineContactId && ($tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId))) {
             $columns[] = new LayoutColumn(new Panel(
-                $tblOnlineContact->getContactTypeIcon() . $tblOnlineContact->getContactTypeName(),
+                $tblOnlineContact->getContactTypeIcon() . ' ' . $tblOnlineContact->getContactTypeName()
+                    . '  für ' . OnlineContactDetails::useService()->getPersonListForOnlineContact($tblOnlineContact, true) .  ') ',
                 array(
                     'Adresse: ' . $tblOnlineContact->getContactContent(),
                     $tblOnlineContact->getContactCreate(),

@@ -33,6 +33,7 @@ class TblOnlineContact extends Element
     const ATTR_CONTACT_TYPE = 'ContactType';
     const ATTR_SERVICE_TBL_TO_PERSON = 'serviceTblToPerson';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_SERVICE_TBL_CONTACT = 'serviceTblContact';
 
     const VALUE_TYPE_ADDRESS = 'ADDRESS';
     const VALUE_TYPE_PHONE = 'PHONE';

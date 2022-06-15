@@ -486,4 +486,32 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->getOnlineContactAll();
     }
+
+    /**
+     * @param TblOnlineContact $tblOnlineContact
+     * @param bool $isResultNameString
+     *
+     * @return array|false|string
+     */
+    public function getPersonListForOnlineContact(TblOnlineContact $tblOnlineContact, bool $isResultNameString)
+    {
+        $resultList = array();
+        if (($tblOnlineContactList = (new Data($this->getBinding()))->getOnlineContactAllByOnlineContact($tblOnlineContact))) {
+            foreach ($tblOnlineContactList as $item) {
+                if (($tblPerson = $item->getServiceTblPerson())) {
+                    if ($isResultNameString) {
+                        $resultList[$tblPerson->getId()] = $tblPerson->getFullName();
+                    } else {
+                        $resultList[$tblPerson->getId()] = $tblPerson;
+                    }
+                }
+            }
+        }
+
+        if ($isResultNameString) {
+            return empty($resultList) ? '' : implode(', ' ,$resultList);
+        } else {
+            return empty($resultList) ? false : $resultList;
+        }
+    }
 }

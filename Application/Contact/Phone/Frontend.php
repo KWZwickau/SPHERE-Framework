@@ -332,7 +332,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 } else{
                                     $links = '';
                                 }
-                                $content[] = new Container('Änderungswunsch: ')
+                                $content[] = new Container(
+                                        'Änderungswunsch für ' . OnlineContactDetails::useService()->getPersonListForOnlineContact($tblOnlineContact, true) .  ': '
+                                    )
                                     . new Container(new PhoneIcon() . ' ' . $tblOnlineContact->getContactContent() . new PullRight($links))
                                     . new Container($tblOnlineContact->getContactCreate());
                             }

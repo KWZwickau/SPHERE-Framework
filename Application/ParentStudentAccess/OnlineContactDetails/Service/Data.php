@@ -120,4 +120,21 @@ class Data extends AbstractData
     {
         return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblOnlineContact');
     }
+
+    /**
+     * @param TblOnlineContact $tblOnlineContact
+     *
+     * @return false|TblOnlineContact[]
+     */
+    public function getOnlineContactAllByOnlineContact(TblOnlineContact $tblOnlineContact)
+    {
+        if (($tblContact = $tblOnlineContact->getServiceTblContact())) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblOnlineContact', array(
+                TblOnlineContact::ATTR_CONTACT_TYPE => $tblOnlineContact->getContactType(),
+                TblOnlineContact::ATTR_SERVICE_TBL_CONTACT => $tblContact->getId()
+            ));
+        }
+
+        return false;
+    }
 }
