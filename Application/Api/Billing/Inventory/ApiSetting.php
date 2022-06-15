@@ -260,9 +260,6 @@ class ApiSetting extends Extension implements IApiInterface
     public function changeSetting($Setting, $Category)
     {
 
-//        Debugger::screenDump($Setting);
-//        exit;
-
         switch($Category){
             case TblSetting::CATEGORY_REGULAR:
                 // aktuell leer

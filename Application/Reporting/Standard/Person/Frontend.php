@@ -13,8 +13,10 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
+use SPHERE\Application\People\Meta\Agreement\Agreement;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Search\Group\Group;
+use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -48,7 +50,10 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Table\Structure\TableHead;
+use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -838,21 +843,16 @@ class Frontend extends Extension implements IFrontendInterface
                         'SchoolType'           => 'Schulart',
                         'SchoolCourse'         => 'Bildungsgang',
                         'Division'             => 'aktuelle Klasse',
-                        'PictureSchoolWriting' => 'Einverständnis Foto Schulschriften',
-                        'PicturePublication'   => 'Einverständnis Foto Veröffentlichungen',
-                        'PictureWeb'           => 'Einverständnis Foto Internetpräsenz',
-                        'PictureFacebook'      => 'Einverständnis Foto Facebookseite',
-                        'PicturePrint'         => 'Einverständnis Foto Druckpresse',
-                        'PictureFilm'          => 'Einverständnis Foto Ton/Video/Film',
-                        'PictureAdd'           => 'Einverständnis Foto Werbung in eigener Sache',
-                        'NameSchoolWriting'    => 'Einverständnis Name Schulschriften',
-                        'NamePublication'      => 'Einverständnis Name Veröffentlichungen',
-                        'NameWeb'              => 'Einverständnis Name Internetpräsenz',
-                        'NameFacebook'         => 'Einverständnis Name Facebookseite',
-                        'NamePrint'            => 'Einverständnis Name Druckpresse',
-                        'NameFilm'             => 'Einverständnis Name Ton/Video/Film',
-                        'NameAdd'              => 'Einverständnis Name Werbung in eigener Sache',
                     );
+                    //Agreement Head
+                    if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+                        foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                            $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
+                            foreach($tblAgreementTypeList as $tblAgreementType){
+                                $ColumnCustom['AgreementType'.$tblAgreementType->getId()] = $tblAgreementType->getName();
+                            }
+                        }
+                    }
                 }
                 if ($tblGroup->getMetaTable() == 'CUSTODY') {
                     $ColumnCustom = array(
@@ -1733,5 +1733,253 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             )
         ));
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return Stage
+     */
+    public function frontendStudentAgreement($Data = array()) {
+        $Stage = new Stage('Auswertung - Schüler', 'Datennutzung');
+        $FilterForm = $this->getPersonStudentFilterForm();
+
+        $tblYear = $tblGroup = $tblType = false;
+        if(!empty($Data['Year'])){
+            $tblYear = Term::useService()->getYearById($Data['Year']);
+        }
+        if(!empty($Data['Group'])){
+            $tblGroup = Group::useService()->getGroupById($Data['Group']);
+        }
+        if(!empty($Data['Type'])){
+            $tblType = Type::useService()->getTypeById($Data['Type']);
+        }
+        $Level = !empty($Data['Level']) ? $Data['Level'] : '';
+        $Division = !empty($Data['Division']) ? $Data['Division'] : '';
+        $tblPersonList = null;
+        $TableContent = array();
+        if($tblYear){
+            $tblPersonList = Individual::useService()->getStudentPersonListByFilter($tblYear, $tblGroup, $tblType,
+                $Level, $Division);
+            if($tblPersonList && !empty($tblPersonList)){
+                $TableContent = Person::useService()->createAgreementList($tblPersonList);
+            }
+        }
+
+        $ColumnHead = array(
+            'FirstName'                => 'Vorname',
+            'LastName'                 => 'Nachname',
+            'Address'                  => '<div style="min-width: 160px">Anschrift</div>',
+            'Birthday'                 => 'Geburtstag',
+        );
+        //Agreement Head
+        if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+            foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                if (($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))) {
+                    foreach ($tblAgreementTypeList as $tblAgreementType) {
+                        $ColumnHead['AgreementType' . $tblAgreementType->getId()] = '<div style="min-width: 120px">' . $tblAgreementType->getName() . '</div>';
+                    }
+                }
+            }
+        }
+
+        $tableData = new TableData($TableContent, null, $ColumnHead, array(
+                'order'      => array(array(1, 'asc'), array(0, 'asc')),
+                'columnDefs' => array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0,1)),
+                array('type' => 'de_date', 'targets' => 3),
+                'pageLength' => -1,
+                'responsive' => false
+            ));
+
+        if ($tblAgreementCategoryAll) {
+            $headTableColumnList = array();
+            $headTableColumnList[] = new TableColumn('',4);
+            foreach ($tblAgreementCategoryAll as $tblAgreementCategory) {
+                if(($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))) {
+                    $headTableColumnList[] = new TableColumn($tblAgreementCategory->getName(), count($tblAgreementTypeList));
+                }
+            }
+            $tableData->prependHead(
+                new TableHead(
+                    new TableRow(
+                        $headTableColumnList
+                    )
+                )
+            );
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            $FilterForm
+                        ))
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            (null === $tblPersonList
+                            ? new Warning('Bitte führen Sie die gewünschte Filterung aus')
+                            : (false === $tblPersonList
+                                ? new Danger('Filterung enthält keine Personen')
+                                : new Primary('Download Datennutzung', '/Api/Reporting/Standard/Person/AgreementStudentList/Download', new Download(),
+                                    array('Data' => $Data))
+                                )
+                            )
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ($TableContent && !empty($TableContent)
+                                ? $tableData
+                                : ''
+                            )
+                        )
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Form
+     */
+    private function getPersonStudentFilterForm()
+    {
+        $tblLevelShowList = array(0 => '');
+
+        if(($tblLevelList = Division::useService()->getLevelAll())){
+            foreach($tblLevelList as $tblLevel) {
+                if($tblLevel->getName()){
+                    $tblLevelShowList[$tblLevel->getName()] = $tblLevel->getName();
+                }
+            }
+        }
+        $tblGroupList = Group::useService()->getGroupByNotLocked();
+
+        if(!isset($_POST['Data']['Year'])){
+            $tblYearList = Term::useService()->getYearByNow();
+            if($tblYearList && count($tblYearList) == 1){
+                $_POST['Data']['Year'] = current($tblYearList)->getId();
+            }
+        }
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Bildung', array(
+                            (new SelectBox('Data[Year]', 'Schuljahr',
+                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
+                                ->setRequired(),
+                            new SelectBox('Data[Type]', 'Schulart',
+                                array('Name' => Type::useService()->getTypeAll()))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Klasse', array(
+                            new SelectBox('Data[Level]', 'Stufe', $tblLevelShowList),
+                            new AutoCompleter('Data[Division]', 'Gruppe',
+                                'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Gruppe',
+                            new SelectBox('Data[Group]', 'Personengruppe', array('{{ Name }}' => $tblGroupList))
+                            , Panel::PANEL_TYPE_INFO)
+                        , 4)
+                )),
+                new FormRow(
+                    new FormColumn(
+                        new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Filtern')
+                    )
+                )
+            ))
+        );
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return Stage
+     */
+    public function frontendAgreement($Data = array()) {
+        $Stage = new Stage('Auswertung - Mitarbeiter', 'Datennutzung');
+
+        $TableContent = false;
+        $tblGroup = \SPHERE\Application\People\Group\Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+        if($tblPersonList && !empty($tblPersonList)){
+            $TableContent = Person::useService()->createPersonAgreementList($tblPersonList);
+        }
+
+        $ColumnHead = array(
+            'FirstName'                => 'Vorname',
+            'LastName'                 => 'Nachname',
+            'Address'                  => '<div style="min-width: 160px">Anschrift</div>',
+            'Birthday'                 => 'Geburtstag',
+        );
+        //Agreement Head
+        if(($tblAgreementCategoryAll = Agreement::useService()->getPersonAgreementCategoryAll())){
+            foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                if (($tblAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblAgreementCategory))) {
+                    foreach ($tblAgreementTypeList as $tblAgreementType) {
+                        $ColumnHead['AgreementType' . $tblAgreementType->getId()] = '<div style="min-width: 120px">' . $tblAgreementType->getName() . '</div>';
+                    }
+                }
+            }
+        }
+
+        $tableData = new TableData($TableContent, null, $ColumnHead, array(
+            'order'      => array(array(1, 'asc'), array(0, 'asc')),
+            'columnDefs' => array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0,1)),
+            array('type' => 'de_date', 'targets' => 3),
+            'pageLength' => -1,
+            'responsive' => false
+        ));
+
+        if ($tblAgreementCategoryAll) {
+            $headTableColumnList = array();
+            $headTableColumnList[] = new TableColumn('',4);
+            foreach ($tblAgreementCategoryAll as $tblAgreementCategory) {
+                if(($tblAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblAgreementCategory))) {
+                    $headTableColumnList[] = new TableColumn($tblAgreementCategory->getName(), count($tblAgreementTypeList));
+                }
+            }
+            $tableData->prependHead(
+                new TableHead(
+                    new TableRow(
+                        $headTableColumnList
+                    )
+                )
+            );
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ($TableContent && !empty($TableContent)
+                                ? new Primary('Download Datennutzung', '/Api/Reporting/Standard/Person/AgreementPersonList/Download', new Download())
+                                : ''
+                            )
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ($TableContent && !empty($TableContent)
+                                ? $tableData
+                                : ''
+                            )
+                        )
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
     }
 }

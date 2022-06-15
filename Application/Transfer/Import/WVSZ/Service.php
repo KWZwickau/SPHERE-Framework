@@ -82,7 +82,6 @@ class Service
                     'Name' => null,
                     'Vorname' => null,
 
-                    'MB-Mehrfachbehindert' => null,
                     'SMB-Schwerstmehrfachbehindert' => null,
                     'Erhöhungsfaktor SMB Schule' => null,
                     'Erhöhungsfaktor SMB LaSuB' => null,
@@ -217,7 +216,6 @@ class Service
                             }
 
                             $tblStudentSpecialNeeds = Student::useService() ->createStudentSpecialNeeds(
-                                (trim($Document->getValue($Document->getCell($Location['MB-Mehrfachbehindert'], $RunY))) == 'x'),
                                 (trim($Document->getValue($Document->getCell($Location['SMB-Schwerstmehrfachbehindert'], $RunY))) == 'x'),
                                 trim($Document->getValue($Document->getCell($Location['Erhöhungsfaktor SMB Schule'], $RunY))),
                                 trim($Document->getValue($Document->getCell($Location['Erhöhungsfaktor SMB LaSuB'], $RunY))),

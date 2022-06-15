@@ -119,35 +119,6 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 }
             }
 
-            $AgreementPanel = array();
-            if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
-                array_walk($tblAgreementCategoryAll,
-                    function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementPanel, $tblStudent) {
-                        $rows[] = new LayoutRow(new LayoutColumn(new Bold($tblStudentAgreementCategory->getName())));
-                        $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
-                        if ($tblAgreementTypeAll) {
-                            $tblAgreementTypeAll = (new Extension)->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
-                            array_walk($tblAgreementTypeAll,
-                                function (TblStudentAgreementType $tblStudentAgreementType) use (
-                                    &$rows,
-                                    $tblStudentAgreementCategory,
-                                    $tblStudent
-                                ) {
-                                    if ($tblStudent) {
-                                        $isChecked = Student::useService()->getStudentAgreementByTypeAndStudent($tblStudentAgreementType, $tblStudent);
-                                    } else {
-                                        $isChecked = false;
-                                    }
-                                    $rows[] = new LayoutRow(new LayoutColumn(($isChecked ? new Check() : new Unchecked()) . ' ' . $tblStudentAgreementType->getName()));
-                                }
-                            );
-                        }
-
-                        $AgreementPanel[] = new Layout(new LayoutGroup($rows));
-                    }
-                );
-            }
-
             $LiberationPanel = array();
             if (($tblLiberationCategoryAll = Student::useService()->getStudentLiberationCategoryAll())) {
                 array_walk($tblLiberationCategoryAll,
@@ -203,6 +174,8 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                 )),
                             )))
                         ),
+                    ), 4),
+                    new LayoutColumn(array(
                         FrontendReadOnly::getSubContent(
                             'Taufe',
                             new Layout(new LayoutGroup(array(
@@ -216,8 +189,9 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                 )),
                             )))
                         ),
+                        FrontendReadOnly::getSubContent('Unterrichtsbefreiung', $LiberationPanel)
                     ), 4),
-                    new LayoutColumn(array(
+                    new LayoutColumn(
                         FrontendReadOnly::getSubContent(
                             'Schulbeförderung',
                             new Layout(new LayoutGroup(array(
@@ -242,11 +216,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                     self::getLayoutColumnValue($transportRemark, 6),
                                 )),
                             )))
-                        ),
-                        FrontendReadOnly::getSubContent('Unterrichtsbefreiung', $LiberationPanel)
-                    ), 4),
-                    new LayoutColumn(
-                        FrontendReadOnly::getSubContent('Einverständniserklärung zur Datennutzung', $AgreementPanel)
+                        )
                     , 4),
                 )),
             )));
@@ -309,14 +279,6 @@ class FrontendStudentGeneral extends FrontendReadOnly
                     }
                 }
 
-                if ($tblStudentAgreementAll = Student::useService()->getStudentAgreementAllByStudent($tblStudent)) {
-                    foreach ($tblStudentAgreementAll as $tblStudentAgreement) {
-                        $Global->POST['Meta']['Agreement']
-                        [$tblStudentAgreement->getTblStudentAgreementType()->getTblStudentAgreementCategory()->getId()]
-                        [$tblStudentAgreement->getTblStudentAgreementType()->getId()] = 1;
-                    }
-                }
-
                 if (($tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent))) {
                     foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
                         $Global->POST['Meta']['Liberation']
@@ -351,48 +313,6 @@ class FrontendStudentGeneral extends FrontendReadOnly
      */
     private function getEditStudentGeneralForm(TblPerson $tblPerson = null)
     {
-
-        /**
-         * Panel: Agreement
-         */
-        $AgreementPanel = array();
-        $CheckboxList = array();
-        if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
-            array_walk($tblAgreementCategoryAll,
-                function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementPanel, &$CheckboxList) {
-                    $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
-                    // Extra Toggle on Category
-                    $CategoryCheckboxList = array();
-                    array_walk($tblAgreementTypeAll,
-                        function (TblStudentAgreementType $tblStudentAgreementType) use (&$AgreementPanel, &$CategoryCheckboxList,
-                            $tblStudentAgreementCategory) {
-                            $CategoryCheckboxList[] = 'Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']';
-                        }
-                    );
-                    array_push($AgreementPanel,new PullClear(new PullLeft(new Bold($tblStudentAgreementCategory->getName()))
-                    .new PullRight(new ToggleSelective('wählen/abwählen', $CategoryCheckboxList))
-                    ));
-                    if ($tblAgreementTypeAll) {
-                        $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
-                        array_walk($tblAgreementTypeAll,
-                            function (TblStudentAgreementType $tblStudentAgreementType) use (&$AgreementPanel, &$CheckboxList,
-                                $tblStudentAgreementCategory) {
-                                $CheckboxList[] = 'Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']';
-                                array_push($AgreementPanel,
-                                    new CheckBox('Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']',
-                                        $tblStudentAgreementType->getName(), 1)
-                                );
-                            }
-                        );
-                    }
-                }
-            );
-        }
-
-        $CheckboxButton = new ToggleSelective('Alle wählen/abwählen', $CheckboxList);
-
-        $AgreementPanel = new Panel(new PullClear('Einverständniserklärung zur Datennutzung'.new PullRight($CheckboxButton))
-            , $AgreementPanel, Panel::PANEL_TYPE_INFO);
 
         /**
          * Panel: Liberation
@@ -431,14 +351,17 @@ class FrontendStudentGeneral extends FrontendReadOnly
                             new TextField('Meta[Additional][Locker][CombinationLockNumber]', 'Zahlenschloss Nummer', 'Zahlenschloss Nummer',
                                 new Key())
                         ), Panel::PANEL_TYPE_INFO),
+                    ), 4),
+                    new FormColumn(array(
                         new Panel('Taufe', array(
                             new DatePicker('Meta[Additional][Baptism][Date]', 'Taufdatum', 'Taufdatum',
                                 new TempleChurch()
                             ),
                             new TextField('Meta[Additional][Baptism][Location]', 'Taufort', 'Taufort', new MapMarker()),
                         ), Panel::PANEL_TYPE_INFO),
+                        $LiberationPanel
                     ), 4),
-                    new FormColumn(array(
+                    new FormColumn(
                         new Panel('Schulbeförderung', array(
                             new CheckBox('Meta[Transport][IsDriverStudent]', 'Fahrschüler', 1),
                             new TextField('Meta[Transport][Route]', 'Buslinie', 'Buslinie', new Bus()),
@@ -447,11 +370,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
                             new TextField('Meta[Transport][Station][Exit]', 'Ausstiegshaltestelle',
                                 'Ausstiegshaltestelle', new StopSign()),
                             new TextArea('Meta[Transport][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
-                        ), Panel::PANEL_TYPE_INFO),
-                        $LiberationPanel
-                    ), 4),
-                    new FormColumn(
-                        $AgreementPanel
+                        ), Panel::PANEL_TYPE_INFO)
                     , 4),
                 )),
                 new FormRow(array(
@@ -466,14 +385,5 @@ class FrontendStudentGeneral extends FrontendReadOnly
         )))->disableSubmitAction();
 
         return $Form;
-
-//        return new Layout(new LayoutGroup(new LayoutRow(array(
-//            new LayoutColumn(
-//                new PullRight(new ToggleCheckbox('Alle wählen/abwählen', $Form))
-//            ),
-//            new LayoutColumn(
-//                $Form
-//            )
-//        ))));
     }
 }

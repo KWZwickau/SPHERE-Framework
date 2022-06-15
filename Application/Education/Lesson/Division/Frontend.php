@@ -26,6 +26,8 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -82,6 +84,7 @@ use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Navigation\Link\Route;
@@ -399,6 +402,17 @@ class Frontend extends Extension implements IFrontendInterface
 
         $receiver = AddDivision::receiverFormSelect((new AddDivision())->reloadLevelNameInput());
 
+        $FormRow = new FormRow(new FormColumn(new SuccessText('')));
+        if($tblLevel == null && $tblDivision == null){
+            if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
+                $FormRow->addColumn(new FormColumn(
+                    (new CheckBox('Level[isChecked]', 'Jahrgangsübergreifende Klasse', 1))
+                        ->ajaxPipelineOnChange(array(AddDivision::pipelineCreateLevelNameInput($receiver)))
+                ));
+            }
+        }
+
+
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
@@ -438,6 +452,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ), Panel::PANEL_TYPE_INFO
                         ), 4),
                 )),
+                $FormRow
             ))
         );
     }
@@ -1650,7 +1665,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $option = '';
                             }
                         } else {
-                            $status = new \SPHERE\Common\Frontend\Text\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success());
+                            $status = new SuccessText(new \SPHERE\Common\Frontend\Icon\Repository\Success());
                             $option = StudentStatus::receiverModal()
                                 . (new Link('deaktivieren', '#'))->ajaxPipelineOnClick(StudentStatus::pipelineOpenDeactivateStudentModal(
                                     $tblDivision->getId(),

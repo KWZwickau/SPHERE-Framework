@@ -5,13 +5,13 @@ use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Certificate\Reporting\View;
-use SPHERE\Application\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 
 /**
@@ -268,10 +268,10 @@ class Person
     {
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-            $name = 'Einverständniserklärung_Klassenliste ' . $tblDivision->getDisplayName();
+            $name = 'Datennutzung_Klassenliste ' . $tblDivision->getDisplayName();
         } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
             $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-            $name = 'Einverständniserklärung_Stammgruppenliste ' . $tblGroup->getName();
+            $name = 'Datennutzung_Stammgruppenliste ' . $tblGroup->getName();
         } else {
             return false;
         }
@@ -285,6 +285,60 @@ class Person
                 $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
+        return false;
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return false|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @throws \MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public function downloadAgreementStudentList($Data = array())
+    {
+
+        $tblYear = $tblGroup = $tblType = false;
+        if(!empty($Data['Year'])){
+            $tblYear = Term::useService()->getYearById($Data['Year']);
+        }
+        if(!empty($Data['Group'])){
+            $tblGroup = \SPHERE\Application\People\Search\Group\Group::useService()->getGroupById($Data['Group']);
+        }
+        if(!empty($Data['Type'])){
+            $tblType = Type::useService()->getTypeById($Data['Type']);
+        }
+        $Level = !empty($Data['Level']) ? $Data['Level'] : '';
+        $Division = !empty($Data['Division']) ? $Data['Division'] : '';
+        if($tblYear){
+            $tblPersonList = Individual::useService()->getStudentPersonListByFilter($tblYear, $tblGroup, $tblType,
+                $Level, $Division);
+            if($tblPersonList && ($DataList = ReportingPerson::useService()->createAgreementList($tblPersonList))){
+                $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($DataList, $tblPersonList);
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    'Datennutzung_Schüler ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @throws \MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public function downloadAgreementPersonList()
+    {
+
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+        if($tblPersonList && ($DataList = ReportingPerson::useService()->createPersonAgreementList($tblPersonList))){
+            $fileLocation = ReportingPerson::useService()->createAgreementPersonListExcel($DataList, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                'Datennutzung_Mitarbeiter ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
         return false;
     }
 

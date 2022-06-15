@@ -364,6 +364,7 @@ class Display extends Extension implements ITemplateInterface
         // Set Depending Information
         switch (strtolower($this->getRequest()->getHost())) {
             case 'demo.schulsoftware.schule':
+            case 'ekbodemo.schulsoftware.schule':
             case 'demo.kreda.schule':
                 $PreSeo = ' Demo';
             break;
@@ -400,6 +401,7 @@ class Display extends Extension implements ITemplateInterface
         // Set Depending Information
         switch (strtolower($this->getRequest()->getHost())) {
             case 'www.schulsoftware.schule':
+            case 'ekbo.schulsoftware.schule':
             case 'www.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
                 <img src="/Common/Style/Resource/Schulsoftware-font.svg" alt="Schulsottware" style="height: 40px">
@@ -415,6 +417,7 @@ class Display extends Extension implements ITemplateInterface
                 $this->Template->setVariable('RoadmapVersion', $VersionRelease ? $VersionRelease : 'Roadmap');
                 break;
             case 'demo.schulsoftware.schule':
+            case 'ekbodemo.schulsoftware.schule':
             case 'demo.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
                 <img src="/Common/Style/Resource/Schulsoftware-font-demo.svg" alt="Schulsottware" style="height: 40px">

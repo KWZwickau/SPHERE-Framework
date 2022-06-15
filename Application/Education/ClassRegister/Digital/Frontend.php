@@ -1804,7 +1804,7 @@ class Frontend extends Extension implements IFrontendInterface
                             , 2),
                         new LayoutColumn(
                             new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständnis&shy;erklärung'),
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Datennutzung'),
                                 '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId

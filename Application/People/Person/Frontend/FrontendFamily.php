@@ -460,6 +460,14 @@ class FrontendFamily extends FrontendReadOnly
                         $genderReceiver, 3
                     ),
                 )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new TextField('Data[S' . $Ranking . '][Occupation]', 'Beruf', 'Beruf'), 3
+                    ),
+                    new LayoutColumn(
+                        new TextField('Data[S' . $Ranking . '][Employment]', 'Arbeitsstelle', 'Arbeitsstelle'), 3
+                    ),
+                )),
                 new LayoutRow((array(
                     new LayoutColumn(
                         ApiFamilyEdit::receiverBlock('', 'SimilarPersonContent_' . $key)

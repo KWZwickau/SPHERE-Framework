@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Reporting\Individual;
 
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Reporting\Individual\Service\Data;
 use SPHERE\Application\Reporting\Individual\Service\Setup;
@@ -71,6 +72,9 @@ class ServiceView extends AbstractService
      * <br/>SchoolOption
      */
     public function getPersonListByGroup(TblGroup $tblGroup){return (new Data($this->getBinding()))->getPersonListByGroup($tblGroup);}
+    public function getStudentPersonListByFilter(TblYear $tblYear, $tblGroup = false, $tblType = false, $Level = '', $Division = ''){
+        return (new Data($this->getBinding()))->getStudentPersonListByFilter($tblYear, $tblGroup, $tblType, $Level, $Division);
+    }
 
 //    public function getViewProspectCustodyAll(){return (new Data($this->getBinding()))->getViewProspectCustodyAll();}
 //    public function getViewStudentAll(){return (new Data($this->getBinding()))->getViewStudentAll();}

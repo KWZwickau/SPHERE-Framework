@@ -5,7 +5,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital;
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
-use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreementReadOnly;
+use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreement;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Prepare\View;
@@ -773,8 +773,8 @@ class Service extends AbstractService
                     }
 
                     if (Student::useService()->getStudentAgreementAllByStudent($tblStudent)) {
-                        $agreement = (new Standard('', ApiAgreementReadOnly::getEndpoint(), new Check(), array(), 'Einverständniserklärung'))
-                            ->ajaxPipelineOnClick(ApiAgreementReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                        $agreement = (new Standard('', ApiAgreement::getEndpoint(), new Check(), array(), 'Datennutzung'))
+                            ->ajaxPipelineOnClick(ApiAgreement::pipelineOpenOverViewModal($tblPerson->getId()));
                     }
                 }
 
@@ -870,7 +870,7 @@ class Service extends AbstractService
             return
                 ApiSupportReadOnly::receiverOverViewModal()
                 . MedicalRecordReadOnly::receiverOverViewModal()
-                . ApiAgreementReadOnly::receiverOverViewModal()
+                . ApiAgreement::receiverOverViewModal()
                 . ($tblDivision && ($inActivePanel = Person::useFrontend()
                     ->getInActiveStudentPanel($tblDivision))
                     ? $inActivePanel : '')
