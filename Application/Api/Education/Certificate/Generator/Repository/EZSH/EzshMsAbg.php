@@ -467,7 +467,7 @@ class EzshMsAbg extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3), false, false, false)
+                            self::getEZSHSubjectLanes($personId, true, array(), false, false, false, true)
                                 ->styleHeight('400px')
                         )
                     )

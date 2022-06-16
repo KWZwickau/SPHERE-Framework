@@ -310,7 +310,8 @@ abstract class EzshStyle extends Certificate
         $languagesWithStartLevel = array(),
         $isTitle = true,
         $showThirdForeignLanguage = false,
-        $setTitle = true
+        $setTitle = true,
+        $hasSecondLanguageSecondarySchool = false
     ) {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -348,6 +349,7 @@ abstract class EzshStyle extends Certificate
             // add SecondLanguageField, Fach wird aus der Schüleraktte des Schülers ermittelt
             $tblSecondForeignLanguage = false;
             $tblThirdForeignLanguage = false;
+            $tblSecondForeignLanguageSecondarySchool = false;
             if (!empty($languagesWithStartLevel)) {
                 if (isset($languagesWithStartLevel['Lane']) && isset($languagesWithStartLevel['Rank'])) {
                     $SubjectStructure[$languagesWithStartLevel['Rank']]
@@ -387,6 +389,60 @@ abstract class EzshStyle extends Certificate
                         }
                     }
                 }
+            } else {
+                if ($hasSecondLanguageSecondarySchool
+                    && $tblPerson
+                    && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                ) {
+                    if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                        && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                            $tblStudentSubjectType))
+                    ) {
+                        /** @var TblStudentSubject $tblStudentSubject */
+                        foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                            if ($tblStudentSubject->getTblStudentSubjectRanking()
+                                && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                                && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
+                            ) {
+//                                if ($hasSecondLanguageDiploma) {
+//                                    $tblSecondForeignLanguageDiploma = $tblSubjectForeignLanguage;
+//                                }
+
+                                // Mittelschulzeugnisse
+                                if ($hasSecondLanguageSecondarySchool)  {
+                                    // SSW-484
+                                    $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
+                                    $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
+                                    if (($tblDivision = $this->getTblDivision())
+                                        && ($tblLevel = $tblDivision->getTblLevel())
+                                    ) {
+                                        $levelName = $tblLevel->getName();
+                                    } else {
+                                        $levelName = false;
+                                    }
+
+                                    if ($tillLevel && $fromLevel) {
+                                        if (floatval($fromLevel->getName()) <= floatval($levelName)
+                                            && floatval($tillLevel->getName()) >= floatval($levelName)
+                                        ) {
+                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                        }
+                                    } elseif ($tillLevel) {
+                                        if (floatval($tillLevel->getName()) >= floatval($levelName)) {
+                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                        }
+                                    } elseif ($fromLevel) {
+                                        if (floatval($fromLevel->getName()) <= floatval($levelName)) {
+                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                        }
+                                    } else {
+                                        $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // Shrink Lanes
@@ -401,6 +457,27 @@ abstract class EzshStyle extends Certificate
                 }
             }
             $SubjectStructure = $SubjectLayout;
+
+            // Mittelschulzeugnisse 2. Fremdsprache anfügen
+            if ($hasSecondLanguageSecondarySchool) {
+                // Zeiger auf letztes Element
+                end($SubjectStructure);
+                $lastItem = &$SubjectStructure[key($SubjectStructure)];
+
+                $column = array(
+                    'SubjectAcronym' => $tblSecondForeignLanguageSecondarySchool
+                        ? $tblSecondForeignLanguageSecondarySchool->getAcronym() : 'SECONDLANGUAGE',
+                    'SubjectName' => $tblSecondForeignLanguageSecondarySchool
+                        ? $tblSecondForeignLanguageSecondarySchool->getName()
+                        : '&ndash;'
+                );
+                //
+                if (isset($lastItem[1])) {
+                    $SubjectStructure[][1] = $column;
+                } else {
+                    $lastItem[1] = $column;
+                }
+            }
 
             // headline for grades
             if ($setTitle) {
@@ -462,6 +539,15 @@ abstract class EzshStyle extends Certificate
                         $hasAdditionalLine['Ranking'] = 2;
                         $hasAdditionalLine['SubjectAcronym'] = $tblSecondForeignLanguage
                             ? $tblSecondForeignLanguage->getAcronym() : 'Empty';
+                    } elseif ($hasSecondLanguageSecondarySchool
+                        && ($Subject['SubjectAcronym'] == 'SECONDLANGUAGE'
+                            || ($tblSecondForeignLanguageSecondarySchool && $Subject['SubjectAcronym'] == $tblSecondForeignLanguageSecondarySchool->getAcronym())
+                        )
+                    ) {
+                        $hasAdditionalLine['Lane'] = $Lane;
+                        $hasAdditionalLine['Ranking'] = 2;
+                        $hasAdditionalLine['SubjectAcronym'] = $tblSecondForeignLanguageSecondarySchool
+                            ? $tblSecondForeignLanguageSecondarySchool->getAcronym() : 'Empty';
                     }
 
                     if ($Lane > 1) {
@@ -570,14 +656,18 @@ abstract class EzshStyle extends Certificate
                     if ($hasAdditionalLine['Lane'] == 2) {
                         $SubjectSection->addElementColumn((new Element()), '52%');
                     }
-                    $SubjectSection->addElementColumn((new Element())
-                        ->setContent($hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
+
+                    $content = $hasSecondLanguageSecondarySchool
+                        ? $hasAdditionalLine['Ranking'] . '. Fremdsprache (abschlussorientiert)'
+                        : $hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
                             '{% if(Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
-                                     {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }})
-                                 {% else %}
-                                    &nbsp;)
-                                 {% endif %}'
-                            )
+                                {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }})
+                            {% else %}
+                               &nbsp;)
+                            {% endif %}';
+
+                    $SubjectSection->addElementColumn((new Element())
+                        ->setContent($content)
                         ->stylePaddingTop('0px')
                         ->stylePaddingBottom('0px')
                         ->styleMarginTop('-6px')
