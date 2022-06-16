@@ -5386,8 +5386,13 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 } else {
                     if ($tblType) {
                         if ($tblType->getName() == 'Mittelschule / Oberschule') {
-//                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbg');
-                            return $this->getSelectLeaveCertificateStage($tblPerson, $tblDivision, $tblType, $tblCourse ? $tblCourse : null, $Data);
+                            // Herrnhut hat ein individuelles Abgangszeugnis
+                            if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')) {
+                                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshMsAbg');
+                            } else {
+                                // Auswahl der Zeugnisvorlage, da es mehrere gibt
+                                return $this->getSelectLeaveCertificateStage($tblPerson, $tblDivision, $tblType, $tblCourse ? $tblCourse : null, $Data);
+                            }
                         } elseif ($tblType->getName() == 'Gymnasium') {
                             if ($tblLevel) {
                                 // Herrnhut hat ein individuelles Abgangszeugnis
@@ -6013,6 +6018,17 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     $arrangementTextArea,
                     $remarkTextArea
                 );
+            } elseif ($tblCertificate->getCertificate() == 'EZSH\EzshMsAbg') {
+                $remarkTextArea = new TextArea('Data[InformationList][RemarkWithoutTeam]', '', 'Bemerkungen');
+
+                if ($isApproved) {
+                    $datePicker->setDisabled();
+                    $remarkTextArea->setDisabled();
+                }
+                $otherInformationList = array(
+                    $datePicker,
+                    $remarkTextArea
+                );
             } else {
                 if ($tblCertificate->getCertificate() == 'MsAbgLernen'
                     || $tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung'
@@ -6057,7 +6073,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     array($radio1, $radio2),
                     Panel::PANEL_TYPE_DEFAULT
                 );
-            } elseif ($tblCertificate->getCertificate() == 'MsAbg' || $tblCertificate->getCertificate() == 'HOGA\MsAbg') {
+            } elseif ($tblCertificate->getCertificate() == 'MsAbg'
+                || $tblCertificate->getCertificate() == 'EZSH\EzshMsAbg'
+                || $tblCertificate->getCertificate() == 'HOGA\MsAbg'
+            ) {
                 $radio1 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
                     'gemäß § 6 Absatz 1 Satz 7 des Sächsischen Schulgesetzes mit der Versetzung in die Klassenstufe 10

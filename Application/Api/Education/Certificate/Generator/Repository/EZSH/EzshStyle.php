@@ -301,7 +301,6 @@ abstract class EzshStyle extends Certificate
      * @param bool $setTitle
      *
      * @return Section[]|Slice
-     * @throws \Exception
      */
     protected function getEZSHSubjectLanes(
         $personId,

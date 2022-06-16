@@ -28,6 +28,7 @@ class IDataEZSH
             self::setEzshMsAbsHs($Data, $tblConsumerCertificate);
             self::setEzshMsAbsHsQ($Data, $tblConsumerCertificate);
             self::setEzshMsAbsRs($Data, $tblConsumerCertificate);
+            self::setEzshMsAbg($Data, $tblConsumerCertificate);
         }
     }
 
@@ -682,6 +683,47 @@ class IDataEZSH
                         $Data->createCertificateLevel($tblCertificate, $tblLevel);
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setEzshMsAbg(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Oberschule Abgangszeugnis', '',
+            'EZSH\EzshMsAbg', $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeSecondary());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '10'))) {
+                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+            // Begrenzung Bemerkungsfeld
+            $FieldName = 'RemarkWithoutTeam';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                $Data->createCertificateField($tblCertificate, $FieldName, 1000);
+            }
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                $Data->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                $Data->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                $Data->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                $Data->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+                $Data->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+                $Data->setCertificateSubject($tblCertificate, 'WTH', 1, 8, false);
+
+                $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                $Data->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+                $Data->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+                $Data->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+                $Data->setCertificateSubject($tblCertificate, 'REE', 2, 6);
+                $Data->setCertificateSubject($tblCertificate, 'INF', 2, 7);
             }
         }
     }
