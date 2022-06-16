@@ -6,12 +6,14 @@ use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
@@ -2055,5 +2057,56 @@ abstract class EzshStyle extends Certificate
         }
 
         return $slice;
+    }
+
+    /**
+     * @param $personId
+     * @param string $title
+     * @param string $subTitle
+     *
+     * @return Page
+     */
+    protected function getRatingPage($personId, string $title, string $subTitle): Page
+    {
+        return (new Page())
+            ->addSlice(
+                (new Slice())
+                    ->stylePaddingLeft('50px')
+                    ->stylePaddingRight('50px')
+                    ->addElement((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight('135px')
+                    )
+                    ->addSectionList(
+                        self::getEZSHHeadLine($title, $subTitle)
+                    )
+                    ->addElement((new Element())
+                        ->styleMarginTop('35px')
+                    )
+                    ->addSection(
+                        self::getEZSHName($personId)
+                    )
+                    ->addElement((new Element())
+                        ->styleMarginTop('35px')
+                    )
+                    ->addSection(
+                        self::getEZSHDivisionAndYear($personId)
+                    )
+                    ->addElement((new Element())
+                        ->styleMarginTop('40px')
+                    )
+                    ->addSectionList(
+                        self::getEZSHRating($personId, '510px')
+                    )
+                    ->addSectionList(
+                        self::getEZSHDateSign($personId)
+                    )
+                    ->addElement((new Element())
+                        ->styleMarginTop('63px')
+                    )
+                    ->addSectionList(
+                        self::getEZSHCustody()
+                    )
+            );
     }
 }

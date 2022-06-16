@@ -20,6 +20,7 @@ class IDataEZSH
             self::setEzshGymHj($Data, $tblConsumerCertificate);
             self::setEzshGymHjZ($Data, $tblConsumerCertificate);
             self::setEzshGymJ($Data, $tblConsumerCertificate);
+            self::setEzshGymJThreePages($Data, $tblConsumerCertificate);
             self::setEzshMsJ($Data, $tblConsumerCertificate);
             self::setEzshMsCourseJ($Data, $tblConsumerCertificate);
             self::setEzshGymAbg($Data, $tblConsumerCertificate);
@@ -336,9 +337,6 @@ class IDataEZSH
                 if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '9'))) {
                     $Data->createCertificateLevel($tblCertificate, $tblLevel);
                 }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '10'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
             }
             // Begrenzung der Einschätzung
             $FieldName = 'Rating';
@@ -374,6 +372,57 @@ class IDataEZSH
             }
         }
     }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setEzshGymJThreePages(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Gymnasium Jahreszeugnis', 'Klasse 10 (Extra Seite für Einschätzung)',
+            'EZSH\EzshGymJThreePages', $tblConsumerCertificate, false, false, true, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeGym());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '10'))) {
+                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
+                }
+            }
+            // Begrenzung der Einschätzung
+            $FieldName = 'Rating';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                $Data->createCertificateField($tblCertificate, $FieldName, 2300);
+            }
+            // Begrenzung Bemerkungsfeld
+            $FieldName = 'RemarkWithoutTeam';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                $Data->createCertificateField($tblCertificate, $FieldName, 1000);
+            }
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+
+                $Data->setCertificateSubject($tblCertificate, 'TSCN', 1, 3, false);
+                $Data->setCertificateSubject($tblCertificate, 'LA', 1, 4, false);
+                // lücke für Fremdsprachen
+                $Data->setCertificateSubject($tblCertificate, 'KU', 1, 6);
+                $Data->setCertificateSubject($tblCertificate, 'MU', 1, 7);
+                $Data->setCertificateSubject($tblCertificate, 'GE', 1, 8);
+                $Data->setCertificateSubject($tblCertificate, 'GRW', 1, 9);
+                $Data->setCertificateSubject($tblCertificate, 'GEO', 1, 10);
+
+                $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                $Data->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+                $Data->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+                $Data->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                $Data->setCertificateSubject($tblCertificate, 'INF', 2, 5);
+                $Data->setCertificateSubject($tblCertificate, 'TUC', 2, 6);
+                $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 7);
+                $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
+            }
+        }
+    }
+
     /**
      * @param Data        $Data
      * @param TblConsumer $tblConsumerCertificate

@@ -96,10 +96,7 @@ class EzshGymHjZ extends EzshStyle
                         ->stylePaddingTop('75px')
                     )
                     ->addSectionList(
-                        self::getEZSHRating($personId)
-                    )
-                    ->addSectionList(
-                        self::getEZSHRemark($personId)
+                        self::getEZSHRemark($personId, '720px')
                     )
                     ->addSectionList(
                         self::getEZSHDateSign($personId)
@@ -129,7 +126,8 @@ class EzshGymHjZ extends EzshStyle
 
         return array(
             self::firstPage($personId),
-            self::secondPage($personId)
+            self::secondPage($personId),
+            self::getRatingPage($personId, 'Anlage zum HALBJAHRESZEUGNIS', 'GYMNASIUM – staatlich anerkannte Ersatzschule')
         );
     }
 }
