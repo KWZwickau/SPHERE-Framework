@@ -10,5 +10,6 @@ class ParentStudentAccess implements IApplicationInterface
     {
         ApiOnlineAbsence::registerApi();
         ApiOnlineContactDetails::registerApi();
+        ApiOnlineGradebook::registerApi();
     }
 }

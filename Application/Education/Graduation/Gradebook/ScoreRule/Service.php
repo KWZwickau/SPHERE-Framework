@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook\ScoreRule;
 
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\Service as ServiceMinimumGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
@@ -40,6 +41,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Redirect;
 
@@ -699,7 +701,8 @@ abstract class Service extends ServiceMinimumGrade
         if (!$Error) {
             (new Data($this->getBinding()))->createScoreRule(
                 $ScoreRule['Name'],
-                $ScoreRule['Description']
+                $ScoreRule['Description'],
+                $ScoreRule['DescriptionForExtern']
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfasst worden')
             . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
@@ -741,6 +744,7 @@ abstract class Service extends ServiceMinimumGrade
                 $tblScoreRule,
                 $ScoreRule['Name'],
                 $ScoreRule['Description'],
+                $ScoreRule['DescriptionForExtern'],
                 $tblScoreRule->isActive()
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfolgreich gespeichert worden')
@@ -1056,11 +1060,11 @@ abstract class Service extends ServiceMinimumGrade
      *
      * @return string
      */
-    public function setScoreRuleActive(TblScoreRule $tblScoreRule, $IsActive = true)
+    public function setScoreRuleActive(TblScoreRule $tblScoreRule, bool $IsActive = true): string
     {
 
         return (new Data($this->getBinding()))->updateScoreRule($tblScoreRule, $tblScoreRule->getName(),
-            $tblScoreRule->getDescription(), $IsActive);
+            $tblScoreRule->getDescription(), $tblScoreRule->getDescriptionForExtern(), $IsActive);
     }
 
     /**
@@ -1286,5 +1290,80 @@ abstract class Service extends ServiceMinimumGrade
         }
 
         return empty($tblScoreGroupList) ? false : $tblScoreGroupList;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param array $structure
+     *
+     * @return array
+     */
+    public function getScoreRuleStructure(TblScoreRule $tblScoreRule, array $structure): array
+    {
+        $tblScoreConditions = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
+        if ($tblScoreConditions) {
+            $tblScoreConditions = $this->getSorter($tblScoreConditions)->sortObjectBy('Priority');
+
+            $count = 1;
+            /** @var TblScoreCondition $tblScoreCondition */
+            foreach ($tblScoreConditions as $tblScoreCondition) {
+                $structure[] = $count++ . '. Berechnungsvariante: ' . $tblScoreCondition->getName()
+                    . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
+                    . $tblScoreCondition->getPriority();
+
+//                        $tblScoreConditionGradeTypeListByCondition = Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
+//                            $tblScoreCondition
+//                        );
+//                        if ($tblScoreConditionGradeTypeListByCondition) {
+//                            $list = array();
+//                            foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeTypeList) {
+//                                if ($tblScoreConditionGradeTypeList->getTblGradeType()) {
+//                                    $list[] = $tblScoreConditionGradeTypeList->getTblGradeType()->getDisplayName();
+//                                }
+//                            }
+//
+//                            $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Bedingungen: ' . implode(', ',
+//                                    $list);
+//                        }
+                if (($requirements = Gradebook::useService()->getRequirementsForScoreCondition($tblScoreCondition, true))) {
+                    $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Bedingungen: ' . $requirements;
+                }
+
+                $tblScoreConditionGroupListByCondition = Gradebook::useService()->getScoreConditionGroupListByCondition(
+                    $tblScoreCondition
+                );
+                if ($tblScoreConditionGroupListByCondition) {
+                    foreach ($tblScoreConditionGroupListByCondition as $tblScoreConditionGroupList) {
+                        $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Zensuren-Gruppe: '
+                            . $tblScoreConditionGroupList->getTblScoreGroup()->getName()
+                            . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
+                            . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier()
+                            . ($tblScoreConditionGroupList->getTblScoreGroup()->isEveryGradeASingleGroup()
+                                ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Noten einzeln ' : '');
+
+                        $tblGradeTypeList = Gradebook::useService()->getScoreGroupGradeTypeListByGroup(
+                            $tblScoreConditionGroupList->getTblScoreGroup()
+                        );
+                        if ($tblGradeTypeList) {
+                            foreach ($tblGradeTypeList as $tblGradeType) {
+                                $structure[] = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9702;&nbsp;&nbsp;'
+                                    . 'Zensuren-Typ: '
+                                    . ($tblGradeType->getTblGradeType() ? $tblGradeType->getTblGradeType()->getDisplayName() : '')
+                                    . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
+                                    . $tblGradeType->getDisplayMultiplier();
+                            }
+                        } else {
+                            $structure[] = new Warning('Kein Zenuren-Typ hinterlegt.', new Ban());
+                        }
+                    }
+                } else {
+                    $structure[] = new Warning('Keine Zenuren-Gruppe hinterlegt.', new Ban());
+                }
+                $structure[] = ' ';
+            }
+        } else {
+            $structure[] = new Warning('Keine Berechnungsvariante hinterlegt.', new Ban());
+        }
+        return $structure;
     }
 }
