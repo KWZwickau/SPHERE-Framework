@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Setting\Consumer\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -36,17 +37,6 @@ class Data extends AbstractData
         // Allgemein Public
         $this->createSetting('People', 'Person', 'Relationship', 'GenderOfS1', TblSetting::TYPE_INTEGER, 2, 'Allgemein',
             'Für Personenbeziehungen vom Typ: Sorgeberechtigt wird das folgende Geschlecht für S1 vorausgewählt. [Standard: Weiblich]', true);
-//        // Beispiel Update vorhandener Settings
-//        if (($tblSetting = $this->createSetting('People', 'Person', 'Relationship', 'GenderOfS1', TblSetting::TYPE_INTEGER, 2, 'Allgemein',
-//            'Für Personenbeziehungen vom Typ: Sorgeberechtigt wird das folgende Geschlecht für S1 vorausgewählt. [Standard: Weiblich]', true))
-//        ) {
-//            $this->updateSettingDescription(
-//                $tblSetting,
-//                $tblSetting->getCategory(),
-//                'Für Personenbeziehungen vom Typ: Sorgeberechtigt wird das folgende Geschlecht für S1 vorausgewählt. [Standard: Weiblich]',
-//                $tblSetting->isPublic()
-//            );
-//        }
         $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel', TblSetting::TYPE_INTEGER,
             1, 'Allgemein', 'Validierung 1. Fremdsprache im Stammdaten- und Bildungsmodul sowie Modul Kamenzstatistik.
             Klassenstufe, ab welcher ist 1. Fremdsprache unterrichtet wird. [Standard: 1]', true);
@@ -181,24 +171,6 @@ class Data extends AbstractData
             '1', 'Zeugnisse', 'die Schülereinschätzung als Blocksatz dargestellen [Standard: Ja]');
 
         // Notenbücher public
-        $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview',
-            TblSetting::TYPE_BOOLEAN, false, 'Notenbücher', 'Anzeige des Notendurchschnitts in der
-            Eltern/Schüler-Übersicht [Standard: Nein]', true);
-        if (($tblSetting = $this->getSetting('Education', 'Graduation', 'Gradebook', 'IsShownScoreInStudentOverview'))) {
-            $defaultValue = $tblSetting->getValue();
-            $this->destroySetting($tblSetting);
-        } else {
-            $defaultValue = false;
-        }
-        $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownDivisionSubjectScoreInStudentOverview',
-            TblSetting::TYPE_BOOLEAN, $defaultValue, 'Notenbücher',
-            'Anzeige des Fach-Klassen-Durchschnitts in der Eltern/Schüler-Übersicht. [Standard: Nein]', true);
-        $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownGradeMirrorInStudentOverview',
-            TblSetting::TYPE_BOOLEAN, $defaultValue, 'Notenbücher',
-            'Anzeige des Notenspiegels in der Eltern/Schüler-Übersicht. [Standard: Nein]', true);
-        $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowHighlightedTestsInGradeOverview',
-            TblSetting::TYPE_BOOLEAN, '1', 'Notenbücher', 'Anzeige der geplanten Großen Noten (fettmarkiert, z.B.
-             Klassenarbeiten) in der Notenübersicht für Schüler/Eltern und in der Schülerübersicht [Standard: Ja]', true);
         $this->createSetting('Education', 'Graduation', 'Gradebook', 'SortHighlighted', TblSetting::TYPE_BOOLEAN, '0',
             'Notenbücher', 'Sortierung der Zensuren im Notenbuch nach Großen (fettmarkiert) und Kleinen Noten. Bei
              Deaktivierung erfolgt Sortierung nach Datum. [Standard: Nein]', true);
@@ -209,26 +181,71 @@ class Data extends AbstractData
             'Notenbücher', 'Anzeige des Notendurchschnitts im heruntergeladenen Notenbuch (PDF) [Standard: Ja]', true);
         $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowCertificateGradeInPdf', TblSetting::TYPE_BOOLEAN,
             '1', 'Notenbücher', 'Anzeige der Zeugnisnote im heruntergeladenen Notenbuch (PDF) [Standard: Ja]', true);
-        $this->createSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView', TblSetting::TYPE_STRING, '', 'Notenbücher',
-            'Anzeige der Noten in der Eltern/Schüler-Übersicht ab folgenden Schuljahr (z.B. 2019/20). Wenn leer werden
-            Noten aller Schuljahre angezeigt [Standard: ]', true);
-
-        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType', TblSetting::TYPE_STRING, '',
-            'Notenbücher', 'Eingrenzung Anzeige Eltern/Schüler-Übersicht nach Schulart(en). Festlegung mittels Zahleneingabe.
-             Mehrere Schularten sind mit Komma zu trennen. (Kürzel z.B. GS, OS, Gy) [Standard: ]', true)))
-        {
-            $this->updateSettingDescription(
-                $tblSetting,
-                $tblSetting->getCategory(),
-                'Eingrenzung Anzeige Eltern/Schüler-Übersicht nach Schulart(en). Festlegung mittels Zahleneingabe.
-                 Mehrere Schularten sind mit Komma zu trennen. (Kürzel z.B. GS, OS, Gy) [Standard: ]',
-                $tblSetting->isPublic()
-            );
-        }
-
         $this->createSetting('Education', 'Graduation', 'Gradebook', 'AddNameRowAtCount', TblSetting::TYPE_INTEGER, 10,
             'Notenbücher', 'Anzeige zusätzliche Namensspalte im Notenbuch bei mehr als (Anzahl) Noten im gesamten
             Schuljahr [Standard: 10]', true);
+
+        // Schüler-Eltern-Zugang
+        $this->createSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'OnlineContactDetailsAllowedForSchoolTypes', TblSetting::TYPE_STRING, '',
+            'Eltern/Schüler-Zugang', 'Online Kontaktdaten Anzeige und Änderungswünsche durch Eltern ist für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) möglich. 
+            Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', true, 1);
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType', TblSetting::TYPE_STRING, '',
+            'Eltern/Schüler-Zugang', 'Eingrenzung Anzeige Notenübersicht für Eltern/Schüler nach Schulart(en). Festlegung mittels Kürzel der Schulart.
+            (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', true, 2))
+        ) {
+            $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
+                'Eingrenzung Anzeige Notenübersicht für Eltern/Schüler nach Schulart(en). Festlegung mittels Kürzel der Schulart. (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS)
+                Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', $tblSetting->isPublic()
+            );
+            $this->updateSettingSortOrder($tblSetting, 2);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView', TblSetting::TYPE_STRING, '', 'Eltern/Schüler-Zugang',
+            'Anzeige der Noten in der Notenübersicht für Eltern/Schüler ab folgenden Schuljahr (z.B. 2019/20). Wenn leer werden
+            Noten aller Schuljahre angezeigt [Standard: ]', true, 3))
+        ) {
+            $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
+                'Anzeige der Noten in der Notenübersicht für Eltern/Schüler ab folgenden Schuljahr (z.B. 2019/20). Wenn leer werden
+                Noten aller Schuljahre angezeigt [Standard: ]', $tblSetting->isPublic()
+            );
+            $this->updateSettingSortOrderAndCategory($tblSetting, 3, 'Eltern/Schüler-Zugang');
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview',
+            TblSetting::TYPE_BOOLEAN, false, 'Eltern/Schüler-Zugang', 'Anzeige des Notendurchschnitts in der
+            Notenübersicht für Eltern/Schüler [Standard: Nein]', true, 4))
+        ) {
+            $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
+                'Anzeige des Notendurchschnitts in der Notenübersicht für Eltern/Schüler [Standard: Nein]', $tblSetting->isPublic()
+            );
+            $this->updateSettingSortOrderAndCategory($tblSetting, 4, 'Eltern/Schüler-Zugang');
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownDivisionSubjectScoreInStudentOverview',
+            TblSetting::TYPE_BOOLEAN, false, 'Eltern/Schüler-Zugang',
+            'Anzeige des Fach-Klassen-Durchschnitts in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', true, 5))
+        ) {
+            $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
+                'Anzeige des Fach-Klassen-Durchschnitts in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', $tblSetting->isPublic()
+            );
+            $this->updateSettingSortOrderAndCategory($tblSetting, 5, 'Eltern/Schüler-Zugang');
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownGradeMirrorInStudentOverview',
+            TblSetting::TYPE_BOOLEAN, false, 'Eltern/Schüler-Zugang',
+            'Anzeige des Notenspiegels in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', true, 6))
+        ) {
+            $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
+                'Anzeige des Notenspiegels in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', $tblSetting->isPublic()
+            );
+            $this->updateSettingSortOrderAndCategory($tblSetting, 6, 'Eltern/Schüler-Zugang');
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowHighlightedTestsInGradeOverview',
+            TblSetting::TYPE_BOOLEAN, '1', 'Eltern/Schüler-Zugang', 'Anzeige der geplanten Großen Noten (fettmarkiert, z.B.
+             Klassenarbeiten) in der Notenübersicht für Eltern/Schüler und in der Schülerübersicht [Standard: Ja]', true, 7))
+        ) {
+            $this->updateSettingDescription($tblSetting, 'Eltern/Schüler-Zugang',
+                'Anzeige der geplanten Großen Noten (fettmarkiert, z.B.
+                Klassenarbeiten) in der Notenübersicht für Eltern/Schüler und in der Schülerübersicht [Standard: Ja]', $tblSetting->isPublic()
+            );
+            $this->updateSettingSortOrderAndCategory($tblSetting, 7, 'Eltern/Schüler-Zugang');
+        }
 
         // Adresslisten für Serienbriefe public
         $this->createSetting('Reporting', 'SerialLetter', 'GenderSort', 'FirstFemale', TblSetting::TYPE_BOOLEAN, 1,
@@ -255,15 +272,33 @@ class Data extends AbstractData
             Notenvorschlag [Standard: Nein]', true);
 
         // Fehlzeiten public
-        $this->createSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence', TblSetting::TYPE_BOOLEAN,
-            '1', 'Fehlzeiten', 'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch [Standard: Ja]'
-            , true);
+        $this->createSetting('Education', 'ClassRegister', 'Absence', 'OnlineAbsenceAllowedForSchoolTypes', TblSetting::TYPE_STRING, '',
+            'Fehlzeiten', 'Online Fehlzeiten von Eltern/Schüler ist für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) möglich. Mehrere Schularten sind mit
+             Komma zu trennen. [Standard: ]', true, 1);
+        $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewOnlineAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
+            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Online Fehlzeiten von Eltern/Schüler [Standard: unentschuldigt]', true, 2);
+        $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
+            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Fehlzeit [Standard: unentschuldigt]', true, 3);
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence', TblSetting::TYPE_BOOLEAN,
+            '1', 'Fehlzeiten', 'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch aufs Zeugnis [Standard: Ja]', true, 4))
+        ) {
+            $this->updateSettingDescription($tblSetting, $tblSetting->getCategory(),
+                'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch aufs Zeugnis [Standard: Ja]', $tblSetting->isPublic());
+            $this->updateSettingSortOrder($tblSetting, 4);
+        }
 
         // UCS
-        $this->createSetting('Setting', 'Univention', 'Univention', 'API_Mail',
+        if (($tblSetting = $this->createSetting('Setting', 'Univention', 'Univention', 'API_Mail',
             TblSetting::TYPE_STRING, '', 'Univention', 'E-Mail-Adresse für UCS Benutzername
-             ist kein Pflichtfeld für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy). Mehrere Schularten sind mit
-             Komma zu trennen. [Standard: ]');
+             ist kein Pflichtfeld für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS). Mehrere Schularten sind mit
+             Komma zu trennen. [Standard: ]'
+        ))) {
+            $this->updateSettingDescription($tblSetting, 'Univention',
+                'E-Mail-Adresse für UCS Benutzername
+                ist kein Pflichtfeld für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS). Mehrere Schularten sind mit
+                Komma zu trennen. [Standard: ]', $tblSetting->isPublic()
+            );
+        }
     }
 
     /**
@@ -315,13 +350,13 @@ class Data extends AbstractData
 
         if ($IsSystem) {
             return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblSetting', array(
-                TblSetting::ATTR_DESCRIPTION => self::ORDER_ASC
+                TblSetting::ATTR_CATEGORY => self::ORDER_ASC, TblSetting::ATTR_SORT_ORDER => self::ORDER_ASC, TblSetting::ATTR_DESCRIPTION => self::ORDER_ASC
             ));
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSetting', array(
                 TblSetting::ATTR_IS_PUBLIC => true
             ), array(
-                TblSetting::ATTR_DESCRIPTION => self::ORDER_ASC
+                TblSetting::ATTR_CATEGORY => self::ORDER_ASC, TblSetting::ATTR_SORT_ORDER => self::ORDER_ASC, TblSetting::ATTR_DESCRIPTION => self::ORDER_ASC
             ));
         }
     }
@@ -378,6 +413,7 @@ class Data extends AbstractData
      * @param string $Category
      * @param string $Description
      * @param bool $IsPublic
+     * @param null $SortOrder
      *
      * @return TblSetting
      */
@@ -390,7 +426,8 @@ class Data extends AbstractData
         $Value,
         $Category = 'Allgemein',
         $Description = '',
-        $IsPublic = false
+        $IsPublic = false,
+        $SortOrder = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -412,6 +449,7 @@ class Data extends AbstractData
             $Entity->setCategory($Category);
             $Entity->setDescription($Description);
             $Entity->setIsPublic($IsPublic);
+            $Entity->setSortOrder($SortOrder);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -473,6 +511,56 @@ class Data extends AbstractData
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblSetting $tblSetting
+     * @param int $SortOrder
+     *
+     * @return bool
+     */
+    public function updateSettingSortOrder(TblSetting $tblSetting, int $SortOrder): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblSetting $Entity */
+        $Entity = $Manager->getEntityById('TblSetting', $tblSetting->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setSortOrder($SortOrder);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblSetting $tblSetting
+     * @param int $SortOrder
+     * @param string $Category
+     *
+     * @return bool
+     */
+    public function updateSettingSortOrderAndCategory(TblSetting $tblSetting, int $SortOrder, string $Category): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblSetting $Entity */
+        $Entity = $Manager->getEntityById('TblSetting', $tblSetting->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setSortOrder($SortOrder);
+            $Entity->setCategory($Category);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
 
             return true;
         }

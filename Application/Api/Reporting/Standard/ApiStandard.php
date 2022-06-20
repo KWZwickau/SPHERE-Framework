@@ -67,7 +67,7 @@ class ApiStandard extends Extension implements IApiInterface
     /**
      * @return Pipeline
      */
-    public static function pipelineCreateAbsenceContent() : Pipeline
+    public static function pipelineReloadAbsenceContent() : Pipeline
     {
         $FieldPipeline = new Pipeline(false);
         $FieldEmitter = new ServerEmitter(self::receiverBlock('', 'AbsenceContent'), self::getEndpoint());
@@ -131,6 +131,7 @@ class ApiStandard extends Extension implements IApiInterface
             $isCertificateRelevant = null;
         }
 
+        $isAbsenceOnlineOnly = isset($Data['IsAbsenceOnline']);
         $divisionName = $Data['DivisionName'];
         $groupName = $Data['GroupName'];
         $isGroup = false;
@@ -148,7 +149,8 @@ class ApiStandard extends Extension implements IApiInterface
                 $divisionList,
                 array(),
                 $hasAbsenceTypeOptions,
-                $isCertificateRelevant
+                $isCertificateRelevant,
+                $isAbsenceOnlineOnly
             );
         } elseif ($groupName != '') {
             $isGroup = true;
@@ -165,7 +167,8 @@ class ApiStandard extends Extension implements IApiInterface
                 array(),
                 $groupList,
                 $hasAbsenceTypeOptions,
-                $isCertificateRelevant
+                $isCertificateRelevant,
+                $isAbsenceOnlineOnly
             );
         } else {
             $absenceList = Absence::useService()->getAbsenceAllByDay(
@@ -175,7 +178,8 @@ class ApiStandard extends Extension implements IApiInterface
                 array(),
                 array(),
                 $hasAbsenceTypeOptions,
-                $isCertificateRelevant
+                $isCertificateRelevant,
+                $isAbsenceOnlineOnly
             );
         }
 
@@ -221,7 +225,8 @@ class ApiStandard extends Extension implements IApiInterface
                                 'Type' => $Data['Type'],
                                 'DivisionName' => $Data['DivisionName'],
                                 'GroupName' => $Data['GroupName'],
-                                'IsCertificateRelevant' => isset($Data['IsCertificateRelevant']) ? $Data['IsCertificateRelevant'] : 0
+                                'IsCertificateRelevant' => isset($Data['IsCertificateRelevant']) ? $Data['IsCertificateRelevant'] : 0,
+                                'IsAbsenceOnlineOnly' => $isAbsenceOnlineOnly
                             )
                         )
                     )

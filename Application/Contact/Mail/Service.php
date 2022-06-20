@@ -149,6 +149,7 @@ class Service extends AbstractService
      * @param string $Address
      * @param array $Type
      * @param bool $IsAccountUserAlias
+     * @param $OnlineContactId
      * @param TblToPerson|null $tblToPerson
      *
      * @return bool|Form
@@ -158,12 +159,13 @@ class Service extends AbstractService
         string $Address,
         array $Type,
         bool $IsAccountUserAlias,
+        $OnlineContactId,
         TblToPerson $tblToPerson = null
     ) {
 
         $error = false;
 
-        $form = Mail::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null);
+        $form = Mail::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null, false, $OnlineContactId);
         $Address = $this->validateMailAddress($Address);
         if (isset($Address) && empty($Address)) {
             $form->setError('Address[Mail]', 'Bitte geben Sie eine gültige E-Mail Adresse an');
@@ -712,5 +714,56 @@ class Service extends AbstractService
      */
     public function getToPersonListByAddress(string $address) {
         return (new Data($this->getBinding()))->getToPersonListByAddress($address);
+    }
+
+    /**
+     * @param TblMail $tblMail
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByMail(TblMail $tblMail)
+    {
+        return (new Data($this->getBinding()))->getToPersonAllByMail($tblMail);
+    }
+
+    /**
+     * @param TblMail $tblMail
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonAllByMail(TblMail $tblMail)
+    {
+        $result = array();
+        if (($tblToPersonList = $this->getToPersonAllByMail($tblMail))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if (($tblPerson = $tblToPerson->getServiceTblPerson())) {
+                    $result[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblMail $tblMail
+     *
+     * @return false|TblToPerson
+     */
+    public function getMailToPersonByPersonAndMail(TblPerson $tblPerson, TblMail $tblMail)
+    {
+        return (new Data($this->getBinding()))->getMailToPersonByPersonAndMail($tblPerson, $tblMail);
+    }
+
+    /**
+     * @param $Address
+     *
+     * @return TblMail
+     */
+    public function insertMail(
+        $Address
+    ): TblMail {
+        return (new Data($this->getBinding()))->createMail($Address);
     }
 }

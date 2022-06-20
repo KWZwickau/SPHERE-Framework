@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Setting\Consumer\Setting;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -86,6 +87,9 @@ class Frontend extends Extension implements IFrontendInterface
             $selectBoxContent[] = new SelectBoxItem(TblAddress::VALUE_PLZ_ORT_OT_STR_NR, 'PLZ_ORT_OT_STR_NR');
             $selectBoxContent[] = new SelectBoxItem(TblAddress::VALUE_OT_STR_NR_PLZ_ORT, 'OT_STR_NR_PLZ_ORT');
 
+            $selectBoxAbsence[] = new SelectBoxItem(TblAbsence::VALUE_STATUS_EXCUSED, 'entschuldigt');
+            $selectBoxAbsence[] = new SelectBoxItem(TblAbsence::VALUE_STATUS_UNEXCUSED, 'unentschuldigt');
+
             $fields = array();
             foreach ($tblSettingList as $tblSetting) {
 
@@ -112,9 +116,12 @@ class Frontend extends Extension implements IFrontendInterface
                         Common::useService()->getCommonGenderAll()
                     ));
                 } elseif ($tblSetting->getIdentifier() == 'YearOfUserView') {
-                    $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Year }}' =>
-                        Term::useService()->getYearAll()
+                    $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array(
+                        '{{ Year }}' =>
+                            Term::useService()->getYearAll()
                     ));
+                } elseif ($tblSetting->getIdentifier() == 'DefaultStatusForNewOnlineAbsence' || $tblSetting->getIdentifier() == 'DefaultStatusForNewAbsence') {
+                    $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Name }}' => $selectBoxAbsence));
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
                     $field = new CheckBox('Data[' . $tblSetting->getId() . ']', $description, 1);
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_STRING) {

@@ -6,9 +6,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Meta\Agreement\Agreement;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
-use SPHERE\Application\People\Person\Frontend\FrontendStudentAgreement;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -394,7 +392,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
                 if(count($CategoryList[$tblPersonAgreementCategory->getName()]) < 9
                     || count($CategoryList[$tblPersonAgreementCategory->getName()]) == 0
                 ){
-                    $CategoryList[$tblPersonAgreementCategory->getName()][] = (new Link(new Plus().'Typ hinzufügen', '#'))
+                    $CategoryList[$tblPersonAgreementCategory->getName()][] = (new Link(new Plus().'Eintrag hinzufügen', '#'))
                     ->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineOpenCreateTypeModal($PersonId, $tblPersonAgreementCategory->getId()));
                 }
             }
@@ -416,11 +414,11 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
                 ApiPersonAgreementStructure::receiverModal('Kategorie hinzufügen', 'ModalAgreementStructureCreateCategory')
                 .ApiPersonAgreementStructure::receiverModal('Kategorie bearbeiten', 'ModalAgreementStructureEditCategory')
                 .ApiPersonAgreementStructure::receiverModal('Kategorie entfernen', 'ModalAgreementStructureDestroyCategory')
-                .ApiPersonAgreementStructure::receiverModal('Typ hinzufügen', 'ModalAgreementStructureCreateType')
-                .ApiPersonAgreementStructure::receiverModal('Typ bearbeiten', 'ModalAgreementStructureEditType')
-                .ApiPersonAgreementStructure::receiverModal('Typ entfernen', 'ModalAgreementStructureDestroyType')
+                .ApiPersonAgreementStructure::receiverModal('Eintrag hinzufügen', 'ModalAgreementStructureCreateType')
+                .ApiPersonAgreementStructure::receiverModal('Eintrag bearbeiten', 'ModalAgreementStructureEditType')
+                .ApiPersonAgreementStructure::receiverModal('Eintrag entfernen', 'ModalAgreementStructureDestroyType')
                 .new Layout(new LayoutGroup(new LayoutRow($LayoutColumnList)))
-                .(new Primary('Zurück', ApiPersonEdit::getEndpoint(), new ChevronLeft()))
+                .(new Primary('Schließen', ApiPersonEdit::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelPersonAgreementContent($PersonId))
             );
     }
@@ -452,6 +450,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
     {
 
         $isError = false;
+        $form = false;
         if(!isset($Meta['Category']) || $Meta['Category'] == ''){
             $form = FrontendPersonAgreement::getCategoryForm();
             // Fehler
@@ -464,7 +463,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
             $isError = true;
         } else {
             //ToDO neue Anbindung
-            if(Student::useService()->getStudentAgreementCategoryByName($Meta['Category'])){
+            if(Agreement::useService()->getPersonAgreementCategoryByName($Meta['Category'])){
                 $form = FrontendPersonAgreement::getCategoryForm();
                 // Fehler
                 $form->setError('Meta[Category]', 'Name der Kategorie ist bereits in Verwendung');
@@ -476,7 +475,6 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
                 $isError = true;
             }
         }
-        $form->disableSubmitAction();
         if(!$isError){
             $Name = $Meta['Category'];
             $Description = isset($Meta['Description']) ?? $Meta['Description'];
@@ -486,7 +484,12 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
                 .ApiPersonAgreementStructure::pipelineEditPersonAgreementStructure($PersonId)
                 .ApiPersonAgreementStructure::pipelineCloseModal('ModalAgreementStructureCreateCategory');
         }
-        return new Well($form);
+
+        if ($form) {
+            return new Well($form->disableSubmitAction());
+        }
+
+        return '';
     }
 
     /**
@@ -753,14 +756,14 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
         $tblPersonAgreementList = Agreement::useService()->getPersonAgreementAllByType($tblPersonAgreementType);
         if($tblPersonAgreementList){
             $AgreementCount = count($tblPersonAgreementList);
-            $Agreement = new Warning('Dieser Typ wird '.$AgreementCount.' mal verwendet');
+            $Agreement = new Warning('Dieser Eintrag wird '.$AgreementCount.' mal verwendet');
         }
 
         if(!$Agreement){
-            $Agreement = new Success('der Typ wird nicht verwendet', null, false, 5, 5);
+            $Agreement = new Success('der Eintrag wird nicht verwendet', null, false, 5, 5);
         }
 
-        $Panel = new Panel('Wollen Sie den Typ '.new Bold($TypeName).' wirklich entfernen?', $Agreement, Panel::PANEL_TYPE_DANGER);
+        $Panel = new Panel('Wollen Sie den Eintrag '.new Bold($TypeName).' wirklich entfernen?', $Agreement, Panel::PANEL_TYPE_DANGER);
         $ButtonYes = (new Primary('Ja', '#', new SuccessIcon()))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineSaveDestroyType($PersonId, $TypeId));
         $ButtonNo = (new DangerLink('Abbrechen', '#', new Disable()))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineCloseModal('ModalAgreementStructureDestroyType'));
 

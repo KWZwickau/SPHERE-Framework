@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
@@ -37,7 +38,7 @@ use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
-use SPHERE\System\Extension\Extension;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 
 /**
  * Class FrontendStudentAgreement
@@ -72,7 +73,8 @@ class FrontendStudentAgreement extends FrontendReadOnly
                             } else {
                                 $isChecked = false;
                             }
-                            $List[] = ($isChecked ? new Check() : new Unchecked()) . ' ' . $tblStudentAgreementType->getName();
+                            $List[] = ($isChecked ? new Check() : new Unchecked()) . ' ' . $tblStudentAgreementType->getName()
+                                . ($tblStudentAgreementType->getIsUnlocked() ? ' ' . new ToolTip(new Info(), 'Lehrer können diesen Wert setzen') : '');
                         });
                         $AgreementPanelCategory[] = new LayoutColumn(FrontendReadOnly::getSubContent($tblStudentAgreementCategory->getName(), $List), 3);
                     }
@@ -183,19 +185,22 @@ class FrontendStudentAgreement extends FrontendReadOnly
             $PanelCount = 1;
             array_walk($tblStudentAgreementCategoryAll, function (TblStudentAgreementCategory $tblCategory) use (&$AgreementPanel, &$AgreementPanelHead, &$PanelCount) {
                 $AgreementPanel[$PanelCount] = array();
-                $tblStudentAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblCategory);
                 // Toggle on Category
                 $CategoryCheckboxList = array();
-                array_walk($tblStudentAgreementTypeAll, function (TblStudentAgreementType $tblType) use (&$AgreementPanel, &$CategoryCheckboxList, $tblCategory) {
-                    $CategoryCheckboxList[] = 'Meta[Agreement]['.$tblCategory->getId().']['.$tblType->getId().']';
-                });
+                if (($tblStudentAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblCategory))) {
+                    array_walk($tblStudentAgreementTypeAll,
+                        function (TblStudentAgreementType $tblType) use (&$AgreementPanel, &$CategoryCheckboxList, $tblCategory) {
+                            $CategoryCheckboxList[] = 'Meta[Agreement][' . $tblCategory->getId() . '][' . $tblType->getId() . ']';
+                        });
+                }
                 $AgreementPanelHead[$PanelCount] = new PullClear(new PullLeft(new Bold($tblCategory->getName()))
                 .new PullRight(new ToggleSelective('wählen/abwählen', $CategoryCheckboxList)));
 
                 if ($tblStudentAgreementTypeAll) {
 //                    $tblStudentAgreementTypeAll = $this->getSorter($tblStudentAgreementTypeAll)->sortObjectBy('Name');
                     array_walk($tblStudentAgreementTypeAll, function (TblStudentAgreementType $tblType) use (&$AgreementPanel, $tblCategory, &$PanelCount) {
-                        $AgreementPanel[$PanelCount][] = new CheckBox('Meta[Agreement]['.$tblCategory->getId().']['.$tblType->getId().']', $tblType->getName(), 1);
+                        $AgreementPanel[$PanelCount][] = new CheckBox('Meta[Agreement]['.$tblCategory->getId().']['.$tblType->getId().']', $tblType->getName()
+                            . ($tblType->getIsUnlocked() ? ' ' . new ToolTip(new Info(), 'Lehrer können diesen Wert setzen') : ''), 1);
                     });
                 }
                 $PanelCount++;
@@ -247,7 +252,7 @@ class FrontendStudentAgreement extends FrontendReadOnly
     {
 
         return (new Form(new FormGroup(new FormRow(array(
-            new FormColumn(new TextField('Meta[Type]', '', 'Name des Typ\'s')),
+            new FormColumn(new TextField('Meta[Type]', '', 'Name des Eintrag\'s')),
             new FormColumn(new CheckBox('Meta[isUnlocked]', 'Typ kann vom Lehrer gesetzt werden', true)),
             new FormColumn(new Success('<div style="height:10px"></div>')),
         )))))->disableSubmitAction();

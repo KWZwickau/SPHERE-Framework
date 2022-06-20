@@ -58,8 +58,8 @@ class ViewStudent extends AbstractView
     const TBL_STUDENT_LOCKER_KEY_NUMBER = 'TblStudentLocker_KeyNumber';
     const TBL_STUDENT_LOCKER_COMBINATION_LOCK_NUMBER = 'TblStudentLocker_CombinationLockNumber';
     // Datennutzung
-    const TBL_STUDENT_STUDENT_NAME_AGREEMENT = 'TblStudent_NameAgreement';
-    const TBL_STUDENT_STUDENT_PICTURE_AGREEMENT = 'TblStudent_PictureAgreement';
+//    const TBL_STUDENT_STUDENT_NAME_AGREEMENT = 'TblStudent_NameAgreement';
+//    const TBL_STUDENT_STUDENT_PICTURE_AGREEMENT = 'TblStudent_PictureAgreement';
 
     /**
      * @return array
@@ -207,8 +207,8 @@ class ViewStudent extends AbstractView
 
         $this->setNameDefinition(self::SIBLINGS_COUNT, 'Allgemeines: Anzahl Geschwister');
 
-        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_NAME_AGREEMENT, 'Allgemeines: Erlaubnis Schülername');
-        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT, 'Allgemeines: Erlaubnis Schülerbild');
+//        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_NAME_AGREEMENT, 'Allgemeines: Erlaubnis Schülername');
+//        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT, 'Allgemeines: Erlaubnis Schülerbild');
 
 //        //GroupDefinition
         $this->setGroupDefinition('&nbsp;', array(
@@ -233,8 +233,8 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_TRANSPORT_STATION_EXIT,
             self::TBL_STUDENT_TRANSPORT_REMARK,
             self::TBL_STUDENT_LIBERATION_SPORT_TYPE_NAME,
-            self::TBL_STUDENT_STUDENT_NAME_AGREEMENT,
-            self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT,
+//            self::TBL_STUDENT_STUDENT_NAME_AGREEMENT,
+//            self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT,
         ));
     }
 

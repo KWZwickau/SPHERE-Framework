@@ -760,7 +760,6 @@ class FrontendFamily extends FrontendReadOnly
      */
     public function getPhoneContent($Ranking, $PersonIdList, $Data, $Errors, $hasAddButton = true)
     {
-        $tblPhoneAll = Phone::useService()->getPhoneAll();
         $tblTypeAll = Phone::useService()->getTypeAll();
 
         $key = 'P' . $Ranking;
@@ -773,8 +772,8 @@ class FrontendFamily extends FrontendReadOnly
                         array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig())
                     , 3),
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'Number', 'Telefonnummer', 'Telefonnummer', true, $Errors,
-                        array('Number' => $tblPhoneAll), new \SPHERE\Common\Frontend\Icon\Repository\Phone())
+                    $this->getInputField('TextField', $key, 'Number', 'Telefonnummer', 'Telefonnummer', true, $Errors,
+                       array(), new \SPHERE\Common\Frontend\Icon\Repository\Phone())
                     , 3),
                 new LayoutColumn(
                     $this->getPersonOptions('Data[P' . $Ranking . '][PersonList]', $PersonIdList)

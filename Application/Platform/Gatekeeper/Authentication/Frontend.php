@@ -7,6 +7,7 @@ use Exception;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\People\ContactDetails\ContactDetails;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLP;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLPDemo;
@@ -34,7 +35,6 @@ use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
@@ -104,8 +104,8 @@ class Frontend extends Extension implements IFrontendInterface
         $maintenanceMessage = '';
         $contentTeacherWelcome = false;
         $contentHeadmasterWelcome = false;
+        $contentSecretariatWelcome = false;
         $IsChangePassword = false;
-        $IsNavigationAssistance = false;
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
@@ -129,9 +129,6 @@ class Frontend extends Extension implements IFrontendInterface
             if (($tblIdentification = $tblAccount->getServiceTblIdentification())
                 && ($tblIdentification->getName() == TblIdentification::NAME_USER_CREDENTIAL)
             ) {
-                // Alle TblUserAccounts erhalten direktlink Button
-                $IsNavigationAssistance = true;
-
                 // Eltern und Schüler funktionieren anders als die anderen Accounts
                 if (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))) {
                     $Password = $tblUserAccount->getAccountPassword();
@@ -193,6 +190,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        if (Access::useService()->hasAuthorization('/People/ContactDetails')) {
+            $contentSecretariatWelcome = ContactDetails::useFrontend()->getWelcome();
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -210,43 +211,13 @@ class Frontend extends Extension implements IFrontendInterface
                 ? $this->layoutPasswordChange()
                 : ''
             )
-            .($IsNavigationAssistance
-                ? $this->layoutNavigationAssistance()
-                : ''
-            )
-            . ($contentHeadmasterWelcome ? $contentHeadmasterWelcome : '')
-            .($contentTeacherWelcome ? $contentTeacherWelcome : '')
-            .$this->getCleanLocalStorage()
+            . ($contentHeadmasterWelcome ?: '')
+            . ($contentTeacherWelcome ?: '')
+            . ($contentSecretariatWelcome ?: '')
+            . $this->getCleanLocalStorage()
         );
 
         return $Stage;
-    }
-
-    /**
-     * @return string|Layout
-     */
-    private function layoutNavigationAssistance()
-    {
-
-        return new Layout(
-            new LayoutGroup(
-                new LayoutRow(array(
-                    new LayoutColumn('', 2),
-                    new LayoutColumn(
-                        new Panel(new Center('Notenübersicht'),
-                            array(
-                                new Container('&nbsp;').new Center(new Paragraph('Die Notenübersicht erreichen Sie über das Menü '
-                                        .new Bold('Bildung => Zensuren => Notenübersicht').' oder über folgenden Link')
-                                    .new Standard('Notenübersicht', '/Education/Graduation/Gradebook/Student/Gradebook',
-                                        new Family())
-                                )
-                            )
-                            , Panel::PANEL_TYPE_INFO
-                        )
-                        , 8)
-                ))
-            )
-        );
     }
 
     /**

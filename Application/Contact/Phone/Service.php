@@ -192,6 +192,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param $Number
      * @param $Type
+     * @param $OnlineContactId
      * @param TblToPerson|null $tblToPerson
      *
      * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
@@ -200,11 +201,12 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         $Number,
         $Type,
+        $OnlineContactId,
         TblToPerson $tblToPerson = null
     ) {
 
         $error = false;
-        $form = Phone::useFrontend()->formNumberToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null);
+        $form = Phone::useFrontend()->formNumberToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null, false, $OnlineContactId);
         if (isset( $Number ) && empty( $Number )) {
             $form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
             $error = true;
@@ -486,5 +488,56 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPhone $tblPhone
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByPhone(TblPhone $tblPhone)
+    {
+        return (new Data($this->getBinding()))->getToPersonAllByPhone($tblPhone);
+    }
+
+    /**
+     * @param TblPhone $tblPhone
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonAllByPhone(TblPhone $tblPhone)
+    {
+        $result = array();
+        if (($tblToPersonList = $this->getToPersonAllByPhone($tblPhone))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if (($tblPerson = $tblToPerson->getServiceTblPerson())) {
+                    $result[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblPhone $tblPhone
+     *
+     * @return false|TblToPerson
+     */
+    public function getPhoneToPersonByPersonAndPhone(TblPerson $tblPerson, TblPhone $tblPhone)
+    {
+        return (new Data($this->getBinding()))->getPhoneToPersonByPersonAndPhone($tblPerson, $tblPhone);
+    }
+
+    /**
+     * @param $Number
+     *
+     * @return TblPhone
+     */
+    public function insertPhone(
+        $Number
+    ): TblPhone {
+        return (new Data($this->getBinding()))->createPhone($Number);
     }
 }
