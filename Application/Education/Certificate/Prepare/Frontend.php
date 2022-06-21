@@ -1964,6 +1964,12 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
                                         array_search($tblPrepareInformation->getValue(),
                                             $Certificate->selectValuesTransfer());
+                                } elseif ($tblPrepareInformation->getField() == 'Job_Grade_Text'
+                                    && method_exists($Certificate, 'selectValuesJobGradeText')
+                                ) {
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
+                                        array_search($tblPrepareInformation->getValue(),
+                                            $Certificate->selectValuesJobGradeText());
                                 } elseif (strpos($tblPrepareInformation->getField(), '_GradeText')
                                     && ($tblGradeText = Gradebook::useService()->getGradeTextByName($tblPrepareInformation->getValue()))
                                 ) {
@@ -2325,6 +2331,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     && method_exists($Certificate, 'selectValuesTransfer')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesTransfer();
+                                                } elseif ($PlaceholderName == 'Content.Input.Job_Grade_Text'
+                                                    && method_exists($Certificate, 'selectValuesJobGradeText')
+                                                ) {
+                                                    $selectBoxData = $Certificate->selectValuesJobGradeText();
                                                 } elseif (strpos($PlaceholderName, '_GradeText') !== false) {
                                                     if (($tblGradeTextList = Gradebook::useService()->getGradeTextAll())) {
                                                         $selectBoxData = array(TblGradeText::ATTR_NAME => $tblGradeTextList);

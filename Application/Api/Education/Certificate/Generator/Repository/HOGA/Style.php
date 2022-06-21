@@ -2847,8 +2847,8 @@ abstract class Style extends Certificate
         $this->setGradeFullLine(
             $section,
             'Fachpraktischer Teil der Ausbildung',
-            '{% if(Content.P' . $personId . '.Input.Job_Grade is not empty) %}
-               {{ Content.P' . $personId . '.Input.Job_Grade }}
+            '{% if(Content.P' . $personId . '.Input.Job_Grade_Text is not empty) %}
+               {{ Content.P' . $personId . '.Input.Job_Grade_Text }}
             {% else %}
                &ndash;
             {% endif %}',
