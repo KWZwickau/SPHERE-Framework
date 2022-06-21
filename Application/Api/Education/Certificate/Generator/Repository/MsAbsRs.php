@@ -654,8 +654,13 @@ class MsAbsRs extends Certificate
      *
      * @return Slice
      */
-    public static function getHeadForDiploma($IsSample, $showPicture)
+    public static function getHeadForDiploma($IsSample, $showPicture): Slice
     {
+        if (!ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
+            $elementSaxonyLogo = (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '214px', '66px'))->styleAlignRight();
+        } else {
+            $elementSaxonyLogo = (new Element())->setContent('&nbsp;');
+        }
 
         if ($showPicture) {
             $pictureAddress = '';
@@ -679,11 +684,7 @@ class MsAbsRs extends Certificate
                         ->addSection((new Section())
                             ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
                                 , '61%')
-
-                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                                '214px', '66px'))
-                                ->styleAlignRight()
-                                , '39%')
+                            ->addElementColumn($elementSaxonyLogo, '39%')
                         )
                         ->addSection((new Section())
                             ->addElementColumn((new Element\Sample())
@@ -697,11 +698,7 @@ class MsAbsRs extends Certificate
                         ->addSection((new Section())
                             ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
                                 , '61%')
-//                            ->addElementColumn((new Element()), '22%')
-                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                                '214px', '66px'))
-                                ->styleAlignRight()
-                                , '39%')
+                            ->addElementColumn($elementSaxonyLogo, '39%')
                         );
                 }
 
@@ -717,20 +714,15 @@ class MsAbsRs extends Certificate
                     )
                     ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
+                        ->styleHeight('66px')
                     )
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '214px', '66px'))
-                        ->styleAlignRight()
-                        , '39%')
+                    ->addElementColumn($elementSaxonyLogo, '39%')
                 );
         } else {
             $Header = (new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element()), '61%')
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '214px', '66px'))
-                        ->styleAlignRight()
-                        , '39%')
+                    ->addElementColumn($elementSaxonyLogo, '39%')
                 );
         }
 

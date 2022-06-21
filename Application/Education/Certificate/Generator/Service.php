@@ -559,6 +559,7 @@ class Service extends AbstractService
             'Content.Input.AdditionalRemarkFhr' => 'CheckBox',
             // Fachoberschule HOGA
             'Content.Input.Job_Grade'           => 'SelectCompleter',
+            'Content.Input.Job_Grade_Text'      => 'SelectBox',
             'Content.Input.Success'             => 'SelectBox',
             'Content.Input.IndustrialPlacement' => 'TextField',
             'Content.Input.IndustrialPlacementDuration' => 'TextField'
@@ -675,6 +676,7 @@ class Service extends AbstractService
             'Content.Input.AdditionalRemarkFhr' => 'Teilnahme an FHR-Prüfung',
             // Fachoberschule HOGA
             'Content.Input.Job_Grade'           => 'Fachpraktischer Teil der Ausbildung Zensur',
+            'Content.Input.Job_Grade_Text'      => 'Fachpraktischer Teil der Ausbildung',
             'Content.Input.Success'             => 'Abschluss erfolgreich',
             'Content.Input.IndustrialPlacement' => 'Betriebspraktikum',
             'Content.Input.IndustrialPlacementDuration' => 'Betriebspraktikum (Dauer in Wochen)'

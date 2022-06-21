@@ -220,7 +220,9 @@ abstract class Certificate extends Extension
             || strpos($certificate, 'GymAbgSekII') !== false
             || strpos($certificate, 'MsAbs') !== false
             || strpos($certificate, 'MsAbg') !== false)
-            && $tblConsumer && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
+            && $tblConsumer
+            && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
+            && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')
         ) {
             $InjectStyle = '';
         }

@@ -10,6 +10,17 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 class FosAbs extends Style
 {
     /**
+     * @return array
+     */
+    public function selectValuesJobGradeText()
+    {
+        return array(
+            1 => "bestanden",
+            2 => "nicht bestanden"
+        );
+    }
+
+    /**
      * @param TblPerson|null $tblPerson
      *
      * @return Page[]

@@ -663,6 +663,10 @@ class Service extends AbstractService
                                 && method_exists($Certificate, 'selectValuesTransfer')
                             ) {
                                 $value = $Certificate->selectValuesTransfer()[$value];
+                            } elseif ($field == 'Job_Grade_Text'
+                                && method_exists($Certificate, 'selectValuesJobGradeText')
+                            ) {
+                                $value = $Certificate->selectValuesJobGradeText()[$value];
                             }
 
                             // Zeugnistext umwandeln
@@ -2179,6 +2183,10 @@ class Service extends AbstractService
                     && method_exists($Certificate, 'selectValuesTransfer')
                 ) {
                     $value = $Certificate->selectValuesTransfer()[$value];
+                } elseif ($field == 'Job_Grade_Text'
+                    && method_exists($Certificate, 'selectValuesJobGradeText')
+                ) {
+                    $value = $Certificate->selectValuesJobGradeText()[$value];
                 }
 
                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $field))) {
@@ -5336,6 +5344,10 @@ class Service extends AbstractService
                             && method_exists($Certificate, 'selectValuesTransfer')
                         ) {
                             $value = $Certificate->selectValuesTransfer()[$value];
+                        } elseif ($field == 'Job_Grade_Text'
+                            && method_exists($Certificate, 'selectValuesJobGradeText')
+                        ) {
+                            $value = $Certificate->selectValuesJobGradeText()[$value];
                         } elseif ($field == 'AdditionalRemarkFhr') {
                             $value = 'hat erfolglos an der Prüfung zum Erwerb der Fachhochschulreife teilgenommen.';
                             $issetAdditionalRemarkFhr = true;
