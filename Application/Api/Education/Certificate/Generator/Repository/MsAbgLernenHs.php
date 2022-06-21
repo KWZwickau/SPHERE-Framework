@@ -36,7 +36,7 @@ class MsAbgLernenHs extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        if (!ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
+        if (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
             $Header = (new Slice())->addElement($this->isSample()
                 ? (new Element\Sample())->styleTextSize('30px')
                 : (new Element)->setContent('&nbsp;')->styleTextSize('30px')
