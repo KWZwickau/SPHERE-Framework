@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCe
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
@@ -471,6 +472,138 @@ class Service extends Extension
 
                 $row += 15;
             }
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return array
+     */
+    public function getCourseGradesContent(TblDivision $tblDivision): array
+    {
+        $content = array();
+        if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                $prepareStudentList = array();
+                $divisionLevelList = array();
+                $advancedCourses = array();
+                $basicCourses = array();
+                // Zensuren von Kurshalbjahreszeugnissen
+                if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                        if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                            && ($tblLevel = $tblDivision->getTblLevel())
+                            && (Division::useService()->getIsDivisionSekII($tblDivision))
+                            && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
+                        ) {
+                            // Schuljahreswiederholungen, alte Klasse ignorieren, es kommt die neuere Klasse zuerst raus
+                            if (!isset($divisionLevelList[$tblLevel->getName()])) {
+                                $divisionLevelList[$tblLevel->getName()] = $tblDivision;
+                            } else {
+                                continue;
+                            }
+
+                            foreach ($tblPrepareList as $tblPrepare) {
+                                if ($tblPrepare->getServiceTblGenerateCertificate()
+                                    && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
+                                    && ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE')
+                                    && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                                    && $tblPrepareStudent->isApproved()
+                                    && $tblPrepareStudent->isPrinted()
+                                ) {
+                                    $midTerm = '/1';
+                                    if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
+                                        && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
+                                        && ($tblYear = $tblDivisionItem->getServiceTblYear())
+                                        && ($tblPeriodList = $tblYear->getTblPeriodAll($tblDivision))
+                                        && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriodByDivision($tblDivision))
+                                        && ($tblFirstPeriod = current($tblPeriodList))
+                                        && $tblPeriod->getId() != $tblFirstPeriod->getId()
+                                    ) {
+                                        $midTerm = '/2';
+                                    }
+
+                                    if (!isset($prepareStudentList[$tblLevel->getName() . $midTerm])) {
+                                        $prepareStudentList[$tblLevel->getName() . $midTerm] = $tblPrepareStudent;
+                                        list($advancedCourses[$tblLevel->getName() . $midTerm], $basicCourses[$tblLevel->getName() . $midTerm])
+                                            = Prepare::useService()->getCoursesForStudent($tblDivision, $tblPerson);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                ksort($prepareStudentList);
+                foreach ($prepareStudentList as $key => $value) {
+                    if (($tblPrepareItem = $value->getTblPrepareCertificate())
+                        && ($tblPrepareGradeList = Prepare::useService()->getPrepareGradeAllByPerson($tblPrepareItem, $tblPerson, $tblTestType))
+                    ) {
+                        foreach ($tblPrepareGradeList as $tblPrepareGrade) {
+                            if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())) {
+                                $content[] = array(
+                                    'Name' => $tblPerson->getLastFirstName(),
+                                    'Term' => $key,
+                                    'Subject' => $tblSubject->getAcronym(),
+                                    'Course' => isset($advancedCourses[$key][$tblSubject->getId()]) ? 'L' : 'G',
+                                    'Grade' => $tblPrepareGrade->getGrade()
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $content;
+    }
+
+    /**
+     * @param array $content
+     *
+     * @return bool|FilePointer
+     */
+    public function createCourseGradesContentExcel(array $content): ?FilePointer
+    {
+        if (!empty($content)) {
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+
+            $row = 0;
+            $column = 0;
+            $export->setValue($export->getCell($column++, $row), 'Schüler');
+            $export->setValue($export->getCell($column++, $row), 'Kurshalbjahr');
+            $export->setValue($export->getCell($column++, $row), 'Fach');
+            $export->setValue($export->getCell($column++, $row), 'Kurstyp');
+            $export->setValue($export->getCell($column, $row), 'Punkte');
+            $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
+
+            foreach ($content as $item) {
+                $row++;
+                $column = 0;
+                $export->setValue($export->getCell($column++, $row), $item['Name']);
+                $export->setValue($export->getCell($column++, $row), $item['Term']);
+                $export->setValue($export->getCell($column++, $row), $item['Subject']);
+                $export->setValue($export->getCell($column++, $row), $item['Course']);
+                $export->setValue($export->getCell($column++, $row), $item['Grade']);
+            }
+
+            //Column width
+            $column = 0;
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(25);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(15);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(10);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(10);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(10);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
