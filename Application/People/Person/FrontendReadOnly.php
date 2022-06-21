@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\People\Person;
 
+use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
 use SPHERE\Application\Api\Contact\ApiContactDetails;
 use SPHERE\Application\Api\Contact\ApiMailToPerson;
@@ -34,14 +35,22 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -177,11 +186,25 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 new \SPHERE\Common\Frontend\Icon\Repository\Link(),
                 false
             );
+            // Test Bild
+            $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence - Kopie.png');
+            // Link vorbereitung für Modal
+            $Image = new Link('<img src="'.$File->getLocation().'" style="height: 415px; padding-top: 49px; padding-bottom: 5px">', '#');
 
             $stage->setContent(
                 ($validationMessage ? $validationMessage : '')
-                . $basicContent
-                . $commonContent
+                .
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        $basicContent
+                        . $commonContent
+                    , 9),
+                    new LayoutColumn(
+                        new Center($Image
+//                            .new Container(new Primary('Upload', '#').new DangerLink('','#', new Remove()))
+                        )
+                    , 3)
+                ))))
                 . $personAgreementContent
                 . $childContent
                 . $prospectContent
