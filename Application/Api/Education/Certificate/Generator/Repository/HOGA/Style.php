@@ -1970,13 +1970,24 @@ abstract class Style extends Certificate
             ->addElement($this->getElement(
                     'Leistungen in Fächern, die in Klassenstufe 9 abgeschlossen wurden:',
                     self::TEXT_SIZE_NORMAL
-                )->styleTextBold()
+                )->styleTextBold()->styleMarginBottom('4px')
             );
         if (($tblGradeList = $this->getAdditionalGrade())) {
             $count = 0;
             $section = new Section();
             foreach ($tblGradeList['Data'] as $subjectAcronym => $grade) {
                 if (($tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym))) {
+                    // lange Fächernamen
+                    $subjectName = str_replace('/', ' / ',  $tblSubject->getName());
+                    if (strlen($subjectName) > 20) {
+                        $marginTop = '0px';
+                        $lineHeight = '80%';
+                    } else {
+                        $marginTop = self::MARGIN_TOP_GRADE_LINE;
+                        $lineHeight = '100%';
+                    }
+
+
                     $count++;
                     if ($count % 2 == 1) {
                         $section = new Section();
@@ -1986,15 +1997,32 @@ abstract class Style extends Certificate
                             , '4%');
                     }
 
-                    $this->setGradeLine(
-                        $section,
-                        $tblSubject->getName(),
-                        '{% if(Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
-                             {{ Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] }}
-                         {% else %}
-                             &ndash;
-                         {% endif %}'
-                    );
+//                    $this->setGradeLine(
+//                        $section,
+//                        $subjectName,
+//                        '{% if(Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
+//                             {{ Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] }}
+//                         {% else %}
+//                             &ndash;
+//                         {% endif %}'
+//                    );
+
+                    $section->addElementColumn(
+                        $this->getElement($subjectName)
+                            ->styleMarginTop($marginTop)
+                            ->styleLineHeight($lineHeight)
+                        , self::SUBJECT_WIDTH . '%');
+                    $section->addElementColumn(
+                        $this->getElement('{% if(Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.AdditionalGrade.Data["' . $tblSubject->getAcronym() . '"] }}
+                             {% else %}
+                                 &ndash;
+                             {% endif %}', self::TEXT_SIZE_NORMAL)
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor(self::BACKGROUND)
+                            ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                            ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                        , self::GRADE_WIDTH . '%');
                 }
             }
 
