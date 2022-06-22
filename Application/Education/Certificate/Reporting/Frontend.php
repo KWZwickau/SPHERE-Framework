@@ -230,9 +230,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     if ($tblPrepareStudent->isPrinted()
                                         && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                                         && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                                        && (($View == View::HS && ($tblCertificate->getCertificate() == 'MsAbsHs' || $tblCertificate->getCertificate() == 'MsAbsHsQ'))
-                                            || ($View == View::RS && $tblCertificate->getCertificate() == 'MsAbsRs')
-                                            || ($View == View::ABI && $tblCertificate->getCertificate() == 'GymAbitur')
+                                        && (($View == View::HS && strpos($tblCertificate->getCertificate(), 'MsAbsHs') !== false)
+                                            || ($View == View::RS && strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false)
+                                            || ($View == View::ABI && strpos($tblCertificate->getCertificate(), 'GymAbitur') !== false)
                                         )
                                     ) {
                                         if ($View == View::ABI) {
