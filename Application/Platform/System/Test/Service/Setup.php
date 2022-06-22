@@ -27,7 +27,6 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $this->setTablePicture($Schema);
         /**
          * Migration & Protocol
          */
@@ -38,23 +37,5 @@ class Setup extends AbstractSetup
             $this->getConnection()->setUTF8();
         }
         return $this->getConnection()->getProtocol($Simulate);
-    }
-
-    /**
-     * @param Schema $Schema
-     *
-     * @return Table
-     */
-    private function setTablePicture(Schema &$Schema)
-    {
-
-        /**
-         * Install
-         */
-        $Table = $this->getConnection()->createTable($Schema, 'tblPicture');
-        $this->createColumn($Table, 'serviceTblPerson', Type::BIGINT);
-        $this->createColumn($Table, 'File', Type::BLOB);
-
-        return $Table;
     }
 }

@@ -27,7 +27,7 @@ class TblPersonPicture extends Element
     /**
      * @Column(type="blob")
      */
-    protected $File;
+    protected $Picture;
 
     /**
      * @return bool|TblPerson
@@ -50,19 +50,19 @@ class TblPersonPicture extends Element
     /**
      * @return string
      */
-    public function getFile($Height = 'auto', $Width = 'auto', $borderRadius = '5px')
+    public function getPicture($Height = '70px', $borderRadius = '10px', $marginTop = '0px')
     {
 
-        return '<img height='.$Height.' width='.$Width.' src="data:image/jpeg;base64,'
-            .base64_encode(stream_get_contents($this->File)).'" style="border-radius: '.$borderRadius.';"/>';
+        return '<img height='.$Height.' width=auto src="data:image/jpeg;base64,'
+            .base64_encode(stream_get_contents($this->Picture)).'" style="border-radius: '.$borderRadius.'; margin-top: '.$marginTop.';"/>';
 
     }
 
     /**
-     * @param UploadedFile $File
+     * @param UploadedFile $Picture
      */
-    public function setFile($File): void
+    public function setPicture($Picture): void
     {
-        $this->File = $File;
+        $this->Picture = $Picture;
     }
 }

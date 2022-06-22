@@ -5,6 +5,7 @@ use MOC\V\Core\FileSystem\FileSystem;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SPHERE\Application\Api\Platform\Test\ApiSystemTest;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Person;
@@ -543,10 +544,10 @@ class Frontend extends Extension implements IFrontendInterface
                     $item = array();
                     $item['Name'] = $tblPerson->getFullName();
                     $item['Picture'] = '';
-                    if(($tblPicture = Test::useService()->getPictureByPerson($tblPerson))){
-                        $item['Picture'] = $tblPicture->getFile('70px');
+                    if(($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))){
+                        $item['Picture'] = $tblPersonPicture->getPicture();
 //                        if($tblPerson->getId() ==1228)
-//                        $Picture = $tblPicture->getFile('40px', '40px');
+//                        $Picture = $tblPersonPicture->getFile('40px', '40px');
                     }
                     $item['Option'] = new Standard('', '/Platform/System/Test/TestSite', new Plus(), array('PersonId' => $tblPerson->getId()));
                     array_push($TableContent, $item);
@@ -568,7 +569,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Stage->setContent(
                 new Well(
-                    Test::useService()->uploadNow($form, $PersonId, $FileUpload)
+                    Storage::useService()->uploadNow($form, $PersonId, $FileUpload)
                 )
             );
         }

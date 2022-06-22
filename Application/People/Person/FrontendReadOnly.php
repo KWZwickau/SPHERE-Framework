@@ -23,6 +23,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Application\People\Person\Frontend\FrontendCustody;
 use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
 use SPHERE\Application\People\Person\Frontend\FrontendPersonMasern;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonPicture;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
@@ -35,18 +36,14 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
-use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Link;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -105,6 +102,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
             $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id), 'BasicContent');
             $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
+            $PictureContent = ApiPersonReadOnly::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id), 'PersonPictureContent');
             $personAgreementContent = ApiPersonReadOnly::receiverBlock(FrontendPersonAgreement::getPersonAgreementContent($Id), 'PersonAgreementContent');
             $personMasern = ApiPersonReadOnly::receiverBlock(FrontendPersonMasern::getPersonMasernContent($Id), 'PersonMasernContent');
             $childContent = ApiPersonReadOnly::receiverBlock(FrontendChild::getChildContent($Id), 'ChildContent');
@@ -186,6 +184,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 new \SPHERE\Common\Frontend\Icon\Repository\Link(),
                 false
             );
+            //ToDO Content from API
             // Test Bild
             $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence - Kopie.png');
             // Link vorbereitung für Modal
@@ -200,7 +199,9 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                         . $commonContent
                     , 9),
                     new LayoutColumn(
-                        new Center($Image
+                        new Center(
+                            $PictureContent
+//                            $Image
 //                            .new Container(new Primary('Upload', '#').new DangerLink('','#', new Remove()))
                         )
                     , 3)
