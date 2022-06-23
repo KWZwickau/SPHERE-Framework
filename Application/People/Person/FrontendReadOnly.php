@@ -9,6 +9,7 @@ use SPHERE\Application\Api\Contact\ApiMailToPerson;
 use SPHERE\Application\Api\Contact\ApiPhoneToPerson;
 use SPHERE\Application\Api\Contact\ApiRelationshipToCompany;
 use SPHERE\Application\Api\Contact\ApiRelationshipToPerson;
+use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Contact\Address\Address;
@@ -102,7 +103,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
             $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id), 'BasicContent');
             $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
-            $PictureContent = ApiPersonReadOnly::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id), 'PersonPictureContent');
+            $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id));
             $personAgreementContent = ApiPersonReadOnly::receiverBlock(FrontendPersonAgreement::getPersonAgreementContent($Id), 'PersonAgreementContent');
             $personMasern = ApiPersonReadOnly::receiverBlock(FrontendPersonMasern::getPersonMasernContent($Id), 'PersonMasernContent');
             $childContent = ApiPersonReadOnly::receiverBlock(FrontendChild::getChildContent($Id), 'ChildContent');
@@ -199,11 +200,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                         . $commonContent
                     , 9),
                     new LayoutColumn(
-                        new Center(
-                            $PictureContent
-//                            $Image
-//                            .new Container(new Primary('Upload', '#').new DangerLink('','#', new Remove()))
-                        )
+                        $PictureContent
                     , 3)
                 ))))
                 . $personAgreementContent

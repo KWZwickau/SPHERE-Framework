@@ -14,6 +14,7 @@ use SPHERE\Application\Document\Storage\Service\Entity\TblReferenceType;
 use SPHERE\Application\Document\Storage\Service\Setup;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonPicture;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -511,6 +512,96 @@ class Service extends AbstractService
         }
 
         return $form;
+    }
+
+    /**
+     * @param int               $PersonId
+     * @param UploadedFile|null $FileUpload
+     *
+     * @return string
+     */
+    public function createPersonPicture($PersonId, UploadedFile $FileUpload = null)
+    {
+
+        if (!$FileUpload) {
+            return FrontendPersonPicture::getPersonPictureModalContent().new Danger('Bitte wählen Sie ein Bild aus');
+        }
+
+        try {
+            if($_FILES['FileUpload']['error']){
+                return FrontendPersonPicture::getPersonPictureModalContent().new Danger(new Listing($_FILES['FileUpload']['error']));
+            }
+            switch ($_FILES['FileUpload']['type']) {
+                case 'image/jpg':
+                case 'image/jpeg':
+                case 'image/png':
+                case 'image/git':
+                    break;
+                default:
+                    return FrontendPersonPicture::getPersonPictureModalContent()
+                    .new Danger('Datei mit dem MimeType ('.$_FILES['FileUpload']['type'].') ist nicht erlaubt.');
+            }
+
+            $maxDim = 500;
+            $fileName = $_FILES['FileUpload']['tmp_name'];
+            list($width, $height) = getimagesize( $fileName );
+            if ( $width > $maxDim || $height > $maxDim ){
+                $ratio = $width / $height;
+                if($ratio > 1){
+                    $newWidth = $maxDim;
+                    $newHeight = $maxDim / $ratio;
+                } else {
+                    $newWidth = $maxDim * $ratio;
+                    $newHeight = $maxDim;
+                }
+            } else {
+                $newWidth = $width;
+                $newHeight = $height;
+            }
+
+            // skalieren
+            $src = imagecreatefromstring(file_get_contents($fileName));
+            $dst = imagecreatetruecolor($newWidth, $newHeight);
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagejpeg($dst, $fileName); // adjust format as needed
+            imagedestroy($src);
+            imagedestroy($dst);
+            //            $Dimension = $Upload->getDimensions();
+            if(!($tblPerson = Person::useService()->getPersonById($PersonId))){
+                return FrontendPersonPicture::getPersonPictureModalContent().new Danger('Person nicht gefunden');
+            }
+
+
+            //ToDO Pipeline
+            (new Data($this->getBinding()))->insertPersonPicture($tblPerson, file_get_contents($fileName ));
+            unlink($fileName);
+            return FrontendPersonPicture::getPersonPictureModalContent().new Success('Der Upload ist erfasst');
+
+        } catch (\Exception $Exception) {
+            if(json_decode($Exception->getMessage())){
+                $ArrayExeption = json_decode($Exception->getMessage());
+            } else {
+                $ArrayExeption = array($Exception->getMessage());
+            }
+            if($ArrayExeption){
+                foreach($ArrayExeption as &$ExeptionMessage){
+                    switch ($ExeptionMessage){
+                        case 'The uploaded file exceeds the upload_max_filesize directive in php.ini':
+                            $ExeptionMessage = 'Der Anhang überschreitet die maximale Größe von '.ini_get('upload_max_filesize').'B';
+                            break;
+                        case 'The uploaded file was not sent with a POST request':
+                            $ExeptionMessage = 'Das Ticket konnte nicht erstellt werden';
+                    }
+                }
+                return FrontendPersonPicture::getPersonPictureModalContent().new Danger(new Listing($ArrayExeption));
+            }
+            // File entfernen, wenn eins vorhanden war
+            if(isset($_FILES['FileUpload']['tmp_name'])){
+                unlink($_FILES['FileUpload']['tmp_name']);
+            }
+            $Error = true;
+        }
+        return FrontendPersonPicture::getPersonPictureModalContent(). new Danger('Es ist ein unbekannter Fehler aufgetreten');
     }
 
     /**
