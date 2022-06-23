@@ -198,6 +198,23 @@ class TblDivision extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getTypeShortName()
+    {
+
+        if ($this->getTblLevel()) {
+            if ($this->getTblLevel()->getServiceTblType()) {
+                return $this->getTblLevel()->getServiceTblType()->getShortName();
+            } else {
+                return new Warning('Schulart nicht vorhanden.');
+            }
+        } else {
+            return '';
+        }
+    }
+
+    /**
      * @return TblType|false
      */
     public function getType()
