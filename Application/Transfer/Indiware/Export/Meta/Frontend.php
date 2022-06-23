@@ -50,7 +50,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $currentList = Division::useService()->getDivisionAllByYear($tblYear);
                 if($currentList){
                     foreach($currentList as $current){
-                        if($current->getTypeName() == 'Gymnasium' || $current->getTypeName() == 'Berufliches Gymnasium'){
+                        if ($current->getTypeShortName() == 'Gy' || $current->getTypeShortName() == 'BGy' || $current->getTypeShortName() == 'OS'){
                             $tblDivisionList[] = $current;
                         }
                     }
