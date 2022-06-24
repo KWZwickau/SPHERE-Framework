@@ -6,17 +6,21 @@ use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Link;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Class FrontendPersonPicture
@@ -28,12 +32,14 @@ class FrontendPersonPicture extends FrontendReadOnly
     const TITLE = 'Personendaten';
 
     /**
-     * @param null $PersonId
+     * @param                   $PersonId
+     * @param                   $Group
+     * @param UploadedFile|null $FileUpload
      *
      * @return string
      * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
      */
-    public static function getPersonPictureContent($PersonId = null)
+    public static function getPersonPictureContent($PersonId = null, $Group = null)
     {
         $Image = '';
 
@@ -54,8 +60,7 @@ class FrontendPersonPicture extends FrontendReadOnly
             $Image = '<img src="'.$File->getLocation().'" style="border-radius: '.$PictureBorderRadius.'; height: '.$PictureHeight.'; margin-top: '.$PictureMarginTop.'">';
         }
 
-        return ApiPersonPicture::receiverModal(). ApiPersonPicture::receiverBlock()
-            .(new Link(new Center($Image), '#'))->ajaxPipelineOnClick(ApiPersonPicture::pipelineOpenModalPersonPicture($PersonId));
+        return new Center((new Link($Image, '#'))->ajaxPipelineOnClick(ApiPersonPicture::pipelineEditPersonPicture($PersonId, $Group)));
     }
 
     /**
@@ -63,13 +68,13 @@ class FrontendPersonPicture extends FrontendReadOnly
      *
      * @return string
      */
-    public static function getPersonPictureModalContent($PersonId = null)
+    public static function getEditPersonPictureContent($PersonId = null, $Group = null, UploadedFile $FileUpload = null)
     {
         $Image = '';
 
-        $PictureHeight = '360px';
+        $PictureHeight = '220px';
         $PictureBorderRadius = '0';
-        $PictureMarginTop = '0';
+        $PictureMarginTop = '49px';
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
 
@@ -80,16 +85,27 @@ class FrontendPersonPicture extends FrontendReadOnly
         }
 
         if(!$Image){
-            $Image = new Info('kein Bild hinterlegt');
+            $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence - Kopie.png');
+            $Image = '<img src="'.$File->getLocation().'" style="border-radius: '.$PictureBorderRadius.'; height: '.$PictureHeight.'; margin-top: '.$PictureMarginTop.'">';
         }
+        $Image.= '<div style="height: 7px">&nbsp;</div>';
 
-        $Content = 'aktuelles Bild'.
-            new Container($Image)
-            .new Container(new Form(new FormGroup(new FormRow(array(
-                new FormColumn(new FileUpload('FileUpload', '', 'Photo Upload')),
-                new FormColumn((new Primary('Speichern', '#', new Save()))->ajaxPipelineOnClick(ApiPersonPicture::pipelineSavePersonPicture($PersonId)))
-            )))));
+        //ToDO API Buttons
+        $ButtonAbort = new Standard('Abbrechen', '/People/Person', new Disable(), array('Id' => $PersonId, 'Group' => $Group)); //->ajaxPipelineOnClick(ApiPersonPicture::pipelineLoadPersonPictureContent($PersonId, $Group));
+        $ButtonDelete = (new DangerLink('Löschen', '#', new Disable()))->ajaxPipelineOnClick(ApiPersonPicture::pipelineLoadPersonPictureContent($PersonId, $Group));
 
-        return $Content;
+        $form = new Form(new FormGroup(new FormRow(array(
+            new FormColumn(array(new FileUpload('FileUpload', '', 'Photo Upload'))),
+            new FormColumn(array(new Primary('Speichern', new Save()), $ButtonAbort, $ButtonDelete))
+            ))),null, false);
+
+//        $form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Content = new Container(new Center($Image))
+            .new Container(new Well(
+                Storage::useService()->createPersonPicture($form, $PersonId, $Group, $FileUpload)
+            ));
+
+        return ApiPersonPicture::receiverBlock().$Content;
     }
 }

@@ -52,6 +52,7 @@ use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Class FrontendReadOnly
@@ -89,7 +90,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendPersonReadOnly($Id = null, $Group = null)
+    public function frontendPersonReadOnly($Id = null, $Group = null, UploadedFile $FileUpload = null)
     {
 
         $stage = new Stage('Person', 'Datenblatt ' . ($Id ? 'bearbeiten' : 'anlegen'));
@@ -103,7 +104,13 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
             $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id), 'BasicContent');
             $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
-            $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id));
+            if($FileUpload){
+                $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getEditPersonPictureContent($Id, $Group, $FileUpload));
+            } else {
+                $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id, $Group));
+//                $PictureContent = ApiPersonPicture::receiverBlock(ApiPersonPicture::pipelineLoadPersonPictureContent($Id, $Group));
+            }
+
             $personAgreementContent = ApiPersonReadOnly::receiverBlock(FrontendPersonAgreement::getPersonAgreementContent($Id), 'PersonAgreementContent');
             $personMasern = ApiPersonReadOnly::receiverBlock(FrontendPersonMasern::getPersonMasernContent($Id), 'PersonMasernContent');
             $childContent = ApiPersonReadOnly::receiverBlock(FrontendChild::getChildContent($Id), 'ChildContent');
@@ -185,12 +192,6 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 new \SPHERE\Common\Frontend\Icon\Repository\Link(),
                 false
             );
-            //ToDO Content from API
-            // Test Bild
-            $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence - Kopie.png');
-            // Link vorbereitung für Modal
-            $Image = new Link('<img src="'.$File->getLocation().'" style="height: 415px; padding-top: 49px; padding-bottom: 5px">', '#');
-
             $stage->setContent(
                 ($validationMessage ? $validationMessage : '')
                 .

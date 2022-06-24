@@ -14,7 +14,6 @@ use SPHERE\Application\Document\Storage\Service\Entity\TblReferenceType;
 use SPHERE\Application\Document\Storage\Service\Setup;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\People\Person\Frontend\FrontendPersonPicture;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -515,21 +514,32 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int               $PersonId
-     * @param UploadedFile|null $FileUpload
+     * @param IFormInterface|null $form
+     * @param int|null            $PersonId
+     * @param UploadedFile|null   $FileUpload
      *
-     * @return string
+     * @return IFormInterface|string|null
      */
-    public function createPersonPicture($PersonId, UploadedFile $FileUpload = null)
+    public function createPersonPicture(IFormInterface &$form = null, $PersonId = null, $Group = null, UploadedFile $FileUpload = null)
     {
 
+        /**
+         * Skip to Frontend
+         */
+        if (null === $FileUpload
+        ) {
+            return $form;
+        }
+
         if (!$FileUpload) {
-            return FrontendPersonPicture::getPersonPictureModalContent().new Danger('Bitte wählen Sie ein Bild aus');
+            $form->setError('FileUpload', 'Bitte wählen Sie eine Datei');
+            return $form;
         }
 
         try {
             if($_FILES['FileUpload']['error']){
-                return FrontendPersonPicture::getPersonPictureModalContent().new Danger(new Listing($_FILES['FileUpload']['error']));
+                $form->setError('FileUpload', 'Datei überschreitet die Grenzwerte.');
+                return $form;
             }
             switch ($_FILES['FileUpload']['type']) {
                 case 'image/jpg':
@@ -538,8 +548,8 @@ class Service extends AbstractService
                 case 'image/git':
                     break;
                 default:
-                    return FrontendPersonPicture::getPersonPictureModalContent()
-                    .new Danger('Datei mit dem MimeType ('.$_FILES['FileUpload']['type'].') ist nicht erlaubt.');
+                    $form->setError('FileUpload', 'Datei mit dem MimeType ('.$_FILES['FileUpload']['type'].') ist nicht erlaubt.');
+                    return $form;
             }
 
             $maxDim = 500;
@@ -568,14 +578,15 @@ class Service extends AbstractService
             imagedestroy($dst);
             //            $Dimension = $Upload->getDimensions();
             if(!($tblPerson = Person::useService()->getPersonById($PersonId))){
-                return FrontendPersonPicture::getPersonPictureModalContent().new Danger('Person nicht gefunden');
+                $form .= new Danger('Person nicht gefunden');
             }
 
 
-            //ToDO Pipeline
             (new Data($this->getBinding()))->insertPersonPicture($tblPerson, file_get_contents($fileName ));
-            unlink($fileName);
-            return FrontendPersonPicture::getPersonPictureModalContent().new Success('Der Upload ist erfasst');
+            $form .= new Success('Der Upload ist erfasst')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $PersonId, 'Group' => $Group));
+                unlink($fileName);
+            return $form;
 
         } catch (\Exception $Exception) {
             if(json_decode($Exception->getMessage())){
@@ -593,7 +604,7 @@ class Service extends AbstractService
                             $ExeptionMessage = 'Das Ticket konnte nicht erstellt werden';
                     }
                 }
-                return FrontendPersonPicture::getPersonPictureModalContent().new Danger(new Listing($ArrayExeption));
+                $form->setError('FileUpload', new Listing($ArrayExeption));
             }
             // File entfernen, wenn eins vorhanden war
             if(isset($_FILES['FileUpload']['tmp_name'])){
@@ -601,7 +612,8 @@ class Service extends AbstractService
             }
             $Error = true;
         }
-        return FrontendPersonPicture::getPersonPictureModalContent(). new Danger('Es ist ein unbekannter Fehler aufgetreten');
+
+        return $form;
     }
 
     /**
