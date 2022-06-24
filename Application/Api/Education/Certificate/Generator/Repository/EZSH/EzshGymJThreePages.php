@@ -8,13 +8,19 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
-/**
- * Class EzshMsCourseHjZ
- *
- * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\EZSH
- */
-class EzshMsCourseHjZ extends EzshStyle
+class EzshGymJThreePages  extends EzshStyle
 {
+    /**
+     * @return array
+     */
+    public function selectValuesTransfer()
+    {
+        return array(
+            1 => "wird versetzt",
+            2 => "wird nicht versetzt"
+        );
+    }
+
     /**
      * @param $personId
      *
@@ -22,6 +28,16 @@ class EzshMsCourseHjZ extends EzshStyle
      */
     private function firstPage($personId)
     {
+
+        $showThirdForeignLanguage = false;
+        // bei der 10. Klasse soll die 3. FS statt der 2.FS angezeigt
+        if (($tblDivision = $this->getTblDivision())
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && intval($tblLevel->getName()) == 10
+        ) {
+            $showThirdForeignLanguage = true;
+        }
+
         $Page = (new Page())
             ->addSlice(
                 (new Slice())
@@ -33,7 +49,7 @@ class EzshMsCourseHjZ extends EzshStyle
                         )
                     )
                     ->addSectionList(
-                        self::getEZSHHeadLine('HALBJAHRESZEUGNIS', 'OBERSCHULE – staatlich anerkannte Ersatzschule')
+                        self::getEZSHHeadLine('JAHRESZEUGNIS', 'GYMNASIUM – staatlich anerkannte Ersatzschule')
                     )
                     ->addElement((new Element())
                         ->styleMarginTop('35px')
@@ -47,10 +63,13 @@ class EzshMsCourseHjZ extends EzshStyle
                     ->addSection(
                         self::getEZSHDivisionAndYear($personId)
                     )
-                    ->addSection(self::getEZSHCourse($personId))
+                    ->addElement((new Element())
+                        ->styleMarginTop('40px')
+                    )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHSubjectLanes($personId)
+                            self::getEZSHSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3), false, $showThirdForeignLanguage)
+                                ->styleHeight('360px')
                         )
                     )
                     ->addElement((new Element())
@@ -58,23 +77,17 @@ class EzshMsCourseHjZ extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHObligation($personId)
+                            self::getEZSHObligation($personId, '14px', true)
                         )
-                    )
-                    ->addElement((new Element())
-                        ->styleMarginTop('15px')
-                    )
-                    ->addSectionList(
-                        self::getEZSHPerformanceGroup($personId)
                     )
                     ->addElement((new Element())
                         ->styleMarginTop('35px')
                     )
                     ->addSectionList(
-                        self::getEZSHGradeInfo()
+                        self::getEZSHGradeInfo(false)
                     )
                     ->addSectionList(
-                        self::getEZSHArrangement($personId, '80px')
+                        self::getEZSHArrangement($personId)
                     )
                     ->addSectionList(
                         self::getEZSHMissing($personId)
@@ -99,14 +112,21 @@ class EzshMsCourseHjZ extends EzshStyle
                         ->setContent('&nbsp;')
                         ->stylePaddingTop('75px')
                     )
+                    ->addElement((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight('510px')
+                    )
                     ->addSectionList(
-                        self::getEZSHRemark($personId, '720px')
+                        self::getEZSHTransfer($personId)
+                    )
+                    ->addSectionList(
+                        self::getEZSHRemark($personId)
                     )
                     ->addSectionList(
                         self::getEZSHDateSign($personId)
                     )
                     ->addElement((new Element())
-                        ->styleMarginTop('63px')
+                        ->styleMarginTop('55px')
                     )
                     ->addSectionList(
                         self::getEZSHCustody()
@@ -131,7 +151,7 @@ class EzshMsCourseHjZ extends EzshStyle
         return array(
             self::firstPage($personId),
             self::secondPage($personId),
-            self::getRatingPage($personId, 'Anlage zum HALBJAHRESZEUGNIS', 'OBERSCHULE – staatlich anerkannte Ersatzschule')
+            self::getRatingPage($personId, 'Anlage zum JAHRESZEUGNIS', 'GYMNASIUM – staatlich anerkannte Ersatzschule')
         );
     }
 }
