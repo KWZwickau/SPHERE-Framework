@@ -29,6 +29,11 @@ class TblScoreRule extends Element
     protected $Description;
 
     /**
+     * @Column(type="string")
+     */
+    protected $DescriptionForExtern;
+
+    /**
      * @Column(type="boolean")
      */
     protected $IsActive;
@@ -123,5 +128,21 @@ class TblScoreRule extends Element
     {
 
         return Gradebook::useService()->isScoreRuleUsed($this);
+    }
+
+    /**
+     * @return  string
+     */
+    public function getDescriptionForExtern(): string
+    {
+        return $this->DescriptionForExtern;
+    }
+
+    /**
+     * @param string $DescriptionForExtern
+     */
+    public function setDescriptionForExtern(string $DescriptionForExtern): void
+    {
+        $this->DescriptionForExtern = $DescriptionForExtern;
     }
 }

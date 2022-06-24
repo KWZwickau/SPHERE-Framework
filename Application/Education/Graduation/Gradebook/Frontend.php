@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use DateTime;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
+use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
@@ -2359,7 +2360,8 @@ class Frontend extends FrontendScoreRule
         $isShownGradeMirror,
         $tableHeaderList,
         $isParentView,
-        $isShownAppointedDateGrade
+        $isShownAppointedDateGrade,
+        $isScoreRuleShown
     ) {
 
         /** @var TblDivision $tblDivision */
@@ -2414,7 +2416,12 @@ class Frontend extends FrontendScoreRule
                                         $hasStudentSubject = true;
                                     }
                                     if ($hasStudentSubject) {
-                                        $tableDataList[$tblSubject->getId()]['Subject'] = $tblSubject->getName();
+                                        $tableDataList[$tblSubject->getId()]['Subject'] = $tblSubject->getName()
+                                            . ($isScoreRuleShown && $tblScoreRule
+                                                ? (new Standard('', ApiOnlineGradebook::getEndpoint(), new \SPHERE\Common\Frontend\Icon\Repository\Info(), array(),
+                                                    'Berechnungsvorschrift für dieses Fach anzeigen'))
+                                                    ->ajaxPipelineOnClick(ApiOnlineGradebook::pipelineOpenScoreRuleModal($tblScoreRule->getId()))
+                                                : '');
 
                                         if ($tblPeriodList) {
                                             if ($isParentView && $tblTestTypeAppointedDateTask) {
@@ -3179,7 +3186,7 @@ class Frontend extends FrontendScoreRule
         }
 
         if ($IsParentView) {
-             list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear)
+             list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown)
                  = $this->getConsumerSettingsForGradeOverview();
             $isShownAppointedDateGrade = false;
         } else {
@@ -3189,6 +3196,7 @@ class Frontend extends FrontendScoreRule
             $isShownAppointedDateGrade = true;
             $tblSchoolTypeList = false;
             $startYear = '';
+            $isScoreRuleShown = false;
         }
 
         if (($tblYear = $tblDivision->getServiceTblYear())) {
@@ -3239,7 +3247,7 @@ class Frontend extends FrontendScoreRule
 
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
                                 $tblTestType, $isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror,
-                                $tableHeaderList, $IsParentView, $isShownAppointedDateGrade);
+                                $tableHeaderList, $IsParentView, $isShownAppointedDateGrade, $isScoreRuleShown);
                         }
                     }
                 }
@@ -3248,9 +3256,10 @@ class Frontend extends FrontendScoreRule
 
         $Stage->setContent(
             ApiSupportReadOnly::receiverOverViewModal()
-            .new Layout(array(
-                new LayoutGroup($rowList)
-            ))
+                . ApiOnlineGradebook::receiverModal()
+                . new Layout(array(
+                    new LayoutGroup($rowList)
+                ))
         );
 
         return $Stage;
@@ -3316,6 +3325,14 @@ class Frontend extends FrontendScoreRule
             }
         }
 
-        return array($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear);
+        if (($tblSetting = Consumer::useService()->getSetting('ParentStudentAccess', 'OnlineGradebook', 'OnlineGradebook' , 'IsScoreRuleShown'))
+            && $tblSetting->getValue()
+        ) {
+            $isScoreRuleShown = true;
+        } else {
+            $isScoreRuleShown = false;
+        }
+
+        return array($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown);
     }
 }

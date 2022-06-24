@@ -246,6 +246,8 @@ class Data extends AbstractData
             );
             $this->updateSettingSortOrderAndCategory($tblSetting, 7, 'Eltern/Schüler-Zugang');
         }
+        $this->createSetting('ParentStudentAccess', 'OnlineGradebook', 'OnlineGradebook' , 'IsScoreRuleShown', TblSetting::TYPE_BOOLEAN, '0', 'Eltern/Schüler-Zugang',
+             'Anzeige der Berechnungsvorschrift in der Notenübersicht für Eltern/Schüler. [Standard: Nein]', true, 8);
 
         // Adresslisten für Serienbriefe public
         $this->createSetting('Reporting', 'SerialLetter', 'GenderSort', 'FirstFemale', TblSetting::TYPE_BOOLEAN, 1,

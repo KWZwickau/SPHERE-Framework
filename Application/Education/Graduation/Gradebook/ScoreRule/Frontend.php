@@ -30,6 +30,7 @@ use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -112,80 +113,21 @@ class Frontend extends FrontendMinimumGradeCount
 
                 $structure = array();
                 if ($tblScoreRule->getDescription() != '') {
-                    $structure[] = 'Beschreibung: ' . $tblScoreRule->getDescription() . '<br>';
+                    $structure[] = 'Beschreibung: ' . $tblScoreRule->getDescription() . '<br/>';
+                }
+                if ($tblScoreRule->getDescriptionForExtern() != '') {
+                    $structure[] = new Bold('Beschreibung für Eltern/Schülerzugänge: ') . '<br/>'
+                        . str_replace("\n", '<br/>', $tblScoreRule->getDescriptionForExtern()) . '<br/>';
                 }
 
-                $tblScoreConditions = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
-                if ($tblScoreConditions) {
-                    $tblScoreConditions = $this->getSorter($tblScoreConditions)->sortObjectBy('Priority');
-
-                    $count = 1;
-                    /** @var TblScoreCondition $tblScoreCondition */
-                    foreach ($tblScoreConditions as $tblScoreCondition) {
-                        $structure[] = $count++ . '. Berechnungsvariante: ' . $tblScoreCondition->getName()
-                            . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
-                            . $tblScoreCondition->getPriority();
-
-//                        $tblScoreConditionGradeTypeListByCondition = Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
-//                            $tblScoreCondition
-//                        );
-//                        if ($tblScoreConditionGradeTypeListByCondition) {
-//                            $list = array();
-//                            foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeTypeList) {
-//                                if ($tblScoreConditionGradeTypeList->getTblGradeType()) {
-//                                    $list[] = $tblScoreConditionGradeTypeList->getTblGradeType()->getDisplayName();
-//                                }
-//                            }
-//
-//                            $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Bedingungen: ' . implode(', ',
-//                                    $list);
-//                        }
-                        if (($requirements = Gradebook::useService()->getRequirementsForScoreCondition($tblScoreCondition, true))) {
-                            $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Bedingungen: ' . $requirements;
-                        }
-
-                        $tblScoreConditionGroupListByCondition = Gradebook::useService()->getScoreConditionGroupListByCondition(
-                            $tblScoreCondition
-                        );
-                        if ($tblScoreConditionGroupListByCondition) {
-                            foreach ($tblScoreConditionGroupListByCondition as $tblScoreConditionGroupList) {
-                                $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Zensuren-Gruppe: '
-                                    . $tblScoreConditionGroupList->getTblScoreGroup()->getName()
-                                    . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
-                                    . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier()
-                                    . ($tblScoreConditionGroupList->getTblScoreGroup()->isEveryGradeASingleGroup()
-                                        ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Noten einzeln ' : '');
-
-                                $tblGradeTypeList = Gradebook::useService()->getScoreGroupGradeTypeListByGroup(
-                                    $tblScoreConditionGroupList->getTblScoreGroup()
-                                );
-                                if ($tblGradeTypeList) {
-                                    foreach ($tblGradeTypeList as $tblGradeType) {
-                                        $structure[] = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9702;&nbsp;&nbsp;'
-                                            . 'Zensuren-Typ: '
-                                            . ($tblGradeType->getTblGradeType() ? $tblGradeType->getTblGradeType()->getDisplayName() : '')
-                                            . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
-                                            . $tblGradeType->getDisplayMultiplier();
-                                    }
-                                } else {
-                                    $structure[] = new Warning('Kein Zenuren-Typ hinterlegt.', new Ban());
-                                }
-                            }
-                        } else {
-                            $structure[] = new Warning('Keine Zenuren-Gruppe hinterlegt.', new Ban());
-                        }
-                        $structure[] = ' ';
-                    }
-                } else {
-                    $structure[] = new Warning('Keine Berechnungsvariante hinterlegt.', new Ban());
-                }
+                $structure = Gradebook::useService()->getScoreRuleStructure($tblScoreRule, $structure);
 
                 $contentTable[] = array(
                     'Status' => $tblScoreRule->isActive()
                         ? new \SPHERE\Common\Frontend\Text\Repository\Success(new PlusSign() . ' aktiv')
                         : new \SPHERE\Common\Frontend\Text\Repository\Warning(new MinusSign() . ' inaktiv'),
                     'Name' => $tblScoreRule->getName(),
-                    'Structure' => empty($structure) ? '' : implode('<br>', $structure),
+                    'Structure' => empty($structure) ? '' : implode('<br/>', $structure),
                     'Option' =>
                         (new Standard('', '/Education/Graduation/Gradebook/Score/Edit', new Edit(),
                             array('Id' => $tblScoreRule->getId()), 'Bearbeiten')) .
@@ -293,6 +235,11 @@ class Frontend extends FrontendMinimumGradeCount
                 new FormColumn(
                     new TextField('ScoreRule[Description]', '', 'Beschreibung'), 8
                 ),
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new TextArea('ScoreRule[DescriptionForExtern]', '', 'Beschreibung für Eltern/Schüler-Zugänge')
+                )
             ))
         )));
     }
@@ -971,6 +918,7 @@ class Frontend extends FrontendMinimumGradeCount
             if (!$Global->POST) {
                 $Global->POST['ScoreRule']['Name'] = $tblScoreRule->getName();
                 $Global->POST['ScoreRule']['Description'] = $tblScoreRule->getDescription();
+                $Global->POST['ScoreRule']['DescriptionForExtern'] = $tblScoreRule->getDescriptionForExtern();
                 $Global->savePost();
             }
 

@@ -3,8 +3,10 @@
 namespace SPHERE\Application\ParentStudentAccess\OnlineGradebook;
 
 use DateTime;
+use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -128,7 +130,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblPersonList = OnlineGradebook::useService()->getPersonListForStudent();
 
-        list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear)
+        list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown)
             = Gradebook::useFrontend()->getConsumerSettingsForGradeOverview();
 
         $BlockedList = array();
@@ -222,7 +224,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             Gradebook::useFrontend()->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
                                 $tblTestType, $isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror,
-                                $tableHeaderList, true, false);
+                                $tableHeaderList, true, false, $isScoreRuleShown);
                         }
                     }
                 }
@@ -339,6 +341,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ($YearId !== null ?
                             new Panel('Schuljahr', $tblYear->getDisplayName(), Panel::PANEL_TYPE_INFO)
                             : '')
+                        . ApiOnlineGradebook::receiverModal()
                     )
                 ))),
                 ($YearId !== null ? new LayoutGroup($rowList) : null),
@@ -364,5 +367,26 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return string
+     */
+    public function getScoreRuleModalContent(TblScoreRule $tblScoreRule): string
+    {
+        $structure = array();
+        if ($tblScoreRule->getDescriptionForExtern() != '') {
+            $structure[] = str_replace("\n", '<br/>', $tblScoreRule->getDescriptionForExtern()) . '<br/>';
+        } else {
+            $structure = Gradebook::useService()->getScoreRuleStructure($tblScoreRule, $structure);
+        }
+
+        return new Panel(
+            'Berechnungsvorschrift: ' . $tblScoreRule->getName(),
+            implode('<br/>', $structure),
+            Panel::PANEL_TYPE_INFO
+        );
     }
 }
