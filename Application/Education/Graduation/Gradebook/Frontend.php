@@ -1500,6 +1500,7 @@ class Frontend extends FrontendScoreRule
             = $this->getConsumerSettingsForGradeOverview();
 
         $BlockedList = array();
+        $dateTimeNow = new DateTime('now');
         // Jahre ermitteln, in denen Schüler in einer Klasse ist
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
@@ -1531,8 +1532,12 @@ class Frontend extends FrontendScoreRule
                         if ($tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
                             // Anzeige nur für Schuljahre die nach dem "Startschuljahr"(Veröffentlichung) liegen
                             if($tblYear->getYear() >= $startYear){
-                                $tblDisplayYearList[$tblYear->getId()] = $tblYear;
-                                $data[$tblYear->getId()][$tblPerson->getId()][$tblDivision->getId()] = $tblDivision;
+                                // keinen zukünftigen Schuljahre anzeigen SSWHD-1751
+                                list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                                if ($startDate < $dateTimeNow) {
+                                    $tblDisplayYearList[$tblYear->getId()] = $tblYear;
+                                    $data[$tblYear->getId()][$tblPerson->getId()][$tblDivision->getId()] = $tblDivision;
+                                }
                             }
                         }
                     }
