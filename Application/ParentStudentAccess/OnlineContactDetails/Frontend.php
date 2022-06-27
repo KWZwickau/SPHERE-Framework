@@ -59,7 +59,10 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $stage = new Stage('Kontakt-Daten', 'Übersicht');
 
-        $stage->setContent(ApiOnlineContactDetails::receiverBlock($this->loadContactDetailsStageContent(), 'ContactDetailsStageContent'));
+        $stage->setContent(
+            ApiOnlineContactDetails::receiverModal()
+            . ApiOnlineContactDetails::receiverBlock($this->loadContactDetailsStageContent(), 'ContactDetailsStageContent')
+        );
 
         return $stage;
     }
@@ -93,7 +96,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        return ApiOnlineContactDetails::receiverModal() . new Layout($layoutGroupList);
+        return new Layout($layoutGroupList);
     }
 
     /**
