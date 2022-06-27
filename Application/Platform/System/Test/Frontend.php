@@ -545,7 +545,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $item['Name'] = $tblPerson->getFullName();
                     $item['Picture'] = '';
                     if(($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))){
-                        $item['Picture'] = $tblPersonPicture->getPicture();
+                        $item['Picture'] = $tblPersonPicture->getPicture('70px', '15px');
 //                        if($tblPerson->getId() ==1228)
 //                        $Picture = $tblPersonPicture->getFile('40px', '40px');
                     }

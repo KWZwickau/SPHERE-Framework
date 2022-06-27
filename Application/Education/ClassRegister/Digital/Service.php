@@ -4,10 +4,12 @@ namespace SPHERE\Application\Education\ClassRegister\Digital;
 
 use DateInterval;
 use DateTime;
+use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreement;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
@@ -53,11 +55,13 @@ use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -66,6 +70,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
+use Symfony\Component\HttpKernel\HttpCache\Store;
 
 class Service extends AbstractService
 {
@@ -739,6 +744,12 @@ class Service extends AbstractService
                         }
                     }
                 }
+                $PersonPicture = '';
+                if(($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))){
+                    $PersonPicture = new Center((new Link($tblPersonPicture->getPicture('50px', '10px'), $tblPerson->getId()))
+                        ->ajaxPipelineOnClick(ApiPersonPicture::pipelineShowPersonPicture($tblPerson->getId())));
+                }
+
 
                 $displayDivision = '';
                 $course = '';
@@ -806,6 +817,7 @@ class Service extends AbstractService
                 $studentTable[] = array(
                     'Number'        => ++$count,
                     'Name'          => $tblPerson->getLastFirstName(),
+                    'Picture'       => $PersonPicture,
                     'Division'      => $displayDivision,
 //                    'Integration'   => $integration,
 //                    'MedicalRecord' => $medicalRecord,
@@ -847,6 +859,7 @@ class Service extends AbstractService
 
             $columns['Number'] = '#';
             $columns['Name'] = 'Name';
+            $columns['Picture'] = 'Foto';
             if ($tblGroup) {
                 $columns['Division'] = 'Klasse';
             }
@@ -871,6 +884,7 @@ class Service extends AbstractService
                 ApiSupportReadOnly::receiverOverViewModal()
                 . MedicalRecordReadOnly::receiverOverViewModal()
                 . ApiAgreement::receiverOverViewModal()
+                . ApiPersonPicture::receiverModal()
                 . ($tblDivision && ($inActivePanel = Person::useFrontend()
                     ->getInActiveStudentPanel($tblDivision))
                     ? $inActivePanel : '')
@@ -879,7 +893,7 @@ class Service extends AbstractService
                         'paging' => false,
                         'columnDefs' => array(
                             array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                            array('width' => '60px', 'targets' => $hasColumnCourse ? 3 : 2),
+                            array('width' => '60px', 'targets' => $hasColumnCourse ? 4 : 3),
                             array('width' => '60px', 'targets' => -1),
                             array('width' => '60px', 'targets' => -2),
                             array('width' => '60px', 'targets' => -3),

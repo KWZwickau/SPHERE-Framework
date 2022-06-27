@@ -50,7 +50,7 @@ class TblPersonPicture extends Element
     /**
      * @return string
      */
-    public function getPicture($Height = '70px', $borderRadius = '10px', $marginTop = '0px')
+    public function getPicture($Height = '25px', $borderRadius = '5px', $marginTop = '0px')
     {
 
         return '<img height='.$Height.' width=auto src="data:image/jpeg;base64,'

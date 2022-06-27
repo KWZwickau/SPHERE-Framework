@@ -8,18 +8,23 @@ use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -43,7 +48,7 @@ class FrontendPersonPicture extends FrontendReadOnly
     {
         $Image = '';
 
-        $PictureHeight = '360px';
+        $PictureHeight = '362px';
         $PictureBorderRadius = '10px';
         $PictureMarginTop = '49px';
 
@@ -72,12 +77,10 @@ class FrontendPersonPicture extends FrontendReadOnly
     {
         $Image = '';
 
-        $PictureHeight = '220px';
+        $PictureHeight = '244px';
         $PictureBorderRadius = '0';
-        $PictureMarginTop = '49px';
-
+        $PictureMarginTop = '43px';
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
-
             $tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson);
             if($tblPersonPicture){
                 $Image = $tblPersonPicture->getPicture($PictureHeight, $PictureBorderRadius, $PictureMarginTop);
@@ -90,22 +93,36 @@ class FrontendPersonPicture extends FrontendReadOnly
         }
         $Image.= '<div style="height: 7px">&nbsp;</div>';
 
-        //ToDO API Buttons
-        $ButtonAbort = new Standard('Abbrechen', '/People/Person', new Disable(), array('Id' => $PersonId, 'Group' => $Group)); //->ajaxPipelineOnClick(ApiPersonPicture::pipelineLoadPersonPictureContent($PersonId, $Group));
-        $ButtonDelete = (new DangerLink('Löschen', '#', new Disable()))->ajaxPipelineOnClick(ApiPersonPicture::pipelineLoadPersonPictureContent($PersonId, $Group));
+//        $ButtonAbort = new Standard('Abbrechen', '/People/Person', new Disable(), array('Id' => $PersonId, 'Group' => $Group)); //->ajaxPipelineOnClick(ApiPersonPicture::pipelineLoadPersonPictureContent($PersonId, $Group));
+        $ButtonAbort = (new Standard('Abbrechen', '/People/Person', new Disable()))->ajaxPipelineOnClick(ApiPersonPicture::pipelineLoadPersonPictureContent($PersonId, $Group));
+        $ButtonDelete = new Danger('');
+        if(isset($tblPersonPicture) && $tblPersonPicture){
+            $ButtonDelete = (new DangerLink('Löschen', '#', new Disable()))->ajaxPipelineOnClick(ApiPersonPicture::pipelineRemovePersonPicture($PersonId, $Group));
+        }
+        $IsUpload = 0;
+        if(!$FileUpload){
+            $_POST['IsUpload'] = $IsUpload = 1;
+        }
+
+        $ToolTipContent = new Container('Foto Format: '.new Bold('JPG/JPEG, PNG'))
+        .new Container('Foto Empf. Seitenverhältnis: '.new Bold('Hochformat (3,5 x 4,5)'))
+//        .new Container(new Bold('Hochformat (3,5 x 4,5)'))
+        .new Container('Maximale Speichergröße '.new Bold('6 MB'));
 
         $form = new Form(new FormGroup(new FormRow(array(
-            new FormColumn(array(new FileUpload('FileUpload', '', 'Photo Upload'))),
+            new FormColumn(new Container(new Center($Image))),
+            new FormColumn(array((new FileUpload('FileUpload', '', 'Foto hochladen '.(new ToolTip(new Info(), htmlspecialchars($ToolTipContent)))
+                    ->enableHtml()))->setRequired())),
+            new FormColumn(new HiddenField('IsUpload')),
             new FormColumn(array(new Primary('Speichern', new Save()), $ButtonAbort, $ButtonDelete))
             ))),null, false);
 
 //        $form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-        $Content = new Container(new Center($Image))
-            .new Container(new Well(
-                Storage::useService()->createPersonPicture($form, $PersonId, $Group, $FileUpload)
-            ));
+        $Content = new WellReadOnly(
+            Storage::useService()->createPersonPicture($form, $PersonId, $Group, $FileUpload, $IsUpload)
+        );
 
-        return ApiPersonPicture::receiverBlock().$Content;
+        return $Content;
     }
 }

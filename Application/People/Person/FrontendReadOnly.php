@@ -90,7 +90,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendPersonReadOnly($Id = null, $Group = null, UploadedFile $FileUpload = null)
+    public function frontendPersonReadOnly($Id = null, $Group = null, UploadedFile $FileUpload = null, $IsUpload = '')
     {
 
         $stage = new Stage('Person', 'Datenblatt ' . ($Id ? 'bearbeiten' : 'anlegen'));
@@ -104,7 +104,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
             $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id), 'BasicContent');
             $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
-            if($FileUpload){
+            if($IsUpload){
                 $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getEditPersonPictureContent($Id, $Group, $FileUpload));
             } else {
                 $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id, $Group));
