@@ -131,7 +131,6 @@ class Frontend extends Extension implements IFrontendInterface
                 && (Group::useService()->existsGroupPerson($tblGroupProspect, $tblPerson)))
         ) {
             $tblTypeAll[] = Relationship::useService()->getTypeByName('Geschwisterkind');
-            $tblTypeAll[] = Relationship::useService()->getTypeByName('Beitragszahler');
             $tblTypeChild = new TblType();
             $tblTypeChild->setId(TblType::CHILD_ID);
             $tblTypeChild->setName('Kind');
