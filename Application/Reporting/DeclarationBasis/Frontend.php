@@ -83,7 +83,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $form = $this->getForm();
 
-        $Stage = new Stage('Stichtagsmeldung', 'Datum auswählen');
+        $Stage = new Stage('Stichtagsmeldung Integrationsschüler', 'Datum auswählen');
         $Stage->setContent(new Well(
             $form
         ));
