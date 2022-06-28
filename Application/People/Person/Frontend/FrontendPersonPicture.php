@@ -104,18 +104,19 @@ class FrontendPersonPicture extends FrontendReadOnly
             $_POST['IsUpload'] = $IsUpload = 1;
         }
 
-        $ToolTipContent = new Container('Foto Format: '.new Bold('JPG/JPEG, PNG'))
-        .new Container('Foto Empf. Seitenverhältnis: '.new Bold('Hochformat (3,5 x 4,5)'))
+        $ToolTipContent = new Container('Format: '.new Bold('JPG/JPEG, PNG'))
+        .new Container('empfohlenes Seitenverhältnis: '.new Bold('Hochformat (3,5 x 4,5)'))
 //        .new Container(new Bold('Hochformat (3,5 x 4,5)'))
-        .new Container('Maximale Speichergröße '.new Bold('6 MB'));
+        .new Container('Maximale Speichergröße: '.new Bold('6 MB'));
 
         $form = new Form(new FormGroup(new FormRow(array(
             new FormColumn(new Container(new Center($Image))),
-            new FormColumn(array((new FileUpload('FileUpload', '', 'Foto hochladen '.(new ToolTip(new Info(), htmlspecialchars($ToolTipContent)))
-                    ->enableHtml()))->setRequired())),
+            new FormColumn((new FileUpload('FileUpload', '', 'Foto hochladen '.(new ToolTip(new Info(), htmlspecialchars($ToolTipContent)))
+                    ->enableHtml()))->setRequired()),
             new FormColumn(new HiddenField('IsUpload')),
             new FormColumn(array(new Primary('Speichern', new Save()), $ButtonAbort, $ButtonDelete))
-            ))),null, false);
+        ),
+        )),null, false);
 
 //        $form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 

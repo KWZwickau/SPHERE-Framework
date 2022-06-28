@@ -16,6 +16,8 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
 use SPHERE\Application\People\Person\Frontend\FrontendChild;
@@ -100,15 +102,19 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
         // Person bearbeiten
         if ($Id != null && ($tblPerson = Person::useService()->getPersonById($Id))) {
-
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
             $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id), 'BasicContent');
             $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
-            if($IsUpload){
-                $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getEditPersonPictureContent($Id, $Group, $FileUpload));
-            } else {
-                $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id, $Group));
-//                $PictureContent = ApiPersonPicture::receiverBlock(ApiPersonPicture::pipelineLoadPersonPictureContent($Id, $Group));
+
+            // Anzeige Foto & Bearbeitung nur bei Schülern
+            $PictureContent = false;
+            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            if($tblGroupStudent && Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStudent)){
+                if($IsUpload){
+                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getEditPersonPictureContent($Id, $Group, $FileUpload));
+                } else {
+                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id, $Group));
+                }
             }
 
             $personAgreementContent = ApiPersonReadOnly::receiverBlock(FrontendPersonAgreement::getPersonAgreementContent($Id), 'PersonAgreementContent');
@@ -195,15 +201,18 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
             $stage->setContent(
                 ($validationMessage ? $validationMessage : '')
                 .
-                new Layout(new LayoutGroup(new LayoutRow(array(
+                ($PictureContent === false
+                ? $basicContent. $commonContent
+                : new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         $basicContent
                         . $commonContent
-                    , 9),
+                        , 9),
                     new LayoutColumn(
                         $PictureContent
-                    , 3)
+                        , 3)
                 ))))
+                )
                 . $personAgreementContent
                 . $childContent
                 . $prospectContent

@@ -9,6 +9,7 @@
             // These are the defaults.
             'showUpload': false,
             'showPreview': false,
+//             'maxFileSize': '2097152',
             'previewFileType': 'any',
             'browseLabel': 'Durchsuchen',
             'maxFilesNum': 1

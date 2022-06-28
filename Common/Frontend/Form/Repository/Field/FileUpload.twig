@@ -22,6 +22,18 @@
     {
         Client.Use('ModUpload', function()
         {
+            console.log("Ohne File Test!");
+            jQuery('input[type="file"][name="{{ ElementName }}"]').onchange = function() {
+                console.log("File Test!");
+                if(this.files[0].size > 2097152){
+                    alert("File is too big!");
+                    console.log("File is too big!");
+                    this.value = "";
+                } else {
+                    alert("File is OK!");
+                    console.log("File Test!");
+                }
+            }
             jQuery('input[type="file"][name="{{ ElementName }}"]').ModUpload({{ ElementOption }});
         });
     });
