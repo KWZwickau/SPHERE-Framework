@@ -194,11 +194,12 @@ class ApiPersonEdit extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param $PersonId
+     * @param $GroupId
      *
      * @return Pipeline
      */
-    public static function pipelineEditBasicContent($PersonId)
+    public static function pipelineEditBasicContent($PersonId, $GroupId)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'BasicContent'), self::getEndpoint());
@@ -206,7 +207,8 @@ class ApiPersonEdit extends Extension implements IApiInterface
             self::API_TARGET => 'editBasicContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'GroupId' => $GroupId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -214,11 +216,12 @@ class ApiPersonEdit extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param $PersonId
+     * @param $GroupId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveBasicContent($PersonId)
+    public static function pipelineSaveBasicContent($PersonId, $GroupId)
     {
 
         $pipeline = new Pipeline(true);
@@ -228,7 +231,8 @@ class ApiPersonEdit extends Extension implements IApiInterface
             self::API_TARGET => 'saveBasicContent',
         ));
         $emitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'GroupId' => $GroupId
         ));
         $pipeline->appendEmitter($emitter);
 
@@ -1237,18 +1241,19 @@ class ApiPersonEdit extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function editBasicContent($PersonId = null)
+    public function editBasicContent($PersonId = null, $GroupId = null)
     {
 
-        return (new FrontendBasic())->getEditBasicContent($PersonId);
+        return (new FrontendBasic())->getEditBasicContent($PersonId, $GroupId);
     }
 
     /**
      * @param $PersonId
+     * @param $GroupId
      *
      * @return bool|Danger|string
      */
-    public function saveBasicContent($PersonId)
+    public function saveBasicContent($PersonId, $GroupId)
     {
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Person nicht gefunden', new Exclamation());
@@ -1256,22 +1261,29 @@ class ApiPersonEdit extends Extension implements IApiInterface
 
         $Global = $this->getGlobal();
         $Person = $Global->POST['Person'];
-        if (($form = (new FrontendBasic())->checkInputBasicContent($tblPerson, $Person))) {
+        if (($form = (new FrontendBasic())->checkInputBasicContent($tblPerson, $Person, $GroupId))) {
             // display Errors on form
             return $form;
         }
 
         if (Person::useService()->updatePersonService($tblPerson, $Person)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                . ApiPersonReadOnly::pipelineLoadBasicContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadCommonContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadChildContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadProspectContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadTeacherContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadCustodyContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadClubContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadIntegrationTitle($PersonId)
-                . ApiPersonReadOnly::pipelineLoadStudentTitle($PersonId);
+//                . ApiPersonReadOnly::pipelineLoadBasicContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadCommonContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadChildContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadProspectContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadTeacherContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadCustodyContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadClubContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadIntegrationTitle($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadStudentTitle($PersonId)
+//                . ApiAddressToPerson::pipelineLoadAddressToPersonContent($PersonId)
+//                . ApiPhoneToPerson::pipelineLoadPhoneToPersonContent($PersonId)
+//                . ApiMailToPerson::pipelineLoadMailToPersonContent($PersonId)
+//                . ApiRelationshipToPerson::pipelineLoadRelationshipToPersonContent($PersonId);
+                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblPerson->getId(), 'Group' => $GroupId)
+                );
         } else {
             return new Danger('Die Daten konnten nicht gespeichert werden');
         }
