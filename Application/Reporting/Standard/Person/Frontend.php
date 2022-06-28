@@ -753,7 +753,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Option'] = new Standard(new EyeOpen(), '/Reporting/Standard/Person/GroupList', null, array(
                         'GroupId' => $tblGroup->getId()
                     ), 'Anzeigen');
-                    array_push($TableContent, $Item);
+
+                    // nicht Gruppe Alle (Bei großen Schulen kommt hier eh ein Error 500)
+                    if ($tblGroup->getMetaTable() != 'COMMON') {
+                        array_push($TableContent, $Item);
+                    }
                 });
             }
 
@@ -809,6 +813,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Gender'                   => 'Geschlecht',
                     'Nationality'              => 'Staatsangehörigkeit',
                     'Religion'                 => 'Konfession',
+                    'Division'                 => 'aktuelle Klasse',
                     'ParticipationWillingness' => 'Mitarbeitsbereitschaft',
                     'ParticipationActivities'  => 'Mitarbeitsbereitschaft - Tätigkeiten',
                     'RemarkFrontend'           => 'Bemerkungen'
@@ -825,9 +830,9 @@ class Frontend extends Extension implements IFrontendInterface
                         'SchoolTypeB'         => 'Voranmeldung Schulart B'
                     );
                     $ColumnDefAdd = array(
-                        array('type' => 'de_date', 'targets' => 16),
                         array('type' => 'de_date', 'targets' => 17),
                         array('type' => 'de_date', 'targets' => 18),
+                        array('type' => 'de_date', 'targets' => 19),
                     );
                 }
                 if ($tblGroup->getMetaTable() == 'STUDENT') {
@@ -836,7 +841,6 @@ class Frontend extends Extension implements IFrontendInterface
                         'School'               => 'Schule',
                         'SchoolType'           => 'Schulart',
                         'SchoolCourse'         => 'Bildungsgang',
-                        'Division'             => 'aktuelle Klasse',
                         'PictureSchoolWriting' => 'Einverständnis Foto Schulschriften',
                         'PicturePublication'   => 'Einverständnis Foto Veröffentlichungen',
                         'PictureWeb'           => 'Einverständnis Foto Internetpräsenz',
@@ -873,8 +877,8 @@ class Frontend extends Extension implements IFrontendInterface
                         'ClubRemark'     => 'Bemerkung Vereinsmitglied',
                     );
                     $ColumnDefAdd = array(
-                        array('type' => 'de_date', 'targets' => 17),
                         array('type' => 'de_date', 'targets' => 18),
+                        array('type' => 'de_date', 'targets' => 19),
                     );
                 }
                 // merge used column
