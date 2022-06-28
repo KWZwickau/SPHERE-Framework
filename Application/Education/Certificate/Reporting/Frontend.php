@@ -151,7 +151,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($rankingItemList) {
-            $panelRanking = new Panel('Ranklisten für Abschlusszeugnisse', $rankingItemList, Panel::PANEL_TYPE_INFO);
+            $panelRanking = new Panel('Ranglisten für Abschlusszeugnisse', $rankingItemList, Panel::PANEL_TYPE_INFO);
         } else {
             $panelRanking = false;
         }
