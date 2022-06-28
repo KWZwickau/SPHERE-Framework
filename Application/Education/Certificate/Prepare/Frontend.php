@@ -4997,7 +4997,12 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     }
                                                 } else {
                                                     if (isset($gradeList['PS'])) {
-                                                        $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
+                                                        if (isset($gradeList['PM'])) {
+                                                            // Sonderfall Englisch
+                                                            $calc = ($gradeList['JN'] + $gradeList['PS'] + $gradeList['PM']) / 3;
+                                                        } else {
+                                                            $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
+                                                        }
                                                     } elseif (isset($gradeList['PM'])) {
                                                         $calc = ($gradeList['JN'] + $gradeList['PM']) / 2;
                                                     }
