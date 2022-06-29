@@ -185,8 +185,8 @@ class MsAbsRs extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getAdditionalSubjectLanes($personId))
-            ->addSlice((new Slice())->styleHeight('15px'))
+            ->addSlice($this->getAdditionalSubjectLanes($personId)->styleHeight('100px'))
+//            ->addSlice((new Slice())->styleHeight('15px'))
             /////////////////////////
             ->addSlice($this->getDescriptionHead($personId))
             ->addSlice($this->getDescriptionContent($personId, '200px', '15px'))

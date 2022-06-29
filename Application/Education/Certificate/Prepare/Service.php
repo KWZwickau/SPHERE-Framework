@@ -1452,7 +1452,9 @@ class Service extends AbstractService
             ) {
                 foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                     if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
-                        if ($isGradeVerbalOnDiploma) {
+                        if ($isGradeVerbalOnDiploma
+                            || (Gradebook::useService()->getGradeTextByName($tblPrepareAdditionalGrade->getGrade()) && $tblPrepareAdditionalGrade->getGrade() != '&ndash;')
+                        ) {
                             $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
                             $Content['P' . $personId]['AdditionalGrade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                         } else {
