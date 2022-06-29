@@ -112,7 +112,11 @@ class FrontendPersonPicture extends FrontendReadOnly
         $form = new Form(new FormGroup(new FormRow(array(
             new FormColumn(new Container(new Center($Image))),
             new FormColumn((new FileUpload('FileUpload', '', 'Foto hochladen '.(new ToolTip(new Info(), htmlspecialchars($ToolTipContent)))
-                    ->enableHtml()))->setRequired()),
+                    ->enableHtml()))
+                ->setRequired()
+                ->setMaxSize(1)
+
+            ),
             new FormColumn(new HiddenField('IsUpload')),
             new FormColumn(array(new Primary('Speichern', new Save()), $ButtonAbort, $ButtonDelete))
         ),
