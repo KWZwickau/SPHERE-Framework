@@ -61,8 +61,8 @@ class FrontendPersonPicture extends FrontendReadOnly
         }
 
         if(!$Image){
-            $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence - Kopie.png');
-            $Image = '<img src="'.$File->getLocation().'" style="border-radius: '.$PictureBorderRadius.'; height: '.$PictureHeight.'; margin-top: '.$PictureMarginTop.'">';
+            $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence - Kopie.jpg');
+            $Image = '<img src="'.$File->getLocation().'" style="border-radius: '.$PictureBorderRadius.'; height: '.$PictureHeight.'; margin-top: '.$PictureMarginTop.'; opacity: 0.2">';
         }
 
         return new Center((new Link($Image, '#'))->ajaxPipelineOnClick(ApiPersonPicture::pipelineEditPersonPicture($PersonId, $Group)));
@@ -114,7 +114,7 @@ class FrontendPersonPicture extends FrontendReadOnly
             new FormColumn((new FileUpload('FileUpload', '', 'Foto hochladen '.(new ToolTip(new Info(), htmlspecialchars($ToolTipContent)))
                     ->enableHtml()))
                 ->setRequired()
-                ->setMaxSize(1)
+                ->setMaxSize(6)
 
             ),
             new FormColumn(new HiddenField('IsUpload')),
