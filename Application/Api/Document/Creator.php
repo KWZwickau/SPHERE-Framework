@@ -1047,6 +1047,11 @@ class Creator extends Extension
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=Zeugnisdruck_A3.pdf");
             header("Content-Length: ".filesize($file));
+        } elseif($Select == 'ESDi') {
+            $file = "Common/Style/Resource/Document/Manual/SSW_ESDiLeistungsbeschreibung.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=ESDi_Leistungsbeschreibung.pdf");
+            header("Content-Length: ".filesize($file));
         }
 
         readfile($file);
