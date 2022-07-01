@@ -38,6 +38,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -193,6 +194,14 @@ class Service extends AbstractService
                 }
             } else {
                 $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein');
+                $Error = true;
+            }
+        }
+        // Division Zeicheneingrenzung
+        if (isset($Division['Name']) && $Division['Name'] != '') {
+            if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
+                $Form->setError('Division[Name]', 'Bitte geben Sie nur Wortzeichen [a-z][A-Z][0-9]'.
+                    new Container(' oder folgende Sonderzeichen [, -_/] ein'));
                 $Error = true;
             }
         }
@@ -1224,20 +1233,14 @@ class Service extends AbstractService
             $Error = true;
         }
 
-        // auch leere Strings sollen gespeichert werden können
-//        if (isset($Division['Name']) && empty($Division['Name'])
-//        ) {
-//            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
-//            $Error = true;
-//        }
-//        else {
-//            $tblDivisionTest =
-//                Division::useService()->getDivisionByGroupAndLevelAndYear($Division['Name'], $Division['Level'], $Division['Year']);
-//            if ($tblDivisionTest) {
-//                $Form->setError('Division[Name]', 'Name schon vergeben');
-//                $Error = true;
-//            }
-//        }
+        // Division Zeicheneingrenzung
+        if (isset($Division['Name']) && $Division['Name'] != '') {
+            if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
+                $Form->setError('Division[Name]', 'Bitte geben Sie nur Wortzeichen [a-z][A-Z][0-9]'.
+                    new Container(' oder folgende Sonderzeichen [, -_/] ein'));
+                $Error = true;
+            }
+        }
 
         if (!$Error) {
             $tblDivision = Division::useService()->getDivisionById($Id);
@@ -2040,10 +2043,6 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
-//        } else {
-//            $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an');
-//            $Error = true;
-//        }
 
         // Level
         if (!$Error) {
@@ -2052,6 +2051,15 @@ class Service extends AbstractService
             $tblLevel = (new Data($this->getBinding()))->createLevel($tblType,  $hasLevel ? $Level['Name'] : '', '');
         } else {
             $tblLevel = false;
+        }
+
+        // Division Zeicheneingrenzung
+        if (isset($Division['Name']) && $Division['Name'] != '') {
+            if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
+                $Form->setError('Division[Name]', 'Bitte geben Sie nur Wortzeichen [a-z][A-Z][0-9]'.
+                    new Container(' oder folgende Sonderzeichen [, -_/] ein'));
+                $Error = true;
+            }
         }
 
         // Create
