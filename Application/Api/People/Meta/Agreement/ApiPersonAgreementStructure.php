@@ -584,7 +584,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
         }
 
         if(empty($TypeWithCount)){
-            $TypeWithCount[] = new Success('Keine Typen zur Kategorie hinterlegt', null, false, 5, 5);
+            $TypeWithCount[] = new Success('Keine Einträge zur Kategorie hinterlegt', null, false, 5, 5);
         }
 
         $Panel = new Panel('Wollen Sie die Kategorie '.new Bold($CategoryName).' wirklich entfernen?', $TypeWithCount, Panel::PANEL_TYPE_DANGER);
@@ -655,7 +655,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
             if(Agreement::useService()->getPersonAgreementTypeByName($Meta['Type'])){
                 $form = FrontendPersonAgreement::getTypeForm();
                 // Fehler
-                $form->setError('Meta[Type]', 'Name des Typ\'s ist bereits in Verwendung');
+                $form->setError('Meta[Type]', 'Name des Eintrag\'s ist bereits in Verwendung');
                 // Buttons hinzufügen
                 $form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(array(
                     (new Primary('Speichern', '#', new Save()))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineSaveCreateType($PersonId, $CategoryId)),
@@ -721,7 +721,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
             && Agreement::useService()->getPersonAgreementTypeByName($Meta['Type'])){
                 $form = FrontendPersonAgreement::getTypeForm();
                 // Fehler
-                $form->setError('Meta[Type]', 'Name der Kategorie ist bereits in Verwendung');
+                $form->setError('Meta[Type]', 'Name des Eintrag\'s ist bereits in Verwendung');
                 // Buttons hinzufügen
                 $form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(array(
                     (new Primary('Speichern', '#', new Save()))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineSaveEditType($PersonId, $TypeId)),
@@ -783,11 +783,11 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
 
         $tblPersonAgreementType = Agreement::useService()->getPersonAgreementTypeById($TypeId);
         if(Agreement::useService()->destroyPersonAgreementType($tblPersonAgreementType)){
-            return new Success('Kategorie wurde entfernt')
+            return new Success('Eintrag wurde entfernt')
                 .ApiPersonAgreementStructure::pipelineEditPersonAgreementStructure($PersonId)
                 .ApiPersonAgreementStructure::pipelineCloseModal('ModalAgreementStructureDestroyType');
         }
-        return new Danger('Kategorie konnte nicht entfernt werden');
+        return new Danger('Eintrag konnte nicht entfernt werden');
     }
 
     /**

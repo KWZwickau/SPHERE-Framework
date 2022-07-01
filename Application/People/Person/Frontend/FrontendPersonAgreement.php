@@ -46,7 +46,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
  */
 class FrontendPersonAgreement extends FrontendReadOnly
 {
-    const TITLE = 'Datennutzung';
+    const TITLE = 'Einverständniserklärung';
 
     /**
      * @param null $PersonId
@@ -175,7 +175,7 @@ class FrontendPersonAgreement extends FrontendReadOnly
      */
     private function getEditPersonAgreementStructureTitle()
     {
-        return new Title(new TileSmall() . ' ' . self::TITLE, 'Struktur Datennutzung bearbeiten');
+        return new Title(new TileSmall() . ' ' . self::TITLE, 'Struktur Einverständniserklärung bearbeiten');
     }
 
     /**

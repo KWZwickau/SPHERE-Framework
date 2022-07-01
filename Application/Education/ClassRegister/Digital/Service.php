@@ -773,7 +773,7 @@ class Service extends AbstractService
                     }
 
                     if (Student::useService()->getStudentAgreementAllByStudent($tblStudent)) {
-                        $agreement = (new Standard('', ApiAgreement::getEndpoint(), new Check(), array(), 'Datennutzung'))
+                        $agreement = (new Standard('', ApiAgreement::getEndpoint(), new Check(), array(), 'Einverständniserklärung'))
                             ->ajaxPipelineOnClick(ApiAgreement::pipelineOpenOverViewModal($tblPerson->getId()));
                     }
                 }

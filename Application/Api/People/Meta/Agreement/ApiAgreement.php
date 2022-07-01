@@ -188,7 +188,7 @@ class ApiAgreement extends Extension implements IApiInterface
         }
 
 
-        return new Title('Datennutzung')
+        return new Title('Einverständniserklärung')
 
             .new Layout(
                 new LayoutGroup(

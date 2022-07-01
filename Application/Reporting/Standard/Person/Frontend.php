@@ -1741,7 +1741,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Stage
      */
     public function frontendStudentAgreement($Data = array()) {
-        $Stage = new Stage('Auswertung - Schüler', 'Datennutzung');
+        $Stage = new Stage('Auswertung - Schüler', 'Einverständniserklärung');
         $FilterForm = $this->getPersonStudentFilterForm();
 
         $tblYear = $tblGroup = $tblType = false;
@@ -1822,7 +1822,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ? new Warning('Bitte führen Sie die gewünschte Filterung aus')
                             : (false === $tblPersonList
                                 ? new Danger('Filterung enthält keine Personen')
-                                : new Primary('Download Datennutzung', '/Api/Reporting/Standard/Person/AgreementStudentList/Download', new Download(),
+                                : new Primary('Download Einverständniserklärung', '/Api/Reporting/Standard/Person/AgreementStudentList/Download', new Download(),
                                     array('Data' => $Data))
                                 )
                             )
@@ -1906,7 +1906,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Stage
      */
     public function frontendAgreement($Data = array()) {
-        $Stage = new Stage('Auswertung - Mitarbeiter', 'Datennutzung');
+        $Stage = new Stage('Auswertung - Mitarbeiter', 'Einverständniserklärung');
 
         $TableContent = false;
         $tblGroup = \SPHERE\Application\People\Group\Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
@@ -1963,7 +1963,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             ($TableContent && !empty($TableContent)
-                                ? new Primary('Download Datennutzung', '/Api/Reporting/Standard/Person/AgreementPersonList/Download', new Download())
+                                ? new Primary('Download Einverständniserklärung', '/Api/Reporting/Standard/Person/AgreementPersonList/Download', new Download())
                                 : ''
                             )
                         )
