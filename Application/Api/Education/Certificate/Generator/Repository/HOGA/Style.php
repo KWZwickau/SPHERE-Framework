@@ -387,12 +387,13 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    public function getCustomRating(int $personId, string $marginTop = '0px', string $height = '65px') : Slice
+    public function getCustomRating(int $personId, string $marginTop = '5px', string $height = '65px') : Slice
     {
         $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
         $slice = (new Slice())
             ->styleMarginTop($marginTop)
             ->styleHeight($height)
+            ->styleLineHeight('80%')
             ->addElement($this->getElement('Einschätzung:', self::TEXT_SIZE_NORMAL)->styleTextBold());
 
         $element = $this->getElement(
@@ -403,7 +404,7 @@ abstract class Style extends Certificate
             {% endif %}',
             self::TEXT_SIZE_SMALL
         );
-        $element->styleLineHeight('80%');
+
         if($tblSetting && $tblSetting->getValue()){
             $element->styleAlignJustify();
         }
@@ -446,6 +447,7 @@ abstract class Style extends Certificate
         $slice = (new Slice())
             ->styleMarginTop($marginTop)
             ->styleHeight($height)
+            ->styleLineHeight('80%')
             ->addElement($this->getElement('Bemerkungen:', self::TEXT_SIZE_NORMAL)->styleTextBold());
 
         $element = $this->getElement(
@@ -456,7 +458,6 @@ abstract class Style extends Certificate
             {% endif %}',
             self::TEXT_SIZE_SMALL
         );
-        $element->styleLineHeight('80%');
         if ($tblSetting && $tblSetting->getValue()) {
             $element->styleAlignJustify();
         }
