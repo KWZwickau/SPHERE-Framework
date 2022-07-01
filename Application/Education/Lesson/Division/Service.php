@@ -200,8 +200,7 @@ class Service extends AbstractService
         // Division Zeicheneingrenzung
         if (isset($Division['Name']) && $Division['Name'] != '') {
             if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
-                $Form->setError('Division[Name]', 'Bitte geben Sie nur Wortzeichen [a-z][A-Z][0-9]'.
-                    new Container(' oder folgende Sonderzeichen [, -_/] ein'));
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9, -_/]');
                 $Error = true;
             }
         }
@@ -1236,8 +1235,7 @@ class Service extends AbstractService
         // Division Zeicheneingrenzung
         if (isset($Division['Name']) && $Division['Name'] != '') {
             if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
-                $Form->setError('Division[Name]', 'Bitte geben Sie nur Wortzeichen [a-z][A-Z][0-9]'.
-                    new Container(' oder folgende Sonderzeichen [, -_/] ein'));
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9, -_/]');
                 $Error = true;
             }
         }
@@ -2056,8 +2054,7 @@ class Service extends AbstractService
         // Division Zeicheneingrenzung
         if (isset($Division['Name']) && $Division['Name'] != '') {
             if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
-                $Form->setError('Division[Name]', 'Bitte geben Sie nur Wortzeichen [a-z][A-Z][0-9]'.
-                    new Container(' oder folgende Sonderzeichen [, -_/] ein'));
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9, -_/]');
                 $Error = true;
             }
         }
