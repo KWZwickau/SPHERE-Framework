@@ -158,7 +158,7 @@ class GymAbgSekI extends Style
             ->addSlice($this->getSliceSpace('15px'))
             ->addSlice($this->getCustomSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3))->styleHeight('290px'))
             ->addSlice($this->getCustomProfile($personId, '5px', true))
-            ->addSlice($this->getCustomTeamExtra($personId)->styleHeight('40px'))
+            ->addSlice($this->getCustomTeamExtra($personId, '5px', false)->styleHeight('40px'))
             ->addSlice($this->getCustomRemark($personId, '5px', '130px'))
             ->addSlice($this->getCustomDateLine($personId))
             ->addSlice($this->getCustomSignPart($personId, true, '90px'))
