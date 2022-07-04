@@ -14,6 +14,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 abstract class Style extends Certificate
 {
@@ -2273,6 +2274,8 @@ abstract class Style extends Certificate
     /**
      * @param int $personId
      * @param string $marginTop
+     * @param bool $hasJobGrade
+     * @param bool $hasPretext
      *
      * @return Slice
      */
@@ -2344,8 +2347,14 @@ abstract class Style extends Certificate
 
                 foreach ($SubjectList as $Lane => $Subject) {
                     // lange Fächernamen
-                    $Subject['SubjectName'] = str_replace('/', ' / ',  $Subject['SubjectName']);
-                    if (strlen($Subject['SubjectName']) > 20) {
+                    $subjectName = str_replace('/', ' / ',  $Subject['SubjectName']);
+                    $marginTopGrade = self::MARGIN_TOP_GRADE_LINE;
+                    if ($subjectName == 'Volks- und Betriebswirtschaftslehre mit Rechungswesen') {
+                        $subjectName = new Container('Volks- und') . new Container('Betriebswirtschaftslehre') . new Container('mit Rechungswesen');
+                        $marginTop = '4px';
+                        $lineHeight = '60%';
+                        $marginTopGrade = '11px';
+                    } elseif (strlen($Subject['SubjectName']) > 20) {
                         $marginTop = '0px';
                         $lineHeight = '70%';
                     } else {
@@ -2358,7 +2367,7 @@ abstract class Style extends Certificate
                             , '2%');
                     }
 
-                    $SubjectSection->addElementColumn($this->getElement($Subject['SubjectName'], $textSizeSubject)
+                    $SubjectSection->addElementColumn($this->getElement($subjectName, $textSizeSubject)
                         ->styleMarginTop($marginTop)
                         ->styleLineHeight($lineHeight)
 //                        , self::SUBJECT_WIDTH . '%');
@@ -2375,7 +2384,7 @@ abstract class Style extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor(self::BACKGROUND)
                         ->stylePaddingTop(self::PADDING_TOP_GRADE)
-                        ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                        ->styleMarginTop($marginTopGrade)
                         , self::GRADE_WIDTH . '%');
                 }
 
@@ -2396,7 +2405,11 @@ abstract class Style extends Certificate
                         '{% if(Content.P' . $personId . '.Input.Job_Grade is not empty) %}
                                {{ Content.P' . $personId . '.Input.Job_Grade }}
                            {% else %}
-                               &ndash;
+                               {% if(Content.P' . $personId . '.Input.Job_Grade_Text is not empty) %}
+                                   {{ Content.P' . $personId . '.Input.Job_Grade_Text }}
+                               {% else %}
+                                   &ndash;
+                               {% endif %}
                            {% endif %}',
                         $textSizeGrade
                     )

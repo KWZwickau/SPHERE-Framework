@@ -5686,10 +5686,19 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 }
                 if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
                     foreach ($tblLeaveInformationList as $tblLeaveInformation) {
-                        $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $tblLeaveInformation->getValue();
+                        $value = $tblLeaveInformation->getValue();
+                        // HOGA\FosAbg
+                        if ($tblLeaveInformation->getField() == 'Job_Grade_Text') {
+                            switch ($value) {
+                                case 'bestanden': $value = 1; break;
+                                case 'nicht bestanden': $value = 2; break;
+                                default: $value = '';
+                            }
+                        }
+                        $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $value;
 
-                        if ($tblLeaveInformation->getField() == 'CertificateDate' && $tblLeaveInformation->getValue() != '') {
-                            $certificateDate = new DateTime($tblLeaveInformation->getValue());
+                        if ($tblLeaveInformation->getField() == 'CertificateDate' && $value != '') {
+                            $certificateDate = new DateTime($value);
                         }
 
                         if ($tblLeaveInformation->getField() == 'SubjectArea') {
@@ -6136,7 +6145,19 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             // Facharbeit
             if ($tblCertificate->getCertificate() == 'HOGA\FosAbg') {
                 $frontend = (new \SPHERE\Application\Education\Certificate\Prepare\TechnicalSchool\Frontend());
-                $panelJob = $frontend->getPanelWithoutInput('Fachpraktischer Teil der Ausbildung', 'Job', $isApproved);
+//                $panelJob = $frontend->getPanelWithoutInput('Fachpraktischer Teil der Ausbildung', 'Job', $isApproved);
+                $selectBoxJob = new SelectBox('Data[InformationList][Job_Grade_Text]', 'Fachpraktischer Teil der Ausbildung', array(
+                        1 => "bestanden",
+                        2 => "nicht bestanden"
+                    ));
+                if ($isApproved) {
+                    $selectBoxJob->setDisabled();
+                }
+                $panelJob = new Panel(
+                    'Fachpraktischer Teil der Ausbildung',
+                    $selectBoxJob,
+                    Panel::PANEL_TYPE_INFO
+                    );
                 $panelSkilledWork = $frontend->getPanel('Facharbeit', 'SkilledWork', 'Thema', $isApproved);
 
                 $subjectAreaInput = (new TextField('Data[InformationList][SubjectArea]', '', 'Fachrichtung'));

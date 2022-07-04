@@ -3574,6 +3574,14 @@ class Service extends AbstractService
                         }
                     }
 
+                    if (strpos($field, 'Job_Grade_Text') !== false) {
+                        switch ($value) {
+                            case 1: $value = 'bestanden'; break;
+                            case 2: $value = 'nicht bestanden'; break;
+                            default: $value = '';
+                        }
+                    }
+
                     if (($tblLeaveInformation = $this->getLeaveInformationBy($tblLeaveStudent, $field))) {
                         (new Data($this->getBinding()))->updateLeaveInformation($tblLeaveInformation, $value);
                     } else {
