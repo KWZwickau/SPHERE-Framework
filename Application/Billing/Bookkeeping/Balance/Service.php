@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
 use Digitick\Sepa\GroupHeader;
@@ -989,11 +988,31 @@ class Service extends AbstractService
     {
 
         $tblInvoiceList = Invoice::useService()->getInvoiceByBasket($tblBasket);
+        $SepaPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
         if(!$tblInvoiceList){
             return false;
+        } else {
+            $IsSepaReady = false;
+            // aus dem loop, sobald eine Sepa-Lastschrift gefunden wurde
+            foreach($tblInvoiceList as $tblInvoice){
+                if(($InvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                    foreach($InvoiceItemDebtorList as $InvoiceItemDebtor){
+                        if($InvoiceItemDebtor->getServiceTblPaymentType()->getId() == $SepaPaymentType->getId()){
+                            $IsSepaReady = true;
+                            break;
+                        }
+                    }
+                    if($IsSepaReady){
+                        break;
+                    }
+                }
+            }
+            if(!$IsSepaReady){
+                // keine SEPA-Lastschrift enthalten
+                return false;
+            }
         }
 
-        $SepaPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
         $InvoiceCount = 0;
 
         if($tblInvoiceList){
