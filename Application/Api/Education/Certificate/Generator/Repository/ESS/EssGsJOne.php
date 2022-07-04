@@ -29,7 +29,7 @@ class EssGsJOne extends Certificate
     {
         return array(
             1 => "wird nach Klasse 2 versetzt",
-            2 => "wiederholt freiwillig die Klassenstufe 1"
+            2 => "verbleibt in Klassenstufe 1" // SSWHD-1767
         );
     }
 
