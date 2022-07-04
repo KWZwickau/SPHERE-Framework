@@ -419,9 +419,10 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    public function getCustomTeamExtra(int $personId, string $marginTop = '3px') : Slice
+    public function getCustomTeamExtra(int $personId, string $marginTop = '3px', $isSmall = true) : Slice
     {
         return (new Slice())
+            ->styleLineHeight($isSmall ? '80%' : '100%')
             ->styleMarginTop($marginTop)
             ->addElement($this->getElement(
                 '<b>Teilnahme an zusätzlichen schulischen Veranstaltungen:</b>
@@ -430,7 +431,7 @@ abstract class Style extends Certificate
                 {% else %}
                     ---
                 {% endif %}',
-                self::TEXT_SIZE_NORMAL
+                $isSmall ? self::TEXT_SIZE_SMALL : self::TEXT_SIZE_NORMAL
             ));
     }
 
