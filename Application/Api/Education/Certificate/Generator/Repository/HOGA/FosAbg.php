@@ -75,7 +75,7 @@ class FosAbg extends Style
                     , $textSize2)->styleAlignCenter()->styleTextBold()->styleMarginTop('-5px'))
                 ->addElement($this->getElement('besucht und folgende Leistungen erreicht', $textSize)->styleAlignCenter())
             )
-            ->addSlice($this->getCustomFosSubjectLanes($personId, '5px', true, false)->styleHeight('250px'))
+            ->addSlice($this->getCustomFosSubjectLanes($personId, '5px', true, false)->styleHeight('260px'))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn($this->getElement('Bemerkungen:', $textSize)
