@@ -2500,11 +2500,11 @@ class Service extends AbstractService
                                 );
                                 if ($groups) {
                                     foreach ($groups as $item) {
-                                        if ($this->exitsSubjectStudent($item, $tblPerson)) {
+                                        if ($this->exitsSubjectStudent($item, $tblPerson) && $item->getHasGrading()) {
                                             $resultList[$item->getId()] = $item;
                                         }
                                     }
-                                } else {
+                                } elseif ($tblDivisionSubject->getHasGrading()) {
                                     $resultList[$tblDivisionSubject->getId()] = $tblDivisionSubject;
                                 }
                             }
