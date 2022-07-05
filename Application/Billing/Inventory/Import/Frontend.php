@@ -138,7 +138,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendUpload(UploadedFile $File = null, $Item = '')
     {
-        ini_set('memory_limit', '1G');
+        ini_set('memory_limit', '2G');
 
         $Stage = new Stage('Fakturierung Grunddaten', 'importieren');
 
