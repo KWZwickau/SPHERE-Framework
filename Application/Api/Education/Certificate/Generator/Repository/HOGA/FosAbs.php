@@ -46,7 +46,7 @@ class FosAbs extends Style
         }
 
         $pageList[] = (new Page())
-            ->addSlice($this->getHeader($school, '', true, true))
+            ->addSlice($this->getHeader($school, '', false, false))
             ->addSlice((new Slice())
                 ->styleMarginTop('20px')
                 ->addElement($this->getElement('Zeugnis der Fachhochschulreife', '35px')->styleTextBold()->styleAlignCenter()))

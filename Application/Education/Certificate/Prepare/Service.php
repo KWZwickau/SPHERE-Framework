@@ -1286,14 +1286,10 @@ class Service extends AbstractService
 
             // Fachnoten
             if ($tblPrepare->isGradeInformation() || ($tblPrepareStudent && !$tblPrepareStudent->isApproved())) {
-                // Abschlusszeugnisse
+                // Abschlusszeugnisse mit Extra Prüfungen, aktuell nur Fachoberschule und Oberschule
                 if ($tblCertificateType
                     && $tblCertificateType->getIdentifier() == 'DIPLOMA'
-                    && $tblSchoolType->getName() != 'Fachschule'
-                    && $tblSchoolType->getName() != 'Berufsfachschule'
-                    && $tblSchoolType->getName() != 'Berufsgrundbildungsjahr'
-//                    Fachoberschule verhält sich wie Oberschule
-//                    && $tblSchoolType->getName() != 'Fachoberschule'
+                    && ($tblSchoolType->getShortName() == 'FOS' || $tblSchoolType->getShortName() == 'OS')
                 ) {
                     // Abiturnoten werden direkt im Certificate in der API gedruckt
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
