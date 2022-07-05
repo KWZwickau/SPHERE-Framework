@@ -1719,6 +1719,8 @@ class Service extends AbstractService
             // Zeugnisdatum
             if (($tblLeaveInformationCertificateDate = $this->getLeaveInformationBy($tblLeaveStudent, 'CertificateDate'))) {
                 $Content['P' . $personId]['Input']['Date'] = $tblLeaveInformationCertificateDate->getValue();
+                $certificateDate = new DateTime($tblLeaveInformationCertificateDate->getValue());
+                $Content['P' . $personId]['Leave']['CalcEducationDateFrom'] = (new DateTime('01.08.' . ($certificateDate->format('Y') - 2)))->format('d.m.Y');
             }
 
             // Headmaster
@@ -3574,10 +3576,18 @@ class Service extends AbstractService
                         }
                     }
 
+                    // HOGA\FosAbg
                     if (strpos($field, 'Job_Grade_Text') !== false) {
                         switch ($value) {
                             case 1: $value = 'bestanden'; break;
                             case 2: $value = 'nicht bestanden'; break;
+                            default: $value = '';
+                        }
+                    }
+                    if (strpos($field, 'Exam_Text') !== false) {
+                        switch ($value) {
+                            case 1: $value = 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.'; break;
+                            case 2: $value = 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.'; break;
                             default: $value = '';
                         }
                     }

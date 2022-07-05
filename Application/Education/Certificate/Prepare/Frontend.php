@@ -5695,6 +5695,14 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 default: $value = '';
                             }
                         }
+                        if ($tblLeaveInformation->getField() == 'Exam_Text') {
+                            switch ($value) {
+                                case 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.': $value = 1; break;
+                                case 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.': $value = 2; break;
+                                default: $value = '';
+                            }
+                        }
+
                         $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $value;
 
                         if ($tblLeaveInformation->getField() == 'CertificateDate' && $value != '') {
@@ -6161,18 +6169,37 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 $panelSkilledWork = $frontend->getPanel('Facharbeit', 'SkilledWork', 'Thema', $isApproved);
 
                 $subjectAreaInput = (new TextField('Data[InformationList][SubjectArea]', '', 'Fachrichtung'));
+                $educationDateFrom = new DatePicker('Data[InformationList][EducationDateFrom]', '', 'Ausbildung Datum vom');
                 if ($isApproved) {
                     $subjectAreaInput->setDisabled();
+                    $educationDateFrom->setDisabled();
                 }
                 $panelEducation = new Panel(
                     'Ausbildung',
-                    $subjectAreaInput,
+                    array(
+                        $educationDateFrom,
+                        $subjectAreaInput
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                );
+
+                $selectBoxExam = new SelectBox('Data[InformationList][Exam_Text]', 'Abschlussprüfung', array(
+                    1 => 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.',
+                    2 => 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.'
+                ));
+                if ($isApproved) {
+                    $selectBoxExam->setDisabled();
+                }
+                $panelExam = new Panel(
+                    'Abschlussprüfung',
+                    $selectBoxExam,
                     Panel::PANEL_TYPE_INFO
                 );
             } else {
                 $panelJob = false;
                 $panelSkilledWork = false;
                 $panelEducation = false;
+                $panelExam = false;
             }
 
             $form = new Form(new FormGroup(array(
@@ -6180,6 +6207,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 $panelEducation ? new FormRow(new FormColumn($panelEducation)) : null,
                 $panelJob ? new FormRow(new FormColumn($panelJob)) : null,
                 $panelSkilledWork ? new FormRow(new FormColumn($panelSkilledWork)) : null,
+                $panelExam ? new FormRow(new FormColumn($panelExam)) : null,
                 new FormRow(new FormColumn(
                     new Panel(
                         'Sonstige Informationen',

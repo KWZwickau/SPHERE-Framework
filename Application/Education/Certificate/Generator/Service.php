@@ -562,7 +562,8 @@ class Service extends AbstractService
             'Content.Input.Job_Grade_Text'      => 'SelectBox',
             'Content.Input.Success'             => 'SelectBox',
             'Content.Input.IndustrialPlacement' => 'TextField',
-            'Content.Input.IndustrialPlacementDuration' => 'TextField'
+            'Content.Input.IndustrialPlacementDuration' => 'TextField',
+            'Content.Input.EducationDateFrom' => 'DatePicker'
         );
 
         if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVAB')){
@@ -679,7 +680,8 @@ class Service extends AbstractService
             'Content.Input.Job_Grade_Text'      => 'Fachpraktischer Teil der Ausbildung',
             'Content.Input.Success'             => 'Abschluss erfolgreich',
             'Content.Input.IndustrialPlacement' => 'Betriebspraktikum',
-            'Content.Input.IndustrialPlacementDuration' => 'Betriebspraktikum (Dauer in Wochen)'
+            'Content.Input.IndustrialPlacementDuration' => 'Betriebspraktikum (Dauer in Wochen)',
+            'Content.Input.EducationDateFrom' => 'Ausbildung Datum vom'
         );
     }
 

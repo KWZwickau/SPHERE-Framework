@@ -2403,15 +2403,11 @@ abstract class Style extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn($this->getElement('Fachpraktischer Teil der Ausbildung', self::TEXT_SIZE_NORMAL))
                     ->addElementColumn($this->getElement(
-                        '{% if(Content.P' . $personId . '.Input.Job_Grade is not empty) %}
-                               {{ Content.P' . $personId . '.Input.Job_Grade }}
-                           {% else %}
-                               {% if(Content.P' . $personId . '.Input.Job_Grade_Text is not empty) %}
-                                   {{ Content.P' . $personId . '.Input.Job_Grade_Text }}
-                               {% else %}
-                                   &ndash;
-                               {% endif %}
-                           {% endif %}',
+                        '{% if(Content.P' . $personId . '.Input.Job_Grade_Text is not empty) %}
+                           {{ Content.P' . $personId . '.Input.Job_Grade_Text }}
+                        {% else %}
+                           &ndash;
+                        {% endif %}',
                         $textSizeGrade
                     )
                         ->styleAlignCenter()
