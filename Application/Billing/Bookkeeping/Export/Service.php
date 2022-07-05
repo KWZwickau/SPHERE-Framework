@@ -238,14 +238,15 @@ class Service extends AbstractService
                     }
                 }
             } else {
+                $item['CreateUpdate'] = $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
                 // keine Zahlungszuweisung
                 // vorhandene Kontodaten
                 if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($tblPersonDebtor))){
                     foreach($tblBankAccountList as $tblBankAccount){
-                        $item['BankName'] = $tblBankAccount->getOwner();
-                        $item['IBAN'] = $tblBankAccount->getBankName();
-                        $item['BIC'] = $tblBankAccount->getIBAN();
-                        $item['Owner'] = $tblBankAccount->getBIC();
+                        $item['BankName'] = $tblBankAccount->getBankName();
+                        $item['IBAN'] = $tblBankAccount->getIBAN();
+                        $item['BIC'] = $tblBankAccount->getBIC();
+                        $item['Owner'] = $tblBankAccount->getOwner();
                         $item['CreateUpdate'] = '';
                         if(($EntityUpdate = $tblBankAccount->getEntityUpdate())){
                             $item['CreateUpdate'] = $EntityUpdate->format('d.m.Y');
