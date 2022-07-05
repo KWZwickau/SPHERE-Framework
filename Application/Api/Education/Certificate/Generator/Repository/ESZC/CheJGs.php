@@ -18,6 +18,7 @@ class CheJGs extends Certificate
 {
 
     const TEXT_SIZE = '12pt';
+    const TEXT_SIZE_SMALL = '10.5pt';
 
     /**
      * @return array
@@ -133,7 +134,7 @@ class CheJGs extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleTextSize(self::TEXT_SIZE_SMALL)
                         ->styleHeight('70px')
                     )
                 )
