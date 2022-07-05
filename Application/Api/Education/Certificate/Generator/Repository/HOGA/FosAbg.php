@@ -63,7 +63,14 @@ class FosAbg extends Style
                 )
             )
             ->addSlice((new Slice())
-                ->addElement($this->getElement('hat vom', $textSize)->styleAlignCenter())
+                ->addElement($this->getElement('hat vom 
+                    {% if(Content.P' . $personId . '.Input.EducationDateFrom is not empty) %}
+                        {{ Content.P' . $personId . '.Input.EducationDateFrom }}
+                    {% else %}
+                        {{ Content.P' . $personId . '.Leave.CalcEducationDateFrom }}
+                    {% endif %}
+                    bis {{ Content.P' . $personId . '.Input.Date }}'
+                    , $textSize)->styleAlignCenter())
                 ->addElement($this->getElement('den zweijährigen Bildungsgang der', $textSize)->styleAlignCenter())
                 ->addElement($this->getElement('Fachoberschule', $textSize2)->styleAlignCenter()->styleTextBold())
                 ->addElement($this->getElement(
@@ -94,7 +101,7 @@ class FosAbg extends Style
             ->addSlice($this->getCustomFosSkilledWork($personId))
             ->addSlice((new Slice())
                 ->addElement($this->getElement(
-                    'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.', $textSize
+                    '{{ Content.P' . $personId . '.Input.Exam_Text }} ', $textSize
                 ))
             )
             ->addSlice($this->getCustomFosSignPart($personId))

@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\HOGA;
 
+use DateTime;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
@@ -35,6 +36,14 @@ class FosAbs extends Style
         $school[] = 'Berufliches Schulzentrum';
         $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
         $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
+
+        if (($tblPrepare = $this->getTblPrepareCertificate()) && $tblPrepare->getDate()) {
+            $certificateDate = $tblPrepare->getDate();
+            $educationDateFrom = (new DateTime('01.08.' . ((new DateTime($tblPrepare->getDate()))->format('Y') - 2)))->format('d.m.Y');
+        } else {
+            $certificateDate = '';
+            $educationDateFrom = '';
+        }
 
         $pageList[] = (new Page())
             ->addSlice($this->getHeader($school, '', true, true))
@@ -77,7 +86,15 @@ class FosAbs extends Style
                 )
             )
             ->addSlice((new Slice())
-                ->addElement($this->getElement('hat vom', $textSize)->styleAlignCenter()->styleMarginTop('20px'))
+                ->addElement($this->getElement(
+                    'hat vom 
+                    {% if(Content.P' . $personId . '.Input.EducationDateFrom is not empty) %}
+                        {{ Content.P' . $personId . '.Input.EducationDateFrom }}
+                    {% else %}'
+                        . $educationDateFrom .
+                    '{% endif %}
+                    bis ' . $certificateDate
+                    , $textSize)->styleAlignCenter()->styleMarginTop('20px'))
                 ->addElement($this->getElement('den zweijährigen Bildungsgang der', $textSize)->styleAlignCenter()->styleMarginTop('-10px'))
                 ->addElement($this->getElement(
                         'Fachoberschule,
