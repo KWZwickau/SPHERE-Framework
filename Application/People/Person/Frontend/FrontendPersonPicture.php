@@ -14,12 +14,14 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
-use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
@@ -48,24 +50,30 @@ class FrontendPersonPicture extends FrontendReadOnly
     {
         $Image = '';
 
-        $PictureHeight = '362px';
+        $PictureHeight = '321px';
         $PictureBorderRadius = '10px';
         $PictureMarginTop = '49px';
+        $PictureMarginBottom = '5px';
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
 
             $tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson);
             if($tblPersonPicture){
-                $Image = $tblPersonPicture->getPicture($PictureHeight, $PictureBorderRadius, $PictureMarginTop);
+                $Image = $tblPersonPicture->getPicture($PictureHeight, $PictureBorderRadius, $PictureMarginTop, $PictureMarginBottom);
             }
         }
 
         if(!$Image){
-            $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence - Kopie.jpg');
-            $Image = '<img src="'.$File->getLocation().'" style="border-radius: '.$PictureBorderRadius.'; height: '.$PictureHeight.'; margin-top: '.$PictureMarginTop.'; opacity: 0.2">';
+            $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWIcon.png');
+            $Image = '<img src="'.$File->getLocation().'" style="border-radius: '.$PictureBorderRadius.'; height: '.$PictureHeight.';
+             margin-top: '.$PictureMarginTop.';margin-bottom: '.$PictureMarginBottom.'; opacity: 0.2">';
         }
 
-        return new Center((new Link($Image, '#'))->ajaxPipelineOnClick(ApiPersonPicture::pipelineEditPersonPicture($PersonId, $Group)));
+        return new Center($Image
+            .new Container(
+                (new PrimaryLink(new Edit(), '#'))->ajaxPipelineOnClick(ApiPersonPicture::pipelineEditPersonPicture($PersonId, $Group))
+            )
+        );
     }
 
     /**
@@ -88,12 +96,10 @@ class FrontendPersonPicture extends FrontendReadOnly
         }
 
         if(!$Image){
-            $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence - Kopie.png');
+            $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWIcon.png');
             $Image = '<img src="'.$File->getLocation().'" style="border-radius: '.$PictureBorderRadius.'; height: '.$PictureHeight.'; margin-top: '.$PictureMarginTop.'">';
         }
         $Image.= '<div style="height: 7px">&nbsp;</div>';
-
-//        $ButtonAbort = new Standard('Abbrechen', '/People/Person', new Disable(), array('Id' => $PersonId, 'Group' => $Group)); //->ajaxPipelineOnClick(ApiPersonPicture::pipelineLoadPersonPictureContent($PersonId, $Group));
         $ButtonAbort = (new Standard('Abbrechen', '/People/Person', new Disable()))->ajaxPipelineOnClick(ApiPersonPicture::pipelineLoadPersonPictureContent($PersonId, $Group));
         $ButtonDelete = new Danger('');
         if(isset($tblPersonPicture) && $tblPersonPicture){
@@ -118,7 +124,7 @@ class FrontendPersonPicture extends FrontendReadOnly
 
             ),
             new FormColumn(new HiddenField('IsUpload')),
-            new FormColumn(array(new Primary('Speichern', new Save()), $ButtonAbort, $ButtonDelete))
+            new FormColumn(array(new Primary('Speichern', new Save()), $ButtonAbort, new PullRight($ButtonDelete)))
         ),
         )),null, false);
 

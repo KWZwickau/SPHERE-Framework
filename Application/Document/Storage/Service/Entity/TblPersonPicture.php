@@ -50,11 +50,12 @@ class TblPersonPicture extends Element
     /**
      * @return string
      */
-    public function getPicture($Height = '25px', $borderRadius = '5px', $marginTop = '0px')
+    public function getPicture($Height = '25px', $borderRadius = '5px', $marginTop = '0px', $marginBottom = '0px')
     {
 
         return '<img height='.$Height.' width=auto src="data:image/jpeg;base64,'
-            .base64_encode(stream_get_contents($this->Picture)).'" style="border-radius: '.$borderRadius.'; margin-top: '.$marginTop.';"/>';
+            .base64_encode(stream_get_contents($this->Picture)).'" style="border-radius: '.$borderRadius.';
+             margin-top: '.$marginTop.'; margin-bottom: '.$marginBottom.';"/>';
 
     }
 
