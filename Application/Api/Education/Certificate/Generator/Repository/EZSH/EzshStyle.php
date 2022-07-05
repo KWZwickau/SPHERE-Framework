@@ -2066,7 +2066,8 @@ abstract class EzshStyle extends Certificate
      * @return Slice
      */
     public function getEZSHAdditionalSubjectLanes(
-        $personId
+        $personId,
+        &$count
     ) {
         $slice = new Slice();
         if (($tblGradeList = $this->getAdditionalGrade())) {
@@ -2077,20 +2078,36 @@ abstract class EzshStyle extends Certificate
             $paddingTopShrinking = '4px';
             $paddingBottomShrinking = '4px';
 
-            $count = 0;
             $section = new Section();
             foreach ($tblGradeList['Data'] as $subjectAcronym => $grade) {
                 if (($tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym))) {
                     $count++;
+
+//                    if ($count == 5) {
+//                        continue;
+//                    }
                     if ($count % 2 == 1) {
                         $section = new Section();
                         $slice->addSection($section);
                     } else {
-                        $section->addElementColumn((new Element()), 'auto');
+                        $section->addElementColumn((new Element()), '6%');
                     }
 
+                    $subjectName = $tblSubject->getName();
+//                    if ($tblSubject->getAcronym() == 'GRW') {
+//                        $subjectName = 'GRW';
+//                    }
+//                    if ($tblSubject->getAcronym() == 'PWDS') {
+//                        $subjectName = 'PWDS';
+//                    }
+
+//                    if (strpos($subjectName, 'naturwissenschaftlich-mathematisches') !== false) {
+//                        $subjectName = str_replace('-', ' - ', $subjectName);
+//                        continue;
+//                    }
+
                     $section->addElementColumn((new Element())
-                        ->setContent($tblSubject->getName())
+                        ->setContent($subjectName)
                         ->stylePaddingTop()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
@@ -2142,8 +2159,12 @@ abstract class EzshStyle extends Certificate
             }
 
             if ($count % 2 == 1) {
-                $section->addElementColumn(new Element(), 'auto');
+                $section->addElementColumn((new Element()), '53%');
             }
+        }
+
+        if ($count > 4) {
+            $slice->styleHeight('130px');
         }
 
         return $slice;
