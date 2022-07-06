@@ -5484,13 +5484,6 @@ class Service extends AbstractService
      */
     private function setCalcValueFOS(array $gradeListFOS, array $Content, TblPerson $tblPerson, TblPrepareCertificate $tblPrepareCertificate): array
     {
-        // die Noten für "Fachpraktischer Teil der Ausbildung" wird bei den Sonstigen Informationen gespeichert
-        if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareCertificate, $tblPerson, 'Job_Grade'))) {
-            if ($tblPrepareInformation->getValue() && intval($tblPrepareInformation->getValue())) {
-                $gradeListFOS[] = $tblPrepareInformation->getValue();
-            }
-        }
-
         $calcValueFOS = round(floatval(array_sum($gradeListFOS)) / count($gradeListFOS), 1);
         $calcValueFOS = str_replace('.', ',', $calcValueFOS);
         $Content['P' . $tblPerson->getId()]['Calc']['AddEducation_Average'] = $calcValueFOS;
