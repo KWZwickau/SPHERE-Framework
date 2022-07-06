@@ -213,7 +213,7 @@ class CheJGs extends Certificate
                                     &nbsp;
                                 {% endif %}')
                         ->styleHeight('62px')
-                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleTextSize(self::TEXT_SIZE_SMALL)
                     )
                 )
                 ->styleMarginTop('10px')
