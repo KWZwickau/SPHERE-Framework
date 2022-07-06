@@ -12,6 +12,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Application\People\Person\Frontend\FrontendCustody;
 use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
+use SPHERE\Application\People\Person\Frontend\FrontendProspectTransfer;
 use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentAgreement;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentGeneral;
@@ -51,6 +52,7 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadCommonContent');
         $Dispatcher->registerMethod('loadPersonAgreementContent');
         $Dispatcher->registerMethod('loadProspectContent');
+        $Dispatcher->registerMethod('loadProspectTransferContent');
         $Dispatcher->registerMethod('loadTeacherContent');
         $Dispatcher->registerMethod('loadCustodyContent');
         $Dispatcher->registerMethod('loadClubContent');
@@ -161,6 +163,27 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $emitter = new ServerEmitter(self::receiverBlock('', 'ProspectContent'), self::getEndpoint());
         $emitter->setGetPayload(array(
             self::API_TARGET => 'loadProspectContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadProspectTransferContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'ProspectTransferContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadProspectTransferContent',
         ));
         $emitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -571,6 +594,17 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     {
 
         return FrontendProspect::getProspectContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadProspectTransferContent($PersonId = null)
+    {
+
+        return FrontendProspectTransfer::getProspectTransferContent($PersonId);
     }
 
     /**

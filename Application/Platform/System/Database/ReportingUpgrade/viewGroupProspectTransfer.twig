@@ -1,0 +1,72 @@
+SELECT DISTINCT
+
+    tM.serviceTblPerson AS TblPerson_Id,
+    tS.Id AS TblStudent_Id,
+
+    -- Company Abgebende Schule
+    (select
+		CONCAT (tC.Name,
+			' ',
+			tC.ExtendedName,
+            ' ',
+			tC.Description)
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tC ON tC.Id = tST.serviceTblCompany
+    where tST.tblStudent =  tS.Id
+        and tSTT.Identifier = 'ARRIVE'
+    ) AS TblCompanyArrive_Name,
+
+    -- Company Aufnahme Staatliche Stammschule
+    (select
+    CONCAT (tC.Name,
+			' ',
+			tC.ExtendedName,
+            ' ',
+			tC.Description)
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tC ON tC.Id = tST.serviceTblStateCompany
+    where tST.tblStudent =  tS.Id
+        and tSTT.Identifier = 'ARRIVE'
+    ) AS TblStateCompanyArrive_Name,
+
+    -- other infos
+    (select distinct
+        tT.Name
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolType.tblType tT ON tST.serviceTblType = tT.Id
+    where tST.tblStudent =  tS.Id
+        and tSTT.Identifier = 'ARRIVE'
+    ) AS TblStudentTransferArrive_Type,
+    (select distinct
+        tC.Name
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+        LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolCourse.tblCourse tC ON tC.Id = tST.serviceTblCourse
+    where tST.tblStudent =  tS.Id
+        and tSTT.Identifier = 'ARRIVE'
+    ) AS TblStudentTransferArrive_Course,
+    (select distinct
+        DATE_FORMAT( tST.TransferDate, '%d.%m.%Y' ) AS TblStudentTransfer_TransferDate
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+    where tST.tblStudent =  tS.Id
+        and tSTT.Identifier = 'ARRIVE'
+    ) AS TblStudentTransferArrive_TransferDate,
+    (select distinct
+        tST.Remark AS TblStudentTransfer_Remark
+    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
+    where tST.tblStudent =  tS.Id
+        and tSTT.Identifier = 'ARRIVE'
+    ) AS TblStudentTransferArrive_Remark
+
+FROM {{ ConsumerAcronym }}_PeopleGroup.tblMember tM
+	LEFT JOIN {{ ConsumerAcronym }}_PeopleGroup.tblGroup tG ON tG.Id = tM.TblGroup
+		AND tG.EntityRemove IS NULL
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS ON tS.serviceTblPerson = tM.serviceTblPerson
+
+WHERE tG.MetaTable = 'PROSPECT'
+	AND tM.EntityRemove IS NULL
