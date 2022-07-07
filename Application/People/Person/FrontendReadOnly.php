@@ -191,7 +191,6 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $custodyContent
                 . $clubContent
                 . $integrationContent
-
                 . $addressContent
                 . $phoneContent
                 . $mailContent
