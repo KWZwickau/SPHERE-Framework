@@ -140,7 +140,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Auswertung der Prüfungsnoten für die LaSuB für Fachoberschulabschlusszeugnisse herunterladen'
                 )));
         }
-        if (!$typeList || isset($typeList['Gy']) || isset($typeList['Gy'])) {
+        if (!$typeList || isset($typeList['Gy']) || isset($typeList['BGy'])) {
             if (($tblYearList = Term::useService()->getYearByNow())
                 && ($tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy'))
                 && ($tblSchoolTypeBGy = Type::useService()->getTypeByShortName('BGy'))
