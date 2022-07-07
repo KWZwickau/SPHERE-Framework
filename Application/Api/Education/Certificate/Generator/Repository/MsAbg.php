@@ -41,6 +41,8 @@ class MsAbg extends Certificate
                 ? (new Element\Sample())->styleTextSize('30px')
                 : (new Element)->setContent('&nbsp;')->styleTextSize('30px')
             );
+        } elseif (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESBD')) {
+            $Header = MsAbsRs::getHeadForDiploma($this->isSample(), true);
         } else {
             $Header = $this->getHead($this->isSample());
         }

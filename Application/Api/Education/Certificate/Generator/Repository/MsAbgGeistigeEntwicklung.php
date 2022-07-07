@@ -38,6 +38,8 @@ class MsAbgGeistigeEntwicklung extends Certificate
 
         if (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
             $Header = $this->getHead($this->isSample(), true, false);
+        } elseif (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESBD')) {
+            $Header = MsAbsRs::getHeadForDiploma($this->isSample(), true);
         } else {
             $Header = $this->getHead($this->isSample());
         }
