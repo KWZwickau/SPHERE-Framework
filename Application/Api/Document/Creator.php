@@ -163,7 +163,12 @@ class Creator extends Extension
                 foreach($tblPersonList as $tblPerson){
                     $Document = new GradebookOverview\GradebookOverview();
                     $documentName = $Document->getName();
+                    // Test eine Person für schnelleres Testen
+//                    if(empty($pageList)){
+//                        $pageList[] = $Document->buildPage($tblPerson, $tblDivision);
+//                    }
                     $pageList[] = $Document->buildPage($tblPerson, $tblDivision);
+
                     // Tmp welches nicht sofort gelöscht werden soll (braucht man noch zum mergen)
 
 //                    // hinzufügen für das mergen
