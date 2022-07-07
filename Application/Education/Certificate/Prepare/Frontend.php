@@ -4997,7 +4997,12 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     }
                                                 } else {
                                                     if (isset($gradeList['PS'])) {
-                                                        $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
+                                                        if (isset($gradeList['PM'])) {
+                                                            // Sonderfall Englisch
+                                                            $calc = ($gradeList['JN'] + $gradeList['PS'] + $gradeList['PM']) / 3;
+                                                        } else {
+                                                            $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
+                                                        }
                                                     } elseif (isset($gradeList['PM'])) {
                                                         $calc = ($gradeList['JN'] + $gradeList['PM']) / 2;
                                                     }
@@ -5396,8 +5401,13 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 } else {
                     if ($tblType) {
                         if ($tblType->getName() == 'Mittelschule / Oberschule') {
-//                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbg');
-                            return $this->getSelectLeaveCertificateStage($tblPerson, $tblDivision, $tblType, $tblCourse ? $tblCourse : null, $Data);
+                            // Herrnhut hat ein individuelles Abgangszeugnis
+                            if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')) {
+                                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshMsAbg');
+                            } else {
+                                // Auswahl der Zeugnisvorlage, da es mehrere gibt
+                                return $this->getSelectLeaveCertificateStage($tblPerson, $tblDivision, $tblType, $tblCourse ? $tblCourse : null, $Data);
+                            }
                         } elseif ($tblType->getName() == 'Gymnasium') {
                             if ($tblLevel) {
                                 // Herrnhut hat ein individuelles Abgangszeugnis
@@ -5676,10 +5686,27 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 }
                 if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
                     foreach ($tblLeaveInformationList as $tblLeaveInformation) {
-                        $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $tblLeaveInformation->getValue();
+                        $value = $tblLeaveInformation->getValue();
+                        // HOGA\FosAbg
+                        if ($tblLeaveInformation->getField() == 'Job_Grade_Text') {
+                            switch ($value) {
+                                case 'bestanden': $value = 1; break;
+                                case 'nicht bestanden': $value = 2; break;
+                                default: $value = '';
+                            }
+                        }
+                        if ($tblLeaveInformation->getField() == 'Exam_Text') {
+                            switch ($value) {
+                                case 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.': $value = 1; break;
+                                case 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.': $value = 2; break;
+                                default: $value = '';
+                            }
+                        }
 
-                        if ($tblLeaveInformation->getField() == 'CertificateDate' && $tblLeaveInformation->getValue() != '') {
-                            $certificateDate = new DateTime($tblLeaveInformation->getValue());
+                        $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $value;
+
+                        if ($tblLeaveInformation->getField() == 'CertificateDate' && $value != '') {
+                            $certificateDate = new DateTime($value);
                         }
 
                         if ($tblLeaveInformation->getField() == 'SubjectArea') {
@@ -6023,6 +6050,17 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     $arrangementTextArea,
                     $remarkTextArea
                 );
+            } elseif ($tblCertificate->getCertificate() == 'EZSH\EzshMsAbg') {
+                $remarkTextArea = new TextArea('Data[InformationList][RemarkWithoutTeam]', '', 'Bemerkungen');
+
+                if ($isApproved) {
+                    $datePicker->setDisabled();
+                    $remarkTextArea->setDisabled();
+                }
+                $otherInformationList = array(
+                    $datePicker,
+                    $remarkTextArea
+                );
             } else {
                 if ($tblCertificate->getCertificate() == 'MsAbgLernen'
                     || $tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung'
@@ -6067,7 +6105,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     array($radio1, $radio2),
                     Panel::PANEL_TYPE_DEFAULT
                 );
-            } elseif ($tblCertificate->getCertificate() == 'MsAbg' || $tblCertificate->getCertificate() == 'HOGA\MsAbg') {
+            } elseif ($tblCertificate->getCertificate() == 'MsAbg'
+                || $tblCertificate->getCertificate() == 'EZSH\EzshMsAbg'
+                || $tblCertificate->getCertificate() == 'HOGA\MsAbg'
+            ) {
                 $radio1 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
                     'gemäß § 6 Absatz 1 Satz 7 des Sächsischen Schulgesetzes mit der Versetzung in die Klassenstufe 10
@@ -6112,22 +6153,53 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             // Facharbeit
             if ($tblCertificate->getCertificate() == 'HOGA\FosAbg') {
                 $frontend = (new \SPHERE\Application\Education\Certificate\Prepare\TechnicalSchool\Frontend());
-                $panelJob = $frontend->getPanelWithoutInput('Fachpraktischer Teil der Ausbildung', 'Job', $isApproved);
+//                $panelJob = $frontend->getPanelWithoutInput('Fachpraktischer Teil der Ausbildung', 'Job', $isApproved);
+                $selectBoxJob = new SelectBox('Data[InformationList][Job_Grade_Text]', 'Fachpraktischer Teil der Ausbildung', array(
+                        1 => "bestanden",
+                        2 => "nicht bestanden"
+                    ));
+                if ($isApproved) {
+                    $selectBoxJob->setDisabled();
+                }
+                $panelJob = new Panel(
+                    'Fachpraktischer Teil der Ausbildung',
+                    $selectBoxJob,
+                    Panel::PANEL_TYPE_INFO
+                    );
                 $panelSkilledWork = $frontend->getPanel('Facharbeit', 'SkilledWork', 'Thema', $isApproved);
 
                 $subjectAreaInput = (new TextField('Data[InformationList][SubjectArea]', '', 'Fachrichtung'));
+                $educationDateFrom = new DatePicker('Data[InformationList][EducationDateFrom]', '', 'Ausbildung Datum vom');
                 if ($isApproved) {
                     $subjectAreaInput->setDisabled();
+                    $educationDateFrom->setDisabled();
                 }
                 $panelEducation = new Panel(
                     'Ausbildung',
-                    $subjectAreaInput,
+                    array(
+                        $educationDateFrom,
+                        $subjectAreaInput
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                );
+
+                $selectBoxExam = new SelectBox('Data[InformationList][Exam_Text]', 'Abschlussprüfung', array(
+                    1 => 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.',
+                    2 => 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.'
+                ));
+                if ($isApproved) {
+                    $selectBoxExam->setDisabled();
+                }
+                $panelExam = new Panel(
+                    'Abschlussprüfung',
+                    $selectBoxExam,
                     Panel::PANEL_TYPE_INFO
                 );
             } else {
                 $panelJob = false;
                 $panelSkilledWork = false;
                 $panelEducation = false;
+                $panelExam = false;
             }
 
             $form = new Form(new FormGroup(array(
@@ -6135,6 +6207,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 $panelEducation ? new FormRow(new FormColumn($panelEducation)) : null,
                 $panelJob ? new FormRow(new FormColumn($panelJob)) : null,
                 $panelSkilledWork ? new FormRow(new FormColumn($panelSkilledWork)) : null,
+                $panelExam ? new FormRow(new FormColumn($panelExam)) : null,
                 new FormRow(new FormColumn(
                     new Panel(
                         'Sonstige Informationen',

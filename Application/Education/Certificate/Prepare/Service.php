@@ -1286,14 +1286,10 @@ class Service extends AbstractService
 
             // Fachnoten
             if ($tblPrepare->isGradeInformation() || ($tblPrepareStudent && !$tblPrepareStudent->isApproved())) {
-                // Abschlusszeugnisse
+                // Abschlusszeugnisse mit Extra Prüfungen, aktuell nur Fachoberschule und Oberschule
                 if ($tblCertificateType
                     && $tblCertificateType->getIdentifier() == 'DIPLOMA'
-                    && $tblSchoolType->getName() != 'Fachschule'
-                    && $tblSchoolType->getName() != 'Berufsfachschule'
-                    && $tblSchoolType->getName() != 'Berufsgrundbildungsjahr'
-//                    Fachoberschule verhält sich wie Oberschule
-//                    && $tblSchoolType->getName() != 'Fachoberschule'
+                    && ($tblSchoolType->getShortName() == 'FOS' || $tblSchoolType->getShortName() == 'OS')
                 ) {
                     // Abiturnoten werden direkt im Certificate in der API gedruckt
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
@@ -1452,7 +1448,9 @@ class Service extends AbstractService
             ) {
                 foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                     if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
-                        if ($isGradeVerbalOnDiploma) {
+                        if ($isGradeVerbalOnDiploma
+                            || (Gradebook::useService()->getGradeTextByName($tblPrepareAdditionalGrade->getGrade()) && $tblPrepareAdditionalGrade->getGrade() != '&ndash;')
+                        ) {
                             $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
                             $Content['P' . $personId]['AdditionalGrade']['Data']['IsShrinkSize'][$tblSubject->getAcronym()] = true;
                         } else {
@@ -1717,6 +1715,8 @@ class Service extends AbstractService
             // Zeugnisdatum
             if (($tblLeaveInformationCertificateDate = $this->getLeaveInformationBy($tblLeaveStudent, 'CertificateDate'))) {
                 $Content['P' . $personId]['Input']['Date'] = $tblLeaveInformationCertificateDate->getValue();
+                $certificateDate = new DateTime($tblLeaveInformationCertificateDate->getValue());
+                $Content['P' . $personId]['Leave']['CalcEducationDateFrom'] = (new DateTime('01.08.' . ($certificateDate->format('Y') - 2)))->format('d.m.Y');
             }
 
             // Headmaster
@@ -3569,6 +3569,22 @@ class Service extends AbstractService
                             $value = $tblGradeText->getName();
                         } else {
                             $value = '';
+                        }
+                    }
+
+                    // HOGA\FosAbg
+                    if (strpos($field, 'Job_Grade_Text') !== false) {
+                        switch ($value) {
+                            case 1: $value = 'bestanden'; break;
+                            case 2: $value = 'nicht bestanden'; break;
+                            default: $value = '';
+                        }
+                    }
+                    if (strpos($field, 'Exam_Text') !== false) {
+                        switch ($value) {
+                            case 1: $value = 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.'; break;
+                            case 2: $value = 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.'; break;
+                            default: $value = '';
                         }
                     }
 
@@ -5468,13 +5484,6 @@ class Service extends AbstractService
      */
     private function setCalcValueFOS(array $gradeListFOS, array $Content, TblPerson $tblPerson, TblPrepareCertificate $tblPrepareCertificate): array
     {
-        // die Noten für "Fachpraktischer Teil der Ausbildung" wird bei den Sonstigen Informationen gespeichert
-        if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareCertificate, $tblPerson, 'Job_Grade'))) {
-            if ($tblPrepareInformation->getValue() && intval($tblPrepareInformation->getValue())) {
-                $gradeListFOS[] = $tblPrepareInformation->getValue();
-            }
-        }
-
         $calcValueFOS = round(floatval(array_sum($gradeListFOS)) / count($gradeListFOS), 1);
         $calcValueFOS = str_replace('.', ',', $calcValueFOS);
         $Content['P' . $tblPerson->getId()]['Calc']['AddEducation_Average'] = $calcValueFOS;

@@ -217,10 +217,13 @@ abstract class Certificate extends Extension
 
         // SSW-1026 schmaler Zeugnisrand und SSW-1037
         if ((strpos($certificate, 'GymAbitur') !== false
+            || strpos($certificate, 'GymAbgSekI') !== false
             || strpos($certificate, 'GymAbgSekII') !== false
             || strpos($certificate, 'MsAbs') !== false
             || strpos($certificate, 'MsAbg') !== false)
-            && $tblConsumer && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
+            && $tblConsumer
+            && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
+            && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')
         ) {
             $InjectStyle = '';
         }
@@ -528,7 +531,7 @@ abstract class Certificate extends Extension
      *
      * @return Slice
      */
-    protected function getHead($IsSample, $isBigLogo = true)
+    protected function getHead($IsSample, $isBigLogo = true, $showIndividualLogo = true)
     {
 
         $isOS = false;
@@ -539,8 +542,13 @@ abstract class Certificate extends Extension
             $isOS = true;
         }
 
-        $picturePath = $this->getUsedPicture($isOS);
-        $IndividuallyLogoHeight = $this->getPictureHeight($isOS);
+        if ($showIndividualLogo) {
+            $picturePath = $this->getUsedPicture($isOS);
+            $IndividuallyLogoHeight = $this->getPictureHeight($isOS);
+        } else {
+            $picturePath = '';
+            $IndividuallyLogoHeight = '66px';
+        }
 
         $StandardLogoHeight = '50px';
         $StandardLogoWidth = '165px';

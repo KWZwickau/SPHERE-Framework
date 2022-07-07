@@ -71,7 +71,7 @@ class Export implements IModuleInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Export der Grunddaten für SEK II', $PanelMetaExport
+                            new Panel('Export der Schüler-Grunddaten', $PanelMetaExport
                                 , Panel::PANEL_TYPE_INFO)
                             , 4),
                     ))

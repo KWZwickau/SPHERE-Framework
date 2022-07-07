@@ -875,8 +875,10 @@ class Data extends AbstractData
 
             // kopieren der nicht freigegeben Fachnoten
             foreach ($divisionList as $tblDivisionItem) {
-                // Abschlusszeugnisse
-                if ($isDiploma) {
+                // Abschlusszeugnisse mit Extra Prüfungen, aktuell nur Fachoberschule und Oberschule
+                if ($isDiploma && ($typeShortName = $tblDivisionItem->getTypeShortName())
+                    && ($typeShortName == 'FOS' || $typeShortName == 'OS')
+                ) {
                     if ((($tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
                         && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
                     ) {
@@ -1105,10 +1107,12 @@ class Data extends AbstractData
                 }
             }
 
-            // kopieren der  Fachnoten
+            // kopieren der Fachnoten
             foreach ($divisionList as $tblDivisionItem) {
-                // Abschlusszeugnisse
-                if ($isDiploma) {
+                // Abschlusszeugnisse mit Extra Prüfungen, aktuell nur Fachoberschule und Oberschule
+                if ($isDiploma && ($typeShortName = $tblDivisionItem->getTypeShortName())
+                    && ($typeShortName == 'FOS' || $typeShortName == 'OS')
+                ) {
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
                         && ($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy(
                             $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType

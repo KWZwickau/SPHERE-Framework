@@ -87,7 +87,7 @@ class CmsMsJExt extends CmsStyle
                 )
                 ->addSection((new Section())
                     ->addSliceColumn(
-                        self::getCMSSubjectLanes($personId)
+                        self::getCMSSubjectLanes($personId, true, '295px')
                     )
                 )
                 ->addElement((new Element())
