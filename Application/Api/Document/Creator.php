@@ -215,7 +215,7 @@ class Creator extends Extension
         $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT, $isDestruction = true, $part = '0')
     {
 
-        ini_set('memory_limit', '1G');
+        ini_set('memory_limit', '2G');
         set_time_limit(300);
 
         // Create Tmp
