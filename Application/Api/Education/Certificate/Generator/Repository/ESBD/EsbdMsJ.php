@@ -56,7 +56,7 @@ class EsbdMsJ extends EsbdStyle
             ->addSlice($this->getDivisionAndYearConsumer($personId, '20px'))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSlice($this->getCourseConsumer($personId))
-            ->addSlice($this->getGradeLanes($personId))
+            ->addSlice($this->getGradeLanes($personId, '14px', false, '5px'))
             ->addSlice($this->getGradeInfo())
             ->addSlice((new Slice())
                 ->addElement((new Element())
