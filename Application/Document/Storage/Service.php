@@ -22,7 +22,6 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -592,7 +591,6 @@ class Service extends AbstractService
             }
             if($ArrayExeption){
                 foreach($ArrayExeption as &$ExeptionMessage){
-                    Debugger::devDump($ExeptionMessage);
                     switch ($ExeptionMessage){
                         case 'The uploaded file exceeds the upload_max_filesize directive in php.ini':
                             $ExeptionMessage = 'Der Anhang überschreitet die maximale Größe von '.ini_get('upload_max_filesize').'B';
@@ -608,7 +606,6 @@ class Service extends AbstractService
                 unlink($_FILES['FileUpload']['tmp_name']);
             }
             $_POST['IsUpload'] = $IsUpload;
-            $Error = true;
             return $form;
         }
     }

@@ -71,7 +71,7 @@ class FrontendPersonPicture extends FrontendReadOnly
 
         return new Center($Image
             .new Container(
-                (new PrimaryLink(new Edit(), '#'))->ajaxPipelineOnClick(ApiPersonPicture::pipelineEditPersonPicture($PersonId, $Group))
+                (new PrimaryLink(new Edit(), '/Api/Document/Storage/ApiPersonPicture'))->ajaxPipelineOnClick(ApiPersonPicture::pipelineEditPersonPicture($PersonId, $Group))
             )
         );
     }
@@ -100,10 +100,10 @@ class FrontendPersonPicture extends FrontendReadOnly
             $Image = '<img src="'.$File->getLocation().'" style="border-radius: '.$PictureBorderRadius.'; height: '.$PictureHeight.'; margin-top: '.$PictureMarginTop.'">';
         }
         $Image.= '<div style="height: 7px">&nbsp;</div>';
-        $ButtonAbort = (new Standard('Abbrechen', '/People/Person', new Disable()))->ajaxPipelineOnClick(ApiPersonPicture::pipelineLoadPersonPictureContent($PersonId, $Group));
+        $ButtonAbort = (new Standard('Abbrechen', '/Api/Document/Storage/ApiPersonPicture', new Disable()))->ajaxPipelineOnClick(ApiPersonPicture::pipelineLoadPersonPictureContent($PersonId, $Group));
         $ButtonDelete = new Danger('');
         if(isset($tblPersonPicture) && $tblPersonPicture){
-            $ButtonDelete = (new DangerLink('Löschen', '#', new Disable()))->ajaxPipelineOnClick(ApiPersonPicture::pipelineRemovePersonPicture($PersonId, $Group));
+            $ButtonDelete = (new DangerLink('Löschen', '/Api/Document/Storage/ApiPersonPicture', new Disable()))->ajaxPipelineOnClick(ApiPersonPicture::pipelineRemovePersonPicture($PersonId, $Group));
         }
         $IsUpload = 0;
         if(!$FileUpload){
