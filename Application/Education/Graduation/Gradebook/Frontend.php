@@ -3,9 +3,11 @@
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use DateTime;
+use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
@@ -71,6 +73,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -82,6 +85,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -983,6 +987,7 @@ class Frontend extends FrontendScoreRule
         $periodListCount = array();
         $columnDefinition['Number'] = '#';
         $columnDefinition['Student'] = "Schüler";
+        $columnDefinition['Picture'] = "Foto";
         $columnDefinition['Integration'] = "Integration";
         if ($showCourse) {
             $columnDefinition['Course'] = new ToolTip('Bg', 'Bildungsgang');
@@ -1107,6 +1112,12 @@ class Frontend extends FrontendScoreRule
                 $data['Number'] = $isStrikeThrough ? new Strikethrough($number) : $number;
                 $data['againStudent'] = $data['Student'] = $isStrikeThrough
                     ? new Strikethrough($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
+                $data['Picture'] = '';
+                if(($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))){
+                    $data['Picture'] = new Center((new Link($tblPersonPicture->getPicture(), $tblPerson->getId()))
+                        ->ajaxPipelineOnClick(ApiPersonPicture::pipelineShowPersonPicture($tblPerson->getId())));
+                }
+
                 if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                     $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                         ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
@@ -1306,7 +1317,8 @@ class Frontend extends FrontendScoreRule
                         "targets"   => '_all',
                     ),
                     array('width' => '1%', 'targets' => 0),
-                    array('width' => '2%', 'targets' => 2),
+                    array('width' => '1%', 'targets' => 2),
+                    array('width' => '2%', 'targets' => 3),
                 ),
                 'pageLength' => -1,
                 'paging' => false,
@@ -1317,7 +1329,7 @@ class Frontend extends FrontendScoreRule
 
         // oberste Tabellen-Kopf-Zeile erstellen
         $headTableColumnList = array();
-        $headTableColumnList[] = new TableColumn('', $showCourse ? 4 : 3, '20%');
+        $headTableColumnList[] = new TableColumn('', $showCourse ? 5 : 4, '20%');
         if (!empty($periodListCount)) {
             $countTemp = 0;
             foreach ($periodListCount as $periodId => $count) {
@@ -1343,6 +1355,7 @@ class Frontend extends FrontendScoreRule
 
         $Stage->setContent(
             ApiSupportReadOnly::receiverOverViewModal()
+            .ApiPersonPicture::receiverModal()
             .new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
@@ -2774,6 +2787,7 @@ class Frontend extends FrontendScoreRule
             $personData = array();
             $tableHeaderList['Number'] = 'Nummer';
             $tableHeaderList['Name'] = 'Name';
+            $tableHeaderList['Picture'] = 'Foto';
             $tableHeaderList['Integration'] = 'Integration';
             $tblDivisionList = array();
             $sumSubjectAverage = array();
@@ -2885,6 +2899,12 @@ class Frontend extends FrontendScoreRule
                     $data = array();
                     $data['Number'] = $count++;
                     $data['Name'] = $tblPerson->getLastFirstName();
+                    $data['Picture'] = '';
+                    if(($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))){
+                        $data['Picture'] = new Center((new Link($tblPersonPicture->getPicture(), $tblPerson->getId()))
+                            ->ajaxPipelineOnClick(ApiPersonPicture::pipelineShowPersonPicture($tblPerson->getId())));
+                    }
+
                     if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                         $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                             ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
@@ -3026,8 +3046,9 @@ class Frontend extends FrontendScoreRule
             ));
 
             $Stage->setContent(
-                ApiSupportReadOnly::receiverOverViewModal()
-               .new Layout(array(
+                 ApiSupportReadOnly::receiverOverViewModal()
+                .ApiPersonPicture::receiverModal()
+                .new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
@@ -3041,13 +3062,13 @@ class Frontend extends FrontendScoreRule
                                 new TableData($studentTable, null, $tableHeaderList,
                                     array(
                                         "columnDefs" => array(
-                                            array('width' => '6%', 'targets' => 2),
+                                            array('width' => '3%', 'targets' => 2),
+                                            array('width' => '6%', 'targets' => 3),
                                             array('orderable' => false, 'targets' => -1),
                                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                         ),
                                         'pageLength' => -1,
                                         'responsive' => false,
-
                                     )
                                 )
                             ))

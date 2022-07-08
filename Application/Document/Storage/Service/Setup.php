@@ -3,6 +3,7 @@ namespace SPHERE\Application\Document\Storage\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Types\Type;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
@@ -31,6 +32,7 @@ class Setup extends AbstractSetup
         $tblFile = $this->setTableFile($Schema, $tblDirectory, $tblBinary, $tblFileType);
         $tblReferenceType = $this->setTableReferenceType($Schema);
         $this->setTableReference($Schema, $tblFile, $tblReferenceType);
+        $this->setTablePersonPicture($Schema);
         /**
          * Migration & Protocol
          */
@@ -224,6 +226,21 @@ class Setup extends AbstractSetup
         }
         $this->getConnection()->addForeignKey($Table, $tblFile, true);
         $this->getConnection()->addForeignKey($Table, $tblReferenceType, true);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTablePersonPicture(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblPersonPicture');
+        $this->createColumn($Table, 'serviceTblPerson', Type::BIGINT);
+        $this->createColumn($Table, 'Picture', Type::BLOB);
+
         return $Table;
     }
 }

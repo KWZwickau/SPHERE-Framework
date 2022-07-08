@@ -9,12 +9,21 @@ use SPHERE\Application\Document\Storage\Service\Entity\TblFile;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFileCategory;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFileType;
 use SPHERE\Application\Document\Storage\Service\Entity\TblPartition;
+use SPHERE\Application\Document\Storage\Service\Entity\TblPersonPicture;
 use SPHERE\Application\Document\Storage\Service\Entity\TblReferenceType;
 use SPHERE\Application\Document\Storage\Service\Setup;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Class Service
@@ -399,5 +408,233 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->updateFile($tblFile, $tblBinary, $Description);
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param int|null            $PersonId
+     * @param UploadedFile|null   $FileUpload
+     *
+     * @return IFormInterface|string|null
+     */
+    public function uploadNow(IFormInterface &$form = null, $PersonId = null, UploadedFile $FileUpload = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $FileUpload
+        ) {
+            return $form;
+        }
+
+        if (!$FileUpload) {
+            $form->setError('FileUpload', 'Bitte wählen Sie eine Datei');
+            return $form;
+        }
+
+        try {
+            if($_FILES['FileUpload']['error']){
+                $form->setError('FileUpload', 'Datei überschreitet die Grenzwerte.');
+                return $form;
+            }
+            switch ($_FILES['FileUpload']['type']) {
+                case 'image/jpg':
+                case 'image/jpeg':
+                case 'image/png':
+                case 'image/git':
+                    break;
+                default:
+                    $form->setError('FileUpload', 'Datei mit dem MimeType ('.$_FILES['FileUpload']['type'].') ist nicht erlaubt.');
+                    return $form;
+            }
+
+            $maxDim = 500;
+            $fileName = $_FILES['FileUpload']['tmp_name'];
+            list($width, $height) = getimagesize( $fileName );
+            if ( $width > $maxDim || $height > $maxDim ){
+                $ratio = $width / $height;
+                if($ratio > 1){
+                    $newWidth = $maxDim;
+                    $newHeight = $maxDim / $ratio;
+                } else {
+                    $newWidth = $maxDim * $ratio;
+                    $newHeight = $maxDim;
+                }
+            } else {
+                $newWidth = $width;
+                $newHeight = $height;
+            }
+
+            // skalieren
+            $src = imagecreatefromstring(file_get_contents($fileName));
+            $dst = imagecreatetruecolor($newWidth, $newHeight);
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagejpeg($dst, $fileName); // adjust format as needed
+            imagedestroy($src);
+            imagedestroy($dst);
+            //            $Dimension = $Upload->getDimensions();
+            if(!($tblPerson = Person::useService()->getPersonById($PersonId))){
+                $form .= new Danger('Person nicht gefunden');
+            }
+
+
+            //ToDO Pipeline
+            (new Data($this->getBinding()))->insertPersonPicture($tblPerson, file_get_contents($fileName ));
+                $form .= new Success('Der Upload ist erfasst');
+                //                .new Redirect('/Platform/System/Test/TestSite', Redirect::TIMEOUT_SUCCESS);
+            unlink($fileName);
+            return $form;
+
+        } catch (\Exception $Exception) {
+            if(json_decode($Exception->getMessage())){
+                $ArrayExeption = json_decode($Exception->getMessage());
+            } else {
+                $ArrayExeption = array($Exception->getMessage());
+            }
+            if($ArrayExeption){
+                foreach($ArrayExeption as &$ExeptionMessage){
+                    switch ($ExeptionMessage){
+                        case 'The uploaded file exceeds the upload_max_filesize directive in php.ini':
+                            $ExeptionMessage = 'Der Anhang überschreitet die maximale Größe von '.ini_get('upload_max_filesize').'B';
+                            break;
+                        case 'The uploaded file was not sent with a POST request':
+                            $ExeptionMessage = 'Das Ticket konnte nicht erstellt werden';
+                    }
+                }
+                $form->setError('FileUpload', new Listing($ArrayExeption));
+            }
+            // File entfernen, wenn eins vorhanden war
+            if(isset($_FILES['FileUpload']['tmp_name'])){
+                unlink($_FILES['FileUpload']['tmp_name']);
+            }
+            $Error = true;
+        }
+
+        return $form;
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param int|null            $PersonId
+     * @param UploadedFile|null   $FileUpload
+     *
+     * @return IFormInterface|string|null
+     */
+    public function createPersonPicture(IFormInterface &$form = null, $PersonId = null, $Group = null, UploadedFile $FileUpload = null, $IsUpload = '')
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $FileUpload && $IsUpload
+        ) {
+            return $form;
+        }
+
+        try {
+            if($_FILES['FileUpload']['error']){
+                $form->setError('FileUpload', 'Datei überschreitet die Grenzwerte.');
+                return $form;
+            }
+            switch ($_FILES['FileUpload']['type']) {
+                case 'image/jpg':
+                case 'image/jpeg':
+                case 'image/png':
+                case 'image/git':
+                    break;
+                default:
+                    $form->setError('FileUpload', 'Datei mit dem MimeType ('.$_FILES['FileUpload']['type'].') ist nicht erlaubt.');
+                    return $form;
+            }
+
+            $maxDim = 500;
+            $fileName = $_FILES['FileUpload']['tmp_name'];
+            list($width, $height) = getimagesize( $fileName );
+            if ( $width > $maxDim || $height > $maxDim ){
+                $ratio = $width / $height;
+                if($ratio > 1){
+                    $newWidth = $maxDim;
+                    $newHeight = $maxDim / $ratio;
+                } else {
+                    $newWidth = $maxDim * $ratio;
+                    $newHeight = $maxDim;
+                }
+            } else {
+                $newWidth = $width;
+                $newHeight = $height;
+            }
+
+            // skalieren
+            $src = imagecreatefromstring(file_get_contents($fileName));
+            $dst = imagecreatetruecolor($newWidth, $newHeight);
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagejpeg($dst, $fileName); // adjust format as needed
+            imagedestroy($src);
+            imagedestroy($dst);
+            //            $Dimension = $Upload->getDimensions();
+            if(!($tblPerson = Person::useService()->getPersonById($PersonId))){
+                $form .= new Danger('Person nicht gefunden');
+            }
+
+
+            (new Data($this->getBinding()))->insertPersonPicture($tblPerson, file_get_contents($fileName ));
+            $form .= new Success('Der Upload ist erfasst')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $PersonId, 'Group' => $Group));
+                unlink($fileName);
+            return $form;
+
+        } catch (\Exception $Exception) {
+            if(json_decode($Exception->getMessage())){
+                $ArrayExeption = json_decode($Exception->getMessage());
+            } else {
+                $ArrayExeption = array($Exception->getMessage());
+            }
+            if($ArrayExeption){
+                foreach($ArrayExeption as &$ExeptionMessage){
+                    Debugger::devDump($ExeptionMessage);
+                    switch ($ExeptionMessage){
+                        case 'The uploaded file exceeds the upload_max_filesize directive in php.ini':
+                            $ExeptionMessage = 'Der Anhang überschreitet die maximale Größe von '.ini_get('upload_max_filesize').'B';
+                            break;
+                        case 'The uploaded file was not sent with a POST request':
+                            $ExeptionMessage = 'Das Ticket konnte nicht erstellt werden';
+                    }
+                }
+                $form->setError('FileUpload', new Listing($ArrayExeption));
+            }
+            // File entfernen, wenn eins vorhanden war
+            if(isset($_FILES['FileUpload']['tmp_name'])){
+                unlink($_FILES['FileUpload']['tmp_name']);
+            }
+            $_POST['IsUpload'] = $IsUpload;
+            $Error = true;
+            return $form;
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPersonPicture
+     */
+    public function getPersonPictureByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getPersonPictureByPerson($tblPerson);
+    }
+
+    /**
+     * @param TblPersonPicture $tblPersonPicture
+     *
+     * @return string
+     */
+    public function destroyPersonPicture(TblPersonPicture $tblPersonPicture)
+    {
+
+        //ToDO return überarbeiten
+        (new Data($this->getBinding()))->destroyPersonPicture($tblPersonPicture);
+        return new Success('Das Foto wurde erfolgreich gelöscht')
+            .new Redirect('/Platform/System/Test/TestSite', 1);
     }
 }
