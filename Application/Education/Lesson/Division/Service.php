@@ -3175,4 +3175,22 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->getMainDivisionStudentAllByYear($tblYear);
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool
+     */
+    public function getIsDivisionSekII(TblDivision $tblDivision): bool
+    {
+        if (($tblLevel = $tblDivision->getTblLevel())
+            && ($tblSchoolType = $tblLevel->getServiceTblType())
+            && (($tblSchoolType->getShortName() == 'Gy' && (intval($tblLevel->getName()) == 11 || intval($tblLevel->getName()) == 12))
+            || ($tblSchoolType->getShortName() == 'BGy' && (intval($tblLevel->getName()) == 12 || intval($tblLevel->getName()) == 13)))
+        ) {
+            return true;
+        }
+
+        return false;
+    }
 }

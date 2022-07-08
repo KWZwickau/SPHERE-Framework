@@ -6,8 +6,10 @@ use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -49,6 +51,7 @@ class Frontend extends Extension implements IFrontendInterface
         $serialMailItemList = array();
         $statisticItemList = array();
         $rankingItemList = array();
+        $courseItemList = array();
         $typeList = School::useService()->getConsumerSchoolTypeAll();
         if (!$typeList || isset($typeList['OS'])) {
             $serialMailItemList[] = 'Oberschule - Hauptschule ' . new PullRight((new Standard(
@@ -137,31 +140,76 @@ class Frontend extends Extension implements IFrontendInterface
                     'Auswertung der Prüfungsnoten für die LaSuB für Fachoberschulabschlusszeugnisse herunterladen'
                 )));
         }
+        if (!$typeList || isset($typeList['Gy']) || isset($typeList['BGy'])) {
+            if (($tblYearList = Term::useService()->getYearByNow())
+                && ($tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy'))
+                && ($tblSchoolTypeBGy = Type::useService()->getTypeByShortName('BGy'))
+            ) {
+                foreach ($tblYearList as $tblYear) {
+                    $divisionList = array();
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGy, '11'))) {
+                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
+                            $divisionList = array_merge($divisionList, $tblDivisionList);
+                        }
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGy, '12'))) {
+                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
+                            $divisionList = array_merge($divisionList, $tblDivisionList);
+                        }
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeBGy, '12'))) {
+                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
+                            $divisionList = array_merge($divisionList, $tblDivisionList);
+                        }
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeBGy, '13'))) {
+                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
+                            $divisionList = array_merge($divisionList, $tblDivisionList);
+                        }
+                    }
+
+                    foreach ($divisionList as $tblDivision) {
+                        $courseItemList[] = $tblDivision->getTypeName() . ' Klasse ' . $tblDivision->getDisplayName() . new PullRight((new Standard(
+                                '',
+                                '/Api/Reporting/Standard/Person/Certificate/CourseGrades/Download',
+                                new Download(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                ),
+                                'Kursnoten herunterladen'
+                            )));
+                    }
+                }
+            }
+        }
 
         if ($serialMailItemList) {
             $panelSerialMail = new Panel('Serien-E-Mail für Prüfungsnoten', $serialMailItemList, Panel::PANEL_TYPE_INFO);
         } else {
             $panelSerialMail = false;
         }
-
         if ($statisticItemList) {
             $panelStatistic = new Panel('Auswertung der Prüfungsnoten für die LaSuB', $statisticItemList, Panel::PANEL_TYPE_INFO);
         } else {
             $panelStatistic = false;
         }
-
         if ($rankingItemList) {
             $panelRanking = new Panel('Ranklisten für Abschlusszeugnisse', $rankingItemList, Panel::PANEL_TYPE_INFO);
         } else {
             $panelRanking = false;
         }
-
+        if ($courseItemList) {
+            $panelCourse = new Panel('Kursnoten in der SekII', $courseItemList, Panel::PANEL_TYPE_INFO);
+        } else {
+            $panelCourse = false;
+        }
 
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
-                $panelSerialMail ? new LayoutColumn($panelSerialMail, 4) : null,
-                $panelStatistic ? new LayoutColumn($panelStatistic, 4) : null,
-                $panelRanking ? new LayoutColumn($panelRanking, 4) : null,
+                $panelSerialMail ? new LayoutColumn($panelSerialMail, 3) : null,
+                $panelStatistic ? new LayoutColumn($panelStatistic, 3) : null,
+                $panelRanking ? new LayoutColumn($panelRanking, 3) : null,
+                $panelCourse ? new LayoutColumn($panelCourse, 3) : null,
             ))))
         );
 
