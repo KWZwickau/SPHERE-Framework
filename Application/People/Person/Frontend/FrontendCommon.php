@@ -76,7 +76,6 @@ class FrontendCommon extends FrontendReadOnly
 
                 $nationality = $tblCommonInformation->getNationality();
                 $denomination = $tblCommonInformation->getDenomination();
-                $contractNumber = $tblCommonInformation->getContractNumber();
                 $contactNumber = $tblCommonInformation->getContactNumber();
                 $isAssistance = $tblCommonInformation->isAssistance();
                 if ($isAssistance == TblCommonInformation::VALUE_IS_ASSISTANCE_YES) {
@@ -96,7 +95,6 @@ class FrontendCommon extends FrontendReadOnly
 
                 $nationality = '';
                 $denomination = '';
-                $contractNumber = '';
                 $contactNumber = '';
                 $isAssistance = '';
                 $assistanceActivity = '';
@@ -109,8 +107,6 @@ class FrontendCommon extends FrontendReadOnly
                 $thirdRow = array(
                     self::getLayoutColumnLabel('Geschlecht'),
                     self::getLayoutColumnValue($gender),
-                    self::getLayoutColumnLabel('Vertragsnummer'),
-                    self::getLayoutColumnValue($contractNumber),
                     self::getLayoutColumnLabel('Kontakt Nummer'),
                     self::getLayoutColumnValue($contactNumber));
             } else {

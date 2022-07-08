@@ -34,10 +34,6 @@ class TblCommonInformation extends Element
     /**
      * @Column(type="string")
      */
-    protected $ContractNumber; // Vertragsnummer
-    /**
-     * @Column(type="string")
-     */
     protected $ContactNumber; // Kontaktnummer
     /**
      * @Column(type="text")
@@ -82,22 +78,6 @@ class TblCommonInformation extends Element
     {
 
         $this->Denomination = $Denomination;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContractNumber()
-    {
-        return $this->ContractNumber;
-    }
-
-    /**
-     * @param string $ContractNumber
-     */
-    public function setContractNumber($ContractNumber = ''): void
-    {
-        $this->ContractNumber = $ContractNumber;
     }
 
     /**
