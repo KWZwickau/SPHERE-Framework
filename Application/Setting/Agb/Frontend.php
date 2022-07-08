@@ -4,6 +4,8 @@ namespace SPHERE\Application\Setting\Agb;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
@@ -117,6 +119,11 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function getCustodyAgb()
     {
+        $Live = 'https://www.schulsoftware.schule';
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+            $Live = 'https://ekbo.schulsoftware.schule';
+        }
+
         return new Title(new TileBig() . ' Beschreibung der Anwendung')
             . new Paragraph('Die elektronische Notenübersicht bietet allen Eltern und Schülern die 
             Möglichkeit, sich über den aktuellen Notenstand zu informieren. Dieses Serviceangebot der Schulsoftware soll 
@@ -143,7 +150,7 @@ class Frontend extends Extension implements IFrontendInterface
             . new Headline('Umfang der Datenerhebung und -speicherung')
             . new Paragraph('Wir erheben und speichern persönliche Daten grundsätzlich nur, soweit es für die Erbringung 
             unserer Dienstleistungen als Schule notwendig ist. Die Schulsoftware stellt die elektronische Notenübersicht 
-            unter der Internetadresse https://www.schulsoftware.schule bereit. Eine Nutzung dieser Dienste ist nur mit 
+            unter der Internetadresse '.$Live.' bereit. Eine Nutzung dieser Dienste ist nur mit 
             gültigen Zugangsdaten und nach vorheriger Einwilligungserklärung möglich. Alle Daten werden in einer für 
             Dritte unzugänglichen Weise gespeichert und ausschließlich in verschlüsselter Form übertragen. ')
             . new Headline('Zweckgebundene Datenverwendung')
@@ -171,6 +178,10 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function getStudentAgb()
     {
+        $Live = 'https://www.schulsoftware.schule';
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+            $Live = 'https://ekbo.schulsoftware.schule';
+        }
         return new Title(new TileBig().' Beschreibung der Anwendung')
             .new Paragraph('Die elektronische Notenübersicht bietet allen Eltern und Schülern die Möglichkeit, sich 
             über den aktuellen Notenstand zu informieren. Dieses Serviceangebot der Schulsoftware  soll die Kommunikation 
@@ -195,7 +206,7 @@ class Frontend extends Extension implements IFrontendInterface
             .new Headline('Umfang der Datenerhebung und -speicherung')
             .new Paragraph('Wir erheben und speichern persönliche Daten grundsätzlich nur, soweit es für die Erbringung 
             unserer Dienstleistungen als Schule notwendig ist. Die Schulsoftware stellt die elektronische Notenübersicht 
-            unter der Internetadresse https://www.schulsoftware.schule bereit. Eine Nutzung dieser Dienste ist nur mit 
+            unter der Internetadresse '.$Live.' bereit. Eine Nutzung dieser Dienste ist nur mit 
             gültigen Zugangsdaten und nach vorheriger Einwilligungserklärung möglich. Alle Daten werden in einer für 
             Dritte unzugänglichen Weise gespeichert und ausschließlich in verschlüsselter Form übertragen. ')
             .new Headline('Zweckgebundene Datenverwendung')
