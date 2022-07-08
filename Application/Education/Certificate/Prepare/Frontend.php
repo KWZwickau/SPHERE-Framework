@@ -1162,7 +1162,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                             if ($tblPrepareGrade) {
                                                 $gradeValue = $tblPrepareGrade->getGrade();
                                                 $Global->POST['Data'][$tblPrepareStudent->getId()] = $gradeValue;
-                                            } elseif ($averageStudent) {
+                                            } elseif ($averageStudent && !$tblPrepareStudent->isApproved()) {
                                                 // Noten aus dem Notendurchschnitt als Vorschlag eintragen
                                                 if ($tblPrepareStudent->getServiceTblCertificate()) {
                                                     $hasPreviewGrades = true;
