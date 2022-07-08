@@ -1553,6 +1553,7 @@ class Service extends Extension
                     }
                 }
 
+                $Item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
                 if ($tblGroup->getMetaTable() == 'STUDENT') {
                     $Item['Identifier'] = '';
                     $Item['School'] = '';
@@ -1581,7 +1582,6 @@ class Service extends Extension
                                 }
                             }
                         }
-                        $Item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
                         $Item['Identifier'] = $tblStudent->getIdentifierComplete();
                         $Item['School'] = (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson))
                             ? $tblCompany->getDisplayName()
@@ -1707,6 +1707,7 @@ class Service extends Extension
                 'Gender'                   => 'Geschlecht',
                 'Nationality'              => 'Staatsangehörigkeit',
                 'Religion'                 => 'Konfession',
+                'Division'                 => 'aktuelle Klasse',
                 'ParticipationWillingness' => 'Mitarbeitsbereitschaft',
                 'ParticipationActivities'  => 'Mitarbeitsbereitschaft - Tätigkeiten',
                 'RemarkExcel'              => 'Bemerkungen'
@@ -1730,7 +1731,6 @@ class Service extends Extension
                     'School'               => 'Schule',
                     'SchoolType'           => 'Schulart',
                     'SchoolCourse'         => 'Bildungsgang',
-                    'Division'             => 'aktuelle Klasse',
                     'PictureSchoolWriting' => 'Einverständnis Foto Schulschriften',
                     'PicturePublication'   => 'Einverständnis Foto Veröffentlichungen',
                     'PictureWeb'           => 'Einverständnis Foto Internetpräsenz',
@@ -1778,11 +1778,11 @@ class Service extends Extension
 //                ->mergeCells()->setAlignmentCenter();
             $export->setValue($export->getCell(0, 0), 'Gruppenliste ' . $tblGroup->getName());
 
-            if ($tblGroup->getDescription(true)) {
+            if ($tblGroup->getDescription(true, true)) {
                 $Row++;
 //                $export->setStyle($export->getCell(0, 1), $export->getCell(12, 1))
 //                    ->mergeCells()->setAlignmentCenter();
-                $export->setValue($export->getCell(0, 1), $tblGroup->getDescription(true));
+                $export->setValue($export->getCell(0, 1), $tblGroup->getDescription(true, true));
             }
 
             if ($tblGroup->getRemark()) {
