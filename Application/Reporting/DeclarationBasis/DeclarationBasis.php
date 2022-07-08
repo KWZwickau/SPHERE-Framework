@@ -15,7 +15,7 @@ class DeclarationBasis extends AbstractModule implements IApplicationInterface, 
     {
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Stichtagsmeldung'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Stichtagsmeldung Integrationsschüler'))
         );
 
         self::registerModule();
