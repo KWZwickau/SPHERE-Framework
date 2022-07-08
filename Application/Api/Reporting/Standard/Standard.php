@@ -92,6 +92,10 @@ class Standard implements IModuleInterface
             __NAMESPACE__.'/Person/Certificate/Diploma/Statistic/Download',
             __NAMESPACE__.'\Person\Person::downloadDiplomaStatistic'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Person/Certificate/CourseGrades/Download',
+            __NAMESPACE__.'\Person\Person::downloadCourseGrades'
+        ));
 
     }
 

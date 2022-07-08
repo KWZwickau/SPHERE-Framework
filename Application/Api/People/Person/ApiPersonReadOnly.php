@@ -87,11 +87,12 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param $PersonId
+     * @param $GroupId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadBasicContent($PersonId)
+    public static function pipelineLoadBasicContent($PersonId, $GroupId)
     {
         $pipeline = new Pipeline(false);
 
@@ -100,7 +101,8 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
             self::API_TARGET => 'loadBasicContent',
         ));
         $emitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'GroupId' => $GroupId
         ));
         $pipeline->appendEmitter($emitter);
 
@@ -534,10 +536,10 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function loadBasicContent($PersonId = null)
+    public function loadBasicContent($PersonId = null, $GroupId = null)
     {
 
-        return FrontendBasic::getBasicContent($PersonId);
+        return FrontendBasic::getBasicContent($PersonId, $GroupId);
     }
 
     /**

@@ -74,9 +74,13 @@ class Frontend extends Extension implements IFrontendInterface
                                 , 'Import aus Indiware', 'Export der Lehraufträge aus Indiware'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware')
                         ), 2),
                         new LayoutColumn(new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png')
-                                , 'Druck Abschlusszeugnisse A3'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'PrintA3Certificate')
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png')
+                            , 'Druck Abschlusszeugnisse A3'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'PrintA3Certificate')
                         ), 2),
+                        new LayoutColumn(new Link(new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                                , 'ESDi Leistungsbeschreibung'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'ESDi'))
+                        , 2),
 
                     ))
                 ))

@@ -78,10 +78,11 @@ class TblGroup extends Element
     /**
      * @return string
      */
-    public function getDescription($isShowCoreInfo = false)
+    public function getDescription($isShowCoreInfo = false, $isExcel = false)
     {
         if($isShowCoreInfo && $this->isCoreGroup()){
-            return $this->Description.new Muted(' (Stammgruppe)');
+            $text = ' (Stammgruppe)';
+            return $this->Description . ($isExcel ? $text : new Muted($text));
         }
         return $this->Description;
     }

@@ -93,7 +93,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
         if ($Id != null && ($tblPerson = Person::useService()->getPersonById($Id))) {
 
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
-            $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id), 'BasicContent');
+            $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id, $Group), 'BasicContent');
             $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
             $personAgreementContent = ApiPersonReadOnly::receiverBlock(FrontendPersonAgreement::getPersonAgreementContent($Id), 'PersonAgreementContent');
             $childContent = ApiPersonReadOnly::receiverBlock(FrontendChild::getChildContent($Id), 'ChildContent');

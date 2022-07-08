@@ -524,4 +524,22 @@ class Person
 
         return 'Keine Daten vorhanden!';
     }
+
+    /**
+     * @param $DivisionId
+     *
+     * @return string
+     */
+    public function downloadCourseGrades($DivisionId): string
+    {
+        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))
+            && ($content = Reporting::useService()->getCourseGradesContent($tblDivision))
+            && ($fileLocation = Reporting::useService()->createCourseGradesContentExcel($content))
+        ){
+            return FileSystem::getDownload($fileLocation->getRealPath(), 'Kursnoten '
+                . $tblDivision->getTypeName() . ' Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return 'Keine Daten vorhanden!';
+    }
 }

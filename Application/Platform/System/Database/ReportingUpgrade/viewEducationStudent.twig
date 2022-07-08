@@ -10,7 +10,7 @@ SELECT distinct
 -- tblDivision
     tD.Name AS TblDivision_Name,
     tD.Description AS TblDivision_Description,
-    concat(tL.Name, tD.Name) as TblDivision_Display,
+    concat(tL.Name, if(tD.Name REGEXP '^-?[0-9]+$', concat('-',tD.Name), tD.Name)) as TblDivision_Display,
 -- tblCompany
     tC.Name as TblCompany_Name,
     concat(tC.Name, ' ', tC.ExtendedName) as TblCompany_Name_ExtendedName,
