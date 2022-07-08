@@ -169,14 +169,14 @@ class AccidentReport extends AbstractDocument
             ->addPage((new Page())
                 ->addSlice((new Slice())
                     ->styleBorderAll()
-                    ->styleHeight('920px')
+                    ->styleHeight('932px')
                     ->addSection((new Section())
                         ->addSliceColumn((new Slice())
                             ->addElement((new Element())
                                 ->styleHeight('46px')
                             )
                             ->addElement((new Element())
-                                ->setContent('1 Name und Anschrift der Einrichtung (Tageseinrichtung, Schule, Hochschule)')
+                                ->setContent('1 Name und Anschrift der Einrichtung')
                                 ->styleTextSize('11px')
                                 ->stylePaddingLeft('5px')
                             )
@@ -219,9 +219,11 @@ class AccidentReport extends AbstractDocument
                                 ->styleTextBold()
                             )
                             ->addElement((new Element())
-                                ->setContent('für Kinder in Tageseinrichtungen, Schüler, Studierende')
-                                ->styleTextSize('12px')
-                                ->styleHeight('40px')
+                                ->setContent('für Kinder in Tagesbetreuung oder vorschulischer Sprachförderung,
+                                 Schülerinnen und Schüler, Studierende')
+                                ->styleTextSize('14px')
+                                ->styleLineHeight('95%')
+                                ->styleHeight('50px')
                             )
                             ->addElement((new Element())
                                 ->setContent('2 Träger der Einrichtung')
@@ -253,14 +255,14 @@ class AccidentReport extends AbstractDocument
                     /////// Name Geburtstag
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('5 Name, Vorname des Versicherten')
+                            ->setContent('5 Name, Vorname der versicherten Person')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             , '55%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('6 Geburtstag')
+                            ->setContent('6 Geburtsdatum')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
@@ -385,7 +387,7 @@ class AccidentReport extends AbstractDocument
                             , '18%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('10 Name und Anschrift der gesetzlichen Vertreter')
+                            ->setContent('10 Name und Anschrift der gesetzlich Vertretungsberechtigten')
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             , '60%'
@@ -576,7 +578,7 @@ class AccidentReport extends AbstractDocument
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('14 Ausführliche Schilderung des Unfallhergangs (insbesondere Art der Veranstalltung,
-                            bei Sportunfällen auch Sportart')
+                            bei Sportunfällen auch Sportart)')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                         )
@@ -604,12 +606,12 @@ class AccidentReport extends AbstractDocument
                             , '4%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('des Versicherten')
+                            ->setContent('der versicherten Person')
                             ->styleTextSize('11px')
                             ->stylePaddingTop('5px')
                             ->styleHeight('15px')
                             ->styleBorderBottom()
-                            , '15%'
+                            , '18%'
                         )
                         ->addSliceColumn($this->setCheckBox($this->FieldValue['DescriptionPassive'])
                             ->styleHeight('20px')
@@ -628,7 +630,7 @@ class AccidentReport extends AbstractDocument
                             ->setContent('&nbsp;')
                             ->styleHeight('20px')
                             ->styleBorderBottom()
-                            , '27%'
+                            , '25%'
                         )
                     )
                     /////// Verletzungen
@@ -665,7 +667,7 @@ class AccidentReport extends AbstractDocument
                     /////// Unterbrechung
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('17 Hat der Versicherte den Besuch der <br/> Einrichtung unterbrochen?')
+                            ->setContent('17 Hat die Versicherte Person den <br/> Besuch der Einrichtung unterbrochen?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleHeight('27px')
@@ -678,7 +680,7 @@ class AccidentReport extends AbstractDocument
                             , '4%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('nein')
+                            ->setContent('Nein')
                             ->stylePaddingTop('3px')
                             ->styleHeight('24px')
                             ->styleBorderBottom()
@@ -690,7 +692,7 @@ class AccidentReport extends AbstractDocument
                             , '4%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('sofort')
+                            ->setContent('Sofort')
                             ->stylePaddingTop('3px')
                             ->styleHeight('24px')
                             ->styleBorderBottom()
@@ -702,7 +704,7 @@ class AccidentReport extends AbstractDocument
                             , '4%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('später am')
+                            ->setContent('Später am')
                             ->stylePaddingTop('3px')
                             ->styleHeight('24px')
                             ->styleBorderRight()
@@ -739,7 +741,7 @@ class AccidentReport extends AbstractDocument
                     /////// Vortsetzung
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('18 hat der Versicherte den Besuch der <br/> Einrichtung wieder aufgenommen?')
+                            ->setContent('18 hat die Versicherte Person den Besuch <br/> der Einrichtung wieder aufgenommen?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleHeight('27px')
@@ -752,7 +754,7 @@ class AccidentReport extends AbstractDocument
                             , '4%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('nein')
+                            ->setContent('Nein')
                             ->stylePaddingTop('3px')
                             ->styleHeight('24px')
                             ->styleBorderBottom()
@@ -764,7 +766,7 @@ class AccidentReport extends AbstractDocument
                             , '4%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('ja, am')
+                            ->setContent('Ja, am')
                             ->stylePaddingTop('3px')
                             ->styleHeight('24px')
                             ->styleBorderRight()
@@ -801,13 +803,13 @@ class AccidentReport extends AbstractDocument
                     /////// Kenntnis
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('19 Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift von Zeugen)')
+                            ->setContent('19 Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift)')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '70%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('War diese Person Augenzeuge?')
+                            ->setContent('War diese Person Augenzeugin/Augenzeuge des Unfalls?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '30%'
@@ -828,7 +830,7 @@ class AccidentReport extends AbstractDocument
                             , '4%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('ja')
+                            ->setContent('Ja')
                             ->stylePaddingTop('3px')
                             ->styleHeight('22px')
                             ->stylePaddingLeft('5px')
@@ -841,7 +843,7 @@ class AccidentReport extends AbstractDocument
                             , '4%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('nein')
+                            ->setContent('Nein')
                             ->stylePaddingTop('3px')
                             ->styleHeight('22px')
                             ->stylePaddingLeft('5px')
@@ -852,30 +854,20 @@ class AccidentReport extends AbstractDocument
                     /////// Kenntnis
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('20 Name und Anschrift des erstbehandelnden Arztes / Krankenhauses')
+                            ->setContent('20 Erstbehandlung: <br/>
+                                Name und Anschrift der Ärztin/des Arztes oder des Krankenhauses')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
-                            , '60%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('21 Beginn und Ende des Besuchs der Einrichtung')
-                            ->styleTextSize('11px')
-                            ->stylePaddingLeft('5px')
-                            , '40%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent($this->FieldValue['Doctor']
-                                .'<br/>'.$this->FieldValue['DoctorAddress'])
-                            ->stylePaddingLeft('5px')
-                            ->styleHeight('42.3px')
-                            ->styleBorderRight()
-                            ->styleBorderBottom()
+                            ->styleHeight('29px')
                             , '60%'
                         )
                         ->addSliceColumn((new Slice())
+                            ->addElement((new Element())
+                                    ->setContent('21 Beginn und Ende des Besuchs der Einrichtung')
+                                    ->styleTextSize('11px')
+                                    ->stylePaddingLeft('5px')
+                            )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('Beginn')
@@ -895,6 +887,21 @@ class AccidentReport extends AbstractDocument
                                     , '50%'
                                 )
                             )
+                        )
+
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent($this->FieldValue['Doctor']
+                                .'<br/>'.$this->FieldValue['DoctorAddress'])
+                            ->stylePaddingLeft('5px')
+                            ->styleHeight('26.9px')
+                            ->styleTextSize('11px')
+                            ->styleBorderRight()
+                            ->styleBorderBottom()
+                            , '60%'
+                        )
+                        ->addSliceColumn((new Slice())
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('Stunde <br/>'.$this->FieldValue['LocalStartHour'])
@@ -968,13 +975,13 @@ class AccidentReport extends AbstractDocument
                             , '20%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Leiter (Beauftragter) der Einrichtung')
+                            ->setContent('Leiter/-in (Beauftragte/-r) der Einrichtung')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '40%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Telefon-Nr. für Rückfragen (Ansprechpartner)')
+                            ->setContent('Telefon-Nr. für Rückfragen')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '40%'
