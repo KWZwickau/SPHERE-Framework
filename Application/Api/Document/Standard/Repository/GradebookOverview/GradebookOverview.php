@@ -151,6 +151,20 @@ class GradebookOverview extends AbstractDocument
             foreach ($divisionList as $tblDivision) {
                 if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
                     foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                        // Fächer ohne Bneotung werden nicht benötigt
+                        if(!$tblDivisionSubject->getHasGrading()){
+                            continue;
+                        }
+                        // Verbale Benotung soll nicht auf die Schülerübersicht
+                        if(($tblSubject = $tblDivisionSubject->getServiceTblSubject())){
+                            if(($tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision, $tblSubject))){
+                                if(($tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType())){
+                                    if($tblScoreType->getIdentifier() === 'VERBAL'){
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
                         if ($tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
                             if (!$tblDivisionSubject->getTblSubjectGroup()) {
                                 $hasStudentSubject = false;
@@ -410,8 +424,14 @@ class GradebookOverview extends AbstractDocument
                                         } else {
                                             $date = $tblTest->getDate();
                                         }
-                                        if (strlen($date) > 6) {
-                                            $date = substr($date, 0, 6);
+                                        $GradeFontSize = '10px';
+                                        if($totalGradeCount > 25){
+                                            // Notfall Plan kleinere Schrift
+                                            $GradeFontSize = '8px';
+                                        }
+
+                                        if (strlen($date) > 5) {
+                                            $date = substr($date, 0, 5);
                                         }
                                         $tblGradeTypeTest = $tblTest->getServiceTblGradeType();
                                         $text = $date
@@ -423,9 +443,10 @@ class GradebookOverview extends AbstractDocument
                                         $section
                                             ->addElementColumn((new Element())
                                                 ->setContent($text)
-                                                ->styleTextSize('10px')
+                                                ->styleTextSize($GradeFontSize)
                                                 ->styleBorderTop()
                                                 ->styleBorderRight()
+                                                ->styleHeight('36.6px')
                                                 ->styleBorderLeft($count++ < 1 ? '1px' : '0px')
                                                 ->styleBackgroundColor(!$tblGradeTypeTest ? 'lightgrey' : '')
                                                 ->styleTextBold(!$tblGradeTypeTest || $tblGradeTypeTest->isHighlighted() ? 'bold' : 'normal')
