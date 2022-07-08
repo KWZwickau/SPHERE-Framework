@@ -47,7 +47,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
  */
 class FrontendStudentAgreement extends FrontendReadOnly
 {
-    const TITLE = 'Schülerakte - Datennutzung';
+    const TITLE = 'Schülerakte - Einverständniserklärung';
 
     /**
      * @param null $PersonId
@@ -74,7 +74,7 @@ class FrontendStudentAgreement extends FrontendReadOnly
                                 $isChecked = false;
                             }
                             $List[] = ($isChecked ? new Check() : new Unchecked()) . ' ' . $tblStudentAgreementType->getName()
-                                . ($tblStudentAgreementType->getIsUnlocked() ? ' ' . new ToolTip(new Info(), 'Lehrer können diesen Wert setzen') : '');
+                                . ($tblStudentAgreementType->getIsUnlocked() ? ' ' . new ToolTip(new Info(), 'Lehrer können diesen Eintrag setzen') : '');
                         });
                         $AgreementPanelCategory[] = new LayoutColumn(FrontendReadOnly::getSubContent($tblStudentAgreementCategory->getName(), $List), 3);
                     }
@@ -165,7 +165,7 @@ class FrontendStudentAgreement extends FrontendReadOnly
      */
     private function getEditStudentAgreementStructureTitle()
     {
-        return new Title(new TileSmall() . ' ' . self::TITLE, 'Struktur Datennutzung bearbeiten');
+        return new Title(new TileSmall() . ' ' . self::TITLE, 'Struktur Einverständniserklärung bearbeiten');
     }
 
     /**
@@ -200,7 +200,7 @@ class FrontendStudentAgreement extends FrontendReadOnly
 //                    $tblStudentAgreementTypeAll = $this->getSorter($tblStudentAgreementTypeAll)->sortObjectBy('Name');
                     array_walk($tblStudentAgreementTypeAll, function (TblStudentAgreementType $tblType) use (&$AgreementPanel, $tblCategory, &$PanelCount) {
                         $AgreementPanel[$PanelCount][] = new CheckBox('Meta[Agreement]['.$tblCategory->getId().']['.$tblType->getId().']', $tblType->getName()
-                            . ($tblType->getIsUnlocked() ? ' ' . new ToolTip(new Info(), 'Lehrer können diesen Wert setzen') : ''), 1);
+                            . ($tblType->getIsUnlocked() ? ' ' . new ToolTip(new Info(), 'Lehrer können diesen Eintrag setzen') : ''), 1);
                     });
                 }
                 $PanelCount++;
@@ -253,7 +253,7 @@ class FrontendStudentAgreement extends FrontendReadOnly
 
         return (new Form(new FormGroup(new FormRow(array(
             new FormColumn(new TextField('Meta[Type]', '', 'Name des Eintrag\'s')),
-            new FormColumn(new CheckBox('Meta[isUnlocked]', 'Typ kann vom Lehrer gesetzt werden', true)),
+            new FormColumn(new CheckBox('Meta[isUnlocked]', 'Eintrag kann vom Lehrer gesetzt werden', true)),
             new FormColumn(new Success('<div style="height:10px"></div>')),
         )))))->disableSubmitAction();
     }
