@@ -1962,8 +1962,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     && method_exists($Certificate, 'selectValuesTransfer')
                                 ) {
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
-                                        array_search($tblPrepareInformation->getValue(),
-                                            $Certificate->selectValuesTransfer());
+                                        array_search($tblPrepareInformation->getValue(), $Certificate->selectValuesTransfer());
+                                        $hasTransfer = true;
                                 } elseif ($tblPrepareInformation->getField() == 'Job_Grade_Text'
                                     && method_exists($Certificate, 'selectValuesJobGradeText')
                                 ) {
