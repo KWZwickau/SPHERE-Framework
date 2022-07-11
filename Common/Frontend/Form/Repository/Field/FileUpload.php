@@ -19,7 +19,7 @@ class FileUpload extends AbstractField implements IFieldInterface
     /** @var IBridgeInterface $Template */
     protected $Template = null;
     /** @var int $MaxSize */
-    protected $MaxSize = null;
+    protected $MaxSize = 2 * 1024 * 1024; // 2MB
 
     /**
      * @param string         $Name
