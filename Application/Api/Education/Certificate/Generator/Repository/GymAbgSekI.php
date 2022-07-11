@@ -250,7 +250,7 @@ class GymAbgSekI extends Certificate
                 )
             )
             ->addSlice($this->getSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3))->styleHeight('300px'))
-            ->addSlice($this->getProfileStandardNew($personId))
+            ->addSlice($this->getProfileStandardNew($personId)->styleHeight('80px'))
             ->addSlice($this->getDescriptionHead($personId))
             ->addSlice($this->getDescriptionContent($personId, '155px', '15px'))
             ->addSlice($this->getDateLine($personId))
