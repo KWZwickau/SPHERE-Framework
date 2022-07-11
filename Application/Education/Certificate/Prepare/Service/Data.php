@@ -877,7 +877,7 @@ class Data extends AbstractData
             foreach ($divisionList as $tblDivisionItem) {
                 // Abschlusszeugnisse mit Extra Prüfungen, aktuell nur Fachoberschule und Oberschule
                 if ($isDiploma && ($typeShortName = $tblDivisionItem->getTypeShortName())
-                    && ($typeShortName == 'FOS' || $typeShortName == 'OS')
+                    && ($typeShortName == 'FOS' || $typeShortName == 'OS' || $typeShortName == 'BFS')
                 ) {
                     if ((($tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
                         && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
@@ -1111,7 +1111,7 @@ class Data extends AbstractData
             foreach ($divisionList as $tblDivisionItem) {
                 // Abschlusszeugnisse mit Extra Prüfungen, aktuell nur Fachoberschule und Oberschule
                 if ($isDiploma && ($typeShortName = $tblDivisionItem->getTypeShortName())
-                    && ($typeShortName == 'FOS' || $typeShortName == 'OS')
+                    && ($typeShortName == 'FOS' || $typeShortName == 'OS' || $typeShortName == 'BFS')
                 ) {
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
                         && ($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy(
