@@ -1289,7 +1289,7 @@ class Service extends AbstractService
                 // Abschlusszeugnisse mit Extra Prüfungen, aktuell nur Fachoberschule und Oberschule
                 if ($tblCertificateType
                     && $tblCertificateType->getIdentifier() == 'DIPLOMA'
-                    && ($tblSchoolType->getShortName() == 'FOS' || $tblSchoolType->getShortName() == 'OS')
+                    && ($tblSchoolType->getShortName() == 'FOS' || $tblSchoolType->getShortName() == 'OS' || $tblSchoolType->getShortName() == 'BFS')
                 ) {
                     // Abiturnoten werden direkt im Certificate in der API gedruckt
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
