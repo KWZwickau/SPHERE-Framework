@@ -806,59 +806,59 @@ abstract class EsbdStyle extends Certificate
     {
         $textSize = '11.5pt';
         $Slice = array();
-        //
-        $SliceYou = (new Slice())
-            ->addElement((new Element())
-                ->setContent('Im Dialog mit DIR')
-                ->styleMarginTop('30px')
-                ->styleTextSize(self::TEXT_SIZE_BIG)
-                ->styleTextBold()
-                ->styleAlignCenter()
-            );
-        $SliceYouDescription = (new Slice())
-            ->addElement((new Element())
-                ->setContent('
-                {% if(Content.P' . $personId . '.Input.DialoguesWithYou is not empty) %}
-                    {{ Content.P' . $personId . '.Input.DialoguesWithYou }}
-                {% else %}
-                    &nbsp;
-                {% endif %}'
-                    )
-                ->styleAlignJustify()
-                ->styleHeight('190px')
-                ->styleMarginTop('15px')
-                ->styleTextSize($textSize)
-            );
-
-        //
-        $SliceParent = (new Slice())
-            ->addElement((new Element())
-                ->setContent('Im Dialog mit deinen ELTERN')
-                ->styleMarginTop('15px')
-                ->styleTextSize(self::TEXT_SIZE_BIG)
-                ->styleTextBold()
-                ->styleAlignCenter()
-            );
-        $SliceParentDescription = (new Slice())
-            ->addElement((new Element())
-                ->setContent('
-                {% if(Content.P' . $personId . '.Input.DialoguesWithParent is not empty) %}
-                    {{ Content.P' . $personId . '.Input.DialoguesWithParent }}
-                {% else %}
-                    &nbsp;
-                {% endif %}'
-                )
-                ->styleAlignJustify()
-                ->styleHeight('190px')
-                ->styleMarginTop('10px')
-                ->styleTextSize($textSize)
-            );
+//        //
+//        $SliceYou = (new Slice())
+//            ->addElement((new Element())
+//                ->setContent('Im Dialog mit DIR')
+//                ->styleMarginTop('30px')
+//                ->styleTextSize(self::TEXT_SIZE_BIG)
+//                ->styleTextBold()
+//                ->styleAlignCenter()
+//            );
+//        $SliceYouDescription = (new Slice())
+//            ->addElement((new Element())
+//                ->setContent('
+//                {% if(Content.P' . $personId . '.Input.DialoguesWithYou is not empty) %}
+//                    {{ Content.P' . $personId . '.Input.DialoguesWithYou }}
+//                {% else %}
+//                    &nbsp;
+//                {% endif %}'
+//                    )
+//                ->styleAlignJustify()
+//                ->styleHeight('190px')
+//                ->styleMarginTop('15px')
+//                ->styleTextSize($textSize)
+//            );
+//
+//        //
+//        $SliceParent = (new Slice())
+//            ->addElement((new Element())
+//                ->setContent('Im Dialog mit deinen ELTERN')
+//                ->styleMarginTop('15px')
+//                ->styleTextSize(self::TEXT_SIZE_BIG)
+//                ->styleTextBold()
+//                ->styleAlignCenter()
+//            );
+//        $SliceParentDescription = (new Slice())
+//            ->addElement((new Element())
+//                ->setContent('
+//                {% if(Content.P' . $personId . '.Input.DialoguesWithParent is not empty) %}
+//                    {{ Content.P' . $personId . '.Input.DialoguesWithParent }}
+//                {% else %}
+//                    &nbsp;
+//                {% endif %}'
+//                )
+//                ->styleAlignJustify()
+//                ->styleHeight('190px')
+//                ->styleMarginTop('10px')
+//                ->styleTextSize($textSize)
+//            );
 
         //
         $SliceUs = (new Slice())
             ->addElement((new Element())
                 ->setContent('Im Dialog mit UNS')
-                ->styleMarginTop('10px')
+                ->styleMarginTop('80px')
                 ->styleTextSize(self::TEXT_SIZE_BIG)
                 ->styleTextBold()
                 ->styleAlignCenter()
@@ -873,17 +873,18 @@ abstract class EsbdStyle extends Certificate
                 {% endif %}'
                 )
                 ->styleAlignJustify()
-                ->styleHeight('190px')
-                ->styleMarginTop('10px')
+                ->styleHeight('610px')
+                ->styleMarginTop('50px')
                 ->styleMarginBottom('10px')
+                ->styleLineHeight('200%')
                 ->styleTextSize($textSize)
             )
         );
 
-        $Slice[] = $SliceYou;
-        $Slice[] = $SliceYouDescription;
-        $Slice[] = $SliceParent;
-        $Slice[] = $SliceParentDescription;
+//        $Slice[] = $SliceYou;
+//        $Slice[] = $SliceYouDescription;
+//        $Slice[] = $SliceParent;
+//        $Slice[] = $SliceParentDescription;
         $Slice[] = $SliceUs;
         $Slice[] = $SliceUsDescription;
 
