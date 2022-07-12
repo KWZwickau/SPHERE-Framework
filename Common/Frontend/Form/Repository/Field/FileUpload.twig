@@ -38,10 +38,7 @@
                     if(this.files[0].size) {
                         if(this.files[0].size > {{ ElementMaxSize }}){
                             this.value = "";
-                            this.fnFilterClear;
                             alert("Das Foto ist zu groß \""+PictureSizeString+"\". Der erlaubte Upload beträgt \""+MaxSizeString+"\".");
-                        } else {
-                            // console.log("File größe ist ok \""+PictureSizeString+"\"");
                         }
                     }
                 }
