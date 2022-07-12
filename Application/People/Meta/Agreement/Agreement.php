@@ -6,9 +6,9 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\System\Database\Link\Identifier;
 
 /**
- * Class Prospect
+ * Class Agreement
  *
- * @package SPHERE\Application\People\Meta\Prospect
+ * @package SPHERE\Application\People\Meta\Agreement
  */
 class Agreement implements IModuleInterface
 {

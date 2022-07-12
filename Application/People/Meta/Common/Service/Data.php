@@ -109,6 +109,7 @@ class Data extends AbstractData
      * @param string $Denomination
      * @param int    $IsAssistance
      * @param string $AssistanceActivity
+     * @param string $ContactNumber
      *
      * @return TblCommonInformation
      */
@@ -117,7 +118,6 @@ class Data extends AbstractData
         $Denomination,
         $IsAssistance,
         $AssistanceActivity,
-        $ContractNumber = '',
         $ContactNumber = ''
     ) {
 
@@ -126,7 +126,6 @@ class Data extends AbstractData
         $Entity = new TblCommonInformation();
         $Entity->setNationality($Nationality);
         $Entity->setDenomination($Denomination);
-        $Entity->setContractNumber($ContractNumber);
         $Entity->setContactNumber($ContactNumber);
         $Entity->setAssistance($IsAssistance);
         $Entity->setAssistanceActivity($AssistanceActivity);

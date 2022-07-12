@@ -286,11 +286,6 @@ class FrontendFamily extends FrontendReadOnly
         }
         if (($tblGroupProspect = Group::useService()->getGroupByMetaTable('PROSPECT'))) {
             $tblGroupList[] = $tblGroupProspect;
-
-            $global = $this->getGlobal();
-            $global->POST['Data'][$key]['Group'] = $tblGroupProspect->getId();
-
-            $global->savePost();
         }
 
         $firstNameInput = $this->getInputField('TextField', $key, 'FirstName', 'Vorname', 'Vorname', true, $Errors);
@@ -303,8 +298,6 @@ class FrontendFamily extends FrontendReadOnly
         $firstNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
         $lastNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
         $salutationSelectBox->ajaxPipelineOnChange(ApiFamilyEdit::pipelineChangeSelectedGender($Ranking, 'C'));
-
-        $tblCommonGenderAll = Common::useService()->getCommonGenderAll();
 
         if ($hasSiblingOption) {
             $title = new Layout(new LayoutGroup(new LayoutRow(array(
@@ -344,7 +337,7 @@ class FrontendFamily extends FrontendReadOnly
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
-                        new SelectBox('Data[C' . $Ranking . '][Group]', 'Gruppe', array('{{ Name }}' => $tblGroupList)), 3
+                        $this->getInputField('SelectBox', $key, 'Group', 'Gruppe', '', true, $Errors, array('{{ Name }}' => $tblGroupList)), 3
                     ),
                     new LayoutColumn(
                         new DatePicker('Data[C' . $Ranking . '][Birthday]', 'Geburtstag', 'Geburtstag', new Calendar()), 3
@@ -354,7 +347,6 @@ class FrontendFamily extends FrontendReadOnly
                     ),
                     new LayoutColumn(
                         $genderReceiver, 3
-//                        new SelectBox('Data[C' . $Ranking . '][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll), new Child()), 3
                     ),
                 )),
                 new LayoutRow(array(
@@ -454,18 +446,24 @@ class FrontendFamily extends FrontendReadOnly
                         $lastNameInput
                         , 3),
                     new LayoutColumn(
-                        new TextField('Data[S' . $Ranking . '][BirthName]', 'Geburtsname', 'Geburtsname'), 3
+                        new TextField('Data[S' . $Ranking . '][SecondName]', 'weitere Vornamen', 'Zweiter Vorname'), 3
                     ),
                     new LayoutColumn(
-                        $genderReceiver, 3
+                        new TextField('Data[S' . $Ranking . '][BirthName]', 'Geburtsname', 'Geburtsname'), 3
                     ),
                 )),
                 new LayoutRow(array(
+                    new LayoutColumn(
+                        $genderReceiver, 3
+                    ),
                     new LayoutColumn(
                         new TextField('Data[S' . $Ranking . '][Occupation]', 'Beruf', 'Beruf'), 3
                     ),
                     new LayoutColumn(
                         new TextField('Data[S' . $Ranking . '][Employment]', 'Arbeitsstelle', 'Arbeitsstelle'), 3
+                    ),
+                    new LayoutColumn(
+                        new TextField('Data[S' . $Ranking . '][RelationshipRemark]', 'Bemerkungen - z.B: Mutter / Vater / ..', 'Bemerkungen Beziehung'), 3
                     ),
                 )),
                 new LayoutRow((array(

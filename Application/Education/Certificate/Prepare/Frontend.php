@@ -708,11 +708,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         '', '/Education/Certificate/Prepare/Prepare'
                         . ($tblCertificateType->getIdentifier() == 'DIPLOMA'
                             ? '/Diploma' . ($tblSchoolType
-                                && ($tblSchoolType->getName() == 'Berufsfachschule'
-                                    || $tblSchoolType->getName() == 'Fachschule'
+                                && ($tblSchoolType->getName() == 'Fachschule'
                                     || $tblSchoolType->getName() == 'Berufsgrundbildungsjahr'
-//                                Fachoberschule ist wie Oberschule
+//                                Fachoberschule, Berufsfachschule ist wie Oberschule
 //                                    || $tblSchoolType->getName() == 'Fachoberschule'
+//                                    || $tblSchoolType->getName() == 'Berufsfachschule'
                                 )
                                 ? '/Technical' : '')
                             : '')
@@ -1162,7 +1162,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                             if ($tblPrepareGrade) {
                                                 $gradeValue = $tblPrepareGrade->getGrade();
                                                 $Global->POST['Data'][$tblPrepareStudent->getId()] = $gradeValue;
-                                            } elseif ($averageStudent) {
+                                            } elseif ($averageStudent && !$tblPrepareStudent->isApproved()) {
                                                 // Noten aus dem Notendurchschnitt als Vorschlag eintragen
                                                 if ($tblPrepareStudent->getServiceTblCertificate()) {
                                                     $hasPreviewGrades = true;
@@ -1962,8 +1962,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     && method_exists($Certificate, 'selectValuesTransfer')
                                 ) {
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
-                                        array_search($tblPrepareInformation->getValue(),
-                                            $Certificate->selectValuesTransfer());
+                                        array_search($tblPrepareInformation->getValue(), $Certificate->selectValuesTransfer());
+                                        $hasTransfer = true;
                                 } elseif ($tblPrepareInformation->getField() == 'Job_Grade_Text'
                                     && method_exists($Certificate, 'selectValuesJobGradeText')
                                 ) {
@@ -2704,7 +2704,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                             $countSubjectGrades = 0;
                             // Zensuren zählen
-                            if ($isDiploma && (!$isTechnicalSchool || ($tblType && $tblType->getShortName() == 'FOS'))) {
+                            if ($isDiploma && ($tblType && ($tblType->getShortName() == 'OS' || $tblType->getShortName() == 'FOS' || $tblType->getShortName() == 'BFS'))) {
                                 if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
                                     && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
                                         $tblPrepare,
@@ -3331,13 +3331,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask,
                                 $tblDivisionItem))
                             ) {
-                                if (($tblType = $tblDivisionItem->getType())) {
-                                    $isTechnicalSchool = $tblType->isTechnical();
-                                } else {
-                                    $isTechnicalSchool = false;
-                                }
-
-                                $hasExams = ($Route == 'Diploma' && (!$isTechnicalSchool || ($tblType && $tblType->getShortName() == 'FOS')));
+                                $tblType = $tblDivisionItem->getType();
+                                $hasExams = ($Route == 'Diploma' && ($tblType && ($tblType->getShortName() == 'OS' || $tblType->getShortName() == 'FOS' || $tblType->getShortName() == 'BFS')));
 
                                 foreach ($tblTestAllByTask as $tblTest) {
                                     $tblSubject = $tblTest->getServiceTblSubject();
@@ -4898,6 +4893,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['JN'] = $gradeValue;
                                                     if ($gradeValue && is_numeric($gradeValue)) {
                                                         $gradeList['JN'] = $gradeValue;
+                                                    } else {
+                                                        $gradeList['JN_TEXT'] = $gradeValue;
                                                     }
                                                 }
                                             }
@@ -4911,6 +4908,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['JN'] = $gradeValue;
                                                     if ($gradeValue && is_numeric($gradeValue)) {
                                                         $gradeList['JN'] = $gradeValue;
+                                                    } else {
+                                                        $gradeList['JN_TEXT'] = $gradeValue;
                                                     }
                                                 }
                                             }
@@ -4976,13 +4975,18 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                         $tblCurrentSubject,
                                                         Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
                                                     )
-                                                    && $calcValue
                                                 ) {
-                                                    if ($tblPrepareStudent->getServiceTblCertificate()) {
-                                                        $hasPreviewGrades = true;
+                                                    if ($calcValue) {
+                                                        if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                            $hasPreviewGrades = true;
+                                                        }
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue, 0);
+                                                    } elseif (isset($gradeList['JN_TEXT']) && ($tblGradeTextTemp = Gradebook::useService()->getGradeTextByName($gradeList['JN_TEXT']))) {
+                                                        if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                            $hasPreviewGrades = true;
+                                                        }
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['Text'] = $tblGradeTextTemp->getId();
                                                     }
-                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue,
-                                                        0);
                                                 }
                                             }
                                         } else {
@@ -5022,21 +5026,27 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     $tblCurrentSubject,
                                                     Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
                                                 )
-                                                && $calcValue
                                             ) {
-                                                if ($tblPrepareStudent->getServiceTblCertificate()) {
-                                                    $hasPreviewGrades = true;
+                                                if ($calcValue) {
+                                                    if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                        $hasPreviewGrades = true;
+                                                    }
+                                                    // bei ,5 entscheidet die Prüfungsnote bei FOS und BFS
+                                                    if (($tblSchoolType->getShortName() == 'FOS' || $tblSchoolType->getShortName() == 'BFS')
+                                                        && strpos($calcValue, '.5') !== false
+                                                        && $gradeList['JN'] > $calcValue
+                                                    ) {
+                                                        $round = PHP_ROUND_HALF_DOWN;
+                                                    } else {
+                                                        $round = PHP_ROUND_HALF_UP;
+                                                    }
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue, 0, $round);
+                                                } elseif (isset($gradeList['JN_TEXT']) && ($tblGradeTextTemp = Gradebook::useService()->getGradeTextByName($gradeList['JN_TEXT']))) {
+                                                    if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                        $hasPreviewGrades = true;
+                                                    }
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['Text'] = $tblGradeTextTemp->getId();
                                                 }
-                                                // bei ,5 entscheidet die Prüfungsnote bei FOS
-                                                if ($tblSchoolType->getShortName() == 'FOS'
-                                                    && strpos($calcValue, '.5') !== false
-                                                    && $gradeList['JN'] > $calcValue
-                                                ) {
-                                                    $round = PHP_ROUND_HALF_DOWN;
-                                                } else {
-                                                    $round = PHP_ROUND_HALF_UP;
-                                                }
-                                                $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue, 0, $round);
                                             }
                                         }
                                     }

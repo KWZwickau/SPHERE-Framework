@@ -134,7 +134,6 @@ class Service extends AbstractService
      * @param int                  $IsAssistance
      * @param string               $AssistanceActivity
      * @param string               $Remark
-     * @param string               $ContractNumber
      * @param string               $ContactNumber
      */
     public function insertMeta(
@@ -147,7 +146,6 @@ class Service extends AbstractService
         $IsAssistance,
         $AssistanceActivity,
         $Remark,
-        $ContractNumber = '',
         $ContactNumber = ''
     ) {
 
@@ -161,7 +159,6 @@ class Service extends AbstractService
             $Denomination,
             $IsAssistance,
             $AssistanceActivity,
-            $ContractNumber,
             $ContactNumber
         );
         (new Data($this->getBinding()))->createCommon(

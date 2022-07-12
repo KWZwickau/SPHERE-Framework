@@ -1251,11 +1251,12 @@ class Service extends AbstractService
                 $denomination = $person['Denomination'];
 
                 if ($tblSalutation ||  $firstName || $lastName || $secondName || $callName || $birthday || $birthplace
-                    || $tblCommonGender || $nationality || $denomination
+                    || $tblCommonGender || $nationality || $denomination || $tblGroup
                 ) {
                     $isAdd = true;
                     $this->setMessage($firstName, $key, 'FirstName', 'Bitte geben Sie einen Vornamen ein.', $Errors, $errorChild);
                     $this->setMessage($lastName, $key, 'LastName', 'Bitte geben Sie einen Nachnamen ein.', $Errors, $errorChild);
+                    $this->setMessage($tblGroup, $key, 'Group', 'Bitte wählen Sie eine Gruppe aus.', $Errors, $errorChild);
                 }
 
                 if ($errorChild) {
@@ -1286,14 +1287,16 @@ class Service extends AbstractService
                 $title = $person['Title'];
                 $firstName = $person['FirstName'];
                 $lastName = $person['LastName'];
+                $secondName = $person['SecondName'];
                 $birthName = $person['BirthName'];
                 $occupation = $person['Occupation'];
                 $employment = $person['Employment'];
 
                 $tblCommonGender = Common::useService()->getCommonGenderById($person['Gender']);
                 $isSingleParent = isset($person['IsSingleParent']);
+                $relationshipRemark = $person['RelationshipRemark'];
 
-                if ($tblSalutation || $title || $firstName || $lastName || $birthName || $occupation || $employment || $tblCommonGender) {
+                if ($tblSalutation || $title || $firstName || $lastName || $secondName || $birthName || $occupation || $employment || $tblCommonGender) {
                     $isAdd = true;
                     $this->setMessage($firstName, $key, 'FirstName', 'Bitte geben Sie einen Vornamen ein.', $Errors, $errorCustody);
                     $this->setMessage($lastName, $key, 'LastName', 'Bitte geben Sie einen Nachnamen ein.', $Errors, $errorCustody);
@@ -1329,12 +1332,14 @@ class Service extends AbstractService
                         'Title' => $title,
                         'FirstName' => $firstName,
                         'LastName' => $lastName,
+                        'SecondName' => $secondName,
                         'BirthName' => $birthName,
                         'Occupation' => $occupation,
                         'Employment' => $employment,
                         'tblCommonGender' => $tblCommonGender,
                         'Ranking' => $rankingCustody,
-                        'IsSingleParent' => $isSingleParent
+                        'IsSingleParent' => $isSingleParent,
+                        'RelationshipRemark' => $relationshipRemark
                     );
                 }
             }
@@ -1385,7 +1390,7 @@ class Service extends AbstractService
             }
             foreach ($custodies as $key => $custody) {
                 if (($tblPerson = $this->insertPerson(($tblSalutation = $custody['tblSalutation']) ? $tblSalutation->getId() : null,
-                    $custody['Title'], $custody['FirstName'], '', $custody['LastName'], $groups, $custody['BirthName'])
+                    $custody['Title'], $custody['FirstName'], $custody['SecondName'], $custody['LastName'], $groups, $custody['BirthName'])
                 )) {
                     $personIdList[] = $tblPerson->getId();
 
@@ -1408,7 +1413,7 @@ class Service extends AbstractService
                             $tblPerson,
                             $child,
                             $tblTypeCustody,
-                            '',
+                            $custody['RelationshipRemark'],
                             $custody['Ranking'],
                             $custody['IsSingleParent']
                         );

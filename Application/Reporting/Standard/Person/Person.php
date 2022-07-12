@@ -52,10 +52,10 @@ class Person extends AbstractModule implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__.'/StudentArchive'), new Link\Name('Ehemalige Schüler'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/StudentAgreement'), new Link\Name('Schüler Datennutzung'))
+            new Link(new Link\Route(__NAMESPACE__.'/StudentAgreement'), new Link\Name('Schüler Einverständniserklärung'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/PersonAgreement'), new Link\Name('Mitarbeiter Datennutzung'))
+            new Link(new Link\Route(__NAMESPACE__.'/PersonAgreement'), new Link\Name('Mitarbeiter Einverständniserklärung'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

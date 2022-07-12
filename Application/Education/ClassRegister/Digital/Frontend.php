@@ -1787,41 +1787,41 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Exclamation())
                         ),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste 1'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $name . ' Krankenakte'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $name . ' Krankenakte'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Datennutzung'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständniserklärung'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnisrelevante Fehlzeiten'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnisrelevante Fehlzeiten'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
+                            new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
-                                $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'),
+                                $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'))->setPictureHeight(),
                                 '/Api/Document/Standard/ClassRegister/Create', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId,

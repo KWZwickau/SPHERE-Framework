@@ -57,26 +57,36 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(new Ruler().'<h4>Weitere Downloads</h4>')
                     ),
                     new LayoutRow(array(
-                        new LayoutColumn(new Link(new Thumbnail(
+                        new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png')
-                                , 'Benutzerrechte', 'empfohlene Benutzerrechte Stand:&nbsp;06.05.2022'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'UserRole')
+                                , 'Benutzerrechte', 'empfohlene Benutzerrechte Stand:&nbsp;06.05.2022'))->setPictureHeight()
+                                , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'UserRole')
                         ), 2),
-                        new LayoutColumn(new Link(
-                                new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png'), 'Digitales Klassenbuch', 'Stand:&nbsp;05.05.2022')
+                        new LayoutColumn(new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                                , 'Digitales Klassenbuch', 'Stand:&nbsp;05.05.2022'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'DigitalClassBook')
                         ), 2),
-                        new LayoutColumn(new Link(
-                                new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png'), 'Anleitung Fakturierung', 'Stand:&nbsp;21.02.2022')
+                        new LayoutColumn(new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                                , 'Anleitung Fakturierung', 'Stand:&nbsp;21.02.2022'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Billing')
                         ), 2),
-                        new LayoutColumn(new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                                , 'Import aus Indiware', 'Export der Lehraufträge aus Indiware'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware')
+                        new LayoutColumn(new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                                , 'Import aus Indiware', 'Export der Lehraufträge aus Indiware'))->setPictureHeight()
+                                , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware')
                         ), 2),
-                        new LayoutColumn(new Link(new Thumbnail(
+                        new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png')
-                                , 'Druck Abschlusszeugnisse A3'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'PrintA3Certificate')
+                                , 'Druck Abschlusszeugnisse A3'))->setPictureHeight()
+                                , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'PrintA3Certificate')
                         ), 2),
+                        new LayoutColumn(new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                                , 'ESDi Leistungsbeschreibung'))->setPictureHeight()
+                                , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'ESDi'))
+                        , 2),
 
                     ))
                 ))

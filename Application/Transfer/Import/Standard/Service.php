@@ -241,7 +241,6 @@ class Service
             // Zusatz EKBO -> ESBZ
             'CUST_UserName' => null,
             'ImpUserName' => null,
-            'BC_Vertragsnummer' => null,
             'BC_Kontakt_Nr' => null,
             'S1_BC_Kontakt_Nr' => null,
             'S1_E_Mail_privat' => null,
@@ -364,10 +363,9 @@ class Service
             if ($remark != '') {
                 $remark = 'Abholberechtigte: ' . $remark;
             }
-            $contractNumber = $this->getValue('BC_Vertragsnummer');
             $contactNumber = $this->getValue('BC_Kontakt_Nr');
 
-            $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, $contractNumber, $contactNumber, $this->RunY, $Nr, $error);
+            $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, $contactNumber, $this->RunY, $Nr, $error);
 
             // student
             $Identification = $this->getValue('Schüler_Nr');
@@ -839,7 +837,7 @@ class Service
                         $nationality = trim($Document->getValue($Document->getCell($Location['Staatsangehörigkeit'], $RunY)));
                         $denomination = trim($Document->getValue($Document->getCell($Location['Konfession'], $RunY)));
                         $remark = '';
-                        $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, '', '', $RunY, $Nr, $error);
+                        $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, '', $RunY, $Nr, $error);
 
                         // address
                         $streetName = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
@@ -1202,7 +1200,7 @@ class Service
                             if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
                                 $remark .= 'Personalnummer: '.trim($Document->getValue($Document->getCell($Location['BC_Kontakt_Nr'], $RunY)));
                             }
-                            $this->setPersonBirth($tblPerson, $birth, $birthPlace, $gender, $nationality, $denomination, $remark, '', '', $RunY, $Nr, $error);
+                            $this->setPersonBirth($tblPerson, $birth, $birthPlace, $gender, $nationality, $denomination, $remark, '', $RunY, $Nr, $error);
 
                             // address
                             $streetName = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
@@ -1422,12 +1420,13 @@ class Service
      * @param string    $nationality
      * @param string    $denomination
      * @param string    $remark
+     * @param string    $contactNumber
      * @param int       $RunY
      * @param string    $Nr
      * @param array     $error
      */
     private function setPersonBirth(TblPerson $tblPerson, $birthdayString, $birthPlace, $gender, $nationality, $denomination,
-        $remark, $contractNumber, $contactNumber, $RunY, $Nr, &$error)
+        $remark, $contactNumber, $RunY, $Nr, &$error)
     {
         // controll conform DateTime string
         $tblCommonGender = false;
@@ -1466,7 +1465,6 @@ class Service
             TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
             '',
             $remark,
-            $contractNumber,
             $contactNumber
         );
     }

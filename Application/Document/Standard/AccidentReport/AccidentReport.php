@@ -17,6 +17,8 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
@@ -167,9 +169,18 @@ class AccidentReport extends Extension
         $Stage->addButton(new Standard('Zurück', '/Document/Standard/AccidentReport', new ChevronLeft()));
         $tblPerson = Person::useService()->getPersonById($Id);
         $Global = $this->getGlobal();
+
+        // Sachsen Standard
         $Global->POST['Data']['AddressTarget'] = 'Unfallkasse Sachsen';
         $Global->POST['Data']['TargetAddressStreet'] = 'Postfach 42';
         $Global->POST['Data']['TargetAddressCity'] = '01651 Meißen';
+
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+            $Global->POST['Data']['AddressTarget'] = 'Unfallkasse Berlin';
+            $Global->POST['Data']['TargetAddressStreet'] = 'Culemeyerstraße 2';
+            $Global->POST['Data']['TargetAddressCity'] = '12277 Berlin';
+        }
+
         if ($tblPerson) {
             $Global->POST['Data']['LastFirstName'] = $tblPerson->getLastFirstName();
             $Global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');

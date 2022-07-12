@@ -167,7 +167,12 @@ class Creator extends Extension
                 foreach($tblPersonList as $tblPerson){
                     $Document = new GradebookOverview\GradebookOverview();
                     $documentName = $Document->getName();
+                    // Test eine Person für schnelleres Testen
+//                    if(empty($pageList)){
+//                        $pageList[] = $Document->buildPage($tblPerson, $tblDivision);
+//                    }
                     $pageList[] = $Document->buildPage($tblPerson, $tblDivision);
+
                     // Tmp welches nicht sofort gelöscht werden soll (braucht man noch zum mergen)
 
 //                    // hinzufügen für das mergen
@@ -215,7 +220,7 @@ class Creator extends Extension
         $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT, $isDestruction = true, $part = '0')
     {
 
-        ini_set('memory_limit', '1G');
+        ini_set('memory_limit', '2G');
         set_time_limit(300);
 
         // Create Tmp
@@ -1055,6 +1060,11 @@ class Creator extends Extension
             $file = "Common/Style/Resource/Document/Manual/SSWPrintA3Certificate.pdf";
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=Zeugnisdruck_A3.pdf");
+            header("Content-Length: ".filesize($file));
+        } elseif($Select == 'ESDi') {
+            $file = "Common/Style/Resource/Document/Manual/SSW_ESDiLeistungsbeschreibung.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=ESDi_Leistungsbeschreibung.pdf");
             header("Content-Length: ".filesize($file));
         }
 

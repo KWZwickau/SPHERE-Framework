@@ -268,10 +268,10 @@ class Person
     {
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-            $name = 'Datennutzung_Klassenliste ' . $tblDivision->getDisplayName();
+            $name = 'Einverständniserklärung_Klassenliste ' . $tblDivision->getDisplayName();
         } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
             $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-            $name = 'Datennutzung_Stammgruppenliste ' . $tblGroup->getName();
+            $name = 'Einverständniserklärung_Stammgruppenliste ' . $tblGroup->getName();
         } else {
             return false;
         }
@@ -317,7 +317,7 @@ class Person
             if($tblPersonList && ($DataList = ReportingPerson::useService()->createAgreementList($tblPersonList))){
                 $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($DataList, $tblPersonList);
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    'Datennutzung_Schüler ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+                    'Einverständniserklärung_Schüler ' . date("Y-m-d H:i:s").".xlsx")->__toString();
             }
         }
         return false;
@@ -337,7 +337,7 @@ class Person
         if($tblPersonList && ($DataList = ReportingPerson::useService()->createPersonAgreementList($tblPersonList))){
             $fileLocation = ReportingPerson::useService()->createAgreementPersonListExcel($DataList, $tblPersonList);
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                'Datennutzung_Mitarbeiter ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+                'Einverständniserklärung_Mitarbeiter ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
         return false;
     }
@@ -520,6 +520,24 @@ class Person
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 'Auswertung der Prüfungsnoten für die LaSuB ' . $tblSchoolType->getShortName()
                 . ($tblCourse ? ' ' . $tblCourse->getName() : '') . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return 'Keine Daten vorhanden!';
+    }
+
+    /**
+     * @param $DivisionId
+     *
+     * @return string
+     */
+    public function downloadCourseGrades($DivisionId): string
+    {
+        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))
+            && ($content = Reporting::useService()->getCourseGradesContent($tblDivision))
+            && ($fileLocation = Reporting::useService()->createCourseGradesContentExcel($content))
+        ){
+            return FileSystem::getDownload($fileLocation->getRealPath(), 'Kursnoten '
+                . $tblDivision->getTypeName() . ' Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return 'Keine Daten vorhanden!';

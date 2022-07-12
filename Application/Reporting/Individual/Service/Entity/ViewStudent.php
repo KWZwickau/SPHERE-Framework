@@ -57,7 +57,7 @@ class ViewStudent extends AbstractView
     const TBL_STUDENT_LOCKER_LOCKER_LOCATION = 'TblStudentLocker_LockerLocation';
     const TBL_STUDENT_LOCKER_KEY_NUMBER = 'TblStudentLocker_KeyNumber';
     const TBL_STUDENT_LOCKER_COMBINATION_LOCK_NUMBER = 'TblStudentLocker_CombinationLockNumber';
-    // Datennutzung
+    // Einverständniserklärung
 //    const TBL_STUDENT_STUDENT_NAME_AGREEMENT = 'TblStudent_NameAgreement';
 //    const TBL_STUDENT_STUDENT_PICTURE_AGREEMENT = 'TblStudent_PictureAgreement';
 

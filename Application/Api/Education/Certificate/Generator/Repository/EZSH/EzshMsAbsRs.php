@@ -177,7 +177,7 @@ class EzshMsAbsRs extends EzshStyle
                 )->styleMarginTop('60px')
                 ->styleMarginBottom('20px')
             )
-            ->addSlice($this->getEZSHSubjectLanes($personId, true, array(), false)->styleHeight('350px'))
+            ->addSlice($this->getEZSHSubjectLanes($personId, true, array(), false, false, true, true)->styleHeight('350px'))
             /////////////////////////
             ->addSlice((new Slice())
                 ->addElement((new Element())

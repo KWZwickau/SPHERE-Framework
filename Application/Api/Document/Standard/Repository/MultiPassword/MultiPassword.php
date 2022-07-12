@@ -11,6 +11,8 @@ use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
 
@@ -720,6 +722,10 @@ class MultiPassword extends AbstractDocument
      */
     private function getSecondLetterContent($AccountId)
     {
+        $Live = 'Adresse: https://schulsoftware.schule';
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+            $Live = 'Adresse: https://ekbo.schulsoftware.schule';
+        }
 
         $Slice = new Slice();
         if ($this->FieldValue['IsParent']) {
@@ -744,7 +750,7 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Adresse: https://schulsoftware.schule')
+                    ->setContent($Live)
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     , '92%'
                 )
@@ -894,7 +900,7 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Adresse: https://schulsoftware.schule')
+                        ->setContent($Live)
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         , '92%'
                     )
