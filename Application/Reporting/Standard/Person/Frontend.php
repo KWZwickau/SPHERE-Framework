@@ -984,25 +984,34 @@ class Frontend extends Extension implements IFrontendInterface
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         }
 
+
+        $Item['TransferCompany'] = $Item['TransferStateCompany'] = $Item['TransferType'] = $Item['TransferCourse'] = $Item['TransferDate'] = $Item['TransferRemark'] = '';
+
         $columns = array(
-            'RegistrationDate' => 'Anmeldedatum',
-            'InterviewDate'    => 'Aufnahmegespräch ',
-            'TrialDate'        => 'Schnuppertag ',
-            'FirstName'        => 'Vorname',
-            'LastName'         => 'Name',
-            'SchoolYear'       => 'Schuljahr',
-            'DivisionLevel'    => 'Klassenstufe',
-            'TypeOptionA'      => 'Schulart 1',
-            'TypeOptionB'      => 'Schulart 2',
-            'Address'          => 'Adresse',
-            'Birthday'         => 'Geburtsdatum',
-            'Birthplace'       => 'Geburtsort',
-            'Nationality'      => 'Staatsangeh.',
-            'Denomination'     => 'Bekenntnis',
-            'Siblings'         => 'Geschwister',
-            'Custody1'         => 'Sorgeberechtigter 1',
-            'Custody2'         => 'Sorgeberechtigter 2',
-            'Custody3'         => 'Sorgeberechtigter 3'
+            'FirstName'            => 'Vorname',
+            'LastName'             => 'Name',
+            'RegistrationDate'     => 'Anmeldedatum',
+            'InterviewDate'        => 'Aufnahmegespräch ',
+            'TrialDate'            => 'Schnuppertag ',
+            'SchoolYear'           => 'Schuljahr',
+            'DivisionLevel'        => 'Klassenstufe',
+            'TypeOptionA'          => 'Schulart 1',
+            'TypeOptionB'          => 'Schulart 2',
+            'TransferCompany'      => 'Abgebende Schule / Kita',
+            'TransferStateCompany' => 'Staatliche Stammschule',
+            'TransferType'         => 'Letzte Schulart',
+            'TransferCourse'       => 'Letzter Bildungsgang',
+            'TransferDate'         => 'Aufnahme Datum',
+            'TransferRemark'       => 'Aufnahme Bemerkung',
+            'Address'              => 'Adresse',
+            'Birthday'             => 'Geburtsdatum',
+            'Birthplace'           => 'Geburtsort',
+            'Nationality'          => 'Staatsangeh.',
+            'Denomination'         => 'Bekenntnis',
+            'Siblings'             => 'Geschwister',
+            'Custody1'             => 'Sorgeberechtigter 1',
+            'Custody2'             => 'Sorgeberechtigter 2',
+            'Custody3'             => 'Sorgeberechtigter 3'
         );
 
         if ($hasGuardian) {
@@ -1027,8 +1036,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 $columns,
                                 array(
                                     'order' => array(
-                                        array(2, 'asc'),
-                                        array(1, 'asc')
+                                        array(4, 'asc'),
+                                        array(3, 'asc')
                                     ),
                                     "pageLength" => -1,
                                     "responsive" => false,

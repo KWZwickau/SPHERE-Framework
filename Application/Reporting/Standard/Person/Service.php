@@ -1669,6 +1669,8 @@ class Service extends Extension
                 $Item['AuthorizedPersonMailPrivate'] = $Item['AuthorizedPersonMailWork'] = '';
                 $Item['Remark'] = $Item['RemarkExcel'] = '';
                 $Item['MailGuardian'] = $Item['ExcelMailGuardian'] = $Item['ExcelMailGuardianSimple'] = '';
+                // Transfer Arrive
+                $Item['TransferCompany'] = $Item['TransferStateCompany'] = $Item['TransferType'] = $Item['TransferCourse'] = $Item['TransferDate'] = $Item['TransferRemark'] = '';
 
                 if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $tblToPersonAddress = $tblToPersonAddressList[0];
@@ -1863,6 +1865,27 @@ class Service extends Extension
                 // Insert MailListSimple
                 if (!empty($MailListSimple)) {
                     $Item['ExcelMailGuardianSimple'] = implode('; ', $MailListSimple);
+                }
+
+                // Transfer Arrive
+                if(($tblStudent = $tblPerson->getStudent())){
+                    $TransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
+                    if(($tblStudentTransferByTypeArrive = Student::useService()->getStudentTransferByType($tblStudent, $TransferTypeArrive))){
+                        if(($tblCompanyTransfer = $tblStudentTransferByTypeArrive->getServiceTblCompany())){
+                            $Item['TransferCompany'] = $tblCompanyTransfer->getDisplayName();
+                        }
+                        if(($tblStateCompanyTransfer = $tblStudentTransferByTypeArrive->getServiceTblStateCompany())){
+                            $Item['TransferStateCompany'] = $tblStateCompanyTransfer->getDisplayName();
+                        }
+                        if(($SchoolType = $tblStudentTransferByTypeArrive->getServiceTblType())){
+                            $Item['TransferType'] = $SchoolType->getName();
+                        }
+                        if(($SchoolCourse = $tblStudentTransferByTypeArrive->getServiceTblCourse())){
+                            $Item['TransferCourse'] = $SchoolCourse->getName();
+                        }
+                        $Item['TransferDate'] = $tblStudentTransferByTypeArrive->getTransferDate();
+                        $Item['TransferRemark'] = $tblStudentTransferByTypeArrive->getRemark();
+                    }
                 }
 
                 array_push($TableContent, $Item);
@@ -2068,6 +2091,12 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, 0), "Klassenstufe");
             $export->setValue($export->getCell($column++, 0), "Schulart 1");
             $export->setValue($export->getCell($column++, 0), "Schulart 2");
+            $export->setValue($export->getCell($column++, 0), "Abgebende Schule / Kita");
+            $export->setValue($export->getCell($column++, 0), "Staatliche Stammschule");
+            $export->setValue($export->getCell($column++, 0), "Letzte Schulart");
+            $export->setValue($export->getCell($column++, 0), "Letzter Bildungsgang");
+            $export->setValue($export->getCell($column++, 0), "Aufnahme Datum");
+            $export->setValue($export->getCell($column++, 0), "Aufnahme Bemerkung");
             $export->setValue($export->getCell($column++, 0), "Straße");
             $export->setValue($export->getCell($column++, 0), "Hausnummer");
             $export->setValue($export->getCell($column++, 0), "PLZ");
@@ -2190,6 +2219,12 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $Row), $PersonData['DivisionLevel']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['TypeOptionA']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['TypeOptionB']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferCompany']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferStateCompany']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferType']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferCourse']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferDate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferRemark']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['StreetName']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['StreetNumber']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['Code']);
