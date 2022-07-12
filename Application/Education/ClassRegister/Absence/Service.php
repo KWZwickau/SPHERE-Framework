@@ -356,6 +356,9 @@ class Service extends AbstractService
         TblAbsence $tblAbsence,
         array $resultList
     ) {
+
+        $isOnlineAbsence = $tblAbsence->getIsOnlineAbsence();
+
         $resultList[] = array(
             'AbsenceId' => $tblAbsence->getId(),
             'Type' => $tblType->getName(),
@@ -365,8 +368,9 @@ class Service extends AbstractService
             'Person' => $tblPerson->getLastFirstName(),
             'DateSpan' => $tblAbsence->getDateSpan(),
             'DateSort' => $tblAbsence->getFromDate('Y.m.d'),
-            'DateFrom' => $tblAbsence->getFromDate(),
-            'DateTo' => $tblAbsence->getToDate(),
+            'DateFrom' => ($isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getFromDate() . '</span>' : $tblAbsence->getFromDate()),
+            'DateTo' => ($isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getToDate() . '</span>' : $tblAbsence->getToDate()),
+            'PersonCreator' => $tblAbsence->getDisplayPersonCreator(false),
             'Status' => $tblAbsence->getStatusDisplayName(),
             'StatusExcel' => $tblAbsence->getStatusDisplayShortName(),
             'Remark' => $tblAbsence->getRemark(),
