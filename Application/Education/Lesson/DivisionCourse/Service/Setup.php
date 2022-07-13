@@ -141,6 +141,7 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'IsAdvancedCourse', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'HasGrading', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'LeaveDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($table, 'serviceTblPeriod', self::FIELD_TYPE_BIGINT, true);
     }
@@ -159,13 +160,12 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'Level', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT, true);
-
         // bei Foreign-Key kann kein Spaltenname angegeben werden
         $this->createColumn($table, 'tblDivision', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($table, 'tblCoreGroup', self::FIELD_TYPE_BIGINT, true);
-
-        $this->createColumn($table, 'CoreGroupSortOrder', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($table, 'DivisionSortOrder', self::FIELD_TYPE_INTEGER, true);
+        // bei Foreign-Key kann kein Spaltenname angegeben werden
+        $this->createColumn($table, 'tblCoreGroup', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'CoreGroupSortOrder', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($table, 'LeaveDate', self::FIELD_TYPE_DATETIME, true);
     }
 }

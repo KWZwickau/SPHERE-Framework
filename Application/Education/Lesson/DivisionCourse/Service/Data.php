@@ -6,19 +6,25 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Binding\AbstractData;
 
-class Data  extends AbstractData
+class Data extends MigrateData
 {
     public function setupDatabaseContent()
     {
-        $this->createDivisionCourseType('Klasse', 'DIVISION');
-        $this->createDivisionCourseType('Stammgruppe', 'CORE_GROUP');
-        $this->createDivisionCourseType('Unterrichtsgruppe', 'TEACHING_GROUP');
+        $this->createDivisionCourseType('Klasse', TblDivisionCourseType::TYPE_DIVISION);
+        $this->createDivisionCourseType('Stammgruppe', TblDivisionCourseType::TYPE_CORE_GROUP);
+        $this->createDivisionCourseType('Unterrichtsgruppe', TblDivisionCourseType::TYPE_TEACHING_GROUP);
 
-        $this->createDivisionCourseMemberType('Schüler', 'STUDENT');
-        $this->createDivisionCourseMemberType('Klassenlehrer', 'TEACHER');
-        $this->createDivisionCourseMemberType('Tudor/Mentor', 'TUDOR');
+        $this->createDivisionCourseMemberType('Schüler', TblDivisionCourseMemberType::TYPE_STUDENT);
+        $this->createDivisionCourseMemberType('Klassenlehrer', TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
+        $this->createDivisionCourseMemberType('Tudor/Mentor', TblDivisionCourseMemberType::TYPE_TUDOR);
+        $this->createDivisionCourseMemberType('Elternvertreter', TblDivisionCourseMemberType::TYPE_CUSTODY);
+        $this->createDivisionCourseMemberType('Klassensprecher', TblDivisionCourseMemberType::TYPE_REPRESENTATIVE);
+
+        /**
+         * Migration der alten Klassen-Daten in die neue DB-Struktur
+         */
+        $this->migrateAll();
     }
 
     /**
@@ -82,6 +88,20 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param string|null $TypeIdentifier
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourseAll(?string $TypeIdentifier = '')
+    {
+        if ($TypeIdentifier && ($tblType = $this->getDivisionCourseTypeByIdentifier($TypeIdentifier))) {
+            return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', array(TblDivisionCourse::ATTR_TBL_TYPE => $tblType->getId()));
+        } else {
+            return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse');
+        }
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDivisionCourseType
@@ -92,6 +112,17 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param string $Identifier
+     *
+     * @return false|TblDivisionCourseType
+     */
+    public function getDivisionCourseTypeByIdentifier(string $Identifier)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseType',
+            array(TblDivisionCourseType::ATTR_IDENTIFIER => strtoupper($Identifier)));
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDivisionCourseMemberType
@@ -99,5 +130,16 @@ class Data  extends AbstractData
     public function getMemberTypeById($Id)
     {
         return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseMemberType', $Id);
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return false|TblDivisionCourseMemberType
+     */
+    public function getMemberTypeByIdentifier(string $Identifier)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseMemberType',
+            array(TblDivisionCourseMemberType::ATTR_IDENTIFIER => strtoupper($Identifier)));
     }
 }

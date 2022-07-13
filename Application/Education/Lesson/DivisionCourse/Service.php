@@ -27,6 +27,7 @@ class Service extends AbstractService
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
+
         return $Protocol;
     }
 
@@ -51,6 +52,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Identifier
+     *
+     * @return false|TblDivisionCourseType
+     */
+    public function getDivisionCourseTypeByIdentifier(string $Identifier)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseTypeByIdentifier($Identifier);
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDivisionCourseMemberType
@@ -58,5 +69,15 @@ class Service extends AbstractService
     public function getMemberTypeById($Id)
     {
         return (new Data($this->getBinding()))->getMemberTypeById($Id);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return false|TblDivisionCourseMemberType
+     */
+    public function getMemberTypeByIdentifier($Identifier)
+    {
+        return (new Data($this->getBinding()))->getMemberTypeByIdentifier($Identifier);
     }
 }

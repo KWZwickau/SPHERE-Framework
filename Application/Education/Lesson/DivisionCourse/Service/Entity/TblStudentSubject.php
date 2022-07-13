@@ -48,14 +48,41 @@ class TblStudentSubject extends Element
     protected bool $IsAdvancedCourse;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected bool $HasGrading;
+
+    /**
      * @Column(type="datetime")
      */
-    protected ?DateTime $LeaveDate;
+    protected ?DateTime $LeaveDate = null;
 
     /**
      * @Column(type="bigint")
      */
-    protected ?int $serviceTblPeriod;
+    protected ?int $serviceTblPeriod = null;
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param bool $hasGrading
+     * @param bool $isAdvancedCourse
+     *
+     * @return TblStudentSubject
+     */
+    public static function withParameter(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, bool $hasGrading, bool $isAdvancedCourse = false): TblStudentSubject
+    {
+        $instance = new self();
+
+        $instance->serviceTblPerson = $tblPerson->getId();
+        $instance->serviceTblYear = $tblYear->getId();
+        $instance->serviceTblSubject = $tblSubject->getId();
+        $instance->HasGrading = $hasGrading;
+        $instance->IsAdvancedCourse = $isAdvancedCourse;
+
+        return  $instance;
+    }
 
     /**
      * @param bool $IsForce
@@ -134,7 +161,7 @@ class TblStudentSubject extends Element
     /**
      * @return bool
      */
-    public function isIsAdvancedCourse(): bool
+    public function getIsAdvancedCourse(): bool
     {
         return $this->IsAdvancedCourse;
     }
@@ -161,5 +188,21 @@ class TblStudentSubject extends Element
     public function setServiceTblPeriod(?TblPeriod $tblPeriod): void
     {
         $this->serviceTblPeriod = $tblPeriod ? $tblPeriod->getId() : null;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isHasGrading(): bool
+    {
+        return $this->HasGrading;
+    }
+
+    /**
+     * @param bool $HasGrading
+     */
+    public function setHasGrading(bool $HasGrading): void
+    {
+        $this->HasGrading = $HasGrading;
     }
 }

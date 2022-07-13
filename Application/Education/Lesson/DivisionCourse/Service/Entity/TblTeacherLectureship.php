@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -45,27 +46,47 @@ class TblTeacherLectureship extends Element
     /**
      * @Column(type="bigint")
      */
-    protected ?int $tblDivision;
+    protected ?int $tblDivision = null;
 
     /**
      * @Column(type="bigint")
      */
-    protected ?int $tblCoreGroup;
+    protected ?int $tblCoreGroup = null;
 
     /**
      * @Column(type="bigint")
      */
-    protected ?int $tblTeachingGroup;
+    protected ?int $tblTeachingGroup = null;
 
     /**
      * @Column(type="datetime")
      */
-    protected ?DateTime $FromDate;
+    protected ?DateTime $FromDate = null;
 
     /**
      * @Column(type="datetime")
      */
-    protected ?DateTime $ToDate;
+    protected ?DateTime $ToDate = null;
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     *
+     * @return TblTeacherLectureship
+     */
+    public static function withParameter(TblPerson $tblPerson, TblYear $tblYear, TblDivision $tblDivision, TblSubject $tblSubject): TblTeacherLectureship
+    {
+        $instance = new self();
+
+        $instance->serviceTblPerson = $tblPerson->getId();
+        $instance->serviceTblYear = $tblYear->getId();
+        $instance->tblDivision = $tblDivision->getId();
+        $instance->serviceTblSubject = $tblSubject->getId();
+
+        return  $instance;
+    }
 
     /**
      * @param bool $IsForce

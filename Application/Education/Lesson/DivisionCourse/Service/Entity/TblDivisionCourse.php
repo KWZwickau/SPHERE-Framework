@@ -18,6 +18,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblDivisionCourse extends Element
 {
+    const ATTR_TBL_TYPE = 'tblLessonDivisionCourseType';
+
     /**
      * @Column(type="bigint")
      */
@@ -37,6 +39,46 @@ class TblDivisionCourse extends Element
      * @Column(type="string")
      */
     protected string $Description;
+
+    /**
+     * @param TblDivisionCourseType $tblType
+     * @param TblYear $tblYear
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblDivisionCourse
+     */
+    public static function withParameter(TblDivisionCourseType $tblType, TblYear $tblYear, string $Name, string $Description): TblDivisionCourse
+    {
+        // php erlaubt leider keine mehrfach Konstruktoren :(
+        $instance = new self();
+
+        $instance->tblLessonDivisionCourseType = $tblType->getId();
+        $instance->serviceTblYear = $tblYear->getId();
+        $instance->Name = $Name;
+        $instance->Description = $Description;
+
+        return  $instance;
+    }
+
+    /**
+     * @param TblDivisionCourseType $tblType
+     * @param TblYear $tblYear
+     * @param string $Name
+     * @param string $Description
+     * @param int $Id
+     *
+     * @return TblDivisionCourse
+     */
+    public static function withParameterAndId(TblDivisionCourseType $tblType, TblYear $tblYear, string $Name, string $Description, int $Id): TblDivisionCourse
+    {
+        $instance = self::withParameter($tblType, $tblYear, $Name, $Description);
+        $instance->Id = $Id;
+
+        return  $instance;
+    }
+
+
 
     /**
      * @return false|TblDivisionCourseType

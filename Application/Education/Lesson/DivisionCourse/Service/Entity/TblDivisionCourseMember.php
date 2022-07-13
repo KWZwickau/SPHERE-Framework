@@ -41,17 +41,38 @@ class TblDivisionCourseMember extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Description;
+    protected string $Description = '';
 
     /**
      * @Column(type="integer")
      */
-    protected ?int $SortOrder;
+    protected ?int $SortOrder = null;
 
     /**
      * @Column(type="datetime")
      */
-    protected ?DateTime $LeaveDate;
+    protected ?DateTime $LeaveDate = null;
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourseMemberType $tblMemberType
+     * @param TblPerson $tblPerson
+     * @param string $Description
+     *
+     * @return TblDivisionCourseMember
+     */
+    public static function withParameter(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType, TblPerson $tblPerson, string $Description = '')
+    : TblDivisionCourseMember
+    {
+        $instance = new self();
+
+        $instance->tblLessonDivisionCourse = $tblDivisionCourse->getId();
+        $instance->tblLessonDivisionCourseMemberType = $tblMemberType->getId();
+        $instance->serviceTblPerson = $tblPerson->getId();
+        $instance->Description = $Description;
+
+        return  $instance;
+    }
 
     /**
      * @return false|TblDivisionCourse

@@ -30,6 +30,7 @@ class TblStudentEducation extends Element
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_SERVICE_TBL_COMPANY = 'serviceTblCompany';
+    const ATTR_LEAVE_DATE = 'LeaveDate';
 
     /**
      * @Column(type="bigint")
@@ -44,47 +45,47 @@ class TblStudentEducation extends Element
     /**
      * @Column(type="bigint")
      */
-    protected ?int $serviceTblCompany;
-
-    /**
-     * @Column(type="int")
-     */
-    protected ?int $Level;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected ?int $serviceTblSchoolType;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected ?int $serviceTblCourse;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected ?int $tblDivision;
+    protected ?int $serviceTblCompany = null;
 
     /**
      * @Column(type="integer")
      */
-    protected ?int $DivisionSortOrder;
+    protected ?int $Level = null;
 
     /**
      * @Column(type="bigint")
      */
-    protected ?int $tblCoreGroup;
+    protected ?int $serviceTblSchoolType = null;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected ?int $serviceTblCourse = null;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected ?int $tblDivision = null;
 
     /**
      * @Column(type="integer")
      */
-    protected ?int $CoreGroupSortOrder;
+    protected ?int $DivisionSortOrder = null;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected ?int $tblCoreGroup = null;
+
+    /**
+     * @Column(type="integer")
+     */
+    protected ?int $CoreGroupSortOrder = null;
 
     /**
      * @Column(type="datetime")
      */
-    protected ?DateTime $LeaveDate;
+    protected ?DateTime $LeaveDate = null;
 
     /**
      * @param bool $IsForce

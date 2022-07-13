@@ -18,6 +18,12 @@ class TblDivisionCourseMemberType extends Element
     const ATTR_NAME = 'Name';
     const ATTR_IDENTIFIER = 'Identifier';
 
+    const TYPE_STUDENT = 'STUDENT';
+    const TYPE_DIVISION_TEACHER = 'DIVISION_TEACHER';
+    const TYPE_TUDOR = 'TUDOR';
+    const TYPE_CUSTODY = 'CUSTODY';
+    const TYPE_REPRESENTATIVE = 'REPRESENTATIVE';
+
     /**
      * @Column(type="string")
      */

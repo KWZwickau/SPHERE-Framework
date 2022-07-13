@@ -18,6 +18,10 @@ class TblDivisionCourseType extends Element
     const ATTR_NAME = 'Name';
     const ATTR_IDENTIFIER = 'Identifier';
 
+    const TYPE_DIVISION = 'DIVISION';
+    const TYPE_CORE_GROUP = 'CORE_GROUP';
+    const TYPE_TEACHING_GROUP = 'TEACHING_GROUP';
+
     /**
      * @Column(type="string")
      */
