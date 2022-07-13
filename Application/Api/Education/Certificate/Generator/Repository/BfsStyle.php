@@ -530,8 +530,6 @@ abstract class BfsStyle extends Certificate
                 }
             }
 
-            //ToDO Anpassung ähnlich SubjectLineAcrossAbs
-
             // Anzahl der Abzubildenden Einträge (auch ohne Fach)
             $CountSubjectMissing = $DisplaySubjectAmount;
 
@@ -582,7 +580,7 @@ abstract class BfsStyle extends Certificate
                                  &ndash;
                              {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->styleMarginTop('10px')
                         ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -814,7 +812,7 @@ abstract class BfsStyle extends Certificate
                      &ndash;
                  {% endif %}')
             ->styleAlignCenter()
-            ->styleBackgroundColor('#BBB')
+            ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
             ->styleMarginTop($marginTopGrade)
             ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronym . '"] is not empty)
                     and (Content.P' . $personId . '.Grade.Data["' . $subjectAcronym . '"] is not empty)
@@ -980,7 +978,7 @@ abstract class BfsStyle extends Certificate
                              &ndash;
                          {% endif %}')
                     ->styleAlignCenter()
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                     ->styleMarginTop('10px')
                     ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -1149,7 +1147,7 @@ abstract class BfsStyle extends Certificate
         $SubjectSection->addElementColumn((new Element())
             ->setContent($subjectGrade)
             ->styleAlignCenter()
-            ->styleBackgroundColor('#BBB')
+            ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
 //                    ->styleMarginTop('9px')
             ->styleMarginTop($marginTopGrade)
             ->stylePaddingTop('4px')
@@ -1301,7 +1299,7 @@ abstract class BfsStyle extends Certificate
                              &ndash;
                          {% endif %}')
                     ->styleAlignCenter()
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                     ->styleMarginTop('10px')
                     ->stylePaddingTop('{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -1358,7 +1356,7 @@ abstract class BfsStyle extends Certificate
 
             $Section->addElementColumn((new Element())
                 ->setContent('&nbsp;')
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleMarginTop('10px')
                 ->stylePaddingTop('2px')
                 ->stylePaddingBottom('1.5px')
@@ -1387,7 +1385,7 @@ abstract class BfsStyle extends Certificate
 //
             $Section->addElementColumn((new Element())
                 ->setContent('&nbsp;')
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleMarginTop('10px')
                 ->stylePaddingTop('2px')
                 ->stylePaddingBottom('1.5px')
@@ -1407,7 +1405,7 @@ abstract class BfsStyle extends Certificate
 
             $Section->addElementColumn((new Element())
                 ->setContent('&nbsp;')
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleMarginTop('10px')
                 ->stylePaddingTop('2px')
                 ->stylePaddingBottom('1.5px')
@@ -1491,7 +1489,7 @@ abstract class BfsStyle extends Certificate
                              &ndash;
                          {% endif %}')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->stylePaddingTop(empty($Subject) ? '2px'
                     :'{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -1557,9 +1555,19 @@ abstract class BfsStyle extends Certificate
                 , '60%'
             )
             ->addElementColumn((new Element())
-                ->setContent('Dauer gesamt: {{ Content.P' . $personId . '.Input.OperationTime1|number_format 
-                                             + Content.P' . $personId . '.Input.OperationTime2|number_format 
-                                             + Content.P' . $personId . '.Input.OperationTime3|number_format }} Wochen')
+                ->setContent('Dauer gesamt:
+                {% set WeekCount = 0 %}
+                    {% if(Content.P' . $personId . '.Input.OperationTime1 is not empty) %}
+                        {%set WeekCount = WeekCount + Content.P' . $personId . '.Input.OperationTime1|replace({"," : "."} ) %}
+                    {% endif %}
+                    {% if(Content.P' . $personId . '.Input.OperationTime2 is not empty) %}
+                        {%set WeekCount = WeekCount + Content.P' . $personId . '.Input.OperationTime2|replace({"," : "."} ) %}
+                    {% endif %}
+                    {% if(Content.P' . $personId . '.Input.OperationTime3 is not empty) %}
+                        {%set WeekCount = WeekCount + Content.P' . $personId . '.Input.OperationTime3|replace({"," : "."} ) %}
+                    {% endif %}
+                  {{ WeekCount|replace({"." : ","}) }}
+                  Wochen')
                 ->stylePaddingTop('10px')
                 ->styleAlignRight()
                 ->stylePaddingRight('15px')
@@ -1654,7 +1662,7 @@ abstract class BfsStyle extends Certificate
                              &ndash;
                          {% endif %}')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleMarginTop('0px')
                 ->stylePaddingTop('4px')
                 ->stylePaddingBottom('4px')
@@ -2225,7 +2233,7 @@ abstract class BfsStyle extends Certificate
                     ->styleMarginTop('8px')
                     ->stylePaddingTop('2px')
                     ->stylePaddingBottom('1.5px')
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 , '9%')
             )
             ->addSection((new Section())
@@ -2247,7 +2255,7 @@ abstract class BfsStyle extends Certificate
                     ->styleMarginTop('8px')
                     ->stylePaddingTop('2px')
                     ->stylePaddingBottom('1.5px')
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                     , '9%')
             );
     }
@@ -2293,7 +2301,7 @@ abstract class BfsStyle extends Certificate
                         ->styleMarginTop('8px')
                         ->stylePaddingTop('2px')
                         ->stylePaddingBottom('1.5px')
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         , '9%')
                 )
                 ->addSection((new Section())
@@ -2315,7 +2323,7 @@ abstract class BfsStyle extends Certificate
                         ->styleMarginTop('8px')
                         ->stylePaddingTop('2px')
                         ->stylePaddingBottom('1.5px')
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         , '9%')
                 );
         } else {
@@ -2387,7 +2395,7 @@ abstract class BfsStyle extends Certificate
                                  &ndash;
                              {% endif %}')
                     ->styleAlignCenter()
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                     ->stylePaddingTop(empty($Subject) ? '2px'
                         :'{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                     and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)

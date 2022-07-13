@@ -4,6 +4,7 @@ namespace SPHERE\Application\Transfer\Untis\Import;
 use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeException;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassregister;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -26,6 +27,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -34,9 +36,10 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 use Symfony\Component\HttpFoundation\File\File;
 
-class Replacement implements IModuleInterface
+class Replacement extends Extension implements IModuleInterface
 {
 
     public static function registerModule()
@@ -89,16 +92,21 @@ class Replacement implements IModuleInterface
         if(($tblTimetableReplacementList = TimetableClassregister::useService()->getTimetableReplacementByDate($DateFrom, $DateTo))){
             foreach($tblTimetableReplacementList as $tblTimetableReplacement){
                 $tblDivision = $tblTimetableReplacement->getServiceTblCourse();
-                $TableContentTemp[$tblTimetableReplacement->getDate()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                $TableContentTemp[$tblTimetableReplacement->getDate()][$tblDivision->getId()] = $tblDivision;
             }
         }
         $TableContent = array();
         if(!empty($TableContentTemp)){
-            foreach($TableContentTemp as $Date => $Division){
+            foreach($TableContentTemp as $Date => $DivisionList){
                 $item = array();
                 $item['Date'] = $Date;
-                sort($Division);
-                $item['Course'] = implode(', ', $Division);
+                $DivisionList = $this->getSorter($DivisionList)->sortObjectBy('DisplayName');
+                $DivList = array();
+                /** @var TblDivision $Division */
+                foreach($DivisionList as $Division){
+                    $DivList[] = $Division->getDisplayName();
+                }
+                $item['Course'] = implode(', ', $DivList);
                 array_push($TableContent, $item);
             }
         }
@@ -159,17 +167,20 @@ class Replacement implements IModuleInterface
                         array('showPreview' => false)))->setRequired()
                 , 4),
                 new FormColumn(
-                    new DatePicker('Data[Date]', '','Datum '.new Small(new Muted('(Optional, wenn die Importdaten nicht der aktuellen Woche entsprechen)')))
+                    new Info('Importiert wird grundsätzlich die aktuelle Kalenderwoche, soll eine andere Kalenderwoche importiert werden, so wählen Sie ein Datum, welches der gewünschten Kalenderwoche entspricht', null, false, 3,10)
                 , 4),
             )),
-            new FormRow(
+            new FormRow(array(
                 new FormColumn(new Listing(
                     array(
                         new RadioBox('Data[IsImport]', 'Test des Imports', '0'),
                         new RadioBox('Data[IsImport]', 'Importieren', '1')
                     )
-                ), 4)
-            )
+                ), 4),
+                new FormColumn(
+                    new DatePicker('Data[Date]', '','Datum '.new Small(new Muted('(Optional)')))
+                , 4)
+            ))
         )), new Primary('Hochladen')
         );
     }

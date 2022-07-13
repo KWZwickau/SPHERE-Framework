@@ -154,6 +154,7 @@ class Service extends AbstractService
      * @param $Street
      * @param $City
      * @param $Type
+     * @param $OnlineContactId
      * @param TblToPerson|null $tblToPerson
      *
      * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
@@ -163,6 +164,7 @@ class Service extends AbstractService
         $Street,
         $City,
         $Type,
+        $OnlineContactId,
         TblToPerson $tblToPerson = null
     ) {
 
@@ -175,7 +177,7 @@ class Service extends AbstractService
             $showRelationships = false;
         }
 
-        $form = Address::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null, false, $showRelationships);
+        $form = Address::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null, false, $showRelationships, $OnlineContactId);
         if (isset($Street['Name']) && empty($Street['Name'])) {
             $form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $error = true;
@@ -917,5 +919,84 @@ class Service extends AbstractService
         }
 
         return true;
+    }
+
+    /**
+     * @param TblAddress $tblAddress
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByAddress(TblAddress $tblAddress)
+    {
+        return (new Data($this->getBinding()))->getToPersonAllByAddress($tblAddress);
+    }
+
+    /**
+     * @param TblAddress $tblAddress
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonAllByAddress(TblAddress $tblAddress)
+    {
+        $result = array();
+        if (($tblToPersonList = $this->getToPersonAllByAddress($tblAddress))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if (($tblPerson = $tblToPerson->getServiceTblPerson())) {
+                    $result[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblAddress $tblAddress
+     *
+     * @return false|TblToPerson
+     */
+    public function getAddressToPersonByPersonAndAddress(TblPerson $tblPerson, TblAddress $tblAddress)
+    {
+        return (new Data($this->getBinding()))->getAddressToPersonByPersonAndAddress($tblPerson, $tblAddress);
+    }
+
+    /**
+     * @param $StreetName
+     * @param $StreetNumber
+     * @param $CityCode
+     * @param $CityName
+     * @param $CityDistrict
+     * @param string $PostOfficeBox
+     * @param string $County
+     * @param string $Nation
+     * @param TblState|null $tblState
+     *
+     * @return false|TblAddress
+     */
+    public function insertAddress(
+        $StreetName,
+        $StreetNumber,
+        $CityCode,
+        $CityName,
+        $CityDistrict,
+        string $PostOfficeBox = '',
+        string $County = '',
+        string $Nation = '',
+        TblState $tblState = null
+    ) {
+        if (($tblCity = (new Data($this->getBinding()))->createCity($CityCode, $CityName, $CityDistrict))) {
+            return (new Data($this->getBinding()))->createAddress(
+                $tblState,
+                $tblCity,
+                $StreetName,
+                $StreetNumber,
+                $PostOfficeBox,
+                $County,
+                $Nation
+            );
+        }
+
+        return false;
     }
 }

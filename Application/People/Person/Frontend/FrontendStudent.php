@@ -26,6 +26,8 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -125,9 +127,7 @@ class FrontendStudent extends FrontendReadOnly
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            if (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
-                && $tblConsumer->getAcronym() == 'HOGA'
-            ) {
+            if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
                 $routeEnrollmentDocument = '\Document\Custom\Hoga\EnrollmentDocument\Fill';
             } else {
                 $routeEnrollmentDocument = '\Document\Standard\EnrollmentDocument\Fill';
@@ -168,9 +168,11 @@ class FrontendStudent extends FrontendReadOnly
                 FrontendStudentGeneral::getStudentGeneralContent($PersonId, $AllowEdit), 'StudentGeneralContent'
             );
 
-            if (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
-                && $tblConsumer->getAcronym() == 'WVSZ'
-            ) {
+            $listingContent[] = ApiPersonReadOnly::receiverBlock(
+                FrontendStudentAgreement::getStudentAgreementContent($PersonId, $AllowEdit), 'StudentAgreementContent'
+            );
+
+            if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'WVSZ')) {
                 $listingContent[] = ApiPersonReadOnly::receiverBlock(
                     FrontendStudentSpecialNeeds::getStudentSpecialNeedsContent($PersonId, $AllowEdit), 'StudentSpecialNeedsContent'
                 );

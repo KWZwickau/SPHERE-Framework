@@ -41,9 +41,11 @@ class ViewEducationStudent extends AbstractView
     const TBL_COMPANY_NAME = 'TblCompany_Name';
     const TBL_COMPANY_NAME_EXTENDED_NAME = 'TblCompany_Name_ExtendedName';
 
+    const TBL_TYPE_ID = 'TblType_Id';
     const TBL_TYPE_NAME = 'TblType_Name';
     const TBL_TYPE_DESCRIPTION = 'TblType_Description';
 
+    const TBL_YEAR_ID = 'TblYear_Id';
     const TBL_YEAR_YEAR = 'TblYear_Year';
     const TBL_YEAR_DESCRIPTION = 'TblYear_Description';
 
@@ -99,11 +101,19 @@ class ViewEducationStudent extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblType_Id;
+    /**
+     * @Column(type="string")
+     */
     protected $TblType_Name;
     /**
      * @Column(type="string")
      */
     protected $TblType_Description;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblYear_Id;
     /**
      * @Column(type="string")
      */

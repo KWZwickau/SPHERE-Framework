@@ -29,7 +29,7 @@ class EssGsJOne extends Certificate
     {
         return array(
             1 => "wird nach Klasse 2 versetzt",
-            2 => "wiederholt freiwillig die Klassenstufe 1"
+            2 => "verbleibt in Klassenstufe 1" // SSWHD-1767
         );
     }
 
@@ -51,6 +51,7 @@ class EssGsJOne extends Certificate
                     ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
                         ->styleHeight('1px')
+                        ->stylePaddingTop('-110px')
                     )
                     ->addElementColumn((new Element())
                         , '25%')
@@ -60,7 +61,6 @@ class EssGsJOne extends Certificate
         }
 
         return (new Page())
-            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -70,6 +70,7 @@ class EssGsJOne extends Certificate
                     ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.jpg', '700px')))
                 )
             )
+            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -92,10 +93,6 @@ class EssGsJOne extends Certificate
                     ->stylePaddingTop('8px')
                 )
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
                         ->styleTextSize(self::TEXT_SIZE)
@@ -122,10 +119,6 @@ class EssGsJOne extends Certificate
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignRight()
                         , '30%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
                     )
                 )
                 ->stylePaddingBottom('30px')

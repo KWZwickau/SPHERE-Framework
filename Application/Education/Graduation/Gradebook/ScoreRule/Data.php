@@ -386,15 +386,17 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
     }
 
     /**
-     * @param        $Name
+     * @param string $Name
      * @param string $Description
+     * @param string $DescriptionForExtern
      *
      * @return TblScoreRule
      */
     public function createScoreRule(
-        $Name,
-        $Description = ''
-    ) {
+        string $Name,
+        string $Description,
+        string $DescriptionForExtern
+    ): TblScoreRule {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -407,6 +409,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity = new TblScoreRule();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
+            $Entity->setDescriptionForExtern($DescriptionForExtern);
             $Entity->setIsActive(true);
 
             $Manager->saveEntity($Entity);
@@ -828,17 +831,20 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
 
     /**
      * @param TblScoreRule $tblScoreRule
-     * @param $Name
-     * @param $Description
+     * @param string $Name
+     * @param string $Description
+     * @param string $DescriptionForExtern
      * @param bool $IsActive
+     *
      * @return bool
      */
     public function updateScoreRule(
         TblScoreRule $tblScoreRule,
-        $Name,
-        $Description,
-        $IsActive
-    ) {
+        string $Name,
+        string $Description,
+        string $DescriptionForExtern,
+        bool $IsActive
+    ): bool {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -848,6 +854,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
         if (null !== $Entity) {
             $Entity->setName($Name);
             $Entity->setDescription($Description);
+            $Entity->setDescriptionForExtern($DescriptionForExtern);
             $Entity->setIsActive($IsActive);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

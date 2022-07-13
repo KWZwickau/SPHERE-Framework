@@ -19,12 +19,14 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\System\Extension\Extension;
 
 abstract class Certificate extends Extension
 {
+    const BACKGROUND_GRADE_FIELD = '#CCC';
 
     /** @var null|Frame $Certificate */
     private $Certificate = null;
@@ -160,26 +162,23 @@ abstract class Certificate extends Extension
             $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
         } elseif (strpos($certificate, 'EzshKurshalbjahreszeugnis') !== false) {
             $InjectStyle = 'body { margin-left: 0.9cm !important; margin-right: 1.0cm !important; }';
-        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'EVGSM' && (strpos($certificate, 'GsHjInfo') !== false || strpos($certificate, 'GsJ') !== false)) {
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EVGSM') && (strpos($certificate, 'GsHjInfo') !== false || strpos($certificate, 'GsJ') !== false)) {
             $isWidth = true;
 //            $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
-        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'CSW') {
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'CSW')) {
             $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.8cm !important; margin-right: 0.8cm !important; }';
         }
         // Mandanten, deren individuelle Zeugnisse ebenfalls mit den Mandanteneinstellungen die Rahmenbreite verändern können
-        elseif ($tblConsumer && ($tblConsumer->getAcronym() == 'ESZC'
-//                             || $tblConsumer->getAcronym() == 'REF' // local test
-                )
-            ) {
+        elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC')) {
             $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
             $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generate', 'DocumentBorder');
             if($tblSetting && $tblSetting->getValue() == 1){
                 // normal
                 $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
             }
-        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'ESBD') {
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'ESBD')) {
             $InjectStyle = 'body { margin-bottom: -0.7cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
-        } elseif ($tblConsumer && ($tblConsumer->getAcronym() == 'LWSZ' )) {
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'LWSZ')) {
             // erforderlich für die Fußzeile auf der 2. Seite
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
             $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generate', 'DocumentBorder');
@@ -187,7 +186,7 @@ abstract class Certificate extends Extension
                 // normal
                 $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.35cm !important; margin-right: 0.35cm !important; }';
             }
-        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'HOGA') {
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
         }
         else {
@@ -218,10 +217,13 @@ abstract class Certificate extends Extension
 
         // SSW-1026 schmaler Zeugnisrand und SSW-1037
         if ((strpos($certificate, 'GymAbitur') !== false
+            || strpos($certificate, 'GymAbgSekI') !== false
             || strpos($certificate, 'GymAbgSekII') !== false
             || strpos($certificate, 'MsAbs') !== false
             || strpos($certificate, 'MsAbg') !== false)
-            && $tblConsumer && $tblConsumer->getAcronym() != 'HOGA'
+            && $tblConsumer
+            && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
+            && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')
         ) {
             $InjectStyle = '';
         }
@@ -529,7 +531,7 @@ abstract class Certificate extends Extension
      *
      * @return Slice
      */
-    protected function getHead($IsSample, $isBigLogo = true)
+    protected function getHead($IsSample, $isBigLogo = true, $showIndividualLogo = true)
     {
 
         $isOS = false;
@@ -540,8 +542,13 @@ abstract class Certificate extends Extension
             $isOS = true;
         }
 
-        $picturePath = $this->getUsedPicture($isOS);
-        $IndividuallyLogoHeight = $this->getPictureHeight($isOS);
+        if ($showIndividualLogo) {
+            $picturePath = $this->getUsedPicture($isOS);
+            $IndividuallyLogoHeight = $this->getPictureHeight($isOS);
+        } else {
+            $picturePath = '';
+            $IndividuallyLogoHeight = '66px';
+        }
 
         $StandardLogoHeight = '50px';
         $StandardLogoWidth = '165px';
@@ -931,7 +938,7 @@ abstract class Certificate extends Extension
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
@@ -1043,7 +1050,7 @@ abstract class Certificate extends Extension
         $IsGradeUnderlined = false,
         $hasSecondLanguageDiploma = false,
         $hasSecondLanguageSecondarySchool = false,
-        $backgroundColor = '#BBB'
+        $backgroundColor = self::BACKGROUND_GRADE_FIELD
     ) {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -2272,7 +2279,7 @@ abstract class Certificate extends Extension
                                          &ndash;
                                      {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop()
                         ->stylePaddingBottom()
@@ -2306,7 +2313,7 @@ abstract class Certificate extends Extension
         $TextSize = '14px',
         $IsGradeUnderlined = false,
         $MarginTop = '10px',
-        $backgroundColor = '#BBB'
+        $backgroundColor = self::BACKGROUND_GRADE_FIELD
     ) {
 
         $TextSizeSmall = '8px';
@@ -2541,11 +2548,9 @@ abstract class Certificate extends Extension
             $tblStudentSubject = current($tblStudentSubjectList);
             if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
                 $tblSubject = $tblSubjectProfile;
-
+                $tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession();
                 // Bei Chemnitz nur bei naturwissenschaftlichem Profil
-                if (($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
-                    && $tblConsumer->getAcronym() == 'ESZC'
-                ) {
+                if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC')) {
                     if (strpos(strtolower($tblSubject->getName()), 'naturwissen') !== false
                         && $this->getTblDivision()
                         && $this->getTblDivision()->getTblLevel()
@@ -2554,7 +2559,7 @@ abstract class Certificate extends Extension
                         $profileAppendText = 'Profil mit informatischer Bildung';
                     }
                 // Bei Tarandt für alle Profilfe
-                } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'CSW') {
+                } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'CSW')) {
                     if ($this->getTblDivision()
                         && $this->getTblDivision()->getTblLevel()
                         && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())
@@ -2562,8 +2567,7 @@ abstract class Certificate extends Extension
                         $profileAppendText = 'Profil mit informatischer Bildung';
                     }
                 // Bei Annaberg bei keinem Profil (Youtrack: SSW-2355)
-                } elseif ($tblConsumer
-                    && $tblConsumer->getAcronym() == 'EGE'
+                } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EGE')
                 ) {
                     // keine Anpassung
                 } elseif (strpos(strtolower($tblSubject->getName()), 'wissen') !== false
@@ -2628,7 +2632,7 @@ abstract class Certificate extends Extension
                     {% endif %}
                 ')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop('0px')
                 ->stylePaddingBottom('0px')
@@ -2645,7 +2649,7 @@ abstract class Certificate extends Extension
             $elementGrade = (new Element())
                 ->setContent('&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop('0px')
                 ->stylePaddingBottom('0px')
@@ -2817,7 +2821,7 @@ abstract class Certificate extends Extension
                     {% endif %}
                 ')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop(
                     '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
@@ -2852,7 +2856,7 @@ abstract class Certificate extends Extension
             $elementGrade = (new Element())
                 ->setContent('&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop($paddingTop)
                 ->stylePaddingBottom($paddingBottom)
@@ -2945,7 +2949,7 @@ abstract class Certificate extends Extension
             $elementForeignGrade = (new Element())
                 ->setContent($contentForeignGrade)
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop($paddingTopGrade)
                 ->stylePaddingBottom($paddingBottomGrade)
@@ -2962,7 +2966,7 @@ abstract class Certificate extends Extension
             $elementForeignGrade = (new Element())
                 ->setContent('&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop($paddingTop)
                 ->stylePaddingBottom($paddingBottom)
@@ -3100,7 +3104,7 @@ abstract class Certificate extends Extension
                                 &ndash;
                             {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
@@ -3160,7 +3164,7 @@ abstract class Certificate extends Extension
                                 &ndash;
                             {% endif %}')
                             ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
+                            ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                             ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                             ->stylePaddingTop(
                                 '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
@@ -3247,7 +3251,7 @@ abstract class Certificate extends Extension
                 $elementGrade = (new Element())
                     ->setContent('&ndash;')
                     ->styleAlignCenter()
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                     ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                     ->stylePaddingTop('0px')
                     ->stylePaddingBottom('0px')
@@ -3293,7 +3297,7 @@ abstract class Certificate extends Extension
             $elementGrade = (new Element())
                 ->setContent('&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop('0px')
                 ->stylePaddingBottom('0px')

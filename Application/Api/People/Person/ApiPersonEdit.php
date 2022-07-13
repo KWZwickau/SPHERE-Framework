@@ -2,15 +2,19 @@
 
 namespace SPHERE\Application\Api\People\Person;
 
+use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Meta\Agreement\Agreement;
 use SPHERE\Application\People\Meta\Child\Child;
 use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Custody\Custody;
+use SPHERE\Application\People\Meta\Masern\Masern;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
@@ -18,8 +22,11 @@ use SPHERE\Application\People\Person\Frontend\FrontendChild;
 use SPHERE\Application\People\Person\Frontend\FrontendClub;
 use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Application\People\Person\Frontend\FrontendCustody;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonMasern;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Application\People\Person\Frontend\FrontendStudent;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentAgreement;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentGeneral;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentMedicalRecord;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentProcess;
@@ -39,6 +46,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class ApiPersonEdit
@@ -70,6 +78,12 @@ class ApiPersonEdit extends Extension implements IApiInterface
         $Dispatcher->registerMethod('editCommonContent');
         $Dispatcher->registerMethod('saveCommonContent');
 
+        $Dispatcher->registerMethod('editPersonAgreementContent');
+        $Dispatcher->registerMethod('savePersonAgreementContent');
+
+        $Dispatcher->registerMethod('editPersonMasernContent');
+        $Dispatcher->registerMethod('savePersonMasernContent');
+
         $Dispatcher->registerMethod('editProspectContent');
         $Dispatcher->registerMethod('saveProspectContent');
 
@@ -96,6 +110,9 @@ class ApiPersonEdit extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('editStudentGeneralContent');
         $Dispatcher->registerMethod('saveStudentGeneralContent');
+
+        $Dispatcher->registerMethod('editStudentAgreementContent');
+        $Dispatcher->registerMethod('saveStudentAgreementContent');
 
         $Dispatcher->registerMethod('editStudentSubjectContent');
         $Dispatcher->registerMethod('saveStudentSubjectContent');
@@ -194,11 +211,12 @@ class ApiPersonEdit extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param $PersonId
+     * @param $GroupId
      *
      * @return Pipeline
      */
-    public static function pipelineEditBasicContent($PersonId)
+    public static function pipelineEditBasicContent($PersonId, $GroupId)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'BasicContent'), self::getEndpoint());
@@ -206,7 +224,8 @@ class ApiPersonEdit extends Extension implements IApiInterface
             self::API_TARGET => 'editBasicContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'GroupId' => $GroupId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -214,11 +233,12 @@ class ApiPersonEdit extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param $PersonId
+     * @param $GroupId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveBasicContent($PersonId)
+    public static function pipelineSaveBasicContent($PersonId, $GroupId)
     {
 
         $pipeline = new Pipeline(true);
@@ -228,7 +248,8 @@ class ApiPersonEdit extends Extension implements IApiInterface
             self::API_TARGET => 'saveBasicContent',
         ));
         $emitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'GroupId' => $GroupId
         ));
         $pipeline->appendEmitter($emitter);
 
@@ -312,6 +333,134 @@ class ApiPersonEdit extends Extension implements IApiInterface
         $emitter = new ServerEmitter(ApiPersonReadOnly::receiverBlock('', 'CommonContent'), ApiPersonReadOnly::getEndpoint());
         $emitter->setGetPayload(array(
             ApiPersonReadOnly::API_TARGET => 'loadCommonContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditPersonAgreementContent($PersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'PersonAgreementContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'editPersonAgreementContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSavePersonAgreementContent($PersonId)
+    {
+
+        $pipeline = new Pipeline(true);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'PersonAgreementContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'savePersonAgreementContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCancelPersonAgreementContent($PersonId)
+    {
+        $pipeline = new Pipeline(true);
+
+        // Grunddaten neu laden
+        $emitter = new ServerEmitter(ApiPersonReadOnly::receiverBlock('', 'PersonAgreementContent'), ApiPersonReadOnly::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonReadOnly::API_TARGET => 'loadPersonAgreementContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditPersonMasernContent($PersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'PersonMasernContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'editPersonMasernContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSavePersonMasernContent($PersonId)
+    {
+
+        $pipeline = new Pipeline(true);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'PersonMasernContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'savePersonMasernContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCancelPersonMasernContent($PersonId)
+    {
+        $pipeline = new Pipeline(true);
+
+        // Grunddaten neu laden
+        $emitter = new ServerEmitter(ApiPersonReadOnly::receiverBlock('', 'PersonMasernContent'), ApiPersonReadOnly::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonReadOnly::API_TARGET => 'loadPersonMasernContent',
         ));
         $emitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -902,6 +1051,70 @@ class ApiPersonEdit extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
+    public static function pipelineEditStudentAgreementContent($PersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentAgreementContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'editStudentAgreementContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveStudentAgreementContent($PersonId)
+    {
+
+        $pipeline = new Pipeline(true);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentAgreementContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'saveStudentAgreementContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCancelStudentAgreementContent($PersonId)
+    {
+        $pipeline = new Pipeline(true);
+
+        // Grunddaten neu laden
+        $emitter = new ServerEmitter(ApiPersonReadOnly::receiverBlock('', 'StudentAgreementContent'), ApiPersonReadOnly::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonReadOnly::API_TARGET => 'loadStudentAgreementContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
     public static function pipelineEditStudentSubjectContent($PersonId)
     {
         $Pipeline = new Pipeline(false);
@@ -1237,18 +1450,19 @@ class ApiPersonEdit extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function editBasicContent($PersonId = null)
+    public function editBasicContent($PersonId = null, $GroupId = null)
     {
 
-        return (new FrontendBasic())->getEditBasicContent($PersonId);
+        return (new FrontendBasic())->getEditBasicContent($PersonId, $GroupId);
     }
 
     /**
      * @param $PersonId
+     * @param $GroupId
      *
      * @return bool|Danger|string
      */
-    public function saveBasicContent($PersonId)
+    public function saveBasicContent($PersonId, $GroupId)
     {
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Person nicht gefunden', new Exclamation());
@@ -1256,22 +1470,30 @@ class ApiPersonEdit extends Extension implements IApiInterface
 
         $Global = $this->getGlobal();
         $Person = $Global->POST['Person'];
-        if (($form = (new FrontendBasic())->checkInputBasicContent($tblPerson, $Person))) {
+        if (($form = (new FrontendBasic())->checkInputBasicContent($tblPerson, $Person, $GroupId))) {
             // display Errors on form
             return $form;
         }
 
         if (Person::useService()->updatePersonService($tblPerson, $Person)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                . ApiPersonReadOnly::pipelineLoadBasicContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadCommonContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadChildContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadProspectContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadTeacherContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadCustodyContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadClubContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadIntegrationTitle($PersonId)
-                . ApiPersonReadOnly::pipelineLoadStudentTitle($PersonId);
+//                . ApiPersonReadOnly::pipelineLoadBasicContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadCommonContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadChildContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadProspectContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadPersonAgreementContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadTeacherContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadCustodyContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadClubContent($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadIntegrationTitle($PersonId)
+//                . ApiPersonReadOnly::pipelineLoadStudentTitle($PersonId)
+//                . ApiAddressToPerson::pipelineLoadAddressToPersonContent($PersonId)
+//                . ApiPhoneToPerson::pipelineLoadPhoneToPersonContent($PersonId)
+//                . ApiMailToPerson::pipelineLoadMailToPersonContent($PersonId)
+//                . ApiRelationshipToPerson::pipelineLoadRelationshipToPersonContent($PersonId);
+                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblPerson->getId(), 'Group' => $GroupId)
+                );
         } else {
             return new Danger('Die Daten konnten nicht gespeichert werden');
         }
@@ -1300,7 +1522,11 @@ class ApiPersonEdit extends Extension implements IApiInterface
         }
 
         $Global = $this->getGlobal();
-        $Meta = $Global->POST['Meta'];
+        $Meta = array();
+        if(isset($Global->POST['Meta'])){
+            $Meta = $Global->POST['Meta'];
+        }
+
         if (($form = (new FrontendCommon())->checkInputCommonContent($tblPerson, $Meta))) {
             // display Errors on form
             return $form;
@@ -1312,6 +1538,96 @@ class ApiPersonEdit extends Extension implements IApiInterface
         } else {
             return new Danger('Die Daten konnten nicht gespeichert werden');
         }
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function editPersonAgreementContent($PersonId = null)
+    {
+
+        return (new FrontendPersonAgreement())->getEditPersonAgreementContent($PersonId);
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return bool|Danger|string
+     */
+    public function savePersonAgreementContent($PersonId)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Person nicht gefunden', new Exclamation());
+        }
+
+        $Global = $this->getGlobal();
+        $Meta = array();
+        if(isset($Global->POST['Meta'])){
+            $Meta = $Global->POST['Meta'];
+        }
+
+        if (Agreement::useService()->updatePersonAgreement($tblPerson, $Meta)) {
+            return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . ApiPersonReadOnly::pipelineLoadPersonAgreementContent($PersonId);
+        } else {
+            return new Danger('Die Daten konnten nicht gespeichert werden');
+        }
+    }
+
+
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function editPersonMasernContent($PersonId = null)
+    {
+
+        return (new FrontendPersonMasern())->getEditPersonMasernContent($PersonId);
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return bool|Danger|string
+     */
+    public function savePersonMasernContent($PersonId)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Person nicht gefunden', new Exclamation());
+        }
+
+        $Global = $this->getGlobal();
+        $Meta = array();
+        if(isset($Global->POST['Meta'])){
+            $Meta = $Global->POST['Meta'];
+        }
+
+        $MasernDate = $MasernDocumentType = $MasernCreatorType = null;
+        if(isset($Meta['Masern']['Date']) && $Meta['Masern']['Date']){
+            $MasernDate = new DateTime($Meta['Masern']['Date']);
+        }
+        if(isset($Meta['Masern']['DocumentType']) && $Meta['Masern']['DocumentType']){
+            $MasernDocumentType = Student::useService()->getStudentMasernInfoById($Meta['Masern']['DocumentType']);
+        }
+        if(isset($Meta['Masern']['CreatorType']) && $Meta['Masern']['CreatorType']){
+            $MasernCreatorType = Student::useService()->getStudentMasernInfoById($Meta['Masern']['CreatorType']);
+        }
+        if(($tblPersonMasern = Masern::useService()->getPersonMasernByPerson($tblPerson))){
+            if (Masern::useService()->updatePersonMasern($tblPersonMasern, $tblPerson, $MasernDate, $MasernDocumentType, $MasernCreatorType)) {
+                return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                    . ApiPersonReadOnly::pipelineLoadPersonMasernContent($PersonId);
+            }
+        } else {
+            if(Masern::useService()->createPersonMasern($tblPerson, $MasernDate, $MasernDocumentType, $MasernCreatorType)) {
+                return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                    . ApiPersonReadOnly::pipelineLoadPersonMasernContent($PersonId);
+            }
+        }
+        return new Danger('Die Daten konnten nicht gespeichert werden');
     }
 
     /**
@@ -1625,6 +1941,42 @@ class ApiPersonEdit extends Extension implements IApiInterface
      *
      * @return string
      */
+    public function editStudentAgreementContent($PersonId = null)
+    {
+
+        return (new FrontendStudentAgreement())->getEditStudentAgreementContent($PersonId);
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return bool|Danger|string
+     */
+    public function saveStudentAgreementContent($PersonId)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Person nicht gefunden', new Exclamation());
+        }
+
+        $Global = $this->getGlobal();
+        $Meta = array();
+        if(isset($Global->POST['Meta'])){
+            $Meta = $Global->POST['Meta'];
+        }
+
+        if (Student::useService()->updateStudentAgreement($tblPerson, $Meta)) {
+            return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . ApiPersonReadOnly::pipelineLoadStudentAgreementContent($PersonId);
+        } else {
+            return new Danger('Die Daten konnten nicht gespeichert werden');
+        }
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
     public function editStudentSubjectContent($PersonId = null)
     {
 
@@ -1643,7 +1995,10 @@ class ApiPersonEdit extends Extension implements IApiInterface
         }
 
         $Global = $this->getGlobal();
-        $Meta = $Global->POST['Meta'];
+        $Meta = array();
+        if(isset($Global->POST['Meta'])){
+            $Meta = $Global->POST['Meta'];
+        }
 
         if (Student::useService()->updateStudentSubject($tblPerson, $Meta)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())

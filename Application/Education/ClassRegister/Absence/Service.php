@@ -18,11 +18,13 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -236,6 +238,7 @@ class Service extends AbstractService
      * @param array $groupList
      * @param bool $hasAbsenceTypeOptions
      * @param null|bool $IsCertificateRelevant
+     * @param bool $IsOnlineAbsenceOnly
      *
      * @return array
      */
@@ -246,7 +249,8 @@ class Service extends AbstractService
         $divisionList = array(),
         $groupList = array(),
         &$hasAbsenceTypeOptions = false,
-        $IsCertificateRelevant = true
+        $IsCertificateRelevant = true,
+        bool $IsOnlineAbsenceOnly = false
     ) {
         $resultList = array();
         $tblAbsenceList = array();
@@ -292,6 +296,11 @@ class Service extends AbstractService
                 ) {
                     // Zeugnisrelevant filtern
                     if ($IsCertificateRelevant !== null && $IsCertificateRelevant !== $tblAbsence->getIsCertificateRelevant()) {
+                        continue;
+                    }
+
+                    // Nur Online Fehlzeiten filtern
+                    if ($IsOnlineAbsenceOnly && !$tblAbsence->getIsOnlineAbsence()) {
                         continue;
                     }
 
@@ -545,6 +554,98 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Data
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param int $Source
+     *
+     * @return false|Form
+     */
+    public function checkFormOnlineAbsence(
+        $Data,
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        int $Source
+    ) {
+        $error = false;
+        $messageLesson = null;
+
+        // Prüfung ob Unterrichtseinheiten ausgewählt wurden
+        if (!isset($Data['IsFullDay']) && !isset($Data['UE'])) {
+            $messageLesson = new Danger('Bitte wählen Sie mindestens eine Unterrichtseinheit aus.', new Exclamation());
+            $error = true;
+        }
+
+        $form = OnlineAbsence::useFrontend()->formOnlineAbsence(
+            $Data,
+            $tblPerson->getId(),
+            $tblDivision->getId(),
+            $Source,
+            $messageLesson
+        );
+
+        if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
+            $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
+            $error = true;
+        }
+
+        $fromDate = null;
+        $toDate = null;
+        if (isset($Data['FromDate']) && !empty($Data['FromDate'])) {
+            $fromDate = new DateTime($Data['FromDate']);
+        }
+        if (isset($Data['ToDate']) && !empty($Data['ToDate'])) {
+            $toDate = new DateTime($Data['ToDate']);
+        }
+
+        if ($fromDate && $toDate) {
+            if ($toDate->format('Y-m-d') < $fromDate->format('Y-m-d')){
+                $form->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
+                $error = true;
+            }
+        }
+
+        if (!$error && $fromDate) {
+            // prüfen, ob das fromDate größer gleich heute ist
+            if ($fromDate < (new DateTime('today'))) {
+                $form->setError('Data[FromDate]', 'Bitte wählen Sie heute oder ein zukünftiges Datum aus');
+                $error = true;
+            }
+
+            // Prüfung ob in diesem Zeitraum bereits eine Fehlzeit existiert
+            if ((new Data($this->getBinding()))->getAbsenceAllBetweenByPerson($fromDate, $tblPerson, $toDate == $fromDate ? null : $toDate)) {
+                $form->setError('Data[FromDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
+                $error = true;
+            }
+        }
+
+        if (!$error && ($tblYear = $tblDivision->getServiceTblYear())) {
+            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if ($startDate && $endDate) {
+                if ($fromDate < $startDate || $fromDate > $endDate) {
+                    $form->setError(
+                        'Data[FromDate]',
+                        'Eingabe außerhalb des Schuljahres (' . $startDate->format('d.m.Y').' - ' . $endDate->format('d.m.Y') . ')'
+                    );
+                    $error = true;
+                }
+
+                if (isset($Data['ToDate']) && !empty($Data['ToDate'])) {
+                    if ($toDate > $endDate) {
+                        $form->setError(
+                            'Data[FromDate]',
+                            'Eingabe außerhalb des Schuljahres (' . $startDate->format('d.m.Y').' - ' . $endDate->format('d.m.Y') . ')'
+                        );
+                        $error = true;
+                    }
+                }
+            }
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
      * @param TblDivision $tblDivision
      *
      * @return bool
@@ -594,9 +695,12 @@ class Service extends AbstractService
                 $Data['ToDate'],
                 $Data['Status'],
                 $Data['Remark'],
-                isset($Data['Type']) ? $Data['Type'] : TblAbsence::VALUE_TYPE_NULL,
-                $tblPersonStaff ? $tblPersonStaff : null,
-                isset($Data['IsCertificateRelevant'])
+                $Data['Type'] ?? TblAbsence::VALUE_TYPE_NULL,
+                isset($Data['IsCertificateRelevant']),
+                // Ersteller
+                $tblPersonStaff ?: null,
+                // letzter Bearbeiter
+                $tblPersonStaff ?: null
             ))) {
                 if (isset($Data['UE'])) {
                     foreach ($Data['UE'] as $lesson => $value) {
@@ -606,6 +710,48 @@ class Service extends AbstractService
 
                 return  true;
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $Data
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param int $Source
+     *
+     * @return bool
+     */
+    public function createOnlineAbsence($Data, TblPerson $tblPerson, TblDivision $tblDivision, int $Source): bool
+    {
+        $tblPersonCreator = Account::useService()->getPersonByLogin();
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewOnlineAbsence'))) {
+            $status = $tblSetting->getValue();
+        } else {
+            $status = TblAbsence::VALUE_STATUS_UNEXCUSED;
+        }
+
+        if (($tblAbsence = (new Data($this->getBinding()))->createAbsence(
+            $tblPerson,
+            $tblDivision,
+            $Data['FromDate'],
+            $Data['ToDate'],
+            $status,
+            $Data['Remark'],
+            $Data['Type'] ?? TblAbsence::VALUE_TYPE_NULL,
+            true,
+            $tblPersonCreator ?: null,
+            null,
+            $Source
+        ))) {
+            if (isset($Data['UE'])) {
+                foreach ($Data['UE'] as $lesson => $value) {
+                    (new Data($this->getBinding()))->addAbsenceLesson($tblAbsence, $lesson);
+                }
+            }
+
+            return  true;
         }
 
         return false;

@@ -48,6 +48,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -66,6 +67,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -84,6 +86,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
+use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -665,11 +668,16 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             foreach ($tblPrepareAllByDivision as $tblPrepareCertificate) {
                 $tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate();
                 $tblCertificateType = $tblGenerateCertificate ? $tblGenerateCertificate->getServiceTblCertificateType() : false;
+                $tblSchoolType = $tblDivision->getType();
 
                 if ($tblCertificateType) {
                     if ($Route != 'Diploma') {
                         // Abschlusszeugnisse überspringen
-                        if ($tblCertificateType->getIdentifier() == 'DIPLOMA') {
+                        if ($tblCertificateType->getIdentifier() == 'DIPLOMA'
+                            // Ausnahme bei HOGA sollen die Klassenlehrer die Abschlusszeugnisse bearbeiten können, todo später Mandanteneintstellung
+                            && !(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA') && $Route == 'Teacher' && $tblSchoolType
+                                && ($tblSchoolType->getShortName() == 'OS' || $tblSchoolType->getShortName() == 'FOS'))
+                        ) {
                             continue;
                         }
                     } else {
@@ -678,9 +686,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             continue;
                         }
                     }
+                } else {
+                    continue;
                 }
-
-                $tblSchoolType = $tblDivision->getType();
 
                 if ($Route == 'Diploma'
                     && $tblSchoolType
@@ -698,12 +706,13 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 } else {
                     $options = (new Standard(
                         '', '/Education/Certificate/Prepare/Prepare'
-                        . ($Route == 'Diploma'
+                        . ($tblCertificateType->getIdentifier() == 'DIPLOMA'
                             ? '/Diploma' . ($tblSchoolType
-                                && ($tblSchoolType->getName() == 'Berufsfachschule'
-                                    || $tblSchoolType->getName() == 'Fachschule'
+                                && ($tblSchoolType->getName() == 'Fachschule'
                                     || $tblSchoolType->getName() == 'Berufsgrundbildungsjahr'
-                                    || $tblSchoolType->getName() == 'Fachoberschule'
+//                                Fachoberschule, Berufsfachschule ist wie Oberschule
+//                                    || $tblSchoolType->getName() == 'Fachoberschule'
+//                                    || $tblSchoolType->getName() == 'Berufsfachschule'
                                 )
                                 ? '/Technical' : '')
                             : '')
@@ -1153,7 +1162,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                             if ($tblPrepareGrade) {
                                                 $gradeValue = $tblPrepareGrade->getGrade();
                                                 $Global->POST['Data'][$tblPrepareStudent->getId()] = $gradeValue;
-                                            } elseif ($averageStudent) {
+                                            } elseif ($averageStudent && !$tblPrepareStudent->isApproved()) {
                                                 // Noten aus dem Notendurchschnitt als Vorschlag eintragen
                                                 if ($tblPrepareStudent->getServiceTblCertificate()) {
                                                     $hasPreviewGrades = true;
@@ -1460,13 +1469,13 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 'Course' => 'Bildungsgang',
 
                                 'ExcusedDays' => 'Ganze Tage',
-                                'ExcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten'),
-                                'ExcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für UE',
+                                'ExcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten'),
+                                'ExcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für Unterrichts&shy;einheiten',
                                     'Für fehlende Unterrichtseinheiten können zusätzliche Fehltage erfasst werden'),
 
                                 'UnexcusedDays' => 'Ganze Tage',
-                                'UnexcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten'),
-                                'UnexcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für UE',
+                                'UnexcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten'),
+                                'UnexcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für Unterrichts&shy;einheiten',
                                     'Für fehlende Unterrichtseinheiten können zusätzliche Fehltage erfasst werden')
                             );
                         } else {
@@ -1477,11 +1486,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 'Course' => 'Bildungsgang',
 
                                 'ExcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
-                                'ExcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten im Klassenbuch'),
+                                'ExcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
                                 'ExcusedDays' => 'Tage auf dem Zeugnis',
 
                                 'UnexcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
-                                'UnexcusedLessons' => new ToolTip('UE', 'Unterrichtseinheiten im Klassenbuch'),
+                                'UnexcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
                                 'UnexcusedDays' => 'Tage auf dem Zeugnis',
                             );
                         }
@@ -1549,11 +1558,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                             /*
                                             * Individuelle Zeugnisse EVGSM Meerane Klassename vorsetzen
                                             */
-                                            if ($tblConsumer
-                                                && $tblConsumer->getAcronym() == 'EVGSM'
+                                            if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EVGSM')
                                                 && ($tblCertificateStudent = $tblPrepareStudent->getServiceTblCertificate())
-                                                && strpos($tblCertificateStudent->getCertificate(),
-                                                    'EVGSM') !== false
+                                                && strpos($tblCertificateStudent->getCertificate(), 'EVGSM') !== false
                                             ) {
                                                 $Global->POST['Data'][$tblPrepareStudent->getId()]['DivisionName']
                                                     = $tblDivisionItem->getDisplayName();
@@ -1572,7 +1579,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                         $unexcusedDaysFromClassRegister = 0;
 
                                         if ($tblPrepareStudent) {
-                                            $date = new DateTime($tblPrepareItem->getDate());
+                                            if ($tblGenerateCertificate && $tblGenerateCertificate->getAppointedDateForAbsence()) {
+                                                $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                                            } else {
+                                                $date = new DateTime($tblPrepareItem->getDate());
+                                            }
 
                                             $excusedDays =  $tblPrepareStudent->getExcusedDays();
                                             $excusedDaysFromClassRegister = Absence::useService()->getExcusedDaysByPerson(
@@ -1724,7 +1735,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     // if using false table, need to be space between buttons & table
                     // same consumer as those who using Editor ad inputfield
                     if($tblConsumer
-                        && ($tblConsumer->getAcronym() == 'REF' || $tblConsumer->getAcronym() == 'EVAB')
+                        && ($tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'REF') || $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EVAB'))
                     ) {
                         $Interactive = false;
                         $SpaceWithFalseTable = new Container('&nbsp;');
@@ -1951,8 +1962,14 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     && method_exists($Certificate, 'selectValuesTransfer')
                                 ) {
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
+                                        array_search($tblPrepareInformation->getValue(), $Certificate->selectValuesTransfer());
+                                        $hasTransfer = true;
+                                } elseif ($tblPrepareInformation->getField() == 'Job_Grade_Text'
+                                    && method_exists($Certificate, 'selectValuesJobGradeText')
+                                ) {
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
                                         array_search($tblPrepareInformation->getValue(),
-                                            $Certificate->selectValuesTransfer());
+                                            $Certificate->selectValuesJobGradeText());
                                 } elseif (strpos($tblPrepareInformation->getField(), '_GradeText')
                                     && ($tblGradeText = Gradebook::useService()->getGradeTextByName($tblPrepareInformation->getValue()))
                                 ) {
@@ -1971,8 +1988,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                         // Coswig Versetzungsvermerk in die Bemerkung vorsetzten
                         if (!$hasRemarkText
-                            && ($tblConsumer = Consumer::useService()->getConsumerBySession())
-                            && $tblConsumer->getAcronym() == 'EVSC'
+                            && Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVSC')
                             && ($tblCertificateType = $tblCertificate->getTblCertificateType())
                             && $tblCertificateType->getIdentifier() == 'YEAR'
                         ) {
@@ -2107,8 +2123,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         $isSupportForPrimarySchool = false;
                         // Seelitz Förderbedarf-Satz in die Bemerkung vorsetzen
                         if (!$hasRemarkText
-                            && ($tblConsumer = Consumer::useService()->getConsumerBySession())
-                            && $tblConsumer->getAcronym() ==  'ESRL'//'REF' für Lokale Test's
+                            && Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESRL')
                         ) {
                            $isSupportForPrimarySchool = true;
                         // staatliche und pseudostaatliche Grundschulzeugnisse Förderbedarf-Satz in die Bemerkung vorsetzen
@@ -2316,6 +2331,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     && method_exists($Certificate, 'selectValuesTransfer')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesTransfer();
+                                                } elseif ($PlaceholderName == 'Content.Input.Job_Grade_Text'
+                                                    && method_exists($Certificate, 'selectValuesJobGradeText')
+                                                ) {
+                                                    $selectBoxData = $Certificate->selectValuesJobGradeText();
                                                 } elseif (strpos($PlaceholderName, '_GradeText') !== false) {
                                                     if (($tblGradeTextList = Gradebook::useService()->getGradeTextAll())) {
                                                         $selectBoxData = array(TblGradeText::ATTR_NAME => $tblGradeTextList);
@@ -2620,6 +2639,14 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             }
         }
 
+        if ($tblPrepareCertificate && ($tblDivision = $tblPrepareCertificate->getServiceTblDivision())
+            && ($tblSchoolType = $tblDivision->getType()) && $tblSchoolType->getShortName() != 'OS')
+        {
+            unset($columnTable['Course']);
+        }
+
+        $hasSetIsPrepareButton = false;
+        $hasResetIsPrepareButton = false;
         $personSignerList = array();
         if ($tblPrepareList) {
             $studentTable = array();
@@ -2677,7 +2704,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                             $countSubjectGrades = 0;
                             // Zensuren zählen
-                            if ($isDiploma && !$isTechnicalSchool) {
+                            if ($isDiploma && ($tblType && ($tblType->getShortName() == 'OS' || $tblType->getShortName() == 'FOS' || $tblType->getShortName() == 'BFS'))) {
                                 if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
                                     && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
                                         $tblPrepare,
@@ -2764,6 +2791,14 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             $excusedDays = null;
                             $unexcusedDays = null;
                             if ($tblPrepareStudent && $tblCertificate) {
+                                if ($tblPrepareStudent->getIsPrepared()) {
+                                    $hasResetIsPrepareButton = true;
+                                    $prepareStatus = new Success(new Check());
+                                } else {
+                                    $hasSetIsPrepareButton = true;
+                                    $prepareStatus = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked());
+                                }
+
                                 if (isset($certificateList[$tblCertificate->getId()])) {
                                     $hasCertificateAbsence = $certificateList[$tblCertificate->getId()];
                                 } else {
@@ -2777,15 +2812,21 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     $excusedDays = $tblPrepareStudent->getExcusedDays();
                                     $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
                                     if ($useClassRegisterForAbsence) {
+                                        if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                                            && $tblGenerateCertificate->getAppointedDateForAbsence()
+                                        ) {
+                                            $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                                        } else {
+                                            $date = new DateTime($tblPrepare->getDate());
+                                        }
+
                                         if ($excusedDays === null) {
                                             $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                                                $tblDivision,
-                                                new DateTime($tblPrepare->getDate()));
+                                                $tblDivision, $date);
                                         }
                                         if ($unexcusedDays === null) {
                                             $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                                $tblDivision,
-                                                new DateTime($tblPrepare->getDate()));
+                                                $tblDivision, $date);
                                         }
                                         // Zusatz-Tage von fehlenden Unterrichtseinheiten
                                         $excusedDaysFromLessons = $tblPrepareStudent->getExcusedDaysFromLessons();
@@ -2815,6 +2856,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             } else {
                                 $excusedDays = '&nbsp;';
                                 $unexcusedDays = '&nbsp;';
+                                $prepareStatus = '&nbsp;';
                             }
 
                             $number = count($studentTable) + 1;
@@ -2860,6 +2902,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 'BehaviorGrades' => $behaviorGradesDisplayText,
                                 'CheckSubjects' => $checkSubjectsString,
                                 'Signer' => $signer,
+                                'PrepareStatus' => $prepareStatus,
                                 'Option' =>
                                     $isDiploma && $isMuted ? '' : ($tblCertificate
                                         ? (new Standard(
@@ -2980,6 +3023,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             }
             $personSignerDisplayData[] = $buttonSigner;
 
+            $columnTable['PrepareStatus'] = 'Zeugnis&shy;vorbereitung';
             $columnTable['Option'] = '';
 
             $columnDef = array(
@@ -3048,7 +3092,31 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                         'Name' => 'Musterzeugnis'
                                     ),
                                     false
-                                )
+                                ),
+                                $hasSetIsPrepareButton
+                                    ? new Standard(
+                                        'Zeugnisvorbereitung abgeschlossen',
+                                        '/Education/Certificate/Prepare/SetIsPrepared',
+                                        new Check(),
+                                        array(
+                                            'PrepareId' => $PrepareId,
+                                            'GroupId' => $GroupId,
+                                            'Route' => $Route,
+                                            'IsPrepared' => 1
+                                        )
+                                    ) : null,
+                                $hasResetIsPrepareButton
+                                    ? new Standard(
+                                    'Zeugnisvorbereitung abgeschlossen entfernen',
+                                    '/Education/Certificate/Prepare/SetIsPrepared',
+                                    new Remove(),
+                                    array(
+                                        'PrepareId' => $PrepareId,
+                                        'GroupId' => $GroupId,
+                                        'Route' => $Route,
+                                        'IsPrepared' => 0
+                                    )
+                                ) : null,
                             ))
                         )),
                     )),
@@ -3263,11 +3331,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask,
                                 $tblDivisionItem))
                             ) {
-                                if (($tblType = $tblDivisionItem->getType())) {
-                                    $isTechnicalSchool = $tblType->isTechnical();
-                                } else {
-                                    $isTechnicalSchool = false;
-                                }
+                                $tblType = $tblDivisionItem->getType();
+                                $hasExams = ($Route == 'Diploma' && ($tblType && ($tblType->getShortName() == 'OS' || $tblType->getShortName() == 'FOS' || $tblType->getShortName() == 'BFS')));
 
                                 foreach ($tblTestAllByTask as $tblTest) {
                                     $tblSubject = $tblTest->getServiceTblSubject();
@@ -3290,7 +3355,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                                     if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                                                         if ($tblPerson && isset($divisionPersonList[$tblPerson->getId()])) {
-                                                            if ($Route == 'Diploma' && !$isTechnicalSchool) {
+                                                            if ($hasExams) {
                                                                 $studentList = $this->setDiplomaGrade($tblPrepareItem,
                                                                     $tblPerson,
                                                                     $tblSubject, $studentList);
@@ -3324,7 +3389,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                                                         // nur Schüler der ausgewählten Klasse
                                                         if (isset($divisionPersonList[$tblPerson->getId()])) {
-                                                            if ($Route == 'Diploma' && !$isTechnicalSchool) {
+                                                            if ($hasExams) {
                                                                 $studentList = $this->setDiplomaGrade($tblPrepareItem,
                                                                     $tblPerson,
                                                                     $tblSubject, $studentList);
@@ -3908,7 +3973,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('Data[Subject]', 'Fach', array('Name' => $availableSubjectList)), 6
+                        new SelectBox('Data[Subject]', 'Fach', array('DisplayName' => $availableSubjectList)), 6
                     ),
                     new FormColumn(
                         new TextField('Data[Grade]', '', 'Zensur'), 6
@@ -4108,7 +4173,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
      * @param null $Data
      * @param null $CertificateList
      *
-     * Schulart Mittelschule / Oberschule
+     * Schulart Mittelschule / Oberschule, Fachoberschule
      *
      * @return Stage|string
      */
@@ -4201,8 +4266,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
-                    'Course' => 'Bildungsgang',
                 );
+                if (($tblSchoolType = $tblDivision->getType()) && $tblSchoolType->getShortName() == 'OS') {
+                    $columnTable['Course'] = 'Bildungsgang';
+                }
 
                 foreach ($tblPrepareList as $tblPrepareItem) {
                     if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
@@ -4435,6 +4502,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 'LM' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LM'))
                     ? $tblPrepareAdditionalGradeType->getName() : 'Lm',
             );
+            if (($tblSchoolType = $tblDivision->getType()) && $tblSchoolType->getShortName() == 'OS') {
+                $columnTable['Course'] = 'Bildungsgang';
+            }
             if ($IsFinalGrade) {
                 $columnTable['Average'] = '&#216;';
                 $columnTable['EN'] = 'En (Endnote)';
@@ -4454,16 +4524,18 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             $columnTable = array(
                 'Number' => '#',
                 'Name' => 'Name',
-                'Course' => 'Bildungsgang',
-                'JN' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('JN'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Jn',
-                'PS' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PS'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Ps',
-                'PM' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PM'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Pm',
-                'PZ' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PZ'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Pz',
             );
+            if (($tblSchoolType = $tblDivision->getType()) && $tblSchoolType->getShortName() == 'OS') {
+                $columnTable['Course'] = 'Bildungsgang';
+            }
+            $columnTable['JN'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('JN'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Jn';
+            $columnTable['PS'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PS'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Ps';
+            $columnTable['PM'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PM'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Pm';
+            $columnTable['PZ'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PZ'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Pz';
             if ($IsFinalGrade) {
                 $columnTable['Average'] = '&#216;';
                 $columnTable['EN'] = 'En (Endnote)';
@@ -4722,6 +4794,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
         $tabIndex = 1;
         foreach ($tblPrepareList as $tblPrepareItem) {
             if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
+                && ($tblSchoolType = $tblDivisionItem->getType())
                 && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
             ) {
                 $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepareItem);
@@ -4820,6 +4893,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['JN'] = $gradeValue;
                                                     if ($gradeValue && is_numeric($gradeValue)) {
                                                         $gradeList['JN'] = $gradeValue;
+                                                    } else {
+                                                        $gradeList['JN_TEXT'] = $gradeValue;
                                                     }
                                                 }
                                             }
@@ -4833,6 +4908,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['JN'] = $gradeValue;
                                                     if ($gradeValue && is_numeric($gradeValue)) {
                                                         $gradeList['JN'] = $gradeValue;
+                                                    } else {
+                                                        $gradeList['JN_TEXT'] = $gradeValue;
                                                     }
                                                 }
                                             }
@@ -4898,13 +4975,18 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                         $tblCurrentSubject,
                                                         Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
                                                     )
-                                                    && $calcValue
                                                 ) {
-                                                    if ($tblPrepareStudent->getServiceTblCertificate()) {
-                                                        $hasPreviewGrades = true;
+                                                    if ($calcValue) {
+                                                        if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                            $hasPreviewGrades = true;
+                                                        }
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue, 0);
+                                                    } elseif (isset($gradeList['JN_TEXT']) && ($tblGradeTextTemp = Gradebook::useService()->getGradeTextByName($gradeList['JN_TEXT']))) {
+                                                        if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                            $hasPreviewGrades = true;
+                                                        }
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['Text'] = $tblGradeTextTemp->getId();
                                                     }
-                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue,
-                                                        0);
                                                 }
                                             }
                                         } else {
@@ -4919,7 +5001,12 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     }
                                                 } else {
                                                     if (isset($gradeList['PS'])) {
-                                                        $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
+                                                        if (isset($gradeList['PM'])) {
+                                                            // Sonderfall Englisch
+                                                            $calc = ($gradeList['JN'] + $gradeList['PS'] + $gradeList['PM']) / 3;
+                                                        } else {
+                                                            $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
+                                                        }
                                                     } elseif (isset($gradeList['PM'])) {
                                                         $calc = ($gradeList['JN'] + $gradeList['PM']) / 2;
                                                     }
@@ -4939,12 +5026,27 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     $tblCurrentSubject,
                                                     Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
                                                 )
-                                                && $calcValue
                                             ) {
-                                                if ($tblPrepareStudent->getServiceTblCertificate()) {
-                                                    $hasPreviewGrades = true;
+                                                if ($calcValue) {
+                                                    if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                        $hasPreviewGrades = true;
+                                                    }
+                                                    // bei ,5 entscheidet die Prüfungsnote bei FOS und BFS
+                                                    if (($tblSchoolType->getShortName() == 'FOS' || $tblSchoolType->getShortName() == 'BFS')
+                                                        && strpos($calcValue, '.5') !== false
+                                                        && $gradeList['JN'] > $calcValue
+                                                    ) {
+                                                        $round = PHP_ROUND_HALF_DOWN;
+                                                    } else {
+                                                        $round = PHP_ROUND_HALF_UP;
+                                                    }
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue, 0, $round);
+                                                } elseif (isset($gradeList['JN_TEXT']) && ($tblGradeTextTemp = Gradebook::useService()->getGradeTextByName($gradeList['JN_TEXT']))) {
+                                                    if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                        $hasPreviewGrades = true;
+                                                    }
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['Text'] = $tblGradeTextTemp->getId();
                                                 }
-                                                $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue, 0);
                                             }
                                         }
                                     }
@@ -5105,15 +5207,20 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
     private function sortSubjects(TblPrepareCertificate $tblPrepare, $tblTestList)
     {
         $tblCertificate = false;
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && ($tblSchoolType = $tblLevel->getServiceTblType())
-            && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+        // Ermittelung richtiges Zeugnis von Schülern
+        if (($tblDivisionItem = $tblPrepare->getServiceTblDivision())
+            && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
         ) {
-            if ($tblLevel->getName() == '10') {
-                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbsRs');
-            } elseif ($tblLevel->getName() == '9' || $tblLevel->getName() == '09') {
-                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbsHsQ');
+            foreach ($tblStudentList as $tblPerson) {
+                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                    && ($tblCertificateStudent = $tblPrepareStudent->getServiceTblCertificate())
+                ) {
+
+                    if ($tblCertificateStudent->getTblCertificateType()->getIdentifier() == 'DIPLOMA') {
+                        $tblCertificate = $tblCertificateStudent;
+                        break;
+                    }
+                }
             }
         }
 
@@ -5304,18 +5411,21 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 } else {
                     if ($tblType) {
                         if ($tblType->getName() == 'Mittelschule / Oberschule') {
-//                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbg');
-                            return $this->getSelectLeaveCertificateStage($tblPerson, $tblDivision, $tblType, $tblCourse ? $tblCourse : null, $Data);
+                            // Herrnhut hat ein individuelles Abgangszeugnis
+                            if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')) {
+                                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshMsAbg');
+                            } else {
+                                // Auswahl der Zeugnisvorlage, da es mehrere gibt
+                                return $this->getSelectLeaveCertificateStage($tblPerson, $tblDivision, $tblType, $tblCourse ? $tblCourse : null, $Data);
+                            }
                         } elseif ($tblType->getName() == 'Gymnasium') {
                             if ($tblLevel) {
                                 // Herrnhut hat ein individuelles Abgangszeugnis
-                                if ($tblConsumer
-                                    && $tblConsumer->getAcronym() == 'EZSH'
+                                if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')
                                     && intval($tblLevel->getName()) == 10
                                 ) {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshGymAbg');
-                                } elseif ($tblConsumer
-                                    && $tblConsumer->getAcronym() == 'HOGA'
+                                } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
                                     && intval($tblLevel->getName()) <= 10
                                 ) {
                                     // HOGA hat ein individuelles Abgangszeugnis
@@ -5337,7 +5447,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BfsAbg');
                         } elseif ($tblType->getName() == 'Fachschule') {
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('FsAbg');
-                        } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'HOGA' && $tblType->getName() == 'Fachoberschule') {
+                        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA') && $tblType->getName() == 'Fachoberschule') {
                             // HOGA hat ein individuelles Abgangszeugnis
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('HOGA\FosAbg');
                         }
@@ -5586,10 +5696,27 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 }
                 if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
                     foreach ($tblLeaveInformationList as $tblLeaveInformation) {
-                        $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $tblLeaveInformation->getValue();
+                        $value = $tblLeaveInformation->getValue();
+                        // HOGA\FosAbg
+                        if ($tblLeaveInformation->getField() == 'Job_Grade_Text') {
+                            switch ($value) {
+                                case 'bestanden': $value = 1; break;
+                                case 'nicht bestanden': $value = 2; break;
+                                default: $value = '';
+                            }
+                        }
+                        if ($tblLeaveInformation->getField() == 'Exam_Text') {
+                            switch ($value) {
+                                case 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.': $value = 1; break;
+                                case 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.': $value = 2; break;
+                                default: $value = '';
+                            }
+                        }
 
-                        if ($tblLeaveInformation->getField() == 'CertificateDate' && $tblLeaveInformation->getValue() != '') {
-                            $certificateDate = new DateTime($tblLeaveInformation->getValue());
+                        $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $value;
+
+                        if ($tblLeaveInformation->getField() == 'CertificateDate' && $value != '') {
+                            $certificateDate = new DateTime($value);
                         }
 
                         if ($tblLeaveInformation->getField() == 'SubjectArea') {
@@ -5933,6 +6060,17 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     $arrangementTextArea,
                     $remarkTextArea
                 );
+            } elseif ($tblCertificate->getCertificate() == 'EZSH\EzshMsAbg') {
+                $remarkTextArea = new TextArea('Data[InformationList][RemarkWithoutTeam]', '', 'Bemerkungen');
+
+                if ($isApproved) {
+                    $datePicker->setDisabled();
+                    $remarkTextArea->setDisabled();
+                }
+                $otherInformationList = array(
+                    $datePicker,
+                    $remarkTextArea
+                );
             } else {
                 if ($tblCertificate->getCertificate() == 'MsAbgLernen'
                     || $tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung'
@@ -5977,7 +6115,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     array($radio1, $radio2),
                     Panel::PANEL_TYPE_DEFAULT
                 );
-            } elseif ($tblCertificate->getCertificate() == 'MsAbg' || $tblCertificate->getCertificate() == 'HOGA\MsAbg') {
+            } elseif ($tblCertificate->getCertificate() == 'MsAbg'
+                || $tblCertificate->getCertificate() == 'EZSH\EzshMsAbg'
+                || $tblCertificate->getCertificate() == 'HOGA\MsAbg'
+            ) {
                 $radio1 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
                     'gemäß § 6 Absatz 1 Satz 7 des Sächsischen Schulgesetzes mit der Versetzung in die Klassenstufe 10
@@ -6022,22 +6163,53 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
             // Facharbeit
             if ($tblCertificate->getCertificate() == 'HOGA\FosAbg') {
                 $frontend = (new \SPHERE\Application\Education\Certificate\Prepare\TechnicalSchool\Frontend());
-                $panelJob = $frontend->getPanelWithoutInput('Fachpraktischer Teil der Ausbildung', 'Job', $isApproved);
+//                $panelJob = $frontend->getPanelWithoutInput('Fachpraktischer Teil der Ausbildung', 'Job', $isApproved);
+                $selectBoxJob = new SelectBox('Data[InformationList][Job_Grade_Text]', 'Fachpraktischer Teil der Ausbildung', array(
+                        1 => "bestanden",
+                        2 => "nicht bestanden"
+                    ));
+                if ($isApproved) {
+                    $selectBoxJob->setDisabled();
+                }
+                $panelJob = new Panel(
+                    'Fachpraktischer Teil der Ausbildung',
+                    $selectBoxJob,
+                    Panel::PANEL_TYPE_INFO
+                    );
                 $panelSkilledWork = $frontend->getPanel('Facharbeit', 'SkilledWork', 'Thema', $isApproved);
 
                 $subjectAreaInput = (new TextField('Data[InformationList][SubjectArea]', '', 'Fachrichtung'));
+                $educationDateFrom = new DatePicker('Data[InformationList][EducationDateFrom]', '', 'Ausbildung Datum vom');
                 if ($isApproved) {
                     $subjectAreaInput->setDisabled();
+                    $educationDateFrom->setDisabled();
                 }
                 $panelEducation = new Panel(
                     'Ausbildung',
-                    $subjectAreaInput,
+                    array(
+                        $educationDateFrom,
+                        $subjectAreaInput
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                );
+
+                $selectBoxExam = new SelectBox('Data[InformationList][Exam_Text]', 'Abschlussprüfung', array(
+                    1 => 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.',
+                    2 => 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.'
+                ));
+                if ($isApproved) {
+                    $selectBoxExam->setDisabled();
+                }
+                $panelExam = new Panel(
+                    'Abschlussprüfung',
+                    $selectBoxExam,
                     Panel::PANEL_TYPE_INFO
                 );
             } else {
                 $panelJob = false;
                 $panelSkilledWork = false;
                 $panelEducation = false;
+                $panelExam = false;
             }
 
             $form = new Form(new FormGroup(array(
@@ -6045,6 +6217,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 $panelEducation ? new FormRow(new FormColumn($panelEducation)) : null,
                 $panelJob ? new FormRow(new FormColumn($panelJob)) : null,
                 $panelSkilledWork ? new FormRow(new FormColumn($panelSkilledWork)) : null,
+                $panelExam ? new FormRow(new FormColumn($panelExam)) : null,
                 new FormRow(new FormColumn(
                     new Panel(
                         'Sonstige Informationen',
@@ -6569,5 +6742,35 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 . new Danger('Schüler nicht gefunden', new Ban())
                 . new Redirect('/Education/Certificate/Prepare/Leave', Redirect::TIMEOUT_ERROR);
         }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $GroupId
+     * @param null $Route
+     * @param int $IsPrepared
+     *
+     * @return Stage|string
+     */
+    public function frontendSetIsPrepared($PrepareId = null, $GroupId = null, $Route = null, int $IsPrepared = 0)
+    {
+        $IsPrepared = (bool) $IsPrepared;
+        $stage = new Stage('Zeugnisvorbeitung', $IsPrepared ? 'abgeschlossen' : 'abgeschlossen entfernen');
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if ($tblPrepare) {
+            Prepare::useService()->setIsPrepared($tblPrepare, $tblGroup ? $tblGroup : null, $IsPrepared);
+            return $stage . new \SPHERE\Common\Frontend\Message\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                    . ' Zeugnisvorbereitung abgeschlossen wurde ' . ($IsPrepared ? ' gesetzt.' : ' entfernt.'))
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                    'PrepareId' => $tblPrepare->getId(),
+                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                    'Route' => $Route
+                ));
+        }
+
+        return $stage;
     }
 }

@@ -196,29 +196,32 @@ class Data extends Support
         $this->createStudentInsuranceState('Familie Vater');
         $this->createStudentInsuranceState('Familie Mutter');
 
-        $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
-            'Foto des Schülers',
-            'Sowohl Einzelaufnahmen als auch in Gruppen (z.B. zufällig)'
-        );
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
+        // Werte nur bei der Initialisierung verwenden
+        if(!$this->getStudentAgreementCategoryAll()){
+            $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
+                'Foto des Schülers',
+                'Sowohl Einzelaufnahmen als auch in Gruppen (z.B. zufällig)'
+            );
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
 
-        $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
-            'Namentliche Erwähnung des Schülers',
-            ''
-        );
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
+            $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
+                'Namentliche Erwähnung des Schülers',
+                ''
+            );
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
+        }
 
         $Entity = $this->getStudentSubjectTypeByIdentifier('ORIENTATION');
         if ($Entity) {
@@ -978,7 +981,6 @@ class Data extends Support
     }
 
     /**
-     * @param $IsMultipleHandicapped
      * @param $IsHeavyMultipleHandicapped
      * @param $IncreaseFactorHeavyMultipleHandicappedSchool
      * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
@@ -991,7 +993,6 @@ class Data extends Support
      * @return TblStudentSpecialNeeds
      */
     public function createStudentSpecialNeeds(
-        $IsMultipleHandicapped,
         $IsHeavyMultipleHandicapped,
         $IncreaseFactorHeavyMultipleHandicappedSchool,
         $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
@@ -1005,7 +1006,6 @@ class Data extends Support
         $Manager = $this->getEntityManager();
 
         $Entity = new TblStudentSpecialNeeds();
-        $Entity->setIsMultipleHandicapped($IsMultipleHandicapped);
         $Entity->setIsHeavyMultipleHandicapped($IsHeavyMultipleHandicapped);
         $Entity->setIncreaseFactorHeavyMultipleHandicappedSchool($IncreaseFactorHeavyMultipleHandicappedSchool);
         $Entity->setIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities($IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities);
@@ -1023,7 +1023,6 @@ class Data extends Support
 
     /**
      * @param TblStudentSpecialNeeds $tblStudentSpecialNeeds
-     * @param $IsMultipleHandicapped
      * @param $IsHeavyMultipleHandicapped
      * @param $IncreaseFactorHeavyMultipleHandicappedSchool
      * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
@@ -1037,7 +1036,6 @@ class Data extends Support
      */
     public function updateStudentSpecialNeeds(
         TblStudentSpecialNeeds $tblStudentSpecialNeeds,
-        $IsMultipleHandicapped,
         $IsHeavyMultipleHandicapped,
         $IncreaseFactorHeavyMultipleHandicappedSchool,
         $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
@@ -1053,8 +1051,6 @@ class Data extends Support
         $Entity = $Manager->getEntityById('TblStudentSpecialNeeds', $tblStudentSpecialNeeds->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
-
-            $Entity->setIsMultipleHandicapped($IsMultipleHandicapped);
             $Entity->setIsHeavyMultipleHandicapped($IsHeavyMultipleHandicapped);
             $Entity->setIncreaseFactorHeavyMultipleHandicappedSchool($IncreaseFactorHeavyMultipleHandicappedSchool);
             $Entity->setIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities($IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities);

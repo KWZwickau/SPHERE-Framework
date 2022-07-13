@@ -21,6 +21,7 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreement;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
@@ -894,24 +895,48 @@ class Service extends Support
                     }
                 }
             }
+            return true;
+        }
+        return false;
+    }
 
+    /**
+     * @param TblPerson $tblPerson
+     * @param           $Meta
+     *
+     * @return bool
+     */
+    public function updateStudentAgreement(TblPerson $tblPerson, $Meta, $isUnlocked = false)
+    {
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
             /*
              * Agreement
              */
             $tblStudentAgreementAllByStudent = $this->getStudentAgreementAllByStudent($tblStudent);
             if ($tblStudentAgreementAllByStudent) {
-                foreach ($tblStudentAgreementAllByStudent as $tblStudentAgreement) {
-                    if (!isset(
-                        $Meta['Agreement']
-                        [$tblStudentAgreement->getTblStudentAgreementType()->getTblStudentAgreementCategory()->getId()]
-                        [$tblStudentAgreement->getTblStudentAgreementType()->getId()]
-                    )
-                    ) {
-                        (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
+                array_walk($tblStudentAgreementAllByStudent, function (TblStudentAgreement $tblStudentAgreement) use (&$isUnlocked){
+                    $tblCategory = false;
+                    if(($tblType = $tblStudentAgreement->getTblStudentAgreementType())){
+                        $tblCategory = $tblType->getTblStudentAgreementCategory();
                     }
-                }
+                    if(!$isUnlocked){
+                        if (!isset($Meta['Agreement'][$tblCategory->getId()][$tblType->getId()])) {
+                            (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
+                        }
+                    } else {
+                        if (!isset($Meta['Agreement'][$tblCategory->getId()][$tblType->getId()]) && $tblType->getIsUnlocked()) {
+                            (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
+                        }
+                    }
+                });
             }
-            if (isset( $Meta['Agreement'] )) {
+            if (isset($Meta['Agreement'])) {
                 foreach ($Meta['Agreement'] as $Category => $Items) {
                     $tblStudentAgreementCategory = $this->getStudentAgreementTypeById($Category);
                     if ($tblStudentAgreementCategory) {
@@ -925,10 +950,8 @@ class Service extends Support
                     }
                 }
             }
-
             return true;
         }
-
         return false;
     }
 
@@ -1409,7 +1432,6 @@ class Service extends Support
     }
 
     /**
-     * @param $IsMultipleHandicapped
      * @param $IsHeavyMultipleHandicapped
      * @param $IncreaseFactorHeavyMultipleHandicappedSchool
      * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
@@ -1422,7 +1444,6 @@ class Service extends Support
      * @return TblStudentSpecialNeeds
      */
     public function createStudentSpecialNeeds(
-        $IsMultipleHandicapped,
         $IsHeavyMultipleHandicapped,
         $IncreaseFactorHeavyMultipleHandicappedSchool,
         $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
@@ -1433,7 +1454,6 @@ class Service extends Support
         TblStudentSpecialNeedsLevel $tblStudentSpecialNeedsLevel = null
     ) {
         return (new Data($this->getBinding()))->createStudentSpecialNeeds(
-            $IsMultipleHandicapped,
             $IsHeavyMultipleHandicapped,
             $IncreaseFactorHeavyMultipleHandicappedSchool,
             $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
@@ -1506,7 +1526,6 @@ class Service extends Support
             if (($tblStudentSpecialNeeds = $tblStudent->getTblStudentSpecialNeeds())) {
                 (new Data($this->getBinding()))->updateStudentSpecialNeeds(
                     $tblStudentSpecialNeeds,
-                    isset($Meta['SpecialNeeds']['IsMultipleHandicapped']),
                     isset($Meta['SpecialNeeds']['IsHeavyMultipleHandicapped']),
                     $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedSchool'],
                     $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities'],
@@ -1519,7 +1538,6 @@ class Service extends Support
             } else {
 
                 $tblStudentSpecialNeeds = (new Data($this->getBinding()))->createStudentSpecialNeeds(
-                    isset($Meta['SpecialNeeds']['IsMultipleHandicapped']),
                     isset($Meta['SpecialNeeds']['IsHeavyMultipleHandicapped']),
                     $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedSchool'],
                     $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities'],

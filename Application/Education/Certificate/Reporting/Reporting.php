@@ -36,15 +36,18 @@ class Reporting implements IModuleInterface
         );
     }
 
-    public static function useService()
+    /**
+     * @return Service
+     */
+    public static function useService(): Service
     {
-
+        return new Service();
     }
 
     /**
      * @return Frontend
      */
-    public static function useFrontend()
+    public static function useFrontend(): Frontend
     {
         return new Frontend();
     }

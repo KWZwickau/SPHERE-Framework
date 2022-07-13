@@ -19,6 +19,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
@@ -241,7 +242,14 @@ class Frontend extends Extension implements IFrontendInterface
 
             $global = $this->getGlobal();
             $global->POST['Data']['IsFullDay'] = $isFullDay;
-            $global->POST['Data']['Status'] = TblAbsence::VALUE_STATUS_UNEXCUSED;
+
+            if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence'))) {
+                $status = $tblSetting->getValue();
+            } else {
+                $status = TblAbsence::VALUE_STATUS_UNEXCUSED;
+            }
+            $global->POST['Data']['Status'] = $status;
+
             $global->POST['Data']['IsCertificateRelevant'] = true;
             if ($Date) {
                 $global->POST['Data']['FromDate'] = $Date;
@@ -571,9 +579,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
                 }
 
+                $isOnlineAbsence = $tblAbsence->getIsOnlineAbsence();
+
                 $item = array(
-                    'FromDate' => $tblAbsence->getFromDate(),
-                    'ToDate' => $tblAbsence->getToDate(),
+                    'FromDate' => $isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getFromDate() . '</span>' : $tblAbsence->getFromDate(),
+                    'ToDate' => $isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getToDate() . '</span>' : $tblAbsence->getToDate(),
                     'Days' => ($days = $tblAbsence->getDays(
                         null,
                         $count,
@@ -584,6 +594,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Remark' => $tblAbsence->getRemark(),
                     'Status' => $status,
                     'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein',
+                    'PersonCreator' => $tblAbsence->getDisplayPersonCreator(false),
                     'PersonStaff' => $tblAbsence->getDisplayStaff(),
                     'Option' =>
                         (new Standard(
@@ -618,6 +629,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Lessons' => 'Unterrichts&shy;einheiten',
                 'Type' => 'Typ',
                 'Remark' => 'Bemerkung',
+                'PersonCreator' => 'Ersteller',
                 'PersonStaff' => 'Bearbeiter',
                 'IsCertificateRelevant' => 'Zeugnisrelevant',
                 'Status' => 'Status',
@@ -630,6 +642,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Days' => 'Tage',
                 'Lessons' => 'Unterrichts&shy;einheiten',
                 'Remark' => 'Bemerkung',
+                'PersonCreator' => 'Ersteller',
                 'PersonStaff' => 'Bearbeiter',
                 'IsCertificateRelevant' => 'Zeugnisrelevant',
                 'Status' => 'Status',

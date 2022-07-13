@@ -139,6 +139,7 @@ class EzshMsAbsRs extends EzshStyle
             )
         ;
 
+        $count = 0;
         $pageList[] = (new Page())
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -176,7 +177,7 @@ class EzshMsAbsRs extends EzshStyle
                 )->styleMarginTop('60px')
                 ->styleMarginBottom('20px')
             )
-            ->addSlice($this->getEZSHSubjectLanes($personId, true, array(), false)->styleHeight('350px'))
+            ->addSlice($this->getEZSHSubjectLanes($personId, true, array(), false, false, true, true)->styleHeight('350px'))
             /////////////////////////
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -187,15 +188,15 @@ class EzshMsAbsRs extends EzshStyle
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getEZSHAdditionalSubjectLanes($personId))
+            ->addSlice($this->getEZSHAdditionalSubjectLanes($personId, $count))
             /////////////////////////
             ->addSlice((new Slice())
                 ->styleMarginTop('20px')
-                ->addSectionList($this->getEZSHRemark($personId, '170px')))
+                ->addSectionList($this->getEZSHRemark($personId, $count > 4 ? '150px' : '170px')))
             ->addSlice($this->getEZSHDateLine($personId))
             ->addSlice((self::getEZSHExaminationsBoard('10px','11px')))
             ->addSlice((new Slice())
-                ->styleMarginTop('30px')
+                ->styleMarginTop($count > 4 ? '10px' : '30px')
                 ->addSectionList($this->getEZSHGradeInfo(false)));
 
         return $pageList;

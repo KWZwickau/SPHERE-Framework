@@ -109,6 +109,7 @@ class Data extends AbstractData
      * @param string $Denomination
      * @param int    $IsAssistance
      * @param string $AssistanceActivity
+     * @param string $ContactNumber
      *
      * @return TblCommonInformation
      */
@@ -116,7 +117,8 @@ class Data extends AbstractData
         $Nationality,
         $Denomination,
         $IsAssistance,
-        $AssistanceActivity
+        $AssistanceActivity,
+        $ContactNumber = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -124,6 +126,7 @@ class Data extends AbstractData
         $Entity = new TblCommonInformation();
         $Entity->setNationality($Nationality);
         $Entity->setDenomination($Denomination);
+        $Entity->setContactNumber($ContactNumber);
         $Entity->setAssistance($IsAssistance);
         $Entity->setAssistanceActivity($AssistanceActivity);
         $Manager->saveEntity($Entity);

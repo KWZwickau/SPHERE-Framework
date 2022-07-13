@@ -38,6 +38,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -196,13 +197,25 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
+        // Division Zeicheneingrenzung
+        if (isset($Division['Name']) && $Division['Name'] != '') {
+            if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9, -_/]');
+                $Error = true;
+            }
+        }
 
         // Create
         if (!$Error) {
             // Level
             $tblType = Type::useService()->getTypeById($Level['Type']);
             $hasLevel = isset($Level['Name']);
-            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType,  $hasLevel ? $Level['Name'] : '', '');
+            $isChecked = false;
+            if(isset($Level['isChecked'])){
+                $isChecked = true;
+            }
+
+            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType,  $hasLevel ? $Level['Name'] : '', '', $isChecked);
 
             if ($this->checkDivisionExists($tblYear, $Division['Name'], $tblLevel, $tblCompany)
             ) {
@@ -356,11 +369,11 @@ class Service extends AbstractService
             // Klasse 5-2
             $LevelName = $Match[0];
             $DivisionName = $Match[1];
-        } elseif (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
+        } elseif (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z0-9-\/]*?)$!is', $Value, $Match)) {
             // Klasse 5a
             $LevelName = $Match[1];
             $DivisionName = $Match[2];
-        } elseif (preg_match('!^(\d+) ([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
+        } elseif (preg_match('!^(\d+) ([äöüÄÖÜa-zA-Z0-9-\/]*?)$!is', $Value, $Match)) {
             // Klasse 5 a
             $LevelName = $Match[1];
             $DivisionName = $Match[2];
@@ -1276,20 +1289,13 @@ class Service extends AbstractService
             $Error = true;
         }
 
-        // auch leere Strings sollen gespeichert werden können
-//        if (isset($Division['Name']) && empty($Division['Name'])
-//        ) {
-//            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
-//            $Error = true;
-//        }
-//        else {
-//            $tblDivisionTest =
-//                Division::useService()->getDivisionByGroupAndLevelAndYear($Division['Name'], $Division['Level'], $Division['Year']);
-//            if ($tblDivisionTest) {
-//                $Form->setError('Division[Name]', 'Name schon vergeben');
-//                $Error = true;
-//            }
-//        }
+        // Division Zeicheneingrenzung
+        if (isset($Division['Name']) && $Division['Name'] != '') {
+            if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9, -_/]');
+                $Error = true;
+            }
+        }
 
         if (!$Error) {
             $tblDivision = Division::useService()->getDivisionById($Id);
@@ -2092,10 +2098,6 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
-//        } else {
-//            $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an');
-//            $Error = true;
-//        }
 
         // Level
         if (!$Error) {
@@ -2104,6 +2106,14 @@ class Service extends AbstractService
             $tblLevel = (new Data($this->getBinding()))->createLevel($tblType,  $hasLevel ? $Level['Name'] : '', '');
         } else {
             $tblLevel = false;
+        }
+
+        // Division Zeicheneingrenzung
+        if (isset($Division['Name']) && $Division['Name'] != '') {
+            if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9, -_/]');
+                $Error = true;
+            }
         }
 
         // Create
@@ -2495,11 +2505,11 @@ class Service extends AbstractService
                                 );
                                 if ($groups) {
                                     foreach ($groups as $item) {
-                                        if ($this->exitsSubjectStudent($item, $tblPerson)) {
+                                        if ($this->exitsSubjectStudent($item, $tblPerson) && $item->getHasGrading()) {
                                             $resultList[$item->getId()] = $item;
                                         }
                                     }
-                                } else {
+                                } elseif ($tblDivisionSubject->getHasGrading()) {
                                     $resultList[$tblDivisionSubject->getId()] = $tblDivisionSubject;
                                 }
                             }
@@ -3265,6 +3275,24 @@ class Service extends AbstractService
             && ($tblSchoolType = $tblLevel->getServiceTblType())
             && (($tblSchoolType->getShortName() == 'Gy' && preg_match('!(11|12)!is', $tblLevel->getName()))
                 || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(12|13)!is', $tblLevel->getName())))
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool
+     */
+    public function getIsDivisionSekII(TblDivision $tblDivision): bool
+    {
+        if (($tblLevel = $tblDivision->getTblLevel())
+            && ($tblSchoolType = $tblLevel->getServiceTblType())
+            && (($tblSchoolType->getShortName() == 'Gy' && (intval($tblLevel->getName()) == 11 || intval($tblLevel->getName()) == 12))
+            || ($tblSchoolType->getShortName() == 'BGy' && (intval($tblLevel->getName()) == 12 || intval($tblLevel->getName()) == 13)))
         ) {
             return true;
         }

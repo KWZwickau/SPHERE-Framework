@@ -16,6 +16,8 @@ use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -74,6 +76,7 @@ class FrontendCommon extends FrontendReadOnly
 
                 $nationality = $tblCommonInformation->getNationality();
                 $denomination = $tblCommonInformation->getDenomination();
+                $contactNumber = $tblCommonInformation->getContactNumber();
                 $isAssistance = $tblCommonInformation->isAssistance();
                 if ($isAssistance == TblCommonInformation::VALUE_IS_ASSISTANCE_YES) {
                     $isAssistance = 'Ja';
@@ -92,10 +95,26 @@ class FrontendCommon extends FrontendReadOnly
 
                 $nationality = '';
                 $denomination = '';
+                $contactNumber = '';
                 $isAssistance = '';
                 $assistanceActivity = '';
 
                 $remark = '';
+            }
+
+            $thirdRow = array();
+            if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){// || true
+                $thirdRow = array(
+                    self::getLayoutColumnLabel('Geschlecht'),
+                    self::getLayoutColumnValue($gender),
+                    self::getLayoutColumnLabel('Kontakt Nummer'),
+                    self::getLayoutColumnValue($contactNumber));
+            } else {
+                $thirdRow = array(
+                    self::getLayoutColumnLabel('Geschlecht'),
+                    self::getLayoutColumnValue($gender),
+                    self::getLayoutColumnEmpty(8)
+                );
             }
 
             $content = new Layout(new LayoutGroup(array(
@@ -116,11 +135,9 @@ class FrontendCommon extends FrontendReadOnly
                     self::getLayoutColumnLabel('Mitarbeitb.&nbsp;-&nbsp;Tätigkeiten'),
                     self::getLayoutColumnValue($assistanceActivity),
                 )),
-                new LayoutRow(array(
-                    self::getLayoutColumnLabel('Geschlecht'),
-                    self::getLayoutColumnValue($gender),
-                    self::getLayoutColumnEmpty(8),
-                )),
+                new LayoutRow(
+                    $thirdRow
+                ),
                 new LayoutRow(array(
                     self::getLayoutColumnLabel('Bemerkungen'),
                     self::getLayoutColumnValue($remark, 10),

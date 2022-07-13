@@ -10,6 +10,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
@@ -183,8 +185,8 @@ class MsAbsRs extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getAdditionalSubjectLanes($personId))
-            ->addSlice((new Slice())->styleHeight('15px'))
+            ->addSlice($this->getAdditionalSubjectLanes($personId)->styleHeight('100px'))
+//            ->addSlice((new Slice())->styleHeight('15px'))
             /////////////////////////
             ->addSlice($this->getDescriptionHead($personId))
             ->addSlice($this->getDescriptionContent($personId, '200px', '15px'))
@@ -408,7 +410,7 @@ class MsAbsRs extends Certificate
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P' . $personId . '.AdditionalGrade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
@@ -466,7 +468,7 @@ class MsAbsRs extends Certificate
             if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
                 && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
             ) {
-                $leaderName = $tblPersonLeader->getFullName();
+                $leaderName = $this->getPersonDisplayName($tblPersonLeader);
                 if (($tblCommon = $tblPersonLeader->getCommon())
                     && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
                     && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
@@ -478,17 +480,16 @@ class MsAbsRs extends Certificate
                     }
                 }
             }
-
             if (($tblGenerateCertificateSettingFirstMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'FirstMember'))
                 && ($tblPersonFirstMember = Person::useService()->getPersonById($tblGenerateCertificateSettingFirstMember->getValue()))
             ) {
-                $firstMemberName = $tblPersonFirstMember->getFullName();
+                $firstMemberName = $this->getPersonDisplayName($tblPersonFirstMember);
             }
 
             if (($tblGenerateCertificateSettingSecondMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'SecondMember'))
                 && ($tblPersonSecondMember = Person::useService()->getPersonById($tblGenerateCertificateSettingSecondMember->getValue()))
             ) {
-                $secondMemberName = $tblPersonSecondMember->getFullName();
+                $secondMemberName = $this->getPersonDisplayName($tblPersonSecondMember);
             }
         }
 
@@ -597,6 +598,20 @@ class MsAbsRs extends Certificate
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private function getPersonDisplayName(TblPerson $tblPerson): string
+    {
+        if (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'CSW')) {
+            return $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName();
+        } else {
+            return $tblPerson->getFullName();
+        }
+    }
+
+    /**
      * @param string $marginTop
      *
      * @return Slice
@@ -639,8 +654,13 @@ class MsAbsRs extends Certificate
      *
      * @return Slice
      */
-    public static function getHeadForDiploma($IsSample, $showPicture)
+    public static function getHeadForDiploma($IsSample, $showPicture): Slice
     {
+        if (!ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
+            $elementSaxonyLogo = (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '214px', '66px'))->styleAlignRight();
+        } else {
+            $elementSaxonyLogo = (new Element())->setContent('&nbsp;');
+        }
 
         if ($showPicture) {
             $pictureAddress = '';
@@ -664,11 +684,7 @@ class MsAbsRs extends Certificate
                         ->addSection((new Section())
                             ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
                                 , '61%')
-
-                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                                '214px', '66px'))
-                                ->styleAlignRight()
-                                , '39%')
+                            ->addElementColumn($elementSaxonyLogo, '39%')
                         )
                         ->addSection((new Section())
                             ->addElementColumn((new Element\Sample())
@@ -682,11 +698,7 @@ class MsAbsRs extends Certificate
                         ->addSection((new Section())
                             ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
                                 , '61%')
-//                            ->addElementColumn((new Element()), '22%')
-                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                                '214px', '66px'))
-                                ->styleAlignRight()
-                                , '39%')
+                            ->addElementColumn($elementSaxonyLogo, '39%')
                         );
                 }
 
@@ -702,20 +714,15 @@ class MsAbsRs extends Certificate
                     )
                     ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
+                        ->styleHeight('66px')
                     )
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '214px', '66px'))
-                        ->styleAlignRight()
-                        , '39%')
+                    ->addElementColumn($elementSaxonyLogo, '39%')
                 );
         } else {
             $Header = (new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element()), '61%')
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '214px', '66px'))
-                        ->styleAlignRight()
-                        , '39%')
+                    ->addElementColumn($elementSaxonyLogo, '39%')
                 );
         }
 

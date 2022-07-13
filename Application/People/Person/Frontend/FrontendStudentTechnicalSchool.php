@@ -387,14 +387,48 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
-                        (new SelectBox('Meta[TechnicalSchool][tblStudentTenseOfLesson]', 'Zeitform des Unterrichts',
+                        ApiMassReplace::receiverField((
+                        $Field = (new SelectBox('Meta[TechnicalSchool][tblStudentTenseOfLesson]', 'Zeitform des Unterrichts',
                             array('{{ Name }}' => $tblStudentTenseOfLessonAll)))
                             ->configureLibrary(SelectBox::LIBRARY_SELECT2)
+                        ))
+                        . ApiMassReplace::receiverModal($Field, $Node)
+                        . new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTechnicalSchool::CLASS_MASS_REPLACE_TECHNICAL_SCHOOL,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTechnicalSchool::METHOD_REPLACE_STUDENT_TENSE_OF_LESSON,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                            => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $Node,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $Node)
+                        ))
                         , 6),
                     new LayoutColumn(
-                        (new SelectBox('Meta[TechnicalSchool][tblStudentTrainingStatus]', 'Ausbildungsstatus',
+                        ApiMassReplace::receiverField((
+                        $Field = (new SelectBox('Meta[TechnicalSchool][tblStudentTrainingStatus]', 'Ausbildungsstatus',
                             array('{{ Name }}' => $tblStudentTrainingStatusAll)))
                             ->configureLibrary(SelectBox::LIBRARY_SELECT2)
+                        ))
+                        . ApiMassReplace::receiverModal($Field, $Node)
+                        . new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTechnicalSchool::CLASS_MASS_REPLACE_TECHNICAL_SCHOOL,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTechnicalSchool::METHOD_REPLACE_STUDENT_TRAINING_STATUS,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                            => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $Node,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $Node)
+                        ))
                         , 6),
                 )),
                 new LayoutRow(array(

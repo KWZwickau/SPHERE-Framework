@@ -518,6 +518,16 @@ class StudentFilter extends Extension
                                     $DataPerson['Edit'] = $tblTechnicalSubjectArea->getName();
                                 }
                             }
+                            if ($Label == 'Zeitform des Unterrichts') {
+                                if (($tblStudentTenseOfLesson = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())) {
+                                    $DataPerson['Edit'] = $tblStudentTenseOfLesson->getName();
+                                }
+                            }
+                            if ($Label == 'Ausbildungsstatus') {
+                                if (($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())) {
+                                    $DataPerson['Edit'] = $tblStudentTrainingStatus->getName();
+                                }
+                            }
                         }
 
                     }

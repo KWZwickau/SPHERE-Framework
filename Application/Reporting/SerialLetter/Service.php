@@ -1198,7 +1198,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "PLZ");
             $export->setValue($export->getCell($column++, $row), "Ort");
             $export->setValue($export->getCell($column++, $row), "PLZ/Ort");
-            $export->setValue($export->getCell($column++, $row), "");
+//            $export->setValue($export->getCell($column++, $row), "");
             $export->setValue($export->getCell($column++, $row), "Person_Vorname");
             $export->setValue($export->getCell($column++, $row), "Person_Nachname");
             $export->setValue($export->getCell($column++, $row), "Person_Mail_Privat");
@@ -1243,7 +1243,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $Export['Code']);
                 $export->setValue($export->getCell($column++, $row), $Export['City']);
                 $export->setValue($export->getCell($column++, $row), $Export['Code'].' '.$Export['City']);
-                $export->setValue($export->getCell($column++, $row), '');
+//                $export->setValue($export->getCell($column++, $row), '');
                 $export->setValue($export->getCell($column++, $row), $Export['FirstName']);
                 $export->setValue($export->getCell($column++, $row), $Export['LastName']);
                 $export->setValue($export->getCell($column++, $row), $Export['PMailPrivate']);

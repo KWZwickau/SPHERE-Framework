@@ -3,8 +3,11 @@
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use DateTime;
+use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
+use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
@@ -28,18 +31,12 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
-use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Application\Setting\User\Account\Account as UserAccount;
-use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
@@ -57,7 +54,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
@@ -67,7 +63,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -78,6 +73,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -89,11 +85,10 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
@@ -992,6 +987,7 @@ class Frontend extends FrontendScoreRule
         $periodListCount = array();
         $columnDefinition['Number'] = '#';
         $columnDefinition['Student'] = "Schüler";
+        $columnDefinition['Picture'] = "Foto";
         $columnDefinition['Integration'] = "Integration";
         if ($showCourse) {
             $columnDefinition['Course'] = new ToolTip('Bg', 'Bildungsgang');
@@ -1116,6 +1112,12 @@ class Frontend extends FrontendScoreRule
                 $data['Number'] = $isStrikeThrough ? new Strikethrough($number) : $number;
                 $data['againStudent'] = $data['Student'] = $isStrikeThrough
                     ? new Strikethrough($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
+                $data['Picture'] = '';
+                if(($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))){
+                    $data['Picture'] = new Center((new Link($tblPersonPicture->getPicture(), $tblPerson->getId()))
+                        ->ajaxPipelineOnClick(ApiPersonPicture::pipelineShowPersonPicture($tblPerson->getId())));
+                }
+
                 if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                     $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                         ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
@@ -1315,7 +1317,8 @@ class Frontend extends FrontendScoreRule
                         "targets"   => '_all',
                     ),
                     array('width' => '1%', 'targets' => 0),
-                    array('width' => '2%', 'targets' => 2),
+                    array('width' => '1%', 'targets' => 2),
+                    array('width' => '2%', 'targets' => 3),
                 ),
                 'pageLength' => -1,
                 'paging' => false,
@@ -1326,7 +1329,7 @@ class Frontend extends FrontendScoreRule
 
         // oberste Tabellen-Kopf-Zeile erstellen
         $headTableColumnList = array();
-        $headTableColumnList[] = new TableColumn('', $showCourse ? 4 : 3, '20%');
+        $headTableColumnList[] = new TableColumn('', $showCourse ? 5 : 4, '20%');
         if (!empty($periodListCount)) {
             $countTemp = 0;
             foreach ($periodListCount as $periodId => $count) {
@@ -1352,6 +1355,7 @@ class Frontend extends FrontendScoreRule
 
         $Stage->setContent(
             ApiSupportReadOnly::receiverOverViewModal()
+            .ApiPersonPicture::receiverModal()
             .new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
@@ -1418,349 +1422,6 @@ class Frontend extends FrontendScoreRule
             '/Education/Graduation/Gradebook/Gradebook/Headmaster', $BackwardInfo);
 
         return $Stage;
-    }
-
-    /**
-     * @param null $YearId
-     * @param null $ParentAccount
-     *
-     * @return Stage|string
-     */
-    public function frontendStudentGradebook($YearId = null, $ParentAccount = null)
-    {
-
-        $Stage = new Stage('Notenübersicht', 'Schüler/Eltern');
-        $Stage->setMessage(
-            new Container('Anzeige der Zensuren für die Schüler und Eltern.')
-            .new Container('Der angemeldete Schüler sieht nur seine eigenen Zensuren.')
-            .new Container('Der angemeldete Sorgeberechtigte sieht nur die Zensuren seiner Kinder.')
-        );
-
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
-        $rowList = array();
-        $tblDisplayYearList = array();
-        $data = array();
-        $isStudent = false;
-//        $isCustody = false;
-        $isEighteen = false;    // oder Älter
-        $tblPersonSession = false;
-
-        $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount) {
-            $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
-            if ($tblUserAccount) {
-                $Type = $tblUserAccount->getType();
-                if ($Type == TblUserAccount::VALUE_TYPE_STUDENT) {
-                    $isStudent = true;
-                }
-//                if ($Type == TblUserAccount::VALUE_TYPE_CUSTODY) {
-//                    $isCustody = true;
-//                }
-            }
-            $UserList = Account::useService()->getUserAllByAccount($tblAccount);
-            if ($UserList && $isStudent) {
-                //
-                $tblUser = current($UserList);
-                /** @var TblUser $tblUser */
-                if ($tblUser && $tblUser->getServiceTblPerson()) {
-                    $tblPersonSession = $tblUser->getServiceTblPerson();
-                    if ($isStudent) {
-                        $tblCommon = Common::useService()->getCommonByPerson($tblPersonSession);
-                        if ($tblCommon && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
-
-                            $Now = new DateTime();
-                            $Now->modify('-18 year');
-
-                            if ($Now >= new DateTime($tblCommonBirthDates->getBirthday())) {
-                                $isEighteen = true;
-                            }
-                        }
-                    }
-                }
-            }
-            // POST if StudentView
-            if ($isStudent && $isEighteen) {
-                $tblStudentCustodyList = Consumer::useService()->getStudentCustodyByStudent($tblAccount);
-                $Global = $this->getGlobal();
-                if ($tblStudentCustodyList) {
-                    foreach ($tblStudentCustodyList as $tblStudentCustody) {
-                        $tblCustodyAccount = $tblStudentCustody->getServiceTblAccountCustody();
-                        if ($tblCustodyAccount) {
-                            $Global->POST['ParentAccount'][$tblCustodyAccount->getId()] = $tblCustodyAccount->getId();
-                        }
-                    }
-                    $Global->savePost();
-                }
-            }
-        }
-
-        $tblPersonList = $this->getPersonListForStudent();
-
-        list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear)
-            = $this->getConsumerSettingsForGradeOverview();
-
-        $BlockedList = array();
-        // Jahre ermitteln, in denen Schüler in einer Klasse ist
-        if ($tblPersonList) {
-            foreach ($tblPersonList as $tblPerson) {
-                $tblPersonAccountList = Account::useService()->getAccountAllByPerson($tblPerson);
-                if ($tblPersonAccountList && current($tblPersonAccountList)->getId() != $tblAccount->getId()) {
-                    // Schüler überspringen wenn Sorgeberechtigter geblockt ist
-                    if (Consumer::useService()->getStudentCustodyByStudentAndCustody(current($tblPersonAccountList),
-                        $tblAccount)) {
-                        // Merken des geblockten Accounts
-                        $BlockedList[] = current($tblPersonAccountList);
-                        continue;
-                    }
-                }
-                $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-                if ($tblDivisionStudentList) {
-
-                    /** @var TblDivisionStudent $tblDivisionStudent */
-                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                        $tblDivision = $tblDivisionStudent->getTblDivision();
-                        // Schulart Prüfung nur, wenn auch Schularten in den Einstellungen erlaubt werden.
-                        if($tblSchoolTypeList && ($tblLevel = $tblDivision->getTblLevel())){
-                            if(($tblSchoolType = $tblLevel->getServiceTblType())){
-                                if(!in_array($tblSchoolType->getId(), $tblSchoolTypeList)){
-                                    // Klassen werden nicht angezeigt, wenn die Schulart nicht freigeben ist.
-                                    continue;
-                                }
-                            }
-                        }
-                        if ($tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
-                            // Anzeige nur für Schuljahre die nach dem "Startschuljahr"(Veröffentlichung) liegen
-                            if($tblYear->getYear() >= $startYear){
-                                $tblDisplayYearList[$tblYear->getId()] = $tblYear;
-                                $data[$tblYear->getId()][$tblPerson->getId()][$tblDivision->getId()] = $tblDivision;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!empty($tblDisplayYearList)) {
-            $tblDisplayYearList = $this->getSorter($tblDisplayYearList)->sortObjectBy('DisplayName');
-            $lastYear = end($tblDisplayYearList);
-            /** @var TblYear $year */
-            foreach ($tblDisplayYearList as $year) {
-                $Stage->addButton(
-                    new Standard(
-                        ($YearId === null && $year->getId() == $lastYear->getId()) ? new Info(new Bold($year->getDisplayName())) : $year->getDisplayName(),
-                        '/Education/Graduation/Gradebook/Student/Gradebook',
-                        null,
-                        array(
-                            'YearId' => $year->getId()
-                        )
-                    )
-                );
-            }
-
-            if ($YearId === null) {
-                $YearId = $lastYear->getId();
-            }
-        }
-
-        if (($tblYear = Term::useService()->getYearById($YearId))) {
-            if (!empty($data)) {
-                if (isset($data[$tblYear->getId()])) {
-                    foreach ($data[$tblYear->getId()] as $personId => $divisionList) {
-                        $tblPerson = Person::useService()->getPersonById($personId);
-                        if ($tblPerson && is_array($divisionList)) {
-                            $tableHeaderList = array();
-                            $tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson, $tblYear);
-
-                            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblMainDivision ? $tblMainDivision : null);
-                            if ($tblPeriodList) {
-                                $tableHeaderList['Subject'] = 'Fach';
-                                foreach ($tblPeriodList as $tblPeriod) {
-                                    $tableHeaderList['Period' . $tblPeriod->getId()] = new Bold($tblPeriod->getDisplayName());
-                                }
-
-                                if($isShownAverage) {
-                                    $tableHeaderList['Average'] = '&#216;';
-                                }
-                            }
-
-                            $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
-                                $tblTestType, $isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror,
-                                $tableHeaderList, true, false);
-                        }
-                    }
-                }
-            }
-        }
-
-        $TableContent = array();
-        if ($isStudent && $isEighteen) {
-            if ($tblPersonSession) {
-                $ParentList = array();
-                $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
-                if ($tblRelationshipType) {
-                    $RelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonSession,
-                        $tblRelationshipType);
-                    if ($RelationshipList) {
-                        foreach ($RelationshipList as $Relationship) {
-                            if ($Relationship->getServiceTblPersonFrom() == $tblPersonSession->getId()) {
-                                $ParentList[] = $Relationship->getServiceTblPersonTo();
-                            } elseif ($Relationship->getServiceTblPersonTo() == $tblPersonSession->getId()) {
-                                $ParentList[] = $Relationship->getServiceTblPersonFrom();
-                            }
-                        }
-                    }
-                }
-                if (!empty($ParentList)) {
-                    /** @var TblPerson $tblPersonParent */
-                    foreach ($ParentList as $tblPersonParent) {
-                        $tblAccountList = Account::useService()->getAccountAllByPerson($tblPersonParent);
-                        if ($tblAccountList) {
-                            // abbilden des Sorgeberechtigten mit einem Account
-                            /** @var TblAccount $tblAccount */
-                            $tblAccountParent = current($tblAccountList);
-                            $Item['Check'] = new CheckBox('ParentAccount['.$tblAccountParent->getId().']', ' ',
-                                $tblAccountParent->getId());
-                            $Item['FirstName'] = $tblPersonParent->getFirstName();
-                            $Item['LastName'] = $tblPersonParent->getLastName();
-                            if (Consumer::useService()->getStudentCustodyByStudentAndCustody($tblAccount,
-                                $tblAccountParent)) {
-                                $Item['Status'] = new ToolTip(new DangerText(new EyeMinus()),
-                                    'Noten&nbsp;nicht&nbsp;Sichtbar');
-                            } else {
-                                $Item['Status'] = new ToolTip(new SuccessText(new EyeOpen()),
-                                    'Noten&nbsp;sind&nbsp;Sichtbar');
-                            }
-
-                            array_push($TableContent, $Item);
-                        }
-                    }
-                }
-            }
-        }
-
-        $form = new Form(
-            new FormGroup(
-                new FormRow(array(
-                    new FormColumn(
-                        new TableData($TableContent,
-                            new \SPHERE\Common\Frontend\Table\Repository\Title('Sichtbarkeit der Notenübersicht für Sorgeberechtigte sperren'),
-                            array(
-                                'Check'     => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
-                                'FirstName' => 'Vorname',
-                                'LastName'  => 'Nachname',
-                                'Status'    => 'Status'
-                            ),
-                            array(
-                                "paging"         => false, // Deaktiviert Blättern
-                                "iDisplayLength" => -1,    // Alle Einträge zeigen
-                                "searching"      => false, // Deaktiviert Suche
-                                "info"           => false,  // Deaktiviert Such-Info)
-                                'columnDefs'     => array(
-                                    array('width' => '1%', 'targets' => array(0)),
-                                    array('width' => '1%', 'targets' => array(-1))
-                                ),
-                            )
-                        )
-                    ),
-                    new FormColumn(new HiddenField('ParentAccount[IsSubmit]'))
-                ))
-            )
-        );
-        $form->appendFormButton(new Primary('Speichern', new Save()));
-
-        $BlockedContent = '';
-        if (!empty($BlockedList)) {
-            /** @var TblAccount $StudentAccount */
-            foreach ($BlockedList as $StudentAccount) {
-                $tblPersonStudentList = Account::useService()->getPersonAllByAccount($StudentAccount);
-                $tblStudentCustody = Consumer::useService()->getStudentCustodyByStudentAndCustody($StudentAccount,
-                    $tblAccount);
-                $BlockerPerson = new NotAvailable();
-                // find Person who Blocked
-                if ($tblStudentCustody) {
-                    $tblAccountBlocker = $tblStudentCustody->getServiceTblAccountBlocker();
-                    if ($tblAccountBlocker) {
-                        $tblPersonBlockerList = Account::useService()->getPersonAllByAccount($tblAccountBlocker);
-                        /** @var TblPerson $tblPersonBlocker */
-                        if ($tblPersonBlockerList && ($tblPersonBlocker = current($tblPersonBlockerList))) {
-                            $BlockerPerson = $tblPersonBlocker->getLastFirstName();
-                        }
-                    }
-                }
-                /** @var TblPerson $tblPersonStudent */
-                if ($tblPersonStudent = current($tblPersonStudentList)) {
-                    $BlockedContent .= new Title($tblPersonStudent->getLastFirstName())
-                        .new Warning('Die Notenübersicht wurde durch '.$BlockerPerson.' gesperrt.');
-                }
-            }
-        }
-
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(
-                        ($YearId !== null ?
-                            new Panel('Schuljahr', $tblYear->getDisplayName(), Panel::PANEL_TYPE_INFO)
-                            : '')
-                    )
-                ))),
-                ($YearId !== null ? new LayoutGroup($rowList) : null),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            $BlockedContent
-                        )
-                    )
-                )
-            ))
-            .($isStudent && $isEighteen
-                ? new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            new LayoutColumn(new Well(
-                                Gradebook::useService()->setDisableParent($form, $ParentAccount, $tblAccount)
-                            ))
-                        ))
-                    )
-                )
-                : '')
-        );
-        return $Stage;
-    }
-
-    /**
-     * @return false|TblPerson[]
-     */
-    private function getPersonListForStudent()
-    {
-        $tblPerson = false;
-        $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount) {
-            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
-            if ($tblPersonAllByAccount) {
-                $tblPerson = $tblPersonAllByAccount[0];
-            }
-        }
-
-        $tblPersonList = array();
-        if ($tblPerson) {
-            $tblPersonList[] = $tblPerson;
-
-            $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-            if ($tblPersonRelationshipList) {
-                foreach ($tblPersonRelationshipList as $relationship) {
-                    if ($relationship->getServiceTblPersonTo()
-                        && ($relationship->getTblType()->getName() == 'Sorgeberechtigt'
-                            || $relationship->getTblType()->getName() == 'Bevollmächtigt'
-                            || $relationship->getTblType()->getName() == 'Vormund')
-                    ) {
-                        $tblPersonList[] = $relationship->getServiceTblPersonTo();
-                    }
-                }
-            }
-        }
-
-        return empty($tblPersonList) ? false : $tblPersonList;
     }
 
     /**
@@ -2685,6 +2346,8 @@ class Frontend extends FrontendScoreRule
     }
 
     /**
+     * Achtung wird auch für den Eltern/Schüler-Zugang verwendet
+     *
      * @param TblYear $tblYear
      * @param TblPerson $tblPerson
      * @param $divisionList
@@ -2698,7 +2361,7 @@ class Frontend extends FrontendScoreRule
      * @param $isParentView
      * @param $isShownAppointedDateGrade
      */
-    private function setGradeOverview(
+    public function setGradeOverview(
         TblYear $tblYear,
         TblPerson $tblPerson,
         $divisionList,
@@ -2710,7 +2373,8 @@ class Frontend extends FrontendScoreRule
         $isShownGradeMirror,
         $tableHeaderList,
         $isParentView,
-        $isShownAppointedDateGrade
+        $isShownAppointedDateGrade,
+        $isScoreRuleShown
     ) {
 
         /** @var TblDivision $tblDivision */
@@ -2765,7 +2429,12 @@ class Frontend extends FrontendScoreRule
                                         $hasStudentSubject = true;
                                     }
                                     if ($hasStudentSubject) {
-                                        $tableDataList[$tblSubject->getId()]['Subject'] = $tblSubject->getName();
+                                        $tableDataList[$tblSubject->getId()]['Subject'] = $tblSubject->getName()
+                                            . ($isScoreRuleShown && $tblScoreRule
+                                                ? (new Standard('', ApiOnlineGradebook::getEndpoint(), new \SPHERE\Common\Frontend\Icon\Repository\Info(), array(),
+                                                    'Berechnungsvorschrift für dieses Fach anzeigen'))
+                                                    ->ajaxPipelineOnClick(ApiOnlineGradebook::pipelineOpenScoreRuleModal($tblScoreRule->getId()))
+                                                : '');
 
                                         if ($tblPeriodList) {
                                             if ($isParentView && $tblTestTypeAppointedDateTask) {
@@ -3118,6 +2787,7 @@ class Frontend extends FrontendScoreRule
             $personData = array();
             $tableHeaderList['Number'] = 'Nummer';
             $tableHeaderList['Name'] = 'Name';
+            $tableHeaderList['Picture'] = 'Foto';
             $tableHeaderList['Integration'] = 'Integration';
             $tblDivisionList = array();
             $sumSubjectAverage = array();
@@ -3229,6 +2899,12 @@ class Frontend extends FrontendScoreRule
                     $data = array();
                     $data['Number'] = $count++;
                     $data['Name'] = $tblPerson->getLastFirstName();
+                    $data['Picture'] = '';
+                    if(($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))){
+                        $data['Picture'] = new Center((new Link($tblPersonPicture->getPicture(), $tblPerson->getId()))
+                            ->ajaxPipelineOnClick(ApiPersonPicture::pipelineShowPersonPicture($tblPerson->getId())));
+                    }
+
                     if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                         $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                             ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
@@ -3370,8 +3046,9 @@ class Frontend extends FrontendScoreRule
             ));
 
             $Stage->setContent(
-                ApiSupportReadOnly::receiverOverViewModal()
-               .new Layout(array(
+                 ApiSupportReadOnly::receiverOverViewModal()
+                .ApiPersonPicture::receiverModal()
+                .new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
@@ -3385,13 +3062,13 @@ class Frontend extends FrontendScoreRule
                                 new TableData($studentTable, null, $tableHeaderList,
                                     array(
                                         "columnDefs" => array(
-                                            array('width' => '6%', 'targets' => 2),
+                                            array('width' => '3%', 'targets' => 2),
+                                            array('width' => '6%', 'targets' => 3),
                                             array('orderable' => false, 'targets' => -1),
                                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                         ),
                                         'pageLength' => -1,
                                         'responsive' => false,
-
                                     )
                                 )
                             ))
@@ -3530,7 +3207,7 @@ class Frontend extends FrontendScoreRule
         }
 
         if ($IsParentView) {
-             list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear)
+             list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown)
                  = $this->getConsumerSettingsForGradeOverview();
             $isShownAppointedDateGrade = false;
         } else {
@@ -3540,6 +3217,7 @@ class Frontend extends FrontendScoreRule
             $isShownAppointedDateGrade = true;
             $tblSchoolTypeList = false;
             $startYear = '';
+            $isScoreRuleShown = false;
         }
 
         if (($tblYear = $tblDivision->getServiceTblYear())) {
@@ -3590,7 +3268,7 @@ class Frontend extends FrontendScoreRule
 
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
                                 $tblTestType, $isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror,
-                                $tableHeaderList, $IsParentView, $isShownAppointedDateGrade);
+                                $tableHeaderList, $IsParentView, $isShownAppointedDateGrade, $isScoreRuleShown);
                         }
                     }
                 }
@@ -3599,18 +3277,21 @@ class Frontend extends FrontendScoreRule
 
         $Stage->setContent(
             ApiSupportReadOnly::receiverOverViewModal()
-            .new Layout(array(
-                new LayoutGroup($rowList)
-            ))
+                . ApiOnlineGradebook::receiverModal()
+                . new Layout(array(
+                    new LayoutGroup($rowList)
+                ))
         );
 
         return $Stage;
     }
 
     /**
+     * Achtung wird auch für den Eltern/Schüler-Zugang verwendet
+     *
      * @return array
      */
-    private function getConsumerSettingsForGradeOverview(): array
+    public function getConsumerSettingsForGradeOverview(): array
     {
         // Mandant-Einstellungen für Notenübersicht (Schüler/Eltern) und Schülerübersicht (Ansicht: Eltern/Schüler)
         // !!!! wichtig: immer beide anpassen bei einer neuen Einstellung !!!!!!
@@ -3665,6 +3346,14 @@ class Frontend extends FrontendScoreRule
             }
         }
 
-        return array($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear);
+        if (($tblSetting = Consumer::useService()->getSetting('ParentStudentAccess', 'OnlineGradebook', 'OnlineGradebook' , 'IsScoreRuleShown'))
+            && $tblSetting->getValue()
+        ) {
+            $isScoreRuleShown = true;
+        } else {
+            $isScoreRuleShown = false;
+        }
+
+        return array($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown);
     }
 }

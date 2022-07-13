@@ -25,6 +25,8 @@ use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -738,7 +740,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $type = $tblAbsence->getTypeDisplayShortName();
                     $remark = $tblAbsence->getRemark();
                     $toolTip = ($lesson ? $lesson . ' / ' : '') . ($type ? $type . ' / ' : '') . $tblAbsence->getStatusDisplayShortName()
-                        . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
+                        . (($tblPersonStaff = $tblAbsence->getDisplayStaffToolTip()) ? ' - ' . $tblPersonStaff : '')
                         . ($remark ? ' - ' . $remark : '');
 
                     $item = (new Link(
@@ -748,7 +750,7 @@ class Frontend extends Extension implements IFrontendInterface
                         array(),
                         $toolTip,
                         null,
-                        $tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK
+                        $tblAbsence->getLinkType()
                     ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $Type, $TypeId));
 
                     if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
@@ -1513,7 +1515,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $type = $tblAbsence->getTypeDisplayShortName();
                                 $remark = $tblAbsence->getRemark();
                                 $toolTip = ($lessonString ? $lessonString . ' / ' : '') . ($type ? $type . ' / ' : '') . $tblAbsence->getStatusDisplayShortName()
-                                    . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '')
+                                    . (($tblPersonStaff = $tblAbsence->getDisplayStaffToolTip()) ? ' - ' . $tblPersonStaff : '')
                                     . ($remark ? ' - ' . $remark : '');
 
                                 $absenceList[] = new Container((new Link(
@@ -1523,7 +1525,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array(),
                                     $toolTip,
                                     null,
-                                    $tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK
+                                    $tblAbsence->getLinkType()
                                 ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(),
                                     'DivisionSubject', $tblDivisionSubject ? $tblDivisionSubject->getId(): null)));
                             }
@@ -1785,48 +1787,84 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Exclamation())
                         ),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste 1'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $name . ' Krankenakte'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $name . ' Krankenakte'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständnis&shy;erklärung'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständniserklärung'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnisrelevante Fehlzeiten'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnisrelevante Fehlzeiten'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
+                            new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
-                                $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'),
+                                $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'))->setPictureHeight(),
                                 '/Api/Document/Standard/ClassRegister/Create', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId,
                                     'YearId'     => $tblYear ? $tblYear->getId() : null
                                 ))
                             , 2),
-                    )), new Title(new Download() . ' Download'))
+                    )), new Title(new Download() . ' Download')),
+                    ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG') && $tblDivision
+                        ? new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                new Link(new Thumbnail(
+                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste'),
+                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                        'DivisionId' => $DivisionId,
+                                        'Type'    => 'downloadClassList'
+                                    ))
+                                , 2),
+                            new LayoutColumn(
+                                new Link(new Thumbnail(
+                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'),
+                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                        'DivisionId' => $DivisionId,
+                                        'Type'    => 'downloadSignList'
+                                    ))
+                                , 2),
+                            new LayoutColumn(
+                                new Link(new Thumbnail(
+                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste Fremdsprachen'),
+                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                        'DivisionId' => $DivisionId,
+                                        'Type'    => 'downloadElectiveClassList'
+                                    ))
+                                , 2),
+                            new LayoutColumn(
+                                new Link(new Thumbnail(
+                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Telefonliste'),
+                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                        'DivisionId' => $DivisionId,
+                                        'Type'    => 'downloadClassPhoneList'
+                                    ))
+                                , 2),
+                            )), new Title(new Download() . ' Individual Download'))
+                        : null
                 ))
             );
         } else {

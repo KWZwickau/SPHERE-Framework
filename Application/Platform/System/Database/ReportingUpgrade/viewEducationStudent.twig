@@ -10,14 +10,16 @@ SELECT distinct
 -- tblDivision
     tD.Name AS TblDivision_Name,
     tD.Description AS TblDivision_Description,
-    concat(tL.Name, tD.Name) as TblDivision_Display,
+    concat(tL.Name, if(tD.Name REGEXP '^-?[0-9]+$', concat('-',tD.Name), tD.Name)) as TblDivision_Display,
 -- tblCompany
     tC.Name as TblCompany_Name,
     concat(tC.Name, ' ', tC.ExtendedName) as TblCompany_Name_ExtendedName,
 -- tblType
+    tT.Id AS TblType_Id,
     tT.Name AS TblType_Name,
     tT.Description AS TblType_Description,
 -- tblYear
+    tY.Id as TblYear_Id,
     (CASE WHEN (ISNULL(tY.Year) OR (tY.Year = '')) THEN tY.Name ELSE tY.Year END) AS TblYear_Year,
     tY.Description AS TblYear_Description
 

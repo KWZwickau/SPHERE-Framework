@@ -62,7 +62,7 @@ class EsbdMsJFsLernen extends EsbdStyle
                     ->styleHeight('18px')
                 )
             )
-            ->addSlice($this->getGradeLanes($personId))
+            ->addSlice($this->getGradeLanes($personId, '14px', false, '5px'))
             ->addSlice($this->getGradeInfo())
             ->addSlice((new Slice())
                 ->addElement((new Element())

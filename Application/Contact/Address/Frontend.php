@@ -3,9 +3,13 @@ namespace SPHERE\Application\Contact\Address;
 
 use SPHERE\Application\Api\Contact\ApiAddressToCompany;
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
+use SPHERE\Application\Api\Contact\ApiContactDetails;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblState;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -30,7 +34,9 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -56,10 +62,13 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $ToPersonId
      * @param bool $setPost
      * @param bool $showRelationships
+     * @param null $OnlineContactId
+     * @param bool $isOnlineContactPosted
      *
      * @return Form|Danger
      */
-    public function formAddressToPerson($PersonId, $ToPersonId = null, $setPost = false, $showRelationships = false)
+    public function formAddressToPerson($PersonId, $ToPersonId = null, $setPost = false, $showRelationships = false,
+        $OnlineContactId = null, $isOnlineContactPosted = false)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -75,23 +84,45 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $tblOnlineContact = $OnlineContactId ? OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId) : false;
+
         if ($ToPersonId && ($tblToPerson = Address::useService()->getAddressToPersonById($ToPersonId))) {
             // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
             if ($setPost) {
                 $Global = $this->getGlobal();
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
-                $Global->POST['Street']['Name'] = $tblToPerson->getTblAddress()->getStreetName();
-                $Global->POST['Street']['Number'] = $tblToPerson->getTblAddress()->getStreetNumber();
-                $Global->POST['City']['Code'] = $tblToPerson->getTblAddress()->getTblCity()->getCode();
-                $Global->POST['City']['Name'] = $tblToPerson->getTblAddress()->getTblCity()->getName();
-                $Global->POST['City']['District'] = $tblToPerson->getTblAddress()->getTblCity()->getDistrict();
+
+                if ($isOnlineContactPosted) {
+                    $tblAddress = $tblOnlineContact->getServiceTblContact();
+                } else {
+                    $tblAddress =  $tblToPerson->getTblAddress();
+                }
+                $Global->POST['Street']['Name'] = $tblAddress->getStreetName();
+                $Global->POST['Street']['Number'] = $tblAddress->getStreetNumber();
+                $Global->POST['City']['Code'] = $tblAddress->getTblCity()->getCode();
+                $Global->POST['City']['Name'] = $tblAddress->getTblCity()->getName();
+                $Global->POST['City']['District'] = $tblAddress->getTblCity()->getDistrict();
+
                 if ($tblToPerson->getTblAddress()->getTblState()) {
                     $Global->POST['State'] = $tblToPerson->getTblAddress()->getTblState()->getId();
                 }
                 $Global->POST['County'] = $tblToPerson->getTblAddress()->getCounty();
                 $Global->POST['Nation'] = $tblToPerson->getTblAddress()->getNation();
 
+                $Global->savePost();
+            }
+        } elseif ($tblOnlineContact) {
+            if ($setPost) {
+                $Global = $this->getGlobal();
+                /** @var TblAddress $tblAddress */
+                if (($tblAddress = $tblOnlineContact->getServiceTblContact())) {
+                    $Global->POST['Street']['Name'] = $tblAddress->getStreetName();
+                    $Global->POST['Street']['Number'] = $tblAddress->getStreetNumber();
+                    $Global->POST['City']['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Global->POST['City']['Name'] = $tblAddress->getTblCity()->getName();
+                    $Global->POST['City']['District'] = $tblAddress->getTblCity()->getDistrict();
+                }
                 $Global->savePost();
             }
         }
@@ -103,10 +134,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($ToPersonId) {
             $saveButton = (new PrimaryLink('Speichern', ApiAddressToPerson::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineEditAddressToPersonSave($PersonId, $ToPersonId));
+                ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineEditAddressToPersonSave($PersonId, $ToPersonId, $OnlineContactId));
         } else {
             $saveButton = (new PrimaryLink('Speichern', ApiAddressToPerson::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineCreateAddressToPersonSave($PersonId));
+                ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineCreateAddressToPersonSave($PersonId, $OnlineContactId));
         }
 
         return (new Form(
@@ -319,6 +350,7 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($typeArray as $typeId => $personArray) {
                         if (($tblType = Address::useService()->getTypeById($typeId))) {
                             $content = array();
+                            $hasOnlineContacts = false;
                             if (isset($personArray[$tblPerson->getId()])) {
                                 /** @var TblToPerson $tblToPerson */
                                 $tblToPerson = $personArray[$tblPerson->getId()];
@@ -345,6 +377,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblPerson->getId(),
                                         $tblToPerson->getId()
                                     ));
+                                $hasOnlineContactsOptions = true;
                             } else {
                                 $panelType = Panel::PANEL_TYPE_DEFAULT;
 
@@ -374,13 +407,15 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblToPerson->getId()
                                     ));
                                 }
+                                $tblToPerson = false;
+                                $hasOnlineContactsOptions = false;
                             }
 
                             $content[] = $tblAddress->getGuiLayout();
                             /**
-                             * @var TblToPerson $tblToPerson
+                             * @var TblToPerson $tblToPersonTemp
                              */
-                            foreach ($personArray as $personId => $tblToPerson) {
+                            foreach ($personArray as $personId => $tblToPersonTemp) {
                                 if (($tblPersonAddress = Person::useService()->getPersonById($personId))) {
                                     $content[] = ($tblPerson->getId() != $tblPersonAddress->getId()
                                             ? new Link(
@@ -391,7 +426,33 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Zur Person'
                                             )
                                             : $tblPersonAddress->getFullName())
-                                        . Relationship::useService()->getRelationshipInformationForContact($tblPerson, $tblPersonAddress, $tblToPerson->getRemark());
+                                        . Relationship::useService()->getRelationshipInformationForContact($tblPerson, $tblPersonAddress, $tblToPersonTemp->getRemark());
+                                    if (!$tblToPerson) {
+                                        $tblToPerson = $tblToPersonTemp;
+                                    }
+                                }
+                            }
+
+                            if ($tblToPerson
+                                && ($tblOnlineContactList = OnlineContactDetails::useService()->getOnlineContactAllByToPerson(TblOnlineContact::VALUE_TYPE_ADDRESS, $tblToPerson))
+                            ) {
+                                foreach ($tblOnlineContactList as $tblOnlineContact) {
+                                    $hasOnlineContacts = true;
+                                    if ($hasOnlineContactsOptions) {
+                                        $links = (new Link(new Edit(), ApiAddressToPerson::getEndpoint(), null, array(), 'Bearbeiten'))
+                                                ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineOpenEditAddressToPersonModal($tblPerson->getId(), $tblToPerson->getId(), $tblOnlineContact->getId()))
+                                            . ' | '
+                                            . (new Link(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()), ApiContactDetails::getEndpoint(), null,
+                                                array(), 'Löschen'))
+                                                ->ajaxPipelineOnClick(ApiContactDetails::pipelineOpenDeleteContactDetailModal($tblPerson->getId(), $tblOnlineContact->getId()));
+                                    } else{
+                                        $links = '';
+                                    }
+                                    $content[] = new Container(
+                                            'Änderungswunsch für ' . OnlineContactDetails::useService()->getPersonListForOnlineContact($tblOnlineContact, true) .  ': '
+                                        )
+                                        . new Container(new MapMarker() . ' ' . $tblOnlineContact->getContactContent() . new PullRight($links))
+                                        . new Container($tblOnlineContact->getContactCreate());
                                 }
                             }
 
@@ -399,7 +460,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new MapMarker() . ' ' . $tblType->getName(),
                                 $content,
                                 $options,
-                                $panelType
+                                $hasOnlineContacts ? Panel::PANEL_TYPE_WARNING : $panelType
                             );
 
                             if ($LayoutRowCount % 4 == 0) {

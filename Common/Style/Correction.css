@@ -461,6 +461,16 @@ a.type-muted-link:focus {
     text-decoration: none;
 }
 
+a.type-orange-link {
+    color: darkorange;
+    text-decoration: none;
+}
+a.type-orange-link:hover,
+a.type-orange-link:focus {
+    color: orange;
+    text-decoration: none;
+}
+
 .wellReadOnly {
     min-height: 20px;
     padding: 5px;

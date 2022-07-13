@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\HOGA;
 
+use DateTime;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
@@ -9,6 +10,17 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 class FosAbs extends Style
 {
+    /**
+     * @return array
+     */
+    public function selectValuesJobGradeText()
+    {
+        return array(
+            1 => "bestanden",
+            2 => "nicht bestanden"
+        );
+    }
+
     /**
      * @param TblPerson|null $tblPerson
      *
@@ -25,8 +37,16 @@ class FosAbs extends Style
         $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
         $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
 
+        if (($tblPrepare = $this->getTblPrepareCertificate()) && $tblPrepare->getDate()) {
+            $certificateDate = $tblPrepare->getDate();
+            $educationDateFrom = (new DateTime('01.08.' . ((new DateTime($tblPrepare->getDate()))->format('Y') - 2)))->format('d.m.Y');
+        } else {
+            $certificateDate = '';
+            $educationDateFrom = '';
+        }
+
         $pageList[] = (new Page())
-            ->addSlice($this->getHeader($school, '', true, true))
+            ->addSlice($this->getHeader($school, '', false, false))
             ->addSlice((new Slice())
                 ->styleMarginTop('20px')
                 ->addElement($this->getElement('Zeugnis der Fachhochschulreife', '35px')->styleTextBold()->styleAlignCenter()))
@@ -66,7 +86,15 @@ class FosAbs extends Style
                 )
             )
             ->addSlice((new Slice())
-                ->addElement($this->getElement('hat vom', $textSize)->styleAlignCenter()->styleMarginTop('20px'))
+                ->addElement($this->getElement(
+                    'hat vom 
+                    {% if(Content.P' . $personId . '.Input.EducationDateFrom is not empty) %}
+                        {{ Content.P' . $personId . '.Input.EducationDateFrom }}
+                    {% else %}'
+                        . $educationDateFrom .
+                    '{% endif %}
+                    bis ' . $certificateDate
+                    , $textSize)->styleAlignCenter()->styleMarginTop('20px'))
                 ->addElement($this->getElement('den zweijährigen Bildungsgang der', $textSize)->styleAlignCenter()->styleMarginTop('-10px'))
                 ->addElement($this->getElement(
                         'Fachoberschule,
@@ -133,8 +161,9 @@ class FosAbs extends Style
                     ->addElementColumn($this->getElement('Durchschnittsnote' . $this->setSup('2)'), $textSize)
                         ->styleMarginTop('15px')
                         , '25%')
-                    ->addElementColumn($this->getElement('{% if(Content.P'.$personId.'.Input.AddEducation_Average is not empty) %}
-                             {{ Content.P'.$personId.'.Input.AddEducation_Average }}
+                    // kein Input Feld mehr direkte Berechnung
+                    ->addElementColumn($this->getElement('{% if(Content.P'.$personId.'.Calc.AddEducation_Average is not empty) %}
+                             {{ Content.P'.$personId.'.Calc.AddEducation_Average }}
                          {% else %}
                              &ndash;
                          {% endif %}', $textSize)
@@ -145,8 +174,8 @@ class FosAbs extends Style
                         , '14%')
                     ->addElementColumn($this->getElement('&nbsp;', $textSize)
                         , '10%')
-                    ->addElementColumn($this->getElement('{% if(Content.P'.$personId.'.Input.AddEducation_AverageInWord is not empty) %}
-                             {{ Content.P'.$personId.'.Input.AddEducation_AverageInWord }}
+                    ->addElementColumn($this->getElement('{% if(Content.P'.$personId.'.Calc.AddEducation_AverageInWord is not empty) %}
+                             {{ Content.P'.$personId.'.Calc.AddEducation_AverageInWord }}
                          {% else %}
                              &ndash;
                          {% endif %}', $textSize)

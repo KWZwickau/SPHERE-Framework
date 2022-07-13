@@ -3,10 +3,15 @@ namespace SPHERE\Application\Api\Reporting\Standard\Person;
 
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Education\Certificate\Reporting\Reporting;
+use SPHERE\Application\Education\Certificate\Reporting\View;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 
 /**
@@ -284,17 +289,72 @@ class Person
     }
 
     /**
+     * @param array $Data
+     *
+     * @return false|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @throws \MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public function downloadAgreementStudentList($Data = array())
+    {
+
+        $tblYear = $tblGroup = $tblType = false;
+        if(!empty($Data['Year'])){
+            $tblYear = Term::useService()->getYearById($Data['Year']);
+        }
+        if(!empty($Data['Group'])){
+            $tblGroup = \SPHERE\Application\People\Search\Group\Group::useService()->getGroupById($Data['Group']);
+        }
+        if(!empty($Data['Type'])){
+            $tblType = Type::useService()->getTypeById($Data['Type']);
+        }
+        $Level = !empty($Data['Level']) ? $Data['Level'] : '';
+        $Division = !empty($Data['Division']) ? $Data['Division'] : '';
+        if($tblYear){
+            $tblPersonList = Individual::useService()->getStudentPersonListByFilter($tblYear, $tblGroup, $tblType,
+                $Level, $Division);
+            if($tblPersonList && ($DataList = ReportingPerson::useService()->createAgreementList($tblPersonList))){
+                $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($DataList, $tblPersonList);
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    'Einverständniserklärung_Schüler ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @throws \MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public function downloadAgreementPersonList()
+    {
+
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+        if($tblPersonList && ($DataList = ReportingPerson::useService()->createPersonAgreementList($tblPersonList))){
+            $fileLocation = ReportingPerson::useService()->createAgreementPersonListExcel($DataList, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                'Einverständniserklärung_Mitarbeiter ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+        return false;
+    }
+
+    /**
      * @param null $Date
      * @param null $DateTo
      * @param null $Type
      * @param string $DivisionName
      * @param string $GroupName
      * @param int $IsCertificateRelevant
+     * @param bool $IsAbsenceOnlineOnly
      *
      * @return bool|string
      */
     public function downloadAbsenceList($Date = null, $DateTo = null, $Type = null, $DivisionName = '', $GroupName = '',
-        int $IsCertificateRelevant = 0)
+        int $IsCertificateRelevant = 0, bool $IsAbsenceOnlineOnly = false)
     {
         // das Datum darf keine Uhrzeit enthalten
         $dateTime = new DateTime((new DateTime($Date))->format('d.m.Y'));
@@ -304,7 +364,7 @@ class Person
             $dateTimeTo = new DateTime((new DateTime($DateTo))->format('d.m.Y'));
         }
         if (($fileLocation = ReportingPerson::useService()->createAbsenceListExcel($dateTime, $dateTimeTo, $Type,
-            $DivisionName, $GroupName, $IsCertificateRelevant))
+            $DivisionName, $GroupName, $IsCertificateRelevant, $IsAbsenceOnlineOnly))
         ) {
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "Fehlzeiten " . $dateTime->format("Y-m-d") . ".xlsx")->__toString();
@@ -398,5 +458,88 @@ class Person
         }
 
         return false;
+    }
+
+    /**
+     * @param int $View
+     *
+     * @return string
+     */
+    public function downloadDiplomaSerialMail(int $View): string
+    {
+        $tblCourse = false;
+        switch ($View) {
+            case View::HS: $tblCourse = Course::useService()->getCourseByName('Hauptschule');
+                $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                break;
+            case View::RS: $tblCourse = Course::useService()->getCourseByName('Realschule');
+                $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                break;
+            case View::FOS: $tblSchoolType = Type::useService()->getTypeByShortName('FOS');
+                break;
+            default: $tblSchoolType = false;
+        }
+
+        $subjectList = array();
+        if($tblSchoolType
+            && ($content = Reporting::useService()->getDiplomaSerialMailContent($tblSchoolType, $tblCourse ?: null, $subjectList))
+            && ($fileLocation = Reporting::useService()->createDiplomaSerialMailContentExcel($content, $subjectList))
+        ){
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                'Serien E-Mail für Prüfungsnoten ' . $tblSchoolType->getShortName()
+                . ($tblCourse ? ' ' . $tblCourse->getName() : '') . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return 'Keine Daten vorhanden!';
+    }
+
+    /**
+     * @param int $View
+     *
+     * @return string
+     */
+    public function downloadDiplomaStatistic(int $View): string
+    {
+        $tblCourse = false;
+        switch ($View) {
+            case View::HS: $tblCourse = Course::useService()->getCourseByName('Hauptschule');
+                $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                break;
+            case View::RS: $tblCourse = Course::useService()->getCourseByName('Realschule');
+                $tblSchoolType = Type::useService()->getTypeByShortName('OS');
+                break;
+            case View::FOS: $tblSchoolType = Type::useService()->getTypeByShortName('FOS');
+                break;
+            default: $tblSchoolType = false;
+        }
+
+        if($tblSchoolType
+            && ($content = Reporting::useService()->getDiplomaStatisticContent($tblSchoolType, $tblCourse ?: null))
+            && ($fileLocation = Reporting::useService()->createDiplomaStatisticContentExcel($content))
+        ){
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                'Auswertung der Prüfungsnoten für die LaSuB ' . $tblSchoolType->getShortName()
+                . ($tblCourse ? ' ' . $tblCourse->getName() : '') . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return 'Keine Daten vorhanden!';
+    }
+
+    /**
+     * @param $DivisionId
+     *
+     * @return string
+     */
+    public function downloadCourseGrades($DivisionId): string
+    {
+        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))
+            && ($content = Reporting::useService()->getCourseGradesContent($tblDivision))
+            && ($fileLocation = Reporting::useService()->createCourseGradesContentExcel($content))
+        ){
+            return FileSystem::getDownload($fileLocation->getRealPath(), 'Kursnoten '
+                . $tblDivision->getTypeName() . ' Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return 'Keine Daten vorhanden!';
     }
 }

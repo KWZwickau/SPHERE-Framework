@@ -21,7 +21,7 @@ class Data extends AbstractData
 
         //deactivate DEMO (now REF)
 //        $this->createConsumer('DEMO', 'Mandant');
-        $this->createConsumer('REF', 'Referenz-Mandant');
+        $this->createConsumer('REF', TblConsumer::TYPE_SACHSEN, 'Referenz-Mandant');
 
 //        // cleanup after installation
 //        $tblConsumerActive = $this->getConsumerBySession();
@@ -191,7 +191,7 @@ class Data extends AbstractData
      *
      * @return TblConsumer
      */
-    public function createConsumer($Acronym, $Name, $Alias = '')
+    public function createConsumer($Acronym, $Name, $Type, $Alias = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -200,6 +200,7 @@ class Data extends AbstractData
         if (null === $Entity) {
             $Entity = new TblConsumer($Acronym);
             $Entity->setName($Name);
+            $Entity->setType($Type);
             $Entity->setAlias($Alias);
 
             $Manager->saveEntity($Entity);

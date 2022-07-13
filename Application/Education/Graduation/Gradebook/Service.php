@@ -2138,6 +2138,9 @@ class Service extends ServiceScoreRule
             case 4: return 'Vier';
             case 5: return 'Fünf';
             case 6: return 'Sechs';
+            case 7: return 'Sieben';
+            case 8: return 'Acht';
+            case 9: return 'Neun';
         }
 
         return false;

@@ -202,7 +202,7 @@ abstract class EsrlStyle extends Certificate
                                  &ndash;
                              {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#CCC')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->stylePaddingTop('1px')
                         ->stylePaddingBottom('1px')
                         ->styleMarginTop('8px')
@@ -313,7 +313,7 @@ abstract class EsrlStyle extends Certificate
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#CCC')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->stylePaddingTop('1px')
                         ->stylePaddingBottom('1px')
                         ->styleMarginTop('8px')

@@ -80,7 +80,7 @@ class Service
                     $info .= 'Host: ' .  Extension::getRequest()->getHost() . '<br>';
 
                     if (($tblConsumer = Consumer::useService()->getConsumerBySession())) {
-                        $info .= 'Mandant: ' . $tblConsumer->getAcronym() . ' - ' . $tblConsumer->getName() . '<br>';
+                        $info .= 'Mandant: ' . $tblConsumer->getAcronym() . ' (' . $tblConsumer->getType() . ')' . ' - ' . $tblConsumer->getName() . '<br>';
                     }
 
                     $tblPerson = false;

@@ -7,6 +7,7 @@ use Exception;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\People\ContactDetails\ContactDetails;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLP;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLPDemo;
@@ -34,7 +35,6 @@ use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
@@ -98,14 +98,14 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Willkommen', '', '');
-        $Date = '2022-01-14 ';
-        $IsMaintenance = (new DateTime('now') >= new DateTime($Date.'15:00:00')
+        $Date = '2022-04-29 ';
+        $IsMaintenance = (new DateTime('now') >= new DateTime($Date.'13:00:00')
                        && new DateTime('now') <= new DateTime($Date.'23:59:59'));
         $maintenanceMessage = '';
         $contentTeacherWelcome = false;
         $contentHeadmasterWelcome = false;
+        $contentSecretariatWelcome = false;
         $IsChangePassword = false;
-        $IsNavigationAssistance = false;
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
@@ -129,9 +129,6 @@ class Frontend extends Extension implements IFrontendInterface
             if (($tblIdentification = $tblAccount->getServiceTblIdentification())
                 && ($tblIdentification->getName() == TblIdentification::NAME_USER_CREDENTIAL)
             ) {
-                // Alle TblUserAccounts erhalten direktlink Button
-                $IsNavigationAssistance = true;
-
                 // Eltern und Schüler funktionieren anders als die anderen Accounts
                 if (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))) {
                     $Password = $tblUserAccount->getAccountPassword();
@@ -156,7 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new DangerMessage(new Container(new Center(new Bold('Achtung laufende Wartungsarbeiten seit 22:00
                         bis vorraussichtlich 0:00.')))
                     .new Container(new Center(new Bold('Es wird empfohlen, sich wegen der Wartung abzumelden,
-                     um Datenverlust zu vermeiden.')))
+                     um Datenverlust der getätigten Eingaben zu vermeiden.')))
                     .new Container((new ProgressBar(0,100,0, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER))
                     , null, false, '8', '5'), $PanelColor);
             } elseif ($now >= new DateTime('20:00')) {
@@ -170,7 +167,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
                     new DangerMessage(new Container(new Center('Achtung heute ('.$now->format('d.m.Y')
                             .') ab 22:00 Wartungsarbeiten, voraussichtlich 2 Stunden.')).new Container(new Center(new Bold('Es wird empfohlen, sich 
-                        vor der Wartung abzumelden, um Datenverlust zu vermeiden.').' ('.new Italic('noch '.$Minutes.' Minuten').')'))
+                        vor der Wartung abzumelden, um Datenverlust von den Eingaben zu vermeiden.').' ('.new Italic('noch '.$Minutes.' Minuten').')'))
                         .new Container((new ProgressBar(0, $doneProgressbar, $aktiveProgressbar, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_SUCCESS))
                         , null, false, '8', '5'), $PanelColor
                 );
@@ -193,6 +190,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        if (Access::useService()->hasAuthorization('/People/ContactDetails')) {
+            $contentSecretariatWelcome = ContactDetails::useFrontend()->getWelcome();
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -210,43 +211,13 @@ class Frontend extends Extension implements IFrontendInterface
                 ? $this->layoutPasswordChange()
                 : ''
             )
-            .($IsNavigationAssistance
-                ? $this->layoutNavigationAssistance()
-                : ''
-            )
-            . ($contentHeadmasterWelcome ? $contentHeadmasterWelcome : '')
-            .($contentTeacherWelcome ? $contentTeacherWelcome : '')
-            .$this->getCleanLocalStorage()
+            . ($contentHeadmasterWelcome ?: '')
+            . ($contentTeacherWelcome ?: '')
+            . ($contentSecretariatWelcome ?: '')
+            . $this->getCleanLocalStorage()
         );
 
         return $Stage;
-    }
-
-    /**
-     * @return string|Layout
-     */
-    private function layoutNavigationAssistance()
-    {
-
-        return new Layout(
-            new LayoutGroup(
-                new LayoutRow(array(
-                    new LayoutColumn('', 2),
-                    new LayoutColumn(
-                        new Panel(new Center('Notenübersicht'),
-                            array(
-                                new Container('&nbsp;').new Center(new Paragraph('Die Notenübersicht erreichen Sie über das Menü '
-                                        .new Bold('Bildung => Zensuren => Notenübersicht').' oder über folgenden Link')
-                                    .new Standard('Notenübersicht', '/Education/Graduation/Gradebook/Student/Gradebook',
-                                        new Family())
-                                )
-                            )
-                            , Panel::PANEL_TYPE_INFO
-                        )
-                        , 8)
-                ))
-            )
-        );
     }
 
     /**
@@ -560,7 +531,9 @@ class Frontend extends Extension implements IFrontendInterface
         switch (strtolower($this->getRequest()->getHost())) {
             case 'www.schulsoftware.schule':
             case 'www.kreda.schule':
+            case 'ekbo.schulsoftware.schule':
                 return new InfoText('');
+            case 'ekbodemo.schulsoftware.schule':
             case 'demo.schulsoftware.schule':
             case 'demo.kreda.schule':
                 return new Danger(new Picture().' Demo-Umgebung');

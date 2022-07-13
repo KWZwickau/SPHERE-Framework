@@ -516,6 +516,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentAgreementType', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+        $this->createColumn($Table, 'isUnlocked', self::FIELD_TYPE_BOOLEAN);
         $this->getConnection()->addForeignKey($Table, $tblStudentAgreementCategory);
         return $Table;
     }
@@ -925,7 +926,11 @@ class Setup extends AbstractSetup
 
         $table = $this->createTable($Schema, 'tblStudentSpecialNeeds');
 
-        $this->createColumn($table, 'IsMultipleHandicapped', self::FIELD_TYPE_BOOLEAN);
+        if ($table->hasColumn('IsMultipleHandicapped')) {
+            $table->dropColumn('IsMultipleHandicapped');
+        }
+//        $this->createColumn($table, 'IsMultipleHandicapped', self::FIELD_TYPE_BOOLEAN);
+
         $this->createColumn($table, 'IsHeavyMultipleHandicapped', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'IncreaseFactorHeavyMultipleHandicappedSchool', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities', self::FIELD_TYPE_STRING);

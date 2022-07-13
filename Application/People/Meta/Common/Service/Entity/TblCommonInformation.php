@@ -32,6 +32,10 @@ class TblCommonInformation extends Element
      */
     protected $Denomination;
     /**
+     * @Column(type="string")
+     */
+    protected $ContactNumber; // Kontaktnummer
+    /**
      * @Column(type="text")
      */
     protected $AssistanceActivity;
@@ -39,6 +43,24 @@ class TblCommonInformation extends Element
      * @Column(type="smallint")
      */
     protected $IsAssistance;
+
+    /**
+     * @return string
+     */
+    public function getNationality()
+    {
+
+        return $this->Nationality;
+    }
+
+    /**
+     * @param string $Nationality
+     */
+    public function setNationality($Nationality)
+    {
+
+        $this->Nationality = $Nationality;
+    }
 
     /**
      * @return string
@@ -56,6 +78,22 @@ class TblCommonInformation extends Element
     {
 
         $this->Denomination = $Denomination;
+    }
+
+    /**
+     * @return string
+     */
+    public function getContactNumber()
+    {
+        return $this->ContactNumber;
+    }
+
+    /**
+     * @param string $ContactNumber
+     */
+    public function setContactNumber($ContactNumber = ''): void
+    {
+        $this->ContactNumber = $ContactNumber;
     }
 
     /**
@@ -92,23 +130,5 @@ class TblCommonInformation extends Element
     {
 
         $this->IsAssistance = $IsAssistance;
-    }
-
-    /**
-     * @return string
-     */
-    public function getNationality()
-    {
-
-        return $this->Nationality;
-    }
-
-    /**
-     * @param string $Nationality
-     */
-    public function setNationality($Nationality)
-    {
-
-        $this->Nationality = $Nationality;
     }
 }

@@ -6,11 +6,15 @@ use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
@@ -40,28 +44,173 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendSelect()
+    public function frontendSelect(): Stage
     {
         $Stage = new Stage('Zeugnisse auswerten', 'Übersicht');
 
-        $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                new Panel(
-                    'Abschlusszeugnisse',
+        $serialMailItemList = array();
+        $statisticItemList = array();
+        $rankingItemList = array();
+        $courseItemList = array();
+        $typeList = School::useService()->getConsumerSchoolTypeAll();
+        if (!$typeList || isset($typeList['OS'])) {
+            $serialMailItemList[] = 'Oberschule - Hauptschule ' . new PullRight((new Standard(
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
+                    new Download(),
                     array(
-                        'Hauptschule ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
-                            'View' => View::HS
-                        ), 'Hauptschulabschlusszeugnisse auswählen'))),
-                        'Realschule ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
-                            'View' => View::RS
-                        ), 'Realschulabschlusszeugnisse auswählen'))),
-                        'Gymnasium - Abitur ' . new PullRight((new Standard('', '/Education/Certificate/Reporting/Diploma', new Select(), array(
-                            'View' => View::ABI
-                        ), 'Abiturabschlusszeugnisse auswählen'))),
+                        'View' => View::HS
                     ),
-                    Panel::PANEL_TYPE_INFO
-                )
-            , 4))))
+                    'Serien E-Mail mit Prüfungsnoten für Hauptschulabschlusszeugnisse herunterladen'
+                )));
+            $serialMailItemList[] = 'Oberschule - Realschule ' . new PullRight((new Standard(
+                '',
+                '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
+                new Download(),
+                array(
+                    'View' => View::RS
+                ),
+                'Serien E-Mail mit Prüfungsnoten für Realschulabschlusszeugnisse herunterladen'
+            )));
+            $statisticItemList[] = 'Oberschule - Hauptschule ' . new PullRight((new Standard(
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/Statistic/Download',
+                    new Download(),
+                    array(
+                        'View' => View::HS
+                    ),
+                    'Auswertung der Prüfungsnoten für die LaSuB für Hauptschulabschlusszeugnisse herunterladen'
+                )));
+            $statisticItemList[] = 'Oberschule - Realschule ' . new PullRight((new Standard(
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/Statistic/Download',
+                    new Download(),
+                    array(
+                        'View' => View::RS
+                    ),
+                    'Auswertung der Prüfungsnoten für die LaSuB für Realschulabschlusszeugnisse herunterladen'
+                )));
+            $rankingItemList[] = 'Oberschule - Hauptschule ' . new PullRight((new Standard(
+                    '',
+                    '/Education/Certificate/Reporting/Diploma',
+                    new Select(),
+                    array(
+                        'View' => View::HS
+                    ),
+                    'Hauptschulabschlusszeugnisse auswählen'
+                )));
+            $rankingItemList[] = 'Oberschule - Realschule ' . new PullRight((new Standard(
+                    '',
+                    '/Education/Certificate/Reporting/Diploma',
+                    new Select(),
+                    array(
+                        'View' => View::RS
+                    ),
+                    'Realschulabschlusszeugnisse auswählen'
+                )));
+        }
+        if (!$typeList || isset($typeList['Gy'])) {
+            $rankingItemList[] = 'Gymnasium - Abitur ' . new PullRight((new Standard(
+                    '',
+                    '/Education/Certificate/Reporting/Diploma',
+                    new Select(),
+                    array(
+                        'View' => View::ABI
+                    ),
+                    'Abiturabschlusszeugnisse auswählen'
+                )));
+        }
+        if (!$typeList || isset($typeList['FOS'])) {
+            $serialMailItemList[] = 'Fachoberschule ' . new PullRight((new Standard(
+                '',
+                '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
+                new Download(),
+                array(
+                    'View' => View::FOS
+                ),
+                'Serien E-Mail mit Prüfungsnoten für Fachoberschulabschlusszeugnisse herunterladen'
+            )));
+            $statisticItemList[] = 'Fachoberschule ' . new PullRight((new Standard(
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/Statistic/Download',
+                    new Download(),
+                    array(
+                        'View' => View::FOS
+                    ),
+                    'Auswertung der Prüfungsnoten für die LaSuB für Fachoberschulabschlusszeugnisse herunterladen'
+                )));
+        }
+        if (!$typeList || isset($typeList['Gy']) || isset($typeList['BGy'])) {
+            if (($tblYearList = Term::useService()->getYearByNow())
+                && ($tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy'))
+                && ($tblSchoolTypeBGy = Type::useService()->getTypeByShortName('BGy'))
+            ) {
+                foreach ($tblYearList as $tblYear) {
+                    $divisionList = array();
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGy, '11'))) {
+                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
+                            $divisionList = array_merge($divisionList, $tblDivisionList);
+                        }
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGy, '12'))) {
+                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
+                            $divisionList = array_merge($divisionList, $tblDivisionList);
+                        }
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeBGy, '12'))) {
+                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
+                            $divisionList = array_merge($divisionList, $tblDivisionList);
+                        }
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeBGy, '13'))) {
+                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
+                            $divisionList = array_merge($divisionList, $tblDivisionList);
+                        }
+                    }
+
+                    foreach ($divisionList as $tblDivision) {
+                        $courseItemList[] = $tblDivision->getTypeName() . ' Klasse ' . $tblDivision->getDisplayName() . new PullRight((new Standard(
+                                '',
+                                '/Api/Reporting/Standard/Person/Certificate/CourseGrades/Download',
+                                new Download(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                ),
+                                'Kursnoten herunterladen'
+                            )));
+                    }
+                }
+            }
+        }
+
+        if ($serialMailItemList) {
+            $panelSerialMail = new Panel('Serien-E-Mail für Prüfungsnoten', $serialMailItemList, Panel::PANEL_TYPE_INFO);
+        } else {
+            $panelSerialMail = false;
+        }
+        if ($statisticItemList) {
+            $panelStatistic = new Panel('Auswertung der Prüfungsnoten für die LaSuB', $statisticItemList, Panel::PANEL_TYPE_INFO);
+        } else {
+            $panelStatistic = false;
+        }
+        if ($rankingItemList) {
+            $panelRanking = new Panel('Ranglisten für Abschlusszeugnisse', $rankingItemList, Panel::PANEL_TYPE_INFO);
+        } else {
+            $panelRanking = false;
+        }
+        if ($courseItemList) {
+            $panelCourse = new Panel('Kursnoten in der SekII', $courseItemList, Panel::PANEL_TYPE_INFO);
+        } else {
+            $panelCourse = false;
+        }
+
+        $Stage->setContent(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                $panelSerialMail ? new LayoutColumn($panelSerialMail, 3) : null,
+                $panelStatistic ? new LayoutColumn($panelStatistic, 3) : null,
+                $panelRanking ? new LayoutColumn($panelRanking, 3) : null,
+                $panelCourse ? new LayoutColumn($panelCourse, 3) : null,
+            ))))
         );
 
         return $Stage;
@@ -73,7 +222,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendDiploma($View = null, $YearId = null)
+    public function frontendDiploma($View = null, $YearId = null): Stage
     {
         switch ($View) {
             case View::HS: $description = 'Hauptschulabschlusszeugnisse'; break;
@@ -129,9 +278,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     if ($tblPrepareStudent->isPrinted()
                                         && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                                         && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                                        && (($View == View::HS && ($tblCertificate->getCertificate() == 'MsAbsHs' || $tblCertificate->getCertificate() == 'MsAbsHsQ'))
-                                            || ($View == View::RS && $tblCertificate->getCertificate() == 'MsAbsRs')
-                                            || ($View == View::ABI && $tblCertificate->getCertificate() == 'GymAbitur')
+                                        && (($View == View::HS && strpos($tblCertificate->getCertificate(), 'MsAbsHs') !== false)
+                                            || ($View == View::RS && strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false)
+                                            || ($View == View::ABI && strpos($tblCertificate->getCertificate(), 'GymAbitur') !== false)
                                         )
                                     ) {
                                         if ($View == View::ABI) {

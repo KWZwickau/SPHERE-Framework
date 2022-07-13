@@ -61,6 +61,7 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'Description', self::FIELD_TYPE_TEXT, false, '');
         $this->createColumn($table, 'IsPublic', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->createColumn($table, 'Category', self::FIELD_TYPE_STRING, false, 'Allgemein');
+        $this->createColumn($table, 'SortOrder', self::FIELD_TYPE_INTEGER, true);
 
 //        $this->createIndex($table, array('Cluster', 'Application', 'Module', 'Identifier'));
 

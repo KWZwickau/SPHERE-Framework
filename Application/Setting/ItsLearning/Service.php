@@ -52,17 +52,29 @@ class Service extends Extension
                 // Aktuelle Klasse
                 $Level = '';
                 $Division = '';
+                $DivisionName = '';
+                $SchoolType = '';
 
                 if(($tblYear = Term::useService()->getYearById($YearId))){
                     $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
                     if ($tblDivision && $tblDivision->getTblLevel() && $tblDivision->getTblLevel()->getName() != '') {
                         $Level = $tblDivision->getTblLevel()->getName();
                         $Division = $tblDivision->getDisplayName();
+                        $DivisionName = $tblDivision->getName();
+                        if(($tblSchoolType = $tblDivision->getType())){
+                            $SchoolType = $tblSchoolType->getName();
+                            // Excel kommt mit dem Auslesen der Daten nicht gut klar, wenn ein "/" enthalten ist
+                            if($SchoolType == 'Mittelschule / Oberschule'){
+                                $SchoolType = 'Oberschule';
+                            }
+                        }
                     }
                 }
 
                 $PersonAccountList[$tblPerson->getId()]['Level'] = $Level;
                 $PersonAccountList[$tblPerson->getId()]['Division'] = $Division;
+                $PersonAccountList[$tblPerson->getId()]['DivisionName'] = $DivisionName;
+                $PersonAccountList[$tblPerson->getId()]['SchoolType'] = $SchoolType;
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
                     $PersonAccountList[$tblPerson->getId()]['Identification'] = $tblStudent->getIdentifierComplete();
                 }
@@ -166,6 +178,8 @@ class Service extends Extension
                 $Item['LastName'] = $StudentData['LastName'];
                 $Item['Level'] = $StudentData['Level'];
                 $Item['Division'] = $StudentData['Division'];
+                $Item['DivisionName'] = $StudentData['DivisionName'];
+                $Item['SchoolType'] = $StudentData['SchoolType'];
 
                 if(isset($StudentData['Custody'])){
                     if(count($StudentData['Custody']) > $countCustody){
@@ -206,6 +220,8 @@ class Service extends Extension
             $export->setValue($export->getCell($Column++, $Row), "Schüler:Nutzername");
             $export->setValue($export->getCell($Column++, $Row), "Schüler:Jahrgang");
             $export->setValue($export->getCell($Column++, $Row), "Klasse");
+            $export->setValue($export->getCell($Column++, $Row), "Klassengruppe");
+            $export->setValue($export->getCell($Column++, $Row), "Schulart");
             for($i = 1; $i <= $countCustody; $i++){
                 $Number = $i;
                 if($i == 1){
@@ -228,6 +244,8 @@ class Service extends Extension
                 $export->setValue($export->getCell($Column++, $Row), $Upload['AccountName']);
                 $export->setValue($export->getCell($Column++, $Row), $Upload['Level']);
                 $export->setValue($export->getCell($Column++, $Row), $Upload['Division']);
+                $export->setValue($export->getCell($Column++, $Row), $Upload['DivisionName']);
+                $export->setValue($export->getCell($Column++, $Row), $Upload['SchoolType']);
                 for($j = 1; $j <= $countCustody; $j++) {
                     $export->setValue($export->getCell($Column++, $Row), (isset($Upload['Sibling'.$j]) ? $Upload['Sibling'.$j] : ''));
                     $export->setValue($export->getCell($Column++, $Row), (isset($Upload['IdS'.$j]) ? $Upload['IdS'.$j] : ''));

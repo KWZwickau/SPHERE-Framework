@@ -272,6 +272,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblGroup[]
+     */
+    public function getGroupByNotLocked()
+    {
+
+        return (new Data($this->getBinding()))->getGroupByNotLocked();
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblGroup       $tblGroup
      * @param array          $Group

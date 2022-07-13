@@ -22,6 +22,8 @@ class TblSetting extends Element
     const ATTR_TYPE = 'Type';
     const ATTR_IS_PUBLIC = 'IsPublic';
     const ATTR_DESCRIPTION = 'Description';
+    const ATTR_CATEGORY = 'Category';
+    const ATTR_SORT_ORDER = 'SortOrder';
 
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_STRING = 'string';
@@ -76,6 +78,11 @@ class TblSetting extends Element
      * @Column(type="string")
      */
     protected $Category;
+
+    /**
+     * @Column(type="integer")
+     */
+    protected ?int $SortOrder;
 
     /**
      * @return string
@@ -219,5 +226,21 @@ class TblSetting extends Element
     public function setCategory($Category)
     {
         $this->Category = $Category;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getSortOrder(): ?int
+    {
+        return $this->SortOrder;
+    }
+
+    /**
+     * @param int|null $SortOrder
+     */
+    public function setSortOrder(?int $SortOrder): void
+    {
+        $this->SortOrder = $SortOrder;
     }
 }

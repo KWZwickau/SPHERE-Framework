@@ -161,7 +161,7 @@ class TblDivision extends Element
     public function getDisplayName()
     {
 
-        if ($this->getTblLevel()) {
+        if ($this->getTblLevel() && !$this->getTblLevel()->getIsChecked()) {
             // Zahlen werden durch ein Minus getrennt. (5-1)
             if(is_numeric($this->getName())){
                 return $this->getTblLevel()->getName().'-'.$this->getName();
@@ -189,6 +189,23 @@ class TblDivision extends Element
         if ($this->getTblLevel()) {
             if ($this->getTblLevel()->getServiceTblType()) {
                 return $this->getTblLevel()->getServiceTblType()->getName();
+            } else {
+                return new Warning('Schulart nicht vorhanden.');
+            }
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getTypeShortName()
+    {
+
+        if ($this->getTblLevel()) {
+            if ($this->getTblLevel()->getServiceTblType()) {
+                return $this->getTblLevel()->getServiceTblType()->getShortName();
             } else {
                 return new Warning('Schulart nicht vorhanden.');
             }

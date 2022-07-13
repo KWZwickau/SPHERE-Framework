@@ -10,6 +10,17 @@ class FosJ extends Style
     /**
      * @return array
      */
+    public function selectValuesJobGradeText()
+    {
+        return array(
+            1 => "bestanden",
+            2 => "nicht bestanden"
+        );
+    }
+
+    /**
+     * @return array
+     */
     public function selectValuesTransfer()
     {
         return array(

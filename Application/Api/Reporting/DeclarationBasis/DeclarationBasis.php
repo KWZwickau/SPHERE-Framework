@@ -6,6 +6,8 @@ use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Main;
 
 /**
@@ -46,7 +48,9 @@ class DeclarationBasis implements IModuleInterface
                     ->createDivisionReportExcel($date);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Stichtagsmeldung SBA" . " " . $date->format('Y-m-d') . ".xlsx")->__toString();
+                    "Stichtagsmeldung Integrationsschüler"
+                        . (Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN) ? " SBA " : " ")
+                        . $date->format('Y-m-d') . ".xlsx")->__toString();
             } else {
                 return 'Für den Stichtag: ' . $date->format('d.m.Y') . ' wurde kein Schuljahr gefunden.';
             }

@@ -22,6 +22,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -558,15 +559,14 @@ class Service extends AbstractService
             'Content.Input.AdditionalRemarkFhr' => 'CheckBox',
             // Fachoberschule HOGA
             'Content.Input.Job_Grade'           => 'SelectCompleter',
+            'Content.Input.Job_Grade_Text'      => 'SelectBox',
             'Content.Input.Success'             => 'SelectBox',
             'Content.Input.IndustrialPlacement' => 'TextField',
-            'Content.Input.IndustrialPlacementDuration' => 'TextField'
+            'Content.Input.IndustrialPlacementDuration' => 'TextField',
+            'Content.Input.EducationDateFrom' => 'DatePicker'
         );
 
-        $Acronym = Account::useService()->getMandantAcronym();
-        if($Acronym == 'EVAB'
-//        || $Acronym == 'REF'
-        ){
+        if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVAB')){
             $FieldConfiguration['Content.Input.Remark'] = 'Editor';
         }
 
@@ -677,9 +677,11 @@ class Service extends AbstractService
             'Content.Input.AdditionalRemarkFhr' => 'Teilnahme an FHR-Prüfung',
             // Fachoberschule HOGA
             'Content.Input.Job_Grade'           => 'Fachpraktischer Teil der Ausbildung Zensur',
+            'Content.Input.Job_Grade_Text'      => 'Fachpraktischer Teil der Ausbildung',
             'Content.Input.Success'             => 'Abschluss erfolgreich',
             'Content.Input.IndustrialPlacement' => 'Betriebspraktikum',
-            'Content.Input.IndustrialPlacementDuration' => 'Betriebspraktikum (Dauer in Wochen)'
+            'Content.Input.IndustrialPlacementDuration' => 'Betriebspraktikum (Dauer in Wochen)',
+            'Content.Input.EducationDateFrom' => 'Ausbildung Datum vom'
         );
     }
 

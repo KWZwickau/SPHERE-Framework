@@ -190,6 +190,12 @@ class ImportGateway extends AbstractConverter
         if(!$tblPersonDebtor){
             $tblPersonDebtor = null;
         }
+        if($tblPersonDebtor && null === $tblPerson){
+            $tblPerson = $this->getPerson($Result['FirstName'], $Result['LastName'], $Result['Birthday'], $tblPersonDebtor);
+            if(!$tblPerson){
+                $tblPerson = null;
+            }
+        }
 
         $ImportRow = array(
             'Number'                 => $Result['Number'],
@@ -289,17 +295,31 @@ class ImportGateway extends AbstractConverter
         if($tblPersonStudent){
             // Suchen einer Person, wenn gefunden dann abgleich auf Personenbeziehung
             $tblPersonGuard = Person::useService()->getPersonByNameExtended($FirstName, $LastName);
-            if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
+            if($tblPersonGuard && $tblPersonStudent && $tblPersonGuard->getId() === $tblPersonStudent->getId()){
                 $tblPerson = $tblPersonGuard;
+            } elseif ($tblPersonGuard){
+                if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
+                    $tblPerson = $tblPersonGuard;
+                    // Rückwärtssuche für den fall das Sorgeberechtigter eindeutig ist, der Schüler aber nicht
+                } elseif(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonStudent, $tblPersonGuard)){
+                    $tblPerson = $tblPersonGuard;
+                }
             }
             if(!$tblPerson){
                 // wird nur geprüft, wenn keine eindeutigen treffer vorliegen
                 // Suchen aller Person, wenn gefunden dann abgleich auf Personenbeziehung
-                $tblPersonList = Person::useService()->getPersonAllByNameExtended($FirstName, $LastName);
-                foreach($tblPersonList as $tblPersonGuard){
-                    if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
-                        $tblPerson = $tblPersonGuard;
-                        break;
+                if(($tblPersonList = Person::useService()->getPersonAllByNameExtended($FirstName, $LastName))){
+                    foreach($tblPersonList as $tblPersonGuard){
+                        if($tblPersonGuard && $tblPersonStudent && $tblPersonGuard->getId() === $tblPersonStudent->getId()){
+                            $tblPerson = $tblPersonGuard;
+                        } elseif (Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
+                            $tblPerson = $tblPersonGuard;
+                            break;
+                            // Rückwärtssuche für den fall das Sorgeberechtigter eindeutig ist, der Schüler aber nicht
+                        } elseif(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonStudent, $tblPersonGuard)){
+                            $tblPerson = $tblPersonGuard;
+                            break;
+                        }
                     }
                 }
             }

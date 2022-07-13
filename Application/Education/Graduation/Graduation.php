@@ -5,7 +5,6 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -42,7 +41,7 @@ class Graduation implements IApplicationInterface
     /**
      * @return Stage
      */
-    public function frontendDashboard()
+    public function frontendDashboard(): Stage
     {
 
         $Stage = new Stage('Zensuren', 'Überblick');
@@ -76,13 +75,13 @@ class Graduation implements IApplicationInterface
             $Item['Description'] = 'Anzeige aller Notenbücher.';
             array_push($TableContent, $Item);
         }
-        if (Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Student/Gradebook')) {
-            $Item['Modul'] = new Bold('Notenübersicht');
-            $Item['Description'] = new Container('Anzeige der Zensuren für die Schüler und Eltern.')
-                .new Container('Der angemeldete Schüler sieht nur seine eigenen Zensuren')
-                .new COntainer('Der angemeldete Sorgeberechtigte sieht nur die Zensuren seiner Kinder.');
-            array_push($TableContent, $Item);
-        }
+//        if (Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Student/Gradebook')) {
+//            $Item['Modul'] = new Bold('Notenübersicht');
+//            $Item['Description'] = new Container('Anzeige der Zensuren für die Schüler und Eltern.')
+//                .new Container('Der angemeldete Schüler sieht nur seine eigenen Zensuren')
+//                .new COntainer('Der angemeldete Sorgeberechtigte sieht nur die Zensuren seiner Kinder.');
+//            array_push($TableContent, $Item);
+//        }
         if (Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Test/Teacher')) {
             $Item['Modul'] = new Bold('Leistungsüberprüfung (Ansicht: Lehrer)');
             $Item['Description'] = 'Verwaltung der Leistungsüberprüfungen (inklusive Kopfnoten und Stichtagsnoten)

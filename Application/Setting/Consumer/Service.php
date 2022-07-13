@@ -97,7 +97,7 @@ class Service extends AbstractService
         if($Value != '' && $ValueList){
             foreach ($ValueList as $ShortName){
                 if(($tblType = Type::useService()->getTypeByShortName($ShortName))){
-                    $tblSchoolTypeList[] = $tblType;
+                    $tblSchoolTypeList[$tblType->getId()] = $tblType;
                 }
             }
         }
