@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
@@ -590,6 +591,13 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
         $Panel = new Panel('Wollen Sie die Kategorie '.new Bold($CategoryName).' wirklich entfernen?', $TypeWithCount, Panel::PANEL_TYPE_DANGER);
         $ButtonYes = (new Primary('Ja', '#', new SuccessIcon()))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineSaveDestroyCategory($PersonId, $CategoryId));
         $ButtonNo = (new DangerLink('Abbrechen', '#', new Disable()))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineCloseModal('ModalAgreementStructureDestroyCategory'));
+
+        if($tblPersonAgreementTypeList){
+            return new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(new Danger(new Bold('Löschen der Kategorie "'.$CategoryName.'" nicht möglich!')
+                    .new Container('Bitte löschen Sie zuerst alle Struktureinträge in dieser Kategorie.')))
+            ))));
+        }
 
         return new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn($Panel),
