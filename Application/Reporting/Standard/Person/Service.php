@@ -3995,6 +3995,7 @@ class Service extends Extension
         $export->setValue($export->getCell($column++, $row), $isGroup ? "Gruppe" : "Klasse");
         $export->setValue($export->getCell($column++, $row), "Schüler");
         $export->setValue($export->getCell($column++, $row), "Zeitraum");
+        $export->setValue($export->getCell($column++, $row), "Ersteller");
         $export->setValue($export->getCell($column++, $row), "Unterrichtseinheiten");
         if ($hasAbsenceTypeOptions) {
             $export->setValue($export->getCell($column++, $row), "Typ");
@@ -4018,6 +4019,7 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $row), $isGroup ? $absence['Group'] : $absence['Division']);
                 $export->setValue($export->getCell($column++, $row), $absence['Person']);
                 $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
+                $export->setValue($export->getCell($column++, $row), $absence['PersonCreator']);
                 $export->setValue($export->getCell($column++, $row), $absence['Lessons']);
                 if ($hasAbsenceTypeOptions) {
                     $export->setValue($export->getCell($column++, $row), $absence['AbsenceTypeExcel']);
@@ -4035,17 +4037,18 @@ class Service extends Extension
         // Spaltenbreite
         $column = 0;
         $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(8);
-        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(10);
-        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(25);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(6);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(23);
         $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(22);
-        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(30);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(15);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(25);
         if ($hasAbsenceTypeOptions) {
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(5);
         }
         $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(5);
         $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(7);
         $export->setStyle($export->getCell($column, 1), $export->getCell($column, $row))->setColumnWidth(
-            $hasAbsenceTypeOptions ? 18 : 23
+            $hasAbsenceTypeOptions ? 15 : 20
         );
 
         // Gitterlinien
