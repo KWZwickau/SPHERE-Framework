@@ -31,7 +31,8 @@ class Data extends AbstractData
         Element $tblContact,
         TblPerson $tblPerson,
         string $Remark,
-        TblPerson $tblPersonCreator
+        TblPerson $tblPersonCreator,
+        Element $tblNewContactType  = null
     ): TblOnlineContact {
         $Manager = $this->getEntityManager();
 
@@ -42,6 +43,7 @@ class Data extends AbstractData
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setRemark($Remark);
         $Entity->setServiceTblPersonCreator($tblPersonCreator);
+        $Entity->setServiceTblNewContactType($tblNewContactType);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

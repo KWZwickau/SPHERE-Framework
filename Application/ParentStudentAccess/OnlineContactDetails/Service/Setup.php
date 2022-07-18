@@ -43,6 +43,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'ContactType', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'serviceTblToPerson', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblContact', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblNewContactType', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'Remark', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'serviceTblPersonCreator', self::FIELD_TYPE_BIGINT);
