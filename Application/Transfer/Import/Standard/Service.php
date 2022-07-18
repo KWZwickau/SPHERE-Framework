@@ -337,12 +337,23 @@ class Service
             $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, $studentGender,
                 false, $this->RunY + 1);
 
-            // Klassen werden auch als Personengruppen angelegt (ESBZ)
+            // ESBZ "Name" vor Stammgruppen
             if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
-                $divisionString = $this->getValue('Klasse/Kurs');
-                if(preg_match('!^[(\d)]+ (JG)!is', $divisionString)){
-                    $divisionString = str_replace(' ', '', $divisionString);
-                    $this->setPersonGroup($tblPerson, $divisionString);
+                $isCoreGroup = true;
+                $kl = $this->getValue('KL');
+                if($kl){
+                    $kl = 'Klasse '.$kl;
+                    $this->setPersonGroup($tblPerson, $kl, $isCoreGroup);
+                }
+                $team = $this->getValue('Team');
+                if($team){
+                    $team = 'Team '.$team;
+                    $this->setPersonGroup($tblPerson, $team, $isCoreGroup);
+                }
+                $group = $this->getValue('Gruppe');
+                if($group){
+                    $group = 'Gruppe '.$group;
+                    $this->setPersonGroup($tblPerson, $group);
                 }
             }
 
@@ -389,13 +400,13 @@ class Service
             $school = $this->getValue('Schule');
             $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $school, $this->RunY, $Nr, $error);
 
-            $DivisionChecked = $this->getValue('KL');
-            if($DivisionChecked != ''){
-                if(strlen($DivisionChecked) < 2){
-                    $DivisionChecked = '0'.$DivisionChecked;
-                }
-                $this->setPersonDivision($tblPerson, $YearString, $DivisionChecked, $schoolType, $school, $this->RunY, $Nr, $error, true);
-            }
+//            $DivisionChecked = $this->getValue('KL');
+//            if($DivisionChecked != ''){
+//                if(strlen($DivisionChecked) < 2){
+//                    $DivisionChecked = '0'.$DivisionChecked;
+//                }
+//                $this->setPersonDivision($tblPerson, $YearString, $DivisionChecked, $schoolType, $school, $this->RunY, $Nr, $error, true);
+//            }
 
             // address
             $streetName = $this->getValue('Straße');
@@ -1339,13 +1350,14 @@ class Service
     /**
      * @param TblPerson $tblPerson
      * @param string    $Group
+     * @param bool      $isCoreGroup
      *
      * @return void
      */
-    private function setPersonGroup(TblPerson $tblPerson, string $Group)
+    private function setPersonGroup(TblPerson $tblPerson, string $Group, $isCoreGroup = false)
     {
 
-        $tblGroup = Group::useService()->insertGroup($Group);
+        $tblGroup = Group::useService()->insertGroup($Group, '', '', $isCoreGroup);
         Group::useService()->addGroupPerson($tblGroup, $tblPerson);
     }
 
@@ -1552,6 +1564,10 @@ class Service
                         $level = $divisionString;
                         $division = '';
                     }
+                }
+                // Klassen erhalten den Zusatz JG
+                if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
+                    $division .= 'JG';
                 }
 
                 $schoolType = strtolower($schoolType);
