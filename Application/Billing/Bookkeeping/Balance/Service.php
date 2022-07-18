@@ -1028,7 +1028,9 @@ class Service extends AbstractService
 
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
-                $PaymentId = $tblInvoice->getInvoiceNumber().'-';
+                if($InvoiceCount == 0) {
+                    $PaymentId = $tblInvoice->getInvoiceNumber().'-';
+                }
                 $countSepaPayment = 0;
 
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
@@ -1061,7 +1063,9 @@ class Service extends AbstractService
                 // entfernen der false Werte
                 $tblInvoiceItemDebtorList = array_filter($tblInvoiceItemDebtorList);
                 $InvoiceCount++;
-                $this->addPaymentInfo($directDebit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
+                if($InvoiceCount == 1){
+                    $this->addPaymentInfo($directDebit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
+                }
 
                 if(!empty($tblInvoiceItemDebtorList)){
                     $item = array();
