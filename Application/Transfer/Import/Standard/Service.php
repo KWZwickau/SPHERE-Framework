@@ -333,7 +333,8 @@ class Service
             $callName = $this->getValue('Rufname');
             $Stammgruppe = $this->getValue('Stammgruppe');
             $Hort = $this->getValue('Hort');
-            $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort,
+            $studentGender = $this->getValue('Geschlecht');
+            $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, $studentGender,
                 false, $this->RunY + 1);
 
             // Klassen werden auch als Personengruppen angelegt (ESBZ)
@@ -826,8 +827,9 @@ class Service
                         $Stammgruppe = '';
 //                        $Hort = trim($Document->getValue($Document->getCell($Location['Hort'], $RunY)));
                         $Hort = '';
+                        $studentGender = trim($Document->getValue($Document->getCell($Location['Geschlecht'], $RunY)));
                         //
-                        $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, true);
+                        $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, $studentGender, true);
                         $countProspect++;
 
                         // common & birthday
@@ -1174,7 +1176,12 @@ class Service
                         if($tblPerson){
                             $info[] = new Muted(new Small(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1)).' Person '.$tblPerson->getLastFirstName().' gefunden, wird zusätzlich Mitarbeiter.'));
                             $countStaffExists++;
-                            $this->setGroupStaff($tblPerson);
+                            $teacher = trim($Document->getValue($Document->getCell($Location['Lehrer'], $RunY)));
+                            $isTeacher = false;
+                            if(strtoupper($teacher) === 'X'){
+                                $isTeacher = true;
+                            }
+                            $this->setGroupStaff($tblPerson, $isTeacher);
                         } else {
                             // nicht vorhandene Personen werden angelegt
                             $salutation = trim($Document->getValue($Document->getCell($Location['Anrede'], $RunY)));
@@ -1282,7 +1289,7 @@ class Service
      *
      * @return bool|TblPerson
      */
-    private function setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, $isProspect = false,
+    private function setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, $studentGender, $isProspect = false,
         $ImportId = '')
     {
 
@@ -1309,8 +1316,15 @@ class Service
             $GroupList[] = $tblGroupH;
         }
 
+        $Salutation = Person::useService()->getSalutationByName(TblSalutation::VALUE_STUDENT);
+        if($studentGender){
+            if(strtolower($studentGender) == 'w') {
+                $Salutation = Person::useService()->getSalutationByName(TblSalutation::VALUE_STUDENT_FEMALE);
+            }
+        }
+
         return Person::useService()->insertPerson(
-            Person::useService()->getSalutationByName(TblSalutation::VALUE_STUDENT),
+            $Salutation,
             '',
             $firstName,
             $secondName,
