@@ -3,6 +3,8 @@ namespace SPHERE\Application\Api\Document\Custom\Gersdorf\Repository;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
@@ -15,6 +17,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
  * Class MetaDataComparison
@@ -58,7 +61,7 @@ class MetaDataComparison extends AbstractDocument
         $this->FieldValue['S2FirstName'] = $this->FieldValue['S2LastName'] = $this->FieldValue['S2Street'] = $this->FieldValue['S2Code'] =
         $this->FieldValue['S2City'] = $this->FieldValue['S2District'] = '&nbsp;';
         // Phone
-        $this->FieldValue['PhonePrivate'] = $this->FieldValue['PhoneTwo'] = $this->FieldValue['PhoneS1'] = $this->FieldValue['PhoneS2'] =
+        $this->FieldValue['Phone1'] = $this->FieldValue['Phone2'] = $this->FieldValue['Phone3'] = $this->FieldValue['Phone4'] =
         $this->FieldValue['Phone5'] = $this->FieldValue['Phone6'] = '&nbsp;';
         // Mail
         $this->FieldValue['Email1'] = $this->FieldValue['Email2'] = '&nbsp;';
@@ -117,6 +120,98 @@ class MetaDataComparison extends AbstractDocument
                 $this->FieldValue[$Ranking.'District'] = ($tblCity->getDistrict() ?: '&nbsp;');
             }
         }
+
+        $S1Woman = true;
+        if(($tblSetting = Consumer::useService()->getSetting('People', 'Person', 'Relationship', 'GenderOfS1'))){
+
+            if($tblSetting->getValue() == 2){
+                $S1Woman = true;
+            }elseif ($tblSetting->getValue() == 1){
+                $S1Woman = false;
+            }
+        }
+
+        if(($tblToPersonList = Phone::useService()->getPhoneAllByPerson($tblPerson))){
+            if($Ranking === ''){
+                $numberPrivate = array();
+                $number2 = array();
+                foreach($tblToPersonList as $tblToPerson){
+                    if(($tblPhone = $tblToPerson->getTblPhone())){
+                        if(strpos($tblToPerson->getRemark(), 'Oma') !== false
+                        || strpos($tblToPerson->getRemark(), 'Opa') !== false
+                        || strpos($tblToPerson->getRemark(), 'Tanke') !== false
+                        || strpos($tblToPerson->getRemark(), 'Onkel') !== false
+                        || $tblToPerson->getTblType()->getDescription() != 'Festnetz'
+                        ){
+                            $number2[] = $tblPhone->getNumber().($tblToPerson->getRemark() ? ' ('.$tblToPerson->getRemark().')' : '');
+                        }else {
+                            $numberPrivate[] = $tblPhone->getNumber();
+                        }
+                    }
+                }
+                if(!empty($numberPrivate)){
+                    $this->FieldValue['Phone1'] = implode(', ', $numberPrivate);
+                }
+                if(!empty($number2)){
+                    $this->FieldValue['Phone2'] = implode(', ', $number2);
+                }
+
+            }elseif($Ranking === 'S1'){
+                $numberArray = array();
+                foreach($tblToPersonList as $tblToPerson){
+                    if(($tblPhone = $tblToPerson->getTblPhone())){
+                        $numberArray[] = $tblPhone->getNumber();
+                    }
+                }
+                if(!empty($numberArray)){
+                    if($S1Woman){
+                        $this->FieldValue['Phone4'] = implode(', ', $numberArray);
+                    } else {
+                        $this->FieldValue['Phone3'] = implode(', ', $numberArray);
+                    }
+                }
+            } elseif($Ranking === 'S2'){
+                $numberArray = array();
+                foreach($tblToPersonList as $tblToPerson){
+                    if(($tblPhone = $tblToPerson->getTblPhone())){
+                        $numberArray[] = $tblPhone->getNumber();
+                    }
+                }
+                if(!empty($numberArray)) {
+                    if ($S1Woman) {
+                        $this->FieldValue['Phone3'] = implode(', ', $numberArray);
+                    } else {
+                        $this->FieldValue['Phone4'] = implode(', ', $numberArray);
+                    }
+                }
+            }
+        }
+
+        if(($tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPerson))){
+            if($Ranking !== ''){
+                $mailArray = array();
+                foreach($tblToPersonMailList as $tblToPersonMail){
+                    if(($tblMail = $tblToPersonMail->getTblMail())){
+                        $mailArray[] = $tblMail->getAddress();
+                    }
+                }
+                if(!empty($mailArray)){
+                    if($Ranking === 'S1'){
+                        if($S1Woman){
+                            $this->FieldValue['Email2'] = implode(', ', $mailArray);
+                        } else {
+                            $this->FieldValue['Email1'] = implode(', ', $mailArray);
+                        }
+                    } elseif($Ranking === 'S2'){
+                        if($S1Woman){
+                            $this->FieldValue['Email1'] = implode(', ', $mailArray);
+                        } else {
+                            $this->FieldValue['Email2'] = implode(', ', $mailArray);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -140,6 +235,8 @@ class MetaDataComparison extends AbstractDocument
         $TextSize = '16px';
         $SpaceLeft = '35%';
         $SpaceRight = '65%';
+        $PaddingTop = '2px';
+        $PaddingBottom = '1px';
 
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
@@ -149,11 +246,11 @@ class MetaDataComparison extends AbstractDocument
                         ->setContent('&nbsp;')
                         ->styleTextSize('18px')
                 ))
-                ->addSlice($this->setStudentInfo($TextSize, $SpaceLeft, $SpaceRight))
-                ->addSlice($this->setCustodyInfo('1', $TextSize, $SpaceLeft, $SpaceRight))
-                ->addSlice($this->setCustodyInfo('2', $TextSize, $SpaceLeft, $SpaceRight))
-                ->addSlice($this->setPhoneInfo($TextSize, $SpaceLeft, $SpaceRight))
-                ->addSlice($this->setMailInfo($TextSize, $SpaceLeft, $SpaceRight))
+                ->addSlice($this->setStudentInfo($TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom))
+                ->addSlice($this->setCustodyInfo('1', $TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom))
+                ->addSlice($this->setCustodyInfo('2', $TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom))
+                ->addSlice($this->setPhoneInfo($TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom))
+                ->addSlice($this->setMailInfo($TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom))
                 )
             );
     }
@@ -215,7 +312,7 @@ class MetaDataComparison extends AbstractDocument
      *
      * @return Slice
      */
-    private function setStudentInfo($TextSize, $SpaceLeft, $SpaceRight)
+    private function setStudentInfo($TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom)
     {
         return (new Slice())
             ->addSection((new Section())
@@ -226,6 +323,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -234,6 +333,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -244,6 +345,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -251,6 +354,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -261,6 +366,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -268,6 +375,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -278,6 +387,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -285,6 +396,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -295,6 +408,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -302,6 +417,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -312,6 +429,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -319,6 +438,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -329,6 +450,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -336,6 +459,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -346,6 +471,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -353,6 +480,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -363,6 +492,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -370,6 +501,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             );
@@ -383,7 +516,7 @@ class MetaDataComparison extends AbstractDocument
      *
      * @return Slice
      */
-    private function setCustodyInfo($Ranking, $TextSize, $SpaceLeft, $SpaceRight)
+    private function setCustodyInfo($Ranking, $TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom)
     {
         return (new Slice())
             ->addSection((new Section())
@@ -393,6 +526,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -400,6 +535,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -410,6 +547,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -417,6 +556,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -427,6 +568,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -434,6 +577,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -444,6 +589,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -451,6 +598,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -461,6 +610,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -468,6 +619,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -478,6 +631,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -485,6 +640,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -495,6 +652,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -502,6 +661,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             );
@@ -514,7 +675,7 @@ class MetaDataComparison extends AbstractDocument
      *
      * @return Slice
      */
-    private function setPhoneInfo($TextSize, $SpaceLeft, $SpaceRight)
+    private function setPhoneInfo($TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom)
     {
         return (new Slice())
             ->addSection((new Section())
@@ -524,13 +685,19 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
-                    ->setContent(' '.$this->FieldValue['Email1'])
+                    ->setContent(' '.$this->FieldValue['Phone1'])
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -541,13 +708,19 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
-                    ->setContent(' '.$this->FieldValue['Email1'])
+                    ->setContent(' '.$this->FieldValue['Phone2'])
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -558,13 +731,19 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
-                    ->setContent(' '.$this->FieldValue['Email1'])
+                    ->setContent(' '.$this->FieldValue['Phone3'])
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -575,13 +754,19 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
-                    ->setContent(' '.$this->FieldValue['Email1'])
+                    ->setContent(' '.$this->FieldValue['Phone4'])
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -592,13 +777,17 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
-                    ->setContent(' '.$this->FieldValue['Email1'])
+                    ->setContent(' '.$this->FieldValue['Phone5'])
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -609,13 +798,17 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
-                    ->setContent(' '.$this->FieldValue['Email1'])
+                    ->setContent(' '.$this->FieldValue['Phone6'])
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -626,6 +819,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -633,6 +828,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             );
@@ -645,7 +842,7 @@ class MetaDataComparison extends AbstractDocument
      *
      * @return Slice
      */
-    private function setMailInfo($TextSize, $SpaceLeft, $SpaceRight)
+    private function setMailInfo($TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom)
     {
         return (new Slice())
             ->addSection((new Section())
@@ -655,6 +852,9 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -662,6 +862,9 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -672,6 +875,9 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -679,6 +885,9 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom()
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
+                    ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             )
@@ -689,6 +898,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
@@ -696,6 +907,8 @@ class MetaDataComparison extends AbstractDocument
                     ->styleBorderBottom('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
+                    ->stylepaddingTop($PaddingTop)
+                    ->stylePaddingBottom($PaddingBottom)
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
             );
