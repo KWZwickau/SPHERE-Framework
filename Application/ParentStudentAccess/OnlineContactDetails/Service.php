@@ -93,6 +93,7 @@ class Service extends AbstractService
             && ($tblSetting = Consumer::useService()->getSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'OnlineContactDetailsAllowedForSchoolTypes'))
             && ($tblSchoolTypeAllowedList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
         ) {
+            $tblMainAddress = $tblPerson->fetchMainAddress();
             // Kinder des Elternteils
             if (($tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
                 foreach ($tblPersonRelationshipList as $relationship) {
@@ -113,6 +114,7 @@ class Service extends AbstractService
                             }
 
                             // für Sorgeberechtigte sollen die weiteren Sorgeberechtigten und Notfallkontakte für das Kind mit angezeigt werden
+                            // und die weiteren Personen müssen die gleiche Hauptadresse besitzen
                             if ($relationship->getTblType()->getName() == 'Sorgeberechtigt') {
                                 if (($tblPersonRelationshipFromChildList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonChild))) {
                                     foreach ($tblPersonRelationshipFromChildList as $tblPersonRelationshipFromChild) {
@@ -121,7 +123,11 @@ class Service extends AbstractService
                                             && ($tblPersonRelationshipFromChild->getTblType()->getName() == 'Sorgeberechtigt'
                                                 || $tblPersonRelationshipFromChild->getTblType()->getName() == 'Notfallkontakt')
                                         ) {
-                                            $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
+                                            if ($tblMainAddress && ($tblAddress = $tblPersonFrom->fetchMainAddress())
+                                                && $tblMainAddress->getId() == $tblAddress->getId()
+                                            ) {
+                                                $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
+                                            }
                                         }
                                     }
                                 }
@@ -513,5 +519,17 @@ class Service extends AbstractService
         } else {
             return empty($resultList) ? false : $resultList;
         }
+    }
+
+    /**
+     * @param Element $tblContact
+     * @param string $contactType
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblOnlineContact
+     */
+    public function getOnlineContactByContactAndPerson(Element $tblContact, string $contactType, TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getOnlineContactByContactAndPerson($tblContact, $contactType, $tblPerson);
     }
 }
