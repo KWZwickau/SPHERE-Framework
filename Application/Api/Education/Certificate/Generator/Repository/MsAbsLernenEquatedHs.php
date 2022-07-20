@@ -35,7 +35,7 @@ class MsAbsLernenEquatedHs extends Certificate
             $showPictureOnSecondPage = $tblSetting->getValue();
         }
 
-        $Header = MsAbsRs::getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage);
+        $Header = $this->getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage);
 
         // leere Seite
         $pageList[] = new Page();
