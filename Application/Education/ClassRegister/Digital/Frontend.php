@@ -559,10 +559,12 @@ class Frontend extends Extension implements IFrontendInterface
         $DivisionId = $tblDivision ? $tblDivision->getId() : null;
         $GroupId = $tblGroup ? $tblGroup->getId() : null;
 
+        $Date = $DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString;
+
         $buttons = (new Primary(
             new Plus() . ' Thema/Hausaufgaben hinzufügen',
             ApiDigital::getEndpoint()
-        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId));
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $DateString));
 
         if ($tblDivision) {
             $Type = 'Division';
@@ -574,8 +576,6 @@ class Frontend extends Extension implements IFrontendInterface
             $Type = null;
             $TypeId = null;
         }
-
-        $Date = $DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString;
 
         if ($View == 'Day') {
             $buttons .= (new Primary(
