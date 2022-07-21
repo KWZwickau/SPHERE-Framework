@@ -756,8 +756,9 @@ class Service extends AbstractService
                 $medicalRecord = '';
                 $agreement = '';
                 $integration = '';
+                $tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
                 if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                    if ($tblGroup && ($tblMainDivision = $tblStudent->getCurrentMainDivision())) {
+                    if ($tblGroup && $tblMainDivision) {
                         $displayDivision = $tblMainDivision->getDisplayName();
                         if ($hasColumnCourse) {
                             if (($tblLevel = $tblMainDivision->getTblLevel())
