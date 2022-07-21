@@ -1788,8 +1788,8 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         new LayoutColumn(
                             new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste 1'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständnis&shy;erklärung'))->setPictureHeight(),
+                                '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
@@ -1804,15 +1804,15 @@ class Frontend extends Extension implements IFrontendInterface
                             , 2),
                         new LayoutColumn(
                             new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständniserklärung'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste'))->setPictureHeight(),
+                                '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
                                 ))
                             , 2),
                         new LayoutColumn(
                             new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnisrelevante Fehlzeiten'))->setPictureHeight(),
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnis&shy;relevante Fehlzeiten'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
                                     'DivisionId' => $DivisionId,
                                     'GroupId'    => $GroupId
