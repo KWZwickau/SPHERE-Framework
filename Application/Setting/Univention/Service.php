@@ -159,11 +159,27 @@ class Service extends AbstractService
                 $UploadItem['school_type'] = '';
                 $UploadItem['groupArray'] = '';
 
+                $tblDivision = false;
                 $tblPerson = Account::useService()->getPersonAllByAccount($tblAccount);
                 if($tblPerson){
                     $tblPerson = current($tblPerson);
                     $UploadItem['firstname'] = $tblPerson->getFirstName();
                     $UploadItem['lastname'] = $tblPerson->getLastName();
+                    $tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+                }
+                // Klasse
+
+                if($tblDivision){
+                    $ClassName = $this->getCorrectionClassNameByDivision($tblDivision);
+                    $UploadItem['school_classes'][$Acronym][] = $ClassName;
+                    if($tblDivision->getType() && ( $SchoolTypeString = $tblDivision->getType()->getShortName() ))
+                        $UploadItem['school_type'] = $SchoolTypeString;
+                } else {
+                    if(isset($TeacherClasses[$tblPerson->getId()])){
+                        $SchoolListWithClasses = $TeacherClasses[$tblPerson->getId()];
+                        asort($SchoolListWithClasses);
+                        $UploadItem['school_classes'] = $SchoolListWithClasses;
+                    }
                 }
                 // Rollen
                 $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
@@ -200,23 +216,6 @@ class Service extends AbstractService
                 }
                 if(!empty($groups)){
                     $UploadItem['groupArray'] = $groups;
-                }
-
-                $tblDivision = false;
-                if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                    $tblDivision = $tblStudent->getCurrentMainDivision();
-                }
-                if($tblDivision){
-                    $ClassName = $this->getCorrectionClassNameByDivision($tblDivision);
-                    $UploadItem['school_classes'][$Acronym][] = $ClassName;
-                    if($tblDivision->getType() && ( $SchoolTypeString = $tblDivision->getType()->getShortName() ))
-                    $UploadItem['school_type'] = $SchoolTypeString;
-                } else {
-                    if(isset($TeacherClasses[$tblPerson->getId()])){
-                        $SchoolListWithClasses = $TeacherClasses[$tblPerson->getId()];
-                        asort($SchoolListWithClasses);
-                        $UploadItem['school_classes'] = $SchoolListWithClasses;
-                    }
                 }
 
                 array_push($activeAccountList, $UploadItem);

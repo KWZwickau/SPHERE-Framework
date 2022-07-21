@@ -3513,7 +3513,7 @@ class Frontend extends FrontendScoreRule
         ));
 
         if ($tblGroup) {
-            if (($tblStudent = $tblPerson->getStudent()) && ($tblDivision = $tblStudent->getCurrentMainDivision())) {
+            if (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))) {
                 $DivisionId = $tblDivision->getId();
             } else {
                 return $Stage

@@ -216,10 +216,8 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
     public static function getDivisionString(TblPerson $tblPerson = null): string
     {
         $DivisionString = '';
-        if($tblPerson && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-            if($tblDivision = $tblStudent->getCurrentMainDivision()){
-                $DivisionString = ' Klasse '.$tblDivision->getDisplayName();
-            }
+        if($tblPerson && ($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))){
+            $DivisionString = ' Klasse '.$tblDivision->getDisplayName();
         }
         return $DivisionString;
     }

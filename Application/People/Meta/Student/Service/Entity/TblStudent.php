@@ -375,7 +375,7 @@ class TblStudent extends Element
     }
 
     /**
-     *
+     * @deprecated
      * @return bool|TblDivision
      */
     public function getCurrentMainDivision()
