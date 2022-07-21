@@ -2049,6 +2049,10 @@ class Frontend extends Extension implements IFrontendInterface
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson))
             );
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
+        // Schulleitung soll auch die Klassenbücher für die Klassenlehrer abnehmen dürfen
+        if ($hasHeadmasterRight)  {
+            $hasDivisionTeacherRight = true;
+        }
 
         if ($tblDivision || $tblGroup) {
             $content = '';
@@ -2137,31 +2141,47 @@ class Frontend extends Extension implements IFrontendInterface
                 $newDivisionTeacher = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
                     . new PullRight(($hasDivisionTeacherRight
                         ? (new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
-                            ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'DivisionTeacher', $hasDivisionTeacherRight,
-                                $hasHeadmasterRight))
+                            ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'DivisionTeacher', 'SET',
+                                $hasDivisionTeacherRight, $hasHeadmasterRight))
                         : '')
                      . '|');
                 $newHeadmaster = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
                     . new PullRight($hasHeadmasterRight
                         ? (new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
-                            ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'Headmaster', $hasDivisionTeacherRight,
-                                $hasHeadmasterRight))
+                            ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'Headmaster', 'SET',
+                                $hasDivisionTeacherRight, $hasHeadmasterRight))
                         : ''
                     );
 
                 if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivision, $tblGroup, $startDate))) {
                     if ($tblLessonWeek->getDateDivisionTeacher()) {
-                        $divisionTeacherText = new Success(new Check() . ' am ' . $tblLessonWeek->getDateDivisionTeacher() . ' von '
-                            . (($divisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher())
-                                ? $divisionTeacher->getLastName() : '') . ' bestätigt.') . new PullRight('|');
+                        $divisionTeacherText = new Success(
+                                new Check() . ' am ' . $tblLessonWeek->getDateDivisionTeacher() . ' von '
+                                . (($divisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher()) ? $divisionTeacher->getLastName() : '')
+                                . ' bestätigt.'
+                            )
+                            . new PullRight(
+                                ($hasDivisionTeacherRight
+                                    ? (new Link('Rückgängig', ApiDigital::getEndpoint(), new Unchecked()))->ajaxPipelineOnClick(
+                                        ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'DivisionTeacher', 'UNSET',
+                                            $hasDivisionTeacherRight, $hasHeadmasterRight))
+                                    : '')
+                                . '|');
                     } else {
                         $divisionTeacherText = $newDivisionTeacher;
                     }
 
                     if ($tblLessonWeek->getDateHeadmaster()) {
                         $headmasterText = new Success(new Check() . ' am ' . $tblLessonWeek->getDateHeadmaster() . ' von '
-                            . (($headmaster = $tblLessonWeek->getServiceTblPersonHeadmaster())
-                                ? $headmaster->getLastName() : '') . ' bestätigt.');
+                            . (($headmaster = $tblLessonWeek->getServiceTblPersonHeadmaster()) ? $headmaster->getLastName() : '')
+                            . ' bestätigt.'
+                            . new PullRight($hasHeadmasterRight
+                                ? (new Link('Rückgängig', ApiDigital::getEndpoint(), new Unchecked()))->ajaxPipelineOnClick(
+                                    ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'Headmaster', 'UNSET',
+                                        $hasDivisionTeacherRight, $hasHeadmasterRight))
+                                : ''
+                            )
+                        );
                     } else {
                         $headmasterText = $newHeadmaster;
                     }
@@ -2170,12 +2190,16 @@ class Frontend extends Extension implements IFrontendInterface
                     $headmasterText = $newHeadmaster;
                 }
 
-                $displayWeek = 'KW' . $startDate->format('W') . ' (' . $dateString . ')';
+                $displayWeek = new Bold('KW' . $startDate->format('W')) . ' (' . $dateString . ')';
                 if ($dateString == $Date) {
                     $item = new Well(
                         $this->getWeekViewContent($dateString, $tblDivision, $tblGroup, false, true)
                         . new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn($displayWeek . new PullRight('|'), 4),
+                            new LayoutColumn($displayWeek
+                                . (new Link(' schließen', ApiDigital::getEndpoint()))
+                                    ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonWeekContent($DivisionId, $GroupId, $hasDivisionTeacherRight,
+                                        $hasHeadmasterRight))
+                                . new PullRight('|'), 4),
                             new LayoutColumn($divisionTeacherText, 4),
                             new LayoutColumn($headmasterText, 4),
                         ))))
@@ -2183,10 +2207,11 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     $item = new Layout(new LayoutGroup(new LayoutRow(array(
                         new LayoutColumn(
-                            (new Link($displayWeek .  ' anzeigen', ApiDigital::getEndpoint()))
-                                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonWeekContent($DivisionId, $GroupId, $hasDivisionTeacherRight,
+                            $displayWeek
+                                . (new Link(' anzeigen', ApiDigital::getEndpoint()))
+                                    ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonWeekContent($DivisionId, $GroupId, $hasDivisionTeacherRight,
                                     $hasHeadmasterRight, $dateString))
-                            . new PullRight('|')
+                                . new PullRight('|')
                             , 4),
                         new LayoutColumn($divisionTeacherText, 4),
                         new LayoutColumn($headmasterText, 4),

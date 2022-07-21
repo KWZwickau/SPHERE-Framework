@@ -551,12 +551,13 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $YearId
      * @param string $Date
      * @param string $Type
+     * @param string $Direction
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
      * @return Pipeline
      */
     public static function pipelineSaveLessonWeekCheck(string $DivisionId = null, string $GroupId = null, string $YearId = null, string $Date = '',
-        string $Type = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
+        string $Type = '', string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent'), self::getEndpoint());
@@ -569,6 +570,7 @@ class ApiDigital extends Extension implements IApiInterface
             'YearId' => $YearId,
             'Date' => $Date,
             'Type' => $Type,
+            'Direction' => $Direction,
             'hasDivisionTeacherRight' => $hasDivisionTeacherRight,
             'hasHeadmasterRight' => $hasHeadmasterRight
         ));
@@ -583,13 +585,14 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $YearId
      * @param string $Date
      * @param string $Type
+     * @param string $Direction
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
      *
      * @return Pipeline
      */
     public function saveLessonWeekCheck(string $DivisionId = null, string $GroupId = null, string $YearId = null, string $Date = '', string $Type = '',
-        string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
+        string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
     {
         $tblPerson = Account::useService()->getPersonByLogin();
         $Date = new DateTime($Date);
@@ -601,8 +604,14 @@ class ApiDigital extends Extension implements IApiInterface
         $tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivision ?: null, $tblGroup ?: null, $Date);
 
         if ($Type == 'DivisionTeacher') {
-            $serviceTblPersonDivisionTeacher = $tblPerson;
-            $DateDivisionTeacher = $now->format('d.m.Y');
+            if ($Direction == 'SET') {
+                $serviceTblPersonDivisionTeacher = $tblPerson;
+                $DateDivisionTeacher = $now->format('d.m.Y');
+            } else {
+                // Bestätigung rückgängig machen
+                $serviceTblPersonDivisionTeacher = null;
+                $DateDivisionTeacher = '';
+            }
 
             if ($tblLessonWeek) {
                 $serviceTblPersonHeadmaster = $tblLessonWeek->getServiceTblPersonHeadmaster();
@@ -612,8 +621,14 @@ class ApiDigital extends Extension implements IApiInterface
                 $DateHeadmaster = '';
             }
         } else {
-            $serviceTblPersonHeadmaster = $tblPerson;
-            $DateHeadmaster = $now->format('d.m.Y');
+            if ($Direction == 'SET') {
+                $serviceTblPersonHeadmaster = $tblPerson;
+                $DateHeadmaster = $now->format('d.m.Y');
+            } else {
+                // Bestätigung rückgängig machen
+                $serviceTblPersonHeadmaster = null;
+                $DateHeadmaster = '';
+            }
 
             if ($tblLessonWeek) {
                 $serviceTblPersonDivisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher();
