@@ -277,12 +277,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 )));
                     }
 
-                    $sublist[] = (new Standard('', ApiInstructionItem::getEndpoint(), new Plus(), array(), 'Neue Nachbelehrung hinzufügen'))
-                        ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenCreateInstructionItemModal(
-                            $tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null, $tblInstruction->getId()
-                        ));
-
                     if (($missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, $tblDivision, $tblGroup))) {
+                        $sublist[] = (new Standard('', ApiInstructionItem::getEndpoint(), new Plus(), array(), 'Neue Nachbelehrung hinzufügen'))
+                            ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenCreateInstructionItemModal(
+                                $tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null, $tblInstruction->getId()
+                            ));
                         $panel = new Panel('Belehrung teilweise durchgeführt', $sublist, Panel::PANEL_TYPE_WARNING)
                             . new Panel('Fehlende Schüler', $missingPersonTotal, Panel::PANEL_TYPE_WARNING);
                     } else {
@@ -382,9 +381,14 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPersonList = false;
         }
         if ($tblPersonList) {
+
+            $missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, $tblDivision, $tblGroup);
             foreach ($tblPersonList as $tblPerson) {
-                $columns[$tblPerson->getId()] = new FormColumn(new CheckBox('Data[Students][' . $tblPerson->getId() . ']',
-                    $tblPerson->getLastFirstName(), 1), 4);
+                // bei Nachbelehrung nur die fehlenden Schüler zur Auswahl anzeigen
+                if (!$missingPersonTotal || isset($missingPersonTotal[$tblPerson->getId()])) {
+                    $columns[$tblPerson->getId()] = new FormColumn(new CheckBox('Data[Students][' . $tblPerson->getId() . ']',
+                        $tblPerson->getLastFirstName(), 1), 4);
+                }
             }
         }
 
