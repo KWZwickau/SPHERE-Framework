@@ -49,6 +49,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Home;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -836,25 +837,25 @@ class Frontend extends Extension implements IFrontendInterface
                     $i . '. Thema/Hausaufgaben hinzufügen',
                     null,
                     AbstractLink::TYPE_MUTED_LINK
-                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
-                    $date->format('d.m.Y'), $i));
+                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $date->format('d.m.Y'), $i));
 
-                $link = (new Link(
-                    '<div style="height: 22px"></div>',
-                    ApiDigital::getEndpoint(),
-                    null,
-                    array(),
-                    $i . '. Thema/Hausaufgaben hinzufügen'
-                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
-                    $date->format('d.m.Y'), $i));
+                if (!$isHoliday && $tblDivision && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                    $tblDivision, $date, $i
+                ))) {
+                    $subject = $tblLessonContentTemp->getDisplaySubject(true);
+                    $room = $tblLessonContentTemp->getRoom();
+                } else {
+                    $subject = '';
+                    $room = '';
+                }
 
                 $bodyList[$i * 10] = array(
                     'Lesson' => $linkLesson,
-                    'Subject' => $link,
-                    'Room' => $link,
-                    'Teacher' => $link,
-                    'Content' => $link,
-                    'Homework' => $link,
+                    'Subject' => $this->getLessonsNewLink($subject, $date, $i, $DivisionId, $GroupId),
+                    'Room' => $this->getLessonsNewLink($room, $date, $i, $DivisionId, $GroupId),
+                    'Teacher' => $this->getLessonsNewLink('', $date, $i, $DivisionId, $GroupId),
+                    'Content' => $this->getLessonsNewLink('', $date, $i, $DivisionId, $GroupId),
+                    'Homework' => $this->getLessonsNewLink('', $date, $i, $DivisionId, $GroupId),
 
                     'Absence' => isset($absenceContent[$i]) ? implode(' - ', $absenceContent[$i]) : ''
                 );
@@ -1024,16 +1025,14 @@ class Frontend extends Extension implements IFrontendInterface
         for ($day = 1; $day < 6; $day++) {
             // Ferien, Feiertage
             $isHoliday = false;
-            if ($tblYear) {
-                if ($tblCompanyList) {
-                    foreach ($tblCompanyList as $tblCompany) {
-                        if (($isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, $tblCompany))) {
-                            break;
-                        }
+            if ($tblCompanyList) {
+                foreach ($tblCompanyList as $tblCompany) {
+                    if (($isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, $tblCompany))) {
+                        break;
                     }
-                } else {
-                    $isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, null);
                 }
+            } else {
+                $isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, null);
             }
             if ($isHoliday) {
                 $holidayList[$day] = true;
@@ -1107,14 +1106,21 @@ class Frontend extends Extension implements IFrontendInterface
                 } elseif ($isHoliday) {
                     $cell = new Center(new Muted('f'));
                 } elseif(!$isReadOnly) {
+                    if ($tblDivision && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                        $tblDivision, new DateTime($dateStringList[$j]), $i
+                    ))) {
+                        $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+                    } else {
+                        $cellContent = '<div style="height: 22px"></div>';
+                    }
+
                     $cell = (new Link(
-                        '<div style="height: 22px"></div>',
+                        $cellContent,
                         ApiDigital::getEndpoint(),
                         null,
                         array(),
                         $i . '. Thema/Hausaufgaben hinzufügen'
-                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
-                        $dateStringList[$j], $i));
+                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $dateStringList[$j], $i));
                 } else {
                     $cell = '&nbsp;';
                 }
@@ -1189,6 +1195,26 @@ class Frontend extends Extension implements IFrontendInterface
             array(),
             $Lesson . '. Thema/Hausaufgaben bearbeiten'
         ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditLessonContentModal($LessonContentId));
+    }
+
+    /**
+     * @param string $name
+     * @param DateTime $date
+     * @param int $Lesson
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
+     *
+     * @return Link
+     */
+    private function getLessonsNewLink(string $name, DateTime $date, int $Lesson, ?int $DivisionId, ?int $GroupId): Link
+    {
+        return (new Link(
+            $name ?: '<div style="height: 22px"></div>',
+            ApiDigital::getEndpoint(),
+            null,
+            array(),
+            $Lesson . '. Thema/Hausaufgaben hinzufügen'
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $date->format('d.m.Y'), $Lesson));
     }
 
     /**
@@ -1331,6 +1357,14 @@ class Frontend extends Extension implements IFrontendInterface
                         new CheckBox('Data[IsCanceled]', 'Fach ist ausgefallen', 1)
                     ),
                 )),
+                // nur beim neu anlegen kann Doppelstunde gecheckt werden
+                !$LessonContentId
+                    ? new FormRow(array(
+                        new FormColumn(
+                            new CheckBox('Data[IsDoubleLesson]', 'Doppelstunde ' . new ToolTip(new Info(),
+                                'Beim Speichern werden die Daten auch für die nächste Unterrichtseinheit gespeichert.'), 1)
+                        ),
+                    )) : null,
                 new FormRow(array(
                     new FormColumn(
                         new TextField('Data[Content]', 'Thema', 'Thema', new Edit())

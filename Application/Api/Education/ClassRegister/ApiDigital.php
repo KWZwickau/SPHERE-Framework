@@ -288,6 +288,11 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if (Digital::useService()->createLessonContent($Data, $tblDivision ?: null, $tblGroup ?: null)) {
+            // bei Doppelstunde die Daten auch für die nächste UE speichern
+            if (isset($Data['IsDoubleLesson']) && isset($Data['Lesson'])) {
+                $Data['Lesson'] = intval($Data['Lesson']) + 1;
+                Digital::useService()->createLessonContent($Data, $tblDivision ?: null, $tblGroup ?: null);
+            }
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadLessonContentContent($DivisionId, $GroupId, $Data['Date'],
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
