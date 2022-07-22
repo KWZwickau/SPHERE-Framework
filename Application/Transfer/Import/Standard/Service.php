@@ -1337,7 +1337,7 @@ class Service
                  */
                 $Location = array(
                     'Nr'                        => null,
-                    'Kontaktnummer'             => '',
+                    'Kontaktnummer'             => '', // Optional
                     'Ist_Schule'                => null,
                     'Ist_Kindergarten'          => null,
                     'Name'                      => null,
@@ -1384,14 +1384,17 @@ class Service
                         $IsSchool = trim($Document->getValue($Document->getCell($Location['Ist_Schule'], $RunY)));
                         $IsNursery = trim($Document->getValue($Document->getCell($Location['Ist_Kindergarten'], $RunY)));
                         $Remark = trim($Document->getValue($Document->getCell($Location['Bemerkung'], $RunY)));
-                        $ContactNumber = trim($Document->getValue($Document->getCell($Location['Kontaktnummer'], $RunY)));
+                        $ContactNumber = '';
+                        if(isset($Location['Kontaktnummer']) && $Location['Kontaktnummer']){
+                            $ContactNumber = trim($Document->getValue($Document->getCell($Location['Kontaktnummer'], $RunY)));
+                        }
 
                         if(($tblCompany = Company::useService()->getCompanyByName($Name, $Extended))){
                             if($ContactNumber){
-                                $error[] = new WarningText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' Institution bereits hinterlegt, Update Kontaktnummer ('.$ContactNumber.') erfolgt trotzdem.';
+                                $error[] = new WarningText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' Institution '.$Name.' '.$Extended.' bereits hinterlegt, Update Kontaktnummer ('.$ContactNumber.') erfolgt trotzdem.';
                                 $this->setUpdateCompany($tblCompany, $IsSchool, $IsNursery, $ContactNumber);
                             } else {
-                                $error[] = new WarningText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' Institution bereits hinterlegt, kein Update.';
+                                $error[] = new WarningText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' Institution '.$Name.' '.$Extended.' bereits hinterlegt, kein Update.';
                             }
                             $countCompanyExists++;
                             continue;
