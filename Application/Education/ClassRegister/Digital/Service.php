@@ -758,7 +758,7 @@ class Service extends AbstractService
                 $integration = '';
                 $tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
                 if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                    if ($tblGroup && $tblMainDivision) {
+                    if ($tblGroup && $tblMainDivision && (($tblStudent = Student::useService()->getStudentByPerson($tblPerson)))) {
                         $displayDivision = $tblMainDivision->getDisplayName();
                         if ($hasColumnCourse) {
                             if (($tblLevel = $tblMainDivision->getTblLevel())
