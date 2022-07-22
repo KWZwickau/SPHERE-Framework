@@ -93,6 +93,7 @@ class Service extends AbstractService
             && ($tblSetting = Consumer::useService()->getSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'OnlineContactDetailsAllowedForSchoolTypes'))
             && ($tblSchoolTypeAllowedList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
         ) {
+            $tblMainAddress = $tblPerson->fetchMainAddress();
             // Kinder des Elternteils
             if (($tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
                 foreach ($tblPersonRelationshipList as $relationship) {
@@ -118,10 +119,16 @@ class Service extends AbstractService
                                     foreach ($tblPersonRelationshipFromChildList as $tblPersonRelationshipFromChild) {
                                         if (($tblPersonFrom = $tblPersonRelationshipFromChild->getServiceTblPersonFrom())
                                             && $tblPersonFrom->getId() != $tblPersonChild->getId()
-                                            && ($tblPersonRelationshipFromChild->getTblType()->getName() == 'Sorgeberechtigt'
-                                                || $tblPersonRelationshipFromChild->getTblType()->getName() == 'Notfallkontakt')
                                         ) {
-                                            $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
+                                            // aus Datenschutzgründen muss der weitere Sorgeberechtigte die gleiche Hauptadresse besitzen
+                                            if ($tblPersonRelationshipFromChild->getTblType()->getName() == 'Sorgeberechtigt'
+                                                && $tblMainAddress && ($tblAddress = $tblPersonFrom->fetchMainAddress())
+                                                && $tblMainAddress->getId() == $tblAddress->getId()
+                                            ) {
+                                                $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
+                                            } elseif ($tblPersonRelationshipFromChild->getTblType()->getName() == 'Notfallkontakt') {
+                                                $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
+                                            }
                                         }
                                     }
                                 }
@@ -234,7 +241,7 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param $PhoneId
+     * @param $ToPersonId
      * @param $PersonIdList
      * @param array $Data
      *
@@ -242,17 +249,24 @@ class Service extends AbstractService
      */
     public function checkFormPhone(
         TblPerson $tblPerson,
-        $PhoneId,
+        $ToPersonId,
         $PersonIdList,
         array $Data
     ) {
         $error = false;
-        $form = OnlineContactDetails::useFrontend()->formPhone($tblPerson->getId(), $PhoneId, $PersonIdList);
+        $form = OnlineContactDetails::useFrontend()->formPhone($tblPerson->getId(), $ToPersonId, $PersonIdList);
         if (isset($Data['Number']) && empty($Data['Number'])) {
             $form->setError('Data[Number]', 'Bitte geben Sie eine gültige Telefonnummer an');
             $error = true;
         } else {
             $form->setSuccess('Number');
+        }
+        // Typ der Telefonnummer nur bei neuen Telefonnummern
+        if (!$ToPersonId && isset($Data['Type']) && empty($Data['Type'])) {
+            $form->setError('Data[Type]', 'Bitte wählen Sie einen Typ aus');
+            $error = true;
+        } else {
+            $form->setSuccess('Type');
         }
 
         return $error ? $form : false;
@@ -276,8 +290,10 @@ class Service extends AbstractService
         ) {
             $tblToPerson = $ToPersonId ? Phone::useService()->getPhoneToPersonById($ToPersonId) : null;
 
+            $tblPhoneType = isset($Data['Type']) && ($tblPhoneType = Phone::useService()->getTypeById($Data['Type'])) ? $tblPhoneType : null;
+
             (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_PHONE, $tblToPerson ?: null, $tblPhone, $tblPerson,
-                $Data['Remark'], $tblPersonLogin);
+                $Data['Remark'], $tblPersonLogin, $tblPhoneType);
 
             if (isset($Data['PersonList'])) {
                 foreach ($Data['PersonList'] as $personId => $value) {
@@ -289,7 +305,7 @@ class Service extends AbstractService
                         }
 
                         (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_PHONE, $tblToPersonTemp ?: null, $tblPhone, $tblPersonItem,
-                            $Data['Remark'], $tblPersonLogin);
+                            $Data['Remark'], $tblPersonLogin, $tblPhoneType);
                     }
                 }
             }
@@ -393,7 +409,7 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param $MailId
+     * @param $ToPersonId
      * @param $PersonIdList
      * @param array $Data
      *
@@ -401,17 +417,24 @@ class Service extends AbstractService
      */
     public function checkFormMail(
         TblPerson $tblPerson,
-        $MailId,
+        $ToPersonId,
         $PersonIdList,
         array $Data
     ) {
         $error = false;
-        $form = OnlineContactDetails::useFrontend()->formMail($tblPerson->getId(), $MailId, $PersonIdList);
+        $form = OnlineContactDetails::useFrontend()->formMail($tblPerson->getId(), $ToPersonId, $PersonIdList);
         if (isset($Data['Address']) && empty($Data['Address'])) {
             $form->setError('Data[Address]', 'Bitte geben Sie eine gültige E-Mail-Adresse an');
             $error = true;
         } else {
             $form->setSuccess('Address');
+        }
+        // Typ der Email-Adresse nur bei neuen Email-Adressen
+        if (!$ToPersonId && isset($Data['Type']) && empty($Data['Type'])) {
+            $form->setError('Data[Type]', 'Bitte wählen Sie einen Typ aus');
+            $error = true;
+        } else {
+            $form->setSuccess('Type');
         }
 
         return $error ? $form : false;
@@ -435,8 +458,10 @@ class Service extends AbstractService
         ) {
             $tblToPerson = $ToPersonId ? Mail::useService()->getMailToPersonById($ToPersonId) : null;
 
+            $tblMailType = isset($Data['Type']) && ($tblMailType = Mail::useService()->getTypeById($Data['Type'])) ? $tblMailType : null;
+
             (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_MAIL, $tblToPerson ?: null, $tblMail, $tblPerson,
-                $Data['Remark'], $tblPersonLogin);
+                $Data['Remark'], $tblPersonLogin, $tblMailType);
 
             if (isset($Data['PersonList'])) {
                 foreach ($Data['PersonList'] as $personId => $value) {
@@ -448,7 +473,7 @@ class Service extends AbstractService
                         }
 
                         (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_MAIL, $tblToPersonTemp ?: null, $tblMail, $tblPersonItem,
-                            $Data['Remark'], $tblPersonLogin);
+                            $Data['Remark'], $tblPersonLogin, $tblMailType);
                     }
                 }
             }
@@ -513,5 +538,17 @@ class Service extends AbstractService
         } else {
             return empty($resultList) ? false : $resultList;
         }
+    }
+
+    /**
+     * @param Element $tblContact
+     * @param string $contactType
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblOnlineContact
+     */
+    public function getOnlineContactByContactAndPerson(Element $tblContact, string $contactType, TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getOnlineContactByContactAndPerson($tblContact, $contactType, $tblPerson);
     }
 }

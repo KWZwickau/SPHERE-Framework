@@ -148,7 +148,8 @@ class Frontend extends Extension implements IFrontendInterface
                             (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblType),
                                 new TileBig(), true))
                                 ->setRequired()
-                                ->ajaxPipelineOnChange(ApiAddressToPerson::pipelineLoadRelationshipsContent($PersonId)),
+                                ->ajaxPipelineOnChange(ApiAddressToPerson::pipelineLoadRelationshipsContent($PersonId,
+                                    $isOnlineContactPosted && $tblOnlineContact ? $OnlineContactId : null)),
                             (new AutoCompleter('Street[Name]', 'Straße', 'Straße',
                                 array('AddressStreetName' => $tblViewAddressToPersonAll), new MapMarker()
                             ))->setRequired(),
@@ -187,7 +188,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         ApiAddressToPerson::receiverBlock(
                             $showRelationships
-                                ? Address::useFrontend()->getRelationshipsContent($tblPerson)
+                                ? Address::useFrontend()->getRelationshipsContent($tblPerson,
+                                    $isOnlineContactPosted && $tblOnlineContact ? $tblOnlineContact : null)
                                 : ''
                             , 'RelationshipsContent'
                         )
@@ -549,11 +551,22 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblOnlineContact|null $tblOnlineContact
      *
      * @return string
      */
-    public function getRelationshipsContent(TblPerson $tblPerson)
+    public function getRelationshipsContent(TblPerson $tblPerson, TblOnlineContact $tblOnlineContact = null)
     {
+        if ($tblOnlineContact
+            && ($tblAddressPersonList = OnlineContactDetails::useService()->getPersonListForOnlineContact($tblOnlineContact, false))
+        ) {
+            $Global = $this->getGlobal();
+            foreach ($tblAddressPersonList as $tblAddressPerson) {
+                $Global->POST['Relationship'][$tblAddressPerson->getId()] = $tblAddressPerson->getId();
+            }
+            $Global->savePost();
+        }
+
         $list = array();
         $list = $this->getRelationshipList($tblPerson, $list, true);
         // eigene Person, falls diese über die Drei-Ecks-Beziehung kommt wieder entfernen
