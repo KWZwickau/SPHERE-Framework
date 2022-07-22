@@ -103,6 +103,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblType
+     */
+    public function getTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getTypeByName($Name);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param bool $isForced
      *

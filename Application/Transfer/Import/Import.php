@@ -30,11 +30,15 @@ use SPHERE\Application\Transfer\Import\Standard\Mail\Mail;
 use SPHERE\Application\Transfer\Import\Tharandt\Tharandt;
 use SPHERE\Application\Transfer\Import\WVSZ\WVSZ;
 use SPHERE\Application\Transfer\Import\Zwickau\Zwickau;
+use SPHERE\Common\Frontend\Layout\Repository\Header;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -190,12 +194,18 @@ class Import implements IApplicationInterface
             }
         }
 
-        $dataList = Mail::setLinks($dataList);
+//        $dataList = Mail::setLinks($dataList);
 
         if(empty($dataList)){
             $Stage->setContent(
-                new Layout(ImportStandard::getStandardLink())
-                .Main::getDispatcher()->fetchDashboard('Import')
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('', new Bold('<H3>Standard Import</H3>'). new Layout(ImportStandard::getStandardLink()), Panel::PANEL_TYPE_PRIMARY)
+                    ),
+                    new LayoutColumn(
+                        Main::getDispatcher()->fetchDashboard('Import')
+                    )
+                ))))
             );
             return $Stage;
         }
@@ -217,17 +227,19 @@ class Import implements IApplicationInterface
         );
 
         $Stage->setContent(
-            new Layout(array(
-                ImportStandard::getStandardLink(),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            $table
-                        ))
-                    ))
+            new Layout(
+                new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('', new Bold('<H3>Standard Import</H3>'). new Layout(ImportStandard::getStandardLink()), Panel::PANEL_TYPE_PRIMARY)
+                    ),
+                    new LayoutColumn(
+                        $table
+                    ),
+                    new LayoutColumn(
+                        Main::getDispatcher()->fetchDashboard('Import')
+                    ),
                 ))
             ))
-            . Main::getDispatcher()->fetchDashboard('Import')
         );
 
         return $Stage;
