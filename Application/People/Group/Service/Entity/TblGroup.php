@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Fitting\Element;
@@ -220,9 +221,7 @@ class TblGroup extends Element
     {
         if(($tblPersonList = Group::useService()->getPersonAllByGroup($this))) {
             foreach ($tblPersonList as $tblPerson) {
-                if (($tblStudent = $tblPerson->getStudent())
-                    && ($tblMainDivision = $tblStudent->getCurrentMainDivision())
-                ) {
+                if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))) {
                     return $tblMainDivision->getServiceTblYear();
                 }
             }
@@ -239,8 +238,7 @@ class TblGroup extends Element
         $list = array();
         if(($tblPersonList = Group::useService()->getPersonAllByGroup($this))) {
             foreach ($tblPersonList as $tblPerson) {
-                if (($tblStudent = $tblPerson->getStudent())
-                    && ($tblMainDivision = $tblStudent->getCurrentMainDivision())
+                if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
                     && ($tblCompany = $tblMainDivision->getServiceTblCompany())
                 ) {
                     $list[$tblCompany->getId()] = $tblCompany;
@@ -271,8 +269,7 @@ class TblGroup extends Element
         $list = array();
         if(($tblPersonList = Group::useService()->getPersonAllByGroup($this))) {
             foreach ($tblPersonList as $tblPerson) {
-                if (($tblStudent = $tblPerson->getStudent())
-                    && ($tblMainDivision = $tblStudent->getCurrentMainDivision())
+                if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
                 ) {
                     $list[$tblMainDivision->getId()] = $tblMainDivision;
                 }

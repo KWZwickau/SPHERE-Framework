@@ -198,8 +198,7 @@ class Frontend extends Extension implements IFrontendInterface
                         } else {
                             if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                                 foreach ($tblPersonList as $tblPersonStudent) {
-                                    if (($tblStudent = $tblPersonStudent->getStudent())
-                                        && ($tblDivisionMain = $tblStudent->getCurrentMainDivision())
+                                    if (($tblDivisionMain = Student::useService()->getCurrentMainDivisionByPerson($tblPersonStudent))
                                         && isset($divisionList[$tblDivisionMain->getId()])
                                     ) {
                                         $addGroup = true;

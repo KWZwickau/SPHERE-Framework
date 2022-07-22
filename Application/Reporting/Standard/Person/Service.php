@@ -127,10 +127,10 @@ class Service extends Extension
                     $Item['Denomination'] = $Item['Birthday'] = $Item['Birthplace'] = '';
                 }
 
+                $tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 // NK/Profil
                 if ($tblStudent) {
-                    $tblMainDivision = $tblStudent->getCurrentMainDivision();
                     for ($i = 1; $i <= 3; $i++) {
                         $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
                         $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
@@ -4657,11 +4657,12 @@ class Service extends Extension
                         $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
                     }
                 }
+
+                if (!$tblStudentDivision) {
+                    $tblStudentDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+                }
                 $course = '';
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                    if (!$tblStudentDivision) {
-                        $tblStudentDivision = $tblStudent->getCurrentMainDivision();
-                    }
 
                     $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                     if($tblTransferType){

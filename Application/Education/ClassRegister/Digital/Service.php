@@ -70,7 +70,6 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
-use Symfony\Component\HttpKernel\HttpCache\Store;
 
 class Service extends AbstractService
 {
@@ -732,7 +731,6 @@ class Service extends AbstractService
             $studentTable = array();
             $count = 0;
             foreach ($tblPersonList as $tblPerson) {
-                $tblMainDivision = false;
                 $birthday = '';
                 $Gender = '';
                 if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
@@ -756,20 +754,20 @@ class Service extends AbstractService
                 $medicalRecord = '';
                 $agreement = '';
                 $integration = '';
-                if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                    if ($tblGroup && ($tblMainDivision = $tblStudent->getCurrentMainDivision())) {
-                        $displayDivision = $tblMainDivision->getDisplayName();
-                        if ($hasColumnCourse) {
-                            if (($tblLevel = $tblMainDivision->getTblLevel())
-                                && ($tblSchoolType = $tblLevel->getServiceTblType())
-                            ) {
-                                $hasColumnCourse = $tblSchoolType->getShortName() == 'OS';
-                            }
+                $tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+                if ($tblGroup && $tblMainDivision) {
+                    $displayDivision = $tblMainDivision->getDisplayName();
+                    if ($hasColumnCourse) {
+                        if (($tblLevel = $tblMainDivision->getTblLevel())
+                            && ($tblSchoolType = $tblLevel->getServiceTblType())
+                        ) {
+                            $hasColumnCourse = $tblSchoolType->getShortName() == 'OS';
                         }
-                    } else {
-                        $tblMainDivision = $tblDivision;
                     }
-
+                } else {
+                    $tblMainDivision = $tblDivision;
+                }
+                if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
                     if (($tblCourse = $tblStudent->getCourse())) {
                         $course = $tblCourse->getName();
                     }
