@@ -114,18 +114,19 @@ class Service extends AbstractService
                             }
 
                             // für Sorgeberechtigte sollen die weiteren Sorgeberechtigten und Notfallkontakte für das Kind mit angezeigt werden
-                            // und die weiteren Personen müssen die gleiche Hauptadresse besitzen
                             if ($relationship->getTblType()->getName() == 'Sorgeberechtigt') {
                                 if (($tblPersonRelationshipFromChildList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonChild))) {
                                     foreach ($tblPersonRelationshipFromChildList as $tblPersonRelationshipFromChild) {
                                         if (($tblPersonFrom = $tblPersonRelationshipFromChild->getServiceTblPersonFrom())
                                             && $tblPersonFrom->getId() != $tblPersonChild->getId()
-                                            && ($tblPersonRelationshipFromChild->getTblType()->getName() == 'Sorgeberechtigt'
-                                                || $tblPersonRelationshipFromChild->getTblType()->getName() == 'Notfallkontakt')
                                         ) {
-                                            if ($tblMainAddress && ($tblAddress = $tblPersonFrom->fetchMainAddress())
+                                            // aus Datenschutzgründen muss der weitere Sorgeberechtigte die gleiche Hauptadresse besitzen
+                                            if ($tblPersonRelationshipFromChild->getTblType()->getName() == 'Sorgeberechtigt'
+                                                && $tblMainAddress && ($tblAddress = $tblPersonFrom->fetchMainAddress())
                                                 && $tblMainAddress->getId() == $tblAddress->getId()
                                             ) {
+                                                $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
+                                            } elseif ($tblPersonRelationshipFromChild->getTblType()->getName() == 'Notfallkontakt') {
                                                 $tblPersonList[$tblPersonFrom->getId()] = $tblPersonFrom;
                                             }
                                         }
