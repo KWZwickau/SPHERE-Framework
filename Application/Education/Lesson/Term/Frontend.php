@@ -306,7 +306,8 @@ class Frontend extends Extension implements IFrontendInterface
                     ), new Title(new ListingTable() . ' Übersicht')
                 ),
                 new LayoutGroup(
-                    new LayoutRow(
+                    new LayoutRow(array(
+                        new LayoutColumn(new Warning('Bitte beachten Sie, dass die Zeiträume der Halbjahre (auch von Schuljahr zu Schuljahr) lückenlos sein müssen.')),
                         new LayoutColumn(
                             new Well(
                                 Term::useService()->createPeriod(
@@ -317,7 +318,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         )
-                    ), new Title(new PlusSign() . ' Hinzufügen')
+                    )), new Title(new PlusSign() . ' Hinzufügen')
                 ),
             ))
         );
