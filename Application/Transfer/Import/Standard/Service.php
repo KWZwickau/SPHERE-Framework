@@ -257,6 +257,7 @@ class Service
             'KL' => null,
             'Team' => null,
             'Gruppe' => null,
+            'Hort_Modul' => null,
         );
 
         $unKnownColumns = array();
@@ -346,7 +347,7 @@ class Service
                 false, $this->RunY + 1);
 
             // ESBZ "Name" vor Stammgruppen
-            if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
+//            if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
                 $isCoreGroup = true;
                 $kl = $this->getValue('KL');
                 if($kl){
@@ -363,7 +364,12 @@ class Service
                     $group = 'Gruppe '.$group;
                     $this->setPersonGroup($tblPerson, $group);
                 }
-            }
+                $HortModule = $this->getValue('Hort_Modul');
+                if($HortModule){
+                    $HortModule = 'Hort '.$HortModule.'h';
+                    $this->setPersonGroup($tblPerson, $HortModule);
+                }
+//            }
 
             $Group = $this->getValue('Gruppe');
             if($Group !== ''){
