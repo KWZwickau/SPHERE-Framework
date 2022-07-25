@@ -20,6 +20,7 @@ use SPHERE\Application\Education\ClassRegister\Digital\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -212,12 +213,24 @@ class Service extends AbstractService
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
      * @param TblYear|null $tblYear
+     * @param TblDivisionSubject|null $tblDivisionSubject
      *
      * @return LayoutRow
      */
-    public function getHeadLayoutRow(TblDivision $tblDivision = null, TblGroup $tblGroup = null, TblYear &$tblYear = null): LayoutRow
+    public function getHeadLayoutRow(TblDivision $tblDivision = null, TblGroup $tblGroup = null, TblYear &$tblYear = null,
+        TblDivisionSubject $tblDivisionSubject = null): LayoutRow
     {
-        if ($tblGroup) {
+        if ($tblDivisionSubject
+            && ($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+            && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+        ) {
+            $tblYear = $tblDivision->getServiceTblYear();
+            $title = ($tblSubjectGroup->isAdvancedCourse() ? 'Leistungskurs ' : 'Grundkurs ') . $tblSubjectGroup->getName();
+            $content[] = ($tblGroup ? 'Gruppe: ' . $tblGroup->getName() : 'Klasse: ' . $tblDivision->getDisplayName())
+                . ' Fach: ' . $tblSubject->getDisplayName();
+            $content[] = 'Fachlehrer: ' . Division::useService()->getSubjectTeacherNameList($tblDivision, $tblSubject, $tblSubjectGroup);
+        } elseif ($tblGroup) {
             $title = 'Stammgruppe';
             $content[] = $tblGroup->getName();
             if (($tudors = $tblGroup->getTudorsString())) {
@@ -349,7 +362,90 @@ class Service extends AbstractService
             $route,
             $icon,
             array(
-               'DivisionId' => $DivisionId,
+                'DivisionId' => $DivisionId,
+                'GroupId' =>  $GroupId,
+                'BasicRoute' => $BasicRoute
+            )
+        );
+    }
+
+    /**
+     * @param TblDivisionSubject|null $tblDivisionSubject
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param string $Route
+     * @param string $BasicRoute
+     *
+     * @return LayoutRow
+     */
+    public function getHeadButtonListLayoutRowForDivisionSubject(TblDivisionSubject $tblDivisionSubject = null, $DivisionId = null, $GroupId = null,
+        string $Route = '/Education/ClassRegister/Digital/CourseContent', string $BasicRoute = ''): LayoutRow
+    {
+        $DivisionSubjectId = $tblDivisionSubject->getId();
+        $buttonList[] = $this->getButtonForDivisionSubject('Kursheft', '/Education/ClassRegister/Digital/CourseContent', new Book(),
+            $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/CourseContent');
+
+//        // Klassentagebuch Kontrolle: nur für Klassenlehrer, Tudor oder Schulleitung
+//        if (($tblPerson = Account::useService()->getPersonByLogin())
+//            && (($tblDivision && Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson))
+//                || ($tblGroup && ($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
+//                    && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
+//                    && Group::useService()->existsGroupPerson($tblGroup, $tblPerson))
+//                || Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting')
+//            )
+//        ) {
+//            // Klassentagebuch Kontrolle: nicht bei Kurssystemen
+//            if (!($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))
+//                && !($tblGroup && $tblGroup->getIsGroupCourseSystem())
+//            ) {
+//                $buttonList[] = $this->getButton('Klassentagebuch Kontrolle', '/Education/ClassRegister/Digital/LessonWeek', new Ok(),
+//                    $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonWeek');
+//            }
+//        }
+
+        $buttonList[] = $this->getButtonForDivisionSubject('Schülerliste', '/Education/ClassRegister/Digital/Student', new PersonGroup(),
+            $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Student');
+
+//        // Fehlzeiten (Kalenderansicht) nur bei Klassen anzeigen
+//        if ($tblDivision) {
+//            $buttonList[] = $this->getButton('Fehlzeiten (Kalenderansicht)', '/Education/ClassRegister/Digital/AbsenceMonth',
+//                new Calendar(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
+//        }
+//
+//        $buttonList[] = $this->getButton('Belehrungen', '/Education/ClassRegister/Digital/Instruction',
+//            new CommodityItem(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Instruction');
+//        $buttonList[] = $this->getButton('Unterrichtete Fächer / Lehrer', '/Education/ClassRegister/Digital/Lectureship',
+//            new Listing(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
+//        $buttonList[] = $this->getButton('Ferien', '/Education/ClassRegister/Digital/Holiday',
+//            new Holiday(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Holiday');
+//        $buttonList[] = $this->getButton('Download', '/Education/ClassRegister/Digital/Download',
+//            new Download(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
+
+        return new LayoutRow(new LayoutColumn($buttonList));
+    }
+
+    /**
+     * @param string $name
+     * @param string $route
+     * @param $icon
+     * @param $DivisionSubjectId
+     * @param $DivisionId
+     * @param $GroupId
+     * @param $BasicRoute
+     * @param bool $isSelected
+     *
+     * @return Standard
+     */
+    private function getButtonForDivisionSubject(string $name, string $route, $icon, $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute,
+        bool $isSelected = false): Standard
+    {
+        return new Standard(
+            $isSelected ? new Info(new Bold($name)) : $name,
+            $route,
+            $icon,
+            array(
+                'DivisionSubjectId' => $DivisionSubjectId,
+                'DivisionId' => $DivisionId,
                 'GroupId' =>  $GroupId,
                 'BasicRoute' => $BasicRoute
             )
@@ -707,14 +803,18 @@ class Service extends AbstractService
      * @param TblGroup|null $tblGroup
      * @param string $BasicRoute
      * @param string $ReturnRoute
+     * @param TblDivisionSubject|null $tblDivisionSubject
      *
      * @return string
      */
-    public function getStudentTable(?TblDivision $tblDivision, ?TblGroup $tblGroup, string $BasicRoute, string $ReturnRoute): string
+    public function getStudentTable(?TblDivision $tblDivision, ?TblGroup $tblGroup, string $BasicRoute, string $ReturnRoute,
+        TblDivisionSubject $tblDivisionSubject = null): string
     {
         $tblPersonList = false;
         $hasColumnCourse = false;
-        if ($tblDivision) {
+        if ($tblDivisionSubject) {
+            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+        } elseif ($tblDivision) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
             if (($tblLevel = $tblDivision->getTblLevel())
                 && ($tblSchoolType = $tblLevel->getServiceTblType())
@@ -837,7 +937,8 @@ class Service extends AbstractService
                                     'PersonId'   => $tblPerson->getId(),
                                     'BasicRoute' => $BasicRoute,
                                     'ReturnRoute'=> $ReturnRoute,
-                                    'GroupId'    => $tblGroup ? $tblGroup->getId() : null
+                                    'GroupId'    => $tblGroup ? $tblGroup->getId() : null,
+                                    'DivisionSubjectId' => $tblDivisionSubject ? $tblDivisionSubject->getId() : null
                                 ),
                                 'Fehlzeiten des Schülers verwalten'
                             ))
@@ -848,7 +949,8 @@ class Service extends AbstractService
                                     'PersonId'   => $tblPerson->getId(),
                                     'BasicRoute' => $BasicRoute,
                                     'ReturnRoute'=> $ReturnRoute,
-                                    'GroupId'    => $tblGroup ? $tblGroup->getId() : null
+                                    'GroupId'    => $tblGroup ? $tblGroup->getId() : null,
+                                    'DivisionSubjectId' => $tblDivisionSubject ? $tblDivisionSubject->getId() : null
                                 ),
                                 'Integration des Schülers verwalten'
                             )) : '')

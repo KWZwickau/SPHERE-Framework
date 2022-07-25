@@ -45,7 +45,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -70,7 +69,6 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class Frontend extends FrontendTabs
 {
@@ -517,7 +515,7 @@ class Frontend extends FrontendTabs
 
         if ($View == 'Day') {
             $layout = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($this->getStudentPanel($tblDivision, $tblGroup), 2),
+                new LayoutColumn($this->getStudentPanel($tblDivision, $tblGroup, null), 2),
                 new LayoutColumn($layout, 10),
             ))));
         }
@@ -1287,32 +1285,5 @@ class Frontend extends FrontendTabs
                 )),
             ))
         ))->disableSubmitAction();
-    }
-
-    private function getStudentPanel(?TblDivision $tblDivision, ?TblGroup $tblGroup): string
-    {
-        $tblPersonList = false;
-        $dataList = array();
-        if ($tblDivision) {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-        } elseif ($tblGroup) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
-            }
-        }
-
-        if ($tblPersonList) {
-            $count = 0;
-            foreach ($tblPersonList as $tblPerson) {
-                $dataList[] = new PullLeft(++$count) . new PullRight($tblPerson->getLastFirstName());
-            }
-        }
-
-        return new Panel(
-            'Schüler',
-//            new Table($tableHead, $tableBody, null, false, null, 'TableCustom'),
-            $dataList,
-            Panel::PANEL_TYPE_INFO
-        );
     }
 }

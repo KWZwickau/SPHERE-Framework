@@ -60,6 +60,7 @@ class FrontendTabs extends FrontendCourseContent
     /**
      * @param null $DivisionId
      * @param null $GroupId
+     * @param null $DivisionSubjectId
      * @param string $BasicRoute
      *
      * @return Stage|string
@@ -67,30 +68,51 @@ class FrontendTabs extends FrontendCourseContent
     public function frontendStudentList(
         $DivisionId = null,
         $GroupId = null,
+        $DivisionSubjectId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Schülerliste');
-
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
-        ));
         $tblYear = null;
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            if ($GroupId) {
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'GroupId' => $GroupId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
+            } else {
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'DivisionId' => $DivisionId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
+            }
+        } else {
+            $stage->addButton(new Standard(
+                'Zurück', $BasicRoute, new ChevronLeft()
+            ));
+        }
 
-        if ($tblDivision || $tblGroup) {
+        if ($tblDivision || $tblGroup || $tblDivisionSubject) {
             $stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow(
-                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
+                            $tblDivision ?: null, $tblGroup ?: null, $tblYear, $tblDivisionSubject ?: null
                         ),
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                            '/Education/ClassRegister/Digital/Student', $BasicRoute)
+                        $tblDivisionSubject
+                            ? Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
+                                '/Education/ClassRegister/Digital/Student', $BasicRoute)
+                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
+                                '/Education/ClassRegister/Digital/Student', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
                         Digital::useService()->getStudentTable($tblDivision ?: null, $tblGroup ?: null, $BasicRoute,
-                            '/Education/ClassRegister/Digital/Student')
+                            '/Education/ClassRegister/Digital/Student', $tblDivisionSubject ?: null)
                     )), new Title(new PersonGroup() . ' Schülerliste'))
                 ))
             );
@@ -239,11 +261,12 @@ class FrontendTabs extends FrontendCourseContent
      * @param string $BasicRoute
      * @param string $ReturnRoute
      * @param null $GroupId
+     * @param null $DivisionSubjectId
      *
      * @return Stage
      */
     public function frontendIntegration($DivisionId = null, $PersonId = null, string $BasicRoute = '', string $ReturnRoute = '',
-        $GroupId = null): Stage
+        $GroupId = null, $DivisionSubjectId = null): Stage
     {
 
         $Stage = new Stage('Digitales Klassenbuch', 'Integration verwalten');
@@ -251,6 +274,7 @@ class FrontendTabs extends FrontendCourseContent
         if ($ReturnRoute) {
             $Stage->addButton(new Standard('Zurück', $ReturnRoute, new ChevronLeft(),
                     array(
+                        'DivisionSubjectId' => $DivisionSubjectId,
                         'DivisionId' => $GroupId ? null : $DivisionId,
                         'GroupId'    => $GroupId,
                         'BasicRoute' => $BasicRoute,
