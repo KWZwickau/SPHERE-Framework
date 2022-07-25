@@ -93,7 +93,7 @@ class FrontendTabs extends FrontendCourseContent
             }
         } else {
             $stage->addButton(new Standard(
-                'Zurück', $BasicRoute, new ChevronLeft()
+                'Zurück', $BasicRoute, new ChevronLeft(), array('IsGroup' => $GroupId)
             ));
         }
 
@@ -127,6 +127,7 @@ class FrontendTabs extends FrontendCourseContent
     /**
      * @param null $DivisionId
      * @param null $GroupId
+     * @param null $DivisionSubjectId
      * @param string $BasicRoute
      *
      * @return Stage|string
@@ -134,32 +135,76 @@ class FrontendTabs extends FrontendCourseContent
     public function frontendDownload(
         $DivisionId = null,
         $GroupId = null,
+        $DivisionSubjectId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Download');
 
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
-        ));
         $tblYear = null;
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        if ($tblDivision || $tblGroup) {
-            if ($tblGroup) {
-                $name = 'Stammgruppenliste';
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            if ($GroupId) {
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'GroupId' => $GroupId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
             } else {
-                $name = 'Klassenliste';
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'DivisionId' => $DivisionId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
+            }
+        } else {
+            $stage->addButton(new Standard(
+                'Zurück', $BasicRoute, new ChevronLeft(), array('IsGroup' => $GroupId)
+            ));
+        }
+
+        if ($tblDivision || $tblGroup || $tblDivisionSubject) {
+            if ($tblDivisionSubject
+                && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+            ) {
+                $name = 'Kursliste';
+                $printLink = new Link((new Thumbnail(
+                    FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'), 'Kursheft'))->setPictureHeight(),
+                    '/Api/Document/Standard/CourseContent/Create', null, array(
+                        'DivisionId' => $DivisionId,
+                        'SubjectId' => $tblSubject->getId(),
+                        'SubjectGroupId' => $tblSubjectGroup->getId()
+                    ));
+            } else {
+                if ($tblGroup) {
+                    $name = 'Stammgruppenliste';
+                } else {
+                    $name = 'Klassenliste';
+                }
+                $printLink = new Link((new Thumbnail(
+                    FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
+                    $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'))->setPictureHeight(),
+                    '/Api/Document/Standard/ClassRegister/Create', null, array(
+                        'DivisionId' => $DivisionId,
+                        'GroupId'    => $GroupId,
+                        'YearId'     => $tblYear ? $tblYear->getId() : null
+                    ));
             }
 
             $stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow(
-                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
+                            $tblDivision ?: null, $tblGroup ?: null, $tblYear, $tblDivisionSubject ?: null
                         ),
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                            '/Education/ClassRegister/Digital/Download', $BasicRoute)
+                        $tblDivisionSubject
+                            ? Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
+                                '/Education/ClassRegister/Digital/Download', $BasicRoute)
+                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
+                                '/Education/ClassRegister/Digital/Download', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(array(
                         new LayoutColumn(
@@ -171,7 +216,8 @@ class FrontendTabs extends FrontendCourseContent
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständnis&shy;erklärung'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId
+                                    'GroupId'    => $GroupId,
+                                    'DivisionSubjectId' => $DivisionSubjectId
                                 ))
                             , 2),
                         new LayoutColumn(
@@ -179,7 +225,8 @@ class FrontendTabs extends FrontendCourseContent
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $name . ' Krankenakte'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId
+                                    'GroupId'    => $GroupId,
+                                    'DivisionSubjectId' => $DivisionSubjectId
                                 ))
                             , 2),
                         new LayoutColumn(
@@ -187,7 +234,8 @@ class FrontendTabs extends FrontendCourseContent
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
                                     'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId
+                                    'GroupId'    => $GroupId,
+                                    'DivisionSubjectId' => $DivisionSubjectId
                                 ))
                             , 2),
                         new LayoutColumn(
@@ -195,18 +243,12 @@ class FrontendTabs extends FrontendCourseContent
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnis&shy;relevante Fehlzeiten'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
                                     'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId
+                                    'GroupId'    => $GroupId,
+                                    'DivisionSubjectId' => $DivisionSubjectId
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
-                                $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'))->setPictureHeight(),
-                                '/Api/Document/Standard/ClassRegister/Create', null, array(
-                                    'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId,
-                                    'YearId'     => $tblYear ? $tblYear->getId() : null
-                                ))
+                            $printLink
                             , 2),
                     )), new Title(new Download() . ' Download')),
                     ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG') && $tblDivision
@@ -324,6 +366,7 @@ class FrontendTabs extends FrontendCourseContent
     /**
      * @param null $DivisionId
      * @param null $GroupId
+     * @param null $DivisionSubjectId
      * @param string $BasicRoute
      *
      * @return Stage|string
@@ -331,18 +374,37 @@ class FrontendTabs extends FrontendCourseContent
     public function frontendLectureship(
         $DivisionId = null,
         $GroupId = null,
+        $DivisionSubjectId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Unterrichtete Fächer / Lehrer');
 
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
-        ));
         $tblYear = null;
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            if ($GroupId) {
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'GroupId' => $GroupId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
+            } else {
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'DivisionId' => $DivisionId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
+            }
+        } else {
+            $stage->addButton(new Standard(
+                'Zurück', $BasicRoute, new ChevronLeft(), array('IsGroup' => $GroupId)
+            ));
+        }
 
-        if ($tblDivision || $tblGroup) {
+        if ($tblDivision || $tblGroup || $tblDivisionSubject) {
             if ($tblGroup) {
                 $content = '';
                 if (($tblDivisionList = $tblGroup->getCurrentDivisionList())) {
@@ -358,10 +420,13 @@ class FrontendTabs extends FrontendCourseContent
                 new Layout(array(
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow(
-                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
+                            $tblDivision ?: null, $tblGroup ?: null, $tblYear, $tblDivisionSubject ?: null
                         ),
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                            '/Education/ClassRegister/Digital/Lectureship', $BasicRoute)
+                        $tblDivisionSubject
+                            ? Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
+                                '/Education/ClassRegister/Digital/Lectureship', $BasicRoute)
+                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
+                                '/Education/ClassRegister/Digital/Lectureship', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
                         $content
@@ -391,7 +456,7 @@ class FrontendTabs extends FrontendCourseContent
         $stage = new Stage('Digitales Klassenbuch', 'Kontrolle');
 
         $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
+            'Zurück', $BasicRoute, new ChevronLeft(), array('IsGroup' => $GroupId)
         ));
         $tblYear = null;
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
@@ -630,6 +695,7 @@ class FrontendTabs extends FrontendCourseContent
     /**
      * @param null $DivisionId
      * @param null $GroupId
+     * @param null $DivisionSubjectId
      * @param string $BasicRoute
      *
      * @return Stage|string
@@ -637,20 +703,39 @@ class FrontendTabs extends FrontendCourseContent
     public function frontendHoliday(
         $DivisionId = null,
         $GroupId = null,
+        $DivisionSubjectId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Ferien / Unterrichtsfreie Tage');
 
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
-        ));
         $tblYear = null;
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            if ($GroupId) {
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'GroupId' => $GroupId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
+            } else {
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'DivisionId' => $DivisionId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
+            }
+        } else {
+            $stage->addButton(new Standard(
+                'Zurück', $BasicRoute, new ChevronLeft(), array('IsGroup' => $GroupId)
+            ));
+        }
 
-        if ($tblDivision || $tblGroup) {
+        if ($tblDivision || $tblGroup || $tblDivisionSubject) {
             $header = Digital::useService()->getHeadLayoutRow(
-                $tblDivision ?: null, $tblGroup ?: null, $tblYear
+                $tblDivision ?: null, $tblGroup ?: null, $tblYear, $tblDivisionSubject ?: null
             );
 
             $tblCompany = false;
@@ -708,8 +793,11 @@ class FrontendTabs extends FrontendCourseContent
                 new Layout(array(
                     new LayoutGroup(array(
                         $header,
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                            '/Education/ClassRegister/Digital/Holiday', $BasicRoute)
+                        $tblDivisionSubject
+                            ? Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
+                                '/Education/ClassRegister/Digital/Holiday', $BasicRoute)
+                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
+                                '/Education/ClassRegister/Digital/Holiday', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
                         $content

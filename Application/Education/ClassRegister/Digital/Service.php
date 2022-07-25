@@ -53,6 +53,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
@@ -394,20 +395,21 @@ class Service extends AbstractService
         $buttonList[] = $this->getButtonForDivisionSubject('Schülerliste', '/Education/ClassRegister/Digital/Student', new PersonGroup(),
             $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Student');
 
-//        // Fehlzeiten (Kalenderansicht) nur bei Klassen anzeigen
-//        if ($tblDivision) {
-//            $buttonList[] = $this->getButton('Fehlzeiten (Kalenderansicht)', '/Education/ClassRegister/Digital/AbsenceMonth',
-//                new Calendar(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
+//        // nicht bei Gruppen
+//        // Fehlzeiten (Kalenderansicht) funktioniert aktuell nur bei Klassen und nicht für Gruppe oder SekII-Kurse
+//        if (!$GroupId) {
+//            $buttonList[] = $this->getButtonForDivisionSubject('Fehlzeiten (Kalenderansicht)', '/Education/ClassRegister/Digital/AbsenceMonth',
+//                new Calendar(), $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
 //        }
-//
+
 //        $buttonList[] = $this->getButton('Belehrungen', '/Education/ClassRegister/Digital/Instruction',
 //            new CommodityItem(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Instruction');
-//        $buttonList[] = $this->getButton('Unterrichtete Fächer / Lehrer', '/Education/ClassRegister/Digital/Lectureship',
-//            new Listing(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
-//        $buttonList[] = $this->getButton('Ferien', '/Education/ClassRegister/Digital/Holiday',
-//            new Holiday(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Holiday');
-//        $buttonList[] = $this->getButton('Download', '/Education/ClassRegister/Digital/Download',
-//            new Download(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
+        $buttonList[] = $this->getButtonForDivisionSubject('Unterrichtete Fächer / Lehrer', '/Education/ClassRegister/Digital/Lectureship',
+            new Listing(), $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
+        $buttonList[] = $this->getButtonForDivisionSubject('Ferien', '/Education/ClassRegister/Digital/Holiday',
+            new Holiday(), $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Holiday');
+        $buttonList[] = $this->getButtonForDivisionSubject('Download', '/Education/ClassRegister/Digital/Download',
+            new Download(), $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
 
         return new LayoutRow(new LayoutColumn($buttonList));
     }
@@ -1012,8 +1014,8 @@ class Service extends AbstractService
                     ))) {
                         foreach ($list as $item) {
                             if (($tblSubjectGroup = $item->getTblSubjectGroup())) {
-                                $listing[] = $tblSubjectGroup->getName()
-                                    . new PullRight(Division::useService()->getSubjectTeacherNameList($tblDivision, $tblSubject, $tblSubjectGroup));
+                                $listing[] = new PullClear($tblSubjectGroup->getName()
+                                    . new PullRight(Division::useService()->getSubjectTeacherNameList($tblDivision, $tblSubject, $tblSubjectGroup)));
                             }
                         }
                         sort($listing);

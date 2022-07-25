@@ -151,6 +151,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $DivisionId
      * @param null $GroupId
+     * @param null $DivisionSubjectId
      * @param string $BasicRoute
      *
      * @return Stage|string
@@ -158,14 +159,33 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendAbsenceMonth(
         $DivisionId = null,
         $GroupId = null,
+        $DivisionSubjectId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten (Kalenderansicht)');
 
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
-        ));
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            if ($GroupId) {
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'GroupId' => $GroupId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
+            } else {
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'DivisionId' => $DivisionId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
+            }
+        } else {
+            $stage->addButton(new Standard(
+                'Zurück', $BasicRoute, new ChevronLeft()
+            ));
+        }
 
         if ($tblDivision) {
             $currentDate = new DateTime('now');
@@ -183,10 +203,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow(
-                            $tblDivision, null, $tblYear
+                            $tblDivision , null, $tblYear, $tblDivisionSubject ?: null
                         ),
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision, null,
-                            '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
+                        $tblDivisionSubject
+                            ? Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
+                                '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
+                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivision, null, null,
+                                '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
                         ApiAbsence::receiverModal()

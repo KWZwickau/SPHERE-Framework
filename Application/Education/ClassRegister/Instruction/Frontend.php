@@ -204,7 +204,7 @@ class Frontend extends Extension implements IFrontendInterface
         $stage = new Stage('Digitales Klassenbuch', 'Belehrungen');
 
         $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
+            'Zurück', $BasicRoute, new ChevronLeft(), array('IsGroup' => $GroupId)
         ));
         $tblYear = null;
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
