@@ -3,11 +3,19 @@ namespace SPHERE\Application\Transfer\Import\Standard;
 
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Building;
+use SPHERE\Common\Frontend\Icon\Repository\Child;
+use SPHERE\Common\Frontend\Icon\Repository\Education;
+use SPHERE\Common\Frontend\Icon\Repository\Envelope;
+use SPHERE\Common\Frontend\Icon\Repository\Group;
+use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
+use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
@@ -27,6 +35,9 @@ class ImportStandard implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Stuff', __NAMESPACE__.'\Frontend::frontendStuffImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Company', __NAMESPACE__.'\Frontend::frontendCompanyImport'
+        ));
     }
 
     /**
@@ -36,17 +47,30 @@ class ImportStandard implements IModuleInterface
     {
         $ColumnList = array();
         $ColumnList[] = new LayoutColumn(
-            new Panel(new Center('Schüler').new Ruler().new Center(new Standard('', __NAMESPACE__.'/Student'
-                    , new Upload())), '', Panel::PANEL_TYPE_PRIMARY)
-            , 3);
+            new Panel(new Center(new Link(new Upload().'&nbsp;&nbsp;&nbsp;'.new Group().'&nbsp;&nbsp;&nbsp;Schüler',
+                    __NAMESPACE__.'/Student', null, array(), false, null, Link::TYPE_WHITE_LINK))
+                , '', Panel::PANEL_TYPE_PRIMARY)
+            , 2);
         $ColumnList[] = new LayoutColumn(
-            new Panel(new Center('Interessenten').new Ruler().new Center(new Standard('', __NAMESPACE__.'/Interested'
-                    , new Upload())), '', Panel::PANEL_TYPE_PRIMARY)
-            , 3);
+            new Panel(new Center(new Link(new Upload().'&nbsp;'.new Child().'&nbsp;&nbsp;Interessenten',
+                    __NAMESPACE__.'/Interested', null, array(), false, null, Link::TYPE_WHITE_LINK))
+                , '', Panel::PANEL_TYPE_PRIMARY)
+            , 2);
         $ColumnList[] = new LayoutColumn(
-            new Panel(new Center('Mitarbeiter/Lehrer').new Ruler().new Center(new Standard('', __NAMESPACE__.'/Stuff'
-                    , new Upload())), '', Panel::PANEL_TYPE_PRIMARY)
-            , 3);
+            new Panel(new Center(new Link(new Upload().'&nbsp;&nbsp;'.new Nameplate().'&nbsp;&nbsp;&nbsp;Mitarbeiter/Lehrer',
+                    __NAMESPACE__.'/Stuff', null, array(), false, null, Link::TYPE_WHITE_LINK))
+                , '', Panel::PANEL_TYPE_PRIMARY)
+            , 2);
+        $ColumnList[] = new LayoutColumn(
+            new Panel(new Center(new Link(new Upload().'&nbsp;&nbsp;'.new Envelope().'&nbsp;&nbsp;&nbsp;Emailadressen',
+                    __NAMESPACE__.'/Mail/Address', null, array(), false, null, Link::TYPE_WHITE_LINK))
+                , '', Panel::PANEL_TYPE_PRIMARY)
+            , 2);
+        $ColumnList[] = new LayoutColumn(
+            new Panel(new Center(new Link(new Upload().'&nbsp;&nbsp;'.new Building().'&nbsp;&nbsp;&nbsp;Institutionen',
+                    __NAMESPACE__.'/Company', null, array(), false, null, Link::TYPE_WHITE_LINK))
+                , '', Panel::PANEL_TYPE_PRIMARY)
+            , 2);
 
         return new LayoutGroup(
             new LayoutRow(
