@@ -765,11 +765,12 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionId
      * @param string|null $SubjectId
      * @param string|null $SubjectGroupId
+     * @param string $IsControl
      *
      * @return Pipeline
      */
-    public static function pipelineLoadCourseContentContent(string $DivisionId = null, string $SubjectId = null,
-        string $SubjectGroupId = null): Pipeline
+    public static function pipelineLoadCourseContentContent(string $DivisionId = null, string $SubjectId = null, string $SubjectGroupId = null,
+        string $IsControl = 'false'): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CourseContentContent'), self::getEndpoint());
@@ -779,7 +780,8 @@ class ApiDigital extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionId' => $DivisionId,
             'SubjectId' => $SubjectId,
-            'SubjectGroupId' => $SubjectGroupId
+            'SubjectGroupId' => $SubjectGroupId,
+            'IsControl' => $IsControl
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -790,11 +792,11 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionId
      * @param string|null $SubjectId
      * @param string|null $SubjectGroupId
+     * @param string $IsControl
      *
      * @return string
      */
-    public function loadCourseContentContent(string $DivisionId = null, string $SubjectId = null,
-        string $SubjectGroupId = null) : string
+    public function loadCourseContentContent(string $DivisionId = null, string $SubjectId = null, string $SubjectGroupId = null, string $IsControl = 'false') : string
     {
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblSubject = Subject::useService()->getSubjectById($SubjectId);
@@ -804,7 +806,7 @@ class ApiDigital extends Extension implements IApiInterface
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadCourseContentTable($tblDivision, $tblSubject, $tblSubjectGroup);
+        return Digital::useFrontend()->loadCourseContentTable($tblDivision, $tblSubject, $tblSubjectGroup, $IsControl == 'true');
     }
 
     /**

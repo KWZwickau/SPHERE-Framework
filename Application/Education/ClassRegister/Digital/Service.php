@@ -385,23 +385,11 @@ class Service extends AbstractService
         $buttonList[] = $this->getButtonForDivisionSubject('Kursheft', '/Education/ClassRegister/Digital/CourseContent', new Book(),
             $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/CourseContent');
 
-//        // Klassentagebuch Kontrolle: nur für Klassenlehrer, Tudor oder Schulleitung
-//        if (($tblPerson = Account::useService()->getPersonByLogin())
-//            && (($tblDivision && Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson))
-//                || ($tblGroup && ($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
-//                    && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
-//                    && Group::useService()->existsGroupPerson($tblGroup, $tblPerson))
-//                || Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting')
-//            )
-//        ) {
-//            // Klassentagebuch Kontrolle: nicht bei Kurssystemen
-//            if (!($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))
-//                && !($tblGroup && $tblGroup->getIsGroupCourseSystem())
-//            ) {
-//                $buttonList[] = $this->getButton('Klassentagebuch Kontrolle', '/Education/ClassRegister/Digital/LessonWeek', new Ok(),
-//                    $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonWeek');
-//            }
-//        }
+        // Kursheft Kontrolle: nur für Schulleitung
+        if (Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting')) {
+            $buttonList[] = $this->getButtonForDivisionSubject('Kursheft Kontrolle', '/Education/ClassRegister/Digital/CourseControl', new Ok(),
+                $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/CourseControl');
+        }
 
         $buttonList[] = $this->getButtonForDivisionSubject('Schülerliste', '/Education/ClassRegister/Digital/Student', new PersonGroup(),
             $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Student');

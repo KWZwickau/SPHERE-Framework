@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Frontend;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
+use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
@@ -26,6 +27,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -232,7 +234,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                     , 4)
                 ))
             )))
-            . ApiDigital::receiverBlock($this->loadCourseContentTable($tblDivision, $tblSubject, $tblSubjectGroup), 'CourseContentContent');
+            . ApiDigital::receiverBlock($this->loadCourseContentTable($tblDivision, $tblSubject, $tblSubjectGroup, false), 'CourseContentContent');
 
         $stage->setContent(
             ApiDigital::receiverModal()
@@ -259,11 +261,11 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
      * @param TblSubjectGroup $tblSubjectGroup
+     * @param bool $IsControl
      *
      * @return string
      */
-    public function loadCourseContentTable(TblDivision $tblDivision, TblSubject $tblSubject,
-        TblSubjectGroup $tblSubjectGroup): string
+    public function loadCourseContentTable(TblDivision $tblDivision, TblSubject $tblSubject, TblSubjectGroup $tblSubjectGroup, bool $IsControl = false): string
     {
         $dataList = array();
         $divisionList = array('0' => $tblDivision);
@@ -334,28 +336,28 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                     'Teacher' => $tblCourseContent->getTeacherString(),
                     'Noticed' => $tblCourseContent->getNoticedString(false),
                     'Option' =>
-                        (new Standard(
-                            '',
-                            ApiDigital::getEndpoint(),
-                            new Edit(),
-                            array(),
-                            'Bearbeiten'
-                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditCourseContentModal($tblCourseContent->getId()))
-                        . (new Standard(
-                            '',
-                            ApiDigital::getEndpoint(),
-                            new Remove(),
-                            array(),
-                            'Löschen'
-                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteCourseContentModal($tblCourseContent->getId()))
+                        $IsControl
+                            ? ''
+                            : (new Standard(
+                                '',
+                                ApiDigital::getEndpoint(),
+                                new Edit(),
+                                array(),
+                                'Bearbeiten'
+                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditCourseContentModal($tblCourseContent->getId()))
+                            . (new Standard(
+                                '',
+                                ApiDigital::getEndpoint(),
+                                new Remove(),
+                                array(),
+                                'Löschen'
+                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteCourseContentModal($tblCourseContent->getId()))
                 );
             }
         }
 
-        return new TableData(
-            $dataList,
-            null,
-            array(
+        if ($IsControl)  {
+            $columns = array(
                 'Date' => 'Datum',
                 'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
                 'IsDoubleLesson' => 'Doppel&shy;stunde',
@@ -365,9 +367,27 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 'Remark' => 'Bemerkungen',
                 'Absence' => 'Fehlzeiten',
                 'Teacher' => 'Lehrer',
-                'Noticed' => 'Kenntnis genommen (SL)',
+                'Noticed' => 'Kenntnis genommen (SL)'
+            );
+        } else {
+            $columns = array(
+                'Date' => 'Datum',
+                'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
+                'IsDoubleLesson' => 'Doppel&shy;stunde',
+                'Room' => 'Raum',
+                'Content' => 'Thema',
+                'Homework' => 'Hausaufgaben',
+                'Remark' => 'Bemerkungen',
+                'Absence' => 'Fehlzeiten',
+                'Teacher' => 'Lehrer',
                 'Option' => ''
-            ),
+            );
+        }
+
+        return new TableData(
+            $dataList,
+            null,
+            $columns,
             array(
                 'order' => array(
                     array(0, 'desc')
@@ -379,7 +399,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                     array('width' => '25px', 'targets' => 2),
                     array('width' => '25px', 'targets' => 3),
                     array('width' => '50px', 'targets' => 8),
-                    array('width' => '60px', 'targets' => -1),
+//                    array('width' => '60px', 'targets' => -1),
                 ),
                 'responsive' => false,
                 'paging' => false,
@@ -524,5 +544,77 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             $dataList,
             Panel::PANEL_TYPE_INFO
         );
+    }
+
+    /**
+     * @param null $DivisionSubjectId
+     * @param null $GroupId
+     * @param string $BasicRoute
+     *
+     * @return Stage|string
+     */
+    public function frontendCourseControl(
+        $DivisionSubjectId = null,
+        $GroupId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ) {
+        $stage = new Stage('Digitales Klassenbuch', 'Kontrolle');
+
+        $tblDivision = false;
+        $tblSubject = false;
+        $tblSubjectGroup = false;
+        if (!(($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))
+            && ($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+            && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+        )) {
+            return new Danger('SekII-Kurs nicht gefunden', new Exclamation()) . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        $DivisionId = $tblDivision->getId();
+        $SubjectId = $tblSubject->getId();
+        $SubjectGroupId = $tblSubjectGroup->getId();
+        if ($GroupId) {
+            $stage->addButton(new Standard(
+                'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                    'GroupId' => $GroupId,
+                    'BasicRoute' => $BasicRoute
+                )
+            ));
+        } else {
+            $stage->addButton(new Standard(
+                'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                    'DivisionId' => $DivisionId,
+                    'BasicRoute' => $BasicRoute
+                )
+            ));
+        }
+
+        $tblYear = $tblDivision->getServiceTblYear();
+
+        $stage->setContent(
+            ApiDigital::receiverModal()
+            . ApiAbsence::receiverModal()
+            . new Layout(array(
+                new LayoutGroup(array(
+                    Digital::useService()->getHeadLayoutRow(null, ($tblGroup = Group::useService()->getGroupById($GroupId)) ?: null, $tblYear, $tblDivisionSubject),
+                    Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
+                        '/Education/ClassRegister/Digital/CourseControl', $BasicRoute)
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            (new Primary(
+                                new Check() . ' Kenntnis genommen (SL)',
+                                ApiInstructionSetting::getEndpoint()
+                            ))->ajaxPipelineOnClick(ApiInstructionSetting::pipelineSaveHeadmasterNoticed($DivisionId, $SubjectId, $SubjectGroupId))
+                            . ApiDigital::receiverBlock($this->loadCourseContentTable($tblDivision, $tblSubject, $tblSubjectGroup, true), 'CourseContentContent')
+                        )
+                    ))
+                ), new Title(new Book() . ' Kursheft Kontrolle'))
+            ))
+        );
+
+        return $stage;
     }
 }

@@ -491,6 +491,6 @@ class ApiInstructionSetting extends Extension implements IApiInterface
 
         Digital::useService()->updateBulkCourseContentHeadmaster($tblDivision, $tblSubject, $tblSubjectGroup);
 
-        return ApiDigital::pipelineLoadCourseContentContent($DivisionId, $SubjectId, $SubjectGroupId);
+        return ApiDigital::pipelineLoadCourseContentContent($DivisionId, $SubjectId, $SubjectGroupId, 'true');
     }
 }
