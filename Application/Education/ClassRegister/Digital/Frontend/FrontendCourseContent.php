@@ -247,7 +247,10 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 )),
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn($this->getStudentPanel(null, null, $tblDivisionSubject), 2),
+                        new LayoutColumn(
+                            ApiDigital::receiverBlock($this->loadCourseMissingStudentContent($tblDivisionSubject), 'CourseMissingStudentContent')
+                            . $this->getStudentPanel(null, null, $tblDivisionSubject)
+                            , 2),
                         new LayoutColumn($layout, 10)
                     ))
                 ), new Title(new Book() . ' Kursheft'))
@@ -269,10 +272,15 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
     {
         $dataList = array();
         $divisionList = array('0' => $tblDivision);
-        if (($tblCourseContentList = Digital::useService()->getCourseContentListBy($tblDivision, $tblSubject, $tblSubjectGroup))) {
-            $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-                $tblDivision, $tblSubject, $tblSubjectGroup
-            );
+        if (($tblCourseContentList = Digital::useService()->getCourseContentListBy($tblDivision, $tblSubject, $tblSubjectGroup))
+            && ($tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision, $tblSubject, $tblSubjectGroup))
+        ) {
+            $coursePersonList = array();
+            if (($tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject))) {
+                foreach ($tblPersonList as $tblPersonStudent) {
+                    $coursePersonList[$tblPersonStudent->getId()] = $tblPersonStudent;
+                }
+            }
             foreach ($tblCourseContentList as $tblCourseContent) {
                 $absenceList = array();
                 $lessonArray = array();
@@ -287,7 +295,11 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                     null, null, $divisionList, array(), $hasTypeOption, null))
                 ) {
                     foreach ($AbsenceList as $Absence) {
-                        if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
+                        // auf kurs eingrenzen, schüler muss im kurs sein
+                        if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))
+                            && ($tblPersonAbsence = $tblAbsence->getServiceTblPerson())
+                            && isset($coursePersonList[$tblPersonAbsence->getId()])
+                        ) {
                             $isAdd = false;
                             if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
                                 foreach ($tblAbsenceLessonList as $tblAbsenceLesson) {
@@ -317,8 +329,8 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                                     $toolTip,
                                     null,
                                     $tblAbsence->getLinkType()
-                                ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(),
-                                    'DivisionSubject', $tblDivisionSubject ? $tblDivisionSubject->getId(): null)));
+                                ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), 'DivisionSubject',
+                                    $tblDivisionSubject ? $tblDivisionSubject->getId(): null)));
                             }
                         }
                     }
@@ -544,6 +556,63 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             $dataList,
             Panel::PANEL_TYPE_INFO
         );
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return string
+     */
+    public function loadCourseMissingStudentContent(TblDivisionSubject $tblDivisionSubject): string
+    {
+        $absenceList = array();
+        if (($tblDivision = $tblDivisionSubject->getTblDivision())) {
+            $divisionList = array('0' => $tblDivision);
+            $coursePersonList = array();
+            if (($tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject))) {
+                foreach ($tblPersonList as $tblPersonStudent) {
+                    $coursePersonList[$tblPersonStudent->getId()] = $tblPersonStudent;
+                }
+            }
+            if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(new DateTime('today'),
+                null, null, $divisionList, array(), $hasTypeOption, null))
+            ) {
+                foreach ($AbsenceList as $Absence) {
+                    // auf kurs eingrenzen, schüler muss im kurs sein
+                    if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))
+                        && ($tblPersonAbsence = $tblAbsence->getServiceTblPerson())
+                        && isset($coursePersonList[$tblPersonAbsence->getId()])
+                    ) {
+                        $lessonString = $tblAbsence->getLessonStringByAbsence();
+                        $type = $tblAbsence->getTypeDisplayShortName();
+                        $remark = $tblAbsence->getRemark();
+                        $toolTip = ($lessonString ? $lessonString . ' / ' : '') . ($type ? $type . ' / ' : '') . $tblAbsence->getStatusDisplayShortName()
+                            . (($tblPersonStaff = $tblAbsence->getDisplayStaffToolTip()) ? ' - ' . $tblPersonStaff : '')
+                            . ($remark ? ' - ' . $remark : '');
+
+                        $absenceList[] = new Container((new Link(
+                            $Absence['Person'],
+                            ApiAbsence::getEndpoint(),
+                            null,
+                            array(),
+                            $toolTip,
+                            null,
+                            $tblAbsence->getLinkType()
+                        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), 'DivisionSubject', $tblDivisionSubject->getId())));
+                    }
+                }
+            }
+        }
+
+        if ($absenceList) {
+            return new Panel(
+                'Heute fehlende Schüler',
+                $absenceList,
+                Panel::PANEL_TYPE_WARNING
+            );
+        } else {
+            return '';
+        }
     }
 
     /**

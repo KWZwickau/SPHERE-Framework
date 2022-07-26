@@ -78,6 +78,8 @@ class ApiDigital extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openDeleteCourseContentModal');
         $Dispatcher->registerMethod('saveDeleteCourseContentModal');
 
+        $Dispatcher->registerMethod('loadCourseMissingStudentContent');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -1147,5 +1149,39 @@ class ApiDigital extends Extension implements IApiInterface
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gelöscht werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param string|null $DivisionSubjectId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadCourseMissingStudentContent(string $DivisionSubjectId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CourseMissingStudentContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadCourseMissingStudentContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionSubjectId' => $DivisionSubjectId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string|null $DivisionSubjectId
+     *
+     * @return string
+     */
+    public function loadCourseMissingStudentContent(string $DivisionSubjectId = null) : string
+    {
+        if (!($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return Digital::useFrontend()->loadCourseMissingStudentContent($tblDivisionSubject);
     }
 }
