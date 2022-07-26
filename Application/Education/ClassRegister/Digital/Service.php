@@ -402,8 +402,8 @@ class Service extends AbstractService
 //                new Calendar(), $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
 //        }
 
-//        $buttonList[] = $this->getButton('Belehrungen', '/Education/ClassRegister/Digital/Instruction',
-//            new CommodityItem(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Instruction');
+        $buttonList[] = $this->getButtonForDivisionSubject('Belehrungen', '/Education/ClassRegister/Digital/Instruction',
+            new CommodityItem(), $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Instruction');
         $buttonList[] = $this->getButtonForDivisionSubject('Unterrichtete Fächer / Lehrer', '/Education/ClassRegister/Digital/Lectureship',
             new Listing(), $DivisionSubjectId, $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
         $buttonList[] = $this->getButtonForDivisionSubject('Ferien', '/Education/ClassRegister/Digital/Holiday',
