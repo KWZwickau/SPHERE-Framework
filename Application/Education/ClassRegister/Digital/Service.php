@@ -1503,4 +1503,43 @@ class Service extends AbstractService
 
         return '';
     }
+
+    /**
+     * @param TblLessonContent $tblLessonContent
+     *
+     * @return bool
+     */
+    public function getIsLessonContentEditAllowed(TblLessonContent $tblLessonContent): bool
+    {
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'IsChangeLessonContentByOtherTeacherAllowed'))
+            && $tblSetting->getValue()
+        ) {
+            return true;
+        } else {
+            $tblPerson = Account::useService()->getPersonByLogin();
+            // Schulleitung darf immer
+            if (Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting')) {
+                return true;
+            // Klassenlehrer darf immer
+            } elseif ($tblPerson && ($tblDivision = $tblLessonContent->getServiceTblDivision())
+                && Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson)
+            ) {
+                return true;
+            // Tudor darf immer
+            } elseif ($tblPerson && ($tblGroup = $tblLessonContent->getServiceTblGroup())
+                && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
+                && ($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
+                && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
+            ) {
+                return true;
+            // Letzter Bearbeiter darf immer
+            } else if (($tblPersonLessonContent = $tblLessonContent->getServiceTblPerson())
+                && $tblPersonLessonContent->getId() == $tblPerson->getId()
+            ) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 }

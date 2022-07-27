@@ -708,14 +708,15 @@ class Frontend extends FrontendTabs
                     $index++;
                 }
 
+                $isEditAllowed = Digital::useService()->getIsLessonContentEditAllowed($tblLessonContent);
                 $lessonContentId = $tblLessonContent->getId();
                 $bodyList[$index] = array(
-                    'Lesson' => $this->getLessonsEditLink(new Bold(new Center($lesson)), $lessonContentId, $lesson),
-                    'Subject' => $this->getLessonsEditLink($tblLessonContent->getDisplaySubject(true), $lessonContentId, $lesson),
-                    'Room' => $this->getLessonsEditLink($tblLessonContent->getRoom(), $lessonContentId, $lesson),
-                    'Teacher' => $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson),
-                    'Content' => $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson),
-                    'Homework' => $this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId, $lesson),
+                    'Lesson' => $isEditAllowed ? $this->getLessonsEditLink(new Bold(new Center($lesson)), $lessonContentId, $lesson) : new Bold(new Center($lesson)),
+                    'Subject' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getDisplaySubject(true), $lessonContentId, $lesson) : $tblLessonContent->getDisplaySubject(true),
+                    'Room' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getRoom(), $lessonContentId, $lesson) : $tblLessonContent->getRoom(),
+                    'Teacher' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson) : $tblLessonContent->getTeacherString(),
+                    'Content' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson) : $tblLessonContent->getContent(),
+                    'Homework' => $isEditAllowed ?$this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId, $lesson) : $tblLessonContent->getHomework(),
 
                     'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
                 );
@@ -972,7 +973,7 @@ class Frontend extends FrontendTabs
                         . ($teacher ? ' (' . $teacher . ')' : '')
                         . ($tblLessonContent->getContent() ? new Container('Inhalt: ' . $tblLessonContent->getContent()) : '')
                         . ($tblLessonContent->getHomework() ? new Container('Hausaufgaben: ' . $tblLessonContent->getHomework()) : '');
-                    if ($isReadOnly) {
+                    if ($isReadOnly || !Digital::useService()->getIsLessonContentEditAllowed($tblLessonContent)) {
                         $item = $display;
                     } else {
                         $item = $this->getLessonsEditLink($display, $tblLessonContent->getId(), $lesson);
