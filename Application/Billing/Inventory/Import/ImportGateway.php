@@ -6,6 +6,7 @@
 
 namespace SPHERE\Application\Billing\Inventory\Import;
 
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
@@ -41,6 +42,7 @@ class ImportGateway extends AbstractConverter
     private $IsError = false;
     private $IsIgnore = false;
     private $ItemName = '';
+    private $DebtorNumberArray = array();
 
     /**
      * @return array
@@ -129,7 +131,7 @@ class ImportGateway extends AbstractConverter
         if(isset($ColumnList['Debitorennummer'])){
             $this->setPointer(new FieldPointer($ColumnList['Debitorennummer'], 'DebtorNumber'));
             $this->setPointer(new FieldPointer($ColumnList['Debitorennummer'], 'DebtorNumberControl'));
-            $this->setSanitizer(new FieldSanitizer($ColumnList['Debitorennummer'], 'DebtorNumberControl', array($this, 'sanitizeDebtorNumber')));
+//            $this->setSanitizer(new FieldSanitizer($ColumnList['Debitorennummer'], 'DebtorNumberControl', array($this, 'sanitizeDebtorNumber')));
         }
         $this->setPointer(new FieldPointer($ColumnList['IBAN'], 'IBAN'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['IBAN'], 'IBAN', array($this, 'sanitizeTrimSpace')));
@@ -137,6 +139,9 @@ class ImportGateway extends AbstractConverter
         $this->setSanitizer(new FieldSanitizer($ColumnList['BIC'], 'BIC', array($this, 'sanitizeTrimSpace')));
         if(isset($ColumnList['Debitorennummer'])){
             $this->setPointer(new FieldPointer($ColumnList['Bank Name'], 'Bank'));
+        }
+        if(isset($ColumnList['Zahlung Jährlich'])){
+            $this->setPointer(new FieldPointer($ColumnList['Zahlung Jährlich'], 'IsYear'));
         }
         // Beispiel funktionalität (mach noch was mit dem ausgelesenem Wert:)
         $this->setPointer(new FieldPointer($ColumnList['IBAN'], 'IBANControl'));
@@ -219,6 +224,7 @@ class ImportGateway extends AbstractConverter
             'IBAN'                   => $Result['IBAN'],
             'BIC'                    => $Result['BIC'],
             'Bank'                   => $Result['Bank'],
+            'IsYear'                 => $Result['IsYear'],
         );
 
         $Birthday = '';
@@ -244,6 +250,45 @@ class ImportGateway extends AbstractConverter
                 , null, false, 2, 0), 'Person nicht oder nicht eindeutig vorhanden');
         }
         $Result['DebtorFrontend'] = $DebtorMessage;
+
+        $DebtorNumber = $Result['DebtorNumber'];
+        $isDebtorForItem = true;
+        if($Result['Item'] != $this->ItemName){
+            // Debitoren, welche nicht verwendet werden können für die Validierung ignoriert werden
+        $isDebtorForItem = false;
+        }
+        if($isDebtorForItem && ($Setting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT))){
+            if(strlen($DebtorNumber) > $Setting->getValue()){
+                $this->addErrorCount();
+                $Result['DebtorNumberControl'] = new ToolTip(new Danger($DebtorNumber, null, false, 2, 0), 'Debitorennummer ist zu lang (max '.$Setting->getValue().')');
+            } elseif($DebtorNumber && strlen($DebtorNumber) < $Setting->getValue()) {
+                $Result['DebtorNumberControl'] = new ToolTip(new Warning($DebtorNumber, null, false, 2, 0), 'Debitorennummer ist zu kurz ('.$Setting->getValue().') dies stellt aber kein Problem dar');
+            } elseif(strlen($DebtorNumber) == $Setting->getValue()){
+                $Result['DebtorNumberControl'] = new Success($DebtorNumber, null, false, 2, 0);
+            }
+        }
+
+        // Add Check on existing
+        $IsSwitchedDebtorNumber = false;
+        if($isDebtorForItem && $tblPersonDebtor && ($DebtorNumberCheck = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor))){
+            if(($DebtorNumberCheckString = current($DebtorNumberCheck)->getDebtorNumber()) != $DebtorNumber){
+                $IsSwitchedDebtorNumber = true;
+                $this->addErrorCount();
+                $Result['DebtorNumberControl'] = new ToolTip(new Danger($DebtorNumber, null, false, 2, 0),
+                    'Vorhandene Debitorennummer weicht ab (' . $DebtorNumberCheckString . ')');
+            }
+        }
+        // Add Check on reusing other Debtornumbers
+        if($isDebtorForItem && !$IsSwitchedDebtorNumber && $tblPersonDebtor
+            && !isset($this->DebtorNumberArray[$Result['Item'].$tblPersonDebtor->getId()])){
+            $this->DebtorNumberArray[$Result['Item'].$tblPersonDebtor->getId()] = $DebtorNumber;
+        } elseif($isDebtorForItem && !$IsSwitchedDebtorNumber && $tblPersonDebtor) {
+            if($this->DebtorNumberArray[$Result['Item'].$tblPersonDebtor->getId()] != $DebtorNumber){
+                $this->addErrorCount();
+                $Result['DebtorNumberControl'] = new ToolTip(new Danger($DebtorNumber, null, false, 2, 0), 'Debtornummer unterscheidet sich im Import '
+                    .$this->DebtorNumberArray[$Result['Item'].$tblPersonDebtor->getId()].' => '.$DebtorNumber);
+            }
+        }
 
         $IsValueNeed = true;
         $Result['ItemVariantFrontend'] = new ToolTip(new Warning($Result['PriceVariant'].'&nbsp;', null, false, 2, 0)
@@ -411,27 +456,6 @@ class ImportGateway extends AbstractConverter
         }
         // BIC Warnung anzeigen
         return new ToolTip(new Warning($bic, null, false, 2, 0), 'Anzahl der Zeichen stimmen nicht');
-    }
-
-    /**
-     * @param $Value
-     *
-     * @return Warning|string
-     */
-    protected function sanitizeDebtorNumber($Value)
-    {
-
-        if(($Setting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT))){
-            if(strlen($Value) > $Setting->getValue()){
-                $this->addErrorCount();
-                return new ToolTip(new Danger($Value, null, false, 2, 0), 'Debitorennummer ist zu lang (max '.$Setting->getValue().')');
-            } elseif($Value && strlen($Value) < $Setting->getValue()) {
-                return new ToolTip(new Warning($Value, null, false, 2, 0), 'Debitorennummer ist zu kurz ('.$Setting->getValue().') dies stellt aber kein Problem dar');
-            } elseif(strlen($Value) == $Setting->getValue()){
-                return new Success($Value, null, false, 2, 0);
-            }
-        }
-        return $Value;
     }
 
     /**

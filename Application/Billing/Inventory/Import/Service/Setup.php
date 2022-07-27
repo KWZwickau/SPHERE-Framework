@@ -71,6 +71,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Bank', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IsYear', self::FIELD_TYPE_STRING);
 
         return $Table;
     }

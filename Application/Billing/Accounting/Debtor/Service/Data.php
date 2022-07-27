@@ -61,9 +61,14 @@ class Data extends AbstractData
      *
      * @return false|TblDebtorNumber[]
      */
-    public function getDebtorNumberByPerson(TblPerson $tblPerson)
+    public function getDebtorNumberByPerson(TblPerson $tblPerson, $isForced = false)
     {
-
+        if($isForced){
+            return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorNumber',
+                array(
+                    TblDebtorNumber::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        }
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorNumber',
             array(
                 TblDebtorNumber::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
