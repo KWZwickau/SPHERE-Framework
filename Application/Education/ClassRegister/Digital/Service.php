@@ -44,6 +44,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Commodity;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
@@ -1317,5 +1318,189 @@ class Service extends AbstractService
         $Remark
     ): bool {
         return (new Data($this->getBinding()))->updateLessonWeekRemark($tblLessonWeek, $Remark);
+    }
+
+    /**
+     * @return string
+     */
+    public function getDigitalClassRegisterPanelForTeacher(): string
+    {
+        $resultList = array();
+        $divisionList = array();
+        $divisionSubjectList = array();
+        if (($tblPerson = Account::useService()->getPersonByLogin())) {
+            $baseRoute = (Digital::useFrontend())::BASE_ROUTE;
+            $tblYearList = Term::useService()->getYearByNow();
+            // Fachlehrer in Klassen
+            if ($tblYearList && ($tblSubjectTeacherAllByTeacher = Division::useService()->getSubjectTeacherAllByTeacher($tblPerson))) {
+                foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
+                    if (($tblDivisionSubject = $tblSubjectTeacher->getTblDivisionSubject())
+                        && ($tblDivisionItem = $tblDivisionSubject->getTblDivision())
+                        && ($tblSubjectItem = $tblDivisionSubject->getServiceTblSubject())
+                        && ($tblYearItem = $tblDivisionItem->getServiceTblYear())
+                    ) {
+                        // nur aktuelles Schuljahre
+                        if (!isset($tblYearList[$tblYearItem->getId()])) {
+                            continue;
+                        }
+
+                        // Kurshefte
+                        if (Division::useService()->getIsDivisionCourseSystem($tblDivisionItem)) {
+                            $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
+                            if (!isset($divisionSubjectList[$tblDivisionSubject->getId()])) {
+                                if (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())) {
+                                    $divisionSubjectList[$tblDivisionSubject->getId()] = $tblDivisionSubject;
+                                    $resultList[] = array(
+                                        'Type' => $tblDivisionItem->getTypeName(),
+                                        'Name' => $tblDivisionItem->getDisplayName() . ' - ' . $tblSubjectGroup->getName(),
+                                        'Option' => new Standard(
+                                            '',
+                                            $baseRoute . '/CourseContent',
+                                            new Extern(),
+                                            array(
+                                                'DivisionSubjectId' => $tblDivisionSubject->getId(),
+                                                'BasicRoute' => $baseRoute . '/Teacher'
+                                            ),
+                                            'Zum Kursheft wechseln'
+                                        )
+                                    );
+                                } else {
+                                    // Lehrauftrag kann auch vor der Gruppe sein
+                                    if (($tblDivisionSubjectWithGroupList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                        $tblDivisionItem, $tblSubjectItem
+                                    ))) {
+                                        foreach ($tblDivisionSubjectWithGroupList as $item) {
+                                            if (!isset($divisionSubjectList[$item->getId()]) && ($tblSubjectGroupItem = $item->getTblSubjectGroup())) {
+                                                $divisionSubjectList[$item->getId()] = $item;
+                                                $resultList[] = array(
+                                                    'Type' => $tblDivisionItem->getTypeName(),
+                                                    'Name' => $tblDivisionItem->getDisplayName() . ' - ' . $tblSubjectGroupItem->getName(),
+                                                    'Option' => new Standard(
+                                                        '',
+                                                        $baseRoute . '/CourseContent',
+                                                        new Extern(),
+                                                        array(
+                                                            'DivisionSubjectId' => $item->getId(),
+                                                            'BasicRoute' => $baseRoute . '/Teacher'
+                                                        ),
+                                                        'Zum Kursheft wechseln'
+                                                    )
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // Klassentagebuch
+                        } elseif (!isset($divisionList[$tblDivisionItem->getId()])) {
+                            $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
+                            $resultList[] = array(
+                                'Type' => $tblDivisionItem->getTypeName(),
+                                'Name' => $tblDivisionItem->getDisplayName(),
+                                'Option' => new Standard(
+                                    '',
+                                    $baseRoute . '/LessonContent',
+                                    new Extern(),
+                                    array(
+                                        'DivisionId' => $tblDivisionItem->getId(),
+                                        'BasicRoute' => $baseRoute . '/Teacher'
+                                    ),
+                                    'Zum Klassenbuch wechseln'
+                                )
+                            );
+                        }
+                    }
+                }
+            }
+
+            // Fachlehrer in Gruppen
+            if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
+                foreach ($tblGroupAll as $tblGroup) {
+                    if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
+                        foreach ($tblPersonList as $tblPersonStudent) {
+                            if (($tblDivisionMain = Student::useService()->getCurrentMainDivisionByPerson($tblPersonStudent))
+                                && isset($divisionList[$tblDivisionMain->getId()])
+                            ) {
+                                // Kurshefte
+                                if (Division::useService()->getIsDivisionCourseSystem($tblDivisionMain)) {
+                                    foreach ($divisionSubjectList as $tblDivisionSubjectTemp) {
+                                        if (($tblDivisionTemp = $tblDivisionSubjectTemp->getTblDivision())
+                                            && $tblDivisionMain->getId() == $tblDivisionTemp->getId()
+                                            && ($tblSubjectGroupTemp = $tblDivisionSubjectTemp->getTblSubjectGroup())
+                                        ) {
+                                            $resultList[] = array(
+                                                'Type' => $tblDivisionTemp->getTypeName(),
+                                                'Name' => $tblGroup->getName() . ' - ' . $tblSubjectGroupTemp->getName(),
+                                                'Option' => new Standard(
+                                                    '',
+                                                    $baseRoute . '/CourseContent',
+                                                    new Extern(),
+                                                    array(
+                                                        'DivisionSubjectId' => $tblDivisionSubjectTemp->getId(),
+                                                        'GroupId' => $tblGroup->getId(),
+                                                        'BasicRoute' => $baseRoute . '/Teacher'
+                                                    ),
+                                                    'Zum Kursheft wechseln'
+                                                )
+                                            );
+                                        }
+                                    }
+                                    // Klassentagebuch
+                                } else {
+                                    $resultList[] = array(
+                                        'Type' => $tblDivisionMain->getTypeName(),
+                                        'Name' => $tblGroup->getName(),
+                                        'Option' => new Standard(
+                                            '',
+                                            $baseRoute . '/LessonContent',
+                                            new Extern(),
+                                            array(
+                                                'GroupId' => $tblGroup->getId(),
+                                                'BasicRoute' => $baseRoute . '/Teacher'
+                                            ),
+                                            'Zum Klassenbuch wechseln'
+                                        )
+                                    );
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($resultList) {
+            return new Panel(
+                'Digitales Klassenbuch (Fachlehrer)',
+                new TableData(
+                    $resultList,
+                    null,
+                    array(
+                    'Type' => 'Schulart',
+                    'Name' => 'Klasse / Gruppe / Kurs',
+                    'Option' => ''
+                ),
+                array(
+                    'order' => array(
+                        array('0', 'asc'),
+                        array('1', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'natural', 'targets' => 1),
+                        array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                    ),
+                    'pageLength' => -1,
+                    'paging' => false,
+                    'info' => false,
+                    'searching' => false,
+                    'responsive' => false
+                )),
+                Panel::PANEL_TYPE_PRIMARY
+            );
+        }
+
+        return '';
     }
 }

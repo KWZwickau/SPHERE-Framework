@@ -3261,7 +3261,13 @@ class Service extends AbstractService
      */
     public function existsSubjectTeacher(TblPerson $tblPerson, TblDivisionSubject $tblDivisionSubject): bool
     {
-        return (new Data($this->getBinding()))->existsSubjectTeacher($tblPerson, $tblDivisionSubject);
+        // Lehrauftrag kann an der Gruppe oder an oder vor der Gruppe sein
+        return (new Data($this->getBinding()))->existsSubjectTeacher($tblPerson, $tblDivisionSubject)
+            || ($tblDivisionSubject->getTblSubjectGroup() && ($tblDivision = $tblDivisionSubject->getTblDivision())
+                && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                && ($tblDivisionSubjectWithoutGroup = Division::useService()->getDivisionSubjectBySubjectAndDivisionWithoutGroup($tblSubject, $tblDivision))
+                && (new Data($this->getBinding()))->existsSubjectTeacher($tblPerson, $tblDivisionSubjectWithoutGroup)
+            );
     }
 
     /**
@@ -3275,24 +3281,6 @@ class Service extends AbstractService
             && ($tblSchoolType = $tblLevel->getServiceTblType())
             && (($tblSchoolType->getShortName() == 'Gy' && preg_match('!(11|12)!is', $tblLevel->getName()))
                 || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(12|13)!is', $tblLevel->getName())))
-        ) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     *
-     * @return bool
-     */
-    public function getIsDivisionSekII(TblDivision $tblDivision): bool
-    {
-        if (($tblLevel = $tblDivision->getTblLevel())
-            && ($tblSchoolType = $tblLevel->getServiceTblType())
-            && (($tblSchoolType->getShortName() == 'Gy' && (intval($tblLevel->getName()) == 11 || intval($tblLevel->getName()) == 12))
-            || ($tblSchoolType->getShortName() == 'BGy' && (intval($tblLevel->getName()) == 12 || intval($tblLevel->getName()) == 13)))
         ) {
             return true;
         }

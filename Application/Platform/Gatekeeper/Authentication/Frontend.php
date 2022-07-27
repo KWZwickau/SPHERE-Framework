@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
 use DateTime;
 use Exception;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
@@ -116,8 +117,9 @@ class Frontend extends Extension implements IFrontendInterface
                     && ($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
                 ) {
-                    $contentTeacherWelcome = Timetable::useService()->getTimetablePanelForTeacher()
-                        . Evaluation::useService()->getTeacherWelcomeGradeTask($tblPerson);
+                    $contentTeacherWelcome = Evaluation::useService()->getTeacherWelcomeGradeTask($tblPerson)
+                        . (($timeTable = Timetable::useService()->getTimetablePanelForTeacher())
+                            ? $timeTable : Digital::useService()->getDigitalClassRegisterPanelForTeacher());
                 }
 
                 if (Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Type/Select')) {
