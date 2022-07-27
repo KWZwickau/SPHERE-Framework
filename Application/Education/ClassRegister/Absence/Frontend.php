@@ -208,7 +208,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivisionSubject
                             ? Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
                                 '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivision, null, null,
+                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivision, null,
                                 '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
