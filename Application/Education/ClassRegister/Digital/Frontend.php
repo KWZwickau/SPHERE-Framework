@@ -294,8 +294,9 @@ class Frontend extends FrontendTabs
         $tblDivisionList = Division::useService()->getDivisionAll();
 
         $yearFilterList = array();
+        // nur Schulleitung darf History (Alle Schuljahre) sehen
         $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Headmaster',
-            $IsAllYears, $IsGroup, $YearId, true, true, $yearFilterList);
+            $IsAllYears, $IsGroup, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList);
 
         $divisionTable = array();
         if ($IsGroup) {
