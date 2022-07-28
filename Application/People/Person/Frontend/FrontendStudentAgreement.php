@@ -88,12 +88,13 @@ class FrontendStudentAgreement extends FrontendReadOnly
             )));
 
             $editLink = '';
+            $StructureEdit = '';
             if($AllowEdit == 1){
                 $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentAgreementContent($PersonId));
+                $StructureEdit = (new Link(new Edit() . ' Struktur bearbeiten', ApiPersonEdit::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineEditStudentAgreementStructure($PersonId));
             }
-            $StructureEdit = (new Link(new Edit() . ' Struktur bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineEditStudentAgreementStructure($PersonId));
             $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
