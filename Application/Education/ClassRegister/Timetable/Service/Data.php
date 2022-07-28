@@ -102,29 +102,46 @@ class Data extends AbstractData
      * @param TblTimetable $tblTimetable
      * @param TblDivision $tblDivision
      * @param Int $Day
-     * @param Int $Hour
+     * @param int|null $lesson
      * @param TblPerson|null $tblPerson
      *
      * @return false|TblTimetableNode[]
      */
-    public function getTimetableNodeListBy(TblTimetable $tblTimetable, TblDivision $tblDivision, Int $Day, Int $Hour, ?TblPerson $tblPerson)
+    public function getTimetableNodeListBy(TblTimetable $tblTimetable, TblDivision $tblDivision, int $Day, ?int $lesson, ?TblPerson $tblPerson)
     {
-        if ($tblPerson) {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
-                TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
-                TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
-                TblTimetableNode::ATTR_DAY => $Day,
-                TblTimetableNode::ATTR_HOUR => $Hour,
-                TblTimetableNode::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-            ));
+        if ($lesson !== null) {
+            if ($tblPerson) {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
+                    TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_DAY => $Day,
+                    TblTimetableNode::ATTR_HOUR => $lesson,
+                    TblTimetableNode::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+            } else {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
+                    TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_DAY => $Day,
+                    TblTimetableNode::ATTR_HOUR => $lesson
+                ));
+            }
+        } else {
+            if ($tblPerson) {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
+                    TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_DAY => $Day,
+                    TblTimetableNode::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+            } else {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
+                    TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_DAY => $Day,
+                ));
+            }
         }
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
-            TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
-            TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
-            TblTimetableNode::ATTR_DAY => $Day,
-            TblTimetableNode::ATTR_HOUR => $Hour
-        ));
     }
 
     /**

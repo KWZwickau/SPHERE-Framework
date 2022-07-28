@@ -562,13 +562,13 @@ class Service extends AbstractService
 
     /**
      * @param DateTime $date
-     * @param int $lesson
+     * @param int|null $lesson
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
      *
      * @return false|TblLessonContent[]
      */
-    public function getLessonContentAllByDateAndLesson(DateTime $date, int $lesson, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function getLessonContentAllByDateAndLesson(DateTime $date, ?int $lesson, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
     {
         return (new Data($this->getBinding()))->getLessonContentAllByDateAndLesson($date, $lesson, $tblDivision, $tblGroup);
     }
@@ -1541,5 +1541,59 @@ class Service extends AbstractService
                 return false;
             }
         }
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     * @param DateTime $dateTime
+     * @param int $lesson
+     *
+     * @return false|TblLessonContent
+     */
+    public function getTimetableFromLastLessonContent(?TblDivision $tblDivision, ?TblGroup $tblGroup, DateTime $dateTime, int $lesson)
+    {
+        // kein importierter Stundenplan für den Tag vorhanden
+        if ($tblDivision && Timetable::useService()->getTimeTableNodeBy($tblDivision, $dateTime, null)) {
+            return false;
+        }
+
+        $lastDateTime = (new DateTime($dateTime->format('d.m.Y')))->sub(new DateInterval('P7D'));
+        if ($tblDivision) {
+            $tblYear = $tblDivision->getServiceTblYear();
+        } elseif ($tblGroup) {
+            $tblYear = $tblGroup->getCurrentYear();
+        } else {
+            $tblYear = false;
+        }
+
+        if ($tblYear) {
+            list($startDateSchoolYear,) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if ($startDateSchoolYear) {
+                while ($lastDateTime > $startDateSchoolYear) {
+                    // letzter Wochen Tag mit eingetragen Unterrichtseinheiten
+                    if ($this->getLessonContentAllByDateAndLesson($lastDateTime, null, $tblDivision ?: null, $tblGroup ?: null)) {
+                        // Eintrag für die Stunde finden
+                        if (($tblLessonContentList = $this->getLessonContentAllByDateAndLesson($lastDateTime, $lesson, $tblDivision ?: null, $tblGroup ?: null))) {
+                            // es darf nur ein Eintrag gefunden werden
+                            if (count($tblLessonContentList) == 1) {
+                                /** @var TblLessonContent $tblLessonContent */
+                                $tblLessonContent = reset($tblLessonContentList);
+                                // das Fach darf nicht ausgefallen sein
+                                if (!$tblLessonContent->getIsCanceled()) {
+                                    return $tblLessonContent;
+                                }
+                            }
+                        }
+
+                        return false;
+                    }
+
+                    $lastDateTime->sub(new DateInterval('P7D'));
+                }
+            }
+        }
+
+        return false;
     }
 }

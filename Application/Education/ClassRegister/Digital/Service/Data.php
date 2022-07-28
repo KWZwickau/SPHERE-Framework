@@ -174,20 +174,28 @@ class Data  extends AbstractData
 
     /**
      * @param DateTime $date
-     * @param int $lesson
+     * @param int|null $lesson
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
      *
      * @return false|TblLessonContent[]
      */
-    public function getLessonContentAllByDateAndLesson(DateTime $date, int $lesson, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function getLessonContentAllByDateAndLesson(DateTime $date, ?int $lesson, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
     {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', array(
-            TblLessonContent::ATTR_DATE => $date,
-            TblLessonContent::ATTR_LESSON => $lesson,
-            TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
-            TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
-        ), array(Element::ENTITY_CREATE => self::ORDER_ASC) );
+        if ($lesson !== null) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', array(
+                TblLessonContent::ATTR_DATE => $date,
+                TblLessonContent::ATTR_LESSON => $lesson,
+                TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
+                TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
+            ), array(Element::ENTITY_CREATE => self::ORDER_ASC));
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', array(
+                TblLessonContent::ATTR_DATE => $date,
+                TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
+                TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
+            ), array(Element::ENTITY_CREATE => self::ORDER_ASC));
+        }
     }
 
     /**

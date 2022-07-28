@@ -259,11 +259,11 @@ class Service extends AbstractService
     /**
      * @param TblDivision $tblDivision
      * @param DateTime $dateTime
-     * @param Int $lesson
+     * @param ?Int $lesson
      *
      * @return false|TblTimetableNode
      */
-    public function getTimeTableNodeBy(TblDivision $tblDivision, DateTime $dateTime, Int $lesson)
+    public function getTimeTableNodeBy(TblDivision $tblDivision, DateTime $dateTime, ?Int $lesson)
     {
         $day = (int) $dateTime->format('w');
         $tblPerson = Account::useService()->getPersonByLogin();
@@ -288,13 +288,13 @@ class Service extends AbstractService
      * @param array $tblTimeTableList
      * @param TblDivision $tblDivision
      * @param $day
-     * @param $lesson
+     * @param int|null $lesson
      * @param DateTime $startDateOfWeek
      * @param TblPerson|null $tblPerson
      *
-     * @return false|TblTimetableNode
+     * @return false|TblTimetableNode|TblTimetableNode[]
      */
-    private function searchTimeTableNode(array $tblTimeTableList, TblDivision $tblDivision, $day, $lesson, DateTime $startDateOfWeek, ?TblPerson $tblPerson)
+    private function searchTimeTableNode(array $tblTimeTableList, TblDivision $tblDivision, $day, ?int $lesson, DateTime $startDateOfWeek, ?TblPerson $tblPerson)
     {
         foreach ($tblTimeTableList as $tblTimetable) {
             if (($tblTimeTableNodeList = (new Data($this->getBinding()))->getTimetableNodeListBy($tblTimetable, $tblDivision, $day, $lesson, $tblPerson))) {
@@ -308,6 +308,10 @@ class Service extends AbstractService
                     } else {
                         $resultList[] = $tblTimeTableNode;
                     }
+                }
+
+                if ($lesson === null) {
+                    return $resultList;
                 }
 
                 // nur bei einem gültigem Treffer das Fach und den Raum vorsetzen

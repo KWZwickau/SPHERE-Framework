@@ -739,8 +739,15 @@ class Frontend extends FrontendTabs
                     AbstractLink::TYPE_MUTED_LINK
                 ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $date->format('d.m.Y'), $i));
 
+                // Fach aus dem importierten Stundenplan anzeigen
                 if (!$isHoliday && $tblDivision && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
                     $tblDivision, $date, $i
+                ))) {
+                    $subject = $tblLessonContentTemp->getDisplaySubject(true);
+                    $room = $tblLessonContentTemp->getRoom();
+                // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
+                } elseif (!$isHoliday && ($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                    $tblDivision ?: null, $tblGroup ?: null, $date, $i
                 ))) {
                     $subject = $tblLessonContentTemp->getDisplaySubject(true);
                     $room = $tblLessonContentTemp->getRoom();
@@ -1006,8 +1013,14 @@ class Frontend extends FrontendTabs
                 } elseif ($isHoliday) {
                     $cell = new Center(new Muted('f'));
                 } elseif(!$isReadOnly) {
+                    // Fach aus dem importierten Stundenplan anzeigen
                     if ($tblDivision && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
                         $tblDivision, new DateTime($dateStringList[$j]), $i
+                    ))) {
+                        $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+                    // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
+                    } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                        $tblDivision ?: null, $tblGroup ?: null, new DateTime($dateStringList[$j]), $i
                     ))) {
                         $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
                     } else {
@@ -1200,6 +1213,16 @@ class Frontend extends FrontendTabs
                 $Global->POST['Data']['serviceTblSubstituteSubject'] = $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
                 $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
                 $Global->POST['Data']['IsCanceled'] = $tblLessonContentTemp->getIsCanceled() ? 1 : 0;
+
+                $Global->savePost();
+            // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
+            } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                $tblDivision ?: null, $tblGroup ?: null, new DateTime($Date), (int) $Lesson
+            ))) {
+                $Global = $this->getGlobal();
+
+                $Global->POST['Data']['serviceTblSubject'] = $tblLessonContentTemp->getServiceTblSubject() ? $tblLessonContentTemp->getServiceTblSubject()->getId() : 0;
+                $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
 
                 $Global->savePost();
             }
