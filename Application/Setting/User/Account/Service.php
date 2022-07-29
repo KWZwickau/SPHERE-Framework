@@ -839,7 +839,7 @@ class Service extends AbstractService
                     if ($tblRole && !$tblRole->isSecure()) {
                         AccountGatekeeper::useService()->addAccountAuthorization($tblAccount, $tblRole);
                     }
-                    $tblRole = Access::useService()->getRoleByName('Bildung: Zensurenübersicht (Schüler/Eltern)');
+                    $tblRole = Access::useService()->getRoleByName('Schüler und Eltern Zugang');
                     if ($tblRole && !$tblRole->isSecure()) {
                         AccountGatekeeper::useService()->addAccountAuthorization($tblAccount, $tblRole);
                     }
