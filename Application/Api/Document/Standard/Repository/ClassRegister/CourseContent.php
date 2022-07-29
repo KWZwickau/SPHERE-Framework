@@ -10,11 +10,14 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
+use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
+use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstruction;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
@@ -101,6 +104,7 @@ class CourseContent extends ClassRegister
         $pageList[] = $this->getStudentPage(false);
 
         $this->setCourseContentPageList($pageList);
+        $this->setInstructionPageList($pageList);
 
         return $pageList;
     }
@@ -480,6 +484,147 @@ class CourseContent extends ClassRegister
             ->styleAlignCenter()
             ->stylePaddingTop('40px')
             ->stylePaddingBottom('40px')
+            ->styleBorderRight();
+    }
+
+    /**
+     * @param array $pageList
+     */
+    private function setInstructionPageList(array &$pageList)
+    {
+        $count = 0;
+        $sliceList = array();
+        if (($tblInstructionList = Instruction::useService()->getInstructionAll())) {
+            foreach ($tblInstructionList as $tblInstruction) {
+                $count++;
+                $sliceList[] = $this->getInstructionSlice($tblInstruction);
+
+                // Neue Seite
+                if ($count == 6) {
+                    $count = 0;
+                    $pageList[] = (new Page())
+                        ->addSlice($this->getInstructionHeaderSlice())
+                        ->addSliceArray($sliceList);
+                    $sliceList = array();
+                }
+            }
+        }
+
+        // Letzte Seite
+        if (!empty($sliceList)) {
+            $pageList[] = (new Page())
+                ->addSlice($this->getInstructionHeaderSlice())
+                ->addSliceArray($sliceList);
+        }
+    }
+
+    /**
+     * @param TblInstruction $tblInstruction
+     *
+     * @return Slice
+     */
+    private function getInstructionSlice(TblInstruction $tblInstruction): Slice
+    {
+        $height = '140px';
+        $subject = $tblInstruction->getSubject();
+        $content = $tblInstruction->getContent();
+        $count = 0;
+
+        if (($tblInstructionItemList = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, null, null, $this->tblDivisionSubject))) {
+            $subSlice = (new Slice())
+                // keine Ahnung warum diese Höhe 10 Pixel mehr sein muss
+                ->styleHeight('150px')
+                ->styleBorderBottom()
+                ->styleBorderRight();
+            $itemCount = count($tblInstructionItemList) - 1;
+            foreach ($tblInstructionItemList as $tblInstructionItem) {
+                if ($tblInstructionItem->getIsMain()) {
+                    $content = $tblInstructionItem->getContent();
+                    if ($tblInstructionItem->getSubject()) {
+                        $subject = $tblInstructionItem->getSubject();
+                    }
+
+                } else {
+                    $count++;
+                }
+
+                $personNumberList = array();
+                if (($missingStudents = Instruction::useService()->getMissingPersonNameListByInstructionItem($tblInstructionItem))) {
+                    foreach ($missingStudents as $personId => $name) {
+                        if (isset($this->personNumberAbsenceList[$personId])) {
+                            $personNumberList[] = $this->personNumberAbsenceList[$personId];
+                        }
+                    }
+                };
+
+                $subSlice->addElement((new Element())
+                    ->setContent(
+                        ($count == 0 ? 'Belehrung' : $count . '. Nachbelehrung')
+                        . ' ' . $tblInstructionItem->getDate()  . ' ' . $tblInstructionItem->getTeacherString(false)
+                        . ($personNumberList ? new Container(implode(', ', $personNumberList)) : '')
+                    )
+                    ->styleBorderBottom($count == $itemCount ? '0px' : '1px')
+                    ->stylePaddingLeft('3px')
+                    ->stylePaddingTop('2px')
+                    ->stylePaddingBottom('2px')
+                );
+            }
+        } else {
+            $subSlice = (new Slice())->addElement($this->getElement('')->styleHeight($height));
+        }
+
+        return (new Slice())
+            ->styleBorderLeft()
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement($subject)->styleHeight($height), '30%')
+                ->addElementColumn($this->getElement($content)->styleHeight($height), '35%')
+                ->addSliceColumn($subSlice, '35%')
+            );
+    }
+
+    /**
+     * @return Slice
+     */
+    private function getInstructionHeaderSlice(): Slice
+    {
+        return (new Slice())
+            ->addElement((new Element())
+                ->setContent('Belehrungen')
+                ->styleMarginBottom('5px')
+                ->styleTextSize('18px')
+                ->styleTextBold()
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getInstructionHeaderElement('Thema')->styleBorderLeft(), '30%')
+                ->addElementColumn($this->getInstructionHeaderElement('Inhalt'), '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('Datum/Signum' . new Container('Fehlende SuS (Nr.)'))
+                    ->styleAlignCenter()
+                    ->stylePaddingTop('1.5px')
+                    ->stylePaddingBottom('1.5px')
+                    ->styleBackgroundColor('#CCC')
+                    ->styleBorderTop()
+                    ->styleBorderBottom()
+                    ->styleBorderRight()
+                    , '35%')
+            );
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Element
+     */
+    private function getInstructionHeaderElement(string $name): Element
+    {
+        return (new Element())
+            ->setContent($name)
+            ->styleAlignCenter()
+            ->stylePaddingTop('10px')
+            ->stylePaddingBottom('10px')
+            ->styleBackgroundColor('#CCC')
+            ->styleBorderTop()
+            ->styleBorderBottom()
             ->styleBorderRight();
     }
 }

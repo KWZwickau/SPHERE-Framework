@@ -21,17 +21,22 @@ use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
  */
 class Person
 {
-
     /**
      * @param null $DivisionId
      * @param null $GroupId
+     * @param null $DivisionSubjectId
      *
-     * @return bool|string
+     * @return false|string
      */
-    public function downloadClassList($DivisionId = null, $GroupId = null)
+    public function downloadClassList($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
     {
-        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            $tblGroup = false;
+        $tblDivision = false;
+        $tblGroup = false;
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+            $name = 'Kursliste '
+                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
+        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
             $name = 'Klassenliste ' . $tblDivision->getDisplayName();
         } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
@@ -45,7 +50,7 @@ class Person
             && ($DataList = ReportingPerson::useService()->createClassList($tblPersonList))
         ) {
             $fileLocation = ReportingPerson::useService()->createClassListExcel($DataList, $tblPersonList,
-                $tblDivision ?: null, $tblGroup ?: null);
+                $tblDivision ?: null, $tblGroup ?: null, $tblDivisionSubject ?: null);
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
@@ -231,12 +236,18 @@ class Person
 
     /**
      * @param null $DivisionId
+     * @param null $GroupId
+     * @param null $DivisionSubjectId
      *
-     * @return bool|string
+     * @return false|string
      */
-    public function downloadMedicalRecordClassList($DivisionId = null, $GroupId = null)
+    public function downloadMedicalRecordClassList($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
     {
-        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+            $name = 'Krankenakte_Kursliste '
+                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
+        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
             $name = 'Krankenakte_Klassenliste ' . $tblDivision->getDisplayName();
         } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
@@ -261,12 +272,17 @@ class Person
     /**
      * @param null $DivisionId
      * @param null $GroupId
+     * @param null $DivisionSubjectId
      *
-     * @return bool|string
+     * @return false|string
      */
-    public function downloadAgreementClassList($DivisionId = null, $GroupId = null)
+    public function downloadAgreementClassList($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
     {
-        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+            $name = 'Einverständniserklärung_Kursliste '
+                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
+        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
             $name = 'Einverständniserklärung_Klassenliste ' . $tblDivision->getDisplayName();
         } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
@@ -436,9 +452,14 @@ class Person
      *
      * @return bool|string
      */
-    public function downloadClassRegisterAbsence($DivisionId = null, $GroupId = null)
+    public function downloadClassRegisterAbsence($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
     {
-        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+        $tblDivision = false;
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+            $name = 'Fehlzeiten des Kurses '
+                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
+        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
             $name = 'Fehlzeiten der Klasse ' . $tblDivision->getDisplayName();
         } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {

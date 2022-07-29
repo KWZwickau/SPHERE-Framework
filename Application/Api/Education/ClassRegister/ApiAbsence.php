@@ -363,11 +363,9 @@ class ApiAbsence extends Extension implements IApiInterface
                 && $tblDivisionSubject->getServiceTblSubject()
                 && $tblDivisionSubject->getTblSubjectGroup()
             ) {
-                $reloadDigital .= ApiDigital::pipelineLoadCourseContentContent(
-                    $tblDivisionSubject->getTblDivision(),
-                    $tblDivisionSubject->getServiceTblSubject(),
-                    $tblDivisionSubject->getTblSubjectGroup()
-                );
+                $reloadDigital .= ApiDigital::pipelineLoadCourseContentContent($tblDivisionSubject->getTblDivision(), $tblDivisionSubject->getServiceTblSubject(),
+                    $tblDivisionSubject->getTblSubjectGroup())
+                    . ApiDigital::pipelineLoadCourseMissingStudentContent($tblDivisionSubject->getId());
             }
         } else {
             $reloadDigital = '';

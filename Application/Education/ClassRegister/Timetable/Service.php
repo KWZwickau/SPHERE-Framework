@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\ClassRegister\Timetable;
 
 use DateTime;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
@@ -258,11 +259,11 @@ class Service extends AbstractService
     /**
      * @param TblDivision $tblDivision
      * @param DateTime $dateTime
-     * @param Int $lesson
+     * @param ?Int $lesson
      *
      * @return false|TblTimetableNode
      */
-    public function getTimeTableNodeBy(TblDivision $tblDivision, DateTime $dateTime, Int $lesson)
+    public function getTimeTableNodeBy(TblDivision $tblDivision, DateTime $dateTime, ?Int $lesson)
     {
         $day = (int) $dateTime->format('w');
         $tblPerson = Account::useService()->getPersonByLogin();
@@ -287,13 +288,13 @@ class Service extends AbstractService
      * @param array $tblTimeTableList
      * @param TblDivision $tblDivision
      * @param $day
-     * @param $lesson
+     * @param int|null $lesson
      * @param DateTime $startDateOfWeek
      * @param TblPerson|null $tblPerson
      *
-     * @return false|TblTimetableNode
+     * @return false|TblTimetableNode|TblTimetableNode[]
      */
-    private function searchTimeTableNode(array $tblTimeTableList, TblDivision $tblDivision, $day, $lesson, DateTime $startDateOfWeek, ?TblPerson $tblPerson)
+    private function searchTimeTableNode(array $tblTimeTableList, TblDivision $tblDivision, $day, ?int $lesson, DateTime $startDateOfWeek, ?TblPerson $tblPerson)
     {
         foreach ($tblTimeTableList as $tblTimetable) {
             if (($tblTimeTableNodeList = (new Data($this->getBinding()))->getTimetableNodeListBy($tblTimetable, $tblDivision, $day, $lesson, $tblPerson))) {
@@ -307,6 +308,10 @@ class Service extends AbstractService
                     } else {
                         $resultList[] = $tblTimeTableNode;
                     }
+                }
+
+                if ($lesson === null) {
+                    return $resultList;
                 }
 
                 // nur bei einem gültigem Treffer das Fach und den Raum vorsetzen
@@ -437,6 +442,7 @@ class Service extends AbstractService
 
         if ($resultList) {
             $dataList = array();
+            $baseRoute = (Digital::useFrontend())::BASE_ROUTE;
             foreach ($resultList as $item) {
                 if (($tblDivision = $item->getServiceTblCourse()) && ($tblSubject = $item->getServiceTblSubject())) {
                     // prüfen ob der Lehrer einen Lehrauftrag hat
@@ -444,16 +450,28 @@ class Service extends AbstractService
                     if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision))) {
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                             if (Division::useService()->existsSubjectTeacher($tblPerson, $tblDivisionSubject)) {
-                                $option = new Standard(
-                                    '',
-                                    '/Education/ClassRegister/Digital/LessonContent',
-                                    new Extern(),
-                                    array(
-                                        'DivisionId' => $tblDivision->getId(),
-
-                                    ),
-                                    'Zum Klassenbuch wechseln'
-                                );
+                                if (Division::useService()->getIsDivisionCourseSystem($tblDivision)) {
+                                    $option = new Standard(
+                                        '',
+                                        $baseRoute . '/CourseContent',
+                                        new Extern(),
+                                        array(
+                                            'DivisionSubjectId' => $tblDivisionSubject->getId(),
+                                            'BasicRoute' => $baseRoute . '/Teacher'
+                                        ),
+                                        'Zum Kursheft wechseln'
+                                    );
+                                } else {
+                                    $option = new Standard(
+                                        '',
+                                        $baseRoute . '/LessonContent',
+                                        new Extern(),
+                                        array(
+                                            'DivisionId' => $tblDivision->getId(),
+                                        ),
+                                        'Zum Klassenbuch wechseln'
+                                    );
+                                }
 
                                 break;
                             }
@@ -489,7 +507,22 @@ class Service extends AbstractService
                     'Subject' => 'Fach',
                     'Room' => 'Raum',
                     'Option' => ''
-                ), null),
+                ),
+                array(
+                    'order' => array(
+                        array('0', 'asc'),
+                        array('1', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'natural', 'targets' => 1),
+                        array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                    ),
+                    'pageLength' => -1,
+                    'paging' => false,
+                    'info' => false,
+                    'searching' => false,
+                    'responsive' => false
+                )),
                 Panel::PANEL_TYPE_PRIMARY
             );
 

@@ -73,24 +73,24 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string $BasicRoute
      * @param string $ReturnRoute
      * @param null $GroupId
+     * @param null $DivisionSubjectId
      *
      * @return string
      */
     public function frontendAbsenceStudent($DivisionId = null, $PersonId = null, string $BasicRoute = '', string $ReturnRoute = '',
-        $GroupId = null): string
+        $GroupId = null, $DivisionSubjectId = null) : string
     {
         $Stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten Übersicht des Schülers');
         if ($ReturnRoute) {
             $Stage->addButton(new Standard('Zurück', $ReturnRoute, new ChevronLeft(),
                     array(
+                        'DivisionSubjectId' => $DivisionSubjectId,
                         'DivisionId' => $GroupId ? null : $DivisionId,
                         'GroupId'    => $GroupId,
                         'BasicRoute' => $BasicRoute,
                     ))
             );
         }
-
-//
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblPerson = Person::useService()->getPersonById($PersonId);
@@ -151,6 +151,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $DivisionId
      * @param null $GroupId
+     * @param null $DivisionSubjectId
      * @param string $BasicRoute
      *
      * @return Stage|string
@@ -158,14 +159,33 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendAbsenceMonth(
         $DivisionId = null,
         $GroupId = null,
+        $DivisionSubjectId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten (Kalenderansicht)');
 
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
-        ));
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            if ($GroupId) {
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'GroupId' => $GroupId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
+            } else {
+                $stage->addButton(new Standard(
+                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
+                        'DivisionId' => $DivisionId,
+                        'BasicRoute' => $BasicRoute
+                    )
+                ));
+            }
+        } else {
+            $stage->addButton(new Standard(
+                'Zurück', $BasicRoute, new ChevronLeft()
+            ));
+        }
 
         if ($tblDivision) {
             $currentDate = new DateTime('now');
@@ -183,19 +203,20 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow(
-                            $tblDivision, null, $tblYear
+                            $tblDivision , null, $tblYear, $tblDivisionSubject ?: null
                         ),
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision, null,
-                            '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
+                        $tblDivisionSubject
+                            ? Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
+                                '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
+                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivision, null,
+                                '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
                         ApiAbsence::receiverModal()
                         . ApiAbsence::receiverBlock(
-                            ApiAbsence::generateOrganizerForDivisionWeekly(
-                                $tblDivision->getId(),
-                                $currentDate->format('W'),
-                                $currentDate->format('Y')
-                            ),
+                            Consumer::useService()->getAccountSettingValue('AbsenceView') == 'Month'
+                                ? ApiAbsence::generateOrganizerMonthly($tblDivision->getId(), $currentDate->format('m'), $currentDate->format('Y'))
+                                : ApiAbsence::generateOrganizerForDivisionWeekly($tblDivision->getId(), $currentDate->format('W'), $currentDate->format('Y')),
                             'CalendarContent'
                         )
                     )), new Title(new Calendar() . ' Fehlzeiten (Kalenderansicht)'))
