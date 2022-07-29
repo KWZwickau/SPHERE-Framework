@@ -3261,7 +3261,7 @@ class Service extends AbstractService
      */
     public function existsSubjectTeacher(TblPerson $tblPerson, TblDivisionSubject $tblDivisionSubject): bool
     {
-        // Lehrauftrag kann an der Gruppe oder an oder vor der Gruppe sein
+        // Lehrauftrag kann an der Fachgruppe als auch an der Fachklasse (ohne Gruppe) sein
         return (new Data($this->getBinding()))->existsSubjectTeacher($tblPerson, $tblDivisionSubject)
             || ($tblDivisionSubject->getTblSubjectGroup() && ($tblDivision = $tblDivisionSubject->getTblDivision())
                 && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())

@@ -1379,7 +1379,7 @@ class Service extends AbstractService
                                         )
                                     );
                                 } else {
-                                    // Lehrauftrag kann auch vor der Gruppe sein
+                                    // Lehrauftrag kann an der Fachgruppe als auch an der Fachklasse (ohne Gruppe) sein
                                     if (($tblDivisionSubjectWithGroupList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
                                         $tblDivisionItem, $tblSubjectItem
                                     ))) {
