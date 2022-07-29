@@ -504,8 +504,10 @@ class Frontend extends FrontendTabs
         )))));
 
         $layout = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($buttons, $View == 'Day' ? 7 : 8),
-                new LayoutColumn($form, $View == 'Day' ? 5 : 4)
+//                new LayoutColumn($buttons, $View == 'Day' ? 7 : 8),
+//                new LayoutColumn($form, $View == 'Day' ? 5 : 4)
+                new LayoutColumn($buttons, 8),
+                new LayoutColumn($form, 4)
             ))))
             . new Container('&nbsp;')
             . new Panel(
@@ -1171,6 +1173,7 @@ class Frontend extends FrontendTabs
     public function formLessonContent(TblDivision $tblDivision = null, TblGroup $tblGroup = null, $LessonContentId = null,
         bool $setPost = false, string $Date = null, string $Lesson = null): Form
     {
+        $tblSubject = false;
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
         if ($setPost && $LessonContentId
             && ($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))
@@ -1178,13 +1181,11 @@ class Frontend extends FrontendTabs
             $Global = $this->getGlobal();
             $Global->POST['Data']['Date'] = $tblLessonContent->getDate();
             $Global->POST['Data']['Lesson'] = $tblLessonContent->getLesson();
-            $Global->POST['Data']['serviceTblSubject'] =
-                ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+            $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : 0;
             $Global->POST['Data']['serviceTblSubstituteSubject'] =
                 ($tblSubstituteSubject = $tblLessonContent->getServiceTblSubstituteSubject()) ? $tblSubstituteSubject->getId() : 0;
             $Global->POST['Data']['IsCanceled'] = $tblLessonContent->getIsCanceled();
-            $Global->POST['Data']['serviceTblPerson'] =
-                ($tblPerson = $tblLessonContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
+            $Global->POST['Data']['serviceTblPerson'] = ($tblPerson = $tblLessonContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
             $Global->POST['Data']['Content'] = $tblLessonContent->getContent(false);
             $Global->POST['Data']['Homework'] = $tblLessonContent->getHomework();
             $Global->POST['Data']['Room'] = $tblLessonContent->getRoom();
@@ -1209,8 +1210,9 @@ class Frontend extends FrontendTabs
             ) {
                 $Global = $this->getGlobal();
 
-                $Global->POST['Data']['serviceTblSubject'] = $tblLessonContentTemp->getServiceTblSubject() ? $tblLessonContentTemp->getServiceTblSubject()->getId() : 0;
-                $Global->POST['Data']['serviceTblSubstituteSubject'] = $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
+                $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+                $Global->POST['Data']['serviceTblSubstituteSubject'] =
+                    $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
                 $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
                 $Global->POST['Data']['IsCanceled'] = $tblLessonContentTemp->getIsCanceled() ? 1 : 0;
 
@@ -1221,7 +1223,7 @@ class Frontend extends FrontendTabs
             ))) {
                 $Global = $this->getGlobal();
 
-                $Global->POST['Data']['serviceTblSubject'] = $tblLessonContentTemp->getServiceTblSubject() ? $tblLessonContentTemp->getServiceTblSubject()->getId() : 0;
+                $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
                 $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
 
                 $Global->savePost();
@@ -1254,61 +1256,77 @@ class Frontend extends FrontendTabs
             ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteLessonContentModal($LessonContentId));
         }
 
-        return (new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
-                        , 6),
-                    new FormColumn(
-                        (new SelectBox('Data[Lesson]', 'Unterrichtseinheit', array('{{ Name }}' => $lessons)))->setRequired()
-                        , 6),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new SelectBox('Data[serviceTblSubject]', 'Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
-                        , 6),
-                    new FormColumn(
-                        new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
-                        , 6),
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
+                , 6),
+            new FormColumn(
+                (new SelectBox('Data[Lesson]', 'Unterrichtseinheit', array('{{ Name }}' => $lessons)))->setRequired()
+                , 6),
+        ));
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                (new SelectBox('Data[serviceTblSubject]', 'Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
+                    ->ajaxPipelineOnChange(ApiDigital::pipelineLoadLessonContentLinkPanel(
+                        $tblDivision ? $tblDivision->getId() : null,
+                        $tblGroup ? $tblGroup->getId() : null,
+                        $tblSubject ? $tblSubject->getId() : null
+                    ))
+                , 6),
+            new FormColumn(
+                new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
+                , 6),
 //                    new FormColumn(
 //                        new SelectBox('Data[serviceTblPerson]', 'Lehrer', array('{{ FullName }}' => $tblTeacherList))
 //                        , 6),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new CheckBox('Data[IsCanceled]', 'Fach ist ausgefallen', 1)
-                    ),
-                )),
-                // nur beim neu anlegen kann Doppelstunde gecheckt werden
-                !$LessonContentId
-                    ? new FormRow(array(
-                        new FormColumn(
-                            new CheckBox('Data[IsDoubleLesson]', 'Doppelstunde ' . new ToolTip(new Info(),
-                                'Beim Speichern werden die Daten auch für die nächste Unterrichtseinheit gespeichert.'), 1)
-                        ),
-                    )) : null,
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[Room]', 'Raum', 'Raum', new MapMarker())
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        $buttonList
+        ));
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                new CheckBox('Data[IsCanceled]', 'Fach ist ausgefallen', 1)
+            ),
+        ));
+        // nur beim neu anlegen kann Doppelstunde gecheckt werden
+        if (!$LessonContentId) {
+            $formRowList[] = new FormRow(array(
+                new FormColumn(
+                    new CheckBox('Data[IsDoubleLesson]', 'Doppelstunde ' . new ToolTip(new Info(),
+                            'Beim Speichern werden die Daten auch für die nächste Unterrichtseinheit gespeichert.'), 1)
+                ),
+            ));
+        }
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
+            ),
+        ));
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
+            ),
+        ));
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                new TextField('Data[Room]', 'Raum', 'Raum', new MapMarker())
+            ),
+        ));
+        if (!$LessonContentId) {
+            $formRowList[] = new FormRow(array(
+                new FormColumn(
+                    ApiDigital::receiverBlock(
+                        $tblSubject ? Digital::useService()->getLessonContentLinkPanel($tblDivision ?: null, $tblGroup ?: null, $tblSubject) : '',
+                        'LessonContentLinkPanel'
                     )
-                )),
-            ))
-        ))->disableSubmitAction();
+                )
+            ));
+        }
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                $buttonList
+            )
+        ));
+
+        return (new Form(new FormGroup(
+             $formRowList
+        )))->disableSubmitAction();
     }
 }

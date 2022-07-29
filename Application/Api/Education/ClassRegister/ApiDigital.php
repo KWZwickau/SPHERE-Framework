@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -64,6 +65,8 @@ class ApiDigital extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveEditLessonContentModal');
         $Dispatcher->registerMethod('openDeleteLessonContentModal');
         $Dispatcher->registerMethod('saveDeleteLessonContentModal');
+
+        $Dispatcher->registerMethod('loadLessonContentLinkPanel');
 
         $Dispatcher->registerMethod('loadLessonWeekContent');
         $Dispatcher->registerMethod('saveLessonWeekCheck');
@@ -232,6 +235,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return $title
+            . Digital::useService()->getLessonContentLinkedDisplayPanel($LessonContentId)
             . new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(
@@ -289,12 +293,59 @@ class ApiDigital extends Extension implements IApiInterface
             return $this->getLessonContentModal($form);
         }
 
-        if (Digital::useService()->createLessonContent($Data, $tblDivision ?: null, $tblGroup ?: null)) {
+        $lesson = intval($Data['Lesson']);
+        if (($tblLessonContent = Digital::useService()->createLessonContent($Data, $lesson, $tblDivision ?: null, $tblGroup ?: null))) {
             // bei Doppelstunde die Daten auch für die nächste UE speichern
             if (isset($Data['IsDoubleLesson']) && isset($Data['Lesson'])) {
-                $Data['Lesson'] = intval($Data['Lesson']) + 1;
-                Digital::useService()->createLessonContent($Data, $tblDivision ?: null, $tblGroup ?: null);
+                $lessonDouble = $lesson + 1;
+                $tblLessonContentDouble = Digital::useService()->createLessonContent($Data, $lessonDouble, $tblDivision ?: null, $tblGroup ?: null);
+            } else {
+                $lessonDouble = false;
+                $tblLessonContentDouble = false;
             }
+
+            // Thema/Hausaufgaben verknüpfen
+            if (isset($Data['Link'])) {
+                $LinkId = Digital::useService()->getNextLinkId();
+                Digital::useService()->createLessonContentLink($tblLessonContent, $LinkId);
+
+                // Doppelstunde -> extra Link
+                if ($tblLessonContentDouble) {
+                    $LinkDoubleId = $LinkId + 1;
+                    Digital::useService()->createLessonContentLink($tblLessonContentDouble, $LinkDoubleId);
+                } else {
+                    $LinkDoubleId = false;
+                }
+
+                foreach ($Data['Link'] as $courseAddId => $value) {
+                    if ($tblDivision) {
+                        if (($tblDivisionToLink = Division::useService()->getDivisionById($courseAddId))
+                            && ($tblLessonContentToLink = Digital::useService()->createLessonContent($Data, $lesson, $tblDivisionToLink, null))
+                        ) {
+                            Digital::useService()->createLessonContentLink($tblLessonContentToLink, $LinkId);
+                            // Doppelstunde
+                            if ($tblLessonContentDouble
+                                && ($tblLessonContentDoubleToLink = Digital::useService()->createLessonContent($Data, $lessonDouble, $tblDivisionToLink, null))
+                            ) {
+                                Digital::useService()->createLessonContentLink($tblLessonContentDoubleToLink, $LinkDoubleId);
+                            }
+                        }
+                    } elseif ($tblGroup) {
+                        if (($tblGroupToLink = Group::useService()->getGroupById($courseAddId))
+                            && ($tblLessonContentToLink = Digital::useService()->createLessonContent($Data, $lesson, null, $tblGroupToLink))
+                        ) {
+                            Digital::useService()->createLessonContentLink($tblLessonContentToLink, $LinkId);
+                            // Doppelstunde
+                            if ($tblLessonContentDouble
+                                && ($tblLessonContentDoubleToLink = Digital::useService()->createLessonContent($Data, $lessonDouble, null, $tblGroupToLink))
+                            ) {
+                                Digital::useService()->createLessonContentLink($tblLessonContentDoubleToLink, $LinkDoubleId);
+                            }
+                        }
+                    }
+                }
+            }
+
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadLessonContentContent($DivisionId, $GroupId, $Data['Date'],
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
@@ -383,6 +434,11 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if (Digital::useService()->updateLessonContent($tblLessonContent, $Data)) {
+            if (($tblLessonContentLinkedList = $tblLessonContent->getLinkedLessonContentAll())) {
+                foreach ($tblLessonContentLinkedList as $tblLessonContentItem) {
+                    Digital::useService()->updateLessonContent($tblLessonContentItem, $Data);
+                }
+            }
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null,
                     $tblGroup ? $tblGroup->getId() : null, $Data['Date'],
@@ -425,6 +481,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return new Title(new Remove() . ' Thema/Hausaufgaben löschen')
+            . (($linkedPanel = Digital::useService()->getLessonContentLinkedDisplayPanel($LessonContentId)) ? : '')
             . new Layout(
                 new LayoutGroup(
                     new LayoutRow(
@@ -434,8 +491,7 @@ class ApiDigital extends Extension implements IApiInterface
                                 array(
                                     $tblLessonContent->getDate(),
                                     $tblLessonContent->getLessonDisplay(),
-                                    ($tblSubject = $tblLessonContent->getServiceTblSubject())
-                                        ? $tblSubject->getDisplayName() : '',
+                                    $tblLessonContent->getDisplaySubject(false),
                                     ($tblPerson = $tblLessonContent->getServiceTblPerson())
                                         ? $tblPerson->getFullName() : '',
                                     $tblLessonContent->getContent(),
@@ -443,6 +499,7 @@ class ApiDigital extends Extension implements IApiInterface
                                 ),
                                 Panel::PANEL_TYPE_DANGER
                             )
+                            . ($linkedPanel ? new Warning('Verknüpfte Thema/Hausaufgaben werden mit gelöscht.', new Exclamation()) : '')
                             . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
                                 ->ajaxPipelineOnClick(self::pipelineDeleteLessonContentSave($LessonContentId))
                             . (new Standard('Nein', self::getEndpoint(), new Remove()))
@@ -498,6 +555,60 @@ class ApiDigital extends Extension implements IApiInterface
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gelöscht werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $GroupId
+     * @param string|null $SubjectId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadLessonContentLinkPanel(string $DivisionId = null, string $GroupId = null, string $SubjectId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonContentLinkPanel'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadLessonContentLinkPanel',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionId' => $DivisionId,
+            'GroupId' => $GroupId,
+            'SubjectId' => $SubjectId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string|null $DivisionId
+     * @param string|null $GroupId
+     * @param string|null $SubjectId
+     * @param null $Data
+     *
+     * @return string|null
+     */
+    public function loadLessonContentLinkPanel(string $DivisionId = null, string $GroupId = null, string $SubjectId = null, $Data = null)
+    {
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if (!($tblDivision || $tblGroup)) {
+            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        }
+
+        if (isset($Data['serviceTblSubject'])) {
+            $tblSubject = Subject::useService()->getSubjectById($Data['serviceTblSubject']);
+        } else {
+            $tblSubject = Subject::useService()->getSubjectById($SubjectId);
+        }
+
+        if ($tblSubject) {
+            return Digital::useService()->getLessonContentLinkPanel($tblDivision ?: null, $tblGroup ?: null, $tblSubject);
+        }
+
+        return null;
     }
 
     /**
