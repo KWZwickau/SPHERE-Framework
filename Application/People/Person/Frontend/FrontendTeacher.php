@@ -10,6 +10,7 @@ namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
@@ -34,6 +35,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class FrontendTeacher
@@ -51,38 +53,50 @@ class FrontendTeacher extends FrontendReadOnly
      */
     public static function getTeacherContent($PersonId = null)
     {
-        if (($tblPerson = Person::useService()->getPersonById($PersonId))
-            && ($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
-            && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
-        ) {
-            if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))) {
-                $acronym = $tblTeacher->getAcronym();
-            } else {
-                $acronym = '';
-            }
 
-            $content = new Layout(new LayoutGroup(array(
-                new LayoutRow(array(
-                    self::getLayoutColumnLabel('Kürzel'),
-                    self::getLayoutColumnValue($acronym),
-                    self::getLayoutColumnEmpty(8),
-                )),
-            )));
-
-            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditTeacherContent($PersonId));
-            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
-
-            return TemplateReadOnly::getContent(
-                self::TITLE,
-                self::getSubContent(self::TITLE, $content),
-                array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
-                new Tag()
-            );
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))){
+            return '';
         }
 
-        return '';
+        $AuthorizedToCollectGroups[] = TblGroup::META_TABLE_TEACHER;
+        $AuthorizedToCollectGroups[] = TblGroup::META_TABLE_STAFF;
+        $hasBlock = false;
+        foreach ($AuthorizedToCollectGroups as $group) {
+            if (($tblGroup = Group::useService()->getGroupByMetaTable($group))
+                && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
+            ) {
+                $hasBlock = true;
+                break;
+            }
+        }
+        if(!$hasBlock){
+            return '';
+        }
+        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))) {
+            $acronym = $tblTeacher->getAcronym();
+        } else {
+            $acronym = '';
+        }
+
+        $content = new Layout(new LayoutGroup(array(
+            new LayoutRow(array(
+                self::getLayoutColumnLabel('Kürzel'),
+                self::getLayoutColumnValue($acronym),
+                self::getLayoutColumnEmpty(8),
+            )),
+        )));
+
+        $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditTeacherContent($PersonId));
+        $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
+
+        return TemplateReadOnly::getContent(
+            self::TITLE,
+            self::getSubContent(self::TITLE, $content),
+            array($editLink),
+            'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
+            new Tag()
+        );
     }
 
     /**

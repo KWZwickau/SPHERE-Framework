@@ -2,8 +2,14 @@ SELECT
 
 -- PersonId to match with all View's // tblTeacher
     tT.serviceTblPerson AS TblPerson_Id,
-    tT.Acronym AS TblTeacher_Acronym
+    tT.Acronym AS TblTeacher_Acronym,
+    DATE_FORMAT( tPM.MasernDate, '%d.%m.%Y' ) AS TblPersonMasern_MasernDate,
+    tSMI.TextShort AS TblStudentMedicalRecord_MasernDocumentType,
+    tSMI2.TextShort AS TblStudentMedicalRecord_MasernCreatorType
 
 FROM {{ ConsumerAcronym }}_PeopleMeta.tblTeacher tT
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblPersonMasern tPM ON tPM.serviceTblPerson = tT.serviceTblPerson
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentMasernInfo tSMI ON tSMI.Id = tPM.MasernDocumentType
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentMasernInfo tSMI2 ON tSMI2.Id = tPM.MasernCreatorType
 
 where tT.EntityRemove IS NULL

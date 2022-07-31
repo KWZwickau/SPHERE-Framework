@@ -40,6 +40,9 @@ class Individual implements IApplicationInterface, IModuleInterface
             __NAMESPACE__.'/Teacher', __NAMESPACE__.'\Frontend::frontendTeacher'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Staff', __NAMESPACE__.'\Frontend::frontendStaff'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Club', __NAMESPACE__.'\Frontend::frontendClub'
         ));
     }

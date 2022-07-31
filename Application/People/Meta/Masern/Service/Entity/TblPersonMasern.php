@@ -21,6 +21,7 @@ class TblPersonMasern extends Element
 {
 
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_MASERN_DATE = 'MasernDate';
 
     /**
      * @Column(type="bigint")
