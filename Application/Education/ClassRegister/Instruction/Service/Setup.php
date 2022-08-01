@@ -65,6 +65,7 @@ class Setup extends AbstractSetup
 
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblGroup', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblDivisionSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'Date', self::FIELD_TYPE_DATETIME);

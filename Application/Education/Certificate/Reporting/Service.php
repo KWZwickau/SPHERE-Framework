@@ -502,7 +502,7 @@ class Service extends Extension
                     foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                         if (($tblDivision = $tblDivisionStudent->getTblDivision())
                             && ($tblLevel = $tblDivision->getTblLevel())
-                            && (Division::useService()->getIsDivisionSekII($tblDivision))
+                            && (Division::useService()->getIsDivisionCourseSystem($tblDivision))
                             && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
                         ) {
                             // Schuljahreswiederholungen, alte Klasse ignorieren, es kommt die neuere Klasse zuerst raus

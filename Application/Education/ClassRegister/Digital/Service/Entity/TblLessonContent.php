@@ -367,4 +367,12 @@ class TblLessonContent extends Element
 
         return $subject;
     }
+
+    /**
+     * @return false|TblLessonContent[]
+     */
+    public function getLinkedLessonContentAll()
+    {
+        return Digital::useService()->getLessonContentLinkAllByLessonContent($this);
+    }
 }

@@ -7,6 +7,7 @@ use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblIns
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstructionItem;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstructionItemStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -169,13 +170,20 @@ class Data extends AbstractData
      * @param TblInstruction $tblInstruction
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
+     * @param TblDivisionSubject|null $tblDivisionSubject
      * @param TblYear|null $tblYear
      *
      * @return false|TblInstructionItem[]
      */
-    public function getInstructionItemAllByInstruction(TblInstruction $tblInstruction, ?TblDivision $tblDivision, ?TblGroup $tblGroup, ?TblYear $tblYear)
+    public function getInstructionItemAllByInstruction(TblInstruction $tblInstruction, ?TblDivision $tblDivision, ?TblGroup $tblGroup,
+        ?TblDivisionSubject $tblDivisionSubject, ?TblYear $tblYear)
     {
-        if ($tblDivision) {
+        if ($tblDivisionSubject) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
+                TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
+                TblInstructionItem::ATTR_SERVICE_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
+            ), array(TblInstructionItem::ATTR_DATE => self::ORDER_ASC));
+        } elseif ($tblDivision) {
             return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
                 TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
                 TblInstructionItem::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
@@ -197,13 +205,21 @@ class Data extends AbstractData
      * @param TblInstruction $tblInstruction
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
+     * @param TblDivisionSubject|null $tblDivisionSubject
      * @param TblYear|null $tblYear
      *
      * @return false|TblInstructionItem
      */
-    public function getMainInstructionItemBy(TblInstruction $tblInstruction, ?TblDivision $tblDivision, ?TblGroup $tblGroup, ?TblYear $tblYear)
+    public function getMainInstructionItemBy(TblInstruction $tblInstruction, ?TblDivision $tblDivision, ?TblGroup $tblGroup,
+        ?TblDivisionSubject $tblDivisionSubject, ?TblYear $tblYear)
     {
-        if ($tblDivision) {
+        if ($tblDivisionSubject) {
+            return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
+                TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
+                TblInstructionItem::ATTR_SERVICE_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
+                TblInstructionItem::ATTR_IS_MAIN => 1
+            ));
+        } elseif ($tblDivision) {
             return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
                 TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
                 TblInstructionItem::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
@@ -213,7 +229,7 @@ class Data extends AbstractData
             return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
                 TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
                 TblInstructionItem::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId(),
-                TblInstructionItem::ATTR_SERVICE_TBL_YEAR => $tblGroup->getId(),
+                TblInstructionItem::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
                 TblInstructionItem::ATTR_IS_MAIN => 1
             ));
         }
@@ -225,6 +241,7 @@ class Data extends AbstractData
      * @param TblInstruction $tblInstruction
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
+     * @param TblDivisionSubject|null $tblDivisionSubject
      * @param TblYear|null $tblYear
      * @param TblPerson|null $tblPerson
      * @param $Date
@@ -238,6 +255,7 @@ class Data extends AbstractData
         TblInstruction $tblInstruction,
         ?TblDivision $tblDivision,
         ?TblGroup $tblGroup,
+        ?TblDivisionSubject $tblDivisionSubject,
         ?TblYear $tblYear,
         ?TblPerson $tblPerson,
         $Date,
@@ -251,6 +269,7 @@ class Data extends AbstractData
         $Entity->setTblInstruction($tblInstruction);
         $Entity->setServiceTblDivision($tblDivision);
         $Entity->setServiceTblGroup($tblGroup);
+        $Entity->setServiceTblDivisionSubject($tblDivisionSubject);
         $Entity->setServiceTblYear($tblYear);
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setDate($Date ? new DateTime($Date) : null);

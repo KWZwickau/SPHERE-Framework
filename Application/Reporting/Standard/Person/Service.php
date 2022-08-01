@@ -20,6 +20,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
@@ -267,14 +268,16 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param TblPerson[] $tblPersonList
+     * @param $PersonList
+     * @param $tblPersonList
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
+     * @param TblDivisionSubject|null $tblDivisionSubject
      *
-     * @return bool|FilePointer
+     * @return false|FilePointer
      */
-    public function createClassListExcel($PersonList, $tblPersonList, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function createClassListExcel($PersonList, $tblPersonList, TblDivision $tblDivision = null, TblGroup $tblGroup = null,
+        TblDivisionSubject $tblDivisionSubject = null)
     {
 
         if (!empty($PersonList)) {
@@ -472,6 +475,13 @@ class Service extends Extension
             } elseif ($tblGroup) {
                 $export->setValue($export->getCell("0", $Row), 'Tudor/Mentor:');
                 $export->setValue($export->getCell("2", $Row), $tblGroup->getTudorsString(false));
+            } elseif ($tblDivisionSubject
+                && ($tblDivisionItem = $tblDivisionSubject->getTblDivision())
+                && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+            ) {
+                $export->setValue($export->getCell("0", $Row), 'Fachlehrer:');
+                $export->setValue($export->getCell("2", $Row), Division::useService()->getSubjectTeacherNameList($tblDivisionItem, $tblSubject, $tblSubjectGroup));
             }
             $Row++;
             if ($tblDivision) {

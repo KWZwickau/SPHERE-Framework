@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 use DateTime;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContentLink;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
@@ -174,20 +175,28 @@ class Data  extends AbstractData
 
     /**
      * @param DateTime $date
-     * @param int $lesson
+     * @param int|null $lesson
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
      *
      * @return false|TblLessonContent[]
      */
-    public function getLessonContentAllByDateAndLesson(DateTime $date, int $lesson, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function getLessonContentAllByDateAndLesson(DateTime $date, ?int $lesson, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
     {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', array(
-            TblLessonContent::ATTR_DATE => $date,
-            TblLessonContent::ATTR_LESSON => $lesson,
-            TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
-            TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
-        ), array(Element::ENTITY_CREATE => self::ORDER_ASC) );
+        if ($lesson !== null) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', array(
+                TblLessonContent::ATTR_DATE => $date,
+                TblLessonContent::ATTR_LESSON => $lesson,
+                TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
+                TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
+            ), array(Element::ENTITY_CREATE => self::ORDER_ASC));
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', array(
+                TblLessonContent::ATTR_DATE => $date,
+                TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
+                TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
+            ), array(Element::ENTITY_CREATE => self::ORDER_ASC));
+        }
     }
 
     /**
@@ -579,5 +588,124 @@ class Data  extends AbstractData
             TblLessonWeek::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null,
             TblLessonWeek::ATTR_DATE => $dateTime
         ));
+    }
+
+    /**
+     * @param TblLessonContent $tblLessonContent
+     * @param int $LinkId
+     *
+     * @return TblLessonContentLink
+     */
+    public function createLessonContentLink(TblLessonContent $tblLessonContent, int $LinkId): TblLessonContentLink
+    {
+        $Manager = $this->getEntityManager();
+        $Entity = $Manager->getEntity('TblLessonContentLink')
+            ->findOneBy(
+                array(
+                    TblLessonContentLink::ATTR_TBL_LESSON_CONTENT => $tblLessonContent->getId(),
+                    TblLessonContentLink::ATTR_TBL_LINK_ID => $LinkId
+                )
+            );
+        if (null === $Entity) {
+            $Entity = new TblLessonContentLink();
+            $Entity->setTblLessonContent($tblLessonContent);
+            $Entity->setLinkId($LinkId);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @return int
+     */
+    public function getNextLinkId(): int
+    {
+        $list = $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLessonContentLink');
+        $max = 0;
+        if ($list) {
+            $max = 0;
+            /** @var TblLessonContentLink $tblLessonContentLink */
+            foreach ($list as $tblLessonContentLink) {
+                if ($tblLessonContentLink->getLinkId() !== null
+                    && $tblLessonContentLink->getLinkId() > $max
+                ) {
+                    $max = $tblLessonContentLink->getLinkId();
+                }
+            }
+        }
+
+        return $max + 1;
+    }
+
+    /**
+     * @param TblLessonContent $tblLessonContent
+     *
+     * @return false | TblLessonContent[]
+     */
+    public function getLessonContentLinkAllByLessonContent(TblLessonContent $tblLessonContent)
+    {
+        $resultList = array();
+        /** @var TblLessonContentLink $tblLessonContentLink */
+        $tblLessonContentLink = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLessonContentLink',
+            array(
+                TblLessonContentLink::ATTR_TBL_LESSON_CONTENT => $tblLessonContent->getId()
+            )
+        );
+        if ($tblLessonContentLink
+            && ($LinkId = $tblLessonContentLink->getLinkId())
+        ) {
+            $tblLessonContentLinkList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblLessonContentLink', array(
+                    TblLessonContentLink::ATTR_TBL_LINK_ID => $LinkId
+                )
+            );
+            if ($tblLessonContentLinkList) {
+                /** @var TblLessonContentLink $item */
+                foreach ($tblLessonContentLinkList as $item) {
+                    if ($item->getTblLessonContent()
+                        && $item->getTblLessonContent()->getId() != $tblLessonContent->getId()
+                    ) {
+                        $resultList[] = $item->getTblLessonContent();
+                    }
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblLessonContent[] $tblLessonContentList
+     *
+     * @return bool
+     */
+    public function destroyLessonContentLinkList(
+        array $tblLessonContentList
+    ): bool {
+        $Manager = $this->getEntityManager();
+
+        foreach ($tblLessonContentList as $tblLessonContent) {
+            /** @var TblLessonContent $Entity */
+            if (($tblLessonContentLinkList = $this->getForceEntityListBy(__METHOD__,
+                $Manager, 'TblLessonContentLink', array(TblLessonContentLink::ATTR_TBL_LESSON_CONTENT => $tblLessonContent->getId())))
+            ) {
+                foreach ($tblLessonContentLinkList as $tblLessonContentLink) {
+                    $Entity = $Manager->getEntityById('TblLessonContentLink', $tblLessonContentLink->getId());
+
+                    if (null !== $Entity) {
+                        $Manager->bulkKillEntity($Entity);
+                        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+                    }
+                }
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
     }
 }

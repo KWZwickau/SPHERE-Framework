@@ -11,6 +11,7 @@ use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
@@ -29,6 +30,7 @@ class TblInstructionItem extends Element
     const ATTR_TBL_INSTRUCTION = 'tblClassRegisterInstruction';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_GROUP = 'serviceTblGroup';
+    const ATTR_SERVICE_TBL_DIVISION_SUBJECT = 'serviceTblDivisionSubject';
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_DATE = 'Date';
     const ATTR_IS_MAIN = 'IsMain';
@@ -47,6 +49,11 @@ class TblInstructionItem extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblGroup;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblDivisionSubject;
 
     /**
      * @Column(type="bigint")
@@ -136,6 +143,26 @@ class TblInstructionItem extends Element
     public function setServiceTblGroup(TblGroup $serviceTblGroup = null)
     {
         $this->serviceTblGroup = (null === $serviceTblGroup ? null : $serviceTblGroup->getId());
+    }
+
+    /**
+     * @return bool|TblDivisionSubject
+     */
+    public function getServiceTblDivisionSubject()
+    {
+        if (null === $this->serviceTblDivisionSubject) {
+            return false;
+        } else {
+            return Division::useService()->getDivisionSubjectById($this->serviceTblDivisionSubject);
+        }
+    }
+
+    /**
+     * @param TblDivisionSubject|null $tblDivisionSubject
+     */
+    public function setServiceTblDivisionSubject(TblDivisionSubject $tblDivisionSubject = null)
+    {
+        $this->serviceTblDivisionSubject = (null === $tblDivisionSubject ? null : $tblDivisionSubject->getId());
     }
 
     /**

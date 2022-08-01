@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\Table;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
@@ -20,7 +21,8 @@ class Setup  extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $this->setTableLessonContent($Schema);
+        $tblLessonContent = $this->setTableLessonContent($Schema);
+        $this->setTableLessonContentLink($Schema, $tblLessonContent);
         $this->setTableLessonWeek($Schema);
         $this->setTableCourseContent($Schema);
 
@@ -39,8 +41,10 @@ class Setup  extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     *
+     * @return Table
      */
-    private function setTableLessonContent(Schema &$Schema)
+    private function setTableLessonContent(Schema &$Schema): Table
     {
         $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterLessonContent');
 
@@ -60,6 +64,21 @@ class Setup  extends AbstractSetup
         // todo anlegen der Indexe nach dem Umbau von Klassen und Gruppen
 //        $this->createIndex($Table, array(TblLessonContent::ATTR_DATE, TblLessonContent::ATTR_LESSON, TblLessonContent::ATTR_SERVICE_TBL_DIVISION), false);
 //        $this->createIndex($Table, array(TblLessonContent::ATTR_DATE, TblLessonContent::ATTR_SERVICE_TBL_DIVISION), false);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblLessonContent
+     */
+    private function setTableLessonContentLink(Schema &$Schema, Table $tblLessonContent)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterLessonContentLink');
+        $this->createColumn($Table, 'LinkId', self::FIELD_TYPE_BIGINT);
+
+        $this->getConnection()->addForeignKey($Table, $tblLessonContent, true);
     }
 
     /**
