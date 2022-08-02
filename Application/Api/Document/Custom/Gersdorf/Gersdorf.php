@@ -17,6 +17,12 @@ class Gersdorf extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Emergency/Create', __CLASS__.'::createEmergencyPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/MetaDataComparison/Create', __CLASS__.'::createMetaDataComparisonPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/MetaDataComparison/Division/CreateMulti', __CLASS__.'::createMetaDataComparisonByDivisionPdf'
+        ));
     }
 
     /**
@@ -29,6 +35,28 @@ class Gersdorf extends Extension implements IModuleInterface
     {
 
         return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\Emergency', Creator::PAPERORIENTATION_PORTRAIT, $Data);
+    }
+
+    /**
+     * @param null  $PersonId
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createMetaDataComparisonPdf($PersonId = null, $Data = array())
+    {
+
+        return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\MetaDataComparison', Creator::PAPERORIENTATION_PORTRAIT, $Data);
+    }
+
+    /**
+     * @param null  $PersonId
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createMetaDataComparisonByDivisionPdf($DivisionId, bool $Redirect = true)
+    {
+
+        return Creator::createMultiDataComparisonPdf($DivisionId, $Redirect);
     }
 
     /**
