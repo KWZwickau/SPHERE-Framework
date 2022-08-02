@@ -280,7 +280,7 @@ class MetaDataComparison extends AbstractDocument
             )
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Evangelsche Oberschule Gersdorf staatlich anerkannte Ersatzschule')
+                    ->setContent('Evangelische Oberschule Gersdorf staatlich anerkannte Ersatzschule')
                     ->styleBorderTop('2px')
                     ->styleBorderBottom('2px')
                     ->styleBorderLeft('2px')
