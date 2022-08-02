@@ -6,6 +6,7 @@ use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationPara
 use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Document\Custom\Gersdorf\Repository\MetaDataComparison;
 use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
 use SPHERE\Application\Api\Document\Standard\Repository\Account\AccountApp;
 use SPHERE\Application\Api\Document\Standard\Repository\Account\AccountToken;
@@ -1070,6 +1071,7 @@ class Creator extends Extension
 
         readfile($file);
     }
+
     /**
      * @param string $DivisionId
      * @param bool $Redirect
@@ -1205,5 +1207,62 @@ class Creator extends Extension
         }
 
         return "Kein Kursheft vorhanden!";
+    }
+
+    /**
+     * @param string $DivisionId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createMultiDataComparisonPdf(string $DivisionId, bool $Redirect = true): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Custom/Gersdorf/MetaDataComparison/Division/CreateMulti',
+                array(
+                    'DivisionId' => $DivisionId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            // Filepointer auf dem der Merge durchgeführt wird, (download)
+            $MergeFile = Storage::createFilePointer('pdf');
+            $PdfMerger = new PdfMerge();
+
+            if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
+                $FileList = array();
+                foreach ($tblPersonList as $tblPerson) {
+                    set_time_limit(300);
+                    $Data['Person']['Id'] = $tblPerson->getId();
+                    $Document = new MetaDataComparison($Data);
+                    $File = self::buildDummyFile($Document, array(), array());
+
+                    // hinzufügen für das mergen
+                    $PdfMerger->addPdf($File);
+                    // speichern der Files zum nachträglichem bereinigen
+                    $FileList[] = $File;
+                }
+
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+                if(!empty($FileList)){
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach($FileList as $File){
+                        $File->setDestruct();
+                    }
+                }
+
+                if (!empty($FileList)) {
+                    $FileName = 'Stammdaten der Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
+                    return self::buildDownloadFile($MergeFile, $FileName);
+                }
+            }
+        }
+
+        return "Keine Stammdaten vorhanden!";
     }
 }
