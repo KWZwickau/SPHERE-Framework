@@ -294,8 +294,8 @@ class ImportGateway extends AbstractConverter
         // bei vorhandenem Schüler wird geprüft ob Person über Personenverknüpfungen vorhanden ist
         if($tblPersonStudent){
             // Suchen einer Person, wenn gefunden dann abgleich auf Personenbeziehung
-            $tblPersonGuard = Person::useService()->getPersonByNameExtended($FirstName, $LastName);
-            if($tblPersonGuard && $tblPersonStudent && $tblPersonGuard->getId() === $tblPersonStudent->getId()){
+            $tblPersonGuard = Person::useService()->getPersonByName($FirstName, $LastName);
+            if($tblPersonGuard && $tblPersonGuard->getId() === $tblPersonStudent->getId()){
                 $tblPerson = $tblPersonGuard;
             } elseif ($tblPersonGuard){
                 if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
@@ -308,9 +308,9 @@ class ImportGateway extends AbstractConverter
             if(!$tblPerson){
                 // wird nur geprüft, wenn keine eindeutigen treffer vorliegen
                 // Suchen aller Person, wenn gefunden dann abgleich auf Personenbeziehung
-                if(($tblPersonList = Person::useService()->getPersonAllByNameExtended($FirstName, $LastName))){
+                if(($tblPersonList = Person::useService()->getPersonAllByName($FirstName, $LastName))){
                     foreach($tblPersonList as $tblPersonGuard){
-                        if($tblPersonGuard && $tblPersonStudent && $tblPersonGuard->getId() === $tblPersonStudent->getId()){
+                        if($tblPersonGuard && $tblPersonGuard->getId() === $tblPersonStudent->getId()){
                             $tblPerson = $tblPersonGuard;
                         } elseif (Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
                             $tblPerson = $tblPersonGuard;
@@ -326,7 +326,7 @@ class ImportGateway extends AbstractConverter
         } else {
             // Schüler
             // oder Person ohne erkannten Schüler
-            $tblPerson = Person::useService()->getPersonByNameExtended($FirstName, $LastName, $Birthday);
+            $tblPerson = Person::useService()->getPersonByName($FirstName, $LastName, $Birthday);
         }
         return $tblPerson;
     }
