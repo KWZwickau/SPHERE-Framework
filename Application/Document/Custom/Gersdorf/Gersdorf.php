@@ -421,7 +421,7 @@ class Gersdorf extends Extension implements IModuleInterface
                         'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
                         'Option'   => new External('','/Api/Document/Custom/Gersdorf/MetaDataComparison/Create', new Download(),
-                            array('Data' => array('Person' => array('Id' => $tblPerson->getId()))))
+                            array('Data' => array('Person' => array('Id' => $tblPerson->getId()))), 'Stammdatenabfrage herunterladen')
                     );
                 }
             }
