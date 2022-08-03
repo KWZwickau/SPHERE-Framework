@@ -781,7 +781,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutRow(
                     new LayoutColumn(
                         new Code("UPDATE ".$Acronym."_PeopleMeta.tblCommonBirthDates SET Birthday = date_add(Birthday, interval 1 YEAR);
-UPDATE ".$Acronym."_PeopleMeta_.tblSpecial SET Date = date_add(Date, interval 1 YEAR);
+UPDATE ".$Acronym."_PeopleMeta.tblSpecial SET Date = date_add(Date, interval 1 YEAR);
 UPDATE ".$Acronym."_PeopleMeta.tblStudent SET SchoolAttendanceStartDate = date_add(SchoolAttendanceStartDate, interval 1 YEAR);
 UPDATE ".$Acronym."_PeopleMeta.tblStudentBaptism SET BaptismDate = date_add(BaptismDate, interval 1 YEAR);
 UPDATE ".$Acronym."_PeopleMeta.tblStudentIntegration SET CoachingRequestDate = date_add(CoachingRequestDate, interval 1 YEAR),CoachingCounselDate = date_add(CoachingCounselDate, interval 1 YEAR),CoachingDecisionDate = date_add(CoachingDecisionDate, interval 1 YEAR);
