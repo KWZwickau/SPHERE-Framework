@@ -243,7 +243,7 @@ class FrontendStudent extends FrontendReadOnly
 
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
-                    self::getLayoutColumnLabel('Identifikation'),
+                    self::getLayoutColumnLabel('Schülernummer'),
                     self::getLayoutColumnValue($identifier),
                     new LayoutColumn(
                         new Layout(new LayoutGroup(array(
@@ -371,7 +371,7 @@ class FrontendStudent extends FrontendReadOnly
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Identifikation', array(
+                        new Panel('Schülernummer', array(
                             new Layout(
                                 new LayoutGroup(
                                     new LayoutRow(array(
