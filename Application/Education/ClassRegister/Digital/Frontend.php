@@ -459,12 +459,12 @@ class Frontend extends FrontendTabs
         $DivisionId = $tblDivision ? $tblDivision->getId() : null;
         $GroupId = $tblGroup ? $tblGroup->getId() : null;
 
-        $Date = $DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString;
+        $Date = ($DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString);
 
         $buttons = (new Primary(
             new Plus() . ' Thema/Hausaufgaben hinzufügen',
             ApiDigital::getEndpoint()
-        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $DateString));
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $Date));
 
         if ($tblDivision) {
             $Type = 'Division';
