@@ -110,7 +110,7 @@ class Service
 
                 $OptionalLocation = array(
                     'Geburtsdatum' => null,
-                    'Identifikation' => null
+                    'Schülernummer' => null
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
@@ -154,8 +154,8 @@ class Service
                         }
 
                         $StudentNumber = false;
-                        if($OptionalLocation['Identifikation'] !== null){
-                            $StudentNumber = trim($Document->getValue($Document->getCell($OptionalLocation['Identifikation'], $RunY)));
+                        if($OptionalLocation['Schülernummer'] !== null){
+                            $StudentNumber = trim($Document->getValue($Document->getCell($OptionalLocation['Schülernummer'], $RunY)));
                         }
 
                         $addMail = false;
@@ -286,7 +286,11 @@ class Service
                                 if(!$isTest && $StudentNumber && $StudentNumber != ''){
                                     if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
                                         Student::useService()->updateStudentIdentifier($tblStudent, $StudentNumber);
-                                        $countUpdateStudentNumber++;
+                                        if($tblStudent->getIdentifier()){
+                                            $countUpdateStudentNumber++;
+                                        } else {
+                                            $countAddStudentNumber++;
+                                        }
                                     } else {
                                         Student::useService()->createStudent($tblPerson, '', $StudentNumber);
                                         $countAddStudentNumber++;
