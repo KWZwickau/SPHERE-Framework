@@ -96,9 +96,10 @@ class People implements IClusterInterface
                     $tblGroupLockedList[] = $content;
                     if ($tblGroup->getMetaTable() == 'STUDENT') {
 
-                        $countContent = self::getStudentCountByType();
+                        $countContent = self::getStudentCountByDate();
                         $countContent = new Listing($countContent);
-                        $countContentNext = self::getStudentCountByType(true);
+                        $DateTime = new \DateTime(date('Y-m-d',strtotime("+12 months")));
+                        $countContentNext = self::getStudentCountByDate($DateTime);
                         if(!empty($countContentNext)){
                             $countContentNext = new Listing($countContentNext);
                         }
@@ -142,36 +143,15 @@ class People implements IClusterInterface
     }
 
     /**
+     * @param \DateTime|null $DateTime
+     *
      * @return array
      */
-    private static function getStudentCountByType($IsNextYear = false)
+    private static function getStudentCountByDate(?\DateTime $DateTime = null): array
     {
 
-        if($IsNextYear){
-//            $Date = date('Y-m-d',strtotime("+12 months"));
-//            $DateTime = new \DateTime($Date);
-            if(($tblYearList = Term::useService()->getYearByNow())){
-                $YearString = '';
-                foreach($tblYearList as $tblYear){
-                    $Year = $tblYear->getYear();
-                    if($YearString != ''){
-                        $YearString = $Year;
-                    }
-                    if($YearString > $Year){
-                        $YearString = $Year;
-                    }
-                }
-
-                // String Stücklung
-                $FirstYear = substr($YearString, 0, 4);
-                $Separator = substr($YearString, 4, 1);
-                $SecondYear = substr($YearString, 5, 2);
-
-                // String Zählung + 1 (+1 Jahr)
-                $FirstYear = 1 + (int)$FirstYear;
-                $SecondYear = 1 + (int)$SecondYear;
-                $tblYearList = Term::useService()->getYearByName($FirstYear.$Separator.$SecondYear);
-
+        if($DateTime){
+            if(($tblYearList = Term::useService()->getYearAllByDate($DateTime))){
                 // Suche nach enthaltenen Klassen
                 $isDivisionInclude = false;
                 if($tblYearList){
@@ -186,7 +166,6 @@ class People implements IClusterInterface
                     $tblYearList = false;
                 }
             }
-
         } else {
             $tblYearList = Term::useService()->getYearByNow();
         }
@@ -226,7 +205,7 @@ class People implements IClusterInterface
         if ($tblYearList) {
             foreach ($tblYearList as $tblYear) {
                 $Calculation = Division::useService()->getStudentCountByYear($tblYear);
-                if($IsNextYear){
+                if($DateTime){
                     $tblStudentCounterBySchoolType[] = new Muted(new Small($Calculation['countStudentsByYear']
                             . ' Mitglieder im Schuljahr ' . $tblYear->getDisplayName()
                         ));
