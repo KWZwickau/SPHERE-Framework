@@ -695,16 +695,23 @@ class Service extends AbstractService
     public function changeBasketDoneSepa(TblBasket $tblBasket)
     {
 
+        $IsRegularChangeBasket = true;
         $PersonName = 'Person nicht hinterlegt!';
         if(($tblAccount = Account::useService()->getAccountBySession())){
+            if($tblAccount->getServiceTblIdentification()->getName() == 'System'){
+                $IsRegularChangeBasket = false;
+            }
+
             if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
                 /** @var TblPerson $tblPerson */
                 $tblPerson = current($tblPersonList);
                 $PersonName = substr($tblPerson->getFirstName(), 0, 1).'. '.$tblPerson->getLastName();
             }
         }
-
-        return (new Data($this->getBinding()))->updateBasketSepa($tblBasket, $PersonName);
+        if($IsRegularChangeBasket){
+            return (new Data($this->getBinding()))->updateBasketSepa($tblBasket, $PersonName);
+        }
+        return false;
     }
 
     /**
@@ -715,16 +722,22 @@ class Service extends AbstractService
     public function changeBasketDoneDatev(TblBasket $tblBasket)
     {
 
+        $IsRegularChangeBasket = true;
         $PersonName = 'Person nicht hinterlegt!';
         if(($tblAccount = Account::useService()->getAccountBySession())){
+            if($tblAccount->getServiceTblIdentification()->getName() == 'System'){
+                $IsRegularChangeBasket = false;
+            }
             if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
                 /** @var TblPerson $tblPerson */
                 $tblPerson = current($tblPersonList);
                 $PersonName = substr($tblPerson->getFirstName(), 0, 1).'. '.$tblPerson->getLastName();
             }
         }
-
-        return (new Data($this->getBinding()))->updateBasketDatev($tblBasket, $PersonName);
+        if($IsRegularChangeBasket){
+            return (new Data($this->getBinding()))->updateBasketDatev($tblBasket, $PersonName);
+        }
+        return false;
     }
 
     /**
