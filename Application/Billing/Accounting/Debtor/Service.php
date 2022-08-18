@@ -128,10 +128,10 @@ class Service extends AbstractService
      *
      * @return false|TblDebtorNumber[]
      */
-    public function getDebtorNumberByPerson(TblPerson $tblPerson)
+    public function getDebtorNumberByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getDebtorNumberByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getDebtorNumberByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -376,7 +376,6 @@ class Service extends AbstractService
         if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)){
             $count = $DebtorCountSetting->getValue();
             // get the right length of DebtorNumber
-            substr($Number, 0, $count);
             $Number = str_pad($Number, $count, '0', STR_PAD_LEFT);
         }
 
@@ -458,7 +457,6 @@ class Service extends AbstractService
         if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)){
             $count = $DebtorCountSetting->getValue();
             // get the right length of DebtorNumber
-            substr($Number, 0, $count);
             $Number = str_pad($Number, $count, '0', STR_PAD_LEFT);
         }
 

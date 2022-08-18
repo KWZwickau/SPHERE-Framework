@@ -76,6 +76,7 @@ class Data extends AbstractData
                 $Entity->setIBAN($Result['IBAN']);
                 $Entity->setBIC($Result['BIC']);
                 $Entity->setBank($Result['Bank']);
+                $Entity->setIsYear($Result['IsYear']);
                 $Manager->bulkSaveEntity($Entity);
                 Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
             }

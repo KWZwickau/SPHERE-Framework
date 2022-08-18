@@ -58,6 +58,7 @@ class ImportControl extends AbstractConverter
         'IBAN',
         'BIC',
         'Bank Name',
+        'Zahlung Jährlich',
     );
 
     /**
@@ -129,7 +130,6 @@ class ImportControl extends AbstractConverter
             // Match (Spaltenname) => Index (Spalte)
         );
 
-        $this->ColumnScan;
         foreach ($Row as $Column => $Part) {
             foreach ($this->ColumnScan as $Pattern) {
                 if (preg_match('!^('.$Pattern.')$!is', $Part['Field'], $Match)) {

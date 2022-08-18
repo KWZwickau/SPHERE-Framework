@@ -39,6 +39,7 @@ class TblImport extends Element
     const ATTR_IBAN = 'IBAN';
     const ATTR_BIC = 'BIC';
     const ATTR_BANK = 'Bank';
+    const ATTR_IS_YEAR = 'IsYear';
 
     /**
      * @Column(type="string")
@@ -124,6 +125,10 @@ class TblImport extends Element
      * @column(type="string")
      */
     protected $Bank;
+    /**
+     * @column(type="string")
+     */
+    protected $IsYear;
 
     /**
      * @return string
@@ -469,5 +474,21 @@ class TblImport extends Element
     public function setBank($Bank)
     {
         $this->Bank = $Bank;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIsYear()
+    {
+        return $this->IsYear;
+    }
+
+    /**
+     * @param mixed $IsYear
+     */
+    public function setIsYear($IsYear)
+    {
+        $this->IsYear = $IsYear;
     }
 }
