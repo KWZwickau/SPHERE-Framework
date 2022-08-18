@@ -69,6 +69,8 @@ class TwigTemplate extends Bridge implements IBridgeInterface
         $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_encode', 'utf8_encode'));
         $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_decode', 'utf8_decode'));
         $this->Instance->addExtension(new PhpFunctionExtension());
+        $this->Instance->addExtension(new \Twig_Extension_Debug());
+
         return $this->Instance;
     }
 

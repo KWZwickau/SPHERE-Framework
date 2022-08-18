@@ -1,4 +1,5 @@
 <div class="form-group {{ ElementGroup }}">
+    <div style="display: none;" id="defaultValue-{{ ElementName }}">{{ ElementValue }}</div>
     {% if( ElementLabel is not empty ) %}
         <label>{{ ElementLabel }}{% if( Required is not empty ) %}<span class="text-danger"> *</span>{% endif %}</label>
     {% endif %}
@@ -50,12 +51,28 @@
             {
                 Client.Use('ModAjax', function()
                 {
+{#                    {% if( AjaxEventChange is not empty ) %}#}
+{#                    jQuery('input[type="text"][name="{{ ElementName }}"]').on('change',function(Event){#}
+{#                        console.log('hallo change datepicker twig')#}
+{#                        Event.preventDefault();#}
+{#                        {{ AjaxEventChange }}#}
+{#                    });#}
+{#                  {% endif %}#}
                     {% if( AjaxEventChange is not empty ) %}
-                    jQuery('input[type="text"][name="{{ ElementName }}"]').on('change',function(Event){
-                        Event.preventDefault();
-                        {{ AjaxEventChange }}
+                    // perform action on click outside of picker
+                    // rene
+                    jQuery('input[type="text"][name="{{ ElementName }}"]').focusout(function(){
+                        var currentDefault = jQuery('div[id="defaultValue-{{ ElementName }}"]').text();
+                        var currentValue = jQuery('input[type="text"][name="{{ ElementName }}"]').val();
+                        if(currentValue !== currentDefault){
+                            jQuery('div[id="defaultValue-{{ ElementName }}"]').text(currentValue);
+                            typewatch(function () {
+                                {{ AjaxEventChange }}
+                            }, 1);
+                        }
                     });
                     {% endif %}
+
                     {% if( AjaxEventKeyUp is not empty ) %}
                     jQuery('input[type="text"][name="{{ ElementName }}"]').on('keyup',function(Event){
                         // Exclude Keys
@@ -77,6 +94,18 @@
                             Event.preventDefault();
                             {{ AjaxEventKeyUp }}
                         }, 500);
+                    });
+                    // rene
+                    // perform action on click outside of picker
+                    jQuery('input[type="text"][name="{{ ElementName }}"]').focusout(function(){
+                        var currentDefault = jQuery('div[id="defaultValue-{{ ElementName }}"]').text();
+                        var currentValue = jQuery('input[type="text"][name="{{ ElementName }}"]').val();
+                        if(currentValue !== currentDefault){
+                            jQuery('div[id="defaultValue-{{ ElementName }}"]').text(currentValue);
+                            typewatch(function () {
+                                {{ AjaxEventKeyUp }}
+                            }, 250);
+                        }
                     });
                     {% endif %}
                 });

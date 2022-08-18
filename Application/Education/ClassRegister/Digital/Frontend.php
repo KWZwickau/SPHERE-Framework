@@ -492,22 +492,29 @@ class Frontend extends FrontendTabs
                 ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Day'));
         }
 
+        $datePicker = (new DatePicker('Data[Date]', '', '', new Calendar()))
+            ->setAutoFocus()
+            ->ajaxPipelineOnChange(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, $View));
         $form = (new Form(new FormGroup(new FormRow(array(
             new FormColumn(
-                new PullRight(new DatePicker('Data[Date]', '', '', new Calendar()))
-                , 7),
-            new FormColumn(
-                new PullRight((new Primary('Datum auswählen', '', new Select()))->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
-                    $DivisionId, $GroupId, $DateString, $View
-                )))
-                , 5)
+                new PullRight(
+                    $datePicker
+                )
+                , 12),
+//            new FormColumn(
+//                new PullRight((new Primary('Datum auswählen', '', new Select()))->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
+//                    $DivisionId, $GroupId, $DateString, $View
+//                )))
+//                , 5)
         )))));
 
         $layout = new Layout(new LayoutGroup(new LayoutRow(array(
 //                new LayoutColumn($buttons, $View == 'Day' ? 7 : 8),
 //                new LayoutColumn($form, $View == 'Day' ? 5 : 4)
-                new LayoutColumn($buttons, 8),
-                new LayoutColumn($form, 4)
+//                new LayoutColumn($buttons, 8),
+//                new LayoutColumn($form, 4)
+                new LayoutColumn($buttons, 9),
+                new LayoutColumn($form, 3)
             ))))
             . new Container('&nbsp;')
             . new Panel(
