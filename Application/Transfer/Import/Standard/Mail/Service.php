@@ -150,15 +150,16 @@ class Service
                         $addMail = false;
                         $tblPerson = false;
                         if ($firstName !== '' && $lastName !== '' && $mail != '') {
-                            if (($tblPersonList = Person::useService()->getPersonAllByFirstNameAndLastName($firstName, $lastName))) {
+                            if (($tblPersonList = Person::useService()->getPersonAllByName($firstName, $lastName))) {
                                 $tblPerson = $this->getPersonByList($tblPersonList, $firstName, $lastName, $birthday,
                                     $RunY, $error, $countPersons, $countDuplicatePersons, $addMail);
-                            } elseif (($tblPersonList = Person::useService()->getPersonAllByFirstNameAndLastName($this->refactorName($firstName), $this->refactorName($lastName)))) {
+                            } elseif (($tblPersonList = Person::useService()->getPersonAllByName($this->refactorName($firstName), $this->refactorName($lastName)))) {
                                 $tblPerson = $this->getPersonByList($tblPersonList, $firstName, $lastName, $birthday,
                                     $RunY, $error, $countPersons, $countDuplicatePersons, $addMail);
-                            } elseif (($tblPersonList = Person::useService()->getPersonListLikeFirstNameAndLastName($this->refactorName($firstName), $this->refactorName($lastName)))) {
-                                $tblPerson = $this->getPersonByList($tblPersonList, $firstName, $lastName, $birthday,
-                                    $RunY, $error, $countPersons, $countDuplicatePersons, $addMail);
+                                // PersonListLike sollte durch PersonAllByNameExtended ersetzt werden können
+//                            } elseif (($tblPersonList = Person::useService()->getPersonListLikeFirstNameAndLastName($this->refactorName($firstName), $this->refactorName($lastName)))) {
+//                                $tblPerson = $this->getPersonByList($tblPersonList, $firstName, $lastName, $birthday,
+//                                    $RunY, $error, $countPersons, $countDuplicatePersons, $addMail);
                             } else {
                                 $countMissingPersons++;
                                 $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName . ' wurde nicht gefunden';
