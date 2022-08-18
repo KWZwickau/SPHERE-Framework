@@ -25,6 +25,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Reporting\Standard\Person\Person;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
@@ -891,7 +892,14 @@ class ClassRegister extends AbstractDocument
             $slice = (new Slice())
                 ->styleBorderTop()
                 ->styleBorderLeft();
-            for ($i = 1; $i < 11; $i++) {
+            if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson'))
+                && $tblSetting->getValue()
+            ) {
+                $minLesson = 0;
+            } else {
+                $minLesson = 1;
+            }
+            for ($i = $minLesson; $i < 13; $i++) {
                 // mehrere UEs zur selben Zeit sind möglich
                 if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDateAndLesson($dateTime, $i, $this->tblDivision, $this->tblGroup))) {
                     foreach ($tblLessonContentList as $tblLessonContent) {
@@ -914,15 +922,17 @@ class ClassRegister extends AbstractDocument
                         $count++;
                     }
                 } else {
-                    $slice->addSection((new Section())
-                        ->addElementColumn($this->getElement($i . '.')->styleAlignCenter(), $width[2])
-                        ->addElementColumn($this->getElement('&nbsp;'), $width[3])
-                        ->addElementColumn($this->getElement('&nbsp;'), $width[4])
-                        ->addElementColumn($this->getElement('&nbsp;'), $width[5])
-                        ->addElementColumn($this->getElement('&nbsp;'), $width[6])
-                        ->addElementColumn($this->getElement('&nbsp;'), $width[7])
-                    );
-                    $count++;
+                    if ($i > 0 && $i < 11) {
+                        $slice->addSection((new Section())
+                            ->addElementColumn($this->getElement($i . '.')->styleAlignCenter(), $width[2])
+                            ->addElementColumn($this->getElement('&nbsp;'), $width[3])
+                            ->addElementColumn($this->getElement('&nbsp;'), $width[4])
+                            ->addElementColumn($this->getElement('&nbsp;'), $width[5])
+                            ->addElementColumn($this->getElement('&nbsp;'), $width[6])
+                            ->addElementColumn($this->getElement('&nbsp;'), $width[7])
+                        );
+                        $count++;
+                    }
                 }
             }
         }
@@ -1030,7 +1040,7 @@ class ClassRegister extends AbstractDocument
             ->stylePaddingLeft('5px')
             ->styleBorderRight()
             ->styleBorderBottom()
-            ->styleHeight('200px')
+            ->styleHeight('120px')
         );
 
         // Bestätigung KL und SL

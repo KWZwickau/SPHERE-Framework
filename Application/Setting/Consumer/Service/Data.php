@@ -263,6 +263,9 @@ class Data extends AbstractData
         }
         $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'IsChangeLessonContentByOtherTeacherAllowed', TblSetting::TYPE_BOOLEAN, '1',
             'Klassenbücher', 'Darf ein andere Fachlehrer einen Klassentagebucheintrag nachträglich ändern [Standard: Ja]', true);
+        $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson', TblSetting::TYPE_BOOLEAN, '0',
+            'Klassenbücher', 'Klassentagebuch beginnt mit der 0. Unterrichtseinheit', true
+        );
 
         // Leistungsüberprüfungen public
         $this->createSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading',
