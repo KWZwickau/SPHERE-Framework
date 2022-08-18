@@ -154,7 +154,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'Bev:_Geburtsdatum',
         'Termin:_Eingangsdatum',
         'Termin:_Aufnahmegespr_aE_che',
-        'Termin:_Schnuppertag'
+        'Termin:_Schnuppertag',
+        'Masern:_Datum'
     );
 
     // sortieren der Spalten nach GermanString
@@ -1372,12 +1373,38 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 $Block = $this->getPanelList(new ViewGroupTeacher(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_TEACHER);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewGroupTeacher']) ) {
-                        $AccordionList[] = new Panel( 'Lehrer:', new Scrollable( $Block, 300 ));
+                        $AccordionList[] = new Panel( 'Lehrer:', new Scrollable( $Block, 190 ));
                     } else {
                         $AccordionList[] = new Dropdown( 'Lehrer:', new Scrollable( $Block ) );
                     }
                 }
                 $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_TEACHER);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPersonContact']) ) {
+                        $AccordionList[] = new Panel( 'Kontakt:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
+                    }
+                }
+                break;
+            case TblWorkSpace::VIEW_TYPE_STAFF:
+                $Block = $this->getPanelList(new ViewPerson(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STAFF);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPerson']) ) {
+                        $AccordionList[] = new Panel( 'Person:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Person:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewGroupTeacher(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STAFF);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewGroupTeacher']) ) {
+                        $AccordionList[] = new Panel( 'Mitarbeiter:', new Scrollable( $Block, 190 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Mitarbeiter:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STAFF);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewPersonContact']) ) {
                         $AccordionList[] = new Panel( 'Kontakt:', new Scrollable( $Block, 300 ));
@@ -2144,6 +2171,18 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $Parameter)
                 );
                 $ParameterList[$Parameter] = TblGroup::META_TABLE_TEACHER;
+                $ViewList[] = 'ViewGroup';
+                break;
+            case TblWorkSpace::VIEW_TYPE_STAFF:
+                $viewGroup = new ViewGroup();
+                $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
+                $Builder->from($viewGroup->getEntityFullName(),
+                    $viewGroup->getViewObjectName());
+                $Builder->andWhere(
+                    $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                        $Parameter)
+                );
+                $ParameterList[$Parameter] = TblGroup::META_TABLE_STAFF;
                 $ViewList[] = 'ViewGroup';
                 break;
             case TblWorkSpace::VIEW_TYPE_CLUB:
