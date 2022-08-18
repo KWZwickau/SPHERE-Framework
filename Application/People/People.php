@@ -96,8 +96,13 @@ class People implements IClusterInterface
                     $tblGroupLockedList[] = $content;
                     if ($tblGroup->getMetaTable() == 'STUDENT') {
 
-                        $countContent = self::getStudentCountByType();
+                        $countContent = self::getStudentCountByDate();
                         $countContent = new Listing($countContent);
+                        $DateTime = new \DateTime(date('Y-m-d',strtotime("+12 months")));
+                        $countContentNext = self::getStudentCountByDate($DateTime);
+                        if(!empty($countContentNext)){
+                            $countContentNext = new Listing($countContentNext);
+                        }
 
                         $content =
                             new Layout(new LayoutGroup(new LayoutRow(array(
@@ -107,6 +112,15 @@ class People implements IClusterInterface
                                         , 5),
                                     new LayoutColumn(
                                         $countContent
+                                        , 7),
+                                    new LayoutColumn(
+                                        (!empty($countContentNext)
+                                            ? 'nächstes Schuljahr'
+                                            . new Muted(new Small('<br/>' . 'Schüler die in Klassen zugeordnet sind'))
+                                            : '')
+                                        , 5),
+                                    new LayoutColumn(
+                                        $countContentNext
                                         , 7),
                                 )
                             )));
@@ -129,14 +143,36 @@ class People implements IClusterInterface
     }
 
     /**
+     * @param \DateTime|null $DateTime
+     *
      * @return array
      */
-    private static function getStudentCountByType()
+    private static function getStudentCountByDate(?\DateTime $DateTime = null): array
     {
-        $tblYearList = Term::useService()->getYearByNow();
+
+        if($DateTime){
+            if(($tblYearList = Term::useService()->getYearAllByDate($DateTime))){
+                // Suche nach enthaltenen Klassen
+                $isDivisionInclude = false;
+                if($tblYearList){
+                    foreach($tblYearList as $tblYear){
+                        if(Division::useService()->getDivisionAllByYear($tblYear)){
+                            $isDivisionInclude = true;
+                        }
+                    }
+                }
+                if(!$isDivisionInclude){
+                    // sind keine Klassen enthalten, soll auch keine Anzeige erscheinen
+                    $tblYearList = false;
+                }
+            }
+        } else {
+            $tblYearList = Term::useService()->getYearByNow();
+        }
+
         $StudentCountBySchoolType = array();
         // Schüler nach Schulart zählen
-        if (!empty( $tblYearList )) {
+        if ($tblYearList) {
             foreach ($tblYearList as $tblYear) {
                 $TblDivisionList = Division::useService()->getDivisionByYear($tblYear);
                 if ($TblDivisionList) {
@@ -166,15 +202,21 @@ class People implements IClusterInterface
 
         $tblStudentCounterBySchoolType = array();
         // Alle Schüler im Schuljahr (Summiert)
-        if (($tblYearList = Term::useService()->getYearByNow())) {
+        if ($tblYearList) {
             foreach ($tblYearList as $tblYear) {
                 $Calculation = Division::useService()->getStudentCountByYear($tblYear);
-                $tblStudentCounterBySchoolType[] = (new ToolTip(new Muted(new Small(
-                    (!empty($Calculation['PersonExcludeStudent']) ? new Danger(new EyeOpen()).' ' : '')
-                    .$Calculation['countStudentsByYear']
-                    . ' Mitglieder im Schuljahr ' . $tblYear->getDisplayName()
-                    ))
-                    , htmlspecialchars(implode('<br />', $Calculation['PersonExcludeStudent']))))->enableHtml();
+                if($DateTime){
+                    $tblStudentCounterBySchoolType[] = new Muted(new Small($Calculation['countStudentsByYear']
+                            . ' Mitglieder im Schuljahr ' . $tblYear->getDisplayName()
+                        ));
+                } else {
+                    $tblStudentCounterBySchoolType[] = (new ToolTip(new Muted(new Small(
+                            (!empty($Calculation['PersonExcludeStudent']) ? new Danger(new EyeOpen()).' ' : '')
+                            .$Calculation['countStudentsByYear']
+                            . ' Mitglieder im Schuljahr ' . $tblYear->getDisplayName()
+                        ))
+                        , htmlspecialchars(implode('<br />', $Calculation['PersonExcludeStudent']))))->enableHtml();
+                }
             }
         }
         // Anhängen der Schulartzählung
