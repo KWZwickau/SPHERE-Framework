@@ -208,7 +208,7 @@ class StudentCourseGateway extends AbstractConverter
 //        if (!$this->IsError) {
         $tblPerson = false;
         if (isset($Result['FirstName']) && isset($Result['LastName']) && isset($Result['Birthday'])) {
-            $tblPerson = Person::useService()->getPersonByNameAndBirthday($Result['FirstName'], $Result['LastName'],
+            $tblPerson = Person::useService()->getPersonByName($Result['FirstName'], $Result['LastName'],
                 $Result['Birthday']);
         }
         if (isset($tblPerson) && !$tblPerson) {

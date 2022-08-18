@@ -7,6 +7,7 @@ use MOC\V\Component\Document\Document;
 use PHPExcel_Shared_Date;
 use SPHERE\Application\Contact\Mail\Mail as MailAlias;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -20,6 +21,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -107,7 +109,8 @@ class Service
                 }
 
                 $OptionalLocation = array(
-                    'Geburtsdatum' => null
+                    'Geburtsdatum' => null,
+                    'Schülernummer' => null
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
@@ -125,6 +128,8 @@ class Service
 //                $countMissingAccounts = 0;
                 $countMultipleAccounts = 0;
                 $countAddMail = 0;
+                $countAddStudentNumber = 0;
+                $countUpdateStudentNumber = 0;
 
                 /**
                  * Import
@@ -141,24 +146,31 @@ class Service
                         $birthday = $OptionalLocation['Geburtsdatum'] == null
                             ? ''
                             : trim($Document->getValue($Document->getCell($OptionalLocation['Geburtsdatum'], $RunY)));
+
                         if ($birthday) {
                             if (strpos($birthday, '.') === false) {
                                 $birthday = date('d.m.Y', PHPExcel_Shared_Date::ExcelToPHP($birthday));
                             }
                         }
 
+                        $StudentNumber = false;
+                        if($OptionalLocation['Schülernummer'] !== null){
+                            $StudentNumber = trim($Document->getValue($Document->getCell($OptionalLocation['Schülernummer'], $RunY)));
+                        }
+
                         $addMail = false;
                         $tblPerson = false;
                         if ($firstName !== '' && $lastName !== '' && $mail != '') {
-                            if (($tblPersonList = Person::useService()->getPersonAllByFirstNameAndLastName($firstName, $lastName))) {
+                            if (($tblPersonList = Person::useService()->getPersonAllByName($firstName, $lastName))) {
                                 $tblPerson = $this->getPersonByList($tblPersonList, $firstName, $lastName, $birthday,
                                     $RunY, $error, $countPersons, $countDuplicatePersons, $addMail);
-                            } elseif (($tblPersonList = Person::useService()->getPersonAllByFirstNameAndLastName($this->refactorName($firstName), $this->refactorName($lastName)))) {
+                            } elseif (($tblPersonList = Person::useService()->getPersonAllByName($this->refactorName($firstName), $this->refactorName($lastName)))) {
                                 $tblPerson = $this->getPersonByList($tblPersonList, $firstName, $lastName, $birthday,
                                     $RunY, $error, $countPersons, $countDuplicatePersons, $addMail);
-                            } elseif (($tblPersonList = Person::useService()->getPersonListLikeFirstNameAndLastName($this->refactorName($firstName), $this->refactorName($lastName)))) {
-                                $tblPerson = $this->getPersonByList($tblPersonList, $firstName, $lastName, $birthday,
-                                    $RunY, $error, $countPersons, $countDuplicatePersons, $addMail);
+                                // PersonListLike sollte durch PersonAllByNameExtended ersetzt werden können
+//                            } elseif (($tblPersonList = Person::useService()->getPersonListLikeFirstNameAndLastName($this->refactorName($firstName), $this->refactorName($lastName)))) {
+//                                $tblPerson = $this->getPersonByList($tblPersonList, $firstName, $lastName, $birthday,
+//                                    $RunY, $error, $countPersons, $countDuplicatePersons, $addMail);
                             } else {
                                 $countMissingPersons++;
                                 $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person ' . $firstName . ' ' . $lastName . ' wurde nicht gefunden';
@@ -271,6 +283,20 @@ class Service
                                         $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Emailadresse konnte nicht angelegt werden.';
                                     }
                                 }
+                                // add StudentNumber
+                                if(!$isTest && $StudentNumber && $StudentNumber != ''){
+                                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                                        Student::useService()->updateStudentIdentifier($tblStudent, $StudentNumber);
+                                        if($tblStudent->getIdentifier()){
+                                            $countUpdateStudentNumber++;
+                                        } else {
+                                            $countAddStudentNumber++;
+                                        }
+                                    } else {
+                                        Student::useService()->createStudent($tblPerson, '', $StudentNumber);
+                                        $countAddStudentNumber++;
+                                    }
+                                }
                             }
                         } else {
                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Emailadresse wurde nicht angelegt, da sie nicht vollständig ist.';
@@ -281,6 +307,8 @@ class Service
                         new Success('Es wurden ' . $countPersons . ' Personen erfolgreich gefunden.') .
                             ($countAccounts > 0 ? new Success('Es wurden ' . $countAccounts . ' Benutzerkonten gefunden') : '') .
                             ($countAddMail > 0 ? new Success('Es wurden ' . $countAddMail . ' Emailadressen erfolgreich angelegt') : '') .
+                            ($countAddStudentNumber > 0 ? new Success('Es wurden ' . $countAddStudentNumber . ' Schülernummern erfolgreich angelegt') : '') .
+                            ($countUpdateStudentNumber > 0 ? new Success('Es wurden ' . $countUpdateStudentNumber . ' Schülernummern erfolgreich angepasst') : '') .
                             ($countDuplicatePersons > 0 ? new Warning($countDuplicatePersons . ' Doppelte Personen gefunden') : '') .
                             ($countMissingPersons > 0 ? new Warning($countMissingPersons . ' Personen nicht gefunden') : '') .
 //                            ($countMissingAccounts > 0 ? new Warning($countMissingAccounts . ' Benutzerkonten nicht gefunden') : '') .
