@@ -19,6 +19,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblDivisionCourse extends Element
 {
     const ATTR_TBL_TYPE = 'tblLessonDivisionCourseType';
+    const SERVICE_TBL_YEAR = 'serviceTblYear';
 
     /**
      * @Column(type="bigint")
@@ -33,12 +34,12 @@ class TblDivisionCourse extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Name;
+    protected string $Name = '';
 
     /**
      * @Column(type="string")
      */
-    protected string $Description;
+    protected string $Description = '';
 
     /**
      * @param TblDivisionCourseType $tblType
@@ -142,5 +143,29 @@ class TblDivisionCourse extends Element
     public function setDescription(string $Description): void
     {
         $this->Description = $Description;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTypeName(): string
+    {
+        if (($tblType = $this->getType())) {
+            return $tblType->getName();
+        }
+
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getYearName(): string
+    {
+        if (($tblYear = $this->getServiceTblYear())) {
+            return $tblYear->getDisplayName();
+        }
+
+        return '';
     }
 }

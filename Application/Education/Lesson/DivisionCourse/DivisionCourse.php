@@ -4,13 +4,23 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Blackboard;
+use SPHERE\Common\Main;
+use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
 class DivisionCourse implements IModuleInterface
 {
     public static function registerModule()
     {
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Kurs')
+                , new Link\Icon(new Blackboard())
+            ));
 
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendDivisionCourse'
+        ));
     }
 
     /**

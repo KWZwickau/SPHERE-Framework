@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
 class Data extends MigrateData
@@ -78,6 +79,72 @@ class Data extends MigrateData
     }
 
     /**
+     * @param TblDivisionCourseType $tblType
+     * @param TblYear $tblYear
+     * @param string $name
+     * @param string $description
+     *
+     * @return TblDivisionCourse
+     */
+    public function createDivisionCourse(TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description): TblDivisionCourse
+    {
+        $Manager = $this->getEntityManager();
+
+        $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param string $name
+     * @param string $description
+     *
+     * @return bool
+     */
+    public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, string $name, string $description): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var TblDivisionCourse $Entity */
+        $Entity = $Manager->getEntityById('TblDivisionCourse', $tblDivisionCourse->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($name);
+            $Entity->setDescription($description);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return bool
+     */
+    public function destroyDivisionCourse(TblDivisionCourse $tblDivisionCourse): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblDivisionCourse $Entity */
+        $Entity = $Manager->getEntityById('TblDivisionCourse', $tblDivisionCourse->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDivisionCourse
@@ -95,7 +162,30 @@ class Data extends MigrateData
     public function getDivisionCourseAll(?string $TypeIdentifier = '')
     {
         if ($TypeIdentifier && ($tblType = $this->getDivisionCourseTypeByIdentifier($TypeIdentifier))) {
-            return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', array(TblDivisionCourse::ATTR_TBL_TYPE => $tblType->getId()));
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', array(TblDivisionCourse::ATTR_TBL_TYPE => $tblType->getId()));
+        } else {
+            return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse');
+        }
+    }
+
+    /**
+     * @param TblYear|null $tblYear
+     * @param string|null $TypeIdentifier
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourseListBy(TblYear $tblYear = null, ?string $TypeIdentifier = '')
+    {
+        $parameterList = array();
+        if ($TypeIdentifier && ($tblType = $this->getDivisionCourseTypeByIdentifier($TypeIdentifier))) {
+            $parameterList[TblDivisionCourse::ATTR_TBL_TYPE] = $tblType->getId();
+        }
+        if ($tblYear) {
+            $parameterList[TblDivisionCourse::SERVICE_TBL_YEAR] = $tblYear->getId();
+        }
+
+        if ($parameterList) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', $parameterList);
         } else {
             return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse');
         }
@@ -120,6 +210,14 @@ class Data extends MigrateData
     {
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseType',
             array(TblDivisionCourseType::ATTR_IDENTIFIER => strtoupper($Identifier)));
+    }
+
+    /**
+     * @return false|TblDivisionCourseType[]
+     */
+    public function getDivisionCourseTypeAll()
+    {
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseType');
     }
 
     /**

@@ -1,0 +1,407 @@
+<?php
+
+namespace SPHERE\Application\Api\Education\DivisionCourse;
+
+use SPHERE\Application\Api\ApiTrait;
+use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\IApiInterface;
+use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
+use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
+use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\System\Extension\Extension;
+
+class ApiDivisionCourse extends Extension implements IApiInterface
+{
+    use ApiTrait;
+
+    /**
+     * @param string $Method
+     *
+     * @return string
+     */
+    public function exportApi($Method = ''): string
+    {
+        $Dispatcher = new Dispatcher(__CLASS__);
+        $Dispatcher->registerMethod('loadDivisionCourseContent');
+        $Dispatcher->registerMethod('openCreateDivisionCourseModal');
+        $Dispatcher->registerMethod('saveCreateDivisionCourseModal');
+        $Dispatcher->registerMethod('openEditDivisionCourseModal');
+        $Dispatcher->registerMethod('saveEditDivisionCourseModal');
+        $Dispatcher->registerMethod('openDeleteDivisionCourseModal');
+        $Dispatcher->registerMethod('saveDeleteDivisionCourseModal');
+
+        return $Dispatcher->callMethod($Method);
+    }
+
+    /**
+     * @return ModalReceiver
+     */
+    public static function receiverModal(): ModalReceiver
+    {
+        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalReceiver');
+    }
+
+    /**
+     * @param string $Content
+     * @param string $Identifier
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverBlock(string $Content = '', string $Identifier = ''): BlockReceiver
+    {
+        return (new BlockReceiver($Content))->setIdentifier($Identifier);
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineClose(): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadDivisionCourseContent($Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DivisionCourseContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDivisionCourseContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Filter' => $Filter
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Filter
+     *
+     * @return string
+     */
+    public function loadDivisionCourseContent($Filter = null): string
+    {
+        return DivisionCourse::useFrontend()->loadDivisionCourseTable($Filter);
+    }
+
+    /**
+     * @param $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenCreateDivisionCourseModal($Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openCreateDivisionCourseModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Filter' => $Filter
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $Filter
+     *
+     * @return string
+     */
+    public function openCreateDivisionCourseModal($Filter = null): string
+    {
+        return $this->getDivisionCourseModal(DivisionCourse::useFrontend()->formDivisionCourse(null, $Filter, false));
+    }
+
+    /**
+     * @param $form
+     * @param string|null $DivisionCourseId
+     *
+     * @return string
+     */
+    private function getDivisionCourseModal($form, string $DivisionCourseId = null): string
+    {
+        if ($DivisionCourseId) {
+            $title = new Title(new Edit() . ' Kurs bearbeiten');
+        } else {
+            $title = new Title(new Plus() . ' Kurs hinzufügen');
+        }
+
+        return $title
+            . new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Well(
+                                    $form
+                                )
+                            )
+                        )
+                    ))
+            );
+    }
+
+    /**
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCreateDivisionCourseSave($Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreateDivisionCourseModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Filter
+     * @param array|null $Data
+     *
+     * @return string
+     */
+    public function saveCreateDivisionCourseModal($Filter = null, array $Data = null): string
+    {
+        if (($form = DivisionCourse::useService()->checkFormDivisionCourse($Filter, $Data))) {
+            // display Errors on form
+            return $this->getDivisionCourseModal($form);
+        }
+
+        if (DivisionCourse::useService()->createDivisionCourse($Data)) {
+            return new Success('Kurs wurde erfolgreich gespeichert.')
+                . self::pipelineLoadDivisionCourseContent($Filter)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Kurs konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditDivisionCourseModal($DivisionCourseId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openEditDivisionCourseModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Filter' => $Filter
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Filter
+     *
+     * @return string
+     */
+    public function openEditDivisionCourseModal($DivisionCourseId, $Filter = null)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getDivisionCourseModal(DivisionCourse::useFrontend()->formDivisionCourse($DivisionCourseId, $Filter, true), $DivisionCourseId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditDivisionCourseSave($DivisionCourseId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditDivisionCourseModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Filter
+     * @param $Data
+     *
+     * @return Danger|string
+     */
+    public function saveEditDivisionCourseModal($DivisionCourseId, $Filter, $Data)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = DivisionCourse::useService()->checkFormDivisionCourse($Filter, $Data, $tblDivisionCourse))) {
+            // display Errors on form
+            return $this->getDivisionCourseModal($form, $DivisionCourseId);
+        }
+
+        if (DivisionCourse::useService()->updateDivisionCourse($tblDivisionCourse, $Data)) {
+            return new Success('Der Kurs wurde erfolgreich gespeichert.')
+                . self::pipelineLoadDivisionCourseContent($Filter)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Der Kurs konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteDivisionCourseModal($DivisionCourseId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteDivisionCourseModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Filter' => $Filter
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Filter
+     *
+     * @return string
+     */
+    public function openDeleteDivisionCourseModal($DivisionCourseId, $Filter = null)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Remove() . ' Kurs löschen')
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Diesen Kurs wirklich löschen?',
+                                array(
+                                    $tblDivisionCourse->getYearName(),
+                                    $tblDivisionCourse->getTypeName(),
+                                    $tblDivisionCourse->getName(),
+                                    // todo Anzahl der Schüler und Co
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteDivisionCourseSave($DivisionCourseId, $Filter))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                )
+            );
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteDivisionCourseSave($DivisionCourseId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDeleteDivisionCourseModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Filter
+     *
+     * @return string
+     */
+    public function saveDeleteDivisionCourseModal($DivisionCourseId, $Filter = null): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->destroyDivisionCourse($tblDivisionCourse)) {
+            return new Success('Der Kurs wurde erfolgreich gelöscht.')
+                . self::pipelineLoadDivisionCourseContent($Filter)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Der Kurs konnte nicht gelöscht werden.') . self::pipelineClose();
+        }
+    }
+}

@@ -25,12 +25,12 @@ class TblDivisionCourseType extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Name;
+    protected string $Name = '';
 
     /**
      * @Column(type="string")
      */
-    protected string $Identifier;
+    protected string $Identifier = '';
 
     /**
      * @return string
