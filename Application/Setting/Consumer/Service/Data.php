@@ -261,6 +261,8 @@ class Data extends AbstractData
         $this->createSetting('Education', 'ClassRegister', 'Frontend', 'ShowDownloadButton', TblSetting::TYPE_BOOLEAN,
             '1', 'Klassenbücher', 'Fachlehrer können sich im Klassenbuch die Standard-Klassenlisten-Auswertung (Excel)
             herunterladen. [Standard: Ja]', true);
+        $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'IsChangeLessonContentByOtherTeacherAllowed', TblSetting::TYPE_BOOLEAN, '1',
+            'Klassenbücher', 'Darf ein andere Fachlehrer einen Klassentagebucheintrag nachträglich ändern [Standard: Ja]', true);
 
         // Leistungsüberprüfungen public
         $this->createSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading',

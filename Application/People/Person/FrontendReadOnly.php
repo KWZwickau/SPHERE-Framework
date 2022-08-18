@@ -28,6 +28,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
 use SPHERE\Application\People\Person\Frontend\FrontendPersonMasern;
 use SPHERE\Application\People\Person\Frontend\FrontendPersonPicture;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
+use SPHERE\Application\People\Person\Frontend\FrontendProspectTransfer;
 use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
 use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
@@ -121,6 +122,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
             $personMasern = ApiPersonReadOnly::receiverBlock(FrontendPersonMasern::getPersonMasernContent($Id), 'PersonMasernContent');
             $childContent = ApiPersonReadOnly::receiverBlock(FrontendChild::getChildContent($Id), 'ChildContent');
             $prospectContent = ApiPersonReadOnly::receiverBlock(FrontendProspect::getProspectContent($Id), 'ProspectContent');
+            $prospectTransferContent = ApiPersonReadOnly::receiverBlock(FrontendProspectTransfer::getProspectTransferContent($Id), 'ProspectTransferContent');
             $teacherContent = ApiPersonReadOnly::receiverBlock(FrontendTeacher::getTeacherContent($Id), 'TeacherContent');
             $custodyContent = ApiPersonReadOnly::receiverBlock(FrontendCustody::getCustodyContent($Id), 'CustodyContent');
             $clubContent = ApiPersonReadOnly::receiverBlock(FrontendClub::getClubContent($Id), 'ClubContent');
@@ -216,13 +218,13 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $personAgreementContent
                 . $childContent
                 . $prospectContent
+                . $prospectTransferContent
                 . $teacherContent
                 . $personMasern
                 . $studentContent
                 . $custodyContent
                 . $clubContent
                 . $integrationContent
-
                 . $addressContent
                 . $phoneContent
                 . $mailContent
@@ -254,10 +256,8 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
     public static function getDivisionString(TblPerson $tblPerson = null): string
     {
         $DivisionString = '';
-        if($tblPerson && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-            if($tblDivision = $tblStudent->getCurrentMainDivision()){
-                $DivisionString = ' Klasse '.$tblDivision->getDisplayName();
-            }
+        if($tblPerson && ($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))){
+            $DivisionString = ' Klasse '.$tblDivision->getDisplayName();
         }
         return $DivisionString;
     }

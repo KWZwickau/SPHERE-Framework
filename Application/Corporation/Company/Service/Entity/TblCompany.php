@@ -36,6 +36,10 @@ class TblCompany extends Element
      * @Column(type="string")
      */
     protected $Description;
+    /**
+     * @Column(type="string")
+     */
+    protected $ContactNumber;
 
     /**
      * @Column(type="string")
@@ -109,6 +113,22 @@ class TblCompany extends Element
     {
 
         return $this->Name.( $this->ExtendedName != '' ? ' '.$this->ExtendedName : null );
+    }
+
+    /**
+     * @return string
+     */
+    public function getContactNumber()
+    {
+        return $this->ContactNumber;
+    }
+
+    /**
+     * @param string $ContactNumber
+     */
+    public function setContactNumber($ContactNumber = ''): void
+    {
+        $this->ContactNumber = $ContactNumber;
     }
 
     /**

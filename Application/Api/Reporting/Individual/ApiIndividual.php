@@ -29,6 +29,7 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroup;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupClub;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspect;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspectTransfer;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentBasic;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentSpecialNeeds;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentSubject;
@@ -1305,6 +1306,14 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Panel( 'Interessent:', new Scrollable( $Block, 300 ));
                     } else {
                         $AccordionList[] = new Dropdown( 'Interessent:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewGroupProspectTransfer(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_PROSPECT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewGroupProspectTransfer']) ) {
+                        $AccordionList[] = new Panel( 'Interessent Aufnahme:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Interessent Aufnahme:', new Scrollable( $Block ) );
                     }
                 }
                 $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_PROSPECT);

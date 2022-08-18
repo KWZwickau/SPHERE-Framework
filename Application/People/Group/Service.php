@@ -550,11 +550,11 @@ class Service extends AbstractService
      *
      * @return TblGroup
      */
-    public function insertGroup($Name, $Description = '', $Remark = '')
+    public function insertGroup($Name, $Description = '', $Remark = '', $isCoreGroup = false)
     {
 
         return (new Data($this->getBinding()))->createGroup(
-            $Name, $Description, $Remark
+            $Name, $Description, $Remark, false, '', $isCoreGroup
         );
     }
 

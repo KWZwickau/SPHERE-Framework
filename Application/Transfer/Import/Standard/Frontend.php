@@ -178,4 +178,46 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function frontendCompanyImport($File = null)
+    {
+
+        $Stage = new Stage('Import', 'Standard für Institutionen');
+        $Stage->addButton(
+            new Standard(
+                'Zurück',
+                '/Transfer/Import',
+                new ChevronLeft()
+            )
+        );
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                ImportStandard::useService()->createCompanyFromFile(
+                                    new Form(new FormGroup(new FormRow(new FormColumn(
+                                        new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                            array('showPreview' => false))
+                                    ))), new Primary('Hochladen'))
+                                    , $File
+                                )
+                                .new Warning(new Exclamation().' Erlaubte Dateitypen: Excel (XLS,XLSX)')
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
 }

@@ -286,11 +286,12 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param $PersonId
+     * @param $OnlineContactId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadRelationshipsContent($PersonId)
+    public static function pipelineLoadRelationshipsContent($PersonId, $OnlineContactId)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'RelationshipsContent'), self::getEndpoint());
@@ -298,7 +299,8 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             self::API_TARGET => 'loadRelationshipsContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'OnlineContactId' => $OnlineContactId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -568,8 +570,18 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         }
 
         if (Address::useService()->createAddressToPersonByApi($tblPerson, $Street, $City, $State, $Type, $County, $Nation)) {
+            $tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId);
+
             // Adresse für die ausgewählten Beziehungen speichern
             if (isset($Relationship)) {
+                if ($tblOnlineContact) {
+                    $tblPersonOnlineContactList = OnlineContactDetails::useService()->getPersonListForOnlineContact($tblOnlineContact, false);
+                    $tblContact = $tblOnlineContact->getServiceTblContact();
+                } else {
+                    $tblPersonOnlineContactList = false;
+                    $tblContact = false;
+                }
+
                 foreach ($Relationship as $personId => $value) {
                     if (($tblPersonRelationship = Person::useService()->getPersonById($personId))) {
                         // vorhandene Hauptadresse überschreiben
@@ -595,11 +607,20 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
                                 $Nation
                             );
                         }
+
+                        if ($tblOnlineContact && $tblContact && $tblPersonOnlineContactList
+                            && isset($tblPersonOnlineContactList[$tblPersonRelationship->getId()])
+                            && ($tblOnlineContactRelationship = OnlineContactDetails::useService()->getOnlineContactByContactAndPerson(
+                                $tblContact, $tblOnlineContact->getContactType(), $tblPersonRelationship
+                            ))
+                        ) {
+                            OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContactRelationship);
+                        }
                     }
                 }
             }
 
-            if ($OnlineContactId && ($tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId))) {
+            if ($tblOnlineContact) {
                 OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContact);
             }
 
@@ -622,6 +643,7 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
      * @param $County
      * @param $Nation
      * @param $Relationship
+     * @param $OnlineContactId
      *
      * @return Danger|string
      */
@@ -642,8 +664,18 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         }
 
         if (Address::useService()->updateAddressToPersonByApi($tblToPerson, $Street, $City, $State, $Type, $County, $Nation)) {
+            $tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId);
+
             // Adresse für die ausgewählten Beziehungen speichern
             if (isset($Relationship)) {
+                if ($tblOnlineContact) {
+                    $tblPersonOnlineContactList = OnlineContactDetails::useService()->getPersonListForOnlineContact($tblOnlineContact, false);
+                    $tblContact = $tblOnlineContact->getServiceTblContact();
+                } else {
+                    $tblPersonOnlineContactList = false;
+                    $tblContact = false;
+                }
+
                 foreach ($Relationship as $personId => $value) {
                     if (($tblPersonRelationship = Person::useService()->getPersonById($personId))) {
                         // vorhandene Hauptadresse überschreiben
@@ -669,11 +701,20 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
                                 $Nation
                             );
                         }
+
+                        if ($tblOnlineContact && $tblContact && $tblPersonOnlineContactList
+                            && isset($tblPersonOnlineContactList[$tblPersonRelationship->getId()])
+                            && ($tblOnlineContactRelationship = OnlineContactDetails::useService()->getOnlineContactByContactAndPerson(
+                                $tblContact, $tblOnlineContact->getContactType(), $tblPersonRelationship
+                            ))
+                        ) {
+                            OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContactRelationship);
+                        }
                     }
                 }
             }
 
-            if ($OnlineContactId && ($tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId))) {
+            if ($tblOnlineContact) {
                 OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContact);
             }
 
@@ -714,22 +755,24 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
-     * @param $Type
+     * @param null $OnlineContactId
+     * @param null $Type
      *
      * @return string
      */
-    public function loadRelationshipsContent($PersonId, $Type)
+    public function loadRelationshipsContent($PersonId, $OnlineContactId = null, $Type = null)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
+        $tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId);
         if (($tblType = Address::useService()->getTypeById($Type['Type']))
             && $tblType->getName() == 'Hauptadresse'
         ) {
 
-            return Address::useFrontend()->getRelationshipsContent($tblPerson) . self::pipelineLoadRelationshipsMessage();
+            return Address::useFrontend()->getRelationshipsContent($tblPerson, $tblOnlineContact ?: null) . self::pipelineLoadRelationshipsMessage();
         } else {
             return '' . self::pipelineLoadRelationshipsMessage();
         }

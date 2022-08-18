@@ -84,6 +84,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global = $this->getGlobal();
                 /** @var TblPhone $tblContact */
                 $Global->POST['Number'] = ($tblContact = $tblOnlineContact->getServiceTblContact()) ? $tblContact->getNumber() : '';
+                $Global->POST['Type']['Type'] = ($tblNewContactType = $tblOnlineContact->getServiceTblNewContactType()) ? $tblNewContactType->getId() : 0;
                 $Global->savePost();
             }
         }

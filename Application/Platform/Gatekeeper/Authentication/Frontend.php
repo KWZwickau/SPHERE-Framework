@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
 use DateTime;
 use Exception;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
@@ -98,7 +99,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Willkommen', '', '');
-        $Date = '2022-04-29 ';
+        $Date = '2022-08-18 ';
         $IsMaintenance = (new DateTime('now') >= new DateTime($Date.'13:00:00')
                        && new DateTime('now') <= new DateTime($Date.'23:59:59'));
         $maintenanceMessage = '';
@@ -116,8 +117,9 @@ class Frontend extends Extension implements IFrontendInterface
                     && ($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
                 ) {
-                    $contentTeacherWelcome = Timetable::useService()->getTimetablePanelForTeacher()
-                        . Evaluation::useService()->getTeacherWelcomeGradeTask($tblPerson);
+                    $contentTeacherWelcome = Evaluation::useService()->getTeacherWelcomeGradeTask($tblPerson)
+                        . (($timeTable = Timetable::useService()->getTimetablePanelForTeacher())
+                            ? $timeTable : Digital::useService()->getDigitalClassRegisterPanelForTeacher());
                 }
 
                 if (Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Type/Select')) {

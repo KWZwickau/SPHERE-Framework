@@ -31,7 +31,8 @@ class Data extends AbstractData
         Element $tblContact,
         TblPerson $tblPerson,
         string $Remark,
-        TblPerson $tblPersonCreator
+        TblPerson $tblPersonCreator,
+        Element $tblNewContactType  = null
     ): TblOnlineContact {
         $Manager = $this->getEntityManager();
 
@@ -42,6 +43,7 @@ class Data extends AbstractData
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setRemark($Remark);
         $Entity->setServiceTblPersonCreator($tblPersonCreator);
+        $Entity->setServiceTblNewContactType($tblNewContactType);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -136,5 +138,21 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param Element $tblContact
+     * @param string $contactType
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblOnlineContact
+     */
+    public function getOnlineContactByContactAndPerson(Element $tblContact, string $contactType, TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblOnlineContact', array(
+            TblOnlineContact::ATTR_CONTACT_TYPE => $contactType,
+            TblOnlineContact::ATTR_SERVICE_TBL_CONTACT => $tblContact->getId(),
+            TblOnlineContact::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
     }
 }

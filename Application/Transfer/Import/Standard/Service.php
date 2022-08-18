@@ -9,9 +9,16 @@ use PHPExcel_Shared_Date;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblType as TblTypeMail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType as TblTypePhone;
+use SPHERE\Application\Contact\Web\Service\Entity\TblType as TblTypeWeb;
+use SPHERE\Application\Contact\Web\Web;
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
+use SPHERE\Application\Corporation\Group\Group as GroupCompany;
+use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as TblGroupCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -55,6 +62,7 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
+use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -249,6 +257,7 @@ class Service
             'KL' => null,
             'Team' => null,
             'Gruppe' => null,
+            'Hort_Modul' => null,
         );
 
         $unKnownColumns = array();
@@ -333,17 +342,34 @@ class Service
             $callName = $this->getValue('Rufname');
             $Stammgruppe = $this->getValue('Stammgruppe');
             $Hort = $this->getValue('Hort');
-            $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort,
+            $studentGender = $this->getValue('Geschlecht');
+            $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, $studentGender,
                 false, $this->RunY + 1);
 
-            // Klassen werden auch als Personengruppen angelegt (ESBZ)
-            if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
-                $divisionString = $this->getValue('Klasse/Kurs');
-                if(preg_match('!^[(\d)]+ (JG)!is', $divisionString)){
-                    $divisionString = str_replace(' ', '', $divisionString);
-                    $this->setPersonGroup($tblPerson, $divisionString);
+            // ESBZ "Name" vor Stammgruppen
+//            if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
+                $isCoreGroup = true;
+                $kl = $this->getValue('KL');
+                if($kl){
+                    $kl = 'Klasse '.$kl;
+                    $this->setPersonGroup($tblPerson, $kl, $isCoreGroup);
                 }
-            }
+                $team = $this->getValue('Team');
+                if($team){
+                    $team = 'Team '.$team;
+                    $this->setPersonGroup($tblPerson, $team, $isCoreGroup);
+                }
+                $group = $this->getValue('Gruppe');
+                if($group){
+                    $group = 'Gruppe '.$group;
+                    $this->setPersonGroup($tblPerson, $group);
+                }
+                $HortModule = $this->getValue('Hort_Modul');
+                if($HortModule){
+                    $HortModule = 'Hort '.$HortModule.'h';
+                    $this->setPersonGroup($tblPerson, $HortModule);
+                }
+//            }
 
             $Group = $this->getValue('Gruppe');
             if($Group !== ''){
@@ -388,13 +414,13 @@ class Service
             $school = $this->getValue('Schule');
             $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $school, $this->RunY, $Nr, $error);
 
-            $DivisionChecked = $this->getValue('KL');
-            if($DivisionChecked != ''){
-                if(strlen($DivisionChecked) < 2){
-                    $DivisionChecked = '0'.$DivisionChecked;
-                }
-                $this->setPersonDivision($tblPerson, $YearString, $DivisionChecked, $schoolType, $school, $this->RunY, $Nr, $error, true);
-            }
+//            $DivisionChecked = $this->getValue('KL');
+//            if($DivisionChecked != ''){
+//                if(strlen($DivisionChecked) < 2){
+//                    $DivisionChecked = '0'.$DivisionChecked;
+//                }
+//                $this->setPersonDivision($tblPerson, $YearString, $DivisionChecked, $schoolType, $school, $this->RunY, $Nr, $error, true);
+//            }
 
             // address
             $streetName = $this->getValue('Straße');
@@ -826,8 +852,9 @@ class Service
                         $Stammgruppe = '';
 //                        $Hort = trim($Document->getValue($Document->getCell($Location['Hort'], $RunY)));
                         $Hort = '';
+                        $studentGender = trim($Document->getValue($Document->getCell($Location['Geschlecht'], $RunY)));
                         //
-                        $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, true);
+                        $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, $studentGender, true);
                         $countProspect++;
 
                         // common & birthday
@@ -1174,7 +1201,12 @@ class Service
                         if($tblPerson){
                             $info[] = new Muted(new Small(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1)).' Person '.$tblPerson->getLastFirstName().' gefunden, wird zusätzlich Mitarbeiter.'));
                             $countStaffExists++;
-                            $this->setGroupStaff($tblPerson);
+                            $teacher = trim($Document->getValue($Document->getCell($Location['Lehrer'], $RunY)));
+                            $isTeacher = false;
+                            if(strtoupper($teacher) === 'X'){
+                                $isTeacher = true;
+                            }
+                            $this->setGroupStaff($tblPerson, $isTeacher);
                         } else {
                             // nicht vorhandene Personen werden angelegt
                             $salutation = trim($Document->getValue($Document->getCell($Location['Anrede'], $RunY)));
@@ -1271,6 +1303,325 @@ class Service
     }
 
     /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile        $File
+     *
+     * @return IFormInterface|Danger|string
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createCompanyFromFile(IFormInterface $Form = null, UploadedFile $File = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename().'.'.$File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Nr'                        => null,
+                    'Kontaktnummer'             => '', // Optional
+                    'Ist_Schule'                => null,
+                    'Ist_Kindergarten'          => null,
+                    'Name'                      => null,
+                    'Zusatz'                    => null,
+                    'Straße'                    => null,
+                    'HNR'                       => null,
+                    'PLZ'                       => null,
+                    'Ort'                       => null,
+                    'Ortsteil'                  => null,
+                    'Tel_Geschäftlich_Festnetz' => null,
+                    'Tel_Geschäftlich_Mobil'    => null,
+                    'E-Mail_Geschäftlich'       => null,
+                    'Internetadresse'           => null,
+                    'Bemerkung'                 => null,
+                );
+
+
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 1)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countCompany = 0;
+                    $countCompanyExists = 0;
+                    $error = array();
+
+                    for ($RunY = 2; $RunY < $Y; $RunY++) {
+                        set_time_limit(300);
+
+                        $Nr = trim($Document->getValue($Document->getCell($Location['Nr'], $RunY)));
+                        $Name = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                        if ($Name === '') {
+                            $error[] = new DangerText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' Institution wurde nicht hinzugefügt, da kein Namen hinterlegt ist.';
+                            $countCompanyExists++;
+                            continue;
+                        }
+                        $Extended = trim($Document->getValue($Document->getCell($Location['Zusatz'], $RunY)));
+                        $IsSchool = trim($Document->getValue($Document->getCell($Location['Ist_Schule'], $RunY)));
+                        $IsNursery = trim($Document->getValue($Document->getCell($Location['Ist_Kindergarten'], $RunY)));
+                        $Remark = trim($Document->getValue($Document->getCell($Location['Bemerkung'], $RunY)));
+                        $ContactNumber = '';
+                        if(isset($Location['Kontaktnummer']) && $Location['Kontaktnummer']){
+                            $ContactNumber = trim($Document->getValue($Document->getCell($Location['Kontaktnummer'], $RunY)));
+                        }
+
+                        if(($tblCompany = Company::useService()->getCompanyByName($Name, $Extended))){
+                            if($ContactNumber){
+                                $error[] = new WarningText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' Institution '.$Name.' '.$Extended.' bereits hinterlegt, Update Kontaktnummer ('.$ContactNumber.') erfolgt trotzdem.';
+                                $this->setUpdateCompany($tblCompany, $IsSchool, $IsNursery, $ContactNumber);
+                            } else {
+                                $error[] = new WarningText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' Institution '.$Name.' '.$Extended.' bereits hinterlegt, kein Update.';
+                            }
+                            $countCompanyExists++;
+                            continue;
+                        }
+                        $tblCompany = $this->setInsertCompany($Name, $Remark, $Extended, '', $ContactNumber, $IsSchool, $IsNursery);
+
+                        $streetName = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
+                        $streetNumber = trim($Document->getValue($Document->getCell($Location['HNR'], $RunY)));
+                        $cityCode = trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY)));
+                        $city = trim($Document->getValue($Document->getCell($Location['Ort'], $RunY)));
+                        $district = trim($Document->getValue($Document->getCell($Location['Ortsteil'], $RunY)));
+                        $this->setCompanyAddress($tblCompany, $streetName, $streetNumber, $city, $cityCode, $district, $RunY, $Nr, $error);
+
+                        $Phone_F = trim($Document->getValue($Document->getCell($Location['Tel_Geschäftlich_Festnetz'], $RunY)));
+                        $Phone_M = trim($Document->getValue($Document->getCell($Location['Tel_Geschäftlich_Mobil'], $RunY)));
+                        $this->setCompanyPhone($tblCompany, $Phone_F, $Phone_M);
+
+                        $Mail_B = trim($Document->getValue($Document->getCell($Location['E-Mail_Geschäftlich'], $RunY)));
+                        $this->setCompanyMail($tblCompany, $Mail_B);
+                        $Web = trim($Document->getValue($Document->getCell($Location['Internetadresse'], $RunY)));
+                        $this->setCompanyWeb($tblCompany, $Web);
+
+                        $countCompany++;
+                    }
+
+                    if(empty($error)){
+                        $error = new SuccessText('Keine');
+                    }
+
+                    return new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Success('Es wurden '.$countCompany.' Institutionen erfolgreich angelegt.', null, false, '25', '5')
+                                , 4),
+                            new LayoutColumn(
+                                new Success($countCompanyExists.' Institutionen davon existierten bereits.', null, false, '25', '5')
+                                , 4),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Fehler',
+                                    $error,
+                                    Panel::PANEL_TYPE_DANGER
+                                )
+                            ),
+                        ))
+                    )));
+
+                } else {
+                    $MissingColumn = array();
+                    foreach($Location as $Key => $Column){
+                        if($Column === null){
+                            $MissingColumn[] = $Key.': '.new DangerText('Spalte nicht gefunden!');
+                        }
+                    }
+                    return new Warning(new Listing($MissingColumn)).new Danger(
+                            "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param $Name
+     * @param $Remark
+     * @param $Extended
+     * @param $ImportId
+     * @param $ContactNumber
+     * @param $IsSchool
+     * @param $IsNursery
+     *
+     * @return TblCompany
+     */
+    private function setInsertCompany($Name, $Remark, $Extended, $ImportId = '', $ContactNumber = '', $IsSchool = '', $IsNursery = '')
+    {
+
+        $tblCompany = Company::useService()->insertCompany($Name, $Remark, $Extended, $ImportId, $ContactNumber);
+        CompanyGroup::useService()->addGroupCompany(
+            CompanyGroup::useService()->getGroupByMetaTable(TblGroupCompany::ATTR_COMMON),
+            $tblCompany
+        );
+        if($IsSchool){
+            CompanyGroup::useService()->addGroupCompany(
+                CompanyGroup::useService()->getGroupByMetaTable(TblGroupCompany::ATTR_SCHOOL),
+                $tblCompany
+            );
+        }
+        if($IsNursery){
+            CompanyGroup::useService()->addGroupCompany(
+                CompanyGroup::useService()->getGroupByMetaTable(TblGroupCompany::ATTR_NURSERY),
+                $tblCompany
+            );
+        }
+
+        return $tblCompany;
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     * @param            $IsSchool
+     * @param            $IsNursery
+     * @param            $ContactNumber
+     *
+     * @return void
+     */
+    private function setUpdateCompany(TblCompany $tblCompany, $IsSchool, $IsNursery, $ContactNumber)
+    {
+
+        if($IsSchool){
+            CompanyGroup::useService()->addGroupCompany(
+                CompanyGroup::useService()->getGroupByMetaTable(TblGroupCompany::ATTR_SCHOOL),
+                $tblCompany
+            );
+        }
+        if($IsNursery){
+            CompanyGroup::useService()->addGroupCompany(
+                CompanyGroup::useService()->getGroupByMetaTable(TblGroupCompany::ATTR_NURSERY),
+                $tblCompany
+            );
+        }
+
+        Company::useService()->updateCompanyWithoutForm($tblCompany, $tblCompany->getName(), $tblCompany->getExtendedName(), $tblCompany->getDescription(), $ContactNumber);
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     * @param string     $streetName
+     * @param string     $streetNumber
+     * @param string     $city
+     * @param string     $cityCode
+     * @param string     $district
+     * @param int        $RunY
+     * @param string     $Nr
+     * @param array      $error
+     */
+    private function setCompanyAddress(TblCompany $tblCompany, $streetName, $streetNumber, $city, $cityCode, $district, $RunY, $Nr, &$error)
+    {
+
+        if($district == ''){
+            $cityTemp = $city;
+            if (preg_match('!(\w*\s)(OT\s\w*)!is', $cityTemp, $found)) {
+                $city = $found[1];
+                $district = $found[2];
+            }
+        }
+
+        if($streetNumber == ''){
+            $street = $streetName;
+            if (preg_match_all('!\d+!', $street, $matches)) {
+                $pos = strpos($street, $matches[0][0]);
+                if ($pos !== null) {
+                    $streetName = trim(substr($street, 0, $pos));
+                    $streetNumber = trim(substr($street, $pos));
+                }
+            }
+        }
+
+        if ($streetName !== '' && $streetNumber !== '' && $cityCode && $city
+        ) {
+            Address::useService()->insertAddressToCompany(
+                $tblCompany, $streetName, $streetNumber, $cityCode, $city, $district, ''
+            );
+        } else {
+            $error[] = new DangerText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' '.$tblCompany->getDisplayName().' Adresse konnte nicht angelegt werden.';
+        }
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     * @param            $Phone_F
+     * @param            $Phone_M
+     *
+     * @return void
+     */
+    private function setCompanyPhone(TblCompany $tblCompany, $Phone_F, $Phone_M)
+    {
+
+        if($Phone_F){
+            $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_BUSINESS, TblTypePhone::VALUE_DESCRIPTION_PHONE);
+            Phone::useService()->insertPhoneToCompany($tblCompany, $Phone_F, $tblType, '');
+        }
+        if($Phone_M){
+            $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_BUSINESS, TblTypePhone::VALUE_DESCRIPTION_MOBILE);
+            Phone::useService()->insertPhoneToCompany($tblCompany, $Phone_M, $tblType, '');
+        }
+    }
+
+    /**
+     * @param $tblCompany
+     * @param $Mail_B
+     *
+     * @return void
+     */
+    private function setCompanyMail($tblCompany, $Mail_B)
+    {
+
+        if($Mail_B){
+            $tblType = Mail::useService()->getTypeByName(TblTypeMail::VALUE_BUSINESS);
+            Mail::useService()->insertMailToCompany($tblCompany, $Mail_B, $tblType, '');
+        }
+    }
+
+    /**
+     * @param $tblCompany
+     * @param $Web
+     *
+     * @return void
+     */
+    private function setCompanyWeb($tblCompany, $Web)
+    {
+
+        if($Web){
+            $tblType = Web::useService()->getTypeByName(TblTypeWeb::VALUE_BUSINESS);
+            Web::useService()->insertWebToCompany($tblCompany, $Web, $tblType, '');
+        }
+    }
+
+    /**
      * @param string $firstName
      * @param string $secondName
      * @param string $callName
@@ -1282,7 +1633,7 @@ class Service
      *
      * @return bool|TblPerson
      */
-    private function setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, $isProspect = false,
+    private function setPersonStudent($firstName, $secondName, $callName, $lastName, $Stammgruppe, $Hort, $studentGender, $isProspect = false,
         $ImportId = '')
     {
 
@@ -1309,8 +1660,15 @@ class Service
             $GroupList[] = $tblGroupH;
         }
 
+        $Salutation = Person::useService()->getSalutationByName(TblSalutation::VALUE_STUDENT);
+        if($studentGender){
+            if(strtolower($studentGender) == 'w') {
+                $Salutation = Person::useService()->getSalutationByName(TblSalutation::VALUE_STUDENT_FEMALE);
+            }
+        }
+
         return Person::useService()->insertPerson(
-            Person::useService()->getSalutationByName(TblSalutation::VALUE_STUDENT),
+            $Salutation,
             '',
             $firstName,
             $secondName,
@@ -1325,13 +1683,14 @@ class Service
     /**
      * @param TblPerson $tblPerson
      * @param string    $Group
+     * @param bool      $isCoreGroup
      *
      * @return void
      */
-    private function setPersonGroup(TblPerson $tblPerson, string $Group)
+    private function setPersonGroup(TblPerson $tblPerson, string $Group, $isCoreGroup = false)
     {
 
-        $tblGroup = Group::useService()->insertGroup($Group);
+        $tblGroup = Group::useService()->insertGroup($Group, '', '', $isCoreGroup);
         Group::useService()->addGroupPerson($tblGroup, $tblPerson);
     }
 
@@ -1538,6 +1897,10 @@ class Service
                         $level = $divisionString;
                         $division = '';
                     }
+                }
+                // Klassen erhalten den Zusatz JG
+                if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
+                    $division .= 'JG';
                 }
 
                 $schoolType = strtolower($schoolType);

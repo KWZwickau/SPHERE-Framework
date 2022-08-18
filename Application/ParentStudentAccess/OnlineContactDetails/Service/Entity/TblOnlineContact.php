@@ -40,6 +40,8 @@ class TblOnlineContact extends Element
     const VALUE_TYPE_MAIL = 'MAIL';
 
     /**
+     * ADDRESS, PHONE or MAIL
+     *
      * @Column(type="string")
      */
     protected string $ContactType;
@@ -53,6 +55,13 @@ class TblOnlineContact extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblContact;
+
+    /**
+     * Typ bei der Telefonnummer oder Email-Adresse
+     *
+     * @Column(type="bigint")
+     */
+    protected $serviceTblNewContactType = null;
 
     /**
      * @Column(type="bigint")
@@ -268,5 +277,32 @@ class TblOnlineContact extends Element
         }
 
         return '';
+    }
+
+    /**
+     * @return Element|false
+     */
+    public function getServiceTblNewContactType()
+    {
+        if ($this->serviceTblNewContactType) {
+            switch ($this->getContactType()) {
+                case self::VALUE_TYPE_PHONE: return Phone::useService()->getTypeById($this->serviceTblNewContactType);
+                case self::VALUE_TYPE_MAIL: return Mail::useService()->getTypeById($this->serviceTblNewContactType);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param mixed $tblNewContactType
+     */
+    public function setServiceTblNewContactType(Element $tblNewContactType = null): void
+    {
+        if ($tblNewContactType) {
+            $this->serviceTblNewContactType = $tblNewContactType->getId();
+        } else {
+            $this->serviceTblNewContactType = null;
+        }
     }
 }

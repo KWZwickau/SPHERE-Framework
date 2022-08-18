@@ -287,9 +287,7 @@ class Service
      */
     public static function getPersonMessageTable(TblPerson $tblPerson)
     {
-        if (($tblStudent = $tblPerson->getStudent())
-            && ($tblDivisionList = $tblStudent->getCurrentDivisionList())
-        ) {
+        if (($tblDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
             $list = array();
             foreach ($tblDivisionList as $tblDivision) {
                 if (($tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {

@@ -1287,7 +1287,7 @@ class ClassRegister extends AbstractDocument
         $content = $tblInstruction->getContent();
         $count = 0;
 
-        if (($tblInstructionItemList = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $this->tblDivision, $this->tblGroup))) {
+        if (($tblInstructionItemList = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $this->tblDivision, $this->tblGroup, null))) {
             $subSlice = (new Slice())
                 // keine Ahnung warum diese Höhe 10 Pixel mehr sein muss
                 ->styleHeight('150px')

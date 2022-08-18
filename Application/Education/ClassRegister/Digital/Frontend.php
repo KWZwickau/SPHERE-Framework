@@ -4,34 +4,27 @@ namespace SPHERE\Application\Education\ClassRegister\Digital;
 
 use DateInterval;
 use DateTime;
-use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
-use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\ClassRegister\Digital\Frontend\FrontendTabs;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -39,39 +32,26 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
-use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
-use SPHERE\Common\Frontend\Icon\Repository\Comment;
-use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\Extern;
-use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Home;
-use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
-use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
-use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
-use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -86,16 +66,12 @@ use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
-class Frontend extends Extension implements IFrontendInterface
+class Frontend extends FrontendTabs
 {
-    const BASE_ROUTE = '/Education/ClassRegister/Digital';
 
     /**
      * @return Stage
@@ -197,8 +173,7 @@ class Frontend extends Extension implements IFrontendInterface
                         } else {
                             if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                                 foreach ($tblPersonList as $tblPersonStudent) {
-                                    if (($tblStudent = $tblPersonStudent->getStudent())
-                                        && ($tblDivisionMain = $tblStudent->getCurrentMainDivision())
+                                    if (($tblDivisionMain = Student::useService()->getCurrentMainDivisionByPerson($tblPersonStudent))
                                         && isset($divisionList[$tblDivisionMain->getId()])
                                     ) {
                                         $addGroup = true;
@@ -212,7 +187,9 @@ class Frontend extends Extension implements IFrontendInterface
                             $divisionTable[] = array(
                                 'Group' => $tblGroup->getName(),
                                 'Option' => new Standard(
-                                    '', self::BASE_ROUTE . '/LessonContent', new Select(),
+                                    '',
+                                    $tblGroup->getIsGroupCourseSystem() ? self::BASE_ROUTE . '/SelectCourse' : self::BASE_ROUTE . '/LessonContent',
+                                    new Select(),
                                     array(
                                         'GroupId' => $tblGroup->getId(),
                                         'BasicRoute' => self::BASE_ROUTE . '/Teacher'
@@ -247,7 +224,9 @@ class Frontend extends Extension implements IFrontendInterface
                         'Type' => $item->getTypeName(),
                         'Division' => $item->getDisplayName(),
                         'Option' => new Standard(
-                            '', self::BASE_ROUTE . '/LessonContent', new Select(),
+                            '',
+                            Division::useService()->getIsDivisionCourseSystem($item) ? self::BASE_ROUTE . '/SelectCourse' : self::BASE_ROUTE . '/LessonContent',
+                            new Select(),
                             array(
                                 'DivisionId' => $item->getId(),
                                 'BasicRoute' => self::BASE_ROUTE . '/Teacher'
@@ -315,8 +294,9 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivisionList = Division::useService()->getDivisionAll();
 
         $yearFilterList = array();
+        // nur Schulleitung darf History (Alle Schuljahre) sehen
         $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Headmaster',
-            $IsAllYears, $IsGroup, $YearId, true, true, $yearFilterList);
+            $IsAllYears, $IsGroup, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList);
 
         $divisionTable = array();
         if ($IsGroup) {
@@ -326,7 +306,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $divisionTable[] = array(
                         'Group' => $tblGroup->getName(),
                         'Option' => new Standard(
-                            '', self::BASE_ROUTE . '/LessonContent', new Select(),
+                            '',
+                            $tblGroup->getIsGroupCourseSystem() ? self::BASE_ROUTE . '/SelectCourse' : self::BASE_ROUTE . '/LessonContent',
+                            new Select(),
                             array(
                                 'GroupId' => $tblGroup->getId(),
                                 'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
@@ -363,7 +345,9 @@ class Frontend extends Extension implements IFrontendInterface
                             'Type' => $tblDivision->getTypeName(),
                             'Division' => $tblDivision->getDisplayName(),
                             'Option' => new Standard(
-                                '', self::BASE_ROUTE . '/LessonContent', new Select(),
+                                '',
+                                Division::useService()->getIsDivisionCourseSystem($tblDivision) ? self::BASE_ROUTE . '/SelectCourse' : self::BASE_ROUTE . '/LessonContent',
+                                new Select(),
                                 array(
                                     'DivisionId' => $tblDivision->getId(),
                                     'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
@@ -425,99 +409,15 @@ class Frontend extends Extension implements IFrontendInterface
         $stage = new Stage('Digitales Klassenbuch', 'Klassentagebuch');
 
         $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
+            'Zurück', $BasicRoute, new ChevronLeft(), array('IsGroup' => $GroupId)
         ));
 
         $tblYear = null;
-        $tblPerson = Account::useService()->getPersonByLogin();
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
 
-        // Auswahl der SEKII-Kurshefte
-        if (($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))
-            || ($tblGroup && $tblGroup->getIsGroupCourseSystem())
-        ) {
-            if ($tblGroup && ($tblDivisionList = $tblGroup->getCurrentDivisionList())) {
-                $tblMainDivision = reset($tblDivisionList);
-            } else {
-                $tblMainDivision = $tblDivision;
-            }
-
-            // Klassenlehrer sieht alle Kurshefte
-            if ($tblPerson && (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblMainDivision, $tblPerson))) {
-                $isTeacher = false;
-            } else {
-                // Fachlehrer
-                $isTeacher = strpos($BasicRoute, 'Teacher');
-            }
-
-            $subjectGroupList = array();
-            if (($tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblMainDivision))
-                && $tblPerson
-            ) {
-                foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
-                    if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
-                        && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
-                        && $tblDivisionSubject->getHasGrading()
-                    ) {
-                        // Fachlehrer benötigt einen Lehrauftrag
-                        if ($isTeacher && !Division::useService()->existsSubjectTeacher($tblPerson, $tblDivisionSubject)) {
-                            continue;
-                        }
-
-                        $subjectGroupList[] = array(
-                            'Subject' => $tblSubject->getDisplayName(),
-                            'SubjectGroup' => $tblSubjectGroup->getName(),
-                            'Option' => new Standard(
-                                '', self::BASE_ROUTE . '/CourseContent', new Select(),
-                                array(
-                                    'DivisionId' => $tblMainDivision->getId(),
-                                    'SubjectId' => $tblSubject->getId(),
-                                    'SubjectGroupId' => $tblSubjectGroup->getId(),
-                                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
-                                    'BasicRoute' => $BasicRoute
-                                ),
-                                'Auswählen'
-                            )
-                        );
-                    }
-                }
-            }
-
-            $stage->setContent(
-                new Layout(new LayoutGroup(array(
-                    Digital::useService()->getHeadLayoutRow($tblDivision ?: null, $tblGroup ?: null, $tblYear),
-                    Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                        '/Education/ClassRegister/Digital/LessonContent', $BasicRoute)
-                )))
-                . new Container('&nbsp;')
-                . new Panel(
-                    'SEKII-Kurshefte',
-                    new TableData(
-                        $subjectGroupList,
-                        null,
-                        array(
-                            'Subject' => 'Fach',
-                            'SubjectGroup' => 'Fach-Gruppe',
-                            'Option' => ''
-                        ),
-                        array(
-                            'order' => array(
-                                array('0', 'asc'),
-                                array('1', 'asc'),
-                            ),
-                            'columnDefs' => array(
-                                array('type' => 'natural', 'targets' => 2),
-                                array('orderable' => false, 'width' => '1%', 'targets' => -1)
-                            ),
-                        )
-                    ),
-                    Panel::PANEL_TYPE_PRIMARY
-                )
-            );
-
         // Klassenbuch Ansicht
-        } elseif ($tblDivision || $tblGroup) {
+        if ($tblDivision || $tblGroup) {
             // View speichern
             Consumer::useService()->createAccountSetting('LessonContentView', 'Day');
 
@@ -559,10 +459,12 @@ class Frontend extends Extension implements IFrontendInterface
         $DivisionId = $tblDivision ? $tblDivision->getId() : null;
         $GroupId = $tblGroup ? $tblGroup->getId() : null;
 
+        $Date = ($DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString);
+
         $buttons = (new Primary(
             new Plus() . ' Thema/Hausaufgaben hinzufügen',
             ApiDigital::getEndpoint()
-        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId));
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $Date));
 
         if ($tblDivision) {
             $Type = 'Division';
@@ -574,8 +476,6 @@ class Frontend extends Extension implements IFrontendInterface
             $Type = null;
             $TypeId = null;
         }
-
-        $Date = $DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString;
 
         if ($View == 'Day') {
             $buttons .= (new Primary(
@@ -604,8 +504,10 @@ class Frontend extends Extension implements IFrontendInterface
         )))));
 
         $layout = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($buttons, $View == 'Day' ? 7 : 8),
-                new LayoutColumn($form, $View == 'Day' ? 5 : 4)
+//                new LayoutColumn($buttons, $View == 'Day' ? 7 : 8),
+//                new LayoutColumn($form, $View == 'Day' ? 5 : 4)
+                new LayoutColumn($buttons, 8),
+                new LayoutColumn($form, 4)
             ))))
             . new Container('&nbsp;')
             . new Panel(
@@ -616,7 +518,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($View == 'Day') {
             $layout = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($this->getStudentPanel($tblDivision, $tblGroup), 2),
+                new LayoutColumn($this->getStudentPanel($tblDivision, $tblGroup, null), 2),
                 new LayoutColumn($layout, 10),
             ))));
         }
@@ -809,14 +711,15 @@ class Frontend extends Extension implements IFrontendInterface
                     $index++;
                 }
 
+                $isEditAllowed = Digital::useService()->getIsLessonContentEditAllowed($tblLessonContent);
                 $lessonContentId = $tblLessonContent->getId();
                 $bodyList[$index] = array(
-                    'Lesson' => $this->getLessonsEditLink(new Bold(new Center($lesson)), $lessonContentId, $lesson),
-                    'Subject' => $this->getLessonsEditLink($tblLessonContent->getDisplaySubject(true), $lessonContentId, $lesson),
-                    'Room' => $this->getLessonsEditLink($tblLessonContent->getRoom(), $lessonContentId, $lesson),
-                    'Teacher' => $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson),
-                    'Content' => $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson),
-                    'Homework' => $this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId, $lesson),
+                    'Lesson' => $isEditAllowed ? $this->getLessonsEditLink(new Bold(new Center($lesson)), $lessonContentId, $lesson) : new Bold(new Center($lesson)),
+                    'Subject' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getDisplaySubject(true), $lessonContentId, $lesson) : $tblLessonContent->getDisplaySubject(true),
+                    'Room' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getRoom(), $lessonContentId, $lesson) : $tblLessonContent->getRoom(),
+                    'Teacher' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson) : $tblLessonContent->getTeacherString(),
+                    'Content' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson) : $tblLessonContent->getContent(),
+                    'Homework' => $isEditAllowed ?$this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId, $lesson) : $tblLessonContent->getHomework(),
 
                     'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
                 );
@@ -836,25 +739,32 @@ class Frontend extends Extension implements IFrontendInterface
                     $i . '. Thema/Hausaufgaben hinzufügen',
                     null,
                     AbstractLink::TYPE_MUTED_LINK
-                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
-                    $date->format('d.m.Y'), $i));
+                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $date->format('d.m.Y'), $i));
 
-                $link = (new Link(
-                    '<div style="height: 22px"></div>',
-                    ApiDigital::getEndpoint(),
-                    null,
-                    array(),
-                    $i . '. Thema/Hausaufgaben hinzufügen'
-                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
-                    $date->format('d.m.Y'), $i));
+                // Fach aus dem importierten Stundenplan anzeigen
+                if (!$isHoliday && $tblDivision && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                    $tblDivision, $date, $i
+                ))) {
+                    $subject = $tblLessonContentTemp->getDisplaySubject(true);
+                    $room = $tblLessonContentTemp->getRoom();
+                // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
+                } elseif (!$isHoliday && ($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                    $tblDivision ?: null, $tblGroup ?: null, $date, $i
+                ))) {
+                    $subject = $tblLessonContentTemp->getDisplaySubject(true);
+                    $room = $tblLessonContentTemp->getRoom();
+                } else {
+                    $subject = '';
+                    $room = '';
+                }
 
                 $bodyList[$i * 10] = array(
                     'Lesson' => $linkLesson,
-                    'Subject' => $link,
-                    'Room' => $link,
-                    'Teacher' => $link,
-                    'Content' => $link,
-                    'Homework' => $link,
+                    'Subject' => $this->getLessonsNewLink($subject, $date, $i, $DivisionId, $GroupId),
+                    'Room' => $this->getLessonsNewLink($room, $date, $i, $DivisionId, $GroupId),
+                    'Teacher' => $this->getLessonsNewLink('', $date, $i, $DivisionId, $GroupId),
+                    'Content' => $this->getLessonsNewLink('', $date, $i, $DivisionId, $GroupId),
+                    'Homework' => $this->getLessonsNewLink('', $date, $i, $DivisionId, $GroupId),
 
                     'Absence' => isset($absenceContent[$i]) ? implode(' - ', $absenceContent[$i]) : ''
                 );
@@ -944,7 +854,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return string
      */
-    private function getWeekViewContent(
+    public function getWeekViewContent(
         string $DateString,
         ?TblDivision $tblDivision,
         ?TblGroup $tblGroup,
@@ -1024,16 +934,14 @@ class Frontend extends Extension implements IFrontendInterface
         for ($day = 1; $day < 6; $day++) {
             // Ferien, Feiertage
             $isHoliday = false;
-            if ($tblYear) {
-                if ($tblCompanyList) {
-                    foreach ($tblCompanyList as $tblCompany) {
-                        if (($isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, $tblCompany))) {
-                            break;
-                        }
+            if ($tblCompanyList) {
+                foreach ($tblCompanyList as $tblCompany) {
+                    if (($isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, $tblCompany))) {
+                        break;
                     }
-                } else {
-                    $isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, null);
                 }
+            } else {
+                $isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, null);
             }
             if ($isHoliday) {
                 $holidayList[$day] = true;
@@ -1075,7 +983,7 @@ class Frontend extends Extension implements IFrontendInterface
                         . ($teacher ? ' (' . $teacher . ')' : '')
                         . ($tblLessonContent->getContent() ? new Container('Inhalt: ' . $tblLessonContent->getContent()) : '')
                         . ($tblLessonContent->getHomework() ? new Container('Hausaufgaben: ' . $tblLessonContent->getHomework()) : '');
-                    if ($isReadOnly) {
+                    if ($isReadOnly || !Digital::useService()->getIsLessonContentEditAllowed($tblLessonContent)) {
                         $item = $display;
                     } else {
                         $item = $this->getLessonsEditLink($display, $tblLessonContent->getId(), $lesson);
@@ -1107,14 +1015,27 @@ class Frontend extends Extension implements IFrontendInterface
                 } elseif ($isHoliday) {
                     $cell = new Center(new Muted('f'));
                 } elseif(!$isReadOnly) {
+                    // Fach aus dem importierten Stundenplan anzeigen
+                    if ($tblDivision && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                        $tblDivision, new DateTime($dateStringList[$j]), $i
+                    ))) {
+                        $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+                    // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
+                    } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                        $tblDivision ?: null, $tblGroup ?: null, new DateTime($dateStringList[$j]), $i
+                    ))) {
+                        $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+                    } else {
+                        $cellContent = '<div style="height: 22px"></div>';
+                    }
+
                     $cell = (new Link(
-                        '<div style="height: 22px"></div>',
+                        $cellContent,
                         ApiDigital::getEndpoint(),
                         null,
                         array(),
                         $i . '. Thema/Hausaufgaben hinzufügen'
-                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId,
-                        $dateStringList[$j], $i));
+                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $dateStringList[$j], $i));
                 } else {
                     $cell = '&nbsp;';
                 }
@@ -1193,6 +1114,26 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param string $name
+     * @param DateTime $date
+     * @param int $Lesson
+     * @param int|null $DivisionId
+     * @param int|null $GroupId
+     *
+     * @return Link
+     */
+    private function getLessonsNewLink(string $name, DateTime $date, int $Lesson, ?int $DivisionId, ?int $GroupId): Link
+    {
+        return (new Link(
+            $name ?: '<div style="height: 22px"></div>',
+            ApiDigital::getEndpoint(),
+            null,
+            array(),
+            $Lesson . '. Thema/Hausaufgaben hinzufügen'
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $date->format('d.m.Y'), $Lesson));
+    }
+
+    /**
+     * @param string $name
      * @param string $width
      * @param string $backgroundColor
      *
@@ -1232,6 +1173,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function formLessonContent(TblDivision $tblDivision = null, TblGroup $tblGroup = null, $LessonContentId = null,
         bool $setPost = false, string $Date = null, string $Lesson = null): Form
     {
+        $tblSubject = false;
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
         if ($setPost && $LessonContentId
             && ($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))
@@ -1239,13 +1181,11 @@ class Frontend extends Extension implements IFrontendInterface
             $Global = $this->getGlobal();
             $Global->POST['Data']['Date'] = $tblLessonContent->getDate();
             $Global->POST['Data']['Lesson'] = $tblLessonContent->getLesson();
-            $Global->POST['Data']['serviceTblSubject'] =
-                ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+            $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : 0;
             $Global->POST['Data']['serviceTblSubstituteSubject'] =
                 ($tblSubstituteSubject = $tblLessonContent->getServiceTblSubstituteSubject()) ? $tblSubstituteSubject->getId() : 0;
             $Global->POST['Data']['IsCanceled'] = $tblLessonContent->getIsCanceled();
-            $Global->POST['Data']['serviceTblPerson'] =
-                ($tblPerson = $tblLessonContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
+            $Global->POST['Data']['serviceTblPerson'] = ($tblPerson = $tblLessonContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
             $Global->POST['Data']['Content'] = $tblLessonContent->getContent(false);
             $Global->POST['Data']['Homework'] = $tblLessonContent->getHomework();
             $Global->POST['Data']['Room'] = $tblLessonContent->getRoom();
@@ -1270,10 +1210,21 @@ class Frontend extends Extension implements IFrontendInterface
             ) {
                 $Global = $this->getGlobal();
 
-                $Global->POST['Data']['serviceTblSubject'] = $tblLessonContentTemp->getServiceTblSubject() ? $tblLessonContentTemp->getServiceTblSubject()->getId() : 0;
-                $Global->POST['Data']['serviceTblSubstituteSubject'] = $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
+                $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+                $Global->POST['Data']['serviceTblSubstituteSubject'] =
+                    $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
                 $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
                 $Global->POST['Data']['IsCanceled'] = $tblLessonContentTemp->getIsCanceled() ? 1 : 0;
+
+                $Global->savePost();
+            // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
+            } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                $tblDivision ?: null, $tblGroup ?: null, new DateTime($Date), (int) $Lesson
+            ))) {
+                $Global = $this->getGlobal();
+
+                $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+                $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
 
                 $Global->savePost();
             }
@@ -1305,1042 +1256,77 @@ class Frontend extends Extension implements IFrontendInterface
             ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteLessonContentModal($LessonContentId));
         }
 
-        return (new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
-                        , 6),
-                    new FormColumn(
-                        (new SelectBox('Data[Lesson]', 'Unterrichtseinheit', array('{{ Name }}' => $lessons)))->setRequired()
-                        , 6),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new SelectBox('Data[serviceTblSubject]', 'Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
-                        , 6),
-                    new FormColumn(
-                        new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
-                        , 6),
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
+                , 6),
+            new FormColumn(
+                (new SelectBox('Data[Lesson]', 'Unterrichtseinheit', array('{{ Name }}' => $lessons)))->setRequired()
+                , 6),
+        ));
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                (new SelectBox('Data[serviceTblSubject]', 'Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
+                    ->ajaxPipelineOnChange(ApiDigital::pipelineLoadLessonContentLinkPanel(
+                        $tblDivision ? $tblDivision->getId() : null,
+                        $tblGroup ? $tblGroup->getId() : null,
+                        $tblSubject ? $tblSubject->getId() : null
+                    ))
+                , 6),
+            new FormColumn(
+                new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
+                , 6),
 //                    new FormColumn(
 //                        new SelectBox('Data[serviceTblPerson]', 'Lehrer', array('{{ FullName }}' => $tblTeacherList))
 //                        , 6),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new CheckBox('Data[IsCanceled]', 'Fach ist ausgefallen', 1)
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[Room]', 'Raum', 'Raum', new MapMarker())
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        $buttonList
-                    )
-                )),
-            ))
-        ))->disableSubmitAction();
-    }
-
-    /**
-     * @param null $DivisionId
-     * @param null $SubjectId
-     * @param null $SubjectGroupId
-     * @param null $GroupId
-     * @param string $BasicRoute
-     *
-     * @return Stage|string
-     */
-    public function frontendCourseContent(
-        $DivisionId = null,
-        $SubjectId = null,
-        $SubjectGroupId = null,
-        $GroupId = null,
-        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('SekII-Kurs-Heft', 'Übersicht');
-
-        if ($GroupId) {
-            $stage->addButton(new Standard(
-                'Zurück', '/Education/ClassRegister/Digital/LessonContent', new ChevronLeft(), array(
-                    'GroupId' => $GroupId,
-                    'BasicRoute' => $BasicRoute
-                )
-            ));
-        } else {
-            $stage->addButton(new Standard(
-                'Zurück', '/Education/ClassRegister/Digital/LessonContent', new ChevronLeft(), array(
-                    'DivisionId' => $DivisionId,
-                    'BasicRoute' => $BasicRoute
-                )
-            ));
-        }
-
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblSubject = Subject::useService()->getSubjectById($SubjectId);
-        $tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId);
-
-        if ($tblDivision && $tblSubject && $tblSubjectGroup
-            && ($tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-                $tblDivision, $tblSubject, $tblSubjectGroup
-            ))
-        ) {
-            $tblYear = $tblDivision->getServiceTblYear();
-            $content[] = ($GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId)))
-                ? 'Gruppe: ' . $tblGroup->getName() : 'Klasse: ' . $tblDivision->getDisplayName();
-            $content[] = 'Fach: ' . $tblSubject->getDisplayName();
-            $content[] = 'Kurs: ' . $tblSubjectGroup->getName();
-
-            $stage->setContent(
-                ApiDigital::receiverModal()
-                . ApiAbsence::receiverModal()
-                . new Layout(new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(new Panel('SekII-Kurs', $content, Panel::PANEL_TYPE_INFO), 6),
-                        new LayoutColumn(new Panel('Schuljahr', $tblYear ? $tblYear->getDisplayName() : '', Panel::PANEL_TYPE_INFO), 6)
-                    )),
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            (new Primary(
-                                new Plus() . ' Thema/Hausaufgaben hinzufügen',
-                                ApiDigital::getEndpoint()
-                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateCourseContentModal($DivisionId, $SubjectId, $SubjectGroupId))
-                            . (new Primary(
-                                new Plus() . ' Fehlzeit hinzufügen',
-                                ApiAbsence::getEndpoint()
-                            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId, null,
-                                'DivisionSubject', $tblDivisionSubject->getId()))
-                            . (new Primary(
-                                new Check() . ' Kenntnis genommen (SL)',
-                                ApiInstructionSetting::getEndpoint()
-                            ))->ajaxPipelineOnClick(ApiInstructionSetting::pipelineSaveHeadmasterNoticed($DivisionId, $SubjectId, $SubjectGroupId))
-                        , 8),
-                        new LayoutColumn(
-                            new PullRight(
-                                (new External(
-                                    'zum Notenbuch',
-                                    '/Education/Graduation/Gradebook/Gradebook/Teacher/Selected',
-                                    new Extern(),
-                                    array(
-                                        'DivisionSubjectId' => $tblDivisionSubject->getId()
-                                    ),
-                                    'Zum Notenbuch wechseln'
-                                ))
-                                . (new External(
-                                    'Download',
-                                    '/Api/Document/Standard/CourseContent/Create',
-                                    new Download(),
-                                    array(
-                                        'DivisionId' => $DivisionId,
-                                        'SubjectId' => $SubjectId,
-                                        'SubjectGroupId' => $SubjectGroupId
-                                    ),
-                                    'Kursheft herunterladen'
-                                ))
-                            )
-                        , 4)
-                    ))
-                )))
-                . new Container('&nbsp;')
-                . ApiDigital::receiverBlock($this->loadCourseContentTable($tblDivision, $tblSubject, $tblSubjectGroup),
-                    'CourseContentContent')
-            );
-        } else {
-            return new Danger('SekII-Kurs nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
-        }
-
-        return $stage;
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param TblSubjectGroup $tblSubjectGroup
-     *
-     * @return string
-     */
-    public function loadCourseContentTable(TblDivision $tblDivision, TblSubject $tblSubject,
-        TblSubjectGroup $tblSubjectGroup): string
-    {
-        $dataList = array();
-        $divisionList = array('0' => $tblDivision);
-        if (($tblCourseContentList = Digital::useService()->getCourseContentListBy($tblDivision, $tblSubject, $tblSubjectGroup))) {
-            $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-                $tblDivision, $tblSubject, $tblSubjectGroup
-            );
-            foreach ($tblCourseContentList as $tblCourseContent) {
-                $absenceList = array();
-                $lessonArray = array();
-                $lesson = $tblCourseContent->getLesson();
-                $lessonArray[$lesson] = $lesson;
-                if ($tblCourseContent->getIsDoubleLesson()) {
-                    $lesson++;
-                    $lessonArray[$lesson] = $lesson;
-                }
-
-                if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(new DateTime($tblCourseContent->getDate()),
-                    null, null, $divisionList, array(), $hasTypeOption, null))
-                ) {
-                    foreach ($AbsenceList as $Absence) {
-                        if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
-                            $isAdd = false;
-                            if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
-                                foreach ($tblAbsenceLessonList as $tblAbsenceLesson) {
-                                    if (isset($lessonArray[$tblAbsenceLesson->getLesson()])) {
-                                        $isAdd = true;
-                                        break;
-                                    }
-                                }
-                            // ganztägig
-                            } else {
-                                $isAdd = true;
-                            }
-
-                            if ($isAdd) {
-                                $lessonString = $tblAbsence->getLessonStringByAbsence();
-                                $type = $tblAbsence->getTypeDisplayShortName();
-                                $remark = $tblAbsence->getRemark();
-                                $toolTip = ($lessonString ? $lessonString . ' / ' : '') . ($type ? $type . ' / ' : '') . $tblAbsence->getStatusDisplayShortName()
-                                    . (($tblPersonStaff = $tblAbsence->getDisplayStaffToolTip()) ? ' - ' . $tblPersonStaff : '')
-                                    . ($remark ? ' - ' . $remark : '');
-
-                                $absenceList[] = new Container((new Link(
-                                    $Absence['Person'],
-                                    ApiAbsence::getEndpoint(),
-                                    null,
-                                    array(),
-                                    $toolTip,
-                                    null,
-                                    $tblAbsence->getLinkType()
-                                ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(),
-                                    'DivisionSubject', $tblDivisionSubject ? $tblDivisionSubject->getId(): null)));
-                            }
-                        }
-                    }
-                }
-
-                $dataList[] = array(
-                    'Date' => $tblCourseContent->getDate(),
-                    'Lesson' => new Center(implode(', ', $lessonArray)),
-                    'IsDoubleLesson' => new Center($tblCourseContent->getIsDoubleLesson() ? 'X' : ''),
-                    'Content' => $tblCourseContent->getContent(),
-                    'Homework' => $tblCourseContent->getHomework(),
-                    'Remark' => $tblCourseContent->getRemark(),
-                    'Room' => $tblCourseContent->getRoom(),
-                    'Absence' => implode(' ', $absenceList),
-                    'Teacher' => $tblCourseContent->getTeacherString(),
-                    'Noticed' => $tblCourseContent->getNoticedString(false),
-                    'Option' =>
-                        (new Standard(
-                            '',
-                            ApiDigital::getEndpoint(),
-                            new Edit(),
-                            array(),
-                            'Bearbeiten'
-                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditCourseContentModal($tblCourseContent->getId()))
-                        . (new Standard(
-                            '',
-                            ApiDigital::getEndpoint(),
-                            new Remove(),
-                            array(),
-                            'Löschen'
-                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteCourseContentModal($tblCourseContent->getId()))
-                );
-            }
-        }
-
-        return new TableData(
-            $dataList,
-            null,
-            array(
-                'Date' => 'Datum',
-                'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
-                'IsDoubleLesson' => 'Doppel&shy;stunde',
-                'Room' => 'Raum',
-                'Content' => 'Thema',
-                'Homework' => 'Hausaufgaben',
-                'Remark' => 'Bemerkungen',
-                'Absence' => 'Fehlzeiten',
-                'Teacher' => 'Lehrer',
-                'Noticed' => 'Kenntnis genommen (SL)',
-                'Option' => ''
+        ));
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                new CheckBox('Data[IsCanceled]', 'Fach ist ausgefallen', 1)
             ),
-            array(
-                'order' => array(
-                    array(0, 'desc')
+        ));
+        // nur beim neu anlegen kann Doppelstunde gecheckt werden
+        if (!$LessonContentId) {
+            $formRowList[] = new FormRow(array(
+                new FormColumn(
+                    new CheckBox('Data[IsDoubleLesson]', 'Doppelstunde ' . new ToolTip(new Info(),
+                            'Beim Speichern werden die Daten auch für die nächste Unterrichtseinheit gespeichert.'), 1)
                 ),
-                'columnDefs' => array(
-                    array('type' => 'de_date', 'targets' => 0),
-                    array('width' => '50px', 'targets' => 0),
-                    array('width' => '25px', 'targets' => 1),
-                    array('width' => '25px', 'targets' => 2),
-                    array('width' => '25px', 'targets' => 3),
-                    array('width' => '50px', 'targets' => 8),
-                    array('width' => '60px', 'targets' => -1),
-                ),
-                'responsive' => false
+            ));
+        }
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
+            ),
+        ));
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
+            ),
+        ));
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                new TextField('Data[Room]', 'Raum', 'Raum', new MapMarker())
+            ),
+        ));
+        if (!$LessonContentId) {
+            $formRowList[] = new FormRow(array(
+                new FormColumn(
+                    ApiDigital::receiverBlock(
+                        $tblSubject ? Digital::useService()->getLessonContentLinkPanel($tblDivision ?: null, $tblGroup ?: null, $tblSubject) : '',
+                        'LessonContentLinkPanel'
+                    )
+                )
+            ));
+        }
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                $buttonList
             )
-        );
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param TblSubjectGroup $tblSubjectGroup
-     * @param null $CourseContentId
-     * @param bool $setPost
-     *
-     * @return Form
-     */
-    public function formCourseContent(TblDivision $tblDivision, TblSubject $tblSubject, TblSubjectGroup $tblSubjectGroup,
-        $CourseContentId = null, bool $setPost = false): Form
-    {
-        // beim Checken der Input-Felder darf der Post nicht gesetzt werden
-        if ($setPost && $CourseContentId
-            && ($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))
-        ) {
-            $Global = $this->getGlobal();
-            $Global->POST['Data']['Date'] = $tblCourseContent->getDate();
-            $Global->POST['Data']['Lesson'] = $tblCourseContent->getLesson();
-            $Global->POST['Data']['serviceTblPerson'] =
-                ($tblPerson = $tblCourseContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
-            $Global->POST['Data']['Content'] = $tblCourseContent->getContent();
-            $Global->POST['Data']['Homework'] = $tblCourseContent->getHomework();
-            $Global->POST['Data']['Remark'] = $tblCourseContent->getRemark();
-            $Global->POST['Data']['Room'] = $tblCourseContent->getRoom();
-            $Global->POST['Data']['IsDoubleLesson'] = $tblCourseContent->getIsDoubleLesson() ? 1 : 0;
-
-            $Global->savePost();
-        }
-
-        if ($CourseContentId) {
-            $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiDigital::pipelineEditCourseContentSave($CourseContentId));
-        } else {
-            $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiDigital::pipelineCreateCourseContentSave(
-                    $tblDivision->getId(),
-                    $tblSubject->getId(),
-                    $tblSubjectGroup->getId()
-                ));
-        }
-        $buttonList[] = $saveButton;
-
-        for ($i = 0; $i < 11; $i++) {
-            $lessons[] = new SelectBoxItem($i, $i . '. Unterrichtseinheit');
-        }
-
-        // Unterrichteinheit löchen
-        if ($CourseContentId) {
-            $buttonList[] = (new \SPHERE\Common\Frontend\Link\Repository\Danger(
-                'Löschen',
-                ApiDigital::getEndpoint(),
-                new Remove(),
-                array(),
-                false
-            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteCourseContentModal($CourseContentId));
-        }
-
-        return (new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
-                        , 6),
-                    new FormColumn(
-                        (new SelectBox('Data[Lesson]', 'Unterrichtseinheit', array('{{ Name }}' => $lessons)))->setRequired()
-                        , 6),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new CheckBox('Data[IsDoubleLesson]', 'Doppelstunde', 1)
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[Remark]', 'Bemerkungen', 'Bemerkungen', new Comment())
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[Room]', 'Raum', 'Raum', new MapMarker())
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        $buttonList
-                    )
-                )),
-            ))
-        ))->disableSubmitAction();
-    }
-
-    /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param string $BasicRoute
-     *
-     * @return Stage|string
-     */
-    public function frontendStudentList(
-        $DivisionId = null,
-        $GroupId = null,
-        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Schülerliste');
-
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
         ));
-        $tblYear = null;
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
 
-        if ($tblDivision || $tblGroup) {
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow(
-                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
-                        ),
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                            '/Education/ClassRegister/Digital/Student', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        Digital::useService()->getStudentTable($tblDivision ?: null, $tblGroup ?: null, $BasicRoute,
-                            '/Education/ClassRegister/Digital/Student')
-                    )), new Title(new PersonGroup() . ' Schülerliste'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
-        }
-
-        return $stage;
-    }
-
-    /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param string $BasicRoute
-     *
-     * @return Stage|string
-     */
-    public function frontendDownload(
-        $DivisionId = null,
-        $GroupId = null,
-        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Download');
-
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
-        ));
-        $tblYear = null;
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        if ($tblDivision || $tblGroup) {
-            if ($tblGroup) {
-                $name = 'Stammgruppenliste';
-            } else {
-                $name = 'Klassenliste';
-            }
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow(
-                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
-                        ),
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                            '/Education/ClassRegister/Digital/Download', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!',
-                                new Exclamation())
-                        ),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste 1'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
-                                    'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $name . ' Krankenakte'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', null, array(
-                                    'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständniserklärung'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
-                                    'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnisrelevante Fehlzeiten'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
-                                    'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
-                                $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'))->setPictureHeight(),
-                                '/Api/Document/Standard/ClassRegister/Create', null, array(
-                                    'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId,
-                                    'YearId'     => $tblYear ? $tblYear->getId() : null
-                                ))
-                            , 2),
-                    )), new Title(new Download() . ' Download')),
-                    ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG') && $tblDivision
-                        ? new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(
-                                new Link(new Thumbnail(
-                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste'),
-                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                        'DivisionId' => $DivisionId,
-                                        'Type'    => 'downloadClassList'
-                                    ))
-                                , 2),
-                            new LayoutColumn(
-                                new Link(new Thumbnail(
-                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'),
-                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                        'DivisionId' => $DivisionId,
-                                        'Type'    => 'downloadSignList'
-                                    ))
-                                , 2),
-                            new LayoutColumn(
-                                new Link(new Thumbnail(
-                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste Fremdsprachen'),
-                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                        'DivisionId' => $DivisionId,
-                                        'Type'    => 'downloadElectiveClassList'
-                                    ))
-                                , 2),
-                            new LayoutColumn(
-                                new Link(new Thumbnail(
-                                    FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Telefonliste'),
-                                    '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                        'DivisionId' => $DivisionId,
-                                        'Type'    => 'downloadClassPhoneList'
-                                    ))
-                                , 2),
-                            )), new Title(new Download() . ' Individual Download'))
-                        : null
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
-        }
-
-        return $stage;
-    }
-
-    /**
-     * @param null $DivisionId
-     * @param null $PersonId
-     * @param string $BasicRoute
-     * @param string $ReturnRoute
-     * @param null $GroupId
-     *
-     * @return Stage
-     */
-    public function frontendIntegration($DivisionId = null, $PersonId = null, string $BasicRoute = '', string $ReturnRoute = '',
-        $GroupId = null): Stage
-    {
-
-        $Stage = new Stage('Digitales Klassenbuch', 'Integration verwalten');
-
-        if ($ReturnRoute) {
-            $Stage->addButton(new Standard('Zurück', $ReturnRoute, new ChevronLeft(),
-                array(
-                    'DivisionId' => $GroupId ? null : $DivisionId,
-                    'GroupId'    => $GroupId,
-                    'BasicRoute' => $BasicRoute,
-                ))
-            );
-        }
-
-        $PersonPanel = '';
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
-            $PersonPanel = new Panel('Person', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO);
-        }
-        $DivisionPanel = '';
-        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))){
-            $DivisionPanel = new Panel('Klasse, Schulart', $tblDivision->getDisplayName().', '.$tblDivision->getTypeName(), Panel::PANEL_TYPE_INFO);
-        }
-
-
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
-            $Content = (new Well(Student::useFrontend()->frontendIntegration($tblPerson)));
-        } else {
-            $Content = (new Warning('Person wurde nicht gefunden.'));
-        }
-
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            $PersonPanel
-                            , 6),
-                        new LayoutColumn(
-                            $DivisionPanel
-                            , 6),
-                    )),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            $Content
-                        )
-                    )
-                ))
-            )
-        );
-
-        return $Stage;
-    }
-
-    /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param string $BasicRoute
-     *
-     * @return Stage|string
-     */
-    public function frontendLectureship(
-        $DivisionId = null,
-        $GroupId = null,
-        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Unterrichtete Fächer / Lehrer');
-
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
-        ));
-        $tblYear = null;
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        if ($tblDivision || $tblGroup) {
-            if ($tblGroup) {
-                $content = '';
-                if (($tblDivisionList = $tblGroup->getCurrentDivisionList())) {
-                    foreach ($tblDivisionList as $tblGroupDivision) {
-                        $content .= Digital::useService()->getSubjectsAndLectureshipByDivision($tblGroupDivision);
-                    }
-                }
-            } else {
-                $content = Digital::useService()->getSubjectsAndLectureshipByDivision($tblDivision);
-            }
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow(
-                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
-                        ),
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                            '/Education/ClassRegister/Digital/Lectureship', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        $content
-                    )), new Title(new Listing() . ' Unterrichtete Fächer / Lehrer'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
-        }
-
-        return $stage;
-    }
-
-    private function getStudentPanel(?TblDivision $tblDivision, ?TblGroup $tblGroup): string
-    {
-        $tblPersonList = false;
-        $dataList = array();
-        if ($tblDivision) {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-        } elseif ($tblGroup) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
-            }
-        }
-
-        if ($tblPersonList) {
-            $count = 0;
-            foreach ($tblPersonList as $tblPerson) {
-                $dataList[] = new PullLeft(++$count) . new PullRight($tblPerson->getLastFirstName());
-            }
-        }
-
-        return new Panel(
-            'Schüler',
-//            new Table($tableHead, $tableBody, null, false, null, 'TableCustom'),
-            $dataList,
-            Panel::PANEL_TYPE_INFO
-        );
-    }
-
-    /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param string $BasicRoute
-     *
-     * @return Stage|string
-     */
-    public function frontendLessonWeek(
-        $DivisionId = null,
-        $GroupId = null,
-        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Kontrolle');
-
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
-        ));
-        $tblYear = null;
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        $hasDivisionTeacherRight = ($tblPerson = Account::useService()->getPersonByLogin())
-            && (($tblDivision && Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson))
-                || ($tblGroup && ($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
-                    && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
-                    && Group::useService()->existsGroupPerson($tblGroup, $tblPerson))
-            );
-        $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
-
-        if ($tblDivision || $tblGroup) {
-            $content = '';
-            $layoutRow = Digital::useService()->getHeadLayoutRow(
-                $tblDivision ?: null, $tblGroup ?: null, $tblYear
-            );
-            if ($tblYear) {
-                $content = ApiDigital::receiverBlock($this->loadLessonWeekTable($tblDivision ?: null, $tblGroup ?: null, $hasDivisionTeacherRight,
-                    $hasHeadmasterRight), 'LessonWeekContent');
-            }
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        $layoutRow,
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                            '/Education/ClassRegister/Digital/LessonWeek', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        $content
-                    )), new Title(new Ok() . ' Klassentagebuch Kontrolle'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
-        }
-
-        return $stage;
-    }
-
-    /**
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param bool $hasDivisionTeacherRight
-     * @param bool $hasHeadmasterRight
-     * @param string|null $Date
-     *
-     * @return string
-     */
-    public function loadLessonWeekTable(?TblDivision $tblDivision, ?TblGroup  $tblGroup, bool $hasDivisionTeacherRight, bool $hasHeadmasterRight,
-        string $Date = null): string
-    {
-        $content = '';
-
-        if ($tblDivision) {
-            $tblYear = $tblDivision->getServiceTblYear();
-            if ($tblDivision->getServiceTblCompany()) {
-                $tblCompanyList[] = $tblDivision->getServiceTblCompany();
-            } else {
-                $tblCompanyList = array();
-            }
-        } elseif ($tblGroup) {
-            $tblYear = $tblGroup->getCurrentYear();
-            $tblCompanyList = $tblGroup->getCurrentCompanyList();
-        } else {
-            $tblYear = false;
-            $tblCompanyList = array();
-        }
-
-        if (!$tblYear) {
-            return new Danger('Kein Schuljahr gefunden!', new Exclamation());
-        }
-
-        $DivisionId = $tblDivision ? $tblDivision->getId() : null;
-        $GroupId = $tblGroup ? $tblGroup->getId() : null;
-        $YearId = $tblYear->getId();
-
-        /** @var DateTime $startDate */
-        /** @var DateTime $endDate */
-        list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-        if ($startDate && $endDate) {
-            $dayOfWeek = $startDate->format('w');
-            // wenn Schuljahresbeginn ein Samstag oder Sonntag dann beginne mit der nächsten Woche
-            if ($dayOfWeek == 6 || $dayOfWeek == 0) {
-                $startDate->add(new DateInterval('P7D'));
-            }
-            $startDate = Timetable::useService()->getStartDateOfWeek($startDate);
-            $dataList = array();
-            while ($startDate <= $endDate) {
-                $dateString = $startDate->format('d.m.Y');
-
-                // Prüfung, ob die gesamte Woche Ferien sind
-                $isHoliday = Term::useService()->getIsSchoolWeekHoliday($dateString, $tblYear, $tblCompanyList);
-
-                // Rechte prüfen
-                $newDivisionTeacher = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
-                    . new PullRight(($hasDivisionTeacherRight
-                        ? (new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
-                            ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'DivisionTeacher', $hasDivisionTeacherRight,
-                                $hasHeadmasterRight))
-                        : '')
-                     . '|');
-                $newHeadmaster = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
-                    . new PullRight($hasHeadmasterRight
-                        ? (new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
-                            ApiDigital::pipelineSaveLessonWeekCheck($DivisionId, $GroupId, $YearId, $dateString, 'Headmaster', $hasDivisionTeacherRight,
-                                $hasHeadmasterRight))
-                        : ''
-                    );
-
-                if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivision, $tblGroup, $startDate))) {
-                    if ($tblLessonWeek->getDateDivisionTeacher()) {
-                        $divisionTeacherText = new Success(new Check() . ' am ' . $tblLessonWeek->getDateDivisionTeacher() . ' von '
-                            . (($divisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher())
-                                ? $divisionTeacher->getLastName() : '') . ' bestätigt.') . new PullRight('|');
-                    } else {
-                        $divisionTeacherText = $newDivisionTeacher;
-                    }
-
-                    if ($tblLessonWeek->getDateHeadmaster()) {
-                        $headmasterText = new Success(new Check() . ' am ' . $tblLessonWeek->getDateHeadmaster() . ' von '
-                            . (($headmaster = $tblLessonWeek->getServiceTblPersonHeadmaster())
-                                ? $headmaster->getLastName() : '') . ' bestätigt.');
-                    } else {
-                        $headmasterText = $newHeadmaster;
-                    }
-                } else {
-                    $divisionTeacherText = $newDivisionTeacher;
-                    $headmasterText = $newHeadmaster;
-                }
-
-                $displayWeek = 'KW' . $startDate->format('W') . ' (' . $dateString . ')';
-                if ($dateString == $Date) {
-                    $item = new Well(
-                        $this->getWeekViewContent($dateString, $tblDivision, $tblGroup, false, true)
-                        . new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn($displayWeek . new PullRight('|'), 4),
-                            new LayoutColumn($divisionTeacherText, 4),
-                            new LayoutColumn($headmasterText, 4),
-                        ))))
-                    );
-                } else {
-                    $item = new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            (new Link($displayWeek .  ' anzeigen', ApiDigital::getEndpoint()))
-                                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonWeekContent($DivisionId, $GroupId, $hasDivisionTeacherRight,
-                                    $hasHeadmasterRight, $dateString))
-                            . new PullRight('|')
-                            , 4),
-                        new LayoutColumn($divisionTeacherText, 4),
-                        new LayoutColumn($headmasterText, 4),
-                    ))));
-                }
-
-                if (!$isHoliday) {
-                    $dataList[] = $item;
-                }
-
-                $startDate->add(new DateInterval('P7D'));
-            }
-
-            $content = new Panel(
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('KW' . new PullRight('|'), 4),
-                    new LayoutColumn('Für die Vollständigkeit der Angaben (Klassenlehrer)' . new PullRight('|'), 4),
-                    new LayoutColumn('Zur Kenntnis genommen (Schulleitung)', 4),
-                )))),
-                $dataList,
-                Panel::PANEL_TYPE_PRIMARY
-            );
-        }
-
-        return $content;
-    }
-
-    /**
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param DateTime $Date
-     *
-     * @return Form
-     */
-    public function formLessonWeekRemark(?TblDivision $tblDivision, ?TblGroup $tblGroup, DateTime $Date): Form
-    {
-        if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivision, $tblGroup, $Date))) {
-            $Global = $this->getGlobal();
-            $Global->POST['Data']['Remark'] = $tblLessonWeek->getRemark();
-            $Global->savePost();
-        }
-
-        return (new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new TextArea('Data[Remark]', 'Wochenbemerkung', 'Wochenbemerkung', new Edit())
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiDigital::pipelineEditLessonWeekRemarkSave($tblDivision ? $tblDivision->getId() : null,
-                                $tblGroup ? $tblGroup->getId() : null, $Date->format('d.m.Y')))
-                    )
-                )),
-            ))
-        ))->disableSubmitAction();
-    }
-
-    /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param string $BasicRoute
-     *
-     * @return Stage|string
-     */
-    public function frontendHoliday(
-        $DivisionId = null,
-        $GroupId = null,
-        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Ferien / Unterrichtsfreie Tage');
-
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft()
-        ));
-        $tblYear = null;
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        if ($tblDivision || $tblGroup) {
-            $header = Digital::useService()->getHeadLayoutRow(
-                $tblDivision ?: null, $tblGroup ?: null, $tblYear
-            );
-
-            $tblCompany = false;
-            if ($tblDivision) {
-                $tblCompany = $tblDivision->getServiceTblCompany();
-            } elseif ($tblGroup) {
-                $tblCompany = $tblGroup->getCurrentCompanySingle();
-            }
-
-            if ($tblYear) {
-                $list = array();
-                $dataList = array();
-                if ($tblCompany && ($tblYearHolidayAllByYearAndCompany = Term::useService()->getYearHolidayAllByYear($tblYear, $tblCompany))) {
-                    $list = $tblYearHolidayAllByYearAndCompany;
-                }
-                if (($tblYearHolidayAllByYear = Term::useService()->getYearHolidayAllByYear($tblYear))) {
-                    $list = array_merge($list, $tblYearHolidayAllByYear);
-                }
-
-                $tblHolidayList = array();
-                foreach ($list as $tblYearHoliday) {
-                    if (($item = $tblYearHoliday->getTblHoliday())) {
-                        $tblHolidayList[$item->getId()] = $item;
-                    }
-                }
-                foreach ($tblHolidayList as $tblHoliday) {
-                    $dataList[] = array(
-                        'FromDate' => $tblHoliday->getFromDate(),
-                        'ToDate' => $tblHoliday->getToDate(),
-                        'Name' => $tblHoliday->getName(),
-                        'Type' => $tblHoliday->getTblHolidayType()->getName()
-                    );
-                }
-                $content = new TableData($dataList, null, array(
-                        'FromDate' => 'Datum von',
-                        'ToDate' => 'Datum bis',
-                        'Name' => 'Name',
-                        'Type' => 'Typ'
-                    ),
-                    array(
-                        'order' => array(
-                            array(0, 'desc'),
-                            array(1, 'desc')
-                        ),
-                        'columnDefs' => array(
-                            array('type' => 'de_date', 'targets' => array(0,1)),
-                        )
-                    )
-                );
-            } else {
-                $content = new Warning('Kein Schuljahr gefunden', new Exclamation());
-            }
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        $header,
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                            '/Education/ClassRegister/Digital/Holiday', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        $content
-                    )), new Title(new Holiday() . ' Ferien / Unterrichtsfreie Tage'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
-        }
-
-        return $stage;
+        return (new Form(new FormGroup(
+             $formRowList
+        )))->disableSubmitAction();
     }
 }

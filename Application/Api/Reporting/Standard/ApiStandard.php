@@ -190,17 +190,18 @@ class ApiStandard extends Extension implements IApiInterface
 
         if (!empty($absenceList)) {
             $columns = array(
-                'Type'        => 'Schulart',
-                'Group'       => 'Gruppe',
-                'Division'    => 'Klasse',
-                'Person'      => 'Schüler',
-                'DateFrom'    => 'Zeitraum von',
-                'DateTo'      => 'Zeitraum bis',
-                'Lessons'     => 'Unterrichts&shy;einheiten',
-                'AbsenceType' => 'Typ',
+                'Type'                  => 'Schulart',
+                'Group'                 => 'Gruppe',
+                'Division'              => 'Klasse',
+                'Person'                => 'Schüler',
+                'DateFrom'              => 'Zeitraum von',
+                'DateTo'                => 'Zeitraum bis',
+                'PersonCreator'         => 'Ersteller',
+                'Lessons'               => 'Unterrichts&shy;einheiten',
+                'AbsenceType'           => 'Typ',
                 'IsCertificateRelevant' => 'Zeugnisrelevant',
-                'Status'      => 'Status',
-                'Remark'      => 'Bemerkung'
+                'Status'                => 'Status',
+                'Remark'                => 'Bemerkung'
             );
 
             if ($isGroup) {

@@ -8,6 +8,7 @@ use SPHERE\Application\Corporation\Company\Service\Setup;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -108,10 +109,10 @@ class Service extends AbstractService
      *
      * @return TblCompany
      */
-    public function insertCompany($Name, $Description = '', $ExtendedName = '', $ImportId = '')
+    public function insertCompany($Name, $Description = '', $ExtendedName = '', $ImportId = '', $ContactNumber = '')
     {
 
-        return (new Data($this->getBinding()))->createCompany($Name, $ExtendedName, $Description, $ImportId);
+        return (new Data($this->getBinding()))->createCompany($Name, $ExtendedName, $Description, $ImportId, $ContactNumber);
     }
 
     /**
@@ -133,8 +134,13 @@ class Service extends AbstractService
      */
     public function updateCompanyService(TblCompany $tblCompany, $Company)
     {
+
+        if(!isset($Company['ContactNumber'])){
+            $Company['ContactNumber'] = $tblCompany->getContactNumber();
+        }
+
         if ((new Data($this->getBinding()))->updateCompany($tblCompany, $Company['Name'],
-            $Company['ExtendedName'], $Company['Description'])
+            $Company['ExtendedName'], $Company['Description'], $Company['ContactNumber'])
         ) {
             // Change Groups
             if (isset($Company['Group'])) {
@@ -214,16 +220,21 @@ class Service extends AbstractService
 
     /**
      * @param TblCompany $tblCompany
-     * @param $Name
-     * @param $ExtendedName
-     * @param $Description
+     * @param            $Name
+     * @param string     $ExtendedName
+     * @param string     $Description
+     * @param string     $Contactnumber
      *
      * @return bool
      */
-    public function updateCompanyWithoutForm(TblCompany $tblCompany, $Name, $ExtendedName = '', $Description = '')
+    public function updateCompanyWithoutForm(TblCompany $tblCompany, $Name, $ExtendedName = '', $Description = '', $Contactnumber = '')
     {
 
-        return (new Data($this->getBinding()))->updateCompany($tblCompany, $Name, $ExtendedName, $Description);
+        if(!$Contactnumber){
+            $Contactnumber = $tblCompany->getContactNumber();
+        }
+
+        return (new Data($this->getBinding()))->updateCompany($tblCompany, $Name, $ExtendedName, $Description, $Contactnumber);
     }
 
     /**

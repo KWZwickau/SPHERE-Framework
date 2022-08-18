@@ -5,6 +5,8 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType as TblTypePhone;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
@@ -24,6 +26,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -35,7 +39,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -49,13 +56,22 @@ class Gersdorf extends Extension implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/Emergency'), new Link\Name('Notarzt'))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/MetaDataComparison'), new Link\Name('Stammdatenabfrage'))
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Emergency', __CLASS__.'::frontendEmergency'
         ));
-
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Emergency/Fill', __CLASS__.'::frontendFillEmergency'
+        ));
+
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/MetaDataComparison', __CLASS__.'::frontendMetaDataComparison'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/MetaDataComparison/Division', __CLASS__.'::frontendMetaDataComparisonDivision'
         ));
     }
 
@@ -367,6 +383,184 @@ class Gersdorf extends Extension implements IModuleInterface
             , new Primary('Download', new Download(), true),
             '\Api\Document\Custom\Gersdorf\Emergency\Create'
         );
+    }
+
+    /**
+     * @param Stage $Stage
+     */
+    private static function setButtonList(Stage $Stage)
+    {
+        $Stage->addButton(new Standard('Schüler', '/Document/Custom/Gersdorf/MetaDataComparison', new \SPHERE\Common\Frontend\Icon\Repository\Person(), array(),
+            'Stammdatenabfrage eines Schülers'));
+        $Url = $_SERVER['REDIRECT_URL'];
+        if(strpos($Url, '/EnrollmentDocument/Division')){
+            $Stage->addButton(new Standard(new Info(new Bold('Klasse')), '/Document/Custom/Gersdorf/MetaDataComparison/Division',
+                new PersonGroup(), array(), 'Stammdatenabfrage einer Klasse'));
+        } else {
+            $Stage->addButton(new Standard('Klasse', '/Document/Custom/Gersdorf/MetaDataComparison/Division', new PersonGroup(),
+                array(), 'Stammdatenabfrage einer Klasse'));
+        }
+    }
+
+    /**
+     * @return Stage
+     */
+    public static function frontendMetaDataComparison(): Stage
+    {
+
+        $Stage = new Stage('Stammdatenabfrage', 'Schüler auswählen');
+        self::setButtonList($Stage);
+
+        $dataList = array();
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
+            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
+                foreach ($tblPersonList as $tblPerson) {
+                    $tblAddress = $tblPerson->fetchMainAddress();
+                    $dataList[] = array(
+                        'Name'     => $tblPerson->getLastFirstName(),
+                        'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
+                        'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
+                        'Option'   => new External('','/Api/Document/Custom/Gersdorf/MetaDataComparison/Create', new Download(),
+                            array('Data' => array('Person' => array('Id' => $tblPerson->getId()))), 'Stammdatenabfrage herunterladen')
+                    );
+                }
+            }
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new TableData(
+                                $dataList,
+                                null,
+                                array(
+                                    'Name'     => 'Name',
+                                    'Address'  => 'Adresse',
+                                    'Division' => 'Klasse',
+                                    'Option'   => ''
+                                ),
+                                array(
+                                    "columnDefs" => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                    ),
+                                )
+                            )
+                        )),
+                    ))
+                )),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param bool $IsAllYears
+     * @param string|null $YearId
+     *
+     * @return Stage
+     */
+    public static function frontendMetaDataComparisonDivision(): Stage
+    {
+        $Stage = new Stage('Stammdatenabfrage', 'Klasse auswählen');
+        self::setButtonList($Stage);
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+//                    new LayoutRow(new LayoutColumn(
+//                        empty($yearButtonList) ? '' : $yearButtonList
+//                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+//                            self::loadDivisionTable($filterYearList)
+                            self::loadDivisionTable()
+                        )
+                    )),
+                    new Title(new Listing() . ' Übersicht')
+                ))
+            ));
+
+        return $Stage;
+    }
+
+    /**
+     * @return Warning|TableData
+     */
+    public static function loadDivisionTable()
+    {
+        $TableContent = array();
+        $tblYearList = Term::useService()->getYearByNow();
+        if(!$tblYearList){
+            return new Warning('kein aktuelles Schuljahr verfügbar');
+        }
+        $tblDivisionAll = array();
+        foreach($tblYearList as $tblYear){
+            if(($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))){
+                foreach($tblDivisionList as $tblDivision){
+                    $tblDivisionAll[$tblDivision->getId()] = $tblDivision;
+                }
+            }
+        }
+        if(empty($tblDivisionAll)){
+            return new Warning('aktuelles Schuljahr enthält keine Klassen');
+        }
+
+        foreach ($tblDivisionAll as $tblDivision) {
+//            // Schuljahre filtern
+//            if (!empty($filterYearList)
+//                && ($tblYearDivision = $tblDivision->getServiceTblYear())
+//                && !isset($filterYearList[$tblYearDivision->getId()]))
+//            {
+//                continue;
+//            }
+            $count = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+            $Item['Year'] = '';
+            $Item['Division'] = $tblDivision->getDisplayName();
+            $Item['Type'] = $tblDivision->getTypeName();
+            if ($tblDivision->getServiceTblYear()) {
+                $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
+            }
+            $Item['Count'] = $count;
+
+            if ($count > 0) {
+                $Item['Option'] = (new External(
+                    '',
+                    '/Api/Document/Custom/Gersdorf/MetaDataComparison/Division/CreateMulti',
+                    new Download(),
+                    array(
+                        'DivisionId' => $tblDivision->getId()
+                    ),
+                    'Stammdatenabfrage herunterladen'
+                ))->__toString();
+            } else {
+                $Item['Option'] = '';
+            }
+
+            array_push($TableContent, $Item);
+        }
+
+        return new TableData($TableContent, null,
+            array(
+                'Year' => 'Jahr',
+                'Division' => 'Klasse',
+                'Type' => 'Schulart',
+                'Count' => 'Schüler',
+                'Option' => '',
+            ), array(
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => array(1,3)),
+                    array('orderable' => false, 'targets'   => -1),
+                ),
+                'order' => array(
+                    array(0, 'desc'),
+                    array(2, 'asc'),
+                    array(1, 'asc')
+                ),
+                'responsive' => false
+            ));
     }
 
 }

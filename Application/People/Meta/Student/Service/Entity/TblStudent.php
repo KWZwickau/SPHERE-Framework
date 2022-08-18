@@ -347,6 +347,7 @@ class TblStudent extends Element
     }
 
     /**
+     * @deprecated
      * @return false|TblDivision[]
      */
     public function getCurrentDivisionList()
@@ -360,6 +361,7 @@ class TblStudent extends Element
     }
 
     /**
+     * @deprecated
      * @param string $Prefix
      *
      * @return bool|string
@@ -375,7 +377,7 @@ class TblStudent extends Element
     }
 
     /**
-     *
+     * @deprecated
      * @return bool|TblDivision
      */
     public function getCurrentMainDivision()

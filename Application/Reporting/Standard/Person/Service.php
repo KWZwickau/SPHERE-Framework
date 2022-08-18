@@ -20,6 +20,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
@@ -127,10 +128,10 @@ class Service extends Extension
                     $Item['Denomination'] = $Item['Birthday'] = $Item['Birthplace'] = '';
                 }
 
+                $tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 // NK/Profil
                 if ($tblStudent) {
-                    $tblMainDivision = $tblStudent->getCurrentMainDivision();
                     for ($i = 1; $i <= 3; $i++) {
                         $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
                         $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
@@ -267,14 +268,16 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param TblPerson[] $tblPersonList
+     * @param $PersonList
+     * @param $tblPersonList
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
+     * @param TblDivisionSubject|null $tblDivisionSubject
      *
-     * @return bool|FilePointer
+     * @return false|FilePointer
      */
-    public function createClassListExcel($PersonList, $tblPersonList, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function createClassListExcel($PersonList, $tblPersonList, TblDivision $tblDivision = null, TblGroup $tblGroup = null,
+        TblDivisionSubject $tblDivisionSubject = null)
     {
 
         if (!empty($PersonList)) {
@@ -472,6 +475,13 @@ class Service extends Extension
             } elseif ($tblGroup) {
                 $export->setValue($export->getCell("0", $Row), 'Tudor/Mentor:');
                 $export->setValue($export->getCell("2", $Row), $tblGroup->getTudorsString(false));
+            } elseif ($tblDivisionSubject
+                && ($tblDivisionItem = $tblDivisionSubject->getTblDivision())
+                && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+            ) {
+                $export->setValue($export->getCell("0", $Row), 'Fachlehrer:');
+                $export->setValue($export->getCell("2", $Row), Division::useService()->getSubjectTeacherNameList($tblDivisionItem, $tblSubject, $tblSubjectGroup));
             }
             $Row++;
             if ($tblDivision) {
@@ -1669,6 +1679,8 @@ class Service extends Extension
                 $Item['AuthorizedPersonMailPrivate'] = $Item['AuthorizedPersonMailWork'] = '';
                 $Item['Remark'] = $Item['RemarkExcel'] = '';
                 $Item['MailGuardian'] = $Item['ExcelMailGuardian'] = $Item['ExcelMailGuardianSimple'] = '';
+                // Transfer Arrive
+                $Item['TransferCompany'] = $Item['TransferStateCompany'] = $Item['TransferType'] = $Item['TransferCourse'] = $Item['TransferDate'] = $Item['TransferRemark'] = '';
 
                 if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $tblToPersonAddress = $tblToPersonAddressList[0];
@@ -1863,6 +1875,27 @@ class Service extends Extension
                 // Insert MailListSimple
                 if (!empty($MailListSimple)) {
                     $Item['ExcelMailGuardianSimple'] = implode('; ', $MailListSimple);
+                }
+
+                // Transfer Arrive
+                if(($tblStudent = $tblPerson->getStudent())){
+                    $TransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
+                    if(($tblStudentTransferByTypeArrive = Student::useService()->getStudentTransferByType($tblStudent, $TransferTypeArrive))){
+                        if(($tblCompanyTransfer = $tblStudentTransferByTypeArrive->getServiceTblCompany())){
+                            $Item['TransferCompany'] = $tblCompanyTransfer->getDisplayName();
+                        }
+                        if(($tblStateCompanyTransfer = $tblStudentTransferByTypeArrive->getServiceTblStateCompany())){
+                            $Item['TransferStateCompany'] = $tblStateCompanyTransfer->getDisplayName();
+                        }
+                        if(($SchoolType = $tblStudentTransferByTypeArrive->getServiceTblType())){
+                            $Item['TransferType'] = $SchoolType->getName();
+                        }
+                        if(($SchoolCourse = $tblStudentTransferByTypeArrive->getServiceTblCourse())){
+                            $Item['TransferCourse'] = $SchoolCourse->getName();
+                        }
+                        $Item['TransferDate'] = $tblStudentTransferByTypeArrive->getTransferDate();
+                        $Item['TransferRemark'] = $tblStudentTransferByTypeArrive->getRemark();
+                    }
                 }
 
                 array_push($TableContent, $Item);
@@ -2068,6 +2101,12 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, 0), "Klassenstufe");
             $export->setValue($export->getCell($column++, 0), "Schulart 1");
             $export->setValue($export->getCell($column++, 0), "Schulart 2");
+            $export->setValue($export->getCell($column++, 0), "Abgebende Schule / Kita");
+            $export->setValue($export->getCell($column++, 0), "Staatliche Stammschule");
+            $export->setValue($export->getCell($column++, 0), "Letzte Schulart");
+            $export->setValue($export->getCell($column++, 0), "Letzter Bildungsgang");
+            $export->setValue($export->getCell($column++, 0), "Aufnahme Datum");
+            $export->setValue($export->getCell($column++, 0), "Aufnahme Bemerkung");
             $export->setValue($export->getCell($column++, 0), "Straße");
             $export->setValue($export->getCell($column++, 0), "Hausnummer");
             $export->setValue($export->getCell($column++, 0), "PLZ");
@@ -2190,6 +2229,12 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $Row), $PersonData['DivisionLevel']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['TypeOptionA']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['TypeOptionB']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferCompany']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferStateCompany']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferType']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferCourse']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferDate']);
+                $export->setValue($export->getCell($column++, $Row), $PersonData['TransferRemark']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['StreetName']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['StreetNumber']);
                 $export->setValue($export->getCell($column++, $Row), $PersonData['Code']);
@@ -3960,6 +4005,7 @@ class Service extends Extension
         $export->setValue($export->getCell($column++, $row), $isGroup ? "Gruppe" : "Klasse");
         $export->setValue($export->getCell($column++, $row), "Schüler");
         $export->setValue($export->getCell($column++, $row), "Zeitraum");
+        $export->setValue($export->getCell($column++, $row), "Ersteller");
         $export->setValue($export->getCell($column++, $row), "Unterrichtseinheiten");
         if ($hasAbsenceTypeOptions) {
             $export->setValue($export->getCell($column++, $row), "Typ");
@@ -3983,6 +4029,7 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $row), $isGroup ? $absence['Group'] : $absence['Division']);
                 $export->setValue($export->getCell($column++, $row), $absence['Person']);
                 $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
+                $export->setValue($export->getCell($column++, $row), $absence['PersonCreator']);
                 $export->setValue($export->getCell($column++, $row), $absence['Lessons']);
                 if ($hasAbsenceTypeOptions) {
                     $export->setValue($export->getCell($column++, $row), $absence['AbsenceTypeExcel']);
@@ -4000,17 +4047,18 @@ class Service extends Extension
         // Spaltenbreite
         $column = 0;
         $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(8);
-        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(10);
-        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(25);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(6);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(23);
         $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(22);
-        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(30);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(15);
+        $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(25);
         if ($hasAbsenceTypeOptions) {
             $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(5);
         }
         $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(5);
         $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(7);
         $export->setStyle($export->getCell($column, 1), $export->getCell($column, $row))->setColumnWidth(
-            $hasAbsenceTypeOptions ? 18 : 23
+            $hasAbsenceTypeOptions ? 15 : 20
         );
 
         // Gitterlinien
@@ -4619,11 +4667,12 @@ class Service extends Extension
                         $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
                     }
                 }
+
+                if (!$tblStudentDivision) {
+                    $tblStudentDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+                }
                 $course = '';
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                    if (!$tblStudentDivision) {
-                        $tblStudentDivision = $tblStudent->getCurrentMainDivision();
-                    }
 
                     $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                     if($tblTransferType){

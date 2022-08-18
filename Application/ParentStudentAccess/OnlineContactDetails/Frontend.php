@@ -17,6 +17,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -33,6 +34,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PhoneFax;
 use SPHERE\Common\Frontend\Icon\Repository\PhoneMobil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -288,14 +290,18 @@ class Frontend extends Extension implements IFrontendInterface
             $titlePersonPanel = 'Neue Telefonnummer für weitere Personen übernehmen';
         }
 
+        $inputList = array();
+        if (!$ToPersonId) {
+            $inputList[] = (new SelectBox('Data[Type]', 'Typ', array('{{ Name }} {{ Description }}' => Phone::useService()->getTypeAll()), new TileBig()))->setRequired();
+        }
+        $inputList[] = (new TextField('Data[Number]', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()))->setRequired();
+        $inputList[] = new TextArea('Data[Remark]', $remarkLabel, $remarkLabel, new Comment());
+
         $rows[] = new FormRow(array(
             new FormColumn(
                 new Panel(
                     $titleEditPanel,
-                    array(
-                        (new TextField('Data[Number]', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()))->setRequired(),
-                        new TextArea('Data[Remark]', $remarkLabel, $remarkLabel, new Comment())
-                    ),
+                    $inputList,
                     Panel::PANEL_TYPE_INFO
                 )
             )
@@ -431,14 +437,18 @@ class Frontend extends Extension implements IFrontendInterface
             $titlePersonPanel = 'Neue E-Mail-Adresse für weitere Personen übernehmen';
         }
 
+        $inputList = array();
+        if (!$ToPersonId) {
+            $inputList[] = (new SelectBox('Data[Type]', 'Typ', array('{{ Name }} {{ Description }}' => Mail::useService()->getTypeAll()), new TileBig()))->setRequired();
+        }
+        $inputList[] = (new TextField('Data[Address]', 'E-Mail-Adresse', 'E-Mail-Adresse', new MailIcon()))->setRequired();
+        $inputList[] = new TextArea('Data[Remark]', $remarkLabel, $remarkLabel, new Comment());
+
         $rows[] = new FormRow(array(
             new FormColumn(
                 new Panel(
                     $titleEditPanel,
-                    array(
-                        (new TextField('Data[Address]', 'E-Mail-Adresse', 'E-Mail-Adresse', new MailIcon()))->setRequired(),
-                        new TextArea('Data[Remark]', $remarkLabel, $remarkLabel, new Comment())
-                    ),
+                    $inputList,
                     Panel::PANEL_TYPE_INFO
                 )
             )
