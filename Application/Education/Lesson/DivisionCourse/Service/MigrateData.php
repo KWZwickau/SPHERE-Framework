@@ -39,7 +39,7 @@ abstract class MigrateData extends AbstractData
                 // todo jahrgangsübergreifende klassen
                 if (($tblYear = $tblDivision->getServiceTblYear())) {
                     $tblDivisionCourse = TblDivisionCourse::withParameterAndId($tblType, $tblYear, $tblDivision->getDisplayName(), $tblDivision->getDescription(),
-                        $tblDivision->getId());
+                        $tblDivision->getId(), true, true, true);
 
                     // beim Speichern mit vorgegebener Id ist kein bulkSave möglich
                     $Manager->saveEntityWithSetId($tblDivisionCourse);
@@ -63,7 +63,7 @@ abstract class MigrateData extends AbstractData
 
             $Manager = $this->getEntityManager();
             foreach ($tblGroupList as $tblGroup) {
-                $tblDivisionCourse = TblDivisionCourse::withParameter($tblType, $tblYear, $tblGroup->getName(), $tblGroup->getDescription());
+                $tblDivisionCourse = TblDivisionCourse::withParameter($tblType, $tblYear, $tblGroup->getName(), $tblGroup->getDescription(), true, true, false);
                 // bulkSave nicht möglich, da ansonsten noch keine Id vorhanden ist
                 $Manager->saveEntity($tblDivisionCourse);
 

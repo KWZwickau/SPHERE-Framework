@@ -42,22 +42,44 @@ class TblDivisionCourse extends Element
     protected string $Description = '';
 
     /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsShownInPersonData = false;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsReporting = false;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsUcs = false;
+
+    /**
      * @param TblDivisionCourseType $tblType
      * @param TblYear $tblYear
-     * @param string $Name
-     * @param string $Description
+     * @param string $name
+     * @param string $description
+     * @param bool $isShownInPersonData
+     * @param bool $isReporting
+     * @param bool $isUcs
      *
      * @return TblDivisionCourse
      */
-    public static function withParameter(TblDivisionCourseType $tblType, TblYear $tblYear, string $Name, string $Description): TblDivisionCourse
+    public static function withParameter(TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description,
+        bool $isShownInPersonData = false, bool $isReporting = false, bool $isUcs = false): TblDivisionCourse
     {
         // php erlaubt leider keine mehrfach Konstruktoren :(
         $instance = new self();
 
         $instance->tblLessonDivisionCourseType = $tblType->getId();
         $instance->serviceTblYear = $tblYear->getId();
-        $instance->Name = $Name;
-        $instance->Description = $Description;
+        $instance->Name = $name;
+        $instance->Description = $description;
+        $instance->IsShownInPersonData = $isShownInPersonData;
+        $instance->IsReporting = $isReporting;
+        $instance->IsUcs = $isUcs;
 
         return  $instance;
     }
@@ -68,12 +90,16 @@ class TblDivisionCourse extends Element
      * @param string $Name
      * @param string $Description
      * @param int $Id
+     * @param bool $isShownInPersonData
+     * @param bool $isReporting
+     * @param bool $isUcs
      *
      * @return TblDivisionCourse
      */
-    public static function withParameterAndId(TblDivisionCourseType $tblType, TblYear $tblYear, string $Name, string $Description, int $Id): TblDivisionCourse
+    public static function withParameterAndId(TblDivisionCourseType $tblType, TblYear $tblYear, string $Name, string $Description, int $Id,
+        bool $isShownInPersonData = false, bool $isReporting = false, bool $isUcs = false): TblDivisionCourse
     {
-        $instance = self::withParameter($tblType, $tblYear, $Name, $Description);
+        $instance = self::withParameter($tblType, $tblYear, $Name, $Description, $isShownInPersonData, $isReporting, $isUcs);
         $instance->Id = $Id;
 
         return  $instance;
@@ -167,5 +193,53 @@ class TblDivisionCourse extends Element
         }
 
         return '';
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsShownInPersonData(): bool
+    {
+        return $this->IsShownInPersonData;
+    }
+
+    /**
+     * @param bool $IsShownInPersonData
+     */
+    public function setIsShownInPersonData(bool $IsShownInPersonData): void
+    {
+        $this->IsShownInPersonData = $IsShownInPersonData;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsReporting(): bool
+    {
+        return $this->IsReporting;
+    }
+
+    /**
+     * @param bool $IsReporting
+     */
+    public function setIsReporting(bool $IsReporting): void
+    {
+        $this->IsReporting = $IsReporting;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsUcs(): bool
+    {
+        return $this->IsUcs;
+    }
+
+    /**
+     * @param bool $IsUcs
+     */
+    public function setIsUcs(bool $IsUcs): void
+    {
+        $this->IsUcs = $IsUcs;
     }
 }

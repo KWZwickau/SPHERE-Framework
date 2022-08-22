@@ -83,14 +83,18 @@ class Data extends MigrateData
      * @param TblYear $tblYear
      * @param string $name
      * @param string $description
+     * @param bool $isShownInPersonData
+     * @param bool $isReporting
+     * @param bool $isUcs
      *
      * @return TblDivisionCourse
      */
-    public function createDivisionCourse(TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description): TblDivisionCourse
+    public function createDivisionCourse(TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description,
+        bool $isShownInPersonData, bool $isReporting, bool $isUcs): TblDivisionCourse
     {
         $Manager = $this->getEntityManager();
 
-        $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description);
+        $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $isUcs);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -102,10 +106,14 @@ class Data extends MigrateData
      * @param TblDivisionCourse $tblDivisionCourse
      * @param string $name
      * @param string $description
+     * @param bool $isShownInPersonData
+     * @param bool $isReporting
+     * @param bool $isUcs
      *
      * @return bool
      */
-    public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, string $name, string $description): bool
+    public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, string $name, string $description,
+        bool $isShownInPersonData, bool $isReporting, bool $isUcs): bool
     {
         $Manager = $this->getEntityManager();
         /** @var TblDivisionCourse $Entity */
@@ -114,6 +122,9 @@ class Data extends MigrateData
         if (null !== $Entity) {
             $Entity->setName($name);
             $Entity->setDescription($description);
+            $Entity->setIsShownInPersonData($isShownInPersonData);
+            $Entity->setIsReporting($isReporting);
+            $Entity->setIsUcs($isUcs);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

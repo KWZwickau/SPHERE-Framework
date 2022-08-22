@@ -178,7 +178,8 @@ class Service extends AbstractService
         if (($tblYear = Term::useService()->getYearById($Data['Year']))
             && ($tblType = DivisionCourse::useService()->getDivisionCourseTypeById($Data['Type']))
         ) {
-            return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $Data['Name'], $Data['Description']);
+            return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $Data['Name'], $Data['Description'],
+                isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), isset($Data['IsUcs']));
         } else {
             return false;
         }
@@ -192,7 +193,8 @@ class Service extends AbstractService
      */
     public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, array $Data): bool
     {
-        return (new Data($this->getBinding()))->updateDivisionCourse($tblDivisionCourse, $Data['Name'], $Data['Description']);
+        return (new Data($this->getBinding()))->updateDivisionCourse($tblDivisionCourse, $Data['Name'], $Data['Description'],
+            isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), isset($Data['IsUcs']));
     }
 
     /**

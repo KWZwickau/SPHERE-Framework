@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBo
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -165,6 +166,9 @@ class Frontend extends Extension implements IFrontendInterface
             $Global = $this->getGlobal();
             $Global->POST['Data']['Name'] = $tblDivisionCourse->getName();
             $Global->POST['Data']['Description'] = $tblDivisionCourse->getDescription();
+            $Global->POST['Data']['IsShownInPersonData'] = $tblDivisionCourse->getIsShownInPersonData();
+            $Global->POST['Data']['IsReporting'] = $tblDivisionCourse->getIsReporting();
+            $Global->POST['Data']['IsUcs'] = $tblDivisionCourse->getIsUcs();
             $Global->savePost();
         }
 
@@ -218,6 +222,17 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new TextField('Data[Description]', 'zb: für Fortgeschrittene', 'Beschreibung', new Pencil())
                     , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new CheckBox('Data[IsShownInPersonData]', 'Kurs bei den Personenstammdaten anzeigen', 1)
+                        , 4),
+                    new FormColumn(
+                        new CheckBox('Data[IsReporting]', 'Kurs wird bei festen Auswertungen angezeigt', 1)
+                        , 4),
+                    new FormColumn(
+                        new CheckBox('Data[IsUcs]', 'Kurs wird ins UCS übertragen', 1)
+                        , 4),
                 )),
                 new FormRow(array(
                     new FormColumn(
