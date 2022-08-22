@@ -294,6 +294,10 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         $lesson = intval($Data['Lesson']);
+        // key -1 bei 0. UE
+        if ($lesson == -1) {
+            $lesson = 0;
+        }
         if (($tblLessonContent = Digital::useService()->createLessonContent($Data, $lesson, $tblDivision ?: null, $tblGroup ?: null))) {
             // bei Doppelstunde die Daten auch für die nächste UE speichern
             if (isset($Data['IsDoubleLesson']) && isset($Data['Lesson'])) {
@@ -966,7 +970,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return $this->getCourseContentModal(Digital::useFrontend()->formCourseContent($tblDivision, $tblSubject,
-            $tblSubjectGroup));
+            $tblSubjectGroup, null, true));
     }
 
     /**

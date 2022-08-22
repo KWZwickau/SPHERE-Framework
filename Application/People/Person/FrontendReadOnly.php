@@ -109,8 +109,16 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             // Anzeige Foto & Bearbeitung nur bei Schülern
             $PictureContent = false;
-            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-            if($tblGroupStudent && Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStudent)){
+            $PictureCollectGroups[] = TblGroup::META_TABLE_STUDENT;
+//            $PictureCollectGroups[] = TblGroup::META_TABLE_STAFF;
+//            $PictureCollectGroups[] = TblGroup::META_TABLE_TEACHER;
+            foreach($PictureCollectGroups as $GroupMeta){
+                if(($tblGroup = Group::useService()->getGroupByMetaTable($GroupMeta))
+                && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)){
+                    $PictureContent = null;
+                }
+            }
+            if($PictureContent === null){
                 if($IsUpload){
                     $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getEditPersonPictureContent($Id, $Group, $FileUpload));
                 } else {

@@ -59,6 +59,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     .new Center(new Standard('', __NAMESPACE__.'/Custody', new Listing())),
                                     new Center('Spezifische Auswertung für '.new Bold('Lehrer').'<br/>')
                                     .new Center(new Standard('', __NAMESPACE__.'/Teacher', new Listing())),
+                                    new Center('Spezifische Auswertung für '.new Bold('Mitarbeiter').'<br/>')
+                                    .new Center(new Standard('', __NAMESPACE__.'/Staff', new Listing())),
                                     new Center('Spezifische Auswertung für '.new Bold('Vereinsmitglieder').'<br/>')
                                     .new Center(new Standard('', __NAMESPACE__.'/Club', new Listing())),
                                 )))
@@ -299,6 +301,55 @@ class Frontend extends Extension implements IFrontendInterface
                                                         new LayoutColumn(array(
                                                             ApiIndividual::receiverFilter(),
                                                             ApiIndividual::pipelineDisplayFilter(TblWorkSpace::VIEW_TYPE_TEACHER)
+                                                        )),
+                                                        new LayoutColumn(new Title('Suchergebnis')),
+                                                        new LayoutColumn(ApiIndividual::receiverResult()),
+                                                    ))
+                                                )
+                                            )
+                                        , 9)
+                                    ))
+                                )
+                            ))
+                        )
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendStaff()
+    {
+
+        $Stage = new Stage('Auswertung Mitarbeiter');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $Stage->setContent(
+            new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(
+                            new Layout(array(
+                                new LayoutGroup(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(array(
+                                            ApiIndividual::receiverService(),
+                                            ApiIndividual::receiverModal(),
+                                            ApiIndividual::receiverNavigation(),
+                                            ApiIndividual::pipelineNavigation(false, TblWorkSpace::VIEW_TYPE_STAFF)
+                                        ), 3),
+                                        new LayoutColumn(
+                                            new Layout(
+                                                new LayoutGroup(
+                                                    new LayoutRow(array(
+                                                        new LayoutColumn(array(
+                                                            ApiIndividual::receiverFilter(),
+                                                            ApiIndividual::pipelineDisplayFilter(TblWorkSpace::VIEW_TYPE_STAFF)
                                                         )),
                                                         new LayoutColumn(new Title('Suchergebnis')),
                                                         new LayoutColumn(ApiIndividual::receiverResult()),

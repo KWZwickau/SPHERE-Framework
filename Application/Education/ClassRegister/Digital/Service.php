@@ -515,10 +515,16 @@ class Service extends AbstractService
         $tblPerson = Account::useService()->getPersonByLogin();
 //        $tblPerson = Person::useService()->getPersonById($Data['serviceTblPerson'])
 
+        // key -1 bei 0. UE
+        $lesson = $Data['Lesson'];
+        if ($lesson == -1) {
+            $lesson = 0;
+        }
+
         return (new Data($this->getBinding()))->updateLessonContent(
             $tblLessonContent,
             $Data['Date'],
-            $Data['Lesson'],
+            $lesson,
             $Data['Content'],
             $Data['Homework'],
             $Data['Room'],
@@ -635,7 +641,7 @@ class Service extends AbstractService
                 $error = true;
             }
         }
-        if (isset($Data['Lesson']) && $Data['Lesson'] < 1) {
+        if (isset($Data['Lesson']) && $Data['Lesson'] == 0) {
             $form->setError('Data[Lesson]', 'Bitte geben Sie eine Unterrichtseinheit an');
             $error = true;
         }
@@ -716,7 +722,7 @@ class Service extends AbstractService
                 $error = true;
             }
         }
-        if (isset($Data['Lesson']) && $Data['Lesson'] < 1) {
+        if (isset($Data['Lesson']) && $Data['Lesson'] == 0) {
             $form->setError('Data[Lesson]', 'Bitte geben Sie eine Unterrichtseinheit an');
             $error = true;
         }
@@ -734,12 +740,18 @@ class Service extends AbstractService
      */
     public function createCourseContent($Data, TblDivision $tblDivision, TblSubject $tblSubject, TblSubjectGroup $tblSubjectGroup): bool
     {
+        // key -1 bei 0. UE
+        $lesson = $Data['Lesson'];
+        if ($lesson == -1) {
+            $lesson = 0;
+        }
+
         (new Data($this->getBinding()))->createCourseContent(
             $tblDivision,
             $tblSubject,
             $tblSubjectGroup,
             $Data['Date'],
-            $Data['Lesson'],
+            $lesson,
             $Data['Content'],
             $Data['Homework'],
             $Data['Remark'],
@@ -759,10 +771,16 @@ class Service extends AbstractService
      */
     public function updateCourseContent(TblCourseContent $tblCourseContent, $Data): bool
     {
+        // key -1 bei 0. UE
+        $lesson = $Data['Lesson'];
+        if ($lesson == -1) {
+            $lesson = 0;
+        }
+
         return (new Data($this->getBinding()))->updateCourseContent(
             $tblCourseContent,
             $Data['Date'],
-            $Data['Lesson'],
+            $lesson,
             $Data['Content'],
             $Data['Homework'],
             $Data['Remark'],

@@ -717,6 +717,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['PersonCauser'] = '';
                 $Item['PersonDebtor'] = '';
                 $Item['Item'] = '';
+                $Item['Price'] = $tblBasketVerification->getPrice();
                 if (($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
                     $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();
                 }
@@ -736,7 +737,8 @@ class Frontend extends Extension implements IFrontendInterface
                     'Option'           => 'Entfernen',
                     'PersonCauser'     => 'Beitragsverursacher',
                     'PersonDebtor'     => 'Beitragszahler',
-                    'Item'             => 'Beitragsart'
+                    'Item'             => 'Beitragsart',
+                    'Price'            => 'Beitragspreis'
                 ), array(
                     'columnDefs' => array(
                         array('type'    => Consumer::useService()->getGermanSortBySetting(),

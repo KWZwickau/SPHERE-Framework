@@ -97,7 +97,7 @@ class AppointmentGradeGateway extends AbstractConverter
 //        if (!$this->IsError) {
         $serviceTblPerson = null;
         if (isset($Result['FirstName']) && isset($Result['LastName']) && isset($Result['Birthday'])) {
-            $serviceTblPerson = Person::useService()->getPersonByNameAndBirthday($Result['FirstName'],
+            $serviceTblPerson = Person::useService()->getPersonByName($Result['FirstName'],
                 $Result['LastName'],
                 $Result['Birthday']);
         }

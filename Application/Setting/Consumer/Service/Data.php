@@ -258,11 +258,14 @@ class Data extends AbstractData
         $this->createSetting('Education', 'ClassRegister', 'Sort', 'SortMaleFirst', TblSetting::TYPE_BOOLEAN, '1',
             'Klassenbücher', 'Bei der Sortierung der Schüler im Klassenbuch nach Geschlecht, stehen die männlichen
             Schüler zuerst. [Standard: Ja]', true);
-        $this->createSetting('Education', 'ClassRegister', 'Frontend', 'ShowDownloadButton', TblSetting::TYPE_BOOLEAN,
-            '1', 'Klassenbücher', 'Fachlehrer können sich im Klassenbuch die Standard-Klassenlisten-Auswertung (Excel)
-            herunterladen. [Standard: Ja]', true);
+        if (($tblSetting = $this->getSetting('Education', 'ClassRegister', 'Frontend', 'ShowDownloadButton'))) {
+            $this->destroySetting($tblSetting);
+        }
         $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'IsChangeLessonContentByOtherTeacherAllowed', TblSetting::TYPE_BOOLEAN, '1',
             'Klassenbücher', 'Darf ein andere Fachlehrer einen Klassentagebucheintrag nachträglich ändern [Standard: Ja]', true);
+        $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson', TblSetting::TYPE_BOOLEAN, '0',
+            'Klassenbücher', 'Klassentagebuch beginnt mit der 0. Unterrichtseinheit [Standard: Nein]', true
+        );
 
         // Leistungsüberprüfungen public
         $this->createSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading',

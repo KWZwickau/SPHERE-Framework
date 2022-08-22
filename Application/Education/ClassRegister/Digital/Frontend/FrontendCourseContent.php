@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -439,7 +440,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         ) {
             $Global = $this->getGlobal();
             $Global->POST['Data']['Date'] = $tblCourseContent->getDate();
-            $Global->POST['Data']['Lesson'] = $tblCourseContent->getLesson();
+            $Global->POST['Data']['Lesson'] = $tblCourseContent->getLesson() === 0 ? -1 : $tblCourseContent->getLesson();
             $Global->POST['Data']['serviceTblPerson'] =
                 ($tblPerson = $tblCourseContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
             $Global->POST['Data']['Content'] = $tblCourseContent->getContent();
@@ -448,6 +449,12 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             $Global->POST['Data']['Room'] = $tblCourseContent->getRoom();
             $Global->POST['Data']['IsDoubleLesson'] = $tblCourseContent->getIsDoubleLesson() ? 1 : 0;
 
+            $Global->savePost();
+        }
+
+        if ($setPost && !$CourseContentId) {
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['Date'] = (new DateTime('today'))->format('d.m.Y');
             $Global->savePost();
         }
 
@@ -464,8 +471,18 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         }
         $buttonList[] = $saveButton;
 
-        for ($i = 0; $i < 11; $i++) {
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson'))
+            && $tblSetting->getValue()
+        ) {
+            $minLesson = 0;
+        } else {
+            $minLesson = 1;
+        }
+        for ($i = 0; $i < 13; $i++) {
             $lessons[] = new SelectBoxItem($i, $i . '. Unterrichtseinheit');
+        }
+        if ($minLesson == 0) {
+            $lessons[] = new SelectBoxItem(-1, '0. Unterrichtseinheit');
         }
 
         // Unterrichteinheit löchen

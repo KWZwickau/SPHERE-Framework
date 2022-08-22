@@ -102,12 +102,13 @@ class FrontendPersonAgreement extends FrontendReadOnly
         )));
 
         $editLink = '';
+        $StructureEdit = '';
         if($AllowEdit == 1){
             $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditPersonAgreementContent($PersonId));
+            $StructureEdit = (new Link(new Edit() . ' Struktur bearbeiten', ApiPersonEdit::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineEditPersonAgreementStructure($PersonId));
         }
-        $StructureEdit = (new Link(new Edit() . ' Struktur bearbeiten', ApiPersonEdit::getEndpoint()))
-            ->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineEditPersonAgreementStructure($PersonId));
         $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
         return TemplateReadOnly::getContent(

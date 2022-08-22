@@ -492,22 +492,29 @@ class Frontend extends FrontendTabs
                 ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Day'));
         }
 
+        $datePicker = (new DatePicker('Data[Date]', '', '', new Calendar()))
+            ->setAutoFocus()
+            ->ajaxPipelineOnChange(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, $View));
         $form = (new Form(new FormGroup(new FormRow(array(
             new FormColumn(
-                new PullRight(new DatePicker('Data[Date]', '', '', new Calendar()))
-                , 7),
-            new FormColumn(
-                new PullRight((new Primary('Datum auswählen', '', new Select()))->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
-                    $DivisionId, $GroupId, $DateString, $View
-                )))
-                , 5)
+                new PullRight(
+                    $datePicker
+                )
+                , 12),
+//            new FormColumn(
+//                new PullRight((new Primary('Datum auswählen', '', new Select()))->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
+//                    $DivisionId, $GroupId, $DateString, $View
+//                )))
+//                , 5)
         )))));
 
         $layout = new Layout(new LayoutGroup(new LayoutRow(array(
 //                new LayoutColumn($buttons, $View == 'Day' ? 7 : 8),
 //                new LayoutColumn($form, $View == 'Day' ? 5 : 4)
-                new LayoutColumn($buttons, 8),
-                new LayoutColumn($form, 4)
+//                new LayoutColumn($buttons, 8),
+//                new LayoutColumn($form, 4)
+                new LayoutColumn($buttons, 9),
+                new LayoutColumn($form, 3)
             ))))
             . new Container('&nbsp;')
             . new Panel(
@@ -627,7 +634,14 @@ class Frontend extends FrontendTabs
         $headerList['Homework'] = $this->getTableHeadColumn('Hausaufgaben');
         $headerList['Absence'] = $this->getTableHeadColumn('Fehlzeiten');
 
-        $maxLesson = 10;
+        $maxLesson = 12;
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson'))
+            && $tblSetting->getValue()
+        ) {
+            $minLesson = 0;
+        } else {
+            $minLesson = 1;
+        }
         $bodyList = array();
         $bodyBackgroundList = array();
         $divisionList = $tblDivision ? array('0' => $tblDivision) : array();
@@ -685,7 +699,7 @@ class Frontend extends FrontendTabs
                 );
             }
 
-            if (isset($absenceContent[0])) {
+            if (isset($absenceContent[0]) && $minLesson > 0) {
                 $bodyList[0] = array(
                     'Lesson' => new ToolTip(new Center(new Bold('0')), '0. Unterrichtseinheit'),
                     'Subject' => '',
@@ -729,7 +743,7 @@ class Frontend extends FrontendTabs
         }
 
         // leere Einträge bis $maxLesson auffüllen
-        for ($i = 1; $i <= $maxLesson; $i++) {
+        for ($i = $minLesson; $i <= $maxLesson; $i++) {
             if (!isset($bodyList[$i * 10])) {
                 $linkLesson = (new Link(
                     new Center($i),
@@ -739,7 +753,7 @@ class Frontend extends FrontendTabs
                     $i . '. Thema/Hausaufgaben hinzufügen',
                     null,
                     AbstractLink::TYPE_MUTED_LINK
-                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $date->format('d.m.Y'), $i));
+                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $date->format('d.m.Y'), $i == 0 ? -1 : $i));
 
                 // Fach aus dem importierten Stundenplan anzeigen
                 if (!$isHoliday && $tblDivision && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
@@ -784,7 +798,7 @@ class Frontend extends FrontendTabs
                     ->setVerticalAlign('middle')
                     ->setMinHeight('30px')
                     ->setPadding('3')
-                    ->setBackgroundColor($key == -1 || $key == 0 || (isset($bodyBackgroundList[$key]) && $count == 0) ? '#E0F0FF' : '');
+                    ->setBackgroundColor($key == -1 || ($key == 0 && $minLesson > 0) || (isset($bodyBackgroundList[$key]) && $count == 0) ? '#E0F0FF' : '');
                 $count++;
             }
             $rows[] = new TableRow($columns);
@@ -900,7 +914,14 @@ class Frontend extends FrontendTabs
             '6' => 'Samstag',
         );
 
-        $maxLesson = 10;
+        $maxLesson = 12;
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson'))
+            && $tblSetting->getValue()
+        ) {
+            $minLesson = 0;
+        } else {
+            $minLesson = 1;
+        }
         $headerList = array();
         $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), '5%');
         $bodyList = array();
@@ -1002,7 +1023,7 @@ class Frontend extends FrontendTabs
 
         $tableHead = new TableHead(new TableRow($headerList));
         $rows = array();
-        for ($i = 1; $i <= $maxLesson; $i++) {
+        for ($i = $minLesson; $i <= $maxLesson; $i++) {
             $columns = array();
             $columns[] = (new TableColumn(new Center($i)))
                 ->setVerticalAlign('middle')
@@ -1035,7 +1056,7 @@ class Frontend extends FrontendTabs
                         null,
                         array(),
                         $i . '. Thema/Hausaufgaben hinzufügen'
-                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $dateStringList[$j], $i));
+                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $dateStringList[$j], $i == 0 ? -1 : $i));
                 } else {
                     $cell = '&nbsp;';
                 }
@@ -1129,7 +1150,7 @@ class Frontend extends FrontendTabs
             null,
             array(),
             $Lesson . '. Thema/Hausaufgaben hinzufügen'
-        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $date->format('d.m.Y'), $Lesson));
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $date->format('d.m.Y'), $Lesson == 0 ? -1 : $Lesson));
     }
 
     /**
@@ -1180,7 +1201,7 @@ class Frontend extends FrontendTabs
         ) {
             $Global = $this->getGlobal();
             $Global->POST['Data']['Date'] = $tblLessonContent->getDate();
-            $Global->POST['Data']['Lesson'] = $tblLessonContent->getLesson();
+            $Global->POST['Data']['Lesson'] = $tblLessonContent->getLesson() === 0 ? -1 : $tblLessonContent->getLesson();
             $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : 0;
             $Global->POST['Data']['serviceTblSubstituteSubject'] =
                 ($tblSubstituteSubject = $tblLessonContent->getServiceTblSubstituteSubject()) ? $tblSubstituteSubject->getId() : 0;
@@ -1241,8 +1262,18 @@ class Frontend extends FrontendTabs
 
         $tblSubjectList = Subject::useService()->getSubjectAll();
 
-        for ($i = 0; $i < 11; $i++) {
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson'))
+            && $tblSetting->getValue()
+        ) {
+            $minLesson = 0;
+        } else {
+            $minLesson = 1;
+        }
+        for ($i = 0; $i < 13; $i++) {
             $lessons[] = new SelectBoxItem($i, $i . '. Unterrichtseinheit');
+        }
+        if ($minLesson == 0) {
+            $lessons[] = new SelectBoxItem(-1, '0. Unterrichtseinheit');
         }
 
         // Unterrichteinheit löchen

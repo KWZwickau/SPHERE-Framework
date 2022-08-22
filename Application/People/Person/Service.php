@@ -237,23 +237,16 @@ class Service extends AbstractService
     /**
      * @param string $FirstName
      * @param string $LastName
-     * @param null|string $Birthday
-     * @param null|string $Code
-     * @return false|TblPerson|null
+     *
+     * @return bool|TblPerson
      */
-    public function getPersonByNameExtended($FirstName, $LastName, $Birthday = null, $Code = null)
+    public function getPersonByName($FirstName, $LastName, $Birthday = null, $Code = null, $Identifier = null)
     {
-        $tblPerson = null;
+
         if(($tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName))){
-            $countPersonList = count($tblPersonList);
-            if($Birthday || $Code) {
-                $tblPerson = $this->getPersonSearchByOptions($tblPersonList, $Birthday, $Code);
-            } else {
-                if($countPersonList == 1){
-                    return current($tblPersonList);
-                }
-            }
+            return $this->getPersonSearchByOptions($tblPersonList, $Birthday, $Code, $Identifier);
         } else {
+            // Person wurde so nicht gefunden -> Vorname könnte 2. Vorname enthalten
             $NameList = explode(' ', $FirstName);
             $count = count($NameList);
             $SecondName = '';
@@ -267,89 +260,23 @@ class Service extends AbstractService
                 }
             }
             if(($tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndSecondNameAndLastName($FirstName, $SecondName, $LastName))){
-
-                if($Birthday || $Code) {
-                    $tblPerson = $this->getPersonSearchByOptions($tblPersonList, $Birthday, $Code);
-                } else {
-                    $countPersonList = count($tblPersonList);
-                    if ($countPersonList == 1) {
-                        return current($tblPersonList);
-                    }
-                }
+                return $this->getPersonSearchByOptions($tblPersonList, $Birthday, $Code, $Identifier);
             }
         }
-        return ($tblPerson ? $tblPerson : null);
-    }
-
-    /**
-     * @param TblPerson[] $tblPersonList
-     * @param null|string $Birthday
-     * @param null|string $Code
-     * @return null|tblPerson
-     */
-    private function getPersonSearchByOptions($tblPersonList, $Birthday, $Code)
-    {
-        if($Birthday && $Code){
-            $tblPersonListTemp = array();
-            foreach($tblPersonList as $tblPerson){
-                $CodeTemp = null;
-                if(($tblAddress = Address::useService()->getAddressByPerson($tblPerson))){
-                    if(($tblCity = $tblAddress->getTblCity())){
-                        $CodeTemp = $tblCity->getCode();
-                    }
-                }
-                $BirthdayTemp = $tblPerson->getBirthday();
-                if($Birthday == $BirthdayTemp && $Code == $CodeTemp){
-                    $tblPersonListTemp[] = $tblPerson;
-                }
-            }
-            if(count($tblPersonListTemp) == 1){
-                return current($tblPersonListTemp);
-            }
-        } elseif($Birthday) {
-            $tblPersonListTemp = array();
-            foreach($tblPersonList as $tblPerson) {
-                $BirthdayTemp = $tblPerson->getBirthday();
-                if ($Birthday == $BirthdayTemp) {
-                    $tblPersonListTemp[] = $tblPerson;
-                }
-            }
-            if(count($tblPersonListTemp) == 1){
-                return current($tblPersonListTemp);
-            }
-        } elseif($Code) {
-            $tblPersonListTemp = array();
-            foreach($tblPersonList as $tblPerson){
-                $CodeTemp = null;
-                if(($tblAddress = Address::useService()->getAddressByPerson($tblPerson))){
-                    if(($tblCity = $tblAddress->getTblCity())){
-                        $CodeTemp = $tblCity->getCode();
-                    }
-                }
-                if($Code == $CodeTemp){
-                    $tblPersonListTemp[] = $tblPerson;
-                }
-            }
-            if(count($tblPersonListTemp) == 1){
-                return current($tblPersonListTemp);
-            }
-        }
-        return null;
+        return false;
     }
 
     /**
      * @param string $FirstName
      * @param string $LastName
-     * @param null|string $Birthday
-     * @param null|string $Code
-     * @return TblPerson[]|null
+     *
+     * @return bool|TblPerson[]
      */
-    public function getPersonAllByNameExtended($FirstName, $LastName, $Birthday = null, $Code = null)
+    public function getPersonAllByName($FirstName, $LastName, $Birthday = null, $Code = null, $Identifier = null)
     {
+
         if(($tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName))){
-            if ($Birthday || $Code) {
-                $tblPersonList = $this->getPersonListSearchByOptions($tblPersonList, $Birthday, $Code);
-            }
+            $tblPersonList = $this->getPersonListSearchByOptions($tblPersonList, $Birthday, $Code, $Identifier);
         } else {
             $NameList = explode(' ', $FirstName);
             $count = count($NameList);
@@ -364,97 +291,82 @@ class Service extends AbstractService
                 }
             }
 
-            if(($tblPersonListTemp = (new Data($this->getBinding()))->getPersonAllByFirstNameAndSecondNameAndLastName($FirstName, $SecondName, $LastName))){
-                $tblPersonList = $tblPersonListTemp;
-                if($Birthday || $Code) {
-                    $tblPersonList = $this->getPersonListSearchByOptions($tblPersonList, $Birthday, $Code);
-                }
+            if(($tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndSecondNameAndLastName($FirstName, $SecondName, $LastName))){
+                $tblPersonList = $this->getPersonListSearchByOptions($tblPersonList, $Birthday, $Code, $Identifier);
             }
         }
         return (!empty($tblPersonList) || $tblPersonList !== false ? $tblPersonList : null);
     }
 
     /**
-     * @param $tblPersonList
-     * @param $Birthday
-     * @param $Code
-     * @return array
+     * @param array $tblPersonList
+     * @param null  $Birthday
+     * @param null  $Code
+     * @param null  $Identifer
+     *
+     * @return false|TblPerson
      */
-    private function getPersonListSearchByOptions($tblPersonList, $Birthday, $Code)
+    private function getPersonSearchByOptions(array $tblPersonList, $Birthday = null, $Code = null, $Identifer = null)
+    {
+        $tblPerson = false;
+        if(($tblPersonList = $this->getPersonListSearchByOptions($tblPersonList, $Birthday, $Code, $Identifer))){
+            if(count($tblPersonList) == 1){
+                $tblPerson = current($tblPersonList);
+            }
+        }
+        return $tblPerson;
+    }
+
+    /**
+     * @param array $tblPersonList
+     * @param null  $Birthday
+     * @param null  $Code
+     * @param null  $Identifier
+     *
+     * @return TblPerson[]|false
+     */
+    private function getPersonListSearchByOptions(array $tblPersonList, $Birthday = null, $Code = null, $Identifier = null)
     {
         $PersonList = array();
-        if($Birthday && $Code){
-            foreach($tblPersonList as $tblPerson){
-                $CodeTemp = null;
+
+        foreach($tblPersonList as $tblPerson){
+            if($Birthday !== null){
+                $BirthdayTemp = $tblPerson->getBirthday();
+                if($Birthday != $BirthdayTemp){
+                    continue;
+                }
+            }
+            if($Code !== null){
                 if(($tblAddress = Address::useService()->getAddressByPerson($tblPerson))){
                     if(($tblCity = $tblAddress->getTblCity())){
                         $CodeTemp = $tblCity->getCode();
+                        if($Code != $CodeTemp){
+                            continue;
+                        }
+                    } else {
+                        continue;
                     }
-                }
-                $BirthdayTemp = $tblPerson->getBirthday();
-                if($Birthday == $BirthdayTemp && $Code == $CodeTemp){
-                    $PersonList[] = $tblPerson;
+                } else {
+                    continue;
                 }
             }
-        } elseif($Birthday) {
-            foreach($tblPersonList as $tblPerson) {
-                $BirthdayTemp = $tblPerson->getBirthday();
-                if ($Birthday == $BirthdayTemp) {
-                    $PersonList[] = $tblPerson;
-                }
-            }
-        } elseif($Code) {
-            foreach($tblPersonList as $tblPerson){
-                $CodeTemp = null;
-                if(($tblAddress = Address::useService()->getAddressByPerson($tblPerson))){
-                    if(($tblCity = $tblAddress->getTblCity())){
-                        $CodeTemp = $tblCity->getCode();
+            if($Identifier !== null){
+                if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                    if ($Identifier != $tblStudent->getIdentifier()) {
+                        continue;
                     }
-                }
-                if($Code == $CodeTemp){
-                    $PersonList[] = $tblPerson;
+                } else {
+                    continue;
                 }
             }
+            // Notwendige Prüfungen überstanden
+            $PersonList[] = $tblPerson;
         }
-        return $PersonList;
+        return (!empty($PersonList) ? $PersonList: false);
     }
 
     /**
-     * @param string $FirstName
-     * @param string $LastName
-     * @param string $Birthday
-     *
-     * @return bool|TblPerson
-     */
-    public function getPersonByNameAndBirthday($FirstName, $LastName, $Birthday)
-    {
-
-        $tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
-
-        if ($tblPersonList) {
-            $tblPersonListTemp = array();
-            foreach ($tblPersonList as $tblPerson) {
-                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
-                if (!$tblCommon) {
-                    continue;
-                }
-                $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
-                if (!$tblCommonBirthDates) {
-                    continue;
-                }
-
-                if ($Birthday == $tblCommonBirthDates->getBirthday()) {
-                    $tblPersonListTemp[] = $tblPerson;
-                }
-            }
-            if(count($tblPersonListTemp) == 1){
-                return current($tblPersonListTemp);
-            }
-        }
-        return false;
-    }
-
-    /**
+     * @deprecated
      * @param string $FirstName
      * @param string $LastName
      * @param string $Birthday
@@ -465,8 +377,7 @@ class Service extends AbstractService
     public function getPersonByNameAndBirthdayOrIdentifier($FirstName, $LastName, $Birthday, $Identifier)
     {
 
-        $tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
-
+        $tblPersonList = $this->getPersonAllByName($FirstName, $LastName);
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
@@ -491,6 +402,7 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated
      * @param string $FirstName
      * @param string $LastName
      * @param string $Birthday
@@ -519,35 +431,6 @@ class Service extends AbstractService
         }
 
         return empty($result) ? false : $result;
-    }
-
-    /**
-     * @param string $FirstName
-     * @param string $LastName
-     *
-     * @return bool|TblPerson
-     */
-    public function getPersonByName($FirstName, $LastName)
-    {
-
-        $tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
-        if($tblPersonList){
-            return current($tblPersonList);
-        }
-        return false;
-    }
-
-
-    /**
-     * @param string $FirstName
-     * @param string $LastName
-     *
-     * @return bool|TblPerson[]
-     */
-    public function getPersonAllByName($FirstName, $LastName)
-    {
-
-        return (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
     }
 
     /**
@@ -677,7 +560,7 @@ class Service extends AbstractService
     public function existsPerson($FirstName, $LastName, $ZipCode)
     {
 
-        if (( $tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName) )
+        if (($tblPersonList = $this->getPersonAllByName($FirstName, $LastName))
         ) {
             if($ZipCode === ''){
                 return current($tblPersonList);
@@ -695,6 +578,7 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated
      * @param $firstName
      * @param $lastName
      *

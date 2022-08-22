@@ -4,6 +4,7 @@ namespace SPHERE\Application\People\Person\Frontend;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiPersonAgreementStructure;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Agreement\Agreement;
 use SPHERE\Application\People\Meta\Agreement\Service\Entity\TblPersonAgreementCategory;
 use SPHERE\Application\People\Meta\Agreement\Service\Entity\TblPersonAgreementType;
@@ -68,10 +69,10 @@ class FrontendPersonMasern extends FrontendReadOnly
             return '';
         }
 
-        $AuthorizedToCollectGroups[] = 'Mitarbeiter';
+        $AuthorizedToCollectGroups[] = TblGroup::META_TABLE_STAFF;
         $hasBlock = false;
         foreach ($AuthorizedToCollectGroups as $group) {
-            if (($tblGroup = Group::useService()->getGroupByName(trim($group)))
+            if (($tblGroup = Group::useService()->getGroupByMetaTable($group))
                 && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
             ) {
                 $hasBlock = true;

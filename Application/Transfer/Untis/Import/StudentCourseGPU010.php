@@ -109,10 +109,8 @@ class StudentCourseGPU010 extends AbstractConverter
         }
 
         if(isset($Result['FileFirstName']) && isset($Result['FileLastName']) && ($BirthDay || $Result['Identifier'])){
-            if(($tblPerson = Person::useService()->getPersonByNameAndBirthdayOrIdentifier($Result['FileFirstName'],
-                $Result['FileLastName'],
-                $BirthDay,
-                $Result['Identifier']))){
+            if(($tblPerson = Person::useService()->getPersonByName($Result['FileFirstName'], $Result['FileLastName'],
+                $BirthDay, null, $Result['Identifier']))){
                 $Result['AppPerson'] = $tblPerson->getLastFirstName();
             } else {
                 $this->IsError = true;
