@@ -452,7 +452,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        if (!$setPost && !$CourseContentId) {
+        if ($setPost && !$CourseContentId) {
             $Global = $this->getGlobal();
             $Global->POST['Data']['Date'] = (new DateTime('today'))->format('d.m.Y');
             $Global->savePost();

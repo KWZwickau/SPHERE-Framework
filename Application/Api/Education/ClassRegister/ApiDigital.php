@@ -970,7 +970,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return $this->getCourseContentModal(Digital::useFrontend()->formCourseContent($tblDivision, $tblSubject,
-            $tblSubjectGroup));
+            $tblSubjectGroup, null, true));
     }
 
     /**
