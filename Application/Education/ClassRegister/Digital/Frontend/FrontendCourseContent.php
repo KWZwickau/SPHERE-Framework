@@ -452,6 +452,12 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
+        if (!$setPost && !$CourseContentId) {
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['Date'] = (new DateTime('today'))->format('d.m.Y');
+            $Global->savePost();
+        }
+
         if ($CourseContentId) {
             $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiDigital::pipelineEditCourseContentSave($CourseContentId));
