@@ -95,8 +95,8 @@ class ClassRegister extends AbstractDocument
             $this->tblCompany = ($tblGroup->getCurrentCompanySingle()) ?: null;
             $this->tblCompanyList = ($tblGroup->getCurrentCompanyList()) ?: array();
             $this->tudors = $tblGroup->getTudorsString(false);
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                $this->tblPersonList = (new Extension)->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
+            if (($tblPersonList = $tblGroup->getStudentOnlyList())) {
+                $this->tblPersonList = $tblPersonList;
             }
         }
     }

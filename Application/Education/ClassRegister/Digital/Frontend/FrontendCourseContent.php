@@ -554,9 +554,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         if ($tblDivision) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         } elseif ($tblGroup) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
-            }
+            $tblPersonList = $tblGroup->getStudentOnlyList();
         } elseif ($tblDivisionSubject) {
             $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
         }

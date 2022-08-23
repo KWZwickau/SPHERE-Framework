@@ -74,6 +74,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class Service extends AbstractService
@@ -845,9 +846,7 @@ class Service extends AbstractService
                 $hasColumnCourse = $tblSchoolType->getShortName() == 'OS';
             }
         } elseif ($tblGroup) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
-            }
+            $tblPersonList = $tblGroup->getStudentOnlyList();
         }
 
         if ($tblPersonList) {

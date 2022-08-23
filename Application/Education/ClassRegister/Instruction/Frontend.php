@@ -408,10 +408,7 @@ class Frontend extends Extension implements IFrontendInterface
         } elseif ($tblDivision) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         } elseif ($tblGroup) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
-            }
-
+            $tblPersonList = $tblGroup->getStudentOnlyList();
         } else {
             $tblPersonList = false;
         }

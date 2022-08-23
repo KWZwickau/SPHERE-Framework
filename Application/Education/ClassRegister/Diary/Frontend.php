@@ -512,7 +512,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Zurück', $BasicRoute, new ChevronLeft()
             ));
 
-            if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup)) &&
+            if(($tblPersonList = $tblGroup->getStudentOnlyList()) &&
                 ($tblYearList = Term::useService()->getYearByNow())){
                 $found = false;
                 foreach($tblPersonList as $tblPersonTemp){
@@ -651,10 +651,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblDivision) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         } elseif ($tblGroup) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
-            }
-
+            $tblPersonList = $tblGroup->getStudentOnlyList();
         } else {
             $tblPersonList = false;
         }
@@ -737,7 +734,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $diaryList[$tblDiary->getId()] = $tblDiary;
                 }
             }
-            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            $tblPersonList = $tblGroup->getStudentOnlyList();
         } else {
             $tblPersonList = false;
         }

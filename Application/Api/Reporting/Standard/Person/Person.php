@@ -40,7 +40,7 @@ class Person
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
             $name = 'Klassenliste ' . $tblDivision->getDisplayName();
         } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            $tblPersonList = $tblGroup->getStudentOnlyList();
             $name = 'Stammgruppenliste ' . $tblGroup->getName();
         } else {
             return false;
@@ -251,7 +251,7 @@ class Person
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
             $name = 'Krankenakte_Klassenliste ' . $tblDivision->getDisplayName();
         } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            $tblPersonList = $tblGroup->getStudentOnlyList();
             $name = 'Krankenakte_Stammgruppenliste ' . $tblGroup->getName();
         } else {
             return false;
@@ -286,7 +286,7 @@ class Person
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
             $name = 'Einverständniserklärung_Klassenliste ' . $tblDivision->getDisplayName();
         } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            $tblPersonList = $tblGroup->getStudentOnlyList();
             $name = 'Einverständniserklärung_Stammgruppenliste ' . $tblGroup->getName();
         } else {
             return false;
@@ -463,7 +463,7 @@ class Person
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
             $name = 'Fehlzeiten der Klasse ' . $tblDivision->getDisplayName();
         } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+            $tblPersonList = $tblGroup->getStudentOnlyList();
             $name = 'Fehlzeiten der Stammgruppe ' . $tblGroup->getName();
         } else {
             return false;

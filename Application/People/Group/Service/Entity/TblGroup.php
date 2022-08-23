@@ -295,4 +295,28 @@ class TblGroup extends Element
 
         return false;
     }
+
+    /**
+     * bei Stammgruppen dürfen nur Schüler herauskommen, z.B. fürs Klassenbuch
+     *
+     * @return array|false
+     */
+    public function getStudentOnlyList()
+    {
+        $list = array();
+        if ($this->isCoreGroup()) {
+            if (($tblPersonList = Group::useService()->getPersonAllByGroup($this))
+                && ($tblGroup = Group::useService()->getGroupByMetaTable('Student'))
+            ) {
+                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
+                foreach ($tblPersonList as $tblPerson) {
+                    if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                        $list[] = $tblPerson;
+                    }
+                }
+            }
+        }
+
+        return empty($list) ? false : $list;
+    }
 }

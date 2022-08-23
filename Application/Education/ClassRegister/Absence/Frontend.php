@@ -320,7 +320,7 @@ class Frontend extends Extension implements IFrontendInterface
                     break;
                 case 'Group':
                     if (($tblGroup = Group::useService()->getGroupById($TypeId))) {
-                        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+                        $tblPersonList = $tblGroup->getStudentOnlyList();
                     }
                     break;
                 case 'DivisionSubject':
