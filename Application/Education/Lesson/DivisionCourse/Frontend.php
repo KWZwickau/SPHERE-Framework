@@ -15,15 +15,26 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
+use SPHERE\Common\Frontend\Icon\Repository\Link;
+use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -81,14 +92,27 @@ class Frontend extends Extension implements IFrontendInterface
             $dataList = array();
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (($tblSubCourseList = DivisionCourse::useService()->getSubDivisionCourseListByDivisionCourse($tblDivisionCourse))) {
+                    $subCourses = array();
+                    foreach ($tblSubCourseList as $tblSubCourse) {
+                        $subCourses[] = $tblSubCourse->getName();
+                    }
+                    $subCourseText = implode(', ', $subCourses);
+                } else {
+                    $subCourseText = '';
+                }
+
                 $dataList[] = array(
                     'Year' => $tblDivisionCourse->getYearName(),
                     'Name' => $tblDivisionCourse->getName(),
                     'Description' => $tblDivisionCourse->getDescription(),
                     'Type' => $tblDivisionCourse->getTypeName(),
+                    'SubCourses' => $subCourseText,
                     'Option' =>
                         (new Standard('', ApiDivisionCourse::getEndpoint(), new Pencil(), array(), 'Name des Kurses bearbeiten'))
                             ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenEditDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
+                        . (new Standard('', ApiDivisionCourse::getEndpoint(), new Link(), array(), 'Unter-Kurse verknüpfen'))
+                            ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenLinkDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
                         . (new Standard('', ApiDivisionCourse::getEndpoint(), new Remove(), array(), 'Kurs löschen'))
                             ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenDeleteDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
                 );
@@ -102,6 +126,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Name' => 'Name',
                     'Description' => 'Beschreibung',
                     'Type' => 'Typ',
+                    'SubCourses' => 'Unter-Kurse',
                     'Option' => '&nbsp;'
                 ),
                 array(
@@ -181,16 +206,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $buttonList[] = $saveButton;
 
-//        if ($DivisionCourseId) {
-//            $buttonList[] = (new \SPHERE\Common\Frontend\Link\Repository\Danger(
-//                'Löschen',
-//                ApiDivisionCourse::getEndpoint(),
-//                new Remove(),
-//                array(),
-//                false
-//            ))->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenDeleteDivisionCourseModal($DivisionCourseId));
-//        }
-
         $tblYearAll = Term::useService()->getYearAllSinceYears(0);
         $tblCourseAll = DivisionCourse::useService()->getDivisionCourseAll();
         $courseNameList = array();
@@ -241,5 +256,76 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         ))->disableSubmitAction();
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Filter
+     *
+     * @return string
+     */
+    public function loadDivisionCourseLinkContent($DivisionCourseId, $Filter = null): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $selectedList = array();
+            if (($tblDivisionCourseList = DivisionCourse::useService()->getSubDivisionCourseListByDivisionCourse($tblDivisionCourse))) {
+                foreach ($tblDivisionCourseList as $item) {
+                    $selectedList[$item->getId()] = array(
+                        'Name' => $item->getName() . (($description = $item->getDescription()) ? ' (' . $description . ')' : ''),
+                        'Type' => $item->getTypeName(),
+                        'Option' => (new Standard('', ApiDivisionCourse::getEndpoint(), new MinusSign(), array(), 'Kurs entfernen'))
+                            ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineRemoveDivisionCourse($tblDivisionCourse->getId(), $item->getId(), $Filter))
+                    );
+                }
+            }
+
+            $availableList = array();
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+                && ($tblDivisionCourseAvailableList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear))
+            ) {
+                foreach ($tblDivisionCourseAvailableList as $tblDivisionCourseAvailable) {
+                    if ($tblDivisionCourse->getId() != $tblDivisionCourseAvailable->getId() && !isset($selectedList[$tblDivisionCourseAvailable->getId()])) {
+                        $availableList[$tblDivisionCourseAvailable->getId()] = array(
+                            'Name' => $tblDivisionCourseAvailable->getName() . (($description = $tblDivisionCourseAvailable->getDescription()) ? ' (' . $description . ')' : ''),
+                            'Type' => $tblDivisionCourseAvailable->getTypeName(),
+                            'Option' => (new Standard('', ApiDivisionCourse::getEndpoint(), new PlusSign(), array(), 'Kurs hinzufügen'))
+                                ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineAddDivisionCourse($tblDivisionCourse->getId(), $tblDivisionCourseAvailable->getId(), $Filter))
+                        );
+                    }
+                }
+            }
+
+            $columns = array(
+                'Name' => 'Name',
+                'Type' => 'Typ',
+                'Option' => ''
+            );
+            $interactive = array(
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 0),
+                    array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                ),
+                'responsive' => false
+            );
+            if ($selectedList) {
+                $left = (new TableData($selectedList, new Title('Ausgewählte', 'Unter-Kurse'), $columns, $interactive))
+                    ->setHash(__NAMESPACE__ . 'DivisionCourseSelected');
+            } else {
+                $left = new Info('Keine Unter-Kurse ausgewählt');
+            }
+            if ($availableList) {
+                $right = (new TableData($availableList, new Title('Verfügbare', 'Unter-Kurse'), $columns, $interactive))
+                    ->setHash(__NAMESPACE__ . 'DivisionCourseAvailable');
+            } else {
+                $right = new Info('Keine weiteren Unter-Kurse verfügbar');
+            }
+
+            return new Layout(new LayoutGroup(array(new LayoutRow(array(
+                new LayoutColumn($left, 6),
+                new LayoutColumn($right, 6)
+            )))));
+        }
+
+        return new Danger('Kurs nicht gefunden!', new Exclamation());
     }
 }

@@ -3,10 +3,12 @@
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseLink;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Extension\Extension;
 
 class Data extends MigrateData
 {
@@ -200,6 +202,95 @@ class Data extends MigrateData
         } else {
             return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse');
         }
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourse $tblSubDivisionCourse
+     *
+     * @return TblDivisionCourseLink
+     */
+    public function addSubDivisionCourseToDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblDivisionCourse $tblSubDivisionCourse)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivisionCourseLink')
+            ->findOneBy(array(
+                TblDivisionCourseLink::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+                TblDivisionCourseLink::ATTR_TBL_SUB_DIVISION_COURSE => $tblSubDivisionCourse->getId()
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblDivisionCourseLink();
+            $Entity->setTblDivisionCourse($tblDivisionCourse);
+            $Entity->setTblSubDivisionCourse($tblSubDivisionCourse);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourse $tblSubDivisionCourse
+     *
+     * @return bool
+     */
+    public function removeSubDivisionCourseFromDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblDivisionCourse $tblSubDivisionCourse): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $EntityList = $Manager->getEntity('TblDivisionCourseLink')
+            ->findBy(array(
+                TblDivisionCourseLink::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+                TblDivisionCourseLink::ATTR_TBL_SUB_DIVISION_COURSE => $tblSubDivisionCourse->getId()
+            ));
+        if ($EntityList) {
+            foreach ($EntityList as $Entity) {
+                $Manager->killEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getSubDivisionCourseListByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        $resultList = array();
+        if (($list = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseLink',
+            array(TblDivisionCourseLink::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId())))
+        ) {
+            /** @var TblDivisionCourseLink $tblDivisionCourseLink */
+            foreach ($list as $tblDivisionCourseLink) {
+                if (($tblSubDivisionCourse = $tblDivisionCourseLink->getTblSubDivisionCourse())) {
+                    $resultList[] = $tblSubDivisionCourse;
+                }
+            }
+        }
+
+        if ($resultList) {
+            return (new Extension())->getSorter($resultList)->sortObjectBy('Name');
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblDivisionCourseLink
+     */
+    public function getDivisionCourseLinkById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseLink', $Id);
     }
 
     /**

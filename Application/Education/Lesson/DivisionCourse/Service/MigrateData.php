@@ -63,7 +63,7 @@ abstract class MigrateData extends AbstractData
 
             $Manager = $this->getEntityManager();
             foreach ($tblGroupList as $tblGroup) {
-                $tblDivisionCourse = TblDivisionCourse::withParameter($tblType, $tblYear, $tblGroup->getName(), $tblGroup->getDescription(), true, true, false);
+                $tblDivisionCourse = TblDivisionCourse::withParameter($tblType, $tblYear, $tblGroup->getName(), $tblGroup->getDescription(), true, true, true);
                 // bulkSave nicht möglich, da ansonsten noch keine Id vorhanden ist
                 $Manager->saveEntity($tblDivisionCourse);
 

@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseLink;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Setup;
@@ -63,6 +64,48 @@ class Service extends AbstractService
     public function getDivisionCourseListBy(TblYear $tblYear = null, ?string $TypeIdentifier = '')
     {
         return (new Data($this->getBinding()))->getDivisionCourseListBy($tblYear, $TypeIdentifier);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourse $tblSubDivisionCourse
+     *
+     * @return TblDivisionCourseLink
+     */
+    public function addSubDivisionCourseToDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblDivisionCourse $tblSubDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->addSubDivisionCourseToDivisionCourse($tblDivisionCourse, $tblSubDivisionCourse);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourse $tblSubDivisionCourse
+     *
+     * @return bool
+     */
+    public function removeSubDivisionCourseFromDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblDivisionCourse $tblSubDivisionCourse): bool
+    {
+        return (new Data($this->getBinding()))->removeSubDivisionCourseFromDivisionCourse($tblDivisionCourse, $tblSubDivisionCourse);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getSubDivisionCourseListByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getSubDivisionCourseListByDivisionCourse($tblDivisionCourse);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblDivisionCourseLink
+     */
+    public function getDivisionCourseLinkById($Id)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseLinkById($Id);
     }
 
     /**

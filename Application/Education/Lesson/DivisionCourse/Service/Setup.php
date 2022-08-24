@@ -22,6 +22,7 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblType = $this->setTableDivisionCourseType($Schema);
         $tblDivisionCourse = $this->setTableDivisionCourse($Schema, $tblType);
+        $this->setTableDivisionCourseLink($Schema, $tblDivisionCourse);
         $tblMemberType = $this->setTableDivisionCourseMemberType($Schema);
         $this->setTableDivisionCourseMember($Schema, $tblDivisionCourse, $tblMemberType);
         $this->setTableTeacherLectureship($Schema);
@@ -170,5 +171,18 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'tblCoreGroup', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'CoreGroupSortOrder', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($table, 'LeaveDate', self::FIELD_TYPE_DATETIME, true);
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblDivisionCourse
+     */
+    private function setTableDivisionCourseLink(Schema &$Schema, Table $tblDivisionCourse)
+    {
+        $table = $this->getConnection()->createTable($Schema, 'tblLessonDivisionCourseLink');
+
+        $this->createColumn($table, 'tblSubLessonDivisionCourse', self::FIELD_TYPE_BIGINT);
+
+        $this->createForeignKey($table, $tblDivisionCourse);
     }
 }

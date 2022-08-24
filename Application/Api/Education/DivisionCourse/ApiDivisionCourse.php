@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Link;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -29,6 +30,8 @@ use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
 
 class ApiDivisionCourse extends Extension implements IApiInterface
@@ -50,6 +53,11 @@ class ApiDivisionCourse extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveEditDivisionCourseModal');
         $Dispatcher->registerMethod('openDeleteDivisionCourseModal');
         $Dispatcher->registerMethod('saveDeleteDivisionCourseModal');
+
+        $Dispatcher->registerMethod('openLinkDivisionCourseModal');
+        $Dispatcher->registerMethod('loadDivisionCourseLinkContent');
+        $Dispatcher->registerMethod('addDivisionCourse');
+        $Dispatcher->registerMethod('removeDivisionCourse');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -402,6 +410,193 @@ class ApiDivisionCourse extends Extension implements IApiInterface
                 . self::pipelineClose();
         } else {
             return new Danger('Der Kurs konnte nicht gelöscht werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenLinkDivisionCourseModal($DivisionCourseId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openLinkDivisionCourseModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Filter' => $Filter
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Filter
+     *
+     * @return string
+     */
+    public function openLinkDivisionCourseModal($DivisionCourseId, $Filter = null): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Link() . ' Kurs besteht aus den folgenden Unter-Kursen')
+            . new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Kurs', $tblDivisionCourse->getName() . ' ' . new Small(new Muted($tblDivisionCourse->getTypeName())), Panel::PANEL_TYPE_INFO)
+                            , 6),
+                        new LayoutColumn(
+                            new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
+                            , 6)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            self::receiverBlock($this->pipelineLoadDivisionCourseLinkContent($DivisionCourseId, $Filter), 'DivisionCourseLinkContent')
+                        )
+                    ))
+                ))
+            );
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadDivisionCourseLinkContent($DivisionCourseId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DivisionCourseLinkContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDivisionCourseLinkContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Filter' => $Filter
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Filter
+     *
+     * @return string
+     */
+    public function loadDivisionCourseLinkContent($DivisionCourseId, $Filter = null): string
+    {
+        return DivisionCourse::useFrontend()->loadDivisionCourseLinkContent($DivisionCourseId, $Filter);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $DivisionCourseAddId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineAddDivisionCourse($DivisionCourseId, $DivisionCourseAddId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DivisionCourseLinkContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'addDivisionCourse'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'DivisionCourseAddId' => $DivisionCourseAddId,
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $DivisionCourseAddId
+     * @param $Filter
+     *
+     * @return string
+     */
+    public function addDivisionCourse($DivisionCourseId, $DivisionCourseAddId, $Filter)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblDivisionCourseAdd = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseAddId))) {
+            return new Danger('Der Unter-Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->addSubDivisionCourseToDivisionCourse($tblDivisionCourse, $tblDivisionCourseAdd)) {
+            return self::pipelineLoadDivisionCourseLinkContent($DivisionCourseId, $Filter)
+               . self::pipelineLoadDivisionCourseContent($Filter);
+        } else {
+            return new Danger('Der Unter-Kurs konnte nicht hinzugefügt werden.');
+        }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $DivisionCourseRemoveId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineRemoveDivisionCourse($DivisionCourseId, $DivisionCourseRemoveId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DivisionCourseLinkContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'removeDivisionCourse'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'DivisionCourseRemoveId' => $DivisionCourseRemoveId,
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $DivisionCourseRemoveId
+     * @param $Filter
+     *
+     * @return string
+     */
+    public function removeDivisionCourse($DivisionCourseId, $DivisionCourseRemoveId, $Filter)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblDivisionCourseRemove = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseRemoveId))) {
+            return new Danger('Der Unter-Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->removeSubDivisionCourseFromDivisionCourse($tblDivisionCourse, $tblDivisionCourseRemove)) {
+            return self::pipelineLoadDivisionCourseLinkContent($DivisionCourseId, $Filter)
+            . self::pipelineLoadDivisionCourseContent($Filter);
+        } else {
+            return new Danger('Der Unter-Kurs konnte nicht entfernt werden.');
         }
     }
 }
