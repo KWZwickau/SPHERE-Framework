@@ -1045,7 +1045,7 @@ class Creator extends Extension
         } elseif($Select == 'DigitalClassBook') {
             $file = "Common/Style/Resource/Document/Manual/SSWDigitalClassBook.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Digitales_Klassenbuch_05.05.2022.pdf");
+            header("Content-Disposition: attachment; filename=Digitales_Klassenbuch_22.08.2022.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'Billing') {
             $file = "Common/Style/Resource/Document/Manual/AnleitungFakturierung.pdf";
