@@ -543,7 +543,8 @@ class ApiDivisionCourse extends Extension implements IApiInterface
         }
 
         if (DivisionCourse::useService()->addSubDivisionCourseToDivisionCourse($tblDivisionCourse, $tblDivisionCourseAdd)) {
-            return self::pipelineLoadDivisionCourseLinkContent($DivisionCourseId, $Filter)
+            return new Success('Unter-Kurs wurde erfolgreich hinzugefügt.')
+               . self::pipelineLoadDivisionCourseLinkContent($DivisionCourseId, $Filter)
                . self::pipelineLoadDivisionCourseContent($Filter);
         } else {
             return new Danger('Der Unter-Kurs konnte nicht hinzugefügt werden.');
@@ -593,8 +594,9 @@ class ApiDivisionCourse extends Extension implements IApiInterface
         }
 
         if (DivisionCourse::useService()->removeSubDivisionCourseFromDivisionCourse($tblDivisionCourse, $tblDivisionCourseRemove)) {
-            return self::pipelineLoadDivisionCourseLinkContent($DivisionCourseId, $Filter)
-            . self::pipelineLoadDivisionCourseContent($Filter);
+            return new Success('Unter-Kurs wurde erfolgreich entfernt.')
+                . self::pipelineLoadDivisionCourseLinkContent($DivisionCourseId, $Filter)
+                . self::pipelineLoadDivisionCourseContent($Filter);
         } else {
             return new Danger('Der Unter-Kurs konnte nicht entfernt werden.');
         }

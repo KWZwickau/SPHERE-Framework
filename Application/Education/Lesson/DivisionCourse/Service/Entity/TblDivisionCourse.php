@@ -172,30 +172,6 @@ class TblDivisionCourse extends Element
     }
 
     /**
-     * @return string
-     */
-    public function getTypeName(): string
-    {
-        if (($tblType = $this->getType())) {
-            return $tblType->getName();
-        }
-
-        return '';
-    }
-
-    /**
-     * @return string
-     */
-    public function getYearName(): string
-    {
-        if (($tblYear = $this->getServiceTblYear())) {
-            return $tblYear->getDisplayName();
-        }
-
-        return '';
-    }
-
-    /**
      * @return bool
      */
     public function getIsShownInPersonData(): bool
@@ -241,5 +217,42 @@ class TblDivisionCourse extends Element
     public function setIsUcs(bool $IsUcs): void
     {
         $this->IsUcs = $IsUcs;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTypeName(): string
+    {
+        if (($tblType = $this->getType())) {
+            return $tblType->getName();
+        }
+
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getYearName(): string
+    {
+        if (($tblYear = $this->getServiceTblYear())) {
+            return $tblYear->getDisplayName();
+        }
+
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getDivisionTeacherName(): string
+    {
+        switch ($this->getTypeName()) {
+            case 'Klasse': return 'Klassenlehrer';
+            case 'Stammgruppe': return 'Tutoren/Mentoren';
+            case 'Unterrichtsgruppe':
+            default: return 'Gruppenleiter';
+        }
     }
 }

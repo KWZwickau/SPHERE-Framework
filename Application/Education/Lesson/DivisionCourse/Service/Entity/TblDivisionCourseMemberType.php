@@ -20,6 +20,7 @@ class TblDivisionCourseMemberType extends Element
 
     const TYPE_STUDENT = 'STUDENT';
     const TYPE_DIVISION_TEACHER = 'DIVISION_TEACHER';
+    // todo ist ja das gleiche, + migration anpassen
     const TYPE_TUDOR = 'TUDOR';
     const TYPE_CUSTODY = 'CUSTODY';
     const TYPE_REPRESENTATIVE = 'REPRESENTATIVE';

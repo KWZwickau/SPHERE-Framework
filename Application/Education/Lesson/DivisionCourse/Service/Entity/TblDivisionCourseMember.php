@@ -57,19 +57,23 @@ class TblDivisionCourseMember extends Element
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblDivisionCourseMemberType $tblMemberType
      * @param TblPerson $tblPerson
-     * @param string $Description
+     * @param string $description
+     * @param DateTime|null $leaveDate
+     * @param int|null $sortOrder
      *
      * @return TblDivisionCourseMember
      */
-    public static function withParameter(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType, TblPerson $tblPerson, string $Description = '')
-    : TblDivisionCourseMember
+    public static function withParameter(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType, TblPerson $tblPerson,
+        string $description = '', ?DateTime $leaveDate = null, ?int $sortOrder = null): TblDivisionCourseMember
     {
         $instance = new self();
 
         $instance->tblLessonDivisionCourse = $tblDivisionCourse->getId();
         $instance->tblLessonDivisionCourseMemberType = $tblMemberType->getId();
         $instance->serviceTblPerson = $tblPerson->getId();
-        $instance->Description = $Description;
+        $instance->Description = $description;
+        $instance->LeaveDate = $leaveDate;
+        $instance->SortOrder = $sortOrder;
 
         return  $instance;
     }
@@ -196,5 +200,19 @@ class TblDivisionCourseMember extends Element
     public function isInActiveByDateTime(DateTime $dateTime): bool
     {
         return $this->getLeaveDateTime() !== null && $dateTime > $this->getLeaveDateTime();
+    }
+
+    /**
+     * virtuelle Methode für Sortierung der Mitglieder, falls diese nicht über die SortOrder sortiert sind
+     *
+     * @return string
+     */
+    public function getLastFirstName(): string
+    {
+        if (($tblPerson = $this->getServiceTblPerson())) {
+            return $tblPerson->getLastFirstName();
+        }
+
+        return '';
     }
 }

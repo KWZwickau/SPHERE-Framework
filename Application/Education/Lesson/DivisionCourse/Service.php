@@ -2,16 +2,20 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
+use DateTime;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseLink;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Setup;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 class Service extends AbstractService
 {
@@ -250,5 +254,75 @@ class Service extends AbstractService
         // todo Mitglieder und Co löschen
 
         return (new Data($this->getBinding()))->destroyDivisionCourse($tblDivisionCourse);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param string $memberTypeIdentifier
+     * @param bool $withInActive
+     * @param bool $isResultPersonList
+     *
+     * @return TblDivisionCourseMember[]|TblPerson[]|false
+     */
+    public function getDivisionCourseMemberBy(TblDivisionCourse $tblDivisionCourse, string $memberTypeIdentifier, bool $withInActive = false, bool $isResultPersonList = true)
+    {
+        $memberList = false;
+        $tblMemberType = $this->getMemberTypeByIdentifier($memberTypeIdentifier);
+        if ($memberTypeIdentifier == TblDivisionCourseMemberType::TYPE_STUDENT && ($tblDivisionCourseType = $tblDivisionCourse->getType())) {
+            if ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
+                $memberList = (new Data($this->getBinding()))->getDivisionCourseMemberStudentByDivision($tblDivisionCourse);
+            } elseif ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP) {
+                $memberList = (new Data($this->getBinding()))->getDivisionCourseMemberStudentByCoreGroup($tblDivisionCourse);
+            }
+        } elseif ($tblMemberType) {
+            $memberList = (new Data($this->getBinding()))->getDivisionCourseMemberBy($tblDivisionCourse, $tblMemberType);
+        }
+
+        if (!empty ($memberList)) {
+            // inaktive aussortieren
+            if (!$withInActive) {
+                $list = array();
+                $now = new DateTime('now');
+                foreach ($memberList as $tblDivisionCourseMember) {
+                    if ($tblDivisionCourseMember->getLeaveDateTime() !== null && $now > $tblDivisionCourseMember->getLeaveDateTime()) {
+                        // inaktiv
+                    } else {
+                        $list[] = $tblDivisionCourseMember;
+                    }
+                }
+
+                $memberList = $list;
+            }
+
+            // ist Kursliste sortiert
+            $isSorted = false;
+            foreach ($memberList as $tblDivisionCourseMember) {
+                if ($tblDivisionCourseMember->getSortOrder() !== null) {
+                    $isSorted = true;
+                    break;
+                }
+            }
+
+            if ($isSorted) {
+                $memberList = $this->getSorter($memberList)->sortObjectBy('SortOrder');
+            } else {
+                $memberList = $this->getSorter($memberList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
+            }
+
+            if ($isResultPersonList) {
+                $personList = array();
+                foreach ($memberList as $tblDivisionCourseMember) {
+                    if ($tblDivisionCourseMember->getServiceTblPerson()) {
+                        $personList[] = $tblDivisionCourseMember->getServiceTblPerson();
+                    }
+                }
+
+                return empty($personList) ? false : $personList;
+            } else {
+                return empty($memberList) ? false : $memberList;
+            }
+        }
+
+        return false;
     }
 }

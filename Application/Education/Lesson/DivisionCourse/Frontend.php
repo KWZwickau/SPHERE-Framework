@@ -5,7 +5,9 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourse;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -14,12 +16,18 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
-use SPHERE\Common\Frontend\Icon\Repository\Link;
+use SPHERE\Common\Frontend\Icon\Repository\Link as LinkIcon;
 use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
-use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\Pen;
+use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
+use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -30,12 +38,19 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -109,9 +124,11 @@ class Frontend extends Extension implements IFrontendInterface
                     'Type' => $tblDivisionCourse->getTypeName(),
                     'SubCourses' => $subCourseText,
                     'Option' =>
-                        (new Standard('', ApiDivisionCourse::getEndpoint(), new Pencil(), array(), 'Name des Kurses bearbeiten'))
+                        new Standard('', '/Education/Lesson/DivisionCourse/Show',
+                            new EyeOpen(), array('DivisionCourseId' => $tblDivisionCourse->getId()), 'Kurs einsehen')
+                        . (new Standard('', ApiDivisionCourse::getEndpoint(), new Pen(), array(), 'Name des Kurses bearbeiten'))
                             ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenEditDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
-                        . (new Standard('', ApiDivisionCourse::getEndpoint(), new Link(), array(), 'Unter-Kurse verknüpfen'))
+                        . (new Standard('', ApiDivisionCourse::getEndpoint(), new LinkIcon(), array(), 'Unter-Kurse verknüpfen'))
                             ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenLinkDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
                         . (new Standard('', ApiDivisionCourse::getEndpoint(), new Remove(), array(), 'Kurs löschen'))
                             ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenDeleteDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
@@ -232,10 +249,10 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        (new AutoCompleter('Data[Name]', 'Name', 'z.B: 7a', $courseNameList, new Pencil()))->setRequired()
+                        (new AutoCompleter('Data[Name]', 'Name', 'z.B: 7a', $courseNameList, new Pen()))->setRequired()
                     , 6),
                     new FormColumn(
-                        new TextField('Data[Description]', 'zb: für Fortgeschrittene', 'Beschreibung', new Pencil())
+                        new TextField('Data[Description]', 'zb: für Fortgeschrittene', 'Beschreibung', new Pen())
                     , 6),
                 )),
                 new FormRow(array(
@@ -327,5 +344,208 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new Danger('Kurs nicht gefunden!', new Exclamation());
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     *
+     * @return Stage
+     */
+    public function frontendDivisionCourseShow($DivisionCourseId = null): Stage
+    {
+        $stage = new Stage('Kursansicht', '');
+        $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse', new ChevronLeft())));
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
+            $stage->setDescription('Übersicht ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
+            if ($tblDivisionCourse->getDescription()) {
+                $stage->setMessage($tblDivisionCourse->getDescription());
+            }
+
+            $studentList = array();
+            if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+                TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
+            ) {
+                foreach ($tblStudentMemberList as $tblStudentMember) {
+                    // todo verknüpfte Kurse
+                    // todo weiter infos , bildungsgang bei berufsbildende Schule, fachrichtung
+                    // todo Fächer, kurse sekII
+                    if (($tblPerson = $tblStudentMember->getServiceTblPerson())) {
+                        $isInActive = $tblStudentMember->isInActive();
+                        $fullName = $tblPerson->getLastFirstName();
+                        $address = ($tblAddress = $tblPerson->fetchMainAddress())
+                            ? $tblAddress->getGuiString()
+                            : new WarningText('Keine Adresse hinterlegt');
+
+                        // todo bildungsgang aus TblStudentEducation und nicht Schülerakte
+                        $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
+                        $course = $tblCourse ? $tblCourse->getName() : '';
+
+                        $birthday = $tblPerson->getBirthday();
+
+                        if ($isInActive) {
+                            $status = new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Danger(new Disable()), 'Deaktivierung: ' . $tblStudentMember->getLeaveDate());
+//                            if ($tblYear && !Student::useService()->getMainDivisionByPersonAndYear($tblPerson, $tblYear)) {
+//                                $option =  StudentStatus::receiverModal()
+//                                    . (new \SPHERE\Common\Frontend\Link\Repository\Link('aktivieren', '#'))->ajaxPipelineOnClick(StudentStatus::pipelineActivateStudentSave(
+//                                        $tblDivision->getId(),
+//                                        $tblPerson->getId())
+//                                    );
+//                            } else {
+//                                $option = '';
+//                            }
+                        } else {
+                            $status = new SuccessText(new \SPHERE\Common\Frontend\Icon\Repository\Success());
+//                            $option = StudentStatus::receiverModal()
+//                                . (new Link('deaktivieren', '#'))->ajaxPipelineOnClick(StudentStatus::pipelineOpenDeactivateStudentModal(
+//                                    $tblDivision->getId(),
+//                                    $tblPerson->getId())
+//                                );
+                        }
+
+                        $item = array(
+                            'FullName' => $isInActive ? new Strikethrough($fullName) : $fullName,
+                            'Address' => $isInActive ? new Strikethrough($address) : $address,
+                            'Birthday' => $isInActive ? new Strikethrough($birthday) : $birthday,
+                            'Course' => $isInActive ? new Strikethrough($course) : $course,
+                            'Status' => $status,
+//                            'Option' => $option
+                        );
+
+                        $studentList[] = $item;
+                    }
+                }
+            }
+
+            // Gruppenleiter
+            $divisionTeacherList = array();
+            if (($tblDivisionTeacherMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+                TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER, false, false))
+            ) {
+                foreach ($tblDivisionTeacherMemberList as $tblDivisionTeacherMember) {
+                    if (($tblPerson = $tblDivisionTeacherMember->getServiceTblPerson())) {
+                        $divisionTeacherList[] = array(
+                            'FullName' => $tblPerson->getFullName(),
+                            'Description' => $tblDivisionTeacherMember->getDescription()
+                        );
+                    }
+                }
+            }
+
+            // Schülersprecher
+            $representativeList = array();
+            if (($tblRepresentativeMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+                TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false))
+            ) {
+                foreach ($tblRepresentativeMemberList as $tblRepresentativeMember) {
+                    if (($tblPerson = $tblRepresentativeMember->getServiceTblPerson())) {
+                        $representativeList[] = array(
+                            'FullName' => $tblPerson->getFullName(),
+                            'Description' => $tblRepresentativeMember->getDescription()
+                        );
+                    }
+                }
+            }
+
+            // Elternvertreter
+            $custodyList = array();
+            if (($tblCustodyMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+                TblDivisionCourseMemberType::TYPE_CUSTODY, false, false))
+            ) {
+                foreach ($tblCustodyMemberList as $tblCustodyMember) {
+                    if (($tblPerson = $tblCustodyMember->getServiceTblPerson())) {
+                        $custodyList[] = array(
+                            'FullName' => $tblPerson->getFullName(),
+                            'Description' => $tblCustodyMember->getDescription()
+                        );
+                    }
+                }
+            }
+
+            $studentColumnList = array(
+                'FullName' => 'Schüler',
+                'Address'  => 'Adresse',
+                'Birthday' => 'Geburtsdatum',
+                'Course'   => 'Bildungsgang'
+            );
+//            if ($IsSekTwo) {
+//                $studentColumnList['AdvancedCourse1'] = '1. LK';
+//                $studentColumnList['AdvancedCourse2'] = '2. LK';
+//                $studentColumnList['BasicCourses'] = 'Grundkurse';
+//            } else {
+//                $studentColumnList['Subjects'] =  'Fächer';
+//            }
+            $studentColumnList['Status'] = 'Status';
+//            $studentColumnList['Option'] = ' ';
+
+            $memberColumnList = array(
+                'FullName' => 'Name',
+                'Description' => 'Beschreibung'
+            );
+
+            $stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(
+                            empty($studentList)
+                                ? new Warning('Keine Schüler dem Kurs zugewiesen')
+                                : new TableData($studentList, null, $studentColumnList, false)
+                        ))
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler in der ' . $text)),
+                    new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(
+                            empty($divisionTeacherList)
+                                ? new Warning('Keine ' . $tblDivisionCourse->getDivisionTeacherName() . ' dem Kurs zugewiesen')
+                                : new TableData($divisionTeacherList, null, $memberColumnList, false)
+                        ))
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Person() . ' ' . $tblDivisionCourse->getDivisionTeacherName() . ' in der ' . $text
+                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/DivisionTeacher', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId())))),
+                    new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(
+                            empty($representativeList)
+                                ? new Warning('Keine Schülersprecher dem Kurs zugewiesen')
+                                : new TableData($representativeList, null, $memberColumnList, false)
+                        ))
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schülersprecher in der ' . $text)),
+                    new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(
+                            empty($custodyList)
+                                ? new Warning('Keine Elternvertreter dem Kurs zugewiesen')
+                                : new TableData($custodyList, null, $memberColumnList, false)
+                        ))
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternvertreter in der ' . $text)),
+                ))
+            );
+
+
+        } else {
+            $stage->setContent(new Warning('Kurs nicht gefunden', new Exclamation()));
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     *
+     * @return Stage
+     */
+    public function frontendDivisionCourseDivisionTeacher($DivisionCourseId = null): Stage
+    {
+        $stage = new Stage('Klassenlehrer', '');
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(), array('DivisionCourseId' => $tblDivisionCourse->getId()))));
+            $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
+            $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
+            if ($tblDivisionCourse->getDescription()) {
+                $stage->setMessage($tblDivisionCourse->getDescription());
+            }
+        } else {
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse', new ChevronLeft())));
+            $stage->setContent(new Warning('Kurs nicht gefunden', new Exclamation()));
+        }
+
+        return $stage;
     }
 }

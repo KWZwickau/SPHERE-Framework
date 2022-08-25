@@ -4,8 +4,10 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseLink;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Extension\Extension;
@@ -341,5 +343,73 @@ class Data extends MigrateData
     {
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseMemberType',
             array(TblDivisionCourseMemberType::ATTR_IDENTIFIER => strtoupper($Identifier)));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TblDivisionCourseMember[]|false
+     */
+    public function getDivisionCourseMemberStudentByDivision(TblDivisionCourse $tblDivisionCourse)
+    {
+        $tempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+                TblStudentEducation::ATTR_TBL_DIVISION => $tblDivisionCourse->getId()
+            ));
+
+        $resultList = array();
+        if ($tempList
+            && ($tblDivisionCourseMemberType = $this->getMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT))
+        ) {
+            /** @var TblStudentEducation $tblStudentEducation */
+            foreach ($tempList as $tblStudentEducation) {
+                if (($tblPerson = $tblStudentEducation->getServiceTblPerson())) {
+                    $resultList[] = TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPerson, '',
+                        $tblStudentEducation->getLeaveDateTime(), $tblStudentEducation->getDivisionSortOrder());
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TblDivisionCourseMember[]|false
+     */
+    public function getDivisionCourseMemberStudentByCoreGroup(TblDivisionCourse $tblDivisionCourse)
+    {
+        $tempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+            TblStudentEducation::ATTR_TBL_CORE_GROUP => $tblDivisionCourse->getId()
+        ));
+
+        $resultList = array();
+        if ($tempList
+            && ($tblDivisionCourseMemberType = $this->getMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT))
+        ) {
+            /** @var TblStudentEducation $tblStudentEducation */
+            foreach ($tempList as $tblStudentEducation) {
+                if (($tblPerson = $tblStudentEducation->getServiceTblPerson())) {
+                    $resultList[] = TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPerson, '',
+                        $tblStudentEducation->getLeaveDateTime(), $tblStudentEducation->getCoreGroupSortOrder());
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourseMemberType $tblMemberType
+     *
+     * @return TblDivisionCourseMember[]|false
+     */
+    public function getDivisionCourseMemberBy(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseMember', array(
+            TblDivisionCourseMember::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+            TblDivisionCourseMember::ATTR_TBL_MEMBER_TYPE => $tblMemberType->getId()
+        ));
     }
 }
