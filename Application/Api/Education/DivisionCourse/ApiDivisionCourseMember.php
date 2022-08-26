@@ -37,6 +37,10 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
         $Dispatcher->registerMethod('addRepresentative');
         $Dispatcher->registerMethod('removeRepresentative');
 
+        $Dispatcher->registerMethod('loadCustodyContent');
+        $Dispatcher->registerMethod('addCustody');
+        $Dispatcher->registerMethod('removeCustody');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -297,6 +301,129 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
                 . self::pipelineLoadRepresentativeContent($DivisionCourseId);
         } else {
             return new Danger('Schülersprecher konnte nicht entfernt werden.');
+        }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadCustodyContent($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CustodyContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadCustodyContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadCustodyContent($DivisionCourseId): string
+    {
+        return DivisionCourse::useFrontend()->loadCustodyContent($DivisionCourseId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineAddCustody($DivisionCourseId, $PersonId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CustodyContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'addCustody'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function addCustody($DivisionCourseId, $PersonId, $Data = null)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Elternvertreter wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_CUSTODY))) {
+            return new Danger('Typ: Elternvertreter wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->addDivisionCourseMemberToDivisionCourse($tblDivisionCourse, $tblMemberType, $tblPerson, $Data['Description'])) {
+            return new Success('Elternvertreter wurde erfolgreich hinzugefügt.')
+                . self::pipelineLoadCustodyContent($DivisionCourseId);
+        } else {
+            return new Danger('Elternvertreter konnte nicht hinzugefügt werden.');
+        }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $MemberId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineRemoveCustody($DivisionCourseId, $MemberId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CustodyContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'removeCustody'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'MemberId' => $MemberId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $MemberId
+     *
+     * @return string
+     */
+    public function removeCustody($DivisionCourseId, $MemberId)
+    {
+        if (!($tblDivisionCourseMember = DivisionCourse::useService()->getDivisionCourseMemberById($MemberId))) {
+            return new Danger('Elternvertreter wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->removeDivisionCourseMemberFromDivisionCourse($tblDivisionCourseMember)) {
+            return new Success('Elternvertreter wurde erfolgreich entfernt.')
+                . self::pipelineLoadCustodyContent($DivisionCourseId);
+        } else {
+            return new Danger('Elternvertreter konnte nicht entfernt werden.');
         }
     }
 }

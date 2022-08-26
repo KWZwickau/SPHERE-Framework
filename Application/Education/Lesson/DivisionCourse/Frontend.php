@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -546,7 +547,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Warning('Keine Elternvertreter dem Kurs zugewiesen')
                                 : new TableData($custodyList, null, $memberColumnList, false)
                         ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternvertreter in der ' . $text)),
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternvertreter in der ' . $text
+                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Custody', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId())))),
                 ))
             );
 
@@ -763,6 +765,123 @@ class Frontend extends Extension implements IFrontendInterface
                 unset($columns['Description']);
                 $right = (new TableData($availableList, new Title('Verfügbare', $text), $columns, $this->getInteractiveRight()))
                     ->setHash(__NAMESPACE__ . 'RepresentativeAvailable');
+            } else {
+                $right = new Info('Keine weiteren ' . $text . ' verfügbar');
+            }
+
+            return new Layout(new LayoutGroup(array(new LayoutRow(array(
+                new LayoutColumn($left, 6),
+                new LayoutColumn($right, 6)
+            )))));
+        }
+
+        return new Danger('Kurs nicht gefunden!', new Exclamation());
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     *
+     * @return Stage
+     */
+    public function frontendDivisionCourseCustody($DivisionCourseId = null): Stage
+    {
+        $stage = new Stage('Elternvertreter', '');
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(), array('DivisionCourseId' => $tblDivisionCourse->getId()))));
+            $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
+            $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
+            if ($tblDivisionCourse->getDescription()) {
+                $stage->setMessage($tblDivisionCourse->getDescription());
+            }
+
+            $stage->setContent(
+                DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
+                . ApiDivisionCourseMember::receiverBlock($this->loadCustodyContent($DivisionCourseId), 'CustodyContent')
+            );
+        } else {
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse', new ChevronLeft())));
+            $stage->setContent(new Warning('Kurs nicht gefunden', new Exclamation()));
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadCustodyContent($DivisionCourseId): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $text = 'Elternvertreter';
+            $selectedList = array();
+            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+                TblDivisionCourseMemberType::TYPE_CUSTODY, false, false))
+            ) {
+                foreach ($tblMemberList as $tblMember) {
+                    if (($tblPerson = $tblMember->getServiceTblPerson())) {
+                        $selectedList[$tblPerson->getId()] = array(
+                            'Name' => $tblPerson->getLastFirstName(),
+                            'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                            'Description' => $tblMember->getDescription(),
+                            'Option' => (new Standard('', ApiDivisionCourseMember::getEndpoint(), new MinusSign(), array(),  $text . ' entfernen'))
+                                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineRemoveCustody($tblDivisionCourse->getId(), $tblMember->getId()))
+                        );
+                    }
+                }
+            }
+
+            $availableList = array();
+            if (($tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))
+                && ($tblPersonList =DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT))
+            ) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))) {
+                        foreach ($tblRelationshipList as $tblToPerson) {
+                            if (($tblPersonCustody = $tblToPerson->getServiceTblPersonFrom())) {
+                                if (!isset($selectedList[$tblPersonCustody->getId()])) {
+                                    $availableList[$tblPersonCustody->getId()] = array(
+                                        'Name' => $tblPersonCustody->getLastFirstName(),
+                                        'Address' => ($tblAddress = $tblPersonCustody->fetchMainAddress())
+                                            ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                                        'Option' => (new Form(
+                                            new FormGroup(
+                                                new FormRow(array(
+                                                    new FormColumn(
+                                                        new TextField('Data[Description]', 'z.B.: Stellvertreter')
+                                                        , 9),
+                                                    new FormColumn(
+                                                        (new Standard('', ApiDivisionCourseMember::getEndpoint(), new PlusSign(), array(), 'Hinzufügen'))
+                                                            ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineAddCustody($DivisionCourseId, $tblPersonCustody->getId()))
+                                                        , 3)
+                                                ))
+                                            )
+                                        ))->__toString()
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $columns = array(
+                'Name' => 'Name',
+                'Address' => 'Adresse',
+                'Description' => 'Beschreibung',
+                'Option' => ''
+            );
+            if ($selectedList) {
+                $left = (new TableData($selectedList, new Title('Ausgewählte', $text), $columns, $this->getInteractiveLeft()))
+                    ->setHash(__NAMESPACE__ . 'CustodySelected');
+            } else {
+                $left = new Info('Keine ' . $text . ' ausgewählt');
+            }
+            if ($availableList) {
+                unset($columns['Description']);
+                $right = (new TableData($availableList, new Title('Verfügbare', $text), $columns, $this->getInteractiveRight()))
+                    ->setHash(__NAMESPACE__ . 'CustodyAvailable');
             } else {
                 $right = new Info('Keine weiteren ' . $text . ' verfügbar');
             }
