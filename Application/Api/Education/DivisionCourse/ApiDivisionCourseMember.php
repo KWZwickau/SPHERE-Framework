@@ -33,6 +33,10 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
         $Dispatcher->registerMethod('addDivisionTeacher');
         $Dispatcher->registerMethod('removeDivisionTeacher');
 
+        $Dispatcher->registerMethod('loadRepresentativeContent');
+        $Dispatcher->registerMethod('addRepresentative');
+        $Dispatcher->registerMethod('removeRepresentative');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -170,6 +174,129 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
                 . self::pipelineLoadDivisionTeacherContent($DivisionCourseId);
         } else {
             return new Danger($tblDivisionCourse->getDivisionTeacherName(false) . ' konnte nicht entfernt werden.');
+        }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadRepresentativeContent($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'RepresentativeContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadRepresentativeContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadRepresentativeContent($DivisionCourseId): string
+    {
+        return DivisionCourse::useFrontend()->loadRepresentativeContent($DivisionCourseId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineAddRepresentative($DivisionCourseId, $PersonId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'RepresentativeContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'addRepresentative'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function addRepresentative($DivisionCourseId, $PersonId, $Data = null)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Schülersprecher wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))) {
+            return new Danger('Typ: Schülersprecher wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->addDivisionCourseMemberToDivisionCourse($tblDivisionCourse, $tblMemberType, $tblPerson, $Data['Description'])) {
+            return new Success('Schülersprecher wurde erfolgreich hinzugefügt.')
+                . self::pipelineLoadRepresentativeContent($DivisionCourseId);
+        } else {
+            return new Danger('Schülersprecher konnte nicht hinzugefügt werden.');
+        }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $MemberId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineRemoveRepresentative($DivisionCourseId, $MemberId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'RepresentativeContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'removeRepresentative'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'MemberId' => $MemberId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $MemberId
+     *
+     * @return string
+     */
+    public function removeRepresentative($DivisionCourseId, $MemberId)
+    {
+        if (!($tblDivisionCourseMember = DivisionCourse::useService()->getDivisionCourseMemberById($MemberId))) {
+            return new Danger('Schülersprecher wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->removeDivisionCourseMemberFromDivisionCourse($tblDivisionCourseMember)) {
+            return new Success('Schülersprecher wurde erfolgreich entfernt.')
+                . self::pipelineLoadRepresentativeContent($DivisionCourseId);
+        } else {
+            return new Danger('Schülersprecher konnte nicht entfernt werden.');
         }
     }
 }

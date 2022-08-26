@@ -59,6 +59,32 @@ use SPHERE\System\Extension\Extension;
 
 class Frontend extends Extension implements IFrontendInterface
 {
+    const PAGE_LENGTH = 15;
+
+    private function getInteractiveLeft(): array
+    {
+        return array(
+            'columnDefs' => array(
+                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                array('orderable' => false, 'width' => '1%', 'targets' => -1),
+            ),
+            'pageLength' => self::PAGE_LENGTH,
+            'responsive' => false
+        );
+    }
+
+    private function getInteractiveRight(): array
+    {
+        return array(
+            'columnDefs' => array(
+                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                array('orderable' => false, 'width' => '50%', 'targets' => -1),
+            ),
+            'pageLength' => self::PAGE_LENGTH,
+            'responsive' => false
+        );
+    }
+
     public function frontendDivisionCourse(): Stage
     {
         $stage = new Stage('Kurs', 'Übersicht');
@@ -325,6 +351,7 @@ class Frontend extends Extension implements IFrontendInterface
                     array('type' => 'natural', 'targets' => 0),
                     array('orderable' => false, 'width' => '1%', 'targets' => -1),
                 ),
+                'pageLength' => self::PAGE_LENGTH,
                 'responsive' => false
             );
             if ($selectedList) {
@@ -501,7 +528,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(new LayoutColumn(
                             empty($divisionTeacherList)
                                 ? new Warning('Keine ' . $tblDivisionCourse->getDivisionTeacherName() . ' dem Kurs zugewiesen')
-                                : new TableData($divisionTeacherList, null, $memberColumnList, false)
+                                : new TableData($divisionTeacherList, null, $memberColumnList, false) // todo interactive
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Person() . ' ' . $tblDivisionCourse->getDivisionTeacherName() . ' in der ' . $text
                         . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/DivisionTeacher', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId())))),
@@ -511,7 +538,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Warning('Keine Schülersprecher dem Kurs zugewiesen')
                                 : new TableData($representativeList, null, $memberColumnList, false)
                         ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schülersprecher in der ' . $text)),
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schülersprecher in der ' . $text
+                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Representative', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId())))),
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(
                             empty($custodyList)
@@ -617,29 +645,124 @@ class Frontend extends Extension implements IFrontendInterface
                 'Description' => 'Beschreibung',
                 'Option' => ''
             );
-            $interactive = array(
-                'columnDefs' => array(
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                    array('orderable' => false, 'width' => '1%', 'targets' => -1),
-                ),
-                'responsive' => false
-            );
             if ($selectedList) {
-                $left = (new TableData($selectedList, new Title('Ausgewählte', $text), $columns, $interactive))
+                $left = (new TableData($selectedList, new Title('Ausgewählte', $text), $columns, $this->getInteractiveLeft()))
                     ->setHash(__NAMESPACE__ . 'DivisionTeacherSelected');
             } else {
                 $left = new Info('Keine ' . $text . ' ausgewählt');
             }
             if ($availableList) {
                 unset($columns['Description']);
-                $right = (new TableData($availableList, new Title('Verfügbare', $text), $columns, array(
-                    'columnDefs' => array(
-                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                        array('orderable' => false, 'width' => '50%', 'targets' => -1),
-                    ),
-                    'responsive' => false
-                )))
+                $right = (new TableData($availableList, new Title('Verfügbare', $text), $columns, $this->getInteractiveRight()))
                     ->setHash(__NAMESPACE__ . 'DivisionTeacherAvailable');
+            } else {
+                $right = new Info('Keine weiteren ' . $text . ' verfügbar');
+            }
+
+            return new Layout(new LayoutGroup(array(new LayoutRow(array(
+                new LayoutColumn($left, 6),
+                new LayoutColumn($right, 6)
+            )))));
+        }
+
+        return new Danger('Kurs nicht gefunden!', new Exclamation());
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     *
+     * @return Stage
+     */
+    public function frontendDivisionCourseRepresentative($DivisionCourseId = null): Stage
+    {
+        $stage = new Stage('Schülersprecher', '');
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(), array('DivisionCourseId' => $tblDivisionCourse->getId()))));
+            $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
+            $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
+            if ($tblDivisionCourse->getDescription()) {
+                $stage->setMessage($tblDivisionCourse->getDescription());
+            }
+
+            $stage->setContent(
+                DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
+                . ApiDivisionCourseMember::receiverBlock($this->loadRepresentativeContent($DivisionCourseId), 'RepresentativeContent')
+            );
+        } else {
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse', new ChevronLeft())));
+            $stage->setContent(new Warning('Kurs nicht gefunden', new Exclamation()));
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadRepresentativeContent($DivisionCourseId): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $text = 'Schülersprecher';
+            $selectedList = array();
+            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+                TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false))
+            ) {
+                foreach ($tblMemberList as $tblMember) {
+                    if (($tblPerson = $tblMember->getServiceTblPerson())) {
+                        $selectedList[$tblPerson->getId()] = array(
+                            'Name' => $tblPerson->getLastFirstName(),
+                            'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                            'Description' => $tblMember->getDescription(),
+                            'Option' => (new Standard('', ApiDivisionCourseMember::getEndpoint(), new MinusSign(), array(),  $text . ' entfernen'))
+                                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineRemoveRepresentative($tblDivisionCourse->getId(), $tblMember->getId()))
+                        );
+                    }
+                }
+            }
+
+            $availableList = array();
+            if (($tblPersonList =DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT))) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (!isset($selectedList[$tblPerson->getId()])) {
+                        $availableList[$tblPerson->getId()] = array(
+                            'Name' => $tblPerson->getLastFirstName(),
+                            'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                            'Option' => (new Form(
+                                new FormGroup(
+                                    new FormRow(array(
+                                        new FormColumn(
+                                            new TextField('Data[Description]', 'z.B.: Stellvertreter')
+                                            , 9),
+                                        new FormColumn(
+                                            (new Standard('', ApiDivisionCourseMember::getEndpoint(), new PlusSign(), array(), 'Hinzufügen'))
+                                                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineAddRepresentative($DivisionCourseId, $tblPerson->getId()))
+                                            , 3)
+                                    ))
+                                )
+                            ))->__toString()
+                        );
+                    }
+                }
+            }
+
+            $columns = array(
+                'Name' => 'Name',
+                'Address' => 'Adresse',
+                'Description' => 'Beschreibung',
+                'Option' => ''
+            );
+            if ($selectedList) {
+                $left = (new TableData($selectedList, new Title('Ausgewählte', $text), $columns, $this->getInteractiveLeft()))
+                    ->setHash(__NAMESPACE__ . 'RepresentativeSelected');
+            } else {
+                $left = new Info('Keine ' . $text . ' ausgewählt');
+            }
+            if ($availableList) {
+                unset($columns['Description']);
+                $right = (new TableData($availableList, new Title('Verfügbare', $text), $columns, $this->getInteractiveRight()))
+                    ->setHash(__NAMESPACE__ . 'RepresentativeAvailable');
             } else {
                 $right = new Info('Keine weiteren ' . $text . ' verfügbar');
             }
