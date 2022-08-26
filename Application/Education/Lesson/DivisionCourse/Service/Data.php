@@ -23,7 +23,6 @@ class Data extends MigrateData
 
         $this->createDivisionCourseMemberType('Schüler', TblDivisionCourseMemberType::TYPE_STUDENT);
         $this->createDivisionCourseMemberType('Klassenlehrer', TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
-        $this->createDivisionCourseMemberType('Tudor/Mentor', TblDivisionCourseMemberType::TYPE_TUDOR);
         $this->createDivisionCourseMemberType('Elternvertreter', TblDivisionCourseMemberType::TYPE_CUSTODY);
         $this->createDivisionCourseMemberType('Klassensprecher', TblDivisionCourseMemberType::TYPE_REPRESENTATIVE);
 

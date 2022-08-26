@@ -55,7 +55,7 @@ abstract class MigrateData extends AbstractData
             && ($tblYearList = Term::useService()->getYearByNow())
             && ($tblGroupStudent = Group::useService()->getGroupByMetaTable('STUDENT'))
             && ($tblGroupTudor = Group::useService()->getGroupByMetaTable('TUDOR'))
-            && ($tblTypeMemberTudor = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_TUDOR))
+            && ($tblTypeMemberTudor = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
         ) {
             // todo prüfen ob es das richtige Schuljahr ist, eventuell über Schüler
             /** @var TblYear $tblYear */
