@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\Education\DivisionCourse;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -30,8 +31,7 @@ use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
 class ApiDivisionCourse extends Extension implements IApiInterface
@@ -344,6 +344,23 @@ class ApiDivisionCourse extends Extension implements IApiInterface
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
+        $countStudents = 0;
+        $countDivisionTeachers = 0;
+        $countCustodyList = 0;
+        $countRepresentatives = 0;
+        if (($students = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT))) {
+            $countStudents = count($students);
+        }
+        if (($divisionTeachers = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))) {
+            $countDivisionTeachers = count($divisionTeachers);
+        }
+        if (($custodyList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY))) {
+            $countCustodyList = count($custodyList);
+        }
+        if (($representatives = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))) {
+            $countRepresentatives = count($representatives);
+        }
+
         return new Title(new Remove() . ' Kurs löschen')
             . new Layout(
                 new LayoutGroup(
@@ -352,10 +369,14 @@ class ApiDivisionCourse extends Extension implements IApiInterface
                             new Panel(
                                 new Question() . ' Diesen Kurs wirklich löschen?',
                                 array(
-                                    $tblDivisionCourse->getYearName(),
-                                    $tblDivisionCourse->getTypeName(),
-                                    $tblDivisionCourse->getName(),
-                                    // todo Anzahl der Schüler und Co
+                                    'Schuljahr: ' . new Bold($tblDivisionCourse->getYearName()),
+                                    'Typ: ' . $tblDivisionCourse->getTypeName(),
+                                    'Name: ' . new Bold($tblDivisionCourse->getName()),
+                                    'Schüler: ' . ($countStudents ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countStudents) : '0'),
+                                    $tblDivisionCourse->getDivisionTeacherName()  .  ': '
+                                        . ($countDivisionTeachers ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countDivisionTeachers) : '0'),
+                                    'Elternvertreter: ' . ($countCustodyList ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countCustodyList) : '0'),
+                                    'Schülersprecher: ' . ($countRepresentatives ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countRepresentatives) : '0'),
                                 ),
                                 Panel::PANEL_TYPE_DANGER
                             )

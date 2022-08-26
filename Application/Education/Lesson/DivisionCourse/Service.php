@@ -258,7 +258,15 @@ class Service extends AbstractService
      */
     public function destroyDivisionCourse(TblDivisionCourse $tblDivisionCourse): bool
     {
-        // todo Mitglieder und Co löschen
+        // Verknüpfungen mit anderen Kursen löschen
+        if (($tblSubDivisionCourseList = $this->getSubDivisionCourseListByDivisionCourse($tblDivisionCourse))) {
+            foreach ($tblSubDivisionCourseList as $tblSubDivisionCourse) {
+                $this->removeSubDivisionCourseFromDivisionCourse($tblDivisionCourse, $tblSubDivisionCourse);
+            }
+        }
+
+        // alle Mitglieder löschen
+        (new Data($this->getBinding()))->removeDivisionCourseMemberAllFromDivisionCourse($tblDivisionCourse);
 
         return (new Data($this->getBinding()))->destroyDivisionCourse($tblDivisionCourse);
     }

@@ -471,4 +471,30 @@ class Data extends MigrateData
 
         return false;
     }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return bool
+     */
+    public function removeDivisionCourseMemberAllFromDivisionCourse(TblDivisionCourse $tblDivisionCourse): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $EntityList = $Manager->getEntity('TblDivisionCourseMember')
+            ->findBy(array(
+                TblDivisionCourseMember::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+            ));
+        if ($EntityList) {
+            foreach ($EntityList as $Entity) {
+                $Manager->bulkKillEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+
+            return true;
+        }
+
+        return false;
+    }
 }
