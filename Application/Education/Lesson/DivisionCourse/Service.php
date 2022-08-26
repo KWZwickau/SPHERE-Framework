@@ -14,6 +14,13 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
@@ -145,9 +152,9 @@ class Service extends AbstractService
      *
      * @return false|TblDivisionCourseMemberType
      */
-    public function getMemberTypeById($Id)
+    public function getDivisionCourseMemberTypeById($Id)
     {
-        return (new Data($this->getBinding()))->getMemberTypeById($Id);
+        return (new Data($this->getBinding()))->getDivisionCourseMemberTypeById($Id);
     }
 
     /**
@@ -155,9 +162,9 @@ class Service extends AbstractService
      *
      * @return false|TblDivisionCourseMemberType
      */
-    public function getMemberTypeByIdentifier($Identifier)
+    public function getDivisionCourseMemberTypeByIdentifier($Identifier)
     {
-        return (new Data($this->getBinding()))->getMemberTypeByIdentifier($Identifier);
+        return (new Data($this->getBinding()))->getDivisionCourseMemberTypeByIdentifier($Identifier);
     }
 
     /**
@@ -257,6 +264,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblDivisionCourseMember
+     */
+    public function getDivisionCourseMemberById($Id)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseMemberById($Id);
+    }
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param string $memberTypeIdentifier
      * @param bool $withInActive
@@ -267,7 +283,7 @@ class Service extends AbstractService
     public function getDivisionCourseMemberBy(TblDivisionCourse $tblDivisionCourse, string $memberTypeIdentifier, bool $withInActive = false, bool $isResultPersonList = true)
     {
         $memberList = false;
-        $tblMemberType = $this->getMemberTypeByIdentifier($memberTypeIdentifier);
+        $tblMemberType = $this->getDivisionCourseMemberTypeByIdentifier($memberTypeIdentifier);
         if ($memberTypeIdentifier == TblDivisionCourseMemberType::TYPE_STUDENT && ($tblDivisionCourseType = $tblDivisionCourse->getType())) {
             if ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
                 $memberList = (new Data($this->getBinding()))->getDivisionCourseMemberStudentByDivision($tblDivisionCourse);
@@ -324,5 +340,48 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return string
+     */
+    public function getDivisionCourseHeader(TblDivisionCourse $tblDivisionCourse): string
+    {
+        return new Layout(new LayoutGroup(array(
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new Panel('Kurs', $tblDivisionCourse->getName() . ' ' . new Small(new Muted($tblDivisionCourse->getTypeName())), Panel::PANEL_TYPE_INFO)
+                    , 6),
+                new LayoutColumn(
+                    new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
+                    , 6)
+            ))
+        )));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourseMemberType $tblMemberType
+     * @param TblPerson $tblPerson
+     * @param string $description
+     *
+     * @return TblDivisionCourseMember
+     */
+    public function addDivisionCourseMemberToDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType,
+        TblPerson $tblPerson, string $description): TblDivisionCourseMember
+    {
+        return (new Data($this->getBinding()))->addDivisionCourseMemberToDivisionCourse($tblDivisionCourse, $tblMemberType, $tblPerson, $description);
+    }
+
+    /**
+     * @param TblDivisionCourseMember $tblDivisionCourseMember
+     *
+     * @return bool
+     */
+    public function removeDivisionCourseMemberFromDivisionCourse(TblDivisionCourseMember $tblDivisionCourseMember): bool
+    {
+        return (new Data($this->getBinding()))->removeDivisionCourseMemberFromDivisionCourse($tblDivisionCourseMember);
     }
 }

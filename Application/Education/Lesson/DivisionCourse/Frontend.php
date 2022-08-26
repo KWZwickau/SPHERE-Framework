@@ -3,11 +3,14 @@
 namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourse;
+use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseMember;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -485,7 +488,8 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
             $stage->setContent(
-                new Layout(array(
+                DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
+                . new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(
                             empty($studentList)
@@ -541,11 +545,111 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblDivisionCourse->getDescription()) {
                 $stage->setMessage($tblDivisionCourse->getDescription());
             }
+
+            $stage->setContent(
+                DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
+                . ApiDivisionCourseMember::receiverBlock($this->loadDivisionTeacherContent($DivisionCourseId), 'DivisionTeacherContent')
+            );
         } else {
             $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse', new ChevronLeft())));
             $stage->setContent(new Warning('Kurs nicht gefunden', new Exclamation()));
         }
 
         return $stage;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadDivisionTeacherContent($DivisionCourseId): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $text = $tblDivisionCourse->getDivisionTeacherName();
+            $selectedList = array();
+            if (($tblMemberList =  DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+                TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER, false, false))
+            ) {
+                foreach ($tblMemberList as $tblMember) {
+                    if (($tblPerson = $tblMember->getServiceTblPerson())) {
+                        $selectedList[$tblPerson->getId()] = array(
+                            'Name' => $tblPerson->getLastFirstName(),
+                            'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                            'Description' => $tblMember->getDescription(),
+                            'Option' => (new Standard('', ApiDivisionCourseMember::getEndpoint(), new MinusSign(), array(),  $text . ' entfernen'))
+                                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineRemoveDivisionTeacher($tblDivisionCourse->getId(), $tblMember->getId()))
+                        );
+                    }
+                }
+            }
+
+            $availableList = array();
+            if (($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
+                && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+            ) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (!isset($selectedList[$tblPerson->getId()])) {
+                        $availableList[$tblPerson->getId()] = array(
+                            'Name' => $tblPerson->getLastFirstName(),
+                            'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                            'Option' => (new Form(
+                                new FormGroup(
+                                    new FormRow(array(
+                                        new FormColumn(
+                                            new TextField('Data[Description]', 'z.B.: Stellvertreter')
+                                            , 9),
+                                        new FormColumn(
+                                            (new Standard('', ApiDivisionCourseMember::getEndpoint(), new PlusSign(), array(), 'Hinzufügen'))
+                                                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineAddDivisionTeacher($DivisionCourseId, $tblPerson->getId()))
+                                            , 3)
+                                    ))
+                                )
+                            ))->__toString()
+                        );
+                    }
+                }
+            }
+
+            $columns = array(
+                'Name' => 'Name',
+                'Address' => 'Adresse',
+                'Description' => 'Beschreibung',
+                'Option' => ''
+            );
+            $interactive = array(
+                'columnDefs' => array(
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                    array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                ),
+                'responsive' => false
+            );
+            if ($selectedList) {
+                $left = (new TableData($selectedList, new Title('Ausgewählte', $text), $columns, $interactive))
+                    ->setHash(__NAMESPACE__ . 'DivisionTeacherSelected');
+            } else {
+                $left = new Info('Keine ' . $text . ' ausgewählt');
+            }
+            if ($availableList) {
+                unset($columns['Description']);
+                $right = (new TableData($availableList, new Title('Verfügbare', $text), $columns, array(
+                    'columnDefs' => array(
+                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                        array('orderable' => false, 'width' => '50%', 'targets' => -1),
+                    ),
+                    'responsive' => false
+                )))
+                    ->setHash(__NAMESPACE__ . 'DivisionTeacherAvailable');
+            } else {
+                $right = new Info('Keine weiteren ' . $text . ' verfügbar');
+            }
+
+            return new Layout(new LayoutGroup(array(new LayoutRow(array(
+                new LayoutColumn($left, 6),
+                new LayoutColumn($right, 6)
+            )))));
+        }
+
+        return new Danger('Kurs nicht gefunden!', new Exclamation());
     }
 }

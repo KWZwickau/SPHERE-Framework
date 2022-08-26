@@ -99,7 +99,7 @@ class TblDivisionCourseMember extends Element
      */
     public function getTblMemberType()
     {
-        return DivisionCourse::useService()->getMemberTypeById($this->tblLessonDivisionCourseMemberType);
+        return DivisionCourse::useService()->getDivisionCourseMemberTypeById($this->tblLessonDivisionCourseMemberType);
     }
 
     /**

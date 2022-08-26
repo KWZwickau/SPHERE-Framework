@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Extension\Extension;
 
@@ -329,7 +330,7 @@ class Data extends MigrateData
      *
      * @return false|TblDivisionCourseMemberType
      */
-    public function getMemberTypeById($Id)
+    public function getDivisionCourseMemberTypeById($Id)
     {
         return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseMemberType', $Id);
     }
@@ -339,7 +340,7 @@ class Data extends MigrateData
      *
      * @return false|TblDivisionCourseMemberType
      */
-    public function getMemberTypeByIdentifier(string $Identifier)
+    public function getDivisionCourseMemberTypeByIdentifier(string $Identifier)
     {
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseMemberType',
             array(TblDivisionCourseMemberType::ATTR_IDENTIFIER => strtoupper($Identifier)));
@@ -358,7 +359,7 @@ class Data extends MigrateData
 
         $resultList = array();
         if ($tempList
-            && ($tblDivisionCourseMemberType = $this->getMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT))
+            && ($tblDivisionCourseMemberType = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT))
         ) {
             /** @var TblStudentEducation $tblStudentEducation */
             foreach ($tempList as $tblStudentEducation) {
@@ -385,7 +386,7 @@ class Data extends MigrateData
 
         $resultList = array();
         if ($tempList
-            && ($tblDivisionCourseMemberType = $this->getMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT))
+            && ($tblDivisionCourseMemberType = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT))
         ) {
             /** @var TblStudentEducation $tblStudentEducation */
             foreach ($tempList as $tblStudentEducation) {
@@ -400,6 +401,16 @@ class Data extends MigrateData
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblDivisionCourseMember
+     */
+    public function getDivisionCourseMemberById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseMember', $Id);
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblDivisionCourseMemberType $tblMemberType
      *
@@ -411,5 +422,54 @@ class Data extends MigrateData
             TblDivisionCourseMember::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
             TblDivisionCourseMember::ATTR_TBL_MEMBER_TYPE => $tblMemberType->getId()
         ));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourseMemberType $tblMemberType
+     * @param TblPerson $tblPerson
+     * @param string $description
+     *
+     * @return TblDivisionCourseMember
+     */
+    public function addDivisionCourseMemberToDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType,
+        TblPerson $tblPerson, string $description): TblDivisionCourseMember
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivisionCourseMember')
+            ->findOneBy(array(
+                TblDivisionCourseMember::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+                TblDivisionCourseMember::ATTR_TBL_MEMBER_TYPE => $tblMemberType->getId(),
+                TblDivisionCourseMember::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+
+        if (null === $Entity) {
+            $Entity = TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblMemberType, $tblPerson, $description);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblDivisionCourseMember $tblDivisionCourseMember
+     *
+     * @return bool
+     */
+    public function removeDivisionCourseMemberFromDivisionCourse(TblDivisionCourseMember $tblDivisionCourseMember): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblDivisionCourse $Entity */
+        $Entity = $Manager->getEntityById('TblDivisionCourseMember', $tblDivisionCourseMember->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

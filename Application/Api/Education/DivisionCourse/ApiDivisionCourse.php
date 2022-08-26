@@ -448,23 +448,8 @@ class ApiDivisionCourse extends Extension implements IApiInterface
         }
 
         return new Title(new Link() . ' Kurs besteht aus den folgenden Unter-Kursen')
-            . new Layout(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Kurs', $tblDivisionCourse->getName() . ' ' . new Small(new Muted($tblDivisionCourse->getTypeName())), Panel::PANEL_TYPE_INFO)
-                            , 6),
-                        new LayoutColumn(
-                            new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
-                            , 6)
-                    )),
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            self::receiverBlock($this->pipelineLoadDivisionCourseLinkContent($DivisionCourseId, $Filter), 'DivisionCourseLinkContent')
-                        )
-                    ))
-                ))
-            );
+            . DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
+            . self::receiverBlock($this->pipelineLoadDivisionCourseLinkContent($DivisionCourseId, $Filter), 'DivisionCourseLinkContent');
     }
 
     /**

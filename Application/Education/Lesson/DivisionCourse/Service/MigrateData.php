@@ -55,7 +55,7 @@ abstract class MigrateData extends AbstractData
             && ($tblYearList = Term::useService()->getYearByNow())
             && ($tblGroupStudent = Group::useService()->getGroupByMetaTable('STUDENT'))
             && ($tblGroupTudor = Group::useService()->getGroupByMetaTable('TUDOR'))
-            && ($tblTypeMemberTudor = $this->getMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_TUDOR))
+            && ($tblTypeMemberTudor = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_TUDOR))
         ) {
             // todo prüfen ob es das richtige Schuljahr ist, eventuell über Schüler
             /** @var TblYear $tblYear */
@@ -148,7 +148,7 @@ abstract class MigrateData extends AbstractData
                      * Klassenlehrer der Klasse - TblDivisionTeacher
                      */
                     if (($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))
-                        && ($tblTypeMemberTeacher = $this->getMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+                        && ($tblTypeMemberTeacher = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
                     ) {
                         foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
                             if ($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson()) {
@@ -162,7 +162,7 @@ abstract class MigrateData extends AbstractData
                      * Eltern Vertreter der Klasse - TblDivisionCustody
                      */
                     if (($tblDivisionCustodyList = Division::useService()->getDivisionCustodyAllByDivision($tblDivision))
-                        && ($tblTypeMemberCustody = $this->getMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_CUSTODY))
+                        && ($tblTypeMemberCustody = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_CUSTODY))
                     ) {
                         foreach ($tblDivisionCustodyList as $tblDivisionCustody) {
                             if ($tblPersonCustody = $tblDivisionCustody->getServiceTblPerson()) {
@@ -176,7 +176,7 @@ abstract class MigrateData extends AbstractData
                      * Klassensprecher der Klasse - TblDivisionRepresentative
                      */
                     if (($tblDivisionRepresentativeList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))
-                        && ($tblTypeMemberRepresentative = $this->getMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))
+                        && ($tblTypeMemberRepresentative = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))
                     ) {
                         foreach ($tblDivisionRepresentativeList as $tblDivisionRepresentative) {
                             if ($tblPersonRepresentative = $tblDivisionRepresentative->getServiceTblPerson()) {

@@ -244,13 +244,15 @@ class TblDivisionCourse extends Element
     }
 
     /**
+     * @param bool $isPlural
+     *
      * @return string
      */
-    public function getDivisionTeacherName(): string
+    public function getDivisionTeacherName(bool $isPlural = true): string
     {
         switch ($this->getTypeName()) {
             case 'Klasse': return 'Klassenlehrer';
-            case 'Stammgruppe': return 'Tutoren/Mentoren';
+            case 'Stammgruppe': return $isPlural ? 'Tutoren/Mentoren' : 'Tudor/Mentor';
             case 'Unterrichtsgruppe':
             default: return 'Gruppenleiter';
         }
