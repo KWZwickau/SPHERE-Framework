@@ -207,6 +207,50 @@ class Data extends MigrateData
     }
 
     /**
+     * @param string $name
+     * @param array|null $tblYearList
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getDivisionCourseListByLikeName(string $name, ?array $tblYearList = null)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        if ($tblYearList) {
+            $count = 2;
+            $or = $queryBuilder->expr()->orX();
+            foreach ($tblYearList as $tblYear) {
+                $or->add($queryBuilder->expr()->eq('t.serviceTblYear', '?' . $count));
+                $queryBuilder->setParameter($count, $tblYear->getId());
+                $count++;
+            }
+            $query = $queryBuilder->select('t')
+                ->from(__NAMESPACE__ . '\Entity\TblDivisionCourse', 't')
+                ->where(
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->like('t.Name', '?1'),
+                        $or
+                    )
+                )
+                ->setParameter(1, '%' . $name . '%')
+                ->getQuery();
+        } else {
+            $query = $queryBuilder->select('t')
+                ->from(__NAMESPACE__ . '\Entity\TblDivisionCourse', 't')
+                ->where(
+                    $queryBuilder->expr()->like('t.Name', '?1')
+                )
+                ->setParameter(1, '%' . $name . '%')
+                ->getQuery();
+        }
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblDivisionCourse $tblSubDivisionCourse
      *

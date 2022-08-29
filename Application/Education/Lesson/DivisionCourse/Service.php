@@ -80,6 +80,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $name
+     * @param array|null $tblYearList
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getDivisionCourseListByLikeName(string $name, ?array $tblYearList = null)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseListByLikeName($name, $tblYearList);
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblDivisionCourse $tblSubDivisionCourse
      *

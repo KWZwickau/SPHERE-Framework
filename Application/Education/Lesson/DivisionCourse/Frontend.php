@@ -87,6 +87,9 @@ class Frontend extends Extension implements IFrontendInterface
         );
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendDivisionCourse(): Stage
     {
         $stage = new Stage('Kurs', 'Übersicht');
@@ -114,11 +117,37 @@ class Frontend extends Extension implements IFrontendInterface
         $typeFilter = null;
         if (isset($Filter['Type']) && ($tblCourseTypeFilter = DivisionCourse::useService()->getDivisionCourseTypeById($Filter['Type']))) {
             $typeFilter = $tblCourseTypeFilter->getIdentifier();
+        } else {
+            $tblCourseTypeFilter = false;
         }
 
         $tblDivisionCourseList = array();
+        // Name like
+        if (isset($Filter['CourseName']) && $Filter['CourseName'] != '') {
+            if (isset($Filter['Year']) && $Filter['Year'] == -1) {
+                $tblYearList = Term::useService()->getYearByNow();
+                $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($Filter['CourseName'], $tblYearList ?: null);
+            } elseif (isset($Filter['Year']) && ($tblYear = Term::useService()->getYearById($Filter['Year']))) {
+                $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($Filter['CourseName'], array($tblYear));
+            } else {
+                $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($Filter['CourseName']);
+            }
+
+            // Typ filtern
+            if ($tblCourseTypeFilter && $tblDivisionCourseList) {
+                $tempList = array();
+                foreach ($tblDivisionCourseList as $item) {
+                    if ($item->getType()->getId() != $tblCourseTypeFilter->getId()) {
+                        continue;
+                    }
+                    $tempList[] = $item;
+                }
+                $tblDivisionCourseList = $tempList;
+            }
+
+        }
         // aktuelle Übersicht
-        if (isset($Filter['Year']) && $Filter['Year'] == -1) {
+        elseif (isset($Filter['Year']) && $Filter['Year'] == -1) {
             if (($tblYearList = Term::useService()->getYearByNow())) {
                 foreach ($tblYearList as $tblYearItem) {
                     if (($tblDivisionCourseYearList = DivisionCourse::useService()->getDivisionCourseListBy($tblYearItem, $typeFilter))) {
@@ -261,17 +290,21 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(
                     (new SelectBox('Filter[Year]', 'Schuljahr', array('{{ Name }} {{ Description }}' => $tblYearAll)))
                         ->ajaxPipelineOnChange(ApiDivisionCourse::pipelineLoadDivisionCourseContent())
-                    , 6),
+                    , 4),
                 new FormColumn(
                     (new SelectBox('Filter[Type]', 'Typ', array('{{ Name }}' => $tblTypeAll)))
                         ->ajaxPipelineOnChange(ApiDivisionCourse::pipelineLoadDivisionCourseContent())
-                    , 6)
+                    , 4),
+                new FormColumn(
+                    (new TextField('Filter[CourseName]', '7a', 'Kursname'))
+                        ->ajaxPipelineOnKeyUp(ApiDivisionCourse::pipelineLoadDivisionCourseContent())
+                    , 4)
             )),
             new FormRow(array(
                 new FormColumn(
                     (new CheckBox('Filter[ShowExtraInfo]', 'Weitere Informationen anzeigen', 1))
                         ->ajaxPipelineOnChange(ApiDivisionCourse::pipelineLoadDivisionCourseContent())
-                    , 6),
+                    , 3),
             ))
         )));
     }
@@ -312,7 +345,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblCourseAll) {
             array_walk($tblCourseAll, function (TblDivisionCourse $tblDivisionCourse) use (&$courseNameList) {
                 if (!in_array($tblDivisionCourse->getName(), $courseNameList)) {
-                    array_push($courseNameList, $tblDivisionCourse->getName());
+                    $courseNameList[] = $tblDivisionCourse->getName();
                 }
             });
         }
