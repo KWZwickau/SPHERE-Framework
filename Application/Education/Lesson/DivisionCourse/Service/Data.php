@@ -400,6 +400,160 @@ class Data extends MigrateData
     }
 
     /**
+     * zählt die aktiven Schüler einer Klasse
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return int
+     */
+    public function getCountStudentByDivision(TblDivisionCourse $tblDivisionCourse): int
+    {
+        if (($tempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+            TblStudentEducation::ATTR_TBL_DIVISION => $tblDivisionCourse->getId(),
+            TblStudentEducation::ATTR_LEAVE_DATE => null
+        )))) {
+            return count($tempList);
+        }
+
+        return 0;
+    }
+
+    /**
+     * zählt die inaktiven Schüler einer Klasse
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return int
+     */
+    public function getCountInActiveStudentByDivision(TblDivisionCourse $tblDivisionCourse): int
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblStudentEducation', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.tblDivision', '?1'),
+                    $queryBuilder->expr()->isNotNull('t.LeaveDate')
+                )
+            )
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return count($resultList);
+
+        // funktioniert leider nicht
+//        if (($tempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+//            TblStudentEducation::ATTR_TBL_DIVISION => $tblDivisionCourse->getId(),
+//            TblStudentEducation::ATTR_LEAVE_DATE => !null
+//        )))) {
+//            return count($tempList);
+//        }
+//
+//        return 0;
+    }
+
+    /**
+     * zählt die aktiven Schüler einer Stammgruppe
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return int
+     */
+    public function getCountStudentByCoreGroup(TblDivisionCourse $tblDivisionCourse): int
+    {
+        if (($tempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+            TblStudentEducation::ATTR_TBL_CORE_GROUP => $tblDivisionCourse->getId(),
+            TblStudentEducation::ATTR_LEAVE_DATE => null
+        )))) {
+            return count($tempList);
+        }
+
+        return 0;
+    }
+
+    /**
+     * zählt die inaktiven Schüler einer Stammgruppe
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return int
+     */
+    public function getCountInActiveStudentByCoreGroup(TblDivisionCourse $tblDivisionCourse): int
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblStudentEducation', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.tblCoreGroup', '?1'),
+                    $queryBuilder->expr()->isNotNull('t.LeaveDate')
+                )
+            )
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return count($resultList);
+    }
+
+    /**
+     * zählt die aktiven Schüler einer Unterrichtsgruppe
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return int
+     */
+    public function getCountStudentByDivisionCourse(TblDivisionCourse $tblDivisionCourse): int
+    {
+        if (($tempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblDivisionCourseMember', array(
+            TblDivisionCourseMember::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+            TblDivisionCourseMember::ATTR_TBL_MEMBER_TYPE => $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT),
+            TblDivisionCourseMember::ATTR_LEAVE_DATE => null
+        )))) {
+            return count($tempList);
+        }
+
+        return 0;
+    }
+
+    /**
+     * zählt die inaktiven Schüler einer Unterrichtsgruppe
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return int
+     */
+    public function getCountInActiveStudentByDivisionCourse(TblDivisionCourse $tblDivisionCourse): int
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblDivisionCourseMember', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.tblLessonDivisionCourse', '?1'),
+                    $queryBuilder->expr()->eq('t.tblLessonDivisionCourseMemberType', '?2'),
+                    $queryBuilder->expr()->isNotNull('t.LeaveDate')
+                )
+            )
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->setParameter(2, $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT)->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return count($resultList);
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDivisionCourseMember

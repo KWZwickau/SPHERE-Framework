@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -21,6 +22,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
@@ -352,25 +354,6 @@ class Service extends AbstractService
 
     /**
      * @param TblDivisionCourse $tblDivisionCourse
-     *
-     * @return string
-     */
-    public function getDivisionCourseHeader(TblDivisionCourse $tblDivisionCourse): string
-    {
-        return new Layout(new LayoutGroup(array(
-            new LayoutRow(array(
-                new LayoutColumn(
-                    new Panel('Kurs', $tblDivisionCourse->getName() . ' ' . new Small(new Muted($tblDivisionCourse->getTypeName())), Panel::PANEL_TYPE_INFO)
-                    , 6),
-                new LayoutColumn(
-                    new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
-                    , 6)
-            ))
-        )));
-    }
-
-    /**
-     * @param TblDivisionCourse $tblDivisionCourse
      * @param TblDivisionCourseMemberType $tblMemberType
      * @param TblPerson $tblPerson
      * @param string $description
@@ -391,5 +374,108 @@ class Service extends AbstractService
     public function removeDivisionCourseMemberFromDivisionCourse(TblDivisionCourseMember $tblDivisionCourseMember): bool
     {
         return (new Data($this->getBinding()))->removeDivisionCourseMemberFromDivisionCourse($tblDivisionCourseMember);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return string
+     */
+    public function getDivisionCourseHeader(TblDivisionCourse $tblDivisionCourse): string
+    {
+        return new Layout(new LayoutGroup(array(
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new Panel('Kurs', $tblDivisionCourse->getName() . ' ' . new Small(new Muted($tblDivisionCourse->getTypeName())), Panel::PANEL_TYPE_INFO)
+                    , 6),
+                new LayoutColumn(
+                    new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
+                    , 6)
+            ))
+        )));
+    }
+
+    /**
+     * zählt die aktiven Schüler
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return int
+     */
+    public function getCountStudentByDivisionCourse(TblDivisionCourse $tblDivisionCourse): int
+    {
+        if (($tblType = $tblDivisionCourse->getType())) {
+            switch ($tblType->getIdentifier()) {
+                case TblDivisionCourseType::TYPE_DIVISION: return (new Data($this->getBinding()))->getCountStudentByDivision($tblDivisionCourse);
+                case TblDivisionCourseType::TYPE_CORE_GROUP: return (new Data($this->getBinding()))->getCountStudentByCoreGroup($tblDivisionCourse);
+                default: return (new Data($this->getBinding()))->getCountStudentByDivisionCourse($tblDivisionCourse);
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * zählt die inaktiven Schüler
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return int
+     */
+    public function getCountInActiveStudentByDivisionCourse(TblDivisionCourse $tblDivisionCourse): int
+    {
+        if (($tblType = $tblDivisionCourse->getType())) {
+            switch ($tblType->getIdentifier()) {
+                case TblDivisionCourseType::TYPE_DIVISION: return (new Data($this->getBinding()))->getCountInActiveStudentByDivision($tblDivisionCourse);
+                case TblDivisionCourseType::TYPE_CORE_GROUP: return (new Data($this->getBinding()))->getCountInActiveStudentByCoreGroup($tblDivisionCourse);
+                default: return (new Data($this->getBinding()))->getCountInActiveStudentByDivisionCourse($tblDivisionCourse);
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return array
+     */
+    public function getStudentInfoByDivisionCourse(TblDivisionCourse $tblDivisionCourse): array
+    {
+        $countActive = 0;
+        $countInActive = 0;
+        $genderList = array();
+        $genders = '';
+
+        if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+            TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
+        ) {
+            foreach ($tblStudentMemberList as $tblStudentMember) {
+                if (($tblPerson = $tblStudentMember->getServiceTblPerson())) {
+                    if ($tblStudentMember->isInActive()) {
+                        $countInActive++;
+                    } else {
+                        $countActive++;
+                    }
+
+                    if(($tblGender = $tblPerson->getGender())){
+                        if (isset($genderList[$tblGender->getShortName()])) {
+                            $genderList[$tblGender->getShortName()]++;
+                        } else {
+                            $genderList[$tblGender->getShortName()] = 1;
+                        }
+                    }
+                }
+            }
+
+            foreach($genderList as $key => $count) {
+                $genders .= ($genders ? '<br/>' : '') . $key . ': ' . $count;
+            }
+        }
+
+        $toolTip = $countInActive . ($countInActive == 1 ? ' deaktivierter Schüler' : ' deaktivierte Schüler');
+        $students = $countActive . ($countInActive > 0 ? ' + ' . new ToolTip('(' . $countInActive . new Info() . ')', $toolTip) : '');
+
+        return array($students, $genders);
     }
 }

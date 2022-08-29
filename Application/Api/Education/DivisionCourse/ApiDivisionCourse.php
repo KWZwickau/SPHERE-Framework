@@ -107,6 +107,7 @@ class ApiDivisionCourse extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'Filter' => $Filter
         ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
@@ -348,7 +349,7 @@ class ApiDivisionCourse extends Extension implements IApiInterface
         $countDivisionTeachers = 0;
         $countCustodyList = 0;
         $countRepresentatives = 0;
-        if (($students = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT))) {
+        if (($students = $tblDivisionCourse->getStudents())) {
             $countStudents = count($students);
         }
         if (($divisionTeachers = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))) {

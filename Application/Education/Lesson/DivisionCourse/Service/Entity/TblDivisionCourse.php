@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -256,5 +257,30 @@ class TblDivisionCourse extends Element
             case 'Unterrichtsgruppe':
             default: return 'Gruppenleiter';
         }
+    }
+
+    /**
+     * @param bool $withInActive
+     *
+     * @return false|TblPerson[]
+     */
+    public function getStudents(bool $withInActive = false) {
+        return DivisionCourse::useService()->getDivisionCourseMemberBy($this, TblDivisionCourseMemberType::TYPE_STUDENT, $withInActive);
+    }
+
+    /**
+     * @return int
+     */
+    public function getCountStudents(): int
+    {
+        return DivisionCourse::useService()->getCountStudentByDivisionCourse($this);
+    }
+
+    /**
+     * @return int
+     */
+    public function getCountInActiveStudents(): int
+    {
+        return DivisionCourse::useService()->getCountInActiveStudentByDivisionCourse($this);
     }
 }

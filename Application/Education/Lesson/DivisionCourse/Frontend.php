@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -135,6 +136,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblDivisionCourseList) {
             $dataList = array();
+            $showExtraInfo = isset($Filter['ShowExtraInfo']);
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
                 if (($tblSubCourseList = DivisionCourse::useService()->getSubDivisionCourseListByDivisionCourse($tblDivisionCourse))) {
@@ -147,7 +149,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $subCourseText = '';
                 }
 
-                $dataList[] = array(
+                $item = array(
                     'Year' => $tblDivisionCourse->getYearName(),
                     'Name' => $tblDivisionCourse->getName(),
                     'Description' => $tblDivisionCourse->getDescription(),
@@ -163,28 +165,59 @@ class Frontend extends Extension implements IFrontendInterface
                         . (new Standard('', ApiDivisionCourse::getEndpoint(), new Remove(), array(), 'Kurs löschen'))
                             ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenDeleteDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
                 );
+
+                if ($showExtraInfo) {
+                    list($students, $genders) = DivisionCourse::useService()->getStudentInfoByDivisionCourse($tblDivisionCourse);
+                    $item['Students'] = $students;
+                    $item['Genders'] = $genders;
+                    $item['Teachers'] = '';
+                    if (($tblTeacherList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))) {
+                        foreach ($tblTeacherList as $tblPersonTeacher) {
+                            if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonTeacher))
+                                && ($acronym = $tblTeacher->getAcronym())
+                            ) {
+                                $name = $tblPersonTeacher->getLastName() . ' (' . $acronym . ')';
+                            } else {
+                                $name = $tblPersonTeacher->getLastName();
+                            }
+                            $item['Teachers'] .= ($item['Teachers'] ? '<br/>' : '') . $name;
+                        }
+                    }
+                } else {
+                    $countActive = $tblDivisionCourse->getCountStudents();
+                    $countInActive = $tblDivisionCourse->getCountInActiveStudents();
+                    $toolTip = $countInActive . ($countInActive == 1 ? ' deaktivierter Schüler' : ' deaktivierte Schüler');
+                    $students = $countActive . ($countInActive > 0 ? ' + '
+                        . new ToolTip('(' . $countInActive . new \SPHERE\Common\Frontend\Icon\Repository\Info() . ')', $toolTip) : '');
+                    $item['Students'] = $students;
+                }
+
+                $dataList[] = $item;
             }
+
+            $columns = array(
+                'Year' => 'Schuljahr',
+                'Name' => 'Name',
+                'Description' => 'Beschreibung',
+                'Type' => 'Typ',
+                'SubCourses' => 'Unter-Kurse',
+                'Students' => 'Schüler',
+            );
+            if ($showExtraInfo) {
+                $columns['Genders'] = 'Geschlecht';
+                $columns['Teachers'] = 'Leiter';
+            }
+            $columns['Option'] = '&nbsp;';
 
             return $addLink . new TableData(
                 $dataList,
                 null,
-                array(
-                    'Year' => 'Schuljahr',
-                    'Name' => 'Name',
-                    'Description' => 'Beschreibung',
-                    'Type' => 'Typ',
-                    'SubCourses' => 'Unter-Kurse',
-                    'Option' => '&nbsp;'
-                ),
+                $columns,
                 array(
                     'columnDefs' => array(
                         array('type' => 'natural', 'targets' => 1),
                     ),
                     'order'      => array(array(0, 'asc'), array(1, 'asc')),
-//                    'pageLength' => -1,
-//                    'paging'     => false,
-//                    'info'       => false,
-//                    'searching'  => false,
                     'responsive' => false
                 )
             );
@@ -219,6 +252,12 @@ class Frontend extends Extension implements IFrontendInterface
                     (new SelectBox('Filter[Type]', 'Typ', array('{{ Name }}' => $tblTypeAll)))
                         ->ajaxPipelineOnChange(ApiDivisionCourse::pipelineLoadDivisionCourseContent())
                     , 6)
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    (new CheckBox('Filter[ShowExtraInfo]', 'Weitere Informationen anzeigen', 1))
+                        ->ajaxPipelineOnChange(ApiDivisionCourse::pipelineLoadDivisionCourseContent())
+                    , 6),
             ))
         )));
     }
@@ -725,7 +764,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $availableList = array();
-            if (($tblPersonList =DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT))) {
+            if (($tblPersonList = $tblDivisionCourse->getStudents())) {
                 foreach ($tblPersonList as $tblPerson) {
                     if (!isset($selectedList[$tblPerson->getId()])) {
                         $availableList[$tblPerson->getId()] = array(
@@ -834,7 +873,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $availableList = array();
             if (($tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))
-                && ($tblPersonList =DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT))
+                && ($tblPersonList = $tblDivisionCourse->getStudents())
             ) {
                 foreach ($tblPersonList as $tblPerson) {
                     if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))) {

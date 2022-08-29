@@ -22,6 +22,7 @@ class TblDivisionCourseMember extends Element
     const ATTR_TBL_DIVISION_COURSE = 'tblLessonDivisionCourse';
     const ATTR_TBL_MEMBER_TYPE = 'tblLessonDivisionCourseMemberType';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_LEAVE_DATE = 'LeaveDate';
 
     /**
      * @Column(type="bigint")
