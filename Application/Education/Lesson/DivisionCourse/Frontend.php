@@ -170,6 +170,7 @@ class Frontend extends Extension implements IFrontendInterface
                     list($students, $genders) = DivisionCourse::useService()->getStudentInfoByDivisionCourse($tblDivisionCourse);
                     $item['Students'] = $students;
                     $item['Genders'] = $genders;
+
                     $item['Teachers'] = '';
                     if (($tblTeacherList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))) {
                         foreach ($tblTeacherList as $tblPersonTeacher) {
@@ -182,6 +183,17 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                             $item['Teachers'] .= ($item['Teachers'] ? '<br/>' : '') . $name;
                         }
+                    }
+
+                    $item['Visibility'] = '';
+                    if ($tblDivisionCourse->getIsShownInPersonData()) {
+                        $item['Visibility'] = new EyeOpen() . ' Stammdaten';
+                    }
+                    if ($tblDivisionCourse->getIsReporting()) {
+                        $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . new EyeOpen() . ' Auswertung';
+                    }
+                    if ($tblDivisionCourse->getIsUcs()) {
+                        $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . new EyeOpen() . ' UCS';
                     }
                 } else {
                     $countActive = $tblDivisionCourse->getCountStudents();
@@ -206,6 +218,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($showExtraInfo) {
                 $columns['Genders'] = 'Geschlecht';
                 $columns['Teachers'] = 'Leiter';
+                $columns['Visibility'] = 'Sichtbarkeit';
             }
             $columns['Option'] = '&nbsp;';
 
@@ -216,6 +229,7 @@ class Frontend extends Extension implements IFrontendInterface
                 array(
                     'columnDefs' => array(
                         array('type' => 'natural', 'targets' => 1),
+                        array('orderable' => false, 'width' => '140px', 'targets' => -1),
                     ),
                     'order'      => array(array(0, 'asc'), array(1, 'asc')),
                     'responsive' => false
