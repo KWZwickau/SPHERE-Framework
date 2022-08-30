@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
+use DateTime;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseLink;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
@@ -444,6 +445,38 @@ class Data extends MigrateData
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     * @param DateTime|null $leaveDate
+     *
+     * @return false|TblStudentEducation
+     */
+    public function getStudentEducationByDivision(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, ?DateTime $leaveDate)
+    {
+        return $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+            TblStudentEducation::ATTR_TBL_DIVISION => $tblDivisionCourse->getId(),
+            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson,
+            TblStudentEducation::ATTR_LEAVE_DATE => $leaveDate
+        ));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     * @param DateTime|null $leaveDate
+     *
+     * @return false|TblStudentEducation
+     */
+    public function getStudentEducationByCoreGroup(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, ?DateTime $leaveDate)
+    {
+        return $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+            TblStudentEducation::ATTR_TBL_CORE_GROUP => $tblDivisionCourse->getId(),
+            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson,
+            TblStudentEducation::ATTR_LEAVE_DATE => $leaveDate
+        ));
+    }
+
+    /**
      * zählt die aktiven Schüler einer Klasse
      *
      * @param TblDivisionCourse $tblDivisionCourse
@@ -701,7 +734,7 @@ class Data extends MigrateData
      *
      * @return bool
      */
-    public function updateDivisionCourseMemberBulkSortOrder(array $tblDivisionCourseMemberList): bool
+    public function updateDivisionCourseMemberBulk(array $tblDivisionCourseMemberList): bool
     {
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -710,6 +743,28 @@ class Data extends MigrateData
             /** @var TblDivisionCourseMember $Entity */
             $Entity = $Manager->getEntityById('TblDivisionCourseMember', $tblDivisionCourseMember->getId());
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblDivisionCourseMember, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblStudentEducationList
+     *
+     * @return bool
+     */
+    public function updateStudentEducationBulk(array $tblStudentEducationList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($tblStudentEducationList as $tblStudentEducation) {
+            $Manager->bulkSaveEntity($tblStudentEducation);
+            /** @var TblStudentEducation $Entity */
+            $Entity = $Manager->getEntityById('TblStudentEducation', $tblStudentEducation->getId());
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblStudentEducation, true);
         }
 
         $Manager->flushCache();

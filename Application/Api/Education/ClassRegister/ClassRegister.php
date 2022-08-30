@@ -76,8 +76,7 @@ class ClassRegister extends Extension implements IModuleInterface
                     }
                 }
 
-                // todo Schülersortierung bei Klassen und Stammgruppen
-                DivisionCourse::useService()->updateDivisionCourseMemberBulkSortOrder($updateList);
+                DivisionCourse::useService()->updateDivisionCourseMemberBulkSortOrder($updateList, $Additional['MemberTypeIdentifier'], $tblDivisionCourse->getType() ?: null);
             }
 
             return (new Response())->addData( new Success().' Die Sortierung der ' . $tblMemberType->getName() . ' wurde erfolgreich aktualisiert.');

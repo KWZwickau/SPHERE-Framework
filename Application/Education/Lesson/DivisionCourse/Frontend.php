@@ -639,7 +639,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Warning('Keine Schüler dem Kurs zugewiesen')
                                 : new TableData($studentList, null, $studentColumnList, false)
                         ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler in der ' . $text)),
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler in der ' . $text
+//                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId()))
+                        . ' | '
+                        . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
+                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_STUDENT))
+                    )),
 
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(
@@ -699,6 +704,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $stage = new Stage('Klassenlehrer', '');
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $stage->setTitle($tblDivisionCourse->getDivisionTeacherName());
             $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(), array('DivisionCourseId' => $tblDivisionCourse->getId()))));
             $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
             $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
@@ -1041,6 +1047,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $stage = new Stage($member . ' sortieren', '');
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            if ($MemberTypeIdentifier == TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER) {
+                $stage->setTitle($tblDivisionCourse->getDivisionTeacherName());
+            }
             $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
             $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
             if ($tblDivisionCourse->getDescription()) {
@@ -1124,14 +1133,20 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        return new TableData($memberTable, null, array(
+        $columns = array(
             'Number'        => '#',
             'Name'          => 'Name',
             'Description'   => 'Be&shy;schreib&shy;ung',
             'Gender'        => 'Ge&shy;schlecht',
             'Birthday'      => 'Geburts&shy;datum',
             'Address'       => 'Adresse'
-        ),
+        );
+
+        if ($MemberTypeIdentifier == TblDivisionCourseMemberType::TYPE_STUDENT) {
+            unset($columns['Description']);
+        }
+
+        return new TableData($memberTable, null, $columns,
             array(
                 'rowReorderColumn' => 1,
                 'ExtensionRowReorder' => array(

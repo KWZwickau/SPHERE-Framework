@@ -538,9 +538,15 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
         $button = (new Standard('Ja', '/Education/Lesson/Division/Sort/Alphabetically', new Ok(), array('DivisionCourseId' => $DivisionCourseId)))
             ->ajaxPipelineOnClick(self::pipelineSaveSortMemberModal($DivisionCourseId, $MemberTypeIdentifier, $sortType));
 
-        return new Title($tblMemberType->getName(), $sortType)
+        if ($MemberTypeIdentifier == TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER) {
+            $memberName = $tblDivisionCourse->getDivisionTeacherName();
+        } else {
+            $memberName = $tblMemberType->getName();
+        }
+
+        return new Title($memberName, $sortType)
             . DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
-            . new Panel('"'.new Bold($sortType).'" Sollen alle ' . $tblMemberType->getName() . ' des Kurses neu sortiert werden?',
+            . new Panel('"'.new Bold($sortType).'" Sollen alle ' . $memberName . ' des Kurses neu sortiert werden?',
                 $button . new Close('Nein'), Panel::PANEL_TYPE_WARNING);
     }
 
@@ -585,7 +591,6 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
             return new Danger('Mitglieds-Typ nicht gefunden', new Exclamation());
         }
 
-        $tblMemberList = false;
         if ($sortType == 'Sortierung Geschlecht (alphabetisch)') {
             if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, $MemberTypeIdentifier, true, false))) {
                 $maleList = array();
@@ -629,21 +634,26 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
             }
         }
 
-        // todo Sortierung bei Klasse oder Stammgruppe
+        if ($MemberTypeIdentifier == TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER) {
+            $memberName = $tblDivisionCourse->getDivisionTeacherName();
+        } else {
+            $memberName = $tblMemberType->getName();
+        }
+
         if ($tblMemberList) {
             $count = 1;
             /** @var TblDivisionCourseMember $tblMember */
             foreach ($tblMemberList as $tblMember) {
                 $tblMember->setSortOrder($count++);
             }
-            DivisionCourse::useService()->updateDivisionCourseMemberBulkSortOrder($tblMemberList);
+            DivisionCourse::useService()->updateDivisionCourseMemberBulkSortOrder($tblMemberList, $MemberTypeIdentifier, $tblDivisionCourse->getType() ?: null);
 
-            return new Success('Die ' . $tblMemberType->getName() . ' wurden erfolgreich sortiert.')
+            return new Success('Die ' . $memberName . ' wurden erfolgreich sortiert.')
                 . self::pipelineLoadSortMemberContent($DivisionCourseId, $MemberTypeIdentifier)
                 . self::pipelineClose();
         }
 
-        return new Danger('Die ' . $tblMemberType->getName() . ' konnten nicht sortiert werden.')
+        return new Danger('Die ' . $memberName . ' konnten nicht sortiert werden.')
                 . self::pipelineLoadSortMemberContent($DivisionCourseId, $MemberTypeIdentifier)
                 . self::pipelineClose();
     }

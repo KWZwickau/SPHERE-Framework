@@ -305,7 +305,9 @@ class Service extends AbstractService
     {
         $memberList = false;
         $tblMemberType = $this->getDivisionCourseMemberTypeByIdentifier($memberTypeIdentifier);
-        if ($memberTypeIdentifier == TblDivisionCourseMemberType::TYPE_STUDENT && ($tblDivisionCourseType = $tblDivisionCourse->getType())) {
+        if ($memberTypeIdentifier == TblDivisionCourseMemberType::TYPE_STUDENT && ($tblDivisionCourseType = $tblDivisionCourse->getType())
+            && ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+        ) {
             if ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
                 $memberList = (new Data($this->getBinding()))->getDivisionCourseMemberStudentByDivision($tblDivisionCourse);
             } elseif ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP) {
@@ -389,12 +391,47 @@ class Service extends AbstractService
 
     /**
      * @param array $tblDivisionCourseMemberList
+     * @param string $MemberTypeIdentifier
+     * @param TblDivisionCourseType|null $tblDivisionCourseType
      *
      * @return bool
      */
-    public function updateDivisionCourseMemberBulkSortOrder(array $tblDivisionCourseMemberList): bool
+    public function updateDivisionCourseMemberBulkSortOrder(array $tblDivisionCourseMemberList, string $MemberTypeIdentifier, ?TblDivisionCourseType $tblDivisionCourseType): bool
     {
-        return (new Data($this->getBinding()))->updateDivisionCourseMemberBulkSortOrder($tblDivisionCourseMemberList);
+        // Schüler in Klassen und Stammgruppen werden anders gespeichert (TblStudentEducation)
+        if ($MemberTypeIdentifier == TblDivisionCourseMemberType::TYPE_STUDENT && $tblDivisionCourseType
+            && ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+        ) {
+            $updateStudentEducationList = array();
+            /** @var TblDivisionCourseMember $tblDivisionCourseMember */
+            foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                if ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION){
+                    if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson())
+                        && ($tblDivisionCourse = $tblDivisionCourseMember->getTblDivisionCourse())
+                        && ($tblStudentEducation = (new Data($this->getBinding()))->getStudentEducationByDivision(
+                            $tblDivisionCourse, $tblPerson, $tblDivisionCourseMember->getLeaveDateTime() ?: null
+                        ))
+                    ) {
+                        $tblStudentEducation->setDivisionSortOrder($tblDivisionCourseMember->getSortOrder());
+                        $updateStudentEducationList[] = $tblStudentEducation;
+                    }
+                } elseif ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP) {
+                    if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson())
+                        && ($tblDivisionCourse = $tblDivisionCourseMember->getTblDivisionCourse())
+                        && ($tblStudentEducation = (new Data($this->getBinding()))->getStudentEducationByCoreGroup(
+                            $tblDivisionCourse, $tblPerson, $tblDivisionCourseMember->getLeaveDateTime() ?: null
+                        ))
+                    ) {
+                        $tblStudentEducation->setCoreGroupSortOrder($tblDivisionCourseMember->getSortOrder());
+                        $updateStudentEducationList[] = $tblStudentEducation;
+                    }
+                }
+            }
+
+            return (new Data($this->getBinding()))->updateStudentEducationBulk($updateStudentEducationList);
+        } else {
+            return (new Data($this->getBinding()))->updateDivisionCourseMemberBulk($tblDivisionCourseMemberList);
+        }
     }
 
     /**
