@@ -388,6 +388,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param array $tblDivisionCourseMemberList
+     *
+     * @return bool
+     */
+    public function updateDivisionCourseMemberBulkSortOrder(array $tblDivisionCourseMemberList): bool
+    {
+        return (new Data($this->getBinding()))->updateDivisionCourseMemberBulkSortOrder($tblDivisionCourseMemberList);
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return string

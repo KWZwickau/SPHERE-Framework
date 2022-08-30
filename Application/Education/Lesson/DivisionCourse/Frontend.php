@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -36,9 +37,12 @@ use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -216,13 +220,13 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $item['Visibility'] = '';
                     if ($tblDivisionCourse->getIsShownInPersonData()) {
-                        $item['Visibility'] = new EyeOpen() . ' Stammdaten';
+                        $item['Visibility'] = 'Stammdaten';
                     }
                     if ($tblDivisionCourse->getIsReporting()) {
-                        $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . new EyeOpen() . ' Auswertung';
+                        $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . 'Auswertung';
                     }
                     if ($tblDivisionCourse->getIsUcs()) {
-                        $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . new EyeOpen() . ' UCS';
+                        $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . 'UCS';
                     }
                 } else {
                     $countActive = $tblDivisionCourse->getCountStudents();
@@ -499,7 +503,16 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
                         $course = $tblCourse ? $tblCourse->getName() : '';
 
-                        $birthday = $tblPerson->getBirthday();
+                        $birthday = '';
+                        $gender = '';
+                        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                            if ($tblCommon->getTblCommonBirthDates()) {
+                                $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+                                if ($tblGender = $tblCommon->getTblCommonBirthDates()->getTblCommonGender()) {
+                                    $gender = $tblGender->getShortName();
+                                }
+                            }
+                        }
 
                         if ($isInActive) {
                             $status = new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Danger(new Disable()), 'Deaktivierung: ' . $tblStudentMember->getLeaveDate());
@@ -524,6 +537,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $item = array(
                             'FullName' => $isInActive ? new Strikethrough($fullName) : $fullName,
                             'Address' => $isInActive ? new Strikethrough($address) : $address,
+                            'Gender' => $isInActive ? new Strikethrough($gender) : $gender,
                             'Birthday' => $isInActive ? new Strikethrough($birthday) : $birthday,
                             'Course' => $isInActive ? new Strikethrough($course) : $course,
                             'Status' => $status,
@@ -582,8 +596,9 @@ class Frontend extends Extension implements IFrontendInterface
 
             $studentColumnList = array(
                 'FullName' => 'Schüler',
+                'Gender'   => 'Ge&shy;schlecht',
+                'Birthday' => 'Geburts&shy;datum',
                 'Address'  => 'Adresse',
-                'Birthday' => 'Geburtsdatum',
                 'Course'   => 'Bildungsgang'
             );
 //            if ($IsSekTwo) {
@@ -601,6 +616,20 @@ class Frontend extends Extension implements IFrontendInterface
                 'Description' => 'Beschreibung'
             );
 
+            // todo TableCustom und keine Sortierung
+//            $interactiveMember = array(
+//                'columnDefs' => array(
+//                    array('orderable' => false, 'width' => '40%', 'targets' => 0),
+//                    array('orderable' => false, 'targets' => 1),
+//                ),
+//                'pageLength' => -1,
+//                'paging' => false,
+//                'info' => false,
+//                'searching' => false,
+//                'responsive' => false
+//            );
+            $interactiveMember = false;
+
             $stage->setContent(
                 DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
                 . new Layout(array(
@@ -611,30 +640,45 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new TableData($studentList, null, $studentColumnList, false)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler in der ' . $text)),
+
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(
                             empty($divisionTeacherList)
                                 ? new Warning('Keine ' . $tblDivisionCourse->getDivisionTeacherName() . ' dem Kurs zugewiesen')
-                                : new TableData($divisionTeacherList, null, $memberColumnList, false) // todo interactive
+                                : (new TableData($divisionTeacherList, null, $memberColumnList, $interactiveMember))->setHash(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Person() . ' ' . $tblDivisionCourse->getDivisionTeacherName() . ' in der ' . $text
-                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/DivisionTeacher', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId())))),
+                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/DivisionTeacher', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId()))
+                        . ' | '
+                        . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
+                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+                    )),
+
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(
                             empty($representativeList)
                                 ? new Warning('Keine Schülersprecher dem Kurs zugewiesen')
-                                : new TableData($representativeList, null, $memberColumnList, false)
+                                : (new TableData($representativeList, null, $memberColumnList, $interactiveMember))->setHash(TblDivisionCourseMemberType::TYPE_REPRESENTATIVE)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schülersprecher in der ' . $text
-                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Representative', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId())))),
+                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Representative', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId()))
+                        . ' | '
+                        . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
+                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))
+                    )),
+
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(
                             empty($custodyList)
                                 ? new Warning('Keine Elternvertreter dem Kurs zugewiesen')
-                                : new TableData($custodyList, null, $memberColumnList, false)
+                                : (new TableData($custodyList, null, $memberColumnList, $interactiveMember))->setHash(TblDivisionCourseMemberType::TYPE_CUSTODY)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternvertreter in der ' . $text
-                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Custody', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId())))),
+                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Custody', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId()))
+                        . ' | '
+                        . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
+                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_CUSTODY))
+                    )),
                 ))
             );
 
@@ -979,5 +1023,132 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new Danger('Kurs nicht gefunden!', new Exclamation());
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param string $MemberTypeIdentifier
+     *
+     * @return Stage
+     */
+    public function frontendMemberSort($DivisionCourseId = null, string $MemberTypeIdentifier = ''): Stage
+    {
+        if (($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier($MemberTypeIdentifier))) {
+            $member = $tblDivisionCourseMemberType->getName();
+        } else {
+            $member = 'Mitglieder';
+        }
+
+        $stage = new Stage($member . ' sortieren', '');
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
+            $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
+            if ($tblDivisionCourse->getDescription()) {
+                $stage->setMessage($tblDivisionCourse->getDescription());
+            }
+
+            $buttonList[] = (new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(), array('DivisionCourseId' => $tblDivisionCourse->getId())));
+            $buttonList[] = (new Standard(
+                'Sortierung alphabetisch', ApiDivisionCourseMember::getEndpoint(), new ResizeVertical()))
+                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineOpenSortMemberModal($tblDivisionCourse->getId(), $MemberTypeIdentifier,  'Sortierung alphabetisch'));
+            $buttonList[] = (new Standard(
+                'Sortierung Geschlecht (alphabetisch)', ApiDivisionCourseMember::getEndpoint(), new ResizeVertical()))
+                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineOpenSortMemberModal($tblDivisionCourse->getId(), $MemberTypeIdentifier, 'Sortierung Geschlecht (alphabetisch)'));
+
+            $stage->setContent(
+                ApiDivisionCourseMember::receiverModal()
+                . DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
+                . new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn($buttonList),
+                            new LayoutColumn(
+                                ApiDivisionCourseMember::receiverBlock($this->loadSortMemberContent($DivisionCourseId, $MemberTypeIdentifier), 'SortMemberContent')
+                            )
+                        ))
+                    ))
+                ))
+            );
+        } else {
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse', new ChevronLeft())));
+            $stage->setContent(new Warning('Kurs nicht gefunden', new Exclamation()));
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param string $MemberTypeIdentifier
+     *
+     * @return string
+     */
+    public function loadSortMemberContent($DivisionCourseId, string $MemberTypeIdentifier): string
+    {
+        $memberTable = array();
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && $tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, $MemberTypeIdentifier, true, false)
+        ) {
+            $count = 0;
+            foreach ($tblMemberList as $tblMember) {
+                if (($tblPerson = $tblMember->getServiceTblPerson())){
+                    $count++;
+                    $isInActive = $tblMember->isInActive();
+
+                    $name = new ResizeVertical() . ' ' . $tblPerson->getLastFirstName();
+                    $address = ($tblAddress = $tblPerson->fetchMainAddress())
+                        ? $tblAddress->getGuiString()
+                        : new WarningText('Keine Adresse hinterlegt');
+                    $birthday = '';
+                    $gender = '';
+                    if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                        if ($tblCommon->getTblCommonBirthDates()) {
+                            $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+                            if ($tblGender = $tblCommon->getTblCommonBirthDates()->getTblCommonGender()) {
+                                $gender = $tblGender->getShortName();
+                            }
+                        }
+                    }
+
+                    $description = $tblMember->getDescription();
+
+                    $memberTable[] = array(
+                        'Number' => $isInActive ? new Strikethrough($count) : $count,
+                        'Name' => new PullClear(new PullLeft($isInActive ? new Strikethrough($name) : $name)),
+                        'Description' => $isInActive ? new Strikethrough($description) : $description,
+                        'Gender' => $isInActive ? new Strikethrough($gender) : $gender,
+                        'Birthday' => $isInActive ? new Strikethrough($birthday) : $birthday,
+                        'Address' => $isInActive ? new Strikethrough($address) : $address,
+                    );
+                }
+            }
+        }
+
+        return new TableData($memberTable, null, array(
+            'Number'        => '#',
+            'Name'          => 'Name',
+            'Description'   => 'Be&shy;schreib&shy;ung',
+            'Gender'        => 'Ge&shy;schlecht',
+            'Birthday'      => 'Geburts&shy;datum',
+            'Address'       => 'Adresse'
+        ),
+            array(
+                'rowReorderColumn' => 1,
+                'ExtensionRowReorder' => array(
+                    'Enabled' => true,
+                    'Url'     => '/Api/Education/ClassRegister/Reorder',
+                    'Data'    => array('DivisionCourseId' => $DivisionCourseId, 'MemberTypeIdentifier' => $MemberTypeIdentifier)
+                ),
+                'columnDefs' => array(
+                    array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                    array('width' => '40%', 'targets' => -1),
+                ),
+                'pageLength' => -1,
+                'paging' => false,
+                'info' => false,
+                'searching' => false,
+                'responsive' => false
+            )
+        );
     }
 }

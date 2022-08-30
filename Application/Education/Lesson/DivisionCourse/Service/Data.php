@@ -22,9 +22,9 @@ class Data extends MigrateData
         $this->createDivisionCourseType('Unterrichtsgruppe', TblDivisionCourseType::TYPE_TEACHING_GROUP);
 
         $this->createDivisionCourseMemberType('Schüler', TblDivisionCourseMemberType::TYPE_STUDENT);
-        $this->createDivisionCourseMemberType('Klassenlehrer', TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
+        $this->createDivisionCourseMemberType('Gruppenleiter', TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
         $this->createDivisionCourseMemberType('Elternvertreter', TblDivisionCourseMemberType::TYPE_CUSTODY);
-        $this->createDivisionCourseMemberType('Klassensprecher', TblDivisionCourseMemberType::TYPE_REPRESENTATIVE);
+        $this->createDivisionCourseMemberType('Schülersprecher', TblDivisionCourseMemberType::TYPE_REPRESENTATIVE);
 
         /**
          * Migration der alten Klassen-Daten in die neue DB-Struktur
@@ -694,5 +694,27 @@ class Data extends MigrateData
         }
 
         return false;
+    }
+
+    /**
+     * @param array $tblDivisionCourseMemberList
+     *
+     * @return bool
+     */
+    public function updateDivisionCourseMemberBulkSortOrder(array $tblDivisionCourseMemberList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+            $Manager->bulkSaveEntity($tblDivisionCourseMember);
+            /** @var TblDivisionCourseMember $Entity */
+            $Entity = $Manager->getEntityById('TblDivisionCourseMember', $tblDivisionCourseMember->getId());
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblDivisionCourseMember, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
     }
 }

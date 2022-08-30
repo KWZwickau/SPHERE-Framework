@@ -14,9 +14,8 @@ class DivisionCourse implements IModuleInterface
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Kurs')
-                , new Link\Icon(new Blackboard())
-            ));
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Kurs'), new Link\Icon(new Blackboard()))
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendDivisionCourse'
@@ -32,6 +31,9 @@ class DivisionCourse implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Custody', __NAMESPACE__.'\Frontend::frontendDivisionCourseCustody'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Member/Sort', __NAMESPACE__.'\Frontend::frontendMemberSort'
         ));
     }
 

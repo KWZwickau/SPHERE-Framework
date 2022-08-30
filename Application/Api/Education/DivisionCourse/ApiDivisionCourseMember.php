@@ -5,16 +5,27 @@ namespace SPHERE\Application\Api\Education\DivisionCourse;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
+use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 class ApiDivisionCourseMember extends Extension implements IApiInterface
 {
@@ -41,6 +52,10 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
         $Dispatcher->registerMethod('addCustody');
         $Dispatcher->registerMethod('removeCustody');
 
+        $Dispatcher->registerMethod('loadSortMemberContent');
+        $Dispatcher->registerMethod('openSortMemberModal');
+        $Dispatcher->registerMethod('saveSortMemberModal');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -53,6 +68,25 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
     public static function receiverBlock(string $Content = '', string $Identifier = ''): BlockReceiver
     {
         return (new BlockReceiver($Content))->setIdentifier($Identifier);
+    }
+
+    /**
+     * @return ModalReceiver
+     */
+    public static function receiverModal(): ModalReceiver
+    {
+        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalReceiver');
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineClose(): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
+
+        return $Pipeline;
     }
 
     /**
@@ -425,5 +459,192 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
         } else {
             return new Danger('Elternvertreter konnte nicht entfernt werden.');
         }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param string $MemberTypeIdentifier
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadSortMemberContent($DivisionCourseId, string $MemberTypeIdentifier = ''): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SortMemberContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadSortMemberContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'MemberTypeIdentifier' => $MemberTypeIdentifier
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param string $MemberTypeIdentifier
+     *
+     * @return string
+     */
+    public function loadSortMemberContent($DivisionCourseId, string $MemberTypeIdentifier = ''): string
+    {
+        return DivisionCourse::useFrontend()->loadSortMemberContent($DivisionCourseId, $MemberTypeIdentifier);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param string $MemberTypeIdentifier
+     * @param string $sortType
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenSortMemberModal($DivisionCourseId, string $MemberTypeIdentifier = '', string $sortType = ''): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openSortMemberModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'MemberTypeIdentifier' => $MemberTypeIdentifier,
+            'sortType' => $sortType,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param string $MemberTypeIdentifier
+     * @param string $sortType
+     *
+     * @return string
+     */
+    public static function openSortMemberModal($DivisionCourseId = null, string $MemberTypeIdentifier = '', string $sortType = ''): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier($MemberTypeIdentifier))) {
+            return new Danger('Mitglieds-Typ nicht gefunden', new Exclamation());
+        }
+
+        $button = (new Standard('Ja', '/Education/Lesson/Division/Sort/Alphabetically', new Ok(), array('DivisionCourseId' => $DivisionCourseId)))
+            ->ajaxPipelineOnClick(self::pipelineSaveSortMemberModal($DivisionCourseId, $MemberTypeIdentifier, $sortType));
+
+        return new Title($tblMemberType->getName(), $sortType)
+            . DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
+            . new Panel('"'.new Bold($sortType).'" Sollen alle ' . $tblMemberType->getName() . ' des Kurses neu sortiert werden?',
+                $button . new Close('Nein'), Panel::PANEL_TYPE_WARNING);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param string $MemberTypeIdentifier
+     * @param string $sortType
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveSortMemberModal($DivisionCourseId, string $MemberTypeIdentifier = '', string $sortType = ''): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveSortMemberModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'MemberTypeIdentifier' => $MemberTypeIdentifier,
+            'sortType' => $sortType,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param string $MemberTypeIdentifier
+     * @param string $sortType
+     *
+     * @return string
+     */
+    public static function saveSortMemberModal($DivisionCourseId = null, string $MemberTypeIdentifier = '', string $sortType = ''): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier($MemberTypeIdentifier))) {
+            return new Danger('Mitglieds-Typ nicht gefunden', new Exclamation());
+        }
+
+        $tblMemberList = false;
+        if ($sortType == 'Sortierung Geschlecht (alphabetisch)') {
+            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, $MemberTypeIdentifier, true, false))) {
+                $maleList = array();
+                $femaleList = array();
+                $otherList = array();
+                foreach ($tblMemberList as $tblMember) {
+                    if (($tblPerson = $tblMember->getServiceTblPerson())) {
+                        if (($tblGender = $tblPerson->getGender())) {
+                            if ($tblGender->getName() == 'Männlich') {
+                                $maleList[] = $tblMember;
+                                continue;
+                            } elseif ($tblGender->getName() == 'Weiblich') {
+                                $femaleList[] = $tblMember;
+                                continue;
+                            }
+                        }
+                        $otherList[] = $tblMember;
+                    }
+                }
+
+                if (!empty($maleList)) {
+                    $maleList = (new Extension())->getSorter($maleList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
+                }
+                if (!empty($femaleList)) {
+                    $femaleList = (new Extension())->getSorter($femaleList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
+                }
+                if (!empty($otherList)) {
+                    $otherList = (new Extension())->getSorter($otherList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
+                }
+
+                if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Sort', 'SortMaleFirst')) && !$tblSetting->getValue()) {
+                    $tblMemberList = array_merge($femaleList, $maleList, $otherList);
+                } else {
+                    $tblMemberList = array_merge($maleList, $femaleList, $otherList);
+                }
+            }
+        // 'Sortierung alphabetisch'
+        } else {
+            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, $MemberTypeIdentifier, true, false))) {
+                $tblMemberList = (new Extension())->getSorter($tblMemberList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
+            }
+        }
+
+        // todo Sortierung bei Klasse oder Stammgruppe
+        if ($tblMemberList) {
+            $count = 1;
+            /** @var TblDivisionCourseMember $tblMember */
+            foreach ($tblMemberList as $tblMember) {
+                $tblMember->setSortOrder($count++);
+            }
+            DivisionCourse::useService()->updateDivisionCourseMemberBulkSortOrder($tblMemberList);
+
+            return new Success('Die ' . $tblMemberType->getName() . ' wurden erfolgreich sortiert.')
+                . self::pipelineLoadSortMemberContent($DivisionCourseId, $MemberTypeIdentifier)
+                . self::pipelineClose();
+        }
+
+        return new Danger('Die ' . $tblMemberType->getName() . ' konnten nicht sortiert werden.')
+                . self::pipelineLoadSortMemberContent($DivisionCourseId, $MemberTypeIdentifier)
+                . self::pipelineClose();
     }
 }
