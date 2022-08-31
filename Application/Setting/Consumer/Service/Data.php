@@ -275,6 +275,9 @@ class Data extends AbstractData
         $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson', TblSetting::TYPE_BOOLEAN, '0',
             'Klassenbücher', 'Klassentagebuch beginnt mit der 0. Unterrichtseinheit [Standard: Nein]', true
         );
+        $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'SaturdayLessonsSchoolTypes', TblSetting::TYPE_STRING, '',
+            'Klassenbücher', 'Samstags-Unterricht und Samstags-Fehlzeiten sind für folgende Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) möglich.
+             Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', true);
 
         // Leistungsüberprüfungen public
         $this->createSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading',

@@ -9,6 +9,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -256,6 +257,22 @@ class TblGroup extends Element
     {
         if (($list = $this->getCurrentCompanyList())) {
             return reset($list);
+        }
+
+        return false;
+    }
+
+    /**
+     * @return false|TblType
+     */
+    public function getCurrentSchoolTypeSingle()
+    {
+        if (($list = $this->getCurrentDivisionList())) {
+            foreach ($list as $tblDivision) {
+                if (($tblSchoolType = $tblDivision->getType())) {
+                    return $tblSchoolType;
+                }
+            }
         }
 
         return false;

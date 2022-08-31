@@ -27,6 +27,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -74,8 +75,6 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
-use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class Service extends AbstractService
 {
@@ -1780,5 +1779,23 @@ class Service extends AbstractService
         }
 
         return '';
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     *
+     * @return bool
+     */
+    public function getHasSaturdayLessonsBySchoolType(TblType $tblSchoolType): bool
+    {
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'SaturdayLessonsSchoolTypes'))
+            && ($tblSetting->getValue())
+            && ($tblSchoolTypeAllowedList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
+            && isset($tblSchoolTypeAllowedList[$tblSchoolType->getId()])
+        ) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

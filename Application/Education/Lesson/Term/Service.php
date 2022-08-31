@@ -1189,14 +1189,15 @@ class Service extends AbstractService
      * @param string $date
      * @param TblYear $tblYear
      * @param array $tblCompanyList
+     * @param bool $hasSaturdayLessons
      *
      * @return bool
      */
-    public function getIsSchoolWeekHoliday(string $date, TblYear $tblYear, array $tblCompanyList)
+    public function getIsSchoolWeekHoliday(string $date, TblYear $tblYear, array $tblCompanyList, bool $hasSaturdayLessons = false): bool
     {
         $date = new DateTime($date);
         $isHoliday = false;
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < $hasSaturdayLessons ? 6 : 5; $i++) {
             if ($i > 0) {
                 $date->add(new DateInterval('P1D'));
             }

@@ -101,17 +101,17 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         }
 
         $subjectGroupList = array();
-        if (($tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblMainDivision))
-            && $tblPerson
-        ) {
+        if (($tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblMainDivision))) {
             foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
                 if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
                     && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
                     && $tblDivisionSubject->getHasGrading()
                 ) {
                     // Fachlehrer benötigt einen Lehrauftrag
-                    if ($isTeacher && !Division::useService()->existsSubjectTeacher($tblPerson, $tblDivisionSubject)) {
-                        continue;
+                    if ($isTeacher) {
+                        if (!$tblPerson || !Division::useService()->existsSubjectTeacher($tblPerson, $tblDivisionSubject)) {
+                            continue;
+                        }
                     }
 
                     $subjectGroupList[] = array(
@@ -130,7 +130,6 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 }
             }
         }
-
 
         $stage->setContent(
             new Layout(new LayoutGroup(array(

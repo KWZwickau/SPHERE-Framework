@@ -547,16 +547,49 @@ class Frontend extends FrontendTabs
     ): string {
         $DivisionId = $tblDivision ? $tblDivision->getId() : null;
         $GroupId = $tblGroup ? $tblGroup->getId() : null;
+
+        if ($tblDivision) {
+            $tblYear = $tblDivision->getServiceTblYear();
+            if ($tblDivision->getServiceTblCompany()) {
+                $tblCompanyList[] = $tblDivision->getServiceTblCompany();
+            } else {
+                $tblCompanyList = array();
+            }
+            $tblSchoolType = $tblDivision->getType();
+            $Type = 'Division';
+            $TypeId = $DivisionId;
+        } elseif ($tblGroup) {
+            $tblYear = $tblGroup->getCurrentYear();
+            $tblCompanyList = $tblGroup->getCurrentCompanyList();
+            $tblSchoolType = $tblGroup->getCurrentSchoolTypeSingle();
+            $Type = 'Group';
+            $TypeId = $tblGroup->getId();
+        } else {
+            $tblYear = false;
+            $tblCompanyList = array();
+            $tblSchoolType = false;
+            $Type = null;
+            $TypeId = null;
+        }
+
         $date = new DateTime($DateString);
         $dayAtWeek = $date->format('w');
         $addDays = 1;
         $subDays = 1;
-        // nur zwischen Wochentagen springen
-        switch ($dayAtWeek) {
-            case 0: $subDays = 2; break;
-            case 1: $subDays = 3; break;
-            case 5: $addDays = 3; break;
-            case 6: $addDays = 2; break;
+        if ($tblSchoolType && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+            // nur zwischen Wochentagen springen
+            switch ($dayAtWeek) {
+                case 1: $subDays = 2; break;
+                case 6: $addDays = 2; break;
+            }
+        } else {
+            // nur zwischen Wochentagen springen
+            switch ($dayAtWeek) {
+                case 0: $subDays = 2; break;
+                case 1: $subDays = 3; break;
+                case 5: $addDays = 3; break;
+                case 6: $addDays = 2; break;
+            }
         }
         $nextDate = new DateTime($DateString);
         $nextDate = $nextDate->add(new DateInterval('P'. $addDays . 'D'));
@@ -572,26 +605,6 @@ class Frontend extends FrontendTabs
             '6' => 'Samstag',
         );
 
-        if ($tblDivision) {
-            $tblYear = $tblDivision->getServiceTblYear();
-            if ($tblDivision->getServiceTblCompany()) {
-                $tblCompanyList[] = $tblDivision->getServiceTblCompany();
-            } else {
-                $tblCompanyList = array();
-            }
-            $Type = 'Division';
-            $TypeId = $DivisionId;
-        } elseif ($tblGroup) {
-            $tblYear = $tblGroup->getCurrentYear();
-            $tblCompanyList = $tblGroup->getCurrentCompanyList();
-            $Type = 'Group';
-            $TypeId = $tblGroup->getId();
-        } else {
-            $tblYear = false;
-            $tblCompanyList = array();
-            $Type = null;
-            $TypeId = null;
-        }
         // Ferien, Feiertage
         $isHoliday = false;
         if ($tblYear) {
@@ -886,12 +899,25 @@ class Frontend extends FrontendTabs
             } else {
                 $tblCompanyList = array();
             }
+            $tblSchoolType = $tblDivision->getType();
         } elseif ($tblGroup) {
             $tblYear = $tblGroup->getCurrentYear();
             $tblCompanyList = $tblGroup->getCurrentCompanyList();
+            $tblSchoolType = $tblGroup->getCurrentSchoolTypeSingle();
         } else {
             $tblYear = false;
             $tblCompanyList = array();
+            $tblSchoolType = false;
+        }
+
+        if ($tblSchoolType && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+            $daysInWeek = 6;
+            $widthLesson =  '4%';
+            $widthDay = '16%';
+        } else {
+            $daysInWeek = 5;
+            $widthLesson =  '5%';
+            $widthDay = '19%';
         }
 
         $currentWeek =  (int) $date->format('W');
@@ -923,7 +949,7 @@ class Frontend extends FrontendTabs
             $minLesson = 1;
         }
         $headerList = array();
-        $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), '5%');
+        $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), $widthLesson);
         $bodyList = array();
         $dateStringList = array();
         $holidayList = array();
@@ -952,7 +978,7 @@ class Frontend extends FrontendTabs
             return new Warning('Kein Schuljahr gefunden', new Exclamation());
         }
 
-        for ($day = 1; $day < 6; $day++) {
+        for ($day = 1; $day <= $daysInWeek; $day++) {
             // Ferien, Feiertage
             $isHoliday = false;
             if ($tblCompanyList) {
@@ -974,7 +1000,7 @@ class Frontend extends FrontendTabs
             $headerContent = $dayName[$day] . new Muted(', den ' . $startDate->format('d.m.Y'));
             $headerList[$day] = $this->getTableHeadColumn(
                 $isCurrentDay ? $this->getTextColor($headerContent, 'darkorange') : $headerContent,
-                '19%',
+                $widthDay,
                 $isHoliday ? 'lightgray' : '#E0F0FF'
             );
             $dateStringList[$day] = $startDate->format('d.m.Y');
@@ -1029,7 +1055,7 @@ class Frontend extends FrontendTabs
                 ->setVerticalAlign('middle')
                 ->setMinHeight('30px')
                 ->setPadding('3');
-            for ($j = 1; $j< 6; $j++ ) {
+            for ($j = 1; $j<= $daysInWeek; $j++ ) {
                 $isHoliday = isset($holidayList[$j]);
                 if (isset($bodyList[$i][$j])) {
                     $cell = $bodyList[$i][$j];
