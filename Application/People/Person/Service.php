@@ -330,13 +330,13 @@ class Service extends AbstractService
         $PersonList = array();
 
         foreach($tblPersonList as $tblPerson){
-            if($Birthday !== null){
+            if($Birthday){
                 $BirthdayTemp = $tblPerson->getBirthday();
                 if($Birthday != $BirthdayTemp){
                     continue;
                 }
             }
-            if($Code !== null){
+            if($Code){
                 if(($tblAddress = Address::useService()->getAddressByPerson($tblPerson))){
                     if(($tblCity = $tblAddress->getTblCity())){
                         $CodeTemp = $tblCity->getCode();
@@ -350,7 +350,7 @@ class Service extends AbstractService
                     continue;
                 }
             }
-            if($Identifier !== null){
+            if($Identifier){
                 if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
                     if ($Identifier != $tblStudent->getIdentifier()) {
                         continue;
