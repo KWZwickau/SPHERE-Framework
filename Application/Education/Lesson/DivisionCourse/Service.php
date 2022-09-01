@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Setup;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -293,6 +294,19 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->getDivisionCourseMemberById($Id);
     }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourseMemberType $tblMemberType
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDivisionCourseMember
+     */
+    public function getDivisionCourseMemberByPerson(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType, TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblMemberType, $tblPerson);
+    }
+
     /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param string $memberTypeIdentifier
@@ -301,7 +315,7 @@ class Service extends AbstractService
      *
      * @return TblDivisionCourseMember[]|TblPerson[]|false
      */
-    public function getDivisionCourseMemberBy(TblDivisionCourse $tblDivisionCourse, string $memberTypeIdentifier, bool $withInActive = false, bool $isResultPersonList = true)
+    public function getDivisionCourseMemberListBy(TblDivisionCourse $tblDivisionCourse, string $memberTypeIdentifier, bool $withInActive = false, bool $isResultPersonList = true)
     {
         $memberList = false;
         $tblMemberType = $this->getDivisionCourseMemberTypeByIdentifier($memberTypeIdentifier);
@@ -314,7 +328,7 @@ class Service extends AbstractService
                 $memberList = (new Data($this->getBinding()))->getDivisionCourseMemberStudentByCoreGroup($tblDivisionCourse);
             }
         } elseif ($tblMemberType) {
-            $memberList = (new Data($this->getBinding()))->getDivisionCourseMemberBy($tblDivisionCourse, $tblMemberType);
+            $memberList = (new Data($this->getBinding()))->getDivisionCourseMemberListBy($tblDivisionCourse, $tblMemberType);
         }
 
         if (!empty ($memberList)) {
@@ -380,6 +394,41 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function addStudentToDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson): bool
+    {
+        // Schüler in Klassen und Stammgruppen werden anders gespeichert (TblStudentEducation)
+        if (($tblDivisionCourseType = $tblDivisionCourse->getType())
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+        ) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                if ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
+                    $tblStudentEducation->setTblDivision($tblDivisionCourse);
+                    $tblStudentEducation->setDivisionSortOrder(null);
+                } else {
+                    $tblStudentEducation->setTblCoreGroup($tblDivisionCourse);
+                    $tblStudentEducation->setCoreGroupSortOrder(null);
+                }
+
+                return (new Data($this->getBinding()))->updateStudentEducation($tblStudentEducation);
+            }
+        } else {
+           if ((new Data($this->getBinding()))->addDivisionCourseMemberToDivisionCourse(
+               $tblDivisionCourse, $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT), $tblPerson
+           )) {
+               return true;
+           }
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblDivisionCourseMember $tblDivisionCourseMember
      *
      * @return bool
@@ -387,6 +436,52 @@ class Service extends AbstractService
     public function removeDivisionCourseMemberFromDivisionCourse(TblDivisionCourseMember $tblDivisionCourseMember): bool
     {
         return (new Data($this->getBinding()))->removeDivisionCourseMemberFromDivisionCourse($tblDivisionCourseMember);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function removeStudentFromDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson): bool
+    {
+        // Schüler in Klassen und Stammgruppen werden anders gespeichert (TblStudentEducation)
+        if (($tblDivisionCourseType = $tblDivisionCourse->getType())
+            && ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+        ) {
+            if ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
+                if (($tblStudentEducationList = (new Data($this->getBinding()))->getStudentEducationListByDivision($tblDivisionCourse, $tblPerson))) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        $tblStudentEducation->setTblDivision(null);
+                        $tblStudentEducation->setDivisionSortOrder(null);
+
+                        (new Data($this->getBinding()))->updateStudentEducation($tblStudentEducation);
+                    }
+
+                    return true;
+                }
+            } elseif ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP) {
+                if (($tblStudentEducationList = (new Data($this->getBinding()))->getStudentEducationListByCoreGroup($tblDivisionCourse, $tblPerson))) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        $tblStudentEducation->setTblCoreGroup(null);
+                        $tblStudentEducation->setCoreGroupSortOrder(null);
+
+                        (new Data($this->getBinding()))->updateStudentEducation($tblStudentEducation);
+                    }
+
+                    return true;
+                }
+            }
+        } else {
+            if (($tblDivisionCourseMember = (new Data($this->getBinding()))->getDivisionCourseMemberByPerson(
+                $tblDivisionCourse, $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT), $tblPerson
+            ))) {
+                return (new Data($this->getBinding()))->removeDivisionCourseMemberFromDivisionCourse($tblDivisionCourseMember);
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -505,7 +600,7 @@ class Service extends AbstractService
         $genderList = array();
         $genders = '';
 
-        if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+        if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
             TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
         ) {
             foreach ($tblStudentMemberList as $tblStudentMember) {
@@ -535,5 +630,16 @@ class Service extends AbstractService
         $students = $countActive . ($countInActive > 0 ? ' + ' . new ToolTip('(' . $countInActive . new Info() . ')', $toolTip) : '');
 
         return array($students, $genders);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblStudentEducation
+     */
+    public function getStudentEducationByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
     }
 }

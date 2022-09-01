@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseMember;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -22,6 +23,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
@@ -39,6 +41,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
@@ -205,7 +208,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $item['Genders'] = $genders;
 
                     $item['Teachers'] = '';
-                    if (($tblTeacherList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))) {
+                    if (($tblTeacherList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))) {
                         foreach ($tblTeacherList as $tblPersonTeacher) {
                             if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonTeacher))
                                 && ($acronym = $tblTeacher->getAcronym())
@@ -485,7 +488,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $studentList = array();
-            if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+            if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
                 TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
             ) {
                 foreach ($tblStudentMemberList as $tblStudentMember) {
@@ -551,7 +554,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             // Gruppenleiter
             $divisionTeacherList = array();
-            if (($tblDivisionTeacherMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+            if (($tblDivisionTeacherMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
                 TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER, false, false))
             ) {
                 foreach ($tblDivisionTeacherMemberList as $tblDivisionTeacherMember) {
@@ -566,7 +569,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             // Schülersprecher
             $representativeList = array();
-            if (($tblRepresentativeMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+            if (($tblRepresentativeMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
                 TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false))
             ) {
                 foreach ($tblRepresentativeMemberList as $tblRepresentativeMember) {
@@ -581,7 +584,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             // Elternvertreter
             $custodyList = array();
-            if (($tblCustodyMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+            if (($tblCustodyMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
                 TblDivisionCourseMemberType::TYPE_CUSTODY, false, false))
             ) {
                 foreach ($tblCustodyMemberList as $tblCustodyMember) {
@@ -640,7 +643,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new TableData($studentList, null, $studentColumnList, false)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler in der ' . $text
-//                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId()))
+                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId()))
                         . ' | '
                         . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
                             array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_STUDENT))
@@ -700,6 +703,235 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
+    public function frontendDivisionCourseStudent($DivisionCourseId = null): Stage
+    {
+        $stage = new Stage('Schüler', '');
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(), array('DivisionCourseId' => $tblDivisionCourse->getId()))));
+            $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
+            $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
+            if ($tblDivisionCourse->getDescription()) {
+                $stage->setMessage($tblDivisionCourse->getDescription());
+            }
+
+            $stage->setContent(
+                DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
+                . ApiDivisionCourseMember::receiverBlock($this->loadStudentContent($DivisionCourseId), 'StudentContent')
+            );
+        } else {
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse', new ChevronLeft())));
+            $stage->setContent(new Warning('Kurs nicht gefunden', new Exclamation()));
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadStudentContent($DivisionCourseId): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $text = 'Schüler';
+            $selectedList = array();
+            if (($tblMemberList =  DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT, true, false))) {
+                $count = 0;
+                foreach ($tblMemberList as $tblMember) {
+                    if (($tblPerson = $tblMember->getServiceTblPerson())) {
+                        $isInActive = $tblMember->isInActive();
+                        $name = $tblPerson->getLastFirstName();
+                        $address = ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt');
+                        $selectedList[$tblPerson->getId()] = array(
+                            'Number' => ++$count,
+                            'Name' => $isInActive ? new Strikethrough($name) : $name,
+                            'Address' => $isInActive ? new Strikethrough($address) : $address,
+                            // todo deaktivieren für Klassenwechsel im Schuljahr
+                            'Option' => (new Standard('', ApiDivisionCourseMember::getEndpoint(), new MinusSign(), array(),  $text . ' entfernen'))
+                                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineRemoveStudent($tblDivisionCourse->getId(), $tblPerson->getId()))
+                        );
+                    }
+                }
+            }
+
+            $availableList = array();
+            // todo suche oder tabelle
+//            if (($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
+//                && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+//            ) {
+//                foreach ($tblPersonList as $tblPerson) {
+//                    if (!isset($selectedList[$tblPerson->getId()])) {
+//                        $availableList[$tblPerson->getId()] = array(
+//                            'Name' => $tblPerson->getLastFirstName(),
+//                            'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+//                            'Option' => (new Form(
+//                                new FormGroup(
+//                                    new FormRow(array(
+//                                        new FormColumn(
+//                                            new TextField('Data[Description]', 'z.B.: Stellvertreter')
+//                                            , 9),
+//                                        new FormColumn(
+//                                            (new Standard('', ApiDivisionCourseMember::getEndpoint(), new PlusSign(), array(), 'Hinzufügen'))
+//                                                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineAddStudent($DivisionCourseId, $tblPerson->getId()))
+//                                            , 3)
+//                                    ))
+//                                )
+//                            ))->__toString()
+//                        );
+//                    }
+//                }
+//            }
+
+            $columns = array(
+                'Number' => '#',
+                'Name' => 'Name',
+                'Address' => 'Adresse',
+                'Option' => ''
+            );
+            if ($selectedList) {
+                $left = (new TableData($selectedList, new Title('Ausgewählte', $text), $columns, array(
+                    'columnDefs' => array(
+                        array('type' => 'natural', 'targets' => 0),
+                        array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                    ),
+                    'pageLength' => self::PAGE_LENGTH,
+                    'responsive' => false
+                )))->setHash(__NAMESPACE__ . 'StudentSelected');
+            } else {
+                $left = new Info('Keine ' . $text . ' ausgewählt');
+            }
+//            if ($availableList) {
+//                unset($columns['Description']);
+//                $right = (new TableData($availableList, new Title('Verfügbare', $text), $columns, $this->getInteractiveRight()))
+//                    ->setHash(__NAMESPACE__ . 'StudentAvailable');
+//            } else {
+//                $right = new Info('Keine weiteren ' . $text . ' verfügbar');
+//            }
+
+            $right = ApiDivisionCourseMember::receiverBlock(
+                new Panel(
+                    'Schüler',
+                    new Form(new FormGroup(new FormRow(new FormColumn(array(
+                        (new TextField(
+                            'Data[Search]',
+                            '',
+                            'Suche',
+                            new Search()
+                        ))->ajaxPipelineOnKeyUp(ApiDivisionCourseMember::pipelineSearchPerson($DivisionCourseId))
+                    )))))
+                    . ApiDivisionCourseMember::receiverBlock($this->loadPersonSearch($DivisionCourseId, '', null), 'SearchPerson')
+                    , Panel::PANEL_TYPE_INFO
+                )
+            );
+
+            return new Layout(new LayoutGroup(array(new LayoutRow(array(
+                new LayoutColumn($left, 6),
+                new LayoutColumn($right, 6)
+            )))));
+        }
+
+        return new Danger('Kurs nicht gefunden!', new Exclamation());
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Search
+     *
+     * @return string
+     */
+    public function loadPersonSearch($DivisionCourseId, $Search): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if ($Search != '' && strlen($Search) > 2) {
+            $resultList = array();
+            $result = '';
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+                && ($tblPersonList = \SPHERE\Application\People\Person\Person::useService()->getPersonListLike($Search))
+            ) {
+                $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+                foreach ($tblPersonList as $tblPerson) {
+                    // nur nach Schülern suchen
+                    if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                        if (($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION)
+                            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                            && ($tblDivisionCourseDivision = $tblStudentEducation->getTblDivision())
+                        ) {
+                            // Schüler ist bereits im Kurs
+                            if ($tblDivisionCourseDivision->getId() == $tblDivisionCourse->getId()) {
+                                continue;
+                            }
+                            $option = new WarningText($tblDivisionCourseDivision->getName());
+                        } elseif (($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+                            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                            && ($tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                        ) {
+                            // Schüler ist bereits im Kurs
+                            if ($tblDivisionCourseCoreGroup->getId() == $tblDivisionCourse->getId()) {
+                                continue;
+                            }
+                            $option = new WarningText($tblDivisionCourseCoreGroup->getName());
+                        } else {
+                            // Schüler ist bereits im Kurs
+                            if (DivisionCourse::useService()->getDivisionCourseMemberByPerson(
+                                $tblDivisionCourse,
+                                DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT),
+                                $tblPerson
+                            )) {
+                                continue;
+                            }
+                            $option = (new Standard('', ApiDivisionCourseMember::getEndpoint(), new PlusSign(), array(),  'Schüler hinzufügen'))
+                                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineAddStudent($tblDivisionCourse->getId(), $tblPerson->getId()));
+                        }
+
+                        $resultList[] = array(
+                            'Name' => $tblPerson->getLastFirstName(),
+                            'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                            'Option' => $option
+                        );
+                    }
+                }
+
+                $result = new TableData(
+                    $resultList,
+                    null,
+                    array(
+                        'Name' => 'Name',
+                        'Address' => 'Adresse',
+                        'Option' => ''
+                    ),
+                    array(
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                            array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                        ),
+                        'pageLength' => -1,
+                        'paging' => false,
+                        'info' => false,
+                        'searching' => false,
+                        'responsive' => false
+                    )
+                );
+            }
+
+            if (empty($resultList)) {
+                $result = new Warning('Es wurden keine entsprechenden Schüler gefunden.', new Ban());
+            }
+        } else {
+            $result =  new Warning('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     *
+     * @return Stage
+     */
     public function frontendDivisionCourseDivisionTeacher($DivisionCourseId = null): Stage
     {
         $stage = new Stage('Klassenlehrer', '');
@@ -734,7 +966,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $text = $tblDivisionCourse->getDivisionTeacherName();
             $selectedList = array();
-            if (($tblMemberList =  DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+            if (($tblMemberList =  DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
                 TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER, false, false))
             ) {
                 foreach ($tblMemberList as $tblMember) {
@@ -844,7 +1076,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $text = 'Schülersprecher';
             $selectedList = array();
-            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
                 TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false))
             ) {
                 foreach ($tblMemberList as $tblMember) {
@@ -952,7 +1184,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $text = 'Elternvertreter';
             $selectedList = array();
-            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse,
+            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
                 TblDivisionCourseMemberType::TYPE_CUSTODY, false, false))
             ) {
                 foreach ($tblMemberList as $tblMember) {
@@ -1096,7 +1328,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $memberTable = array();
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
-            && $tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, $MemberTypeIdentifier, true, false)
+            && $tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, $MemberTypeIdentifier, true, false)
         ) {
             $count = 0;
             foreach ($tblMemberList as $tblMember) {

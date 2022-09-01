@@ -40,6 +40,11 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
+        $Dispatcher->registerMethod('loadStudentContent');
+        $Dispatcher->registerMethod('searchPerson');
+        $Dispatcher->registerMethod('addStudent');
+        $Dispatcher->registerMethod('removeStudent');
+
         $Dispatcher->registerMethod('loadDivisionTeacherContent');
         $Dispatcher->registerMethod('addDivisionTeacher');
         $Dispatcher->registerMethod('removeDivisionTeacher');
@@ -87,6 +92,160 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
 
         return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentContent($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadStudentContent($DivisionCourseId): string
+    {
+        return DivisionCourse::useFrontend()->loadStudentContent($DivisionCourseId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSearchPerson($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SearchPerson'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'searchPerson',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function searchPerson($DivisionCourseId = null, $Data = null): string
+    {
+        return DivisionCourse::useFrontend()->loadPersonSearch($DivisionCourseId, isset($Data['Search']) ? trim($Data['Search']) : '');
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineAddStudent($DivisionCourseId, $PersonId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'addStudent'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     *
+     * @return string
+     */
+    public function addStudent($DivisionCourseId, $PersonId)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Schüler wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->addStudentToDivisionCourse($tblDivisionCourse, $tblPerson)) {
+            return new Success('Schüler wurde erfolgreich hinzugefügt.')
+                . self::pipelineLoadStudentContent($DivisionCourseId);
+        } else {
+            return new Danger('Schüler konnte nicht hinzugefügt werden.');
+        }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineRemoveStudent($DivisionCourseId, $PersonId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'removeStudent'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     *
+     * @return string
+     */
+    public function removeStudent($DivisionCourseId, $PersonId)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Schüler wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->removeStudentFromDivisionCourse($tblDivisionCourse, $tblPerson)) {
+            return new Success('Schüler wurde erfolgreich entfernt.')
+                . self::pipelineLoadStudentContent($DivisionCourseId);
+        } else {
+            return new Danger('Schüler konnte nicht entfernt werden.');
+        }
     }
 
     /**
@@ -592,7 +751,7 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
         }
 
         if ($sortType == 'Sortierung Geschlecht (alphabetisch)') {
-            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, $MemberTypeIdentifier, true, false))) {
+            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, $MemberTypeIdentifier, true, false))) {
                 $maleList = array();
                 $femaleList = array();
                 $otherList = array();
@@ -629,7 +788,7 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
             }
         // 'Sortierung alphabetisch'
         } else {
-            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, $MemberTypeIdentifier, true, false))) {
+            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, $MemberTypeIdentifier, true, false))) {
                 $tblMemberList = (new Extension())->getSorter($tblMemberList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
             }
         }

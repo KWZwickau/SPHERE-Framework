@@ -455,8 +455,22 @@ class Data extends MigrateData
     {
         return $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
             TblStudentEducation::ATTR_TBL_DIVISION => $tblDivisionCourse->getId(),
-            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson,
+            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
             TblStudentEducation::ATTR_LEAVE_DATE => $leaveDate
+        ));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblStudentEducation[]
+     */
+    public function getStudentEducationListByDivision(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+            TblStudentEducation::ATTR_TBL_DIVISION => $tblDivisionCourse->getId(),
+            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
     }
 
@@ -471,9 +485,58 @@ class Data extends MigrateData
     {
         return $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
             TblStudentEducation::ATTR_TBL_CORE_GROUP => $tblDivisionCourse->getId(),
-            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson,
+            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
             TblStudentEducation::ATTR_LEAVE_DATE => $leaveDate
         ));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblStudentEducation[]
+     */
+    public function getStudentEducationListByCoreGroup(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+            TblStudentEducation::ATTR_TBL_CORE_GROUP => $tblDivisionCourse->getId(),
+            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblStudentEducation
+     */
+    public function getStudentEducationByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        return $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblStudentEducation::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
+            TblStudentEducation::ATTR_LEAVE_DATE => null
+        ));
+    }
+
+    /**
+     * @param TblStudentEducation $tblStudentEducation
+     *
+     * @return bool
+     */
+    public function updateStudentEducation(TblStudentEducation $tblStudentEducation): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var TblStudentEducation $Protocol */
+        $Protocol = $Manager->getEntityById('TblStudentEducation', $tblStudentEducation->getId());
+        if (null !== $Protocol) {
+            $Manager->saveEntity($tblStudentEducation);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $tblStudentEducation);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -646,11 +709,27 @@ class Data extends MigrateData
      *
      * @return TblDivisionCourseMember[]|false
      */
-    public function getDivisionCourseMemberBy(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType)
+    public function getDivisionCourseMemberListBy(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType)
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseMember', array(
             TblDivisionCourseMember::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
             TblDivisionCourseMember::ATTR_TBL_MEMBER_TYPE => $tblMemberType->getId()
+        ));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourseMemberType $tblMemberType
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDivisionCourseMember
+     */
+    public function getDivisionCourseMemberByPerson(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType, TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseMember', array(
+            TblDivisionCourseMember::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+            TblDivisionCourseMember::ATTR_TBL_MEMBER_TYPE => $tblMemberType->getId(),
+            TblDivisionCourseMember::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
     }
 
@@ -663,7 +742,7 @@ class Data extends MigrateData
      * @return TblDivisionCourseMember
      */
     public function addDivisionCourseMemberToDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType,
-        TblPerson $tblPerson, string $description): TblDivisionCourseMember
+        TblPerson $tblPerson, string $description = ''): TblDivisionCourseMember
     {
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionCourseMember')

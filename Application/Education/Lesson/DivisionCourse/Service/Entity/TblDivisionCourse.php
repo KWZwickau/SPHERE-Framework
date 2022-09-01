@@ -265,7 +265,7 @@ class TblDivisionCourse extends Element
      * @return false|TblPerson[]
      */
     public function getStudents(bool $withInActive = false) {
-        return DivisionCourse::useService()->getDivisionCourseMemberBy($this, TblDivisionCourseMemberType::TYPE_STUDENT, $withInActive);
+        return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_STUDENT, $withInActive);
     }
 
     /**

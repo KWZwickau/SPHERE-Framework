@@ -352,13 +352,13 @@ class ApiDivisionCourse extends Extension implements IApiInterface
         if (($students = $tblDivisionCourse->getStudents())) {
             $countStudents = count($students);
         }
-        if (($divisionTeachers = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))) {
+        if (($divisionTeachers = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))) {
             $countDivisionTeachers = count($divisionTeachers);
         }
-        if (($custodyList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY))) {
+        if (($custodyList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY))) {
             $countCustodyList = count($custodyList);
         }
-        if (($representatives = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))) {
+        if (($representatives = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))) {
             $countRepresentatives = count($representatives);
         }
 

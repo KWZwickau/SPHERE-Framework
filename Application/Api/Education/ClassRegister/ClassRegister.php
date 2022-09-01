@@ -57,7 +57,7 @@ class ClassRegister extends Extension implements IModuleInterface
             && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Additional['DivisionCourseId']))
             && ($tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier($Additional['MemberTypeIdentifier']))
         ) {
-            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberBy($tblDivisionCourse, $Additional['MemberTypeIdentifier'], true, false))) {
+            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, $Additional['MemberTypeIdentifier'], true, false))) {
                 $count = 1;
                 $updateList = array();
                 foreach ($tblMemberList as $tblMember) {
