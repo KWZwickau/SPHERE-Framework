@@ -44,6 +44,7 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadAddStudentContent');
         $Dispatcher->registerMethod('searchPerson');
         $Dispatcher->registerMethod('selectDivisionCourse');
+        $Dispatcher->registerMethod('searchProspect');
         $Dispatcher->registerMethod('addStudent');
         $Dispatcher->registerMethod('removeStudent');
 
@@ -224,6 +225,38 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
     public function selectDivisionCourse($DivisionCourseId = null, $Data = null): string
     {
         return DivisionCourse::useFrontend()->loadSelectDivisionCourse($DivisionCourseId, $Data['DivisionCourseId'] ?? null);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSearchProspect($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SearchPerson'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'searchProspect',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function searchProspect($DivisionCourseId = null, $Data = null): string
+    {
+        return DivisionCourse::useFrontend()->loadProspectSearch($DivisionCourseId, isset($Data['Search']) ? trim($Data['Search']) : '');
     }
 
     /**

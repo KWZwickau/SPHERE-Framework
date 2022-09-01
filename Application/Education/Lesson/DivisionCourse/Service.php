@@ -416,6 +416,20 @@ class Service extends AbstractService
                 }
 
                 return (new Data($this->getBinding()))->updateStudentEducation($tblStudentEducation);
+            } else {
+                // Interessent
+                $tblStudentEducation = new TblStudentEducation();
+                $tblStudentEducation->setServiceTblPerson($tblPerson);
+                $tblStudentEducation->setServiceTblYear($tblYear);
+                if ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
+                    $tblStudentEducation->setTblDivision($tblDivisionCourse);
+                } else {
+                    $tblStudentEducation->setTblCoreGroup($tblDivisionCourse);
+                }
+
+                if ((new Data($this->getBinding()))->createStudentEducation($tblStudentEducation)) {
+                    return true;
+                }
             }
         } else {
            if ((new Data($this->getBinding()))->addDivisionCourseMemberToDivisionCourse(

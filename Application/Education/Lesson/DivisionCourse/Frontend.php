@@ -8,11 +8,14 @@ use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBo
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -845,7 +848,19 @@ class Frontend extends Extension implements IFrontendInterface
                     , Panel::PANEL_TYPE_INFO
                 );
             case 'ProspectSearch':
-                return 'Interessenten suche';
+                return new Panel(
+                    'Interessenten',
+                    new Form(new FormGroup(new FormRow(new FormColumn(array(
+                        (new TextField(
+                            'Data[Search]',
+                            '',
+                            'Suche',
+                            new Search()
+                        ))->ajaxPipelineOnKeyUp(ApiDivisionCourseMember::pipelineSearchProspect($DivisionCourseId))
+                    )))))
+                    . ApiDivisionCourseMember::receiverBlock($this->loadProspectSearch($DivisionCourseId, ''), 'SearchPerson')
+                    , Panel::PANEL_TYPE_INFO
+                );
         }
 
         return '';
@@ -873,42 +888,13 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblPersonList as $tblPerson) {
                     // nur nach Schülern suchen
                     if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
-                        if (($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION)
-                            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
-                            && ($tblDivisionCourseDivision = $tblStudentEducation->getTblDivision())
-                        ) {
-                            // Schüler ist bereits im Kurs
-                            if ($tblDivisionCourseDivision->getId() == $tblDivisionCourse->getId()) {
-                                continue;
-                            }
-                            $option = new WarningText($tblDivisionCourseDivision->getName());
-                        } elseif (($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
-                            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
-                            && ($tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup())
-                        ) {
-                            // Schüler ist bereits im Kurs
-                            if ($tblDivisionCourseCoreGroup->getId() == $tblDivisionCourse->getId()) {
-                                continue;
-                            }
-                            $option = new WarningText($tblDivisionCourseCoreGroup->getName());
-                        } else {
-                            // Schüler ist bereits im Kurs
-                            if (DivisionCourse::useService()->getDivisionCourseMemberByPerson(
-                                $tblDivisionCourse,
-                                DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT),
-                                $tblPerson
-                            )) {
-                                continue;
-                            }
-                            $option = (new Standard('', ApiDivisionCourseMember::getEndpoint(), new PlusSign(), array(),  'Schüler hinzufügen'))
-                                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineAddStudent($tblDivisionCourse->getId(), $tblPerson->getId(), 'StudentSearch'));
+                        if (($option = $this->getStudentAddOptionByPerson($tblPerson, $tblDivisionCourse, $tblYear, 'StudentSearch'))) {
+                            $resultList[] = array(
+                                'Name' => $tblPerson->getLastFirstName(),
+                                'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                                'Option' => $option
+                            );
                         }
-
-                        $resultList[] = array(
-                            'Name' => $tblPerson->getLastFirstName(),
-                            'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
-                            'Option' => $option
-                        );
                     }
                 }
 
@@ -945,6 +931,50 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblYear $tblYear
+     * @param $AddStudentVariante
+     *
+     * @return false|string
+     */
+    private function getStudentAddOptionByPerson(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblYear $tblYear, $AddStudentVariante)
+    {
+        if (($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION)
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblDivisionCourseDivision = $tblStudentEducation->getTblDivision())
+        ) {
+            // Schüler ist bereits im Kurs
+            if ($tblDivisionCourseDivision->getId() == $tblDivisionCourse->getId()) {
+                return false;
+            }
+            $option = new WarningText($tblDivisionCourseDivision->getName());
+        } elseif (($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup())
+        ) {
+            // Schüler ist bereits im Kurs
+            if ($tblDivisionCourseCoreGroup->getId() == $tblDivisionCourse->getId()) {
+                return false;
+            }
+            $option = new WarningText($tblDivisionCourseCoreGroup->getName());
+        } else {
+            // Schüler ist bereits im Kurs
+            if (DivisionCourse::useService()->getDivisionCourseMemberByPerson(
+                $tblDivisionCourse,
+                DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT),
+                $tblPerson
+            )) {
+                return false;
+            }
+            $option = (new Standard('', ApiDivisionCourseMember::getEndpoint(), new PlusSign(), array(),  'Schüler hinzufügen'))
+                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineAddStudent($tblDivisionCourse->getId(), $tblPerson->getId(), $AddStudentVariante));
+        }
+
+        return $option;
+    }
+
+    /**
      * @param $DivisionCourseId
      * @param $SelectedDivisionCourseId
      *
@@ -963,43 +993,13 @@ class Frontend extends Extension implements IFrontendInterface
             $result = '';
             if (($tblPersonList =  DivisionCourse::useService()->getDivisionCourseMemberListBy($tblSelectedDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT))) {
                 foreach ($tblPersonList as $tblPerson) {
-                    // todo als methode auslagern
-                    if (($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION)
-                        && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
-                        && ($tblDivisionCourseDivision = $tblStudentEducation->getTblDivision())
-                    ) {
-                        // Schüler ist bereits im Kurs
-                        if ($tblDivisionCourseDivision->getId() == $tblDivisionCourse->getId()) {
-                            continue;
-                        }
-                        $option = new WarningText($tblDivisionCourseDivision->getName());
-                    } elseif (($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
-                        && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
-                        && ($tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup())
-                    ) {
-                        // Schüler ist bereits im Kurs
-                        if ($tblDivisionCourseCoreGroup->getId() == $tblDivisionCourse->getId()) {
-                            continue;
-                        }
-                        $option = new WarningText($tblDivisionCourseCoreGroup->getName());
-                    } else {
-                        // Schüler ist bereits im Kurs
-                        if (DivisionCourse::useService()->getDivisionCourseMemberByPerson(
-                            $tblDivisionCourse,
-                            DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT),
-                            $tblPerson
-                        )) {
-                            continue;
-                        }
-                        $option = (new Standard('', ApiDivisionCourseMember::getEndpoint(), new PlusSign(), array(),  'Schüler hinzufügen'))
-                            ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineAddStudent($tblDivisionCourse->getId(), $tblPerson->getId(), 'CourseSelect'));
+                    if (($option = $this->getStudentAddOptionByPerson($tblPerson, $tblDivisionCourse, $tblYear, 'CourseSelect'))) {
+                        $resultList[] = array(
+                            'Name' => $tblPerson->getLastFirstName(),
+                            'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                            'Option' => $option
+                        );
                     }
-
-                    $resultList[] = array(
-                        'Name' => $tblPerson->getLastFirstName(),
-                        'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
-                        'Option' => $option
-                    );
                 }
 
                 $result = new TableData(
@@ -1028,6 +1028,79 @@ class Frontend extends Extension implements IFrontendInterface
             }
         } else {
             $result =  new Warning('Bitte wählen Sie einen Kurs aus.', new Exclamation());
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Search
+     *
+     * @return string
+     */
+    public function loadProspectSearch($DivisionCourseId, $Search): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if ($Search != '' && strlen($Search) > 2) {
+            $resultList = array();
+            $result = '';
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+                && ($tblPersonList = \SPHERE\Application\People\Person\Person::useService()->getPersonListLike($Search))
+            ) {
+                $tblGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+                foreach ($tblPersonList as $tblPerson) {
+                    // nur nach Schülern suchen
+                    if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                        if (($option = $this->getStudentAddOptionByPerson($tblPerson, $tblDivisionCourse, $tblYear, 'ProspectSearch'))) {
+                            if (($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))
+                                && ($tblProspectReservation = $tblProspect->getTblProspectReservation())
+                            ) {
+                                $yearString = $tblProspectReservation->getReservationYear();
+                            } else {
+                                $yearString = '';
+                            }
+                            $resultList[] = array(
+                                'Name' => $tblPerson->getLastFirstName(),
+                                'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                                'Year' => $yearString,
+                                'Option' => $option
+                            );
+                        }
+                    }
+                }
+
+                $result = new TableData(
+                    $resultList,
+                    null,
+                    array(
+                        'Name' => 'Name',
+                        'Address' => 'Adresse',
+                        'Year' => 'Schuljahr',
+                        'Option' => ''
+                    ),
+                    array(
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                            array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                        ),
+                        'pageLength' => -1,
+                        'paging' => false,
+                        'info' => false,
+                        'searching' => false,
+                        'responsive' => false
+                    )
+                );
+            }
+
+            if (empty($resultList)) {
+                $result = new Warning('Es wurden keine entsprechenden Interessenten gefunden.', new Ban());
+            }
+        } else {
+            $result =  new Warning('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
         }
 
         return $result;

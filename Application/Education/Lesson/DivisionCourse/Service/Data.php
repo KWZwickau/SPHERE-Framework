@@ -522,6 +522,21 @@ class Data extends MigrateData
     /**
      * @param TblStudentEducation $tblStudentEducation
      *
+     * @return TblStudentEducation
+     */
+    public function createStudentEducation(TblStudentEducation $tblStudentEducation): TblStudentEducation
+    {
+        $Manager = $this->getEntityManager();
+
+        $Manager->saveEntity($tblStudentEducation);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblStudentEducation);
+
+        return $tblStudentEducation;
+    }
+
+    /**
+     * @param TblStudentEducation $tblStudentEducation
+     *
      * @return bool
      */
     public function updateStudentEducation(TblStudentEducation $tblStudentEducation): bool
