@@ -40,7 +40,7 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
-        $Dispatcher->registerMethod('loadStudentContent');
+        $Dispatcher->registerMethod('loadRemoveStudentContent');
         $Dispatcher->registerMethod('loadAddStudentContent');
         $Dispatcher->registerMethod('searchPerson');
         $Dispatcher->registerMethod('selectDivisionCourse');
@@ -99,20 +99,18 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
 
     /**
      * @param $DivisionCourseId
-     * @param $AddStudentVariante
      *
      * @return Pipeline
      */
-    public static function pipelineLoadStudentContent($DivisionCourseId, $AddStudentVariante): Pipeline
+    public static function pipelineLoadRemoveStudentContent($DivisionCourseId): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'RemoveStudentContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'loadStudentContent',
+            self::API_TARGET => 'loadRemoveStudentContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionCourseId' => $DivisionCourseId,
-            'AddStudentVariante' => $AddStudentVariante
+            'DivisionCourseId' => $DivisionCourseId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -121,22 +119,22 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
 
     /**
      * @param $DivisionCourseId
-     * @param $AddStudentVariante
      *
      * @return string
      */
-    public function loadStudentContent($DivisionCourseId, $AddStudentVariante): string
+    public function loadRemoveStudentContent($DivisionCourseId): string
     {
-        return DivisionCourse::useFrontend()->loadStudentContent($DivisionCourseId, $AddStudentVariante);
+        return DivisionCourse::useFrontend()->loadRemoveStudentContent($DivisionCourseId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $AddStudentVariante
+     * @param $SelectedDivisionCourseId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadAddStudentContent($DivisionCourseId, $AddStudentVariante): Pipeline
+    public static function pipelineLoadAddStudentContent($DivisionCourseId, $AddStudentVariante, $SelectedDivisionCourseId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'AddStudentContent'), self::getEndpoint());
@@ -145,7 +143,8 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
-            'AddStudentVariante' => $AddStudentVariante
+            'AddStudentVariante' => $AddStudentVariante,
+            'SelectedDivisionCourseId' => $SelectedDivisionCourseId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -155,12 +154,13 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      * @param $AddStudentVariante
+     * @param $SelectedDivisionCourseId
      *
      * @return string
      */
-    public function loadAddStudentContent($DivisionCourseId, $AddStudentVariante): string
+    public function loadAddStudentContent($DivisionCourseId, $AddStudentVariante, $SelectedDivisionCourseId): string
     {
-        return DivisionCourse::useFrontend()->loadAddStudentContent($DivisionCourseId, $AddStudentVariante);
+        return DivisionCourse::useFrontend()->loadAddStudentContent($DivisionCourseId, $AddStudentVariante, $SelectedDivisionCourseId);
     }
 
     /**
@@ -263,20 +263,21 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $AddStudentVariante
-     *
+     * @param $SelectedDivisionCourseId
      * @return Pipeline
      */
-    public static function pipelineAddStudent($DivisionCourseId, $PersonId, $AddStudentVariante): Pipeline
+    public static function pipelineAddStudent($DivisionCourseId, $PersonId, $AddStudentVariante, $SelectedDivisionCourseId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'AddStudentContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'addStudent'
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
-            'AddStudentVariante' => $AddStudentVariante
+            'AddStudentVariante' => $AddStudentVariante,
+            'SelectedDivisionCourseId' => $SelectedDivisionCourseId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -288,10 +289,11 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $AddStudentVariante
+     * @param $SelectedDivisionCourseId
      *
      * @return string
      */
-    public function addStudent($DivisionCourseId, $PersonId, $AddStudentVariante)
+    public function addStudent($DivisionCourseId, $PersonId, $AddStudentVariante, $SelectedDivisionCourseId)
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs wurde nicht gefunden', new Exclamation());
@@ -302,7 +304,8 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
 
         if (DivisionCourse::useService()->addStudentToDivisionCourse($tblDivisionCourse, $tblPerson)) {
             return new Success('Schüler wurde erfolgreich hinzugefügt.')
-                . self::pipelineLoadStudentContent($DivisionCourseId, $AddStudentVariante);
+                . self::pipelineLoadAddStudentContent($DivisionCourseId, $AddStudentVariante, $SelectedDivisionCourseId)
+                . self::pipelineLoadRemoveStudentContent($DivisionCourseId);
         } else {
             return new Danger('Schüler konnte nicht hinzugefügt werden.');
         }
@@ -311,21 +314,19 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      * @param $PersonId
-     * @param $AddStudentVariante
      *
      * @return Pipeline
      */
-    public static function pipelineRemoveStudent($DivisionCourseId, $PersonId, $AddStudentVariante): Pipeline
+    public static function pipelineRemoveStudent($DivisionCourseId, $PersonId): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'RemoveStudentContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'removeStudent'
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
-            'PersonId' => $PersonId,
-            'AddStudentVariante' => $AddStudentVariante
+            'PersonId' => $PersonId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -336,11 +337,10 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      * @param $PersonId
-     * @param $AddStudentVariante
      *
      * @return string
      */
-    public function removeStudent($DivisionCourseId, $PersonId, $AddStudentVariante)
+    public function removeStudent($DivisionCourseId, $PersonId)
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs wurde nicht gefunden', new Exclamation());
@@ -351,7 +351,7 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
 
         if (DivisionCourse::useService()->removeStudentFromDivisionCourse($tblDivisionCourse, $tblPerson)) {
             return new Success('Schüler wurde erfolgreich entfernt.')
-                . self::pipelineLoadStudentContent($DivisionCourseId, $AddStudentVariante);
+                . self::pipelineLoadRemoveStudentContent($DivisionCourseId);
         } else {
             return new Danger('Schüler konnte nicht entfernt werden.');
         }

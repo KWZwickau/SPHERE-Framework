@@ -721,7 +721,16 @@ class Frontend extends Extension implements IFrontendInterface
 
             $stage->setContent(
                 DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
-                . ApiDivisionCourseMember::receiverBlock($this->loadStudentContent($DivisionCourseId, 'StudentSearch'), 'StudentContent')
+                . new Layout(new LayoutGroup(array(new LayoutRow(array(
+                    new LayoutColumn(
+                        new \SPHERE\Common\Frontend\Layout\Repository\Title('Ausgewählte', 'Schüler')
+                        . ApiDivisionCourseMember::receiverBlock($this->loadRemoveStudentContent($DivisionCourseId), 'RemoveStudentContent')
+                        , 6),
+                    new LayoutColumn(
+                        new \SPHERE\Common\Frontend\Layout\Repository\Title('Verfügbare', 'Schüler')
+                        . ApiDivisionCourseMember::receiverBlock($this->loadAddStudentContent($DivisionCourseId, 'StudentSearch', null), 'AddStudentContent')
+                        , 6)
+                )))))
             );
         } else {
             $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse', new ChevronLeft())));
@@ -733,14 +742,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param $DivisionCourseId
-     * @param $AddStudentVariante
      *
      * @return string
      */
-    public function loadStudentContent($DivisionCourseId, $AddStudentVariante): string
+    public function loadRemoveStudentContent($DivisionCourseId): string
     {
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $text = 'Schüler';
             $selectedList = array();
             if (($tblMemberList =  DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT, true, false))) {
                 $count = 0;
@@ -754,8 +761,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'Name' => $isInActive ? new Strikethrough($name) : $name,
                             'Address' => $isInActive ? new Strikethrough($address) : $address,
                             // todo deaktivieren für Klassenwechsel im Schuljahr
-                            'Option' => (new Standard('', ApiDivisionCourseMember::getEndpoint(), new MinusSign(), array(),  $text . ' entfernen'))
-                                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineRemoveStudent($tblDivisionCourse->getId(), $tblPerson->getId(), $AddStudentVariante))
+                            'Option' => (new Standard('', ApiDivisionCourseMember::getEndpoint(), new MinusSign(), array(),  'Schüler entfernen'))
+                                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineRemoveStudent($tblDivisionCourse->getId(), $tblPerson->getId()))
                         );
                     }
                 }
@@ -777,26 +784,10 @@ class Frontend extends Extension implements IFrontendInterface
                     'responsive' => false
                 )))->setHash(__NAMESPACE__ . 'StudentSelected');
             } else {
-                $left = new Info('Keine ' . $text . ' ausgewählt');
+                $left = new Info('Keine Schüler ausgewählt');
             }
 
-            return new Layout(new LayoutGroup(array(new LayoutRow(array(
-                new LayoutColumn(
-                    new \SPHERE\Common\Frontend\Layout\Repository\Title('Ausgewählte', $text)
-                    . $left
-                    , 6),
-                new LayoutColumn(
-                    new \SPHERE\Common\Frontend\Layout\Repository\Title('Verfügbare', 'Schüler')
-                    . (new Standard('Schülersuche', ApiDivisionCourseMember::getEndpoint(), new Search()))
-                        ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineLoadAddStudentContent($DivisionCourseId, 'StudentSearch'))
-                    . (new Standard('Kurs-Schüler', ApiDivisionCourseMember::getEndpoint(), new Select()))
-                        ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineLoadAddStudentContent($DivisionCourseId, 'CourseSelect'))
-                    . (new Standard('Interessentensuche', ApiDivisionCourseMember::getEndpoint(), new Search()))
-                        ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineLoadAddStudentContent($DivisionCourseId, 'ProspectSearch'))
-                    . new Container('&nbsp;')
-                    . ApiDivisionCourseMember::receiverBlock($this->loadAddStudentContent($DivisionCourseId, $AddStudentVariante), 'AddStudentContent')
-                    , 6)
-            )))));
+            return $left;
         }
 
         return new Danger('Kurs nicht gefunden!', new Exclamation());
@@ -805,14 +796,23 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param $DivisionCourseId
      * @param $AddStudentVariante
+     * @param $SelectDivisionCourseId
      *
      * @return string
      */
-    public function loadAddStudentContent($DivisionCourseId, $AddStudentVariante): string
+    public function loadAddStudentContent($DivisionCourseId, $AddStudentVariante, $SelectDivisionCourseId): string
     {
+        $buttons = (new Standard($AddStudentVariante == 'StudentSearch' ? new Bold('Schülersuche') : 'Schülersuche', ApiDivisionCourseMember::getEndpoint(), new Search()))
+            ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineLoadAddStudentContent($DivisionCourseId, 'StudentSearch'))
+        . (new Standard($AddStudentVariante == 'CourseSelect' ? new Bold('Kurs-Schüler') : 'Kurs-Schüler', ApiDivisionCourseMember::getEndpoint(), new Select()))
+            ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineLoadAddStudentContent($DivisionCourseId, 'CourseSelect'))
+        . (new Standard($AddStudentVariante == 'ProspectSearch' ? new Bold('Interessentensuche') : 'Interessentensuche', ApiDivisionCourseMember::getEndpoint(), new Search()))
+            ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineLoadAddStudentContent($DivisionCourseId, 'ProspectSearch'))
+        . new Container('&nbsp;');
+
         switch ($AddStudentVariante) {
             case 'StudentSearch':
-                return new Panel(
+                return $buttons . new Panel(
                     'Schüler',
                     new Form(new FormGroup(new FormRow(new FormColumn(array(
                         (new TextField(
@@ -834,7 +834,13 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblCourseList = false;
                 }
 
-                return new Panel(
+                if ($SelectDivisionCourseId) {
+                    $global = $this->getGlobal();
+                    $global->POST['Data']['DivisionCourseId'] = $SelectDivisionCourseId;
+                    $global->savePost();
+                }
+
+                return $buttons . new Panel(
                     'Kursauswahl',
                     new Form(new FormGroup(new FormRow(new FormColumn(array(
                         (new SelectBox(
@@ -844,11 +850,11 @@ class Frontend extends Extension implements IFrontendInterface
                             new Select()
                         ))->ajaxPipelineOnChange(ApiDivisionCourseMember::pipelineSelectDivisionCourse($DivisionCourseId))
                     )))))
-                    . ApiDivisionCourseMember::receiverBlock($this->loadSelectDivisionCourse($DivisionCourseId, null), 'SearchPerson')
+                    . ApiDivisionCourseMember::receiverBlock('', 'SearchPerson')
                     , Panel::PANEL_TYPE_INFO
                 );
             case 'ProspectSearch':
-                return new Panel(
+                return $buttons . new Panel(
                     'Interessenten',
                     new Form(new FormGroup(new FormRow(new FormColumn(array(
                         (new TextField(
@@ -935,10 +941,12 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblYear $tblYear
      * @param $AddStudentVariante
+     * @param null $SelectedDivisionCourseId
      *
      * @return false|string
      */
-    private function getStudentAddOptionByPerson(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblYear $tblYear, $AddStudentVariante)
+    private function getStudentAddOptionByPerson(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblYear $tblYear, $AddStudentVariante,
+        $SelectedDivisionCourseId = null)
     {
         if (($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION)
             && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
@@ -968,7 +976,8 @@ class Frontend extends Extension implements IFrontendInterface
                 return false;
             }
             $option = (new Standard('', ApiDivisionCourseMember::getEndpoint(), new PlusSign(), array(),  'Schüler hinzufügen'))
-                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineAddStudent($tblDivisionCourse->getId(), $tblPerson->getId(), $AddStudentVariante));
+                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineAddStudent($tblDivisionCourse->getId(), $tblPerson->getId(), $AddStudentVariante,
+                    $SelectedDivisionCourseId));
         }
 
         return $option;
@@ -993,7 +1002,7 @@ class Frontend extends Extension implements IFrontendInterface
             $result = '';
             if (($tblPersonList =  DivisionCourse::useService()->getDivisionCourseMemberListBy($tblSelectedDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT))) {
                 foreach ($tblPersonList as $tblPerson) {
-                    if (($option = $this->getStudentAddOptionByPerson($tblPerson, $tblDivisionCourse, $tblYear, 'CourseSelect'))) {
+                    if (($option = $this->getStudentAddOptionByPerson($tblPerson, $tblDivisionCourse, $tblYear, 'CourseSelect', $SelectedDivisionCourseId))) {
                         $resultList[] = array(
                             'Name' => $tblPerson->getLastFirstName(),
                             'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
@@ -1015,10 +1024,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
                             array('orderable' => false, 'width' => '1%', 'targets' => -1),
                         ),
-                        'pageLength' => -1,
-                        'paging' => false,
-                        'info' => false,
-                        'searching' => false,
+                        'pageLength' => 10,
                         'responsive' => false
                     )
                 );
