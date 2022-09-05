@@ -451,6 +451,14 @@ class Service extends AbstractService
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                             if (Division::useService()->existsSubjectTeacher($tblPerson, $tblDivisionSubject)) {
                                 if (Division::useService()->getIsDivisionCourseSystem($tblDivision)) {
+                                    // Kurse müssen immer als Fachgruppen hinterlegt sein
+                                    if(!($SubjectGroup = $tblDivisionSubject->getTblSubjectGroup())){
+                                        continue;
+                                    }
+                                    // Kurs muss mit dem Kursnamen vom Import übereinstimmen
+                                    if(strtolower($item->getSubjectGroup()) != strtolower($SubjectGroup->getName())){
+                                        continue;
+                                    }
                                     $option = new Standard(
                                         '',
                                         $baseRoute . '/CourseContent',
@@ -471,9 +479,8 @@ class Service extends AbstractService
                                         ),
                                         'Zum Klassenbuch wechseln'
                                     );
+                                    break;
                                 }
-
-                                break;
                             }
                         }
                     }
