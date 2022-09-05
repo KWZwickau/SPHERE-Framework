@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping\Table;
 use phpDocumentor\Reflection\Types\Integer;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -235,8 +236,8 @@ class TblAbsence extends Element
     }
 
     /**
-     * @param DateTime $tillDate
-     * @param int $countLessons
+     * @param DateTime|null $tillDate
+     * @param $countLessons
      * @param TblCompany|null $tblCompany
      *
      * @return int|string
@@ -304,21 +305,27 @@ class TblAbsence extends Element
 
     /**
      * @param DateTime $date
-     * @param integer $countDays
+     * @param $countDays
      * @param TblCompany|null $tblCompany
      *
-     * @return mixed
+     * @return int
      */
     private function countThisDay(DateTime $date, $countDays, TblCompany $tblCompany = null)
     {
+        $tblDivision = $this->getServiceTblDivision();
+        $DayAtWeek = $date->format('w');
+        if ($tblDivision && ($tblSchoolType = $tblDivision->getType()) && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+            $isWeekend = $DayAtWeek == 0;
+        } else {
+            $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
+        }
 
-        if ($date->format('w') != 0 && $date->format('w') != 6) {
-            if ($this->getServiceTblDivision()
-                && ($tblYear = $this->getServiceTblDivision()->getServiceTblYear())
-                && !Term::useService()->getHolidayByDay($tblYear, $date, $tblCompany)
-            ) {
-                $countDays++;
-            }
+        if ($tblDivision
+            && ($tblYear = $this->getServiceTblDivision()->getServiceTblYear())
+            && !Term::useService()->getHolidayByDay($tblYear, $date, $tblCompany)
+            && !$isWeekend
+        ) {
+            $countDays++;
         }
 
         return $countDays;

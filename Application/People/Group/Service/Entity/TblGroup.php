@@ -9,6 +9,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -262,6 +263,22 @@ class TblGroup extends Element
     }
 
     /**
+     * @return false|TblType
+     */
+    public function getCurrentSchoolTypeSingle()
+    {
+        if (($list = $this->getCurrentDivisionList())) {
+            foreach ($list as $tblDivision) {
+                if (($tblSchoolType = $tblDivision->getType())) {
+                    return $tblSchoolType;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @return false|TblDivision[]
      */
     public function getCurrentDivisionList()
@@ -294,5 +311,29 @@ class TblGroup extends Element
         }
 
         return false;
+    }
+
+    /**
+     * bei Stammgruppen dürfen nur Schüler herauskommen, z.B. fürs Klassenbuch
+     *
+     * @return array|false
+     */
+    public function getStudentOnlyList()
+    {
+        $list = array();
+        if ($this->isCoreGroup()) {
+            if (($tblPersonList = Group::useService()->getPersonAllByGroup($this))
+                && ($tblGroup = Group::useService()->getGroupByMetaTable('Student'))
+            ) {
+                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
+                foreach ($tblPersonList as $tblPerson) {
+                    if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                        $list[] = $tblPerson;
+                    }
+                }
+            }
+        }
+
+        return empty($list) ? false : $list;
     }
 }

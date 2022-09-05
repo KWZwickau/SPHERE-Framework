@@ -1006,7 +1006,7 @@ class Service extends Support
             }
             if (isset($Meta['Agreement'])) {
                 foreach ($Meta['Agreement'] as $Category => $Items) {
-                    $tblStudentAgreementCategory = $this->getStudentAgreementTypeById($Category);
+                    $tblStudentAgreementCategory = $this->getStudentAgreementCategoryById($Category);
                     if ($tblStudentAgreementCategory) {
                         foreach ($Items as $Type => $Value) {
                             $tblStudentAgreementType = $this->getStudentAgreementTypeById($Type);

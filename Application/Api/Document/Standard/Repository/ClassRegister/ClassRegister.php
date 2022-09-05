@@ -21,7 +21,6 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Reporting\Standard\Person\Person;
@@ -29,7 +28,6 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
-use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class ClassRegister extends AbstractDocument
 {
@@ -45,6 +43,7 @@ class ClassRegister extends AbstractDocument
     protected array $tblPersonList = array();
     protected array $personNumberAbsenceList = array();
     private array $totalCanceledSubjectList = array();
+    private bool $hasSaturdayLessons;
 
     private array $dayName = array(
         '0' => 'Sonntag',
@@ -62,6 +61,7 @@ class ClassRegister extends AbstractDocument
      */
     public function __construct(?TblDivision $tblDivision, ?TblGroup $tblGroup)
     {
+        $tblSchoolType = false;
         if ($tblDivision) {
             $this->tblDivision = $tblDivision;
             $this->name = 'Klassentagebuch';
@@ -86,6 +86,7 @@ class ClassRegister extends AbstractDocument
             if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
                 $this->tblPersonList = $tblPersonList;
             }
+            $tblSchoolType = $tblDivision->getType();
         } elseif ($tblGroup) {
             $this->tblGroup = $tblGroup;
             $this->name = 'Stammgruppentagebuch';
@@ -95,10 +96,13 @@ class ClassRegister extends AbstractDocument
             $this->tblCompany = ($tblGroup->getCurrentCompanySingle()) ?: null;
             $this->tblCompanyList = ($tblGroup->getCurrentCompanyList()) ?: array();
             $this->tudors = $tblGroup->getTudorsString(false);
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                $this->tblPersonList = (new Extension)->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
+            if (($tblPersonList = $tblGroup->getStudentOnlyList())) {
+                $this->tblPersonList = $tblPersonList;
             }
+            $tblSchoolType = $tblGroup->getCurrentSchoolTypeSingle();
         }
+
+        $this->hasSaturdayLessons = $tblSchoolType && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType);
     }
 
 
@@ -768,9 +772,16 @@ class ClassRegister extends AbstractDocument
             if ($startDate && $endDate) {
                 $dayOfWeek = $startDate->format('w');
 
-                // wenn Schuljahresbeginn ein Samstag oder Sonntag dann beginne mit der nächsten Woche
-                if ($dayOfWeek == 6 || $dayOfWeek == 0) {
-                    $startDate->add(new DateInterval('P7D'));
+                // wenn Schuljahresbeginn ein Sonntag ist, dann beginne mit der nächsten Woche
+                if ($this->hasSaturdayLessons) {
+                    if ($dayOfWeek == 0) {
+                        $startDate->add(new DateInterval('P7D'));
+                    }
+                // wenn Schuljahresbeginn ein Samstag oder ein Sonntag ist, dann beginne mit der nächsten Woche
+                } else {
+                    if ($dayOfWeek == 6 || $dayOfWeek == 0) {
+                        $startDate->add(new DateInterval('P7D'));
+                    }
                 }
                 $startDate = Timetable::useService()->getStartDateOfWeek($startDate);
 
@@ -779,14 +790,22 @@ class ClassRegister extends AbstractDocument
                     $dateString = $startDate->format('d.m.Y');
                     $dayOfWeek = $startDate->format('w');
 
+                    // nur Sonntag überspringen
+                    if ($this->hasSaturdayLessons) {
+                        if ($dayOfWeek == 0) {
+                            $startDate->add(new DateInterval('P1D'));
+                            continue;
+                        }
                     // Samstag und Sonntag überspringen
-                    if ($dayOfWeek == 6 || $dayOfWeek == 0) {
-                        $startDate->add(new DateInterval('P1D'));
-                        continue;
+                    } else {
+                        if ($dayOfWeek == 6 || $dayOfWeek == 0) {
+                            $startDate->add(new DateInterval('P1D'));
+                            continue;
+                        }
                     }
 
                     // Prüfung, ob die gesamte Woche Ferien sind, dann diese überspringen
-                    if ($dayOfWeek == 1 && Term::useService()->getIsSchoolWeekHoliday($dateString, $this->tblYear, $this->tblCompanyList)) {
+                    if ($dayOfWeek == 1 && Term::useService()->getIsSchoolWeekHoliday($dateString, $this->tblYear, $this->tblCompanyList, $this->hasSaturdayLessons)) {
                         $startDate->add(new DateInterval('P7D'));
                         continue;
                     }
@@ -806,9 +825,19 @@ class ClassRegister extends AbstractDocument
 
                     $sliceList[] = $this->getLessonContentDaySlice($startDate, $dayOfWeek);
 
-                    // Freitag
-                    if ($dayOfWeek == 5) {
-                        $sliceList[] = $this->getWeekSummarySlice($startDate);
+                    if ($this->hasSaturdayLessons) {
+                        if ($dayOfWeek == 6) {
+                            $pageList[] = (new Page())->addSliceArray($sliceList);
+                            $sliceList = array();
+                            $sliceList[] = $this->getWeekSummarySlice($startDate);
+                            $pageList[] = (new Page())->addSliceArray($sliceList);
+                            $sliceList = array();
+                        }
+                    } else {
+                        // Freitag
+                        if ($dayOfWeek == 5) {
+                            $sliceList[] = $this->getWeekSummarySlice($startDate);
+                        }
                     }
 
                     $startDate->add(new DateInterval('P1D'));
@@ -922,7 +951,7 @@ class ClassRegister extends AbstractDocument
                         $count++;
                     }
                 } else {
-                    if ($i > 0 && $i < 11) {
+                    if ($i > 0 && $i < 9) {
                         $slice->addSection((new Section())
                             ->addElementColumn($this->getElement($i . '.')->styleAlignCenter(), $width[2])
                             ->addElementColumn($this->getElement('&nbsp;'), $width[3])
@@ -1218,7 +1247,7 @@ class ClassRegister extends AbstractDocument
     private function getHeaderWeekSlice(string $fromDateString): Slice
     {
         $toDate = new DateTime($fromDateString);
-        $toDate = $toDate->add(new DateInterval('P4D'));
+        $toDate = $toDate->add(new DateInterval($this->hasSaturdayLessons ? 'P5D' : 'P4D'));
 
         return (new Slice())->addElement((new Element())
             ->setContent('Wochenbericht im Klassenbuch vom ' . $fromDateString . ' bis ' . $toDate->format('d.m.Y'))

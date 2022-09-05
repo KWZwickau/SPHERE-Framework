@@ -210,7 +210,7 @@ class Service extends AbstractService
             }
             if (isset($Meta['Agreement'])) {
                 foreach ($Meta['Agreement'] as $Category => $Items) {
-                    $tblPersonAgreementCategory = $this->getPersonAgreementTypeById($Category);
+                    $tblPersonAgreementCategory = $this->getPersonAgreementCategoryById($Category);
                     if ($tblPersonAgreementCategory) {
                         foreach ($Items as $Type => $Value) {
                             $tblPersonAgreementType = $this->getPersonAgreementTypeById($Type);

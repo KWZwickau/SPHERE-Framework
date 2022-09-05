@@ -101,17 +101,17 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         }
 
         $subjectGroupList = array();
-        if (($tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblMainDivision))
-            && $tblPerson
-        ) {
+        if (($tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblMainDivision))) {
             foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
                 if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
                     && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
                     && $tblDivisionSubject->getHasGrading()
                 ) {
                     // Fachlehrer benötigt einen Lehrauftrag
-                    if ($isTeacher && !Division::useService()->existsSubjectTeacher($tblPerson, $tblDivisionSubject)) {
-                        continue;
+                    if ($isTeacher) {
+                        if (!$tblPerson || !Division::useService()->existsSubjectTeacher($tblPerson, $tblDivisionSubject)) {
+                            continue;
+                        }
                     }
 
                     $subjectGroupList[] = array(
@@ -130,7 +130,6 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 }
             }
         }
-
 
         $stage->setContent(
             new Layout(new LayoutGroup(array(
@@ -554,9 +553,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         if ($tblDivision) {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         } elseif ($tblGroup) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
-            }
+            $tblPersonList = $tblGroup->getStudentOnlyList();
         } elseif ($tblDivisionSubject) {
             $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
         }

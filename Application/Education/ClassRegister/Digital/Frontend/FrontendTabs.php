@@ -524,13 +524,18 @@ class FrontendTabs extends FrontendCourseContent
             } else {
                 $tblCompanyList = array();
             }
+            $tblSchoolType = $tblDivision->getType();
         } elseif ($tblGroup) {
             $tblYear = $tblGroup->getCurrentYear();
             $tblCompanyList = $tblGroup->getCurrentCompanyList();
+            $tblSchoolType = $tblGroup->getCurrentSchoolTypeSingle();
         } else {
             $tblYear = false;
             $tblCompanyList = array();
+            $tblSchoolType = false;
         }
+
+        $hasSaturdayLessons = $tblSchoolType && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType);
 
         if (!$tblYear) {
             return new Danger('Kein Schuljahr gefunden!', new Exclamation());
@@ -545,9 +550,16 @@ class FrontendTabs extends FrontendCourseContent
         list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
         if ($startDate && $endDate) {
             $dayOfWeek = $startDate->format('w');
-            // wenn Schuljahresbeginn ein Samstag oder Sonntag dann beginne mit der nächsten Woche
-            if ($dayOfWeek == 6 || $dayOfWeek == 0) {
-                $startDate->add(new DateInterval('P7D'));
+            if ($hasSaturdayLessons) {
+                // wenn Schuljahresbeginn ein Sonntag dann beginne mit der nächsten Woche
+                if ($dayOfWeek == 0) {
+                    $startDate->add(new DateInterval('P7D'));
+                }
+            } else {
+                // wenn Schuljahresbeginn ein Samstag oder Sonntag dann beginne mit der nächsten Woche
+                if ($dayOfWeek == 6 || $dayOfWeek == 0) {
+                    $startDate->add(new DateInterval('P7D'));
+                }
             }
             $startDate = Timetable::useService()->getStartDateOfWeek($startDate);
             $dataList = array();
@@ -555,7 +567,7 @@ class FrontendTabs extends FrontendCourseContent
                 $dateString = $startDate->format('d.m.Y');
 
                 // Prüfung, ob die gesamte Woche Ferien sind
-                $isHoliday = Term::useService()->getIsSchoolWeekHoliday($dateString, $tblYear, $tblCompanyList);
+                $isHoliday = Term::useService()->getIsSchoolWeekHoliday($dateString, $tblYear, $tblCompanyList, $hasSaturdayLessons);
 
                 // Rechte prüfen
                 $newDivisionTeacher = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')

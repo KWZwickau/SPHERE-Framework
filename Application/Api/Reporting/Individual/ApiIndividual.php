@@ -2222,8 +2222,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 //                break;
             case 2:
                 $ParameterList[$Parameter] = '%'.$Value.'%';
-                $Builder->expr()->notLike($View . '.' . $Field, $Parameter);
-                break;
+                return $Builder->expr()->notLike($View . '.' . $Field, $Parameter);
+//                break;
             case 3:
                 $ParameterList[$Parameter] = '';
                 return $Builder->expr()->orX(
@@ -2262,7 +2262,16 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 break;
             case 2:
                 $ParameterList[$Parameter] = '%'.$Value.'%';
-                $Builder->andWhere($Builder->expr()->notLike($View . '.' . $Field, $Parameter));
+                if($Value){
+                    $Builder->andWhere(
+                        $Builder->expr()->orX(
+                            $Builder->expr()->isNull($View . '.' . $Field),
+                            $Builder->expr()->notLike($View . '.' . $Field,
+                                $Parameter))
+                    );
+                } else {
+                    $Builder->andWhere($Builder->expr()->notLike($View . '.' . $Field, $Parameter));
+                }
                 break;
             case 3:
                 $ParameterList[$Parameter] = '';
@@ -2287,9 +2296,12 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     public function getSearchResult($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-        $Query = $this->buildSearchQuery($ViewType, true);
-//
-//        return $Query->getSQL();
+        $ShowSQL = false;
+        $Query = $this->buildSearchQuery($ViewType, true, $ShowSQL);
+
+        if($ShowSQL){
+            return $Query;
+        }
         if( null === $Query ) {
             return 'Error';
         } else {

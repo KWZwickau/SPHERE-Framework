@@ -64,7 +64,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'Digitales Klassenbuch', 'Stand:&nbsp;05.05.2022'))->setPictureHeight()
+                                , 'Digitales Klassenbuch', 'Stand:&nbsp;22.08.2022'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'DigitalClassBook')
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
