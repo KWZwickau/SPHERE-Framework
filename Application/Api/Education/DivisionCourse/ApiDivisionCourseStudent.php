@@ -5,8 +5,10 @@ namespace SPHERE\Application\Api\Education\DivisionCourse;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -14,6 +16,14 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Transfer;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Extension\Extension;
@@ -38,6 +48,9 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
         $Dispatcher->registerMethod('searchProspect');
         $Dispatcher->registerMethod('addStudent');
         $Dispatcher->registerMethod('removeStudent');
+
+        $Dispatcher->registerMethod('openChangeDivisionCourseModal');
+        $Dispatcher->registerMethod('saveChangeDivisionCourseModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -329,6 +342,133 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
                 . self::pipelineLoadRemoveStudentContent($DivisionCourseId);
         } else {
             return new Danger('Schüler konnte nicht entfernt werden.');
+        }
+    }
+
+    /**
+     * @param $form
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private function getChangeDivisionCourseModal($form, TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson): string
+    {
+        return new Title(new Transfer() . ' ' . $tblDivisionCourse->getTypeName() . 'nwechsel im Schuljahr')
+            . new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Schüler', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO)
+                        , 6),
+                    new LayoutColumn(
+                        new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
+                        , 6)
+                )),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Well($form)
+                    )
+                )
+            )));
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenChangeDivisionCourseModal($DivisionCourseId, $PersonId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openChangeDivisionCourseModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     *
+     * @return string
+     */
+    public function openChangeDivisionCourseModal($DivisionCourseId, $PersonId)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Schüler wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+            return new Danger('Schuljahr wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getChangeDivisionCourseModal(DivisionCourse::useFrontend()->formChangeDivisionCourse($tblDivisionCourse, $tblPerson, $tblYear, true),
+            $tblDivisionCourse, $tblPerson);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineChangeDivisionCourseSave($DivisionCourseId, $PersonId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveChangeDivisionCourseModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $Data
+     *
+     * @return Danger|string
+     */
+    public function saveChangeDivisionCourseModal($DivisionCourseId, $PersonId, $Data)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Schüler wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = DivisionCourse::useService()->checkFormChangeDivisionCourse($Data, $tblDivisionCourse, $tblPerson))) {
+            // display Errors on form
+            return $this->getChangeDivisionCourseModal($form, $tblDivisionCourse, $tblPerson);
+        }
+
+        if (DivisionCourse::useService()->changeDivisionCourse($tblDivisionCourse, $tblPerson, $Data)) {
+            return new Success('Der ' . $tblDivisionCourse->getTypeName() . 'nwechsel wurde erfolgreich gespeichert.')
+                . self::pipelineLoadRemoveStudentContent($DivisionCourseId)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Der ' . $tblDivisionCourse->getTypeName() . 'nwechsel konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 }

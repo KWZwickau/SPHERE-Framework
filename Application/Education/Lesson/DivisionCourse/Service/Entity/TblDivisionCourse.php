@@ -223,6 +223,18 @@ class TblDivisionCourse extends Element
     /**
      * @return string
      */
+    public function getTypeIdentifier(): string
+    {
+        if (($tblType = $this->getType())) {
+            return $tblType->getIdentifier();
+        }
+
+        return '';
+    }
+
+    /**
+     * @return string
+     */
     public function getTypeName(): string
     {
         if (($tblType = $this->getType())) {

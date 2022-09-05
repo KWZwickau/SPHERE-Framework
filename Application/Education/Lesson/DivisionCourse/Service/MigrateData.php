@@ -35,10 +35,17 @@ abstract class MigrateData extends AbstractData
         ) {
             $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('Id');
             $Manager = $this->getEntityManager();
+            /** @var TblDivision $tblDivision */
             foreach ($tblDivisionList as $tblDivision) {
                 // todo jahrgangsübergreifende klassen
                 if (($tblYear = $tblDivision->getServiceTblYear())) {
-                    $tblDivisionCourse = TblDivisionCourse::withParameterAndId($tblType, $tblYear, $tblDivision->getDisplayName(), $tblDivision->getDescription(),
+                    $description = '';
+                    if ($tblDivision->getDescription()) {
+                        $description = $tblDivision->getDescription();
+                    } elseif (($tblSchoolType = $tblDivision->getType())) {
+                        $description = $tblSchoolType->getShortName();
+                    }
+                    $tblDivisionCourse = TblDivisionCourse::withParameterAndId($tblType, $tblYear, $tblDivision->getDisplayName(), $description,
                         $tblDivision->getId(), true, true, true);
 
                     // beim Speichern mit vorgegebener Id ist kein bulkSave möglich

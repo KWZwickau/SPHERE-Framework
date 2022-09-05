@@ -184,7 +184,7 @@ class TblStudentEducation extends Element
      */
     public function setServiceTblCourse(?TblCourse $tblCourse): void
     {
-        $this->serviceTblSchoolType = $tblCourse ? $tblCourse->getId() : null;
+        $this->serviceTblCourse = $tblCourse ? $tblCourse->getId() : null;
     }
 
     /**

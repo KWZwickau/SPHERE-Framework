@@ -3,6 +3,10 @@
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
 use DateTime;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
+use Doctrine\ORM\TransactionRequiredException;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseLink;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
@@ -10,6 +14,8 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Extension\Extension;
@@ -547,6 +553,39 @@ class Data extends MigrateData
         if (null !== $Protocol) {
             $Manager->saveEntity($tblStudentEducation);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $tblStudentEducation);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblStudentEducation $tblStudentEducation
+     * @param TblDivisionCourse|null $tblDivision
+     * @param $divisionSortOrder
+     * @param TblDivisionCourse|null $tblCoreGroup
+     * @param $coreGroupSortOrder
+     * @param DateTime|null $leaveDate
+     *
+     * @return bool
+     */
+    public function updateStudentEducationByProperties(TblStudentEducation $tblStudentEducation, ?TblDivisionCourse $tblDivision, $divisionSortOrder,
+        ?TblDivisionCourse $tblCoreGroup, $coreGroupSortOrder, ?DateTime $leaveDate): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var TblStudentEducation $Entity */
+        $Entity = $Manager->getEntityById('TblStudentEducation', $tblStudentEducation->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setTblDivision($tblDivision);
+            $Entity->setDivisionSortOrder($divisionSortOrder);
+            $Entity->setTblCoreGroup($tblCoreGroup);
+            $Entity->setCoreGroupSortOrder($coreGroupSortOrder);
+            $Entity->setLeaveDate($leaveDate);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
 
             return true;
         }

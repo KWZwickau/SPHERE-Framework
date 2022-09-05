@@ -3,6 +3,10 @@
 namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
 use DateTime;
+use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Corporation\Group\Group;
+use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseLink;
@@ -13,7 +17,9 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudent
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Setup;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -655,5 +661,211 @@ class Service extends AbstractService
     public function getStudentEducationByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
     {
         return (new Data($this->getBinding()))->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+    }
+
+    /**
+     * @return array|bool|TblCompany[]
+     */
+    public function getSchoolListForStudentEducation()
+    {
+        $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
+            Group::useService()->getGroupByMetaTable('SCHOOL')
+        );
+        $tblCompanyAllOwn = array();
+
+        // Normaler Inhalt
+        $tblSchoolList = School::useService()->getSchoolAll();
+        if ($tblSchoolList) {
+            foreach ($tblSchoolList as $tblSchool) {
+                if ($tblSchool->getServiceTblCompany()) {
+                    $tblCompanyAllOwn[] = $tblSchool->getServiceTblCompany();
+                }
+            }
+        }
+
+        if (empty($tblCompanyAllOwn)) {
+            $resultList = $tblCompanyAllSchool;
+        } else {
+            $resultList = $tblCompanyAllOwn;
+        }
+
+        return $resultList;
+    }
+
+    /**
+     * @param $Data
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     *
+     * @return false|Form
+     */
+    public function checkFormChangeDivisionCourse($Data, TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson)
+    {
+        $error = false;
+        $form = DivisionCourse::useFrontend()->formChangeDivisionCourse($tblDivisionCourse, $tblPerson, $tblDivisionCourse->getServiceTblYear());
+
+        $tblSchoolType = false;
+        if (!isset($Data['SchoolType']) || !($tblSchoolType = Type::useService()->getTypeById($Data['SchoolType']))) {
+            $form->setError('Data[SchoolType]', 'Bitte wählen Sie eine Schulart aus');
+            $error = true;
+        }
+        if (!isset($Data['Level']) || empty($Data['Level']) || !intval($Data['Level'])) {
+            $form->setError('Data[Level]', 'Bitte geben Sie eine Klassenstufe an');
+            $error = true;
+        } elseif ($tblSchoolType) {
+            $level = $Data['Level'];
+            if ($level < 1) {
+                $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+                $error = true;
+            } else {
+                switch ($tblSchoolType->getShortName()) {
+                    case 'GS':
+                        if ($level > 4) {
+                            $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+                            $error = true;
+                        }
+                        break;
+                    case 'OS':
+                        if ($level < 5 || $level > 10) {
+                            $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+                            $error = true;
+                        }
+                        break;
+                    case 'Gy':
+                        if ($level < 5 || $level > 12) {
+                            $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+                            $error = true;
+                        }
+                        break;
+                    default:
+                        if ($level > 13) {
+                            $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+                            $error = true;
+                        }
+                }
+            }
+        }
+        if (!isset($Data['Company']) || !(Company::useService()->getCompanyById($Data['Company']))) {
+            $form->setError('Data[Company]', 'Bitte wählen Sie eine Schule aus');
+            $error = true;
+        }
+
+        if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
+            if (!isset($Data['Division']) || !($tblDivisionCourseNew = DivisionCourse::useService()->getDivisionCourseById($Data['Division']))) {
+                $form->setError('Data[Division]', 'Bitte wählen Sie eine neue Klasse aus');
+                $error = true;
+            } elseif ($tblDivisionCourseNew->getId() == $tblDivisionCourse->getId()) {
+                $form->setError('Data[Division]', 'Bitte wählen Sie eine neue Klasse aus');
+                $error = true;
+            }
+        } else {
+            if (!isset($Data['CoreGroup']) || !($tblDivisionCourseNew = DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup']))) {
+                $form->setError('Data[CoreGroup]', 'Bitte wählen Sie eine neue Stammgruppe aus');
+                $error = true;
+            } elseif ($tblDivisionCourseNew->getId() == $tblDivisionCourse->getId()) {
+                $form->setError('Data[CoreGroup]', 'Bitte wählen Sie eine neue Stammgruppe aus');
+                $error = true;
+            }
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function changeDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, $Data): bool
+    {
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblStudentEducationOld = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblSchoolType = Type::useService()->getTypeById($Data['SchoolType']))
+            && ($tblCompany = Company::useService()->getCompanyById($Data['Company']))
+        ) {
+            $leaveDate = new DateTime('now');
+            if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
+                $tblDivisionCourseCoreGroupOld = $tblStudentEducationOld->getTblCoreGroup();
+                $tblDivisionCourseCoreGroupNew = DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup']);
+                if ($tblDivisionCourseCoreGroupNew && $tblDivisionCourseCoreGroupOld
+                    && $tblDivisionCourseCoreGroupNew->getId() == $tblDivisionCourseCoreGroupOld->getId()
+                ) {
+                    $coreGroupSortOrder = $tblStudentEducationOld->getCoreGroupSortOrder();
+                    // Stammgruppe bleibt → am alten TblStudentEducation Eintrag löschen
+                    (new Data($this->getBinding()))->updateStudentEducationByProperties(
+                        $tblStudentEducationOld,
+                        $tblStudentEducationOld->getTblDivision() ?: null,
+                        $tblStudentEducationOld->getDivisionSortOrder(),
+                        null,
+                        null,
+                        $leaveDate
+                    );
+                } else {
+                    $coreGroupSortOrder = null;
+                    (new Data($this->getBinding()))->updateStudentEducationByProperties(
+                        $tblStudentEducationOld,
+                        $tblStudentEducationOld->getTblDivision() ?: null,
+                        $tblStudentEducationOld->getDivisionSortOrder(),
+                        $tblStudentEducationOld->getTblCoreGroup() ?: null,
+                        $tblStudentEducationOld->getCoreGroupSortOrder(),
+                        $leaveDate
+                    );
+                }
+
+                $tblStudentEducationNew = new TblStudentEducation();
+                $tblStudentEducationNew->setTblDivision(DivisionCourse::useService()->getDivisionCourseById($Data['Division']) ?: null);
+                $tblStudentEducationNew->setTblCoreGroup($tblDivisionCourseCoreGroupNew ?: null);
+                $tblStudentEducationNew->setCoreGroupSortOrder($coreGroupSortOrder);
+            } else {
+                $tblDivisionCourseDivisionOld = $tblStudentEducationOld->getTblDivision();
+                $tblDivisionCourseDivisionNew = DivisionCourse::useService()->getDivisionCourseById($Data['Division']);
+                if ($tblDivisionCourseDivisionNew && $tblDivisionCourseDivisionOld
+                    && $tblDivisionCourseDivisionNew->getId() == $tblDivisionCourseDivisionOld->getId()
+                ) {
+                    $divisionSortOrderNew = $tblStudentEducationOld->getDivisionSortOrder();
+                    // Klasse bleibt → am alten TblStudentEducation Eintrag löschen
+                    $tblStudentEducationOld->setTblDivision(null);
+                    $tblStudentEducationOld->setDivisionSortOrder(null);
+                    (new Data($this->getBinding()))->updateStudentEducationByProperties(
+                        $tblStudentEducationOld,
+                        null,
+                        null,
+                        $tblStudentEducationOld->getTblCoreGroup() ?: null,
+                        $tblStudentEducationOld->getCoreGroupSortOrder(),
+                        $leaveDate
+                    );
+                } else {
+                    $divisionSortOrderNew = null;
+                    (new Data($this->getBinding()))->updateStudentEducationByProperties(
+                        $tblStudentEducationOld,
+                        $tblStudentEducationOld->getTblDivision() ?: null,
+                        $tblStudentEducationOld->getDivisionSortOrder(),
+                        $tblStudentEducationOld->getTblCoreGroup() ?: null,
+                        $tblStudentEducationOld->getCoreGroupSortOrder(),
+                        $leaveDate
+                    );
+                }
+
+                $tblStudentEducationNew = new TblStudentEducation();
+                $tblStudentEducationNew->setTblCoreGroup(DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup']) ?: null);
+                $tblStudentEducationNew->setTblDivision($tblDivisionCourseDivisionNew ?: null);
+                $tblStudentEducationNew->setDivisionSortOrder($divisionSortOrderNew);
+            }
+
+            $tblStudentEducationNew->setServiceTblPerson($tblPerson);
+            $tblStudentEducationNew->setServiceTblYear($tblYear);
+            $tblStudentEducationNew->setLevel($Data['Level']);
+            $tblStudentEducationNew->setServiceTblSchoolType($tblSchoolType);
+            $tblStudentEducationNew->setServiceTblCompany($tblCompany);
+            $tblStudentEducationNew->setServiceTblCourse(Course::useService()->getCourseById($Data['Course']) ?: null);
+
+            if ((new Data($this->getBinding()))->createStudentEducation($tblStudentEducationNew)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

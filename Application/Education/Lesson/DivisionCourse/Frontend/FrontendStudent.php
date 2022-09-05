@@ -2,17 +2,23 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Frontend;
 
+use DateInterval;
+use DateTime;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
+use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -21,11 +27,14 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
+use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -33,6 +42,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -62,7 +72,8 @@ class FrontendStudent extends FrontendMember
             }
 
             $stage->setContent(
-                DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
+                ApiDivisionCourseStudent::receiverModal()
+                . DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
                 . new Layout(new LayoutGroup(array(new LayoutRow(array(
                     new LayoutColumn(
                         new Title('Ausgewählte', 'Schüler')
@@ -83,6 +94,73 @@ class FrontendStudent extends FrontendMember
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param bool $setPost
+     *
+     * @return Form
+     */
+    public function formChangeDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, TblYear $tblYear, bool $setPost = false): Form
+    {
+        // beim Checken der Input-Felder darf der Post nicht gesetzt werden
+        $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+        if ($setPost && $tblStudentEducation) {
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['Company'] = ($tblCompany = $tblStudentEducation->getServiceTblCompany()) ? $tblCompany->getId() : 0;
+            $Global->POST['Data']['SchoolType'] = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getId() : 0;
+            $Global->POST['Data']['Level'] = $tblStudentEducation->getLevel();
+            $Global->POST['Data']['Course'] = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getId() : 0;
+            $Global->POST['Data']['Division'] = ($tblDivision = $tblStudentEducation->getTblDivision()) ? $tblDivision->getId() : 0;
+            $Global->POST['Data']['CoreGroup'] = ($tblCoreGroup = $tblStudentEducation->getTblCoreGroup()) ? $tblCoreGroup->getId() : 0;
+
+            $Global->savePost();
+        }
+
+        $tblSchoolTypeAll = Type::useService()->getTypeAll();
+        $tblCourseAll = Course::useService()->getCourseAll();
+        $tblDivisionCourseDivisionList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION);
+        $tblDivisionCourseCoreGroupList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP);
+
+        return (new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        (new NumberField('Data[Level]', '', 'Klassenstufe'))->setRequired()
+                        , 6),
+                    new FormColumn(
+                        (new SelectBox('Data[SchoolType]', 'Schulart', array('{{ Name }} {{ Description }}' => $tblSchoolTypeAll), new Education()))->setRequired()
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('Data[Company]', 'Schule', array(
+                            '{{ Name }} {{ ExtendedName }} {{ Description }}' => DivisionCourse::useService()->getSchoolListForStudentEducation()
+                        )))->setRequired()
+                        , 6),
+                    new FormColumn(
+                        (new SelectBox('Data[Course]', 'Bildungsgang', array('{{ Name }}' => $tblCourseAll)))
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('Data[Division]', 'Klasse', array('{{ Name }} {{ Description }}' => $tblDivisionCourseDivisionList)))
+                        , 6),
+                    new FormColumn(
+                        (new SelectBox('Data[CoreGroup]', 'Stammgruppe', array('{{ Name }} {{ Description }}' => $tblDivisionCourseCoreGroupList)))
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new Primary('Speichern', ApiDivisionCourseStudent::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineChangeDivisionCourseSave($tblDivisionCourse->getId(), $tblPerson->getId()))
+                    )
+                )),
+            ))
+        ))->disableSubmitAction();
+    }
+
+    /**
      * @param $DivisionCourseId
      *
      * @return string
@@ -98,13 +176,35 @@ class FrontendStudent extends FrontendMember
                         $isInActive = $tblMember->isInActive();
                         $name = $tblPerson->getLastFirstName();
                         $address = ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt');
+
+                        $option = (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new MinusSign(), array(),  'Schüler entfernen'))
+                            ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineRemoveStudent($tblDivisionCourse->getId(), $tblPerson->getId()));
+                        // ist der Kurs eine Klasse oder Stammgruppe und im aktuellen Schuljahr und Schuljahr noch nicht älter als 1 Monat → Modal für Schülerwechsel öffnen
+                        if (!$isInActive
+                            && ($tblDivisionCourseType = $tblDivisionCourse->getType())
+                            && ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+                                || $tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+                            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                        ) {
+                            $today = new DateTime('today');
+                            /** @var DateTime $startDate */
+                            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                            if ($startDate && $endDate
+                                && $today > $startDate
+                                && $today < $endDate
+                                && ($firstMonthDate = clone $startDate)
+                                && $today > ($firstMonthDate->add(new DateInterval('P1M')))
+                            ) {
+                                $option = (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new Transfer(), array(), $tblDivisionCourse->getTypeName() . 'nwechsel'))
+                                    ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenChangeDivisionCourseModal($tblDivisionCourse->getId(), $tblPerson->getId()));
+                            }
+                        }
+
                         $selectedList[$tblPerson->getId()] = array(
                             'Number' => ++$count,
                             'Name' => $isInActive ? new Strikethrough($name) : $name,
                             'Address' => $isInActive ? new Strikethrough($address) : $address,
-                            // todo deaktivieren für Klassenwechsel im Schuljahr
-                            'Option' => (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new MinusSign(), array(),  'Schüler entfernen'))
-                                ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineRemoveStudent($tblDivisionCourse->getId(), $tblPerson->getId()))
+                            'Option' => $option
                         );
                     }
                 }
@@ -290,7 +390,7 @@ class FrontendStudent extends FrontendMember
     private function getStudentAddOptionByPerson(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblYear $tblYear, $AddStudentVariante,
         $SelectedDivisionCourseId = null)
     {
-        if (($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION)
+        if (($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION)
             && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
             && ($tblDivisionCourseDivision = $tblStudentEducation->getTblDivision())
         ) {
