@@ -734,7 +734,7 @@ class Frontend extends FrontendTabs
                 }
                 // es können mehrere Einträge zur selben Unterrichtseinheit vorhanden sein
                 $index = $lesson * 10;
-                if (isset($bodyList[$index])) {
+                while (isset($bodyList[$index])) {
                     $index++;
                 }
 
