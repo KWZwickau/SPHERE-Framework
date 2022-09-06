@@ -8,15 +8,21 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Absence\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use phpDocumentor\Reflection\Types\Integer;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -26,10 +32,17 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblAbsence extends Element
 {
-
     const VALUE_STATUS_NULL = 0;
     const VALUE_STATUS_EXCUSED = 1;
     const VALUE_STATUS_UNEXCUSED = 2;
+
+    const VALUE_TYPE_NULL = 0;
+    const VALUE_TYPE_PRACTICE = 1;
+    const VALUE_TYPE_THEORY = 2;
+
+    const VALUE_SOURCE_STAFF = 0;
+    const VALUE_SOURCE_ONLINE_CUSTODY = 1;
+    const VALUE_SOURCE_ONLINE_STUDENT = 2;
 
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
@@ -65,6 +78,31 @@ class TblAbsence extends Element
      * @Column(type="smallint")
      */
     protected $Status;
+
+    /**
+     * @Column(type="smallint")
+     */
+    protected $Type;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPersonStaff;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsCertificateRelevant;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPersonCreator;
+
+    /**
+     * @Column(type="smallint")
+     */
+    protected $Source;
 
     /**
      * @return bool|TblPerson
@@ -111,27 +149,28 @@ class TblAbsence extends Element
     }
 
     /**
-     * @return string
+     * @param string $format
+     *
+     * @return false|string
      */
-    public function getFromDate()
+    public function getFromDate(string $format = 'd.m.Y')
     {
 
         if (null === $this->FromDate) {
             return false;
         }
-        /** @var \DateTime $Date */
         $Date = $this->FromDate;
-        if ($Date instanceof \DateTime) {
-            return $Date->format('d.m.Y');
+        if ($Date instanceof DateTime) {
+            return $Date->format($format);
         } else {
             return (string)$Date;
         }
     }
 
     /**
-     * @param null|\DateTime $Date
+     * @param null|DateTime $Date
      */
-    public function setFromDate(\DateTime $Date = null)
+    public function setFromDate(DateTime $Date = null)
     {
 
         $this->FromDate = $Date;
@@ -146,9 +185,8 @@ class TblAbsence extends Element
         if (null === $this->ToDate) {
             return false;
         }
-        /** @var \DateTime $Date */
         $Date = $this->ToDate;
-        if ($Date instanceof \DateTime) {
+        if ($Date instanceof DateTime) {
             return $Date->format('d.m.Y');
         } else {
             return (string)$Date;
@@ -156,9 +194,9 @@ class TblAbsence extends Element
     }
 
     /**
-     * @param null|\DateTime $Date
+     * @param null|DateTime $Date
      */
-    public function setToDate(\DateTime $Date = null)
+    public function setToDate(DateTime $Date = null)
     {
 
         $this->ToDate = $Date;
@@ -197,67 +235,87 @@ class TblAbsence extends Element
     }
 
     /**
-     * @param \DateTime $tillDate
+     * @param DateTime $tillDate
+     * @param int $countLessons
+     * @param TblCompany|null $tblCompany
      *
-     * @return int
+     * @return int|string
      */
-    public function getDays(\DateTime $tillDate = null)
+    public function getDays(DateTime $tillDate = null, &$countLessons = 0, TblCompany $tblCompany = null)
     {
-
         $countDays = 0;
-        $fromDate = new \DateTime($this->getFromDate());
+        $lessons = Absence::useService()->getLessonAllByAbsence($this);
 
+        $fromDate = new DateTime($this->getFromDate());
         if ($tillDate === null) {
             if ($this->getToDate()) {
-                $toDate = new \DateTime($this->getToDate());
+                $toDate = new DateTime($this->getToDate());
                 if ($toDate >= $fromDate) {
                     $date = $fromDate;
                     while ($date <= $toDate) {
 
-                        $countDays = $this->countThisDay($date, $countDays);
+                        $countDays = $this->countThisDay($date, $countDays, $tblCompany);
 
                         $date = $date->modify('+1 day');
                     }
                 }
             } else {
-
-                $countDays = $this->countThisDay($fromDate, $countDays);
+                $countDays = $this->countThisDay($fromDate, $countDays, $tblCompany);
             }
         } else {
             if ($tillDate >= $fromDate){
                 if ($this->getToDate()) {
-                    $toDate = new \DateTime($this->getToDate());
+                    $toDate = new DateTime($this->getToDate());
                     if ($toDate >= $fromDate) {
                         $date = $fromDate;
                         while ($date <= $toDate && $date <= $tillDate) {
-
-                            $countDays = $this->countThisDay($date, $countDays);
-
+                            $countDays = $this->countThisDay($date, $countDays, $tblCompany);
                             $date = $date->modify('+1 day');
                         }
                     }
                 } else {
-
-                    $countDays = $this->countThisDay($fromDate, $countDays);
+                    $countDays = $this->countThisDay($fromDate, $countDays, $tblCompany);
                 }
             }
         }
 
-        return $countDays;
+        $countLessons += $lessons ? (count($lessons) * $countDays) : 0;
+
+        return $lessons ? '' : $countDays;
     }
 
     /**
-     * @param $date
-     * @param $countDays
+     * @param int $countLessons
+     *
+     * @return string
+     */
+    public function getLessonStringByAbsence(int &$countLessons = 0): string
+    {
+        $result = '';
+        if (($list = Absence::useService()->getAbsenceLessonAllByAbsence($this))) {
+            $countLessons = count($list);
+            foreach ($list as $tblAbsenceLesson) {
+                $result .= ($result == '' ? '' : ', ') . $tblAbsenceLesson->getLesson() . '.UE';
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param DateTime $date
+     * @param integer $countDays
+     * @param TblCompany|null $tblCompany
+     *
      * @return mixed
      */
-    private function countThisDay(\DateTime $date, $countDays)
+    private function countThisDay(DateTime $date, $countDays, TblCompany $tblCompany = null)
     {
 
         if ($date->format('w') != 0 && $date->format('w') != 6) {
             if ($this->getServiceTblDivision()
                 && ($tblYear = $this->getServiceTblDivision()->getServiceTblYear())
-                && !Term::useService()->getHolidayByDay($tblYear, $date)
+                && !Term::useService()->getHolidayByDay($tblYear, $date, $tblCompany)
             ) {
                 $countDays++;
             }
@@ -298,6 +356,18 @@ class TblAbsence extends Element
     /**
      * @return string
      */
+    public function getStatusDisplayShortName()
+    {
+        switch ($this->getStatus()) {
+            case self::VALUE_STATUS_EXCUSED: return 'E';
+            case self::VALUE_STATUS_UNEXCUSED: return 'U';
+            default: return '';
+        }
+    }
+
+    /**
+     * @return string
+     */
     public function getDateSpan()
     {
         if ($this->getToDate()) {
@@ -305,5 +375,218 @@ class TblAbsence extends Element
         } else {
             return $this->getFromDate();
         }
+    }
+
+    /**
+     * @return integer
+     */
+    public function getType()
+    {
+        return $this->Type;
+    }
+
+    /**
+     * @param int $Type
+     */
+    public function setType($Type)
+    {
+        $this->Type = $Type;
+    }
+
+    /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPersonStaff()
+    {
+
+        if (null === $this->serviceTblPersonStaff) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonStaff);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServiceTblPersonStaff(TblPerson $tblPerson = null)
+    {
+
+        $this->serviceTblPersonStaff = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPersonCreator()
+    {
+        if (null === $this->serviceTblPersonCreator) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonCreator);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServiceTblPersonCreator(TblPerson $tblPerson = null)
+    {
+        $this->serviceTblPersonCreator = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return string
+     */
+    public function getTypeDisplayShortName()
+    {
+        switch ($this->getType()) {
+            case self::VALUE_TYPE_THEORY: return 'T';
+            case self::VALUE_TYPE_PRACTICE: return 'P';
+            default: return '';
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getTypeDisplayName()
+    {
+        switch ($this->getType()) {
+            case self::VALUE_TYPE_THEORY: return 'Theorie';
+            case self::VALUE_TYPE_PRACTICE: return 'Praxis';
+            default: return '';
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getWeekDay()
+    {
+        /** @var DateTime $date */
+        if (($date = $this->FromDate)) {
+            $data = array(
+                0 => '(Sonntag)',
+                1 => '(Montag)',
+                2 => '(Dienstag)',
+                3 => '(Mittwoch)',
+                4 => '(Donnerstag)',
+                5 => '(Freitag)',
+                6 => '(Samstag)',
+            );
+
+            return $data[$date->format('w')];
+        }
+
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayStaff()
+    {
+
+        if (($tblPerson = $this->getServiceTblPersonStaff())){
+            if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))){
+                if ($tblTeacher->getAcronym()) {
+                    return $tblTeacher->getAcronym();
+                }
+            }
+
+            return $tblPerson->getLastName();
+        }
+
+        return '';
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsCertificateRelevant() : bool
+    {
+        return (bool) $this->IsCertificateRelevant;
+    }
+
+    /**
+     * @param bool $IsCertificateRelevant
+     */
+    public function setIsCertificateRelevant(bool $IsCertificateRelevant): void
+    {
+        $this->IsCertificateRelevant = $IsCertificateRelevant;
+    }
+
+    /**
+     * @return int
+     */
+    public function getSource(): int
+    {
+        return $this->Source;
+    }
+
+    /**
+     * @param int $Source
+     */
+    public function setSource(int $Source): void
+    {
+        $this->Source = $Source;
+    }
+
+    public function getDisplayPersonCreator(bool $isOnlineAbsenceView = true): string
+    {
+        if (($tblPerson = $this->getServiceTblPersonCreator())){
+            if ($this->getSource() == self::VALUE_SOURCE_STAFF) {
+                if ($isOnlineAbsenceView) {
+                    return 'Schule';
+                } else {
+                    if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson)) && $tblTeacher->getAcronym()) {
+                        return $tblTeacher->getAcronym();
+                    } else {
+                        return $tblPerson->getLastName();
+                    }
+                }
+            } else {
+                return $tblPerson->getSalutation() . ' ' . $tblPerson->getLastName();
+            }
+        }
+
+        return $isOnlineAbsenceView ? 'Schule' : '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getLinkType(): string
+    {
+        if ($this->getIsOnlineAbsence()) {
+            return AbstractLink::TYPE_ORANGE_LINK;
+        } elseif (!$this->getIsCertificateRelevant()) {
+            return AbstractLink::TYPE_MUTED_LINK;
+        } else {
+            return AbstractLink::TYPE_LINK;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayStaffToolTip(): string
+    {
+        if (($tblPersonStaff = $this->getDisplayStaff())) {
+            return $tblPersonStaff;
+        } else {
+            return $this->getDisplayPersonCreator(false);
+        }
+    }
+
+    /**
+     * Noch nicht bearbeitete Online Fehlzeit
+     *
+     * @return bool
+     */
+    public function getIsOnlineAbsence(): bool
+    {
+        return $this->getSource() != TblAbsence::VALUE_SOURCE_STAFF && $this->getServiceTblPersonStaff() == false;
     }
 }

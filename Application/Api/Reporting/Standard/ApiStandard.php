@@ -2,12 +2,16 @@
 
 namespace SPHERE\Application\Api\Reporting\Standard;
 
+use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\Reporting\Standard\Person\Frontend;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
@@ -44,27 +48,31 @@ class ApiStandard extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('reloadAbsenceContent');
+        $Dispatcher->registerMethod('loadStudentArchiveContent');
 
         return $Dispatcher->callMethod($Method);
     }
 
-    public static function receiverFormSelect($Content = '')
+    /**
+     * @param string $Content
+     * @param string $Identifier
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverBlock(string $Content = '', string $Identifier = ''): BlockReceiver
     {
-
-        return new BlockReceiver($Content);
+        return (new BlockReceiver($Content))->setIdentifier($Identifier);
     }
 
     /**
-     * @param AbstractReceiver $Receiver
-     *
      * @return Pipeline
      */
-    public static function pipelineCreateAbsenceContent(AbstractReceiver $Receiver)
+    public static function pipelineReloadAbsenceContent() : Pipeline
     {
         $FieldPipeline = new Pipeline(false);
-        $FieldEmitter = new ServerEmitter($Receiver, ApiStandard::getEndpoint());
+        $FieldEmitter = new ServerEmitter(self::receiverBlock('', 'AbsenceContent'), self::getEndpoint());
         $FieldEmitter->setGetPayload(array(
-            ApiStandard::API_TARGET => 'reloadAbsenceContent'
+            self::API_TARGET => 'reloadAbsenceContent'
         ));
         $FieldPipeline->appendEmitter($FieldEmitter);
         $FieldPipeline->setLoadingMessage('Fehlzeiten werden aktualisiert');
@@ -75,16 +83,32 @@ class ApiStandard extends Extension implements IApiInterface
     /**
      * @param null $Data
      *
-     * @return Layout|string
+     * @return string
      */
-    public function reloadAbsenceContent($Data = null)
+    public function reloadAbsenceContent($Data = null) : string
     {
+        if($Data == null){
+            // Laden mit Grunddaten (aktueller Tag ohne Zusätze)
+            $Data['Date'] = (new DateTime('now'))->format('d.m.Y');
+            $Data['ToDate'] = '';
+            $Data['Type'] = null;
+            $Data['DivisionName'] = '';
+            $Data['GroupName'] = '';
+        }
+
         if ($Data['Date'] == null) {
-            $date = (new \DateTime('now'))->format('d.m.Y');
+            $date = (new DateTime('now'))->format('d.m.Y');
         } else {
             $date = $Data['Date'];
         }
-        $dateTime = new \DateTime($date);
+        $dateTimeFrom = new DateTime($date);
+
+        if ($Data['ToDate'] && $Data['ToDate'] != '') {
+            $dateTimeTo = new DateTime($Data['ToDate']);
+        } else {
+            $dateTimeTo = null;
+        }
+
 
         if ($Data['Type'] != null) {
             $tblType = Type::useService()->getTypeById($Data['Type']);
@@ -92,23 +116,104 @@ class ApiStandard extends Extension implements IApiInterface
             $tblType = false;
         }
 
+        if (isset($Data['IsCertificateRelevant'])) {
+            switch ($Data['IsCertificateRelevant']) {
+                case 1:
+                    $isCertificateRelevant = true;
+                    break;
+                case 2:
+                    $isCertificateRelevant = false;
+                    break;
+                default:
+                    $isCertificateRelevant = null;
+            }
+        } else {
+            $isCertificateRelevant = null;
+        }
+
+        $isAbsenceOnlineOnly = isset($Data['IsAbsenceOnline']);
         $divisionName = $Data['DivisionName'];
+        $groupName = $Data['GroupName'];
+        $isGroup = false;
+        $hasAbsenceTypeOptions = false;
         if ($divisionName != '') {
             $divisionList = Division::useService()->getDivisionAllByName($divisionName);
             if (empty($divisionList)) {
                 return new Warning('Klasse nicht gefunden', new Exclamation());
             }
 
-            $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null, $divisionList);
+            $absenceList = Absence::useService()->getAbsenceAllByDay(
+                $dateTimeFrom,
+                $dateTimeTo,
+                $tblType ? $tblType : null,
+                $divisionList,
+                array(),
+                $hasAbsenceTypeOptions,
+                $isCertificateRelevant,
+                $isAbsenceOnlineOnly
+            );
+        } elseif ($groupName != '') {
+            $isGroup = true;
+            $groupList = Group::useService()->getGroupListLike($groupName);
+//            var_dump($groupList);
+            if (empty($groupList)) {
+                return new Warning('Gruppe nicht gefunden', new Exclamation());
+            }
+
+            $absenceList = Absence::useService()->getAbsenceAllByDay(
+                $dateTimeFrom,
+                $dateTimeTo,
+                $tblType ? $tblType : null,
+                array(),
+                $groupList,
+                $hasAbsenceTypeOptions,
+                $isCertificateRelevant,
+                $isAbsenceOnlineOnly
+            );
         } else {
-            $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null);
+            $absenceList = Absence::useService()->getAbsenceAllByDay(
+                $dateTimeFrom,
+                $dateTimeTo,
+                $tblType ? $tblType : null,
+                array(),
+                array(),
+                $hasAbsenceTypeOptions,
+                $isCertificateRelevant,
+                $isAbsenceOnlineOnly
+            );
         }
 
         $title = new Title(
-            'Fehlzeiten für den ' . $dateTime->format('d.m.Y')
+            'Fehlzeiten für den ' . $dateTimeFrom->format('d.m.Y')
             . ($tblType ? ', Schulart: ' . $tblType->getName() : '')
         );
+
         if (!empty($absenceList)) {
+            $columns = array(
+                'Type'                  => 'Schulart',
+                'Group'                 => 'Gruppe',
+                'Division'              => 'Klasse',
+                'Person'                => 'Schüler',
+                'DateFrom'              => 'Zeitraum von',
+                'DateTo'                => 'Zeitraum bis',
+                'PersonCreator'         => 'Ersteller',
+                'Lessons'               => 'Unterrichts&shy;einheiten',
+                'AbsenceType'           => 'Typ',
+                'IsCertificateRelevant' => 'Zeugnisrelevant',
+                'Status'                => 'Status',
+                'Remark'                => 'Bemerkung'
+            );
+
+            if ($isGroup) {
+                unset($columns['Division']);
+            } else {
+                unset($columns['Group']);
+            }
+
+            if (!$hasAbsenceTypeOptions) {
+                unset($columns['AbsenceType']);
+            }
+
             return new Layout(new LayoutGroup(array(
                 new LayoutRow(
                     new LayoutColumn(
@@ -117,8 +222,12 @@ class ApiStandard extends Extension implements IApiInterface
                             new Download(),
                             array(
                                 'Date' => $Data['Date'],
+                                'DateTo' => $Data['ToDate'],
                                 'Type' => $Data['Type'],
-                                'DivisionName' => $Data['DivisionName']
+                                'DivisionName' => $Data['DivisionName'],
+                                'GroupName' => $Data['GroupName'],
+                                'IsCertificateRelevant' => isset($Data['IsCertificateRelevant']) ? $Data['IsCertificateRelevant'] : 0,
+                                'IsAbsenceOnlineOnly' => $isAbsenceOnlineOnly
                             )
                         )
                     )
@@ -129,22 +238,20 @@ class ApiStandard extends Extension implements IApiInterface
                         . new TableData(
                             $absenceList,
                             null,
-                            array(
-                                'Type' => 'Schulart',
-                                'Division' => 'Klasse',
-                                'Person' => 'Schüler',
-                                'DateSpan' => 'Zeitraum',
-                                'Status' => 'Status',
-                                'Remark' => 'Bemerkung'
-                            ),
+                            $columns,
                             array(
                                 'order' => array(
                                     array('0', 'asc'),
                                     array('1', 'asc'),
                                     array('2', 'asc'),
+                                    array('3', 'asc'),
                                 ),
                                 'columnDefs' => array(
+                                    // Klassen
                                     array('type' => 'natural', 'targets' => 1),
+                                    // von & bis
+                                    array('type' => 'de_date', 'targets' => 3),
+                                    array('type' => 'de_date', 'targets' => 4),
                                     //  geht aktuell nicht zusammen mit order beide Spalten
 //                                  array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                                 ),
@@ -158,5 +265,39 @@ class ApiStandard extends Extension implements IApiInterface
                 $title
                 . new Warning('Für diesen Tag liegen keine Fehlzeiten vor.', new Ban());
         }
+    }
+
+    /**
+     * @param string|null $YearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentArchiveContent(?string $YearId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentArchiveContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentArchiveContent',
+            'YearId' => $YearId,
+        ));
+        $ModalEmitter->setLoadingMessage('Ehemalige Schüler werden geladen', 'Bitte warten');
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $YearId
+     *
+     * @return string
+     */
+    public function loadStudentArchiveContent(string $YearId): string
+    {
+        if (($tblYear = Term::useService()->getYearById($YearId))) {
+            return (new Frontend())->getStudentArchiveContent($tblYear);
+        }
+
+        return new Warning('Bitte wählen Sie ein Schuljahr aus');
     }
 }

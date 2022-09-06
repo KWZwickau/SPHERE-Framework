@@ -14,6 +14,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
+use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 
 class PasswordChange extends AbstractDocument
 {
@@ -144,8 +145,11 @@ class PasswordChange extends AbstractDocument
         $this->FieldValue['Password'] = $Password = Account::useService()->generatePassword();
         // remove tblAccount
         if ($tblAccount && $Password) {
-            AccountAuthorization::useService()->changePassword($Password, $tblAccount);
-            Account::useService()->changePassword($tblAccount, $Password);
+            if(($tblUserAccount = Account::useService()->getUserAccountByAccount($tblAccount))){
+                AccountAuthorization::useService()->changePassword($Password, $tblAccount);
+                Account::useService()->changePassword($tblUserAccount, $Password);
+                Account::useService()->changeUpdateDate($tblUserAccount, TblUserAccount::VALUE_UPDATE_TYPE_RENEW);
+            }
         };
 
         return $this;
@@ -161,11 +165,13 @@ class PasswordChange extends AbstractDocument
     }
 
     /**
+     *
      * @param array $pageList
+     * @param string $Part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument($pageList = array(), $Part = '0')
     {
         return (new Frame())->addDocument((new Document())
             ->addPage($this->buildPageOne())
@@ -319,13 +325,13 @@ class PasswordChange extends AbstractDocument
                 ->addElementColumn((new Element())
                     ->setContent('
                     {% if '.$this->FieldValue['Gender'].' == 1 %}
-                        Lieber 
+                        Lieber
                     {% elseif '.$this->FieldValue['Gender'].' == 2 %}
-                        Liebe 
+                        Liebe
                     {% else %}
-                        Liebe(r) 
+                        Liebe(r)
                     {% endif %}'
-                    .'{% if '.$this->FieldValue['PersonSalutation'].' == "" %}
+                    .'{% if "'.$this->FieldValue['PersonSalutation'].'" == "" %}
                         Herr/Frau
                     {% else %}
                         '.$this->FieldValue["PersonSalutation"].' '.'
@@ -392,7 +398,7 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Wunschgemäß übersenden wir Ihnen Ihre neuen Zugangsdaten zur Einsicht der Noten 
+                    ->setContent('Wunschgemäß übersenden wir Ihnen Ihre neuen Zugangsdaten zur Einsicht der Noten
                     {% if '.$this->FieldValue['ChildCount'].' == 1 %}
                         Ihres Kindes.
                     {% elseif '.$this->FieldValue['ChildCount'].' == 2 %}

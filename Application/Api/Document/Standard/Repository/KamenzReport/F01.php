@@ -12,102 +12,115 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+/**
+ * Class F01
+ *
+ * @package SPHERE\Application\Api\Document\Standard\Repository\KamenzReport
+ */
 class F01
 {
-    public static function getContent()
+    /**
+     * End max 7
+     * @param int $Start
+     * @param int $End
+     *
+     * @return Slice[]
+     */
+    public static function getContent($Start = 0, $End = 4)
     {
         $sliceList = array();
+        //display Header
+        if($Start == 0){
+            $sliceList[] = (new Slice())
+                ->styleTextBold()
+                ->styleMarginTop('20px')
+                ->styleMarginBottom('5px')
+                ->addElement((new Element())
+                    ->setContent('F01. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf im Schuljahr
+                {{ Content.SchoolYear.Current }} nach <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Förderschwerpunkten und Klassenstufen')
+                );
 
-        $sliceList[] = (new Slice())
-            ->styleTextBold()
-            ->styleMarginTop('20px')
-            ->styleMarginBottom('5px')
-            ->addElement((new Element())
-                ->setContent('F01. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf im Schuljahr
-                    {{ Content.SchoolYear.Current }} </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach 
-                    Förderschwerpunkten und Klassenstufen')
-            );
+            $sliceList[] = (new Slice())
+                ->styleBackgroundColor('lightgrey')
+                ->styleAlignCenter()
+                ->styleBorderTop()
+                ->styleBorderBottom()
+                ->styleBorderLeft()
+                ->styleBorderRight()
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Förderschwerpunkt(e)')
+                        ->styleBorderRight()
+                        ->stylePaddingTop('43.35px')
+                        ->stylePaddingBottom('43.35px'), '20%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Klassenstufe')
+                        ->styleBorderRight()
+                        ->stylePaddingTop('43.35px')
+                        ->stylePaddingBottom('43.35px'), '15%'
+                    )
+                    ->addSliceColumn((new Slice())
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('Schüler')
+                                ->styleBorderBottom()
+                                ->styleBorderRight()
+                                ->stylePaddingTop('34.25px')
+                                ->stylePaddingBottom('34.25px'), '30%'
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('m')
+                                ->styleBorderRight(), '50%'
+                            )
+                            ->addElementColumn((new Element())
+                                ->setContent('w')
+                                ->styleBorderRight(), '50%'
+                            )
+                        ), '21.66%'
+                    )
+                    ->addSliceColumn((new Slice())
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('<b>Darunter</b> von Spalte Schüler'), '100%'
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('Schüler, deren<br/>Herkunftssprache nicht<br/>oder nicht ausschl.<br/>Deutsch ist')
+                                ->styleBorderBottom()
+                                ->styleBorderRight(), '50%'
+                            )
+                            ->addElementColumn((new Element())
+                                ->setContent('Schüler mit<br/>gutachterl.<br/>best. Autismus<br/>&nbsp;')
+                                ->styleBorderBottom(), '50%'
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('m')
+                                ->styleBorderRight(), '25%'
+                            )
+                            ->addElementColumn((new Element())
+                                ->setContent('w')
+                                ->styleBorderRight(), '25%'
+                            )
+                            ->addElementColumn((new Element())
+                                ->setContent('m')
+                                ->styleBorderRight(), '25%'
+                            )
+                            ->addElementColumn((new Element())
+                                ->setContent('w'), '25%'
+                            )
+                        )
+                        , '43.34%'
+                    )
+                );
+        }
 
-        $sliceList[] = (new Slice())
-            ->styleBackgroundColor('lightgrey')
-            ->styleAlignCenter()
-            ->styleBorderTop()
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Förderschwerpunkt(e)')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('34.7px')
-                    ->stylePaddingBottom('34.7px'), '20%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Klassenstufe')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('34.7px')
-                    ->stylePaddingBottom('34.7px'), '30%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Schüler')
-                            ->styleBorderBottom()
-                            ->styleBorderRight()
-                            ->stylePaddingTop('25.6px')
-                            ->stylePaddingBottom('25.6px'), '30%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '50%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '50%'
-                        )
-                    ), '16.66%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('<b>Darunter</b> von Spalte Schüler'), '100%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Schüler mit<br/>Migrations-<br/>hintergrund')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '50%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('Schüler mit<br/>gutachterl.<br/>best. Autismus')
-                            ->styleBorderBottom(), '50%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '25%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '25%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '25%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w'), '25%'
-                        )
-                    )
-                    , '33.34%'
-                )
-            );
-
-        for ($i = 0; $i < 8; $i++) {
+        for ($i = $Start; $i <= $End; $i++) {
             $isBold = false;
             $paddingTop = '63.4px';
             $paddingBottom = '63.3px';
@@ -131,7 +144,7 @@ class F01
                     ->styleBorderRight()
                     ->stylePaddingTop($paddingTop)
                     ->stylePaddingBottom($paddingBottom), '20%'
-            );
+                );
 
             // Klassenstufe
             $lineSectionList = array();
@@ -160,7 +173,7 @@ class F01
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight()
                     ->addSectionList($lineSectionList)
-                    , '30%'
+                    , '15%'
                 );
 
             // Schüler
@@ -188,7 +201,7 @@ class F01
     }
 
     /**
-     * @param $section
+     * @param Section $section
      * @param $text
      * @param $identifier
      * @param $gender
@@ -250,7 +263,7 @@ class F01
             ->addSliceColumn((new Slice())
                 ->styleBorderRight()
                 ->addSectionList($lineSectionList)
-                , '8.333%'
+                , '10.833%'
             );
     }
 }

@@ -91,9 +91,9 @@ class ValidationFilter extends Extension implements IApiInterface
 
                 $content = new Exclamation()
                     . new Bold(' Folgende Einstellungen stimmen nicht zwischen der Personenverwaltung und dem Bildungsmodul überein:')
-                    . '</br>'
+                    . '<br />'
                     . ($message ? $message : '')
-                    . '</br></br>'
+                    . '<br /><br />'
                     . (new Standard('Validierung', ''))->ajaxPipelineOnClick(self::pipelineLoad());
 
                 return $count > 0 ? new Warning($content) : new Success($content);

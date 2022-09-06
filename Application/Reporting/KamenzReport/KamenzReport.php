@@ -30,6 +30,12 @@ class KamenzReport extends AbstractModule implements IApplicationInterface, IMod
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Validate/GrammarSchool', __NAMESPACE__ . '\Frontend::frontendValidateGrammarSchool'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Validate/TechnicalSchool', __NAMESPACE__ . '\Frontend::frontendValidateTechnicalSchool'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Validate/AdvancedTechnicalSchool', __NAMESPACE__ . '\Frontend::frontendValidateAdvancedTechnicalSchool'
+        ));
     }
 
     /**

@@ -18,6 +18,8 @@ class FileUpload extends AbstractField implements IFieldInterface
     protected $Name;
     /** @var IBridgeInterface $Template */
     protected $Template = null;
+    /** @var int $MaxSize */
+    protected $MaxSize = 2 * 1024 * 1024; // 2MB
 
     /**
      * @param string         $Name
@@ -46,6 +48,29 @@ class FileUpload extends AbstractField implements IFieldInterface
         if (is_array($Option)) {
             $this->Template->setVariable('ElementOption', json_encode($Option));
         }
+    }
+
+    /**
+     * @param int $MaxSize as MB
+     *
+     * @return $this
+     */
+    public function setMaxSize($MaxSize = 2)
+    {
+
+        $this->MaxSize = $MaxSize * 1024 * 1024;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getContent()
+    {
+
+        $this->Template->setVariable('ElementMaxSize', $this->MaxSize);
+
+        return parent::getContent();
     }
 
 }

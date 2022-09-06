@@ -32,6 +32,8 @@ class Pipeline implements IFrontendInterface
     private $Emitter = array();
     /** @var bool $Sync */
     private $Sync = true;
+    /** @var int $RepeatTimeout */
+    private $RepeatTimeout = 0;
 
     /**
      * Pipeline constructor.
@@ -138,13 +140,27 @@ class Pipeline implements IFrontendInterface
      */
     public function __toString()
     {
-        return (string)'<script type="text/javascript">'
-            . 'executeScript(function() {'
-            . 'Client.Use("ModAjax", function(){'
-            . $this->parseScript()
-            . '});'
-            . '});'
-            . '</script>';
+        if( $this->RepeatTimeout > 0 ) {
+            return (string)'<script type="text/javascript">'
+                . 'executeScript(function() {'
+                . 'Client.Use("ModAjax", function(){'
+                . 'var handlerPipeline = function(){'
+                . $this->parseScript()
+                . 'window.setTimeout( handlerPipeline, '.(int)$this->RepeatTimeout.'000 ) '
+                . '};'
+                . 'handlerPipeline();'
+                . '});'
+                . '});'
+                . '</script>';
+        } else {
+            return (string)'<script type="text/javascript">'
+                . 'executeScript(function() {'
+                . 'Client.Use("ModAjax", function(){'
+                . $this->parseScript()
+                . '});'
+                . '});'
+                . '</script>';
+        }
     }
 
     /**
@@ -178,14 +194,14 @@ class Pipeline implements IFrontendInterface
                     if (strlen($Emitter->getAjaxPostPayload()) > 2) {
                         if( !empty( $FrontendElement->getData() ) ) {
                             $Payload = json_decode( $Emitter->getAjaxPostPayload(), true );
-                            $Payload = array_merge( $FrontendElement->getData(), $Payload );
+                            $Payload = array_replace_recursive( $FrontendElement->getData(), $Payload );
                             $Payload = json_encode( $Payload, JSON_FORCE_OBJECT );
                         } else {
                             $Payload = json_decode($Emitter->getAjaxPostPayload(), true);
                             $Payload = json_encode($Payload, JSON_FORCE_OBJECT);
                         }
                     } else {
-                        if (!empty($FrontendElement->getData())) {
+                        if( !empty( $FrontendElement->getData() ) ) {
                             $Payload = json_encode($FrontendElement->getData(), JSON_FORCE_OBJECT);
                         } else {
                             $Payload = json_encode($Data, JSON_FORCE_OBJECT);
@@ -206,7 +222,7 @@ class Pipeline implements IFrontendInterface
                     if (strlen($Emitter->getAjaxPostPayload()) > 2) {
                         if( !empty( $FrontendElement->getData() ) ) {
                             $Payload = json_decode( $Emitter->getAjaxPostPayload(), true );
-                            $Payload = array_merge( $FrontendElement->getData(), $Payload );
+                            $Payload = array_replace_recursive( $FrontendElement->getData(), $Payload );
                             $Data = json_encode( $Payload, JSON_FORCE_OBJECT );
                         } else {
                             $Data = json_decode( $Emitter->getAjaxPostPayload(), true );
@@ -329,5 +345,16 @@ class Pipeline implements IFrontendInterface
             . ' }, onSuccess: { Title: ' . json_encode($SuccessTitle)
             . ', Message: ' . json_encode($SuccessMessage)
             . ' }';
+    }
+
+    /**
+     * @param int $Timeout
+     *
+     * @return $this
+     */
+    public function repeatPipeline( $Timeout = 1 )
+    {
+        $this->RepeatTimeout = $Timeout;
+        return $this;
     }
 }

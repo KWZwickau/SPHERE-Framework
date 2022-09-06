@@ -773,6 +773,12 @@ class Service extends AbstractService
         ));
     }
 
+    public function getListObjectListContentByList(TblList $tblList)
+    {
+
+        return (new Data($this->getBinding()))->getListObjectListContentByList($tblList);
+    }
+
     /**
      * @param TblList $tblList
      *
@@ -782,6 +788,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getListObjectElementListByList($tblList);
+    }
+
+    /**
+     * @param TblList $tblList
+     * @param int     $ObjectId
+     *
+     * @return bool|TblListObjectElementList[]
+     */
+    public function getListObjectElementListByListAndObjectId(TblList $tblList, $ObjectId)
+    {
+
+        return (new Data($this->getBinding()))->getListObjectElementListByListAndObjectId($tblList, $ObjectId);
     }
 
     /**
@@ -865,6 +883,8 @@ class Service extends AbstractService
             $filterLevel = false;
             $filterSchoolOption1 = false;
             $filterSchoolOption2 = false;
+
+            $countCheckBoxValue = array();
 
             // filter
             if ($YearPersonId !== null) {
@@ -1118,6 +1138,17 @@ class Service extends AbstractService
                                                 if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
                                                     $export->setValue($export->getCell($columnCount, $rowCount),
                                                         $item->getValue());
+                                                    if ($item->getValue()
+                                                        && ($tblElementType = $tblListElementList->getTblElementType())
+                                                        && ($tblElementType->getIdentifier() == 'CHECKBOX')
+                                                    ) {
+                                                        if (isset($countCheckBoxValue[$columnCount])) {
+                                                            $countCheckBoxValue[$columnCount]++;
+                                                        } else {
+                                                            $countCheckBoxValue[$columnCount] = 1;
+                                                        }
+                                                    }
+
                                                     break;
                                                 } else {
                                                     $columnCount++;
@@ -1131,6 +1162,14 @@ class Service extends AbstractService
                         }
                     }
                 }
+            }
+
+            // isChecked zählen
+            $countAll = $rowCount - 1;
+            $rowCount = 0;
+            foreach ($countCheckBoxValue as $fieldCount => $countCheck) {
+                $cell = $export->getCell($fieldCount, $rowCount);
+                $export->setValue($cell, $export->getValue($cell) . ' (' . $countCheck . ' von ' . $countAll . ')');
             }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));

@@ -80,7 +80,7 @@ class G01
                     ), '60%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Sonder-</br>klassen')
+                    ->setContent('Sonder-<br />klassen')
                     ->styleBorderRight()
                     , '10%'
                 )

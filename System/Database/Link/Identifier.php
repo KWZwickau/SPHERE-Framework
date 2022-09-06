@@ -55,11 +55,12 @@ class Identifier
     {
 
         if ($includeConsumer) {
-            return $this->Cluster
-            .':'.$this->Application
-            .( $this->Module === null ? '' : ':'.$this->Module )
-            .( $this->Service === null ? '' : ':'.$this->Service )
-            .( $this->Consumer === null ? '' : ':'.$this->Consumer );
+            return
+                ($this->Consumer === null ? '' : $this->Consumer.':')
+                .$this->Cluster
+                .':'.$this->Application
+                .($this->Module === null ? '' : ':'.$this->Module)
+                .($this->Service === null ? '' : ':'.$this->Service);
         } else {
             return $this->Cluster
             .':'.$this->Application

@@ -139,7 +139,7 @@ class TblToPerson extends Element
      */
     public function getRanking()
     {
-        return $this->Ranking;
+        return (int)$this->Ranking;
     }
 
     /**

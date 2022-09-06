@@ -2,15 +2,26 @@
 
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
+use DateTime;
+use Exception;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\People\ContactDetails\ContactDetails;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLP;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLPDemo;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlPlaceholder;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Setting\Agb\Agb;
+use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -20,10 +31,11 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Cog;
+use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
@@ -33,7 +45,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Off;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Picture;
-use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -42,14 +53,17 @@ use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
@@ -59,6 +73,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -67,6 +82,7 @@ use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Debugger\Logger\FileLogger;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\phpSaml;
 
 /**
  * Class Frontend
@@ -83,13 +99,15 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Willkommen', '', '');
-        $IsMaintenance = false;
+        $Date = '2022-08-18 ';
+        $IsMaintenance = (new DateTime('now') >= new DateTime($Date.'13:00:00')
+                       && new DateTime('now') <= new DateTime($Date.'23:59:59'));
+        $maintenanceMessage = '';
         $contentTeacherWelcome = false;
         $contentHeadmasterWelcome = false;
-        $IsEqual = false;
-        $IsNavigationAssistance = false;
+        $contentSecretariatWelcome = false;
+        $IsChangePassword = false;
 
-        $tblIdentificationSearch = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
             $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
@@ -99,8 +117,9 @@ class Frontend extends Extension implements IFrontendInterface
                     && ($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
                 ) {
-
-                    $contentTeacherWelcome = Evaluation::useService()->getTeacherWelcome($tblPerson);
+                    $contentTeacherWelcome = Evaluation::useService()->getTeacherWelcomeGradeTask($tblPerson)
+                        . (($timeTable = Timetable::useService()->getTimetablePanelForTeacher())
+                            ? $timeTable : Digital::useService()->getDigitalClassRegisterPanelForTeacher());
                 }
 
                 if (Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Type/Select')) {
@@ -108,31 +127,75 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-        if ($tblAccount && $tblIdentificationSearch) {
-            $tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount);
-            if ($tblAuthentication && ($tblIdentification = $tblAuthentication->getTblIdentification())) {
-                if ($tblIdentificationSearch->getId() == $tblIdentification->getId()) {
-                    // Alle TblUserAccounts erhalten direktlink Button
-                    $IsNavigationAssistance = true;
-                    $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
-                    if ($tblUserAccount) {
-                        $Password = $tblUserAccount->getAccountPassword();
-                        if ($tblAccount->getPassword() == $Password) {
-                            $IsEqual = true;
-                        }
+        if ($tblAccount) {
+            if (($tblIdentification = $tblAccount->getServiceTblIdentification())
+                && ($tblIdentification->getName() == TblIdentification::NAME_USER_CREDENTIAL)
+            ) {
+                // Eltern und Schüler funktionieren anders als die anderen Accounts
+                if (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))) {
+                    $Password = $tblUserAccount->getAccountPassword();
+                    if ($tblAccount->getPassword() == $Password) {
+                        $IsChangePassword = true;
                     }
+                }
+            } else {
+                if (Account::useService()->isAccountPWInitial($tblAccount)
+                    // Standard-Passwort
+                    || $tblAccount->getPassword() == '547d0783ae13fa4ab68ae8f3a1f1ee44e6795be7137b1c14b808c393d328f2e7'
+                ) {
+                    $IsChangePassword = true;
                 }
             }
         }
-        $maintenanceMessage = '';
         if ($IsMaintenance) {
-            $now = new \DateTime();
-            if ($now >= new \DateTime('22:00')) {
-                $maintenanceMessage = new DangerMessage(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
-            } elseif ($now >= new \DateTime('20:00')) {
-                $maintenanceMessage = new Warning(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
+            $now = new DateTime();
+            if ($now >= new DateTime('22:00')) {
+                $PanelColor = Panel::PANEL_TYPE_DANGER;
+                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
+                    new DangerMessage(new Container(new Center(new Bold('Achtung laufende Wartungsarbeiten seit 22:00
+                        bis vorraussichtlich 0:00.')))
+                    .new Container(new Center(new Bold('Es wird empfohlen, sich wegen der Wartung abzumelden,
+                     um Datenverlust der getätigten Eingaben zu vermeiden.')))
+                    .new Container((new ProgressBar(0,100,0, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER))
+                    , null, false, '8', '5'), $PanelColor);
+            } elseif ($now >= new DateTime('20:00')) {
+                $PanelColor = Panel::PANEL_TYPE_WARNING;
+                $DiffTime = (new DateTime('now'))->diff(new DateTime($Date.' 22:00:00'));
+//                $DiffTime = (new DateTime('now'))->diff(new DateTime('2021-07-28 22:00:00'));
+                $Minutes = $DiffTime->h * 60;
+                $Minutes = $Minutes + $DiffTime->i;
+                $aktiveProgressbar = $Minutes/120*100;
+                $doneProgressbar = 100 - $aktiveProgressbar;
+                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
+                    new DangerMessage(new Container(new Center('Achtung heute ('.$now->format('d.m.Y')
+                            .') ab 22:00 Wartungsarbeiten, voraussichtlich 2 Stunden.')).new Container(new Center(new Bold('Es wird empfohlen, sich 
+                        vor der Wartung abzumelden, um Datenverlust von den Eingaben zu vermeiden.').' ('.new Italic('noch '.$Minutes.' Minuten').')'))
+                        .new Container((new ProgressBar(0, $doneProgressbar, $aktiveProgressbar, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_SUCCESS))
+                        , null, false, '8', '5'), $PanelColor
+                );
+            } elseif ($now >= new DateTime('9:00')) {
+                $PanelColor = Panel::PANEL_TYPE_WARNING;
+                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
+                    new Warning(new Center('Achtung heute ('.$now->format('d.m.Y').') ab 22:00
+                     Wartungsarbeiten, voraussichtlich 2 Stunden.'), null, false, '8', '5'), $PanelColor
+                );
             }
         }
+
+        // specialLogin?
+        $isConsumerLogin = false;
+        if(($tblAccount = Account::useService()->getAccountBySession())) {
+            if (($tblConsumer = $tblAccount->getServiceTblConsumer())) {
+                if(Consumer::useService()->getConsumerLoginListByConsumer($tblConsumer)){
+                    $isConsumerLogin = true;
+                }
+            }
+        }
+
+        if (Access::useService()->hasAuthorization('/People/ContactDetails')) {
+            $contentSecretariatWelcome = ContactDetails::useFrontend()->getWelcome();
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -146,47 +209,17 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             )
-            .($IsEqual
+            .($IsChangePassword && !$isConsumerLogin
                 ? $this->layoutPasswordChange()
                 : ''
             )
-            .($IsNavigationAssistance
-                ? $this->layoutNavigationAssistance()
-                : ''
-            )
-            . ($contentHeadmasterWelcome ? $contentHeadmasterWelcome : '')
-            .($contentTeacherWelcome ? $contentTeacherWelcome : '')
-            .$this->getCleanLocalStorage()
+            . ($contentHeadmasterWelcome ?: '')
+            . ($contentTeacherWelcome ?: '')
+            . ($contentSecretariatWelcome ?: '')
+            . $this->getCleanLocalStorage()
         );
 
         return $Stage;
-    }
-
-    /**
-     * @return string|Layout
-     */
-    private function layoutNavigationAssistance()
-    {
-
-        return new Layout(
-            new LayoutGroup(
-                new LayoutRow(array(
-                    new LayoutColumn('', 2),
-                    new LayoutColumn(
-                        new Panel(new Center('Notenübersicht'),
-                            array(
-                                new Container('&nbsp;').new Center(new Paragraph('Die Notenübersicht erreichen Sie über das Menü '
-                                        .new Bold('Bildung => Zensuren => Notenübersicht').' oder über folgenden Link')
-                                    .new Standard('Notenübersicht', '/Education/Graduation/Gradebook/Student/Gradebook',
-                                        new Family())
-                                )
-                            )
-                            , Panel::PANEL_TYPE_INFO
-                        )
-                        , 8)
-                ))
-            )
-        );
     }
 
     /**
@@ -257,6 +290,12 @@ class Frontend extends Extension implements IFrontendInterface
                     ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
             }
             if (!$tblAccount) {
+                // Check Credential with Authenticator App
+                $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP);
+                $tblAccount = Account::useService()
+                    ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
+            }
+            if (!$tblAccount) {
                 // Check Credential
                 $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
                 $tblAccount = Account::useService()
@@ -273,6 +312,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Matching Account found?
         if ($tblAccount && $tblIdentification) {
             switch ($tblIdentification->getName()) {
+                case TblIdentification::NAME_AUTHENTICATOR_APP:
                 case TblIdentification::NAME_TOKEN:
                 case TblIdentification::NAME_SYSTEM:
                     return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId());
@@ -311,7 +351,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                     new FormRow(
                         new FormColumn(array(
-                            new Headline('Bitte geben Sie Ihre Zugangsdaten ein'),
+                            new Headline('Anmeldung Schulsoftware'),
                             new Ruler(),
                             new Listing(array(
                                 new Container($CredentialNameField) .
@@ -322,18 +362,165 @@ class Frontend extends Extension implements IFrontendInterface
                     ),
                     new FormRow(
                         new FormColumn(array(
-                            (new Primary('Anmelden')),
+                            (new Primary('Login')),
                         ))
                     )
                 )
             )
         );
 
+        // set depending information
+        if(strtolower($this->getRequest()->getHost()) == 'www.schulsoftware.schule'
+//            || $this->getRequest()->getHost() == '192.168.75.128' // local test
+//            || $this->getRequest()->getHost() == '192.168.37.128' // local test
+        ){
+            $Form.= new Layout(new LayoutGroup(new LayoutRow(
+                new LayoutColumn(array(
+                    '<br/><br/><br/><br/>',
+                    new Title('Anmeldung UCS (Pilot)'),
+                    new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\DLLP')
+                    // Frontend dazu muss noch entschieden werden
+//                    .new PrimaryLink('Placeholder', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\Placeholder') // -> Beispiel kann für zukünftige IDP's verwendet werden
+
+                ))
+            )));
+        } elseif(strtolower($this->getRequest()->getHost()) == 'www.demo.schulsoftware.schule'){
+//            $Form.= new Layout(new LayoutGroup(new LayoutRow(
+//                new LayoutColumn(array(
+//                    '<br/><br/><br/><br/>',
+//                    new Title('Anmeldung UCS Demo (Pilot)'),
+//                    new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\DLLPDemo')
+//                ))
+//            )));
+        }
+
         setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');
 
         $View->setContent($this->getIdentificationLayout($Form));
 
         return $View;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendIdentificationSamlPlaceholder()
+    {
+
+        return $this->LoginSecondPageLogic(SamlPlaceholder::getSAML());
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendIdentificationSamlDLLP()
+    {
+
+        return $this->LoginSecondPageLogic(SamlDLLP::getSAML());
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendIdentificationSamlDLLPDemo()
+    {
+
+        return $this->LoginSecondPageLogic(SamlDLLPDemo::getSAML());
+    }
+
+//    /**
+//     * // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
+//     * @return Stage
+//     */
+//    public function frontendIdentificationSamlEKM()
+//    {
+//
+//        return $this->LoginSecondPageLogic(SamlEKM::getSAML());
+//    }
+
+    private function LoginSecondPageLogic($Config = array())
+    {
+
+        $Stage = new Stage(new Nameplate().' Anmelden', '', $this->getIdentificationEnvironment());
+
+        $Saml = new phpSaml($Config);
+        if(($Error = $Saml->getAuthRequest())){
+            $Stage->setContent($Error);
+            return $Stage;
+        }
+        $tblAccount = null;
+        $LoginOk = false;
+
+        if(isset($_SESSION['samlUserdata']['ucsschoolRecordUID']) && $_SESSION['samlUserdata']['ucsschoolRecordUID']){
+//            var_dump($_SESSION['samlUserdata']);
+            $AccountNameAPI = current($_SESSION['samlUserdata']['uid']);
+            $AccountId = current($_SESSION['samlUserdata']['ucsschoolRecordUID']);
+            $tblAccount = Account::useService()->getAccountById($AccountId);
+        }
+
+        // AccountId gegen Prüfung
+        if(isset($AccountNameAPI)
+            && $tblAccount
+            && $tblAccount->getUsername() != $AccountNameAPI){
+            $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
+                new LayoutColumn(new Warning('Ihr Login ist irregulär, bitte wenden Sie sich an einen zuständigen Administrator'))
+            ))));
+            return $Stage;
+        }
+
+        $tblIdentificationSystem = Account::useService()->getIdentificationByName(TblIdentification::NAME_SYSTEM);
+        // Login block für System Accounts
+        if($tblAccount
+            && $tblAccount->getServiceTblIdentification()->getId() == $tblIdentificationSystem->getId()){
+            $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
+                new LayoutColumn(new Warning('Systemaccounts dürfen keinen SSO Login erhalten'))
+            ))));
+            return $Stage;
+        }
+        if(isset($_SESSION['isAuthenticated']) && $_SESSION['isAuthenticated']){
+            $LoginOk = true;
+        }
+
+        if(($ExistSessionAccount = Account::useService()->getAccountBySession())){
+            // is requested account the same like session account go to welcome
+            if($tblAccount && $ExistSessionAccount->getId() == $tblAccount->getId()){
+                $Stage->setContent(new Redirect('/', Redirect::TIMEOUT_SUCCESS));
+                return $Stage;
+            }
+            // remove existing Session if User is not the same
+            if($Session = session_id()){
+                Account::useService()->destroySession(null, $Session);
+            }
+
+        }
+
+        $tblIdentification = null;
+        if($tblAccount
+            && $LoginOk
+            && ($tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount))){
+            $tblIdentification = $tblAuthentication->getTblIdentification();
+        }
+
+        // Matching Account found?
+        if ($tblAccount && $tblIdentification) {
+            // Anfragen von SAML müssen Cookies aktiviert haben
+            $isCookieAvailable = true;
+            switch ($tblIdentification->getName()) {
+                case TblIdentification::NAME_AUTHENTICATOR_APP:
+                case TblIdentification::NAME_TOKEN:
+                case TblIdentification::NAME_SYSTEM:
+                    return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId(), null, $isCookieAvailable);
+                case TblIdentification::NAME_CREDENTIAL:
+                case TblIdentification::NAME_USER_CREDENTIAL:
+                    return $this->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId(), 0, $isCookieAvailable);
+            }
+        }
+
+        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
+            new LayoutColumn(new Warning('Ihr Login von UCS ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
+        ))));
+
+        return $Stage;
     }
 
     /**
@@ -346,26 +533,28 @@ class Frontend extends Extension implements IFrontendInterface
         switch (strtolower($this->getRequest()->getHost())) {
             case 'www.schulsoftware.schule':
             case 'www.kreda.schule':
+            case 'ekbo.schulsoftware.schule':
                 return new InfoText('');
-                break;
+            case 'ekbodemo.schulsoftware.schule':
             case 'demo.schulsoftware.schule':
             case 'demo.kreda.schule':
                 return new Danger(new Picture().' Demo-Umgebung');
-                break;
             default:
                 return new WarningText( new Globe().' '.$this->getRequest()->getHost());
         }
     }
 
     /**
-     * @param int $tblAccount
-     * @param int $tblIdentification
+     * @param int         $tblAccount
+     * @param int         $tblIdentification
      * @param null|string $CredentialKey
+     * @param bool        $isCookieAvailable
+     *
      * @return Stage
      */
-    public function frontendIdentificationToken($tblAccount, $tblIdentification, $CredentialKey = null)
+    public function frontendIdentificationToken($tblAccount, $tblIdentification, $CredentialKey = null, $isCookieAvailable = false)
     {
-        $View = new Stage(new YubiKey().' Anmelden', '', $this->getIdentificationEnvironment());
+        $View = new Stage(new YubiKey() . ' Anmelden', '', $this->getIdentificationEnvironment());
 
         $tblAccount = Account::useService()->getAccountById($tblAccount);
         $tblIdentification = Account::useService()->getIdentificationById($tblIdentification);
@@ -381,23 +570,21 @@ class Frontend extends Extension implements IFrontendInterface
             return $this->frontendIdentificationCredential();
         }
 
-        // Field Definition
-        $CredentialKeyField = (new PasswordField('CredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))
-            ->setRequired()->setAutoFocus();
+        /**
+         * Anmeldung mit Authenticator App
+         */
+        if ($tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP) {
 
-        // Search for matching Token
-        $FormError = new Container('');
-        if ($CredentialKey) {
-            $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
-            $tblToken = Token::useService()->getTokenByIdentifier($Identifier);
-            if (
-                $tblToken
-                && $tblAccount->getServiceTblToken()
-                && $tblAccount->getServiceTblToken()->getId() == $tblToken->getId()
-            ) {
-                // Credential correct, Token correct -> LOGIN
+            // Field Definition
+            $CredentialKeyField = (new PasswordField('CredentialKey', 'Sicherheitscode', 'Authenticator App'))
+                ->setRequired()->setAutoFocus();
+
+            $FormError = new Container('');
+            if ($CredentialKey) {
+                // Credential correct, OTP correct -> LOGIN
                 try {
-                    if (Token::useService()->isTokenValid($CredentialKey)) {
+                    $twoFactorApp = new TwoFactorApp();
+                    if ($twoFactorApp->verifyCode($tblAccount->getAuthenticatorAppSecret(), $CredentialKey)) {
                         if (session_status() == PHP_SESSION_ACTIVE) {
                             session_regenerate_id();
                         }
@@ -411,34 +598,99 @@ class Frontend extends Extension implements IFrontendInterface
                         );
                         return $View;
                     } else {
-                        // Error Token invalid
+                        // Error OTP APP invalid
                         $CredentialKeyField->setError('');
                         $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                     }
-                } catch (\Exception $Exception) {
+                } catch (Exception $Exception) {
 
-                    (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('YubiKey-Api Error: '.$Exception->getMessage());
-                    (new DebuggerFactory())->createLogger(new FileLogger())->addLog('YubiKey-Api Error: '.$Exception->getMessage());
+                    (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('Authenticator App Error: ' . $Exception->getMessage());
+                    (new DebuggerFactory())->createLogger(new FileLogger())->addLog('Authenticator App Error: ' . $Exception->getMessage());
 
-                    // Error Token API Error
+                    // Error OTP APP Error
                     $CredentialKeyField->setError('');
                     $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                 }
-            } else {
-                // Error Token not registered
-                $CredentialKeyField->setError('');
-                $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+            }
+        } else {
+            /**
+             * Anmeldung mit Yubikey (Token oder System)
+             */
+
+            // Field Definition
+            $CredentialKeyField = (new PasswordField('CredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))
+                ->setRequired()->setAutoFocus();
+
+            // Search for matching Token
+            $FormError = new Container('');
+            if ($CredentialKey) {
+                $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
+                $tblToken = Token::useService()->getTokenByIdentifier($Identifier);
+                if (
+                    $tblToken
+                    && $tblAccount->getServiceTblToken()
+                    && $tblAccount->getServiceTblToken()->getId() == $tblToken->getId()
+                ) {
+                    // Credential correct, Token correct -> LOGIN
+                    try {
+                        if (Token::useService()->isTokenValid($CredentialKey)) {
+                            if (session_status() == PHP_SESSION_ACTIVE) {
+                                session_regenerate_id();
+                            }
+                            Account::useService()->createSession($tblAccount, session_id());
+                            $View->setTitle(new Ok() . ' Anmelden');
+                            $View->setContent(
+                                $this->getIdentificationLayout(
+                                    new Headline('Anmelden', 'Bitte warten...')
+                                    . new Redirect('/', Redirect::TIMEOUT_SUCCESS)
+                                )
+                            );
+                            return $View;
+                        } else {
+                            // Error Token invalid
+                            $CredentialKeyField->setError('');
+                            $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                        }
+                    } catch (Exception $Exception) {
+
+                        (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('YubiKey-Api Error: ' . $Exception->getMessage());
+                        (new DebuggerFactory())->createLogger(new FileLogger())->addLog('YubiKey-Api Error: ' . $Exception->getMessage());
+
+                        // Error Token API Error
+                        $CredentialKeyField->setError('');
+                        $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                    }
+                } else {
+                    // Error Token not registered
+                    $CredentialKeyField->setError('');
+                    $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                }
             }
         }
 
         // Switch User/Account (Restart Identification Process)
-        $FormInformation = array(
-            $tblAccount->getServiceTblConsumer()->getAcronym().' - '.$tblAccount->getServiceTblConsumer()->getName(),
-            'Benutzer: ' . $tblAccount->getUsername()
-            // . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
-        );
+        if (($tblConsumer = $tblAccount->getServiceTblConsumer())) {
+            $FormInformation = array(
+                $tblConsumer->getAcronym() . ' - ' . $tblConsumer->getName(),
+                'Benutzer: ' . $tblAccount->getUsername()
+                // . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
+            );
+        } else {
+            $FormInformation = array(
+                'Benutzer: ' . $tblAccount->getUsername()
+            );
 
-        if (isset($_COOKIE['cookies_available'])) {
+            // ist der Mandant gelöscht werden System-Accounts auf den REF-Mandanten umgeleitet
+            if (($tblConsumer = Consumer::useService()->getConsumerByAcronym('REF'))
+                && $tblAccount->getServiceTblIdentification()
+                && $tblAccount->getServiceTblIdentification()->getName() == 'System'
+            ) {
+                $FormInformation[] = $tblConsumer->getName();
+                MyAccount::useService()->updateConsumer($tblAccount, $tblConsumer);
+            }
+        }
+
+        if (isset($_COOKIE['cookies_available']) || $isCookieAvailable) {
             // Create Form
             $Form = new Form(
                 new FormGroup(array(
@@ -488,13 +740,15 @@ class Frontend extends Extension implements IFrontendInterface
     private function getCookieMessage()
     {
         return new DangerMessage(
-            'Ihre Browsereinstellungen lassen keine Cookies zu.' . '<br><br>'
-            . 'Um auf die Schulsoftware zu können, müssen Sie Cookies in Ihrem Browser zulassen.' . '<br><br>'
-            . 'Darum sind Cookies notwendig:' . '<br>'
-            . 'Aus Sicherheitsgründen wird beim Login ein Cookie auf Ihrem Rechner gespeichert. ' . '<br>'
-            . 'So wird sichergestellt, dass nur Sie während einer Sitzung auf die Schulsoftware zugreifen können.' . '<br>'
-            . 'Wenn Sie sich ausloggen oder das Browserfenster schließen, wird das Cookie gelöscht und Ihre Sitzung dadurch ungültig gemacht.'
-            , new Exclamation()
+            new Title(new Exclamation().' Browsereinstellungen')
+            .'Sie scheinen Cookies in Ihrem Browser deaktiviert zu haben.' . '<br/>'
+            .'Bitte überprüfen Sie die Einstellungen in Ihrem Browser und versuchen Sie es erneut.'
+//            'Ihre Browsereinstellungen lassen keine Cookies zu.' . '<br><br>'
+//            . 'Um auf die Schulsoftware zu können, müssen Sie Cookies in Ihrem Browser zulassen.' . '<br><br>'
+//            . 'Darum sind Cookies notwendig:' . '<br>'
+//            . 'Aus Sicherheitsgründen wird beim Login ein Cookie auf Ihrem Rechner gespeichert. ' . '<br>'
+//            . 'So wird sichergestellt, dass nur Sie während einer Sitzung auf die Schulsoftware zugreifen können.' . '<br>'
+//            . 'Wenn Sie sich ausloggen oder das Browserfenster schließen, wird das Cookie gelöscht und Ihre Sitzung dadurch ungültig gemacht.'
         );
     }
 
@@ -522,13 +776,16 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $tblAccount
-     * @param int $tblIdentification
-     * @param int $doAccept 0|1
+     * @param int  $tblAccount
+     * @param int  $tblIdentification
+     * @param int  $doAccept 0|1
+     * @param bool $isCookieAvailable
+     *
      * @return Stage
      */
-    public function frontendIdentificationAgb($tblAccount, $tblIdentification, $doAccept = 0)
+    public function frontendIdentificationAgb($tblAccount, $tblIdentification, $doAccept = 0, $isCookieAvailable = false)
     {
+
         $View = new Stage(new MoreItems().' Anmelden', '', $this->getIdentificationEnvironment());
 
         $tblAccount = Account::useService()->getAccountById($tblAccount);
@@ -548,24 +805,26 @@ class Frontend extends Extension implements IFrontendInterface
 
         // es sind keine Cookies erlaubt -> Login ist nicht möglich
         if (!isset($_COOKIE['cookies_available'])) {
+            // Bypass Cookies
+            if(!$isCookieAvailable){
+                $FormInformation = array(
+                    $tblAccount->getServiceTblConsumer()->getAcronym() . ' - ' . $tblAccount->getServiceTblConsumer()->getName(),
+                    'Benutzer: ' . $tblAccount->getUsername()
+                );
 
-            $FormInformation = array(
-                $tblAccount->getServiceTblConsumer()->getAcronym() . ' - ' . $tblAccount->getServiceTblConsumer()->getName(),
-                'Benutzer: ' . $tblAccount->getUsername()
-            );
+                $layout = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(array(
+                        new Headline('Bitte geben Sie Ihre Zugangsdaten ein'),
+                        new Ruler(),
+                        new Listing($FormInformation),
+                        $this->getCookieMessage()
+                    ))
+                ))));
 
-            $layout = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(array(
-                    new Headline('Bitte geben Sie Ihre Zugangsdaten ein'),
-                    new Ruler(),
-                    new Listing($FormInformation),
-                    $this->getCookieMessage()
-                ))
-            ))));
+                $View->setContent($this->getIdentificationLayout($layout));
 
-            $View->setContent($this->getIdentificationLayout($layout));
-
-            return $View;
+                return $View;
+            }
         }
 
         $Headline = 'Allgemeine Geschäftsbedingungen';
@@ -667,9 +926,14 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendDestroySession()
     {
-        $View = new Stage(new Off().' Abmelden', '', $this->getIdentificationEnvironment());
+        $Stage = new Stage(new Off().' Abmelden', '', $this->getIdentificationEnvironment());
 
-        $View->setContent(
+//        $tblAccount = Account::useService()->getAccountBySession();
+//        if($tblAccount->getId() == 3823 ){
+//            $phpSaml = new phpSaml();
+//            $phpSaml->getSLO();
+//        }
+        $Stage->setContent(
             $this->getIdentificationLayout(
                 new Headline('Abmelden', 'Bitte warten...').
                 Account::useService()->destroySession(
@@ -678,6 +942,28 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
-        return $View;
+        return $Stage;
+    }
+
+    /**
+     * Prepare if other sign out will come. now not in use.
+     * Route deprecated
+     * @return Stage
+     */
+    public function frontendSLO()
+    {
+
+        $Stage = new Stage(new Off().' Abmelden', '', $this->getIdentificationEnvironment());
+
+        $Stage->setContent(
+            $this->getIdentificationLayout(
+                new Headline('Abmelden', 'Bitte warten...').
+                Account::useService()->destroySession(
+                    new Redirect('/Platform/Gatekeeper/Authentication', Redirect::TIMEOUT_SUCCESS)
+                ) . $this->getCleanLocalStorage()
+            )
+        );
+
+        return $Stage;
     }
 }

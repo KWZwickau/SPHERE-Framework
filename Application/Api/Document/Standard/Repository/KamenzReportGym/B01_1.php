@@ -161,72 +161,158 @@ class B01_1
                     ->styleBorderRight(), '30%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L7.m is not empty) %}
+                            {{ Content.B01_1.Leave.L7.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L7.w is not empty) %}
+                            {{ Content.B01_1.Leave.L7.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L8.m is not empty) %}
+                            {{ Content.B01_1.Leave.L8.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L8.w is not empty) %}
+                            {{ Content.B01_1.Leave.L8.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L9.m is not empty) %}
+                            {{ Content.B01_1.Leave.L9.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L9.w is not empty) %}
+                            {{ Content.B01_1.Leave.L9.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L10.m is not empty) %}
+                            {{ Content.B01_1.Leave.L10.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L10.w is not empty) %}
+                            {{ Content.B01_1.Leave.L10.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L11.m is not empty) %}
+                            {{ Content.B01_1.Leave.L11.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L11.w is not empty) %}
+                            {{ Content.B01_1.Leave.L11.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L12.m is not empty) %}
+                            {{ Content.B01_1.Leave.L12.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.L12.w is not empty) %}
+                            {{ Content.B01_1.Leave.L12.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.TotalCount.m is not empty) %}
+                            {{ Content.B01_1.Leave.TotalCount.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.B01_1.Leave.TotalCount.w is not empty) %}
+                            {{ Content.B01_1.Leave.TotalCount.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey'), '5%'
                 )
             );
@@ -242,101 +328,187 @@ class B01_1
                     ->styleBorderRight(), '30%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L7.m is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L7.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->stylePaddingBottom('8.5px')
                     ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L7.w is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L7.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
                     ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L8.m is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L8.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
                     ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L8.w is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L8.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
                     ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L9.m is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L9.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L9.w is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L9.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L10.m is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L10.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L10.w is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L10.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L11.m is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L11.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L11.w is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L11.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L12.m is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L12.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.L12.w is not empty) %}
+                            {{ Content.B01_1.LeaveHS.L12.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.TotalCount.m is not empty) %}
+                            {{ Content.B01_1.LeaveHS.TotalCount.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor('lightgrey')
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveHS.TotalCount.w is not empty) %}
+                            {{ Content.B01_1.LeaveHS.TotalCount.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor('lightgrey'), '5%'
                 )
             );
 
@@ -351,101 +523,187 @@ class B01_1
                     ->styleBorderRight(), '30%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L7.m is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L7.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->stylePaddingBottom('8.5px')
                     ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L7.w is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L7.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
                     ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L8.m is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L8.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
                     ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L8.w is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L8.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
                     ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L9.m is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L9.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
                     ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L9.w is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L9.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
                     ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L10.m is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L10.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L10.w is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L10.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L11.m is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L11.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L11.w is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L11.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L12.m is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L12.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.L12.w is not empty) %}
+                            {{ Content.B01_1.LeaveRS.L12.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.TotalCount.m is not empty) %}
+                            {{ Content.B01_1.LeaveRS.TotalCount.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
+                    ->setContent('
+                        {% if (Content.B01_1.LeaveRS.TotalCount.w is not empty) %}
+                            {{ Content.B01_1.LeaveRS.TotalCount.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '5%'
+                    ->stylePaddingBottom('8.5px')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor('lightgrey'), '5%'
                 )
             );
 
@@ -510,22 +768,48 @@ class B01_1
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.GymAbitur.L12.m is not empty) %}
+                            {{ Content.B01_1.GymAbitur.L12.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.B01_1.GymAbitur.L12.w is not empty) %}
+                            {{ Content.B01_1.GymAbitur.L12.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.B01_1.GymAbitur.TotalCount.m is not empty) %}
+                            {{ Content.B01_1.GymAbitur.TotalCount.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.B01_1.GymAbitur.TotalCount.w is not empty) %}
+                            {{ Content.B01_1.GymAbitur.TotalCount.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey'), '5%'
                 )
             );

@@ -4,17 +4,23 @@ namespace SPHERE\Application\Transfer\Indiware\Import;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareError;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -68,49 +74,92 @@ class Import extends Extension implements IModuleInterface
 
         $Stage = new Stage('Indiware', 'Datentransfer');
 
-        $PanelStudentCourseImport[] = new PullClear('Schüler-Kurse SEK II importieren: '.
+        $PanelStudentCourseImport[] = new PullClear('<span style="color: black!important">Schüler-Kurse SEK II importieren: </span>'.
             new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/Prepare', new Upload()
                 , array(), 'Hochladen, danach bearbeiten')));
         $tblIndiwareImportStudent = Import::useService()->getIndiwareImportStudentAll(true);
         // load if TblIndiwareImportLectureship exist (by Account)
         if ($tblIndiwareImportStudent) {
-            $PanelStudentCourseImport[] = 'Vorhandenen Schüler-Kurse der SEK II bearbeiten: '.
+            $PanelStudentCourseImport[] = '<span style="color: black!important">Vorhandenen Schüler-Kurse der SEK II bearbeiten: </span>'.
                 new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/Show', new Edit(), array(),
                         'Bearbeiten')
                     .new Standard('', '/Transfer/Indiware/Import/StudentCourse/Destroy', new Remove(), array(),
                         'Löschen'));
         }
 
-        $PanelLectureshipImport[] = new PullClear('Lehraufträge importieren: '.
+        $PanelLectureshipImport[] = new PullClear('<span style="color: black!important">Lehraufträge importieren: </span>'.
             new Center(new Standard('', '/Transfer/Indiware/Import/Lectureship/Prepare', new Upload()
                 , array(), 'Hochladen, danach bearbeiten')));
         $tblIndiwareImportLectureship = Import::useService()->getIndiwareImportLectureshipAll(true);
         // load if TblIndiwareImportLectureship exist (by Account)
         if ($tblIndiwareImportLectureship) {
-            $PanelLectureshipImport[] = 'Vorhandenen Import der Lehraufträge bearbeiten: '.
+            $PanelLectureshipImport[] = '<span style="color: black!important">Vorhandenen Import der Lehraufträge bearbeiten: </span>'.
                 new Center(new Standard('', '/Transfer/Indiware/Import/Lectureship/Show', new Edit(), array(),
                         'Bearbeiten')
                     .new Standard('', '/Transfer/Indiware/Import/Lectureship/Destroy', new Remove(), array(),
                         'Löschen'));
         }
+        $tblIndiwareError = Import::useService()->getIndiwareErrorByType(TblIndiwareError::TYPE_LECTURE_SHIP);
+        // load if TblIndiwareImportLectureship exist (by Account)
+        if ($tblIndiwareError) {
+            $PanelLectureshipImport[] = '<span style="color: black!important">Importfehler des letzten Uploads</span>'.
+                new Center(new External('', '/Api/Transfer/Indiware/ErrorExcel/LectureShip/Download', new Download(),
+                    array(
+                        'Type' => TblIndiwareError::TYPE_LECTURE_SHIP,
+                        'StringCompareDescription' => 'Klasse_Fach_Lehrer(_Fachgruppe)'
+                    )
+                    , 'Herunterladen'));
+        }
+        $PanelTimetable[] = new PullClear('Stundenplan aus Indiware: '.
+            new Center(new Standard('', '/Transfer/Indiware/Import/Timetable', new Upload())));
+        $PanelTimetableReplacement[] = new PullClear('Vertretungsplan aus Indiware: '.
+            new Center(new Standard('', '/Transfer/Indiware/Import/Replacement', new Upload())));
 
         $Stage->setMessage('Importvorbereitung / Daten importieren');
 
         $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Indiware-Import für Lehraufträge', $PanelLectureshipImport
-                                , Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Indiware-Import für Schüler-Kurse SEK II', $PanelStudentCourseImport
-                                , Panel::PANEL_TYPE_INFO)
-                            , 4),
-                    ))
-                )
-            )
+            new Layout(new LayoutGroup(array(new LayoutRow(array(
+                new LayoutColumn(
+                    new Warning(
+                        new Container('Bitte beachten Sie die Reihenfolge für den Import:')
+                        .new Container('1. Indiware-Import für Schüler-Kurse SEK II')
+                        .new Container('2. Indiware-Import für Lehraufträge')
+                        .new Layout(new LayoutGroup(new LayoutRow(array(
+                        ))))
+                    )
+                ),
+                new LayoutColumn(
+                    new Panel('Indiware-Import für Schüler-Kurse SEK II', $PanelStudentCourseImport
+                        , Panel::PANEL_TYPE_INFO)
+                , 4),
+                new LayoutColumn(
+                    new Panel('Indiware-Import für Lehraufträge', $PanelLectureshipImport
+                        , Panel::PANEL_TYPE_INFO)
+                , 4),
+                new LayoutColumn(
+                    new Ruler()
+                ),
+                new LayoutColumn(
+                    new Panel(
+                        'Indiware-Import der Kurseinbringung für das Abitur',
+                        new PullClear('Kurseinbringung importieren: '
+                            . new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/SelectedCourse/Import', new Upload()))
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                , 4),
+                new LayoutColumn(
+                    new Ruler()
+                ),
+                new LayoutColumn(
+                    new Panel('Import Stundenplan:', $PanelTimetable
+                        , Panel::PANEL_TYPE_INFO)
+                , 4),
+                new LayoutColumn(
+                    new Panel('Import Vertretungsplan:', $PanelTimetableReplacement
+                        , Panel::PANEL_TYPE_INFO)
+                , 4),
+            )))))
         );
 
         return $Stage;

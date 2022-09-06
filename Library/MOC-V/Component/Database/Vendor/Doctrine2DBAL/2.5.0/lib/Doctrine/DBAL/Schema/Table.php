@@ -515,6 +515,7 @@ class Table extends AbstractAsset
      * @param string $newColumnName
      *
      * @return self
+     * @deprecated
      *
      * @throws DBALException
      */

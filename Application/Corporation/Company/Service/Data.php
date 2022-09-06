@@ -34,10 +34,12 @@ class Data extends AbstractData
      * @param string $Name
      * @param string $ExtendedName
      * @param string $Description
+     * @param string $ImportId
+     * @param string $ContactNumber
      *
      * @return null|object|TblCompany
      */
-    public function createCompany($Name, $ExtendedName = '', $Description = '')
+    public function createCompany($Name, $ExtendedName = '', $Description = '', $ImportId = '', $ContactNumber = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -51,6 +53,8 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setExtendedName($ExtendedName);
             $Entity->setDescription($Description);
+            $Entity->setImportId($ImportId);
+            $Entity->setContactNumber($ContactNumber);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -69,7 +73,8 @@ class Data extends AbstractData
         TblCompany $tblCompany,
         $Name,
         $ExtendedName = '',
-        $Description = ''
+        $Description = '',
+        $ContactNumber = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -80,10 +85,37 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setExtendedName($ExtendedName);
             $Entity->setDescription($Description);
+            $Entity->setContactNumber($ContactNumber);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
+        return false;
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     * @param $ImportId
+     *
+     * @return bool
+     */
+    public function updateCompanyImportId(
+        TblCompany $tblCompany,
+        $ImportId
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCompany $Entity */
+        $Entity = $Manager->getEntityById('TblCompany', $tblCompany->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setImportId($ImportId);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
         return false;
     }
 
@@ -275,5 +307,31 @@ class Data extends AbstractData
         $result = $query->getResult();
 
         return $result;
+    }
+
+    /**
+     * @param integer $ImportId
+     *
+     * @return bool|TblCompany
+     */
+    public function getCompanyByImportId($ImportId)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCompany',
+            array(
+                TblCompany::ATTR_IMPORT_ID => $ImportId
+            ));
+    }
+
+    /**
+     * @param integer $ImportId
+     *
+     * @return bool|TblCompany[]
+     */
+    public function getCompanyListByImportId($ImportId)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCompany',
+            array(
+                TblCompany::ATTR_IMPORT_ID => $ImportId
+            ));
     }
 }

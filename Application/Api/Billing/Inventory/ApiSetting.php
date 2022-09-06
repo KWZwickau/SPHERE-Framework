@@ -213,7 +213,11 @@ class ApiSetting extends Extension implements IApiInterface
             $tblSettingGroupPersonExist = Setting::useService()->getSettingGroupPersonAll();
             foreach($tblSettingGroupPersonExist as $tblSettingGroupPerson) {
                 $tblGroup = $tblSettingGroupPerson->getServiceTblGroupPerson();
-                if(!in_array($tblGroup->getId(), $GroupIdList)){
+                // Gruppe nicht mehr vorhanden
+                if(!$tblGroup){
+                    Setting::useService()->destroySettingGroupPerson($tblSettingGroupPerson);
+                } elseif(!in_array($tblGroup->getId(), $GroupIdList)){
+                    // Gruppe nicht mehr ausgewählt
                     Setting::useService()->destroySettingGroupPerson($tblSettingGroupPerson);
                 }
             }
@@ -287,6 +291,8 @@ class ApiSetting extends Extension implements IApiInterface
                 Setting::useService()->createSetting(TblSetting::IDENT_DATEV_REMARK, $DatevRemark);
                 $FibuAccount = (isset($Setting[TblSetting::IDENT_FIBU_ACCOUNT]) ? $Setting[TblSetting::IDENT_FIBU_ACCOUNT] : '');
                 Setting::useService()->createSetting(TblSetting::IDENT_FIBU_ACCOUNT, $FibuAccount);
+                $FibuAccountAsDebtorNumber = (isset($Setting[TblSetting::IDENT_FIBU_ACCOUNT_AS_DEBTOR]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_FIBU_ACCOUNT_AS_DEBTOR, $FibuAccountAsDebtorNumber);
                 $FibuToAccount = (isset($Setting[TblSetting::IDENT_FIBU_TO_ACCOUNT]) ? $Setting[TblSetting::IDENT_FIBU_TO_ACCOUNT] : '');
                 Setting::useService()->createSetting(TblSetting::IDENT_FIBU_TO_ACCOUNT, $FibuToAccount);
                 $Kost1 = (isset($Setting[TblSetting::IDENT_KOST_1]) ? $Setting[TblSetting::IDENT_KOST_1] : '0');

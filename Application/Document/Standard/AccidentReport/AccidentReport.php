@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Document\Standard\AccidentReport;
 
+use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
@@ -16,6 +17,8 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
@@ -49,9 +52,7 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Sup;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -126,16 +127,6 @@ class AccidentReport extends Extension
             }
         }
 
-        $YearString = '(SJ ';
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $YearString .= current($tblYearList)->getYear();
-        } else {
-            $YearString .= new ToolTip(new Danger((new \DateTime())->format('Y')),
-                'Kein Schuljahr mit aktuellem Zeitraum');
-        }
-        $YearString .= ')';
-
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -147,7 +138,7 @@ class AccidentReport extends Extension
                                 array(
                                     'Name'     => 'Name',
                                     'Address'  => 'Adresse',
-                                    'Division' => 'Klasse '.$YearString,
+                                    'Division' => 'Klasse',
                                     'Option'   => ''
                                 ),
                                 array(
@@ -178,12 +169,21 @@ class AccidentReport extends Extension
         $Stage->addButton(new Standard('Zurück', '/Document/Standard/AccidentReport', new ChevronLeft()));
         $tblPerson = Person::useService()->getPersonById($Id);
         $Global = $this->getGlobal();
+
+        // Sachsen Standard
         $Global->POST['Data']['AddressTarget'] = 'Unfallkasse Sachsen';
         $Global->POST['Data']['TargetAddressStreet'] = 'Postfach 42';
         $Global->POST['Data']['TargetAddressCity'] = '01651 Meißen';
+
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+            $Global->POST['Data']['AddressTarget'] = 'Unfallkasse Berlin';
+            $Global->POST['Data']['TargetAddressStreet'] = 'Culemeyerstraße 2';
+            $Global->POST['Data']['TargetAddressCity'] = '12277 Berlin';
+        }
+
         if ($tblPerson) {
             $Global->POST['Data']['LastFirstName'] = $tblPerson->getLastFirstName();
-            $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
+            $Global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');
 
             if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
                 if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
@@ -210,88 +210,82 @@ class AccidentReport extends Extension
 
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
             if ($tblStudent) {
-
                 // Schuldaten der Schule des Schülers
-                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                    $tblStudentTransferType);
-                if ($tblStudentTransfer) {
-                    $tblType = false;
-                    $tblCompanySchool = $tblStudentTransfer->getServiceTblCompany();
+                $tblCompanySchool = Student::useService()->getCurrentSchoolByPerson($tblPerson);
+                $tblType = false;
 
-                    // Schulart über Klasse in der der Schüler aktuell ist
-                    $tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson);
-                    if($tblDivision && ($tblLevel = $tblDivision->getTblLevel())){
-                        $tblType = $tblLevel->getServiceTblType();
-                    }
-                    // Unternehmensnummer wird sofern möglich und vorhanden aus den Mandantenschulen gezogen
-                    // und überschreibt damit die Unternehmensnummer der Schulträger
-                    if($tblType){
-                        // Schule aus Mandanteneinstellung mit Schulart
-                        if(($tblSchoolList = School::useService()->getSchoolByType($tblType))){
-                            // bei einer Schule kann diese genommen werden. (Normalfall)
-                            if(count($tblSchoolList) == 1){
-                                $tblSchool = current($tblSchoolList);
-                                // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
-                                if($tblSchool->getCompanyNumber() != ''){
-                                    $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
-                                }
-                            } else {
-                                // mehr als eine Schule mit gleicher Schulart
-                                if(($tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompanySchool, $tblType))){
-                                    if($tblSchool){
-                                        // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
-                                        if($tblSchool->getCompanyNumber() != '') {
-                                            $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
-                                        }
+                // Schulart über Klasse in der der Schüler aktuell ist
+                $tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson);
+                if($tblDivision && ($tblLevel = $tblDivision->getTblLevel())){
+                    $tblType = $tblLevel->getServiceTblType();
+                }
+                // Unternehmensnummer wird sofern möglich und vorhanden aus den Mandantenschulen gezogen
+                // und überschreibt damit die Unternehmensnummer der Schulträger
+                if($tblType){
+                    // Schule aus Mandanteneinstellung mit Schulart
+                    if(($tblSchoolList = School::useService()->getSchoolByType($tblType))){
+                        // bei einer Schule kann diese genommen werden. (Normalfall)
+                        if(count($tblSchoolList) == 1){
+                            $tblSchool = current($tblSchoolList);
+                            // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
+                            if($tblSchool->getCompanyNumber() != ''){
+                                $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
+                            }
+                        } else {
+                            // mehr als eine Schule mit gleicher Schulart
+                            if(($tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompanySchool, $tblType))){
+                                if($tblSchool){
+                                    // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
+                                    if($tblSchool->getCompanyNumber() != '') {
+                                        $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
                                     }
                                 }
                             }
                         }
                     }
-                    if ($tblCompanySchool) {
-                        $Global->POST['Data']['School'] = $tblCompanySchool->getName();
-                        $Global->POST['Data']['SchoolExtended'] = $tblCompanySchool->getExtendedName();
-                        $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
-                        if ($tblAddressSchool) {
-                            $Global->POST['Data']['SchoolAddressStreet'] = $tblAddressSchool->getStreetName().', '.$tblAddressSchool->getStreetNumber();
-                            $tblCitySchool = $tblAddressSchool->getTblCity();
-                            if ($tblCitySchool) {
-                                $Global->POST['Data']['SchoolAddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
+                }
+                if ($tblCompanySchool) {
+                    $Global->POST['Data']['School'] = $tblCompanySchool->getName();
+                    $Global->POST['Data']['SchoolExtended'] = $tblCompanySchool->getExtendedName();
+                    $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
+                    if ($tblAddressSchool) {
+                        $Global->POST['Data']['SchoolAddressStreet'] = $tblAddressSchool->getStreetName().', '.$tblAddressSchool->getStreetNumber();
+                        $tblCitySchool = $tblAddressSchool->getTblCity();
+                        if ($tblCitySchool) {
+                            $Global->POST['Data']['SchoolAddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
+                        }
+                    }
+
+                    $tblToPersonList = Phone::useService()->getPhoneAllByCompany($tblCompanySchool);
+                    $tblToPersonPhoneList = array();
+                    $tblToPersonFaxList = array();
+                    if ($tblToPersonList) {
+                        foreach ($tblToPersonList as $tblToPerson) {
+                            if ($tblType = $tblToPerson->getTblType()) {
+                                $TypeName = $tblType->getName();
+                                $TypeDescription = $tblType->getDescription();
+                                if (($TypeName == 'Privat' || $TypeName == 'Geschäftlich') && $TypeDescription == 'Festnetz') {
+                                    $tblToPersonPhoneList[] = $tblToPerson;
+                                }
+                                if ($TypeName == 'Fax') {
+                                    $tblToPersonFaxList[] = $tblToPerson;
+                                }
                             }
                         }
-
-                        $tblToPersonList = Phone::useService()->getPhoneAllByCompany($tblCompanySchool);
-                        $tblToPersonPhoneList = array();
-                        $tblToPersonFaxList = array();
-                        if ($tblToPersonList) {
-                            foreach ($tblToPersonList as $tblToPerson) {
-                                if ($tblType = $tblToPerson->getTblType()) {
-                                    $TypeName = $tblType->getName();
-                                    $TypeDescription = $tblType->getDescription();
-                                    if (($TypeName == 'Privat' || $TypeName == 'Geschäftlich') && $TypeDescription == 'Festnetz') {
-                                        $tblToPersonPhoneList[] = $tblToPerson;
-                                    }
-                                    if ($TypeName == 'Fax') {
-                                        $tblToPersonFaxList[] = $tblToPerson;
-                                    }
-                                }
+                        if (!empty($tblToPersonPhoneList)) {
+                            /** @var TblToPersonPhone $tblPersonToPhone */
+                            $tblPersonToPhone = current($tblToPersonPhoneList);
+                            $tblPhone = $tblPersonToPhone->getTblPhone();
+                            if ($tblPhone) {
+                                $Global->POST['Data']['Phone'] = $tblPhone->getNumber();
                             }
-                            if (!empty($tblToPersonPhoneList)) {
-                                /** @var TblToPersonPhone $tblPersonToPhone */
-                                $tblPersonToPhone = current($tblToPersonPhoneList);
-                                $tblPhone = $tblPersonToPhone->getTblPhone();
-                                if ($tblPhone) {
-                                    $Global->POST['Data']['Phone'] = $tblPhone->getNumber();
-                                }
-                            }
-                            if (!empty($tblToPersonFaxList)) {
-                                /** @var TblToPersonPhone $tblPersonToFax */
-                                $tblPersonToFax = current($tblToPersonFaxList);
-                                $tblPhoneFax = $tblPersonToFax->getTblPhone();
-                                if ($tblPhoneFax) {
-                                    $Global->POST['Data']['Fax'] = $tblPhoneFax->getNumber();
-                                }
+                        }
+                        if (!empty($tblToPersonFaxList)) {
+                            /** @var TblToPersonPhone $tblPersonToFax */
+                            $tblPersonToFax = current($tblToPersonFaxList);
+                            $tblPhoneFax = $tblPersonToFax->getTblPhone();
+                            if ($tblPhoneFax) {
+                                $Global->POST['Data']['Fax'] = $tblPhoneFax->getNumber();
                             }
                         }
                     }
@@ -304,7 +298,7 @@ class AccidentReport extends Extension
                     $EntryDate = $tblStudentTransfer->getTransferDate();
                     $Global->POST['Data']['SchoolEntry'] = $EntryDate;
                     if ($EntryDate != '') {
-                        $tblYearList = Term::useService()->getYearAllByDate(new \DateTime($EntryDate));
+                        $tblYearList = Term::useService()->getYearAllByDate(new DateTime($EntryDate));
                         if ($tblYearList) {
                             foreach ($tblYearList as $tblYear) {
                                 $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
@@ -607,7 +601,7 @@ class AccidentReport extends Extension
                                                         , 3),
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentDate]',
-                                                            (new \DateTime())->format('d.m.Y'),
+                                                            (new DateTime())->format('d.m.Y'),
                                                             new Sup(12).' Datum des Unfalls')
                                                         , 3),
                                                     new LayoutColumn(
@@ -679,7 +673,7 @@ class AccidentReport extends Extension
                                                         , 6),
                                                     new LayoutColumn(
                                                         new TextField('Data[BreakDate]',
-                                                            (new \DateTime())->format('d.m.Y'),
+                                                            (new DateTime())->format('d.m.Y'),
                                                             'Datum der Unterbrechung')
                                                         , 3),
                                                     new LayoutColumn(
@@ -704,7 +698,7 @@ class AccidentReport extends Extension
                                                         , 9),
                                                     new LayoutColumn(
                                                         new TextField('Data[ReturnDate]',
-                                                            (new \DateTime())->format('d.m.Y'),
+                                                            (new DateTime())->format('d.m.Y'),
                                                             new Sup(18).' Datum der Wiederaufnahme')
                                                         , 3),
                                                 )),
@@ -758,7 +752,7 @@ class AccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new TextField('Data[Date]', (new \DateTime())->format('d.m.Y'),
+                                                        new TextField('Data[Date]', (new DateTime())->format('d.m.Y'),
                                                             'Datum')
                                                         , 3),
                                                     new LayoutColumn(

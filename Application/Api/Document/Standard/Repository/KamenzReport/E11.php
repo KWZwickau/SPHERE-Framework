@@ -24,7 +24,7 @@ class E11
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('E11. Schüler in der zweiten FREMDSPRACHE - abschlussorientiert im Schuljahr 
-                    {{ Content.SchoolYear.Current }} nach </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                    {{ Content.SchoolYear.Current }} nach <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
                     Fremdsprachen und Klassenstufen')
             );
 

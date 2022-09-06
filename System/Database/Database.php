@@ -10,6 +10,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Setup;
+use Exception;
 use MOC\V\Component\Database\Component\IBridgeInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -66,7 +67,7 @@ class Database extends Extension
     /**
      * @param Identifier $Identifier
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct(Identifier $Identifier)
     {
@@ -120,7 +121,7 @@ class Database extends Extension
                         )
                     );
                 } else {
-                    throw new \Exception(__CLASS__ . ' > Missing Configuration: (' . $this->Identifier->getConfiguration() . ')');
+                    throw new Exception(__CLASS__ . ' > Missing Configuration: (' . $this->Identifier->getConfiguration() . ')');
                 }
             }
         }
@@ -207,7 +208,7 @@ class Database extends Extension
 
     /**
      * @return IBridgeInterface|null
-     * @throws \Exception
+     * @throws Exception
      */
     public function getConnection()
     {
@@ -250,7 +251,7 @@ class Database extends Extension
 
     /**
      * @return AbstractPlatform
-     * @throws \Exception
+     * @throws Exception
      */
     public function getPlatform()
     {
@@ -260,7 +261,7 @@ class Database extends Extension
 
     /**
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public function getDatabase()
     {
@@ -453,7 +454,7 @@ class Database extends Extension
             ->getConfig();
 
         if ($configuration) {
-            $container = $configuration->getContainer('Setting:Consumer:' . $tblConsumer->getAcronym());
+            $container = $configuration->getContainer($tblConsumer->getAcronym().':Setting:Consumer');
             if ($container == null) {
                 $container = $configuration->getContainer('Setting:Consumer');
             }

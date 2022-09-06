@@ -122,7 +122,7 @@ class TblDivisionSubject extends Element
      */
     public function setHasGrading($HasGrading)
     {
-        $this->HasGrading = (boolean) $HasGrading;
+        $this->HasGrading = (int)$HasGrading;
     }
 
     /**
@@ -132,7 +132,7 @@ class TblDivisionSubject extends Element
     {
         if (($tblSubject = $this->getServiceTblSubject())) {
             if (($tblSubjectGroup = $this->getTblSubjectGroup())) {
-                return $tblSubject->getDisplayName() . ' ' . $tblSubjectGroup->getName();
+                return $tblSubject->getDisplayName() . '-' . $tblSubjectGroup->getName();
             } else {
                 return $tblSubject->getDisplayName();
             }

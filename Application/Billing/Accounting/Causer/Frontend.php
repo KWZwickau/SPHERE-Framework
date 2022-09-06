@@ -88,6 +88,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblGroupList[] = $tblSettingGroupPerson->getServiceTblGroupPerson();
             }
         }
+        $tblGroupList = array_filter($tblGroupList);
         $tblGroupLockedList = array();
         $tblGroupCustomList = array();
         if (!empty($tblGroupList)) {
@@ -133,6 +134,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     public function frontendCauserView($GroupId = null)
     {
+        ini_set('memory_limit', '256M');
 
         $GroupName = '';
         if(($tblGroup = Group::useService()->getGroupById($GroupId))){
@@ -163,7 +165,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblGroup = Group::useService()->getGroupById($GroupId))){
             if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
                 $IsDebtorNumberNeed = false;
-                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
+                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT_AS_DEBTOR)){
                     if($tblSetting->getValue() == 1){
                         $IsDebtorNumberNeed = true;
                     }
@@ -188,6 +190,29 @@ class Frontend extends Extension implements IFrontendInterface
                                 $Debtor = '';
                                 $PaymentType = '';
                                 $ItemName = '';
+
+                                if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
+                                    $tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem);
+                                } else {
+                                    $tblItemGroupList = array();
+                                }
+                                $tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+                                $IsEntryValide = false;
+                                if(!empty($tblItemGroupList) && !empty($tblPersonGroupList)){
+                                    foreach($tblItemGroupList as $tblItemGroup){
+                                        if(($tblItemTempGroup = $tblItemGroup->getServiceTblGroup())){
+                                            foreach($tblPersonGroupList as $tblGroupTemp){
+                                                if($tblGroupTemp->getId() == $tblItemTempGroup->getId()){
+                                                    $IsEntryValide = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                // Einträge die aufgrund nicht zutreffender Gruppen übersprungen werden
+                                if(!$IsEntryValide){
+                                    continue;
+                                }
 
                                 if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
                                     $Debtor = $tblPersonDebtor->getLastFirstName();
@@ -236,7 +261,10 @@ class Frontend extends Extension implements IFrontendInterface
 //                                    new LayoutColumn(new Standard('', '', new Edit()). new Standard('', '', new Remove()), 2)
                                 ))));
                             }
-                            $Item['ContentRow'] = new Listing($ContentSingleRow);
+                            //Für komplett Übersprungene Zahlungszuweisungen soll kein Header erzeugt werden
+                            if(count($ContentSingleRow) > 1){
+                                $Item['ContentRow'] = new Listing($ContentSingleRow);
+                            }
                         }
 
                         $Item['Option'] = new Standard('', __NAMESPACE__.'/Edit', new Edit(), array(
@@ -458,7 +486,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $PanelContent = array();
-        $Accordion = '';
+        $Accordion = array();
         if(($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblItem = Item::useService()->getItemById($ItemId))){
             if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson,
@@ -470,8 +498,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $Reference = 'Mandatsreferenznummer: ';
                     $Debtor = 'Bezahler: ';
                     $PeriodPayType = 'Zahlungszeitraum: ';
-                    $FromDate = 'Gültig ab: ';
-                    $ToDate = 'Gültig bis: ';
+                    $FromDate = 'Beitragspflicht ab: ';
+                    $ToDate = 'Beitragspflicht bis: ';
 
                     if(($tblDebtorPeriodType = $tblDebtorSelection->getTblDebtorPeriodType())){
                         $PeriodPayType .= new Bold($tblDebtorPeriodType->getName());

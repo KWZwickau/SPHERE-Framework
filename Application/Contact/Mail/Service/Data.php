@@ -85,6 +85,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblType
+     */
+    public function getTypeByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType',
+        array(
+            'Name' => $Name
+        ));
+    }
+
+    /**
      * @return bool|TblType[]
      */
     public function getTypeAll()
@@ -102,6 +116,32 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMail', $Id);
+    }
+
+    /**
+     * @param string $address
+     *
+     * @return false|TblMail
+     */
+    public function getMailByAddress(string $address) {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblMail', array(
+           TblMail::ATTR_ADDRESS => $address
+        ));
+    }
+
+    /**
+     * @param string $address
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonListByAddress(string $address) {
+        if (($tblMail = $this->getMailByAddress($address))) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(
+                TblToPerson::ATT_TBL_MAIL => $tblMail->getId()
+            ));
+        }
+
+        return false;
     }
 
     /**
@@ -198,10 +238,12 @@ class Data extends AbstractData
      * @param TblMail   $tblMail
      * @param TblType   $tblType
      * @param string    $Remark
+     * @param bool      $IsAccountUserAlias
+     * @param bool      $IsAccountRecoveryMail
      *
      * @return TblToPerson
      */
-    public function addMailToPerson(TblPerson $tblPerson, TblMail $tblMail, TblType $tblType, $Remark)
+    public function addMailToPerson(TblPerson $tblPerson, TblMail $tblMail, TblType $tblType, $Remark, $IsAccountUserAlias = false, $IsAccountRecoveryMail = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -217,6 +259,8 @@ class Data extends AbstractData
             $Entity->setTblMail($tblMail);
             $Entity->setTblType($tblType);
             $Entity->setRemark($Remark);
+            $Entity->setIsAccountUserAlias($IsAccountUserAlias);
+            $Entity->setIsAccountRecoveryMail($IsAccountRecoveryMail);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -315,5 +359,112 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     * @param TblMail     $tblMail
+     * @param TblType     $tblType
+     * @param             $Remark
+     * @param bool        $IsAccountUserAlias
+     * @param bool        $IsAccountRecoveryMail
+     *
+     * @return false|TblToPerson
+     */
+    public function updateMailToPerson(TblToPerson $tblToPerson, TblMail $tblMail, TblType $tblType, $Remark,
+        $IsAccountUserAlias = false, $IsAccountRecoveryMail = false)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToPerson $Entity */
+        $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setTblMail($tblMail);
+            $Entity->setTblType($tblType);
+            $Entity->setRemark($Remark);
+            $Entity->setIsAccountUserAlias($IsAccountUserAlias);
+            $Entity->setIsAccountRecoveryMail($IsAccountRecoveryMail);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return $Entity;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     * @param TblType     $tblType
+     * @param bool        $IsAccountUserAlias
+     *
+     * @return false|TblToPerson
+     */
+    public function updateMailToPersonAlias(TblToPerson $tblToPerson, TblType $tblType, $IsAccountUserAlias = false)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToPerson $Entity */
+        $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setTblType($tblType);
+            $Entity->setIsAccountUserAlias($IsAccountUserAlias);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return $Entity;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     * @param TblType     $tblType
+     * @param bool        $IsAccountRecoveryMail
+     *
+     * @return false|TblToPerson
+     */
+    public function updateMailToPersonRecoveryMail(TblToPerson $tblToPerson, TblType $tblType, $IsAccountRecoveryMail = false)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToPerson $Entity */
+        $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setTblType($tblType);
+            $Entity->setIsAccountRecoveryMail($IsAccountRecoveryMail);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return $Entity;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblMail $tblMail
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByMail(TblMail $tblMail)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(TblToPerson::ATT_TBL_MAIL => $tblMail->getId()));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblMail $tblMail
+     *
+     * @return false|TblToPerson
+     */
+    public function getMailToPersonByPersonAndMail(TblPerson $tblPerson, TblMail $tblMail)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(
+            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblToPerson::ATT_TBL_MAIL => $tblMail->getId()
+        ));
     }
 }

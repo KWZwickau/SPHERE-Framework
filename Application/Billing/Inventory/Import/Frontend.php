@@ -83,6 +83,8 @@ class Frontend extends Extension implements IFrontendInterface
 
     public function frontendImportPrepare()
     {
+        ini_set('memory_limit', '1G');
+
         $Stage = new Stage('Fakturierung', 'Import');
         $Stage->setMessage('Importvorbereitung / Daten importieren');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Import', new ChevronLeft()));
@@ -136,6 +138,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendUpload(UploadedFile $File = null, $Item = '')
     {
+        ini_set('memory_limit', '2G');
 
         $Stage = new Stage('Fakturierung Grunddaten', 'importieren');
 
@@ -156,7 +159,6 @@ class Frontend extends Extension implements IFrontendInterface
             $Payload = new FilePointer($Extension);
             $Payload->setFileContent(file_get_contents($File->getRealPath()));
             $Payload->saveFile();
-
 
             // Test
             $Control = new ImportControl($Payload->getRealPath());
@@ -208,17 +210,18 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData($Gateway->getResultList(), null,
                                     array(
-                                        'Row'                 => 'Zeile',
+                                        'Number'              => 'Zeile',
                                         'IsError'             => 'Fehler',
                                         'PersonFrontend'      => 'Beitragsverursacher',
                                         'ValueFrontend'       => 'Betrag',
                                         'ItemVariantFrontend' => 'Preis-Variante',
                                         'ItemControl'         => 'Beitragsart',
-                                        'Reference'           => 'Mandatsrefere<nz',
+                                        'Reference'           => 'Mandatsreferenz',
                                         'ReferenceDate'       => 'M.Ref. Gültig ab',
                                         'PaymentFromDate'     => 'Zahlung ab',
                                         'PaymentTillDate'     => 'Zahlung bis',
                                         'DebtorFrontend'      => 'Beitragszahler',
+                                        'Owner'               => 'Kontoinhaber',
                                         'DebtorNumberControl' => 'Debitoren Nr.',
                                         'IBANControl'         => 'IBAN Kontrolle',
                                         'BICControl'          => 'BIC',

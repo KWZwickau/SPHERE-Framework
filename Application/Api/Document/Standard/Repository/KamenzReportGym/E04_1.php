@@ -24,7 +24,7 @@ class E04_1
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('E04.1 Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach der Anzahl der derzeit 
-                    erlernten Fremdsprachen und Klassen- </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    erlernten Fremdsprachen und Klassen- <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     bzw. Jahrgangsstufen')
             );
 

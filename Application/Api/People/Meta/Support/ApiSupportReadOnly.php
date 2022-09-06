@@ -163,6 +163,12 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
                     ? $tblHandyCap->getRemarkRating()
                     : '---'
                 ));
+                $WellHandyCap .= new Container('&nbsp;');
+                $WellHandyCap .= new Container(new Bold('Besonderheiten in der Zeugnisvorbereitung:'));
+                $WellHandyCap .= new Container(($tblHandyCap->getRemarkCertificate()
+                    ? $tblHandyCap->getRemarkCertificate()
+                    : '---'
+                ));
 
                 $WellHandyCap .= new Ruler().new Container(new Bold('letzter Bearbeiter: ').$tblHandyCap->getPersonEditor());
                 $WellHandyCap = new Well($WellHandyCap);

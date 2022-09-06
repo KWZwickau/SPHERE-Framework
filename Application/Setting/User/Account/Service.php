@@ -1,11 +1,13 @@
 <?php
 namespace SPHERE\Application\Setting\User\Account;
 
+use DateTime;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -119,34 +121,34 @@ class Service extends AbstractService
     }
 
     /**
-     * @param \DateTime $dateTime
+     * @param DateTime $dateTime
      *
      * @return false|TblUserAccount[]
      */
-    public function getUserAccountByTime(\DateTime $dateTime)
+    public function getUserAccountByTime(DateTime $dateTime)
     {
 
         return (new Data($this->getBinding()))->getUserAccountByTime($dateTime);
     }
 
     /**
-     * @param \DateTime $groupByTime
-     * @param \DateTime $exportDate
+     * @param DateTime $groupByTime
+     * @param DateTime $exportDate
      *
      * @return false|TblUserAccount[]
      */
-    public function getUserAccountByLastExport(\DateTime $groupByTime, \DateTime $exportDate)
+    public function getUserAccountByLastExport(DateTime $groupByTime, DateTime $exportDate)
     {
 
         return (new Data($this->getBinding()))->getUserAccountByLastExport($groupByTime, $exportDate);
     }
 
     /**
-     * @param \DateTime $dateTime
+     * @param DateTime $dateTime
      *
      * @return false|array(TblUserAccount[])
      */
-    public function getUserAccountByTimeGroupLimitList(\DateTime $dateTime)
+    public function getUserAccountByTimeGroupLimitList(DateTime $dateTime)
     {
 
         $tblUserAccountList = (new Data($this->getBinding()))->getUserAccountByTime($dateTime);
@@ -161,12 +163,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param \DateTime $dateTime
+     * @param DateTime $dateTime
      * @param int       $groupCount
      *
      * @return false|TblUserAccount[]
      */
-    public function getUserAccountByTimeAndCount(\DateTime $dateTime, $groupCount)
+    public function getUserAccountByTimeAndCount(DateTime $dateTime, $groupCount)
     {
 
         return (new Data($this->getBinding()))->getUserAccountByTimeAndCount($dateTime, $groupCount);
@@ -265,7 +267,7 @@ class Service extends AbstractService
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('Datum: ', 4),
-                new LayoutColumn(($Data['Date'] ? $Data['Date'] : (new \DateTime())->format('d.m.Y')), 8),
+                new LayoutColumn(($Data['Date'] ? $Data['Date'] : (new DateTime())->format('d.m.Y')), 8),
             )))),
         ));
 
@@ -531,7 +533,7 @@ class Service extends AbstractService
     /**
      * @param TblUserAccount[] $tblUserAccountList
      *
-     * @return bool|\DateTime
+     * @return bool|DateTime
      */
     public function getLastExport($tblUserAccountList)
     {
@@ -583,6 +585,8 @@ class Service extends AbstractService
                 $item['State'] = '';
                 $item['Nation'] = '';
                 $item['Country'] = '';
+                $item['MailPrivate'] = '';
+                $item['MailBusiness'] = '';
 
                 if($tblPerson){
                     $item['Salutation'] = $tblPerson->getSalutation();
@@ -616,6 +620,22 @@ class Service extends AbstractService
                         }
                         $item['Nation'] = $tblAddress->getNation();
                         $item['Country'] = $tblAddress->getCounty();
+                    }
+
+                    if (($tblMailToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))) {
+                        $mailPrivateList = array();
+                        $mailBusinessList = array();
+                        foreach ($tblMailToPersonList as $tblMailToPerson) {
+                            if (($tblType = $tblMailToPerson->getTblType())) {
+                                switch ($tblType->getName()) {
+                                    case 'Privat': $mailPrivateList[] = $tblMailToPerson->getTblMail()->getAddress(); break;
+                                    case 'Geschäftlich': $mailBusinessList[] = $tblMailToPerson->getTblMail()->getAddress();
+                                }
+                            }
+                        }
+
+                        $item['MailPrivate'] = implode(';', $mailPrivateList);
+                        $item['MailBusiness'] = implode(';', $mailBusinessList);
                     }
                 }
                 if($tblAccount){
@@ -658,8 +678,11 @@ class Service extends AbstractService
             $export->setValue($export->getCell("12", "0"), "Ortsteil");
             $export->setValue($export->getCell("13", "0"), "Bundesland");
             $export->setValue($export->getCell("14", "0"), "Land");
+            $export->setValue($export->getCell("15", "0"), "Email privat");
+            $export->setValue($export->getCell("16", "0"), "Email geschäftlich");
 
-            $export->setStyle($export->getCell(0, 0), $export->getCell(14, 0))
+
+            $export->setStyle($export->getCell(0, 0), $export->getCell(16, 0))
                 ->setFontBold();
 
             $Row = 0;
@@ -682,6 +705,8 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("12", $Row), $Data['District']);
                 $export->setValue($export->getCell("13", $Row), $Data['Nation']);
                 $export->setValue($export->getCell("14", $Row), $Data['Country']);
+                $export->setValue($export->getCell("15", $Row), $Data['MailPrivate']);
+                $export->setValue($export->getCell("16", $Row), $Data['MailBusiness']);
             }
 
             //Column width
@@ -700,6 +725,8 @@ class Service extends AbstractService
             $export->setStyle($export->getCell(12, 0), $export->getCell(12, $Row))->setColumnWidth(12);
             $export->setStyle($export->getCell(13, 0), $export->getCell(13, $Row))->setColumnWidth(11);
             $export->setStyle($export->getCell(14, 0), $export->getCell(14, $Row))->setColumnWidth(12);
+            $export->setStyle($export->getCell(15, 0), $export->getCell(14, $Row))->setColumnWidth(20);
+            $export->setStyle($export->getCell(16, 0), $export->getCell(14, $Row))->setColumnWidth(20);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -725,15 +752,18 @@ class Service extends AbstractService
     {
 
 //        $IsMissingAddress = false;
-        $TimeStamp = new \DateTime('now');
+        $TimeStamp = new DateTime('now');
 
         $successCount = 0;
-        $addressMissCount = 0;
         $accountExistCount = 0;
+        $accountError = 0;
+//        $accountWarning = 0;
 
         $GroupByCount = 1;
         $CountAccount = 0;
 
+        $tblAccountSession = \SPHERE\Application\Setting\Authorization\Account\Account::useService()->getAccountBySession();
+        $result = array();
         foreach ($PersonIdArray as $PersonId) {
             if ($CountAccount % 30 == 0
                 && $CountAccount != 0) {
@@ -745,19 +775,24 @@ class Service extends AbstractService
                 if (AccountGatekeeper::useService()->getAccountAllByPerson($tblPerson, true)) {
                     continue;
                 }
-                // ignore Person without Main Address
+                // Warning if Person without Main Address
                 $tblAddress = $tblPerson->fetchMainAddress();
                 if (!$tblAddress) {
-//                    $IsMissingAddress = true;
-                    $addressMissCount++;
-                    continue;
+                    $result['Address'][$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
+                        ': Hauptadresse fehlt';
+//                    $accountWarning++;
+//                    continue;
                 }
                 // ignore without Consumer
                 $tblConsumer = Consumer::useService()->getConsumerBySession();
                 if ($tblConsumer == '') {
                     continue;
                 }
-                $name = $this->generateUserName($tblPerson, $tblConsumer);
+                $name = $this->generateUserName($tblPerson, $tblConsumer, $AccountType, $result);
+                if(!$name){
+                    $accountError++;
+                    continue;
+                }
                 $password = $this->generatePassword(8, 0, 2, 1);
                 if (($tblAccountList = AccountGatekeeper::useService()->getAccountAllByPerson($tblPerson, true))) {
                     $IsUserExist = false;
@@ -774,8 +809,27 @@ class Service extends AbstractService
                     }
                 }
 
-                $tblAccount = AccountGatekeeper::useService()->insertAccount($name, $password, null, $tblConsumer);
+//                // nur bei Schüler-Accounts den AccountAlias aus Schüler-Mails setzen
+//                if ($AccountType == 'S') {
+                    if (($accountUserAlias = AccountGatekeeper::useService()->getAccountUserAliasFromMails($tblPerson))) {
+                        $errorMessage = '';
+                        if (!AccountGatekeeper::useService()->isUserAliasUnique($tblPerson, $accountUserAlias,
+                            $errorMessage)
+                        ) {
+                            $accountUserAlias = false;
+                            // Flag an der E-Mail Adresse entfernen
+                            Mail::useService()->resetMailWithUserAlias($tblPerson);
+                        }
+                    }
+                    $accountRecoveryMail = AccountGatekeeper::useService()->getAccountRecoveryMailFromMails($tblPerson);
+//                } else {
+//                    $accountUserAlias = false;
+//                    $accountRecoveryMail = false;
+//                }
 
+                $tblAccount = AccountGatekeeper::useService()->insertAccount($name, $password, null, $tblConsumer,
+                    false, false, $accountUserAlias ? $accountUserAlias : null,
+                    $accountRecoveryMail ? $accountRecoveryMail : null);
 
                 if ($tblAccount) {
                     $tblIdentification = AccountGatekeeper::useService()->getIdentificationByName('UserCredential');
@@ -785,7 +839,7 @@ class Service extends AbstractService
                     if ($tblRole && !$tblRole->isSecure()) {
                         AccountGatekeeper::useService()->addAccountAuthorization($tblAccount, $tblRole);
                     }
-                    $tblRole = Access::useService()->getRoleByName('Bildung: Zensurenübersicht (Schüler/Eltern)');
+                    $tblRole = Access::useService()->getRoleByName('Schüler und Eltern Zugang');
                     if ($tblRole && !$tblRole->isSecure()) {
                         AccountGatekeeper::useService()->addAccountAuthorization($tblAccount, $tblRole);
                     }
@@ -801,17 +855,18 @@ class Service extends AbstractService
                         $Type = TblUserAccount::VALUE_TYPE_STUDENT;
                     }
                     // add tblUserAccount
-                    if($this->createUserAccount($tblAccount, $tblPerson, $TimeStamp, $password, $Type, $GroupByCount)){
+                    if($this->createUserAccount($tblAccount, $tblPerson, $TimeStamp, $password, $Type, $GroupByCount, $tblAccountSession)){
                         $CountAccount++;
                     }
                 }
             }
         }
-        $result = array();
+
         $result['Time'] = $TimeStamp->format('d.m.Y H:i:s');
-        $result['AddressMissCount'] = $addressMissCount;
         $result['AccountExistCount'] = $accountExistCount;
         $result['SuccessCount'] = $successCount;
+        $result['AccountError'] = $accountError;
+        $result['AccountWarning'] = (isset($result['Address']) ? count($result['Address']) : 0);
         return $result;
 //        return new Layout(
 //            new LayoutGroup(
@@ -896,20 +951,22 @@ class Service extends AbstractService
     /**
      * @param TblAccount $tblAccount
      * @param TblPerson  $tblPerson
-     * @param \DateTime  $TimeStamp
+     * @param DateTime  $TimeStamp
      * @param string     $userPassword
      * @param string     $Type STUDENT|CUSTODY
      * @param int        $GroupByCount
+     * @param TblAccount $tblAccountSession
      *
      * @return false|TblUserAccount
      */
     public function createUserAccount(
         TblAccount $tblAccount,
         TblPerson $tblPerson,
-        \DateTime $TimeStamp,
+        DateTime $TimeStamp,
         $userPassword,
         $Type,
-        $GroupByCount
+        $GroupByCount,
+        TblAccount $tblAccountSession
     ) {
 
         return ( new Data($this->getBinding()) )->createUserAccount(
@@ -918,56 +975,216 @@ class Service extends AbstractService
             $TimeStamp,
             $userPassword,
             $Type,
-            $GroupByCount);
+            $GroupByCount,
+            $tblAccountSession);
     }
 
     /**
      * @param TblPerson|null   $tblPerson
      * @param TblConsumer|null $tblConsumer
+     * @param string           $AccountType
+     * @param array            $result
      *
-     * @return string
+     * @return string|bool
      */
-    public function generateUserName(TblPerson $tblPerson = null, TblConsumer $tblConsumer = null)
+    public function generateUserName(TblPerson $tblPerson = null, TblConsumer $tblConsumer = null, $AccountType = 'S', &$result = array())
     {
-        $UserName = '';
 
-        if ($tblConsumer) {
-            mb_internal_encoding("UTF-8");
+        mb_internal_encoding("UTF-8");
 
-            $FirstName = mb_substr($tblPerson->getFirstName(), 0, 2);
-            $LastName = mb_substr($tblPerson->getLastName(), 0, 2);
+        $FirstName = mb_substr($tblPerson->getFirstName(), 0, 2);
+        $LastName = mb_substr($tblPerson->getLastName(), 0, 2);
 
-            // cut string with UTF8 encoding
+        if($AccountType == 'S'){
+            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))){
+                if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
+                    $randNumber = $tblCommonBirthDates->getBirthday('d');
+                }
+            }
+            if(!isset($randNumber) || !$randNumber){
+                $result[$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
+                    ': Geburtsdatum fehlt';
+                if(isset($result['Address'][$tblPerson->getId()])){
+                    unset($result['Address'][$tblPerson->getId()]);
+                }
 
-            $UserName = $tblConsumer->getAcronym().'-'.$FirstName.$LastName;
+                return false;
+            }
+        }
+        // cut string with UTF8 encoding
+
+        $UserName = $tblConsumer->getAcronym().'-'.$FirstName.$LastName;
+        // replace Specialchar to normal Char like Ä -> A
+        $UserName = $this->convertLetterToCorrectASCII($UserName);
+
+        // Rand 32 - 99
+        if($AccountType == 'C'){
+            $randNumber = rand(32, 99);
         }
 
-        // Rand 1 - 99 with leading 0 if number < 10
-        $randNumber = rand(1, 99);
+        // with leading 0 if number < 10
         $randNumber = str_pad($randNumber, 2, '0', STR_PAD_LEFT);
 
         $UserNamePrepare = $UserName.$randNumber;
 
-//        $tblAccount = true;
+        if($AccountType == 'C'){
+            // find existing UserName?
+            $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNamePrepare);
+            if (!$tblAccount) {
+                return $UserNamePrepare;
+            } else {
 
-        // find existing UserName?
-        $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNamePrepare);
-        if ($tblAccount) {
-            while ($tblAccount) {
-                $randNumber = rand(1, 99);
-                $randNumber = str_pad($randNumber, 2, '0', STR_PAD_LEFT);
+                $NumberRange = range(32, 99);
+                shuffle($NumberRange);
+                foreach($NumberRange as $Rng){
+//                    $Rng = str_pad($Rng, 2, '0', STR_PAD_LEFT);
+                    $UserNameMod = $UserName.$Rng;
+                    $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNameMod);
+                    if (!$tblAccount) {
+                        return  $UserNameMod;
+                    }
+                }
+                // no free AccountName
+                $result[$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
+                    ': kein freier Benutzeraccount '.$UserName.'XX';
+                return false;
+            }
+        } elseif($AccountType == 'S'){
+            $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNamePrepare);
+            if (!$tblAccount) {
+                return $UserNamePrepare;
+            } else {
+                // second try
+                $NumberRange = range(1, 9);
+                shuffle($NumberRange);
+                $FirstName2 = mb_substr($tblPerson->getFirstName(), 0, 3);
+                $LastName2 = mb_substr($tblPerson->getLastName(), 0, 3);
+                $UserName = $tblConsumer->getAcronym().'-'.$FirstName2.$LastName2;
+                $UserName = $this->convertLetterToCorrectASCII($UserName);
                 $UserNameMod = $UserName.$randNumber;
+                // second try (without shuffleNumber)
                 $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNameMod);
                 if (!$tblAccount) {
-                    $UserName = $UserNameMod;
+                    return $UserNameMod;
                 }
 
+                // Last try add rng Number
+                foreach($NumberRange as $Rng){
+                    $UserNameMod = $UserName.$randNumber.$Rng;
+                    $tblAccount = AccountGatekeeper::useService()->getAccountByUsername($UserNameMod);
+                    if (!$tblAccount) {
+                        return $UserNameMod;
+                    }
+                }
+                // return ist nicht erfolgt -> keine Freie Nutzernamen.
+                $result[$tblPerson->getId()] = 'Person '.$tblPerson->getLastFirstName().
+                    ': Benutzeraccount '.$UserName.end($NumberRange).' existiert bereits';
+                return false;
             }
-        } else {
-            $UserName = $UserNamePrepare;
         }
 
+
         return $UserName;
+    }
+
+    /**
+     * @param $String
+     *
+     * @return string
+     */
+    public function convertLetterToCorrectASCII($String)
+    {
+
+        $UpdateArray[] = array('A' => 'Á');
+        $UpdateArray[] = array('A' => 'Â');
+        $UpdateArray[] = array('A' => 'Ã');
+        $UpdateArray[] = array('A' => 'Ä');
+        $UpdateArray[] = array('A' => 'Å');
+        $UpdateArray[] = array('Ae' => 'Æ');
+        $UpdateArray[] = array('C' => 'Ç');
+        $UpdateArray[] = array('C' => 'Č');
+        $UpdateArray[] = array('D' => 'Ð');
+        $UpdateArray[] = array('E' => 'È');
+        $UpdateArray[] = array('E' => 'É');
+        $UpdateArray[] = array('E' => 'Ê');
+        $UpdateArray[] = array('E' => 'Ë');
+        $UpdateArray[] = array('E' => 'Ĕ');
+        $UpdateArray[] = array('E' => 'Ě');
+        $UpdateArray[] = array('G' => 'Ģ');
+        $UpdateArray[] = array('G' => 'Ğ');
+        $UpdateArray[] = array('I' => 'Ì');
+        $UpdateArray[] = array('I' => 'Í');
+        $UpdateArray[] = array('I' => 'Î');
+        $UpdateArray[] = array('I' => 'Ï');
+        $UpdateArray[] = array('N' => 'Ñ');
+        $UpdateArray[] = array('O' => 'Ò');
+        $UpdateArray[] = array('O' => 'Ó');
+        $UpdateArray[] = array('O' => 'Ô');
+        $UpdateArray[] = array('O' => 'Õ');
+        $UpdateArray[] = array('O' => 'Ō');
+        $UpdateArray[] = array('O' => 'Ö');
+        $UpdateArray[] = array('O' => 'Ø');
+        $UpdateArray[] = array('P' => 'Þ');
+        $UpdateArray[] = array('P' => 'þ');
+        $UpdateArray[] = array('S' => 'Ŝ');
+        $UpdateArray[] = array('S' => 'Ş');
+        $UpdateArray[] = array('U' => 'Ù');
+        $UpdateArray[] = array('U' => 'Ú');
+        $UpdateArray[] = array('U' => 'Û');
+        $UpdateArray[] = array('U' => 'Ü');
+        $UpdateArray[] = array('U' => 'Ū');
+        $UpdateArray[] = array('Y' => 'Ý');
+        $UpdateArray[] = array('a' => 'à');
+        $UpdateArray[] = array('a' => 'á');
+        $UpdateArray[] = array('a' => 'â');
+        $UpdateArray[] = array('a' => 'ã');
+        $UpdateArray[] = array('a' => 'ä');
+        $UpdateArray[] = array('a' => 'å');
+        $UpdateArray[] = array('ae' => 'æ');
+        $UpdateArray[] = array('c' => 'ç');
+        $UpdateArray[] = array('c' => 'č');
+        $UpdateArray[] = array('d' => 'ð');
+        $UpdateArray[] = array('e' => 'è');
+        $UpdateArray[] = array('e' => 'é');
+        $UpdateArray[] = array('e' => 'ê');
+        $UpdateArray[] = array('e' => 'ë');
+        $UpdateArray[] = array('e' => 'ĕ');
+        $UpdateArray[] = array('e' => 'ě');
+        $UpdateArray[] = array('g' => 'ğ');
+        $UpdateArray[] = array('g' => 'ģ');
+        $UpdateArray[] = array('i' => 'ì');
+        $UpdateArray[] = array('i' => 'í');
+        $UpdateArray[] = array('i' => 'î');
+        $UpdateArray[] = array('i' => 'ï');
+        $UpdateArray[] = array('n' => 'ñ');
+        $UpdateArray[] = array('o' => 'ò');
+        $UpdateArray[] = array('o' => 'ó');
+        $UpdateArray[] = array('o' => 'ô');
+        $UpdateArray[] = array('o' => 'õ');
+        $UpdateArray[] = array('o' => 'ō');
+        $UpdateArray[] = array('o' => 'ö');
+        $UpdateArray[] = array('o' => 'ø');
+        $UpdateArray[] = array('p' => 'Þ');
+        $UpdateArray[] = array('p' => 'þ');
+        $UpdateArray[] = array('s' => 'ß');
+        $UpdateArray[] = array('ŝ' => 'ß');
+        $UpdateArray[] = array('ş' => 'ß');
+        $UpdateArray[] = array('u' => 'ù');
+        $UpdateArray[] = array('u' => 'ú');
+        $UpdateArray[] = array('u' => 'û');
+        $UpdateArray[] = array('u' => 'ü');
+        $UpdateArray[] = array('u' => 'ū');
+        $UpdateArray[] = array('x' => '×');
+        $UpdateArray[] = array('y' => 'ý');
+        $UpdateArray[] = array('y' => 'ÿ');
+
+        foreach($UpdateArray as $LetterCompare) {
+            foreach($LetterCompare as $replace => $search) {
+                $String = str_replace($search, $replace, $String);
+            }
+        }
+
+        return $String;
     }
 
     /**
@@ -978,7 +1195,7 @@ class Service extends AbstractService
     public function updateDownloadBulk($tblUserAccountList)
     {
 
-        $ExportDate = new \DateTime();
+        $ExportDate = new DateTime();
         $UserName = '';
         $tblAccount = AccountGatekeeper::useService()->getAccountBySession();
         if ($tblAccount) {
@@ -999,11 +1216,11 @@ class Service extends AbstractService
     }
 
     /**
-     * @param \DateTime $GroupByTime
+     * @param DateTime $GroupByTime
      *
      * @return bool
      */
-    public function clearPassword(\DateTime $GroupByTime)
+    public function clearPassword(DateTime $GroupByTime)
     {
 
         $tblUserAccountList = $this->getUserAccountByTime($GroupByTime);
@@ -1022,13 +1239,20 @@ class Service extends AbstractService
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    public function changePassword(TblAccount $tblAccount, $Password)
+    public function changePassword(TblUserAccount $tblUserAccount, $Password)
     {
 
-        $tblUserAccount = $this->getUserAccountByAccount($tblAccount);
-        if ($tblUserAccount) {
-            return (new Data($this->getBinding()))->updateUserAccountChangePassword($tblUserAccount, $Password);
+        return (new Data($this->getBinding()))->updateUserAccountChangePassword($tblUserAccount, $Password);
+    }
+
+    public function changeUpdateDate(TblUserAccount $tblUserAccount, $Type)
+    {
+
+        $UserName = '';
+        if(($tblAccount = \SPHERE\Application\Setting\Authorization\Account\Account::useService()->getAccountBySession())){
+            $UserName = $tblAccount->getUsername();
         }
-        return false;
+
+        return (new Data($this->getBinding()))->changeUpdateDate($tblUserAccount, $UserName, $Type);
     }
 }

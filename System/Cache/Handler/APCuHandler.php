@@ -89,12 +89,12 @@ class APCuHandler extends AbstractHandler implements HandlerInterface
     {
 
         (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Clear APCu');
-        if (function_exists('apc_clear_cache')) {
-            apc_clear_cache();
-            return $this;
-        }
         if (function_exists('apcu_clear_cache')) {
             apcu_clear_cache();
+            return $this;
+        }
+        if (function_exists('apc_clear_cache')) {
+            apc_clear_cache();
             return $this;
         }
         (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('Clear APCu: Failed');

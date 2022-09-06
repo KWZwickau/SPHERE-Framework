@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Billing\Inventory;
 
+use DateTime;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -268,10 +269,23 @@ class ItemCalculation extends Extension
                 $form->setError('Calculation[DateFrom]', 'Bitte geben Sie einen Beginn der Gültigkeit an');
                 $Error = true;
             } else {
+                if (isset($Calculation['DateFrom'] ) && !empty($Calculation['DateFrom'])
+                    && isset($Calculation['DateTo'] ) && !empty($Calculation['DateTo'])
+                ) {
+                    $fromDateTime = new DateTime($Calculation['DateFrom']);
+                    $toDateTime = new DateTime($Calculation['DateTo']);
+
+                    if ($fromDateTime > $toDateTime) {
+                        $form->setError('Calculation[DateTo]', 'Die "Gültig bis" darf nicht kleiner sein, als die "Gültig ab".');
+
+                        $Error = true;
+                    }
+                }
+
                 if (($tblItemVariantList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
-                    $FromDate = new \DateTime($Calculation['DateFrom']);
+                    $FromDate = new DateTime($Calculation['DateFrom']);
                     if (isset($Calculation['DateTo']) && !empty($Calculation['DateTo'])){
-                        $ToDate = new \DateTime($Calculation['DateTo']);
+                        $ToDate = new DateTime($Calculation['DateTo']);
                     } else {
                         $ToDate = false;
                     }

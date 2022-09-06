@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Billing\Accounting;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
@@ -35,6 +36,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -317,9 +319,11 @@ class ApiBankAccount extends Extension implements IApiInterface
                         , 6)
                 )),
                 new FormRow(array(
-                    new FormColumn(
-                        (new TextField('BankAccount[IBAN]', "DE00 0000 0000 0000 0000 00", "IBAN", null, 'AA99 9999 9999 9999 9999 99'))->setRequired()
-                        , 6),
+                    new FormColumn(array(
+                        (new TextField('BankAccount[IBAN]', "DE00 0000 0000 0000 0000 00", "IBAN", null,
+                            'AA99 A|9A|9A|9A|9 9999 9999 9999 9999 9999 9999 99'))->setRequired()
+                    ), 6),
+
                     new FormColumn(
                         new AutoCompleter('BankAccount[BIC]', 'BIC', 'BIC', array('BIC' => $tblBankAccountAll))
                         , 6)
@@ -344,11 +348,35 @@ class ApiBankAccount extends Extension implements IApiInterface
     private function checkInputBankAccount($Identifier = '', $PersonId = '', $BankAccountId = '', $BankAccount = array()
     ){
 
+
+
         $Error = false;
         $form = $this->formBankAccount($Identifier, $PersonId, $BankAccountId);
+
         if(isset($BankAccount['IBAN']) && empty($BankAccount['IBAN'])){
             $form->setError('BankAccount[IBAN]', 'Bitte geben Sie die IBAN an');
             $Error = true;
+        } elseif(strpos($BankAccount['IBAN'], 'DE') === 0) {
+            $Iban = str_replace(' ', '', $BankAccount['IBAN']);
+            if(strlen($Iban) !== 22){
+                $form->setError('BankAccount[IBAN]', 'Deutsche IBAN-Länge muss 22 Zeichen betragen');
+                $Error = true;
+            } else {
+                $Iban = str_replace(' ', '', $BankAccount['IBAN']);
+                if(($IbanArray = Account::useService()->getControlIban($Iban)) && !$IbanArray['control']){
+                    // aktuelle Prüfziffer $IbanArray['number']
+                    // errechnete Prüfziffer $IbanArray['controlNumber']
+                    $form->setError('BankAccount[IBAN]', 'Deutsche IBAN-Prüfziffer nicht korrekt'.new ToolTip('.', $IbanArray['number'].' != '.$IbanArray['controlNumber']));
+                    $Error = true;
+                }
+            }
+        }
+        if(isset($BankAccount['BIC']) && !empty($BankAccount['BIC'])){
+            // Wird eine BIC angegeben, so muss sie mindestens 8 Zeichen aber höchstens 11 Zeichen besitzen
+            if(strlen($BankAccount['BIC']) < 8 || strlen($BankAccount['BIC']) > 11){
+                $form->setError('BankAccount[BIC]', 'Eine BIC hat mindestens 8, maximal 11 Zeichen');
+                $Error = true;
+            }
         }
 
         if($Error){
@@ -397,7 +425,7 @@ class ApiBankAccount extends Extension implements IApiInterface
 
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
             $tblBankAccount = Debtor::useService()->createBankAccount($tblPerson, $BankAccount['Owner'],
-                $BankAccount['BankName'], $BankAccount['IBAN'], $BankAccount['BIC']);
+                $BankAccount['BankName'], $BankAccount['IBAN'], strtoupper($BankAccount['BIC']));
             if($tblBankAccount){
                 return new Success('Bankverbindung erfolgreich angelegt').self::pipelineCloseModal($Identifier,
                         $PersonId);
@@ -435,7 +463,7 @@ class ApiBankAccount extends Extension implements IApiInterface
         $IsChange = false;
         if(($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))){
             $IsChange = Debtor::useService()->changeBankAccount($tblBankAccount, $BankAccount['Owner'],
-                $BankAccount['BankName'], $BankAccount['IBAN'], $BankAccount['BIC']);
+                $BankAccount['BankName'], $BankAccount['IBAN'], strtoupper($BankAccount['BIC']));
         }
 
         return ($IsChange

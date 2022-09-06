@@ -94,7 +94,7 @@ abstract class Style extends Extension
      *
      * @return $this
      */
-    public function styleMarginTop($Size)
+    public function styleMarginTop($Size = '2px')
     {
 
         $this->Style[] = 'margin-top: '.$Size.' !important;';

@@ -24,7 +24,7 @@ class C01
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('C01. Anzahl der Schüler, die im <u>Schuljahr {{ Content.SchoolYear.Past }}</u> 
-                    diese Schule besucht haben und nicht versetzt </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                    diese Schule besucht haben und nicht versetzt <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
                     worden sind, nach Klassen- bzw. Jahrgangsstufen')
             );
 

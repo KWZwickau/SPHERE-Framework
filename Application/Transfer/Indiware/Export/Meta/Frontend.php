@@ -27,21 +27,30 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendPrepare()
+    public function frontendPrepare(): Stage
     {
         $Stage = new Stage('Indiware', 'Datentransfer');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Export', new ChevronLeft()));
         $Stage->setMessage('Exportvorbereitung / Klassenauswahl');
 
-        $YearId = null;
         $tblDivisionList = array();
         $tableContent = array();
-        if(($tblYearList = Term::useService()->getYearByNow())){
+
+        $tblFutureYearList = Term::useService()->getYearAllFutureYears(1);
+        $tblYearList = Term::useService()->getYearByNow();
+
+        if ($tblFutureYearList && $tblYearList) {
+            $tblYearList = array_merge($tblYearList, $tblFutureYearList);
+        } elseif ($tblFutureYearList) {
+            $tblYearList = $tblFutureYearList;
+        }
+
+        if($tblYearList){
             foreach($tblYearList as $tblYear) {
                 $currentList = Division::useService()->getDivisionAllByYear($tblYear);
                 if($currentList){
                     foreach($currentList as $current){
-                        if($current->getTypeName() == 'Gymnasium'){
+                        if ($current->getTypeShortName() == 'Gy' || $current->getTypeShortName() == 'BGy' || $current->getTypeShortName() == 'OS'){
                             $tblDivisionList[] = $current;
                         }
                     }
@@ -70,13 +79,24 @@ class Frontend extends Extension implements IFrontendInterface
             new LayoutGroup(
                 new LayoutRow(
                     new LayoutColumn(
-                        new TableData($tableContent, null, array(
-                            'Division' => 'Klasse',
-                            'Term' => 'Schuljahr',
-                            'SchoolType' => 'Schulart',
-                            'countStudent' => 'Anzahl Schüler',
-                            'Option' => '',
-                        ))
+                        new TableData($tableContent, null,
+                            array(
+                                'Term' => 'Schuljahr',
+                                'Division' => 'Klasse',
+                                'SchoolType' => 'Schulart',
+                                'countStudent' => 'Anzahl Schüler',
+                                'Option' => '',
+                            ),
+                            array(
+                                'order' => array(
+                                    array(0, 'desc'),
+                                    array(1, 'asc'),
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 1),
+                                )
+                            )
+                        )
                     )
                 )
             )

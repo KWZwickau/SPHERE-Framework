@@ -18,6 +18,7 @@ class CheJGs extends Certificate
 {
 
     const TEXT_SIZE = '12pt';
+    const TEXT_SIZE_SMALL = '10.5pt';
 
     /**
      * @return array
@@ -41,35 +42,7 @@ class CheJGs extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        if ($this->isSample()) {
-            $Header = (new Slice())
-                ->addSection((new Section())
-//                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ChemnitzLogo.jpg',
-//                        '60px', '60px'))
-//                        , '25%')
-                    ->addElementColumn((new Element()), '25%')
-                    ->addElementColumn((new Element\Sample())
-                        ->styleTextSize('30px')
-                    )
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '165px', '50px'))
-                        ->styleMarginTop('4px')
-                        ->styleAlignRight()
-                        , '25%')
-                );
-        } else {
-            $Header = (new Slice())
-                ->addSection((new Section())
-//                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ChemnitzLogo.jpg',
-//                        '60px', '60px'))
-//                        , '25%')
-                    ->addElementColumn((new Element()), '25%')
-                    ->addElementColumn((new Element()))
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '165px', '50px'))
-                        , '25%')
-                );
-        }
+        $Header = $this->getHead($this->isSample());
 
         return (new Page())
             ->addSlice(
@@ -130,7 +103,7 @@ class CheJGs extends Certificate
                         ->styleAlignCenter()
                         ->styleTextSize(self::TEXT_SIZE)
                         , '15%')
-                )->styleMarginTop('55px')
+                )->styleMarginTop('35px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -161,8 +134,8 @@ class CheJGs extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleTextSize(self::TEXT_SIZE)
-                        ->styleHeight('100px')
+                        ->styleTextSize(self::TEXT_SIZE_SMALL)
+                        ->styleHeight('70px')
                     )
                 )
                 ->styleMarginTop('10px')
@@ -175,7 +148,10 @@ class CheJGs extends Certificate
                     ->styleTextSize(self::TEXT_SIZE)
                 )
             )
-            ->addSlice($this->getSubjectLanesCustomForChemnitz($personId, true, array(), self::TEXT_SIZE, false))
+            ->addSlice(
+                $this->getSubjectLanesCustomForChemnitz($personId, true, array(), self::TEXT_SIZE, false)
+                ->styleHeight('152px')
+            )
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
@@ -236,8 +212,8 @@ class CheJGs extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleHeight('90px')
-                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleHeight('62px')
+                        ->styleTextSize(self::TEXT_SIZE_SMALL)
                     )
                 )
                 ->styleMarginTop('10px')
@@ -319,7 +295,7 @@ class CheJGs extends Certificate
                         , '5%')
                     ->addElementColumn((new Element())
                         ->setContent('
-                                {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                                {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
                                     {{ Content.P' . $personId . '.DivisionTeacher.Description }}
                                 {% else %}
                                     Klassenlehrer(in)

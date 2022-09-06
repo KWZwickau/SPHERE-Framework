@@ -7,6 +7,7 @@ use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
+ * @deprecated
  * Class TextCaptcha
  *
  * @package SPHERE\Common\Frontend\Form\Repository\Field

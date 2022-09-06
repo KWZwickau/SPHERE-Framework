@@ -101,8 +101,6 @@ class Lectureship extends Import implements IFrontendInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __CLASS__.'/Import', __CLASS__.'::frontendImportLectureship'
         ));
-
-        parent::registerModule();
     }
 
     public function frontendLectureshipPrepare()
@@ -330,6 +328,26 @@ class Lectureship extends Import implements IFrontendInterface
                 } else {
                     $ImportError++;
                 }
+
+                // Info neue Fachgruppen
+                // beeinträchtigt den Vergleich und wurde deswegen wieder auskommentiert
+//                if($tblDivision && $tblSubject && $Item['AppSubjectGroup']){
+//                    $isGroupExist = false;
+//                    if(( $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision))){
+//                        foreach($tblDivisionSubjectList as $tblDivisionSubject){
+//                            if(($tblDivisionSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())){
+//                                if(($tblDivisionSubjectGroup->getName() == $tblUntisImportLectureship->getSubjectGroup())){
+//                                    $isGroupExist = true;
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                    }
+//                    if(!$isGroupExist){
+//                        $Item['AppSubjectGroup'] .= ' '.new Small(new Small(new Muted('(neu)')));
+//                    }
+//                }
+
 //                // not empty SubjectGroup by import file
 //                if ($tblUntisImportLectureship->getSubjectGroupName() !== '') {
 //                    $Item['AppSubjectGroup'] = new Warning('Keine Gruppe');
@@ -759,14 +777,14 @@ class Lectureship extends Import implements IFrontendInterface
             $Stage->setContent(
                 new Layout(
                     new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
+                        new LayoutRow(new LayoutColumn(
                             ( Import::useService()->destroyUntisImportLectureship()
                                 ? new SuccessMessage('Der Import ist nun leer')
                                 .new Redirect('/Transfer/Untis/Import', Redirect::TIMEOUT_SUCCESS)
                                 : new WarningMessage('Der Import konnte nicht vollständig gelöscht werden')
                                 .new Redirect('/Transfer/Untis/Import', Redirect::TIMEOUT_ERROR)
                             )
-                        )))
+                        ))
                     ))
                 )
             );

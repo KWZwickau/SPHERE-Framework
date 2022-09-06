@@ -50,12 +50,6 @@ class Frontend extends Extension implements IFrontendInterface
             new LayoutGroup(
                 new LayoutRow(array(
                     new LayoutColumn(
-                        new Info(
-                            new Container(new Bold('Jährliches Update (Datum)'))
-                            .new Standard('Jährliches Update', __NAMESPACE__.'/Yearly', null, array(), 'Anzeige eines SQL Script\'s')
-                        )
-                    , 8),
-                    new LayoutColumn(
                         new Danger(new Container(new Bold('Mandanten Anonymisieren:'))
                             .new Container(new DangerLink('1. Personen Anonymisieren', __NAMESPACE__.'/UpdatePerson', null, array(), 'Passiert sofort!')
                                 .(new ToolTip(new InfoIcon(), htmlspecialchars('random Vorname (laut Geschlecht)<br/>random Nachname<br/>'
@@ -225,98 +219,43 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
                 new LayoutRow(
                     new LayoutColumn(
-                        new Code("TRUNCATE PeopleMeta_".$Acronym.".tblHandyCap;
-TRUNCATE SettingConsumer_".$Acronym.".tblStudentCustody;
-TRUNCATE SettingConsumer_".$Acronym.".tblUntisImportLectureship;
-TRUNCATE SettingConsumer_".$Acronym.".tblUserAccount;
-TRUNCATE SettingConsumer_".$Acronym.".tblWorkSpace;
-DROP DATABASE BillingInvoice_".$Acronym.";
-DROP DATABASE ReportingCheckList_".$Acronym.";
-DROP DATABASE DocumentStorage_".$Acronym.";
-DELETE FROM CorporationCompany_".$Acronym.".tblCompany WHERE EntityRemove IS NOT null;
-UPDATE ContactMail_".$Acronym.".tblMail SET Address = 'Ref@schulsoftware.schule';
-UPDATE ContactPhone_".$Acronym.".tblPhone SET Number = concat('00000/', LPAD(FLOOR(RAND()*1000000), 6, '0'));
-UPDATE ContactWeb_".$Acronym.".tblWeb SET Address = 'www.schulsoftware.schule';
-UPDATE PeopleGroup_".$Acronym.".tblGroup SET Description = '' where MetaTable = '';
-UPDATE PeopleMeta_".$Acronym.".tblClub SET Remark = '' , Identifier = FLOOR(RAND()*100000);
-UPDATE PeopleMeta_".$Acronym.".tblCommonBirthDates SET Birthplace = '';
-UPDATE PeopleMeta_".$Acronym.".tblCustody SET Remark = '';
-UPDATE PeopleMeta_".$Acronym.".tblSpecial SET PersonEditor = 'DatenÃ¼bernahme', Remark = '';
-UPDATE PeopleMeta_".$Acronym.".tblStudentIntegration SET CoachingRemark = '';
-UPDATE PeopleMeta_".$Acronym.".tblStudentTransfer SET Remark = '';
-UPDATE PeopleMeta_".$Acronym.".tblStudentTransport SET Remark = '';
-UPDATE PeopleMeta_".$Acronym.".tblSupport SET PersonSupport = '', PersonEditor = 'DatenÃ¼bernahme', Remark = '';
-UPDATE PeopleRelationship_".$Acronym.".tblToCompany SET Remark = '';
-UPDATE PeopleRelationship_".$Acronym.".tblToPerson SET Remark = '';
-UPDATE ContactAddress_".$Acronym.".tblToCompany SET Remark = '';
-UPDATE ContactAddress_".$Acronym.".tblToPerson SET Remark = '';
-UPDATE EducationClassRegister_".$Acronym.".tblAbsence SET Remark = '';
-UPDATE EducationGraduationEvaluation_".$Acronym.".tblTask SET IsLocked = 0;
-UPDATE EducationGraduationGradebook_".$Acronym.".tblGrade SET Comment = '', PublicComment = '';
-UPDATE EducationLessonDivision_".$Acronym.".tblDivisionTeacher SET Description = '';
-UPDATE SettingConsumer_".$Acronym.".tblGenerateCertificate SET HeadmasterName = '', IsLocked = 0;
-UPDATE SettingConsumer_".$Acronym.".tblLeaveInformation SET Value = '' WHERE Field like 'HeadmasterName' or Field = 'Remark';
-UPDATE SettingConsumer_".$Acronym.".tblPrepareInformation SET Value = '' where Field like 'Remark';
-UPDATE SettingConsumer_".$Acronym.".tblPrepareStudent SET IsApproved = 0, IsPrinted = 0;
-UPDATE SettingConsumer_".$Acronym.".tblPreset SET PersonCreator = '', IsPublic = 1;
-UPDATE SettingConsumer_".$Acronym.".tblSchool SET CompanyNumber = '';
-UPDATE SettingConsumer_".$Acronym.".tblSetting SET Value = '' WHERE Identifier like '%Picture%';
-UPDATE SettingConsumer_".$Acronym.".tblSetting SET Value = 0 WHERE Identifier like 'PictureDisplayLocationForDiplomaCertificate';"
-                        )
-                    )
-                )
-            ))
-        ));
-
-        return $Stage;
-    }
-
-    /**
-     * @return Stage
-     */
-    public function frontendYearly()
-    {
-
-        $tblConsumer = Consumer::useService()->getConsumerBySession();
-        $Acronym = $tblConsumer->getAcronym();
-        $Stage = new Stage('SQL Anweisung');
-        $Stage->addButton(new Standard('Zurück', '/Platform/System/Anonymous', new ChevronLeft()));
-
-        $Stage->setContent(new Layout(
-            new LayoutGroup(array(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        new Info('Ausführen des SQL Script\'s in der Datenbank ('.new Bold('aktueller Mandant!').')'
-                            .new Container('Diesen bitte in der Datenbank ausführen.'))
-                        , 6),
-                    new LayoutColumn(
-                        new Info(
-                            new Container(new Bold('Nach SQL Script notwendig!&nbsp;&nbsp;&nbsp;')
-                                .new External('Cache löschen', '/Platform/System/Cache', new Server(),
-                                    array('Clear' => 1)))
-                        )
-                        , 6)
-                )),
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Code("UPDATE PeopleMeta_".$Acronym.".tblCommonBirthDates SET Birthday = date_add(Birthday, interval 1 YEAR);
-UPDATE PeopleMeta_".$Acronym.".tblSpecial SET Date = date_add(Date, interval 1 YEAR);
-UPDATE PeopleMeta_".$Acronym.".tblStudent SET SchoolAttendanceStartDate = date_add(SchoolAttendanceStartDate, interval 1 YEAR);
-UPDATE PeopleMeta_".$Acronym.".tblStudentBaptism SET BaptismDate = date_add(BaptismDate, interval 1 YEAR);
-UPDATE PeopleMeta_".$Acronym.".tblStudentIntegration SET CoachingRequestDate = date_add(CoachingRequestDate, interval 1 YEAR),CoachingCounselDate = date_add(CoachingCounselDate, interval 1 YEAR),CoachingDecisionDate = date_add(CoachingDecisionDate, interval 1 YEAR);
-UPDATE PeopleMeta_".$Acronym.".tblStudentTransfer SET TransferDate = date_add(TransferDate, interval 1 YEAR);
-UPDATE PeopleMeta_".$Acronym.".tblSupport SET Date = date_add(Date, interval 1 YEAR);
-UPDATE EducationClassRegister_".$Acronym.".tblAbsence SET FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
-UPDATE EducationGraduationEvaluation_".$Acronym.".tblTask SET Date = date_add(Date, interval 1 YEAR), FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
-UPDATE EducationGraduationEvaluation_".$Acronym.".tblTest SET Date = date_add(Date, interval 1 YEAR), CorrectionDate = date_add(CorrectionDate, interval 1 YEAR), ReturnDate = date_add(ReturnDate, interval 1 YEAR);
-UPDATE EducationGraduationGradebook_".$Acronym.".tblGrade SET Date = date_add(Date, interval 1 YEAR);
-UPDATE EducationLessonDivision_".$Acronym.".tblDivisionStudent SET LeaveDate = date_add(LeaveDate, interval 1 YEAR);
-UPDATE EducationLessonTerm_".$Acronym.".tblHoliday SET FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
-UPDATE EducationLessonTerm_".$Acronym.".tblPeriod SET FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
-Update EducationLessonTerm_".$Acronym.".tblYear SET Name = CONCAT(SUBSTRING_INDEX(Name, '/', 1)+1,'/',SUBSTRING_INDEX(Name, '/', -1)+1), YEAR = CONCAT(SUBSTRING_INDEX(YEAR, '/', 1)+1,'/',SUBSTRING_INDEX(YEAR, '/', -1)+1);
-UPDATE SettingConsumer_".$Acronym.".tblLeaveInformation SET Value = CONCAT(SUBSTRING_INDEX(Value, '.',2),'.',YEAR(CURDATE())) where Field like 'CertificateDate';
-UPDATE SettingConsumer_".$Acronym.".tblPrepareCertificate SET Date = date_add(Date, interval 1 YEAR);
-UPDATE SettingConsumer_".$Acronym.".tblPrepareInformation SET Value = CONCAT(SUBSTRING_INDEX(Value, '.',2),'.',YEAR(CURDATE())) where Field LIKE 'DateConference' OR Field LIKE 'DateConsulting'OR Field LIKE 'DateCertifcate';"
+                        new Code("TRUNCATE ".$Acronym."_PeopleMeta.tblHandyCap;
+TRUNCATE ".$Acronym."_SettingConsumer.tblStudentCustody;
+TRUNCATE ".$Acronym."_SettingConsumer.tblUntisImportLectureship;
+TRUNCATE ".$Acronym."_SettingConsumer.tblUserAccount;
+TRUNCATE ".$Acronym."_SettingConsumer.tblWorkSpace;
+DROP DATABASE ".$Acronym."_BillingInvoice;
+DROP DATABASE ".$Acronym."_ReportingCheckList;
+DROP DATABASE ".$Acronym."_DocumentStorage;
+DELETE FROM ".$Acronym."_CorporationCompany.tblCompany WHERE EntityRemove IS NOT null;
+UPDATE ".$Acronym."_ContactMail.tblMail SET Address = 'Ref@schulsoftware.schule';
+UPDATE ".$Acronym."_ContactPhone.tblPhone SET Number = concat('00000/', LPAD(FLOOR(RAND()*1000000), 6, '0'));
+UPDATE ".$Acronym."_ContactWeb.tblWeb SET Address = 'www.schulsoftware.schule';
+UPDATE ".$Acronym."_PeopleGroup.tblGroup SET Description = '' where MetaTable = '';
+UPDATE ".$Acronym."_PeopleMeta.tblClub SET Remark = '' , Identifier = FLOOR(RAND()*100000);
+UPDATE ".$Acronym."_PeopleMeta.tblCommonBirthDates SET Birthplace = '';
+UPDATE ".$Acronym."_PeopleMeta.tblCustody SET Remark = '';
+UPDATE ".$Acronym."_PeopleMeta.tblSpecial SET PersonEditor = 'DatenÃ¼bernahme', Remark = '';
+UPDATE ".$Acronym."_PeopleMeta.tblStudentIntegration SET CoachingRemark = '';
+UPDATE ".$Acronym."_PeopleMeta.tblStudentTransfer SET Remark = '';
+UPDATE ".$Acronym."_PeopleMeta.tblStudentTransport SET Remark = '';
+UPDATE ".$Acronym."_PeopleMeta.tblSupport SET PersonSupport = '', PersonEditor = 'DatenÃ¼bernahme', Remark = '';
+UPDATE ".$Acronym."_PeopleRelationship.tblToCompany SET Remark = '';
+UPDATE ".$Acronym."_PeopleRelationship.tblToPerson SET Remark = '';
+UPDATE ".$Acronym."_ContactAddress.tblToCompany SET Remark = '';
+UPDATE ".$Acronym."_ContactAddress.tblToPerson SET Remark = '';
+UPDATE ".$Acronym."_EducationClassRegister.tblAbsence SET Remark = '';
+UPDATE ".$Acronym."_EducationGraduationEvaluation.tblTask SET IsLocked = 0;
+UPDATE ".$Acronym."_EducationGraduationGradebook.tblGrade SET Comment = '', PublicComment = '';
+UPDATE ".$Acronym."_EducationLessonDivision.tblDivisionTeacher SET Description = '';
+UPDATE ".$Acronym."_SettingConsumer.tblGenerateCertificate SET HeadmasterName = '', IsLocked = 0;
+UPDATE ".$Acronym."_SettingConsumer.tblLeaveInformation SET Value = '' WHERE Field like 'HeadmasterName' or Field = 'Remark';
+UPDATE ".$Acronym."_SettingConsumer.tblPrepareInformation SET Value = '' where Field like 'Remark';
+UPDATE ".$Acronym."_SettingConsumer.tblPrepareStudent SET IsApproved = 0, IsPrinted = 0;
+UPDATE ".$Acronym."_SettingConsumer.tblPreset SET PersonCreator = '', IsPublic = 1;
+UPDATE ".$Acronym."_SettingConsumer.tblSchool SET CompanyNumber = '';
+UPDATE ".$Acronym."_SettingConsumer.tblSetting SET Value = '' WHERE Identifier like '%Picture%';
+UPDATE ".$Acronym."_SettingConsumer.tblSetting SET Value = 0 WHERE Identifier like 'PictureDisplayLocationForDiplomaCertificate';"
                         )
                     )
                 )

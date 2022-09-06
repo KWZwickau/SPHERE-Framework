@@ -475,6 +475,7 @@ class Service
                                     $levelName,
                                     $tblSchoolType ? $tblSchoolType : null,
                                     null,
+                                    null,
                                     $remark
                                 );
 
@@ -1124,7 +1125,7 @@ class Service
                             }
 
                             if ($birthday !== '') {
-                                if (($tblPersonList = Person::useService()->getPersonAllByNameAndBirthday($firstName, $lastName, $birthday))) {
+                                if (($tblPersonList = Person::useService()->getPersonAllByName($firstName, $lastName, $birthday))) {
                                     $countPersons = count($tblPersonList);
                                 } else {
                                     $countPersons = 0;

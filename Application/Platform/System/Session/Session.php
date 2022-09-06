@@ -11,6 +11,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Off;
+use SPHERE\Common\Frontend\Icon\Repository\PhoneMobil;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -108,6 +109,7 @@ class Session extends Extension implements IModuleInterface
                     case 'System':
                         $loginTime = (60 * 60 * 4);
                         break;
+                    case 'AuthenticatorApp':
                     case 'Token':
                         $loginTime = (60 * 60);
                         break;
@@ -143,16 +145,20 @@ class Session extends Extension implements IModuleInterface
                     $UserName = new Info($UserNamePrepare = $tblAccount->getUsername());
                     $AccountType = new ToolTip('A '.new Key(), 'Admin');
                 } elseif ($tblAccount && $tblAccount->getServiceTblIdentification()
-                    && $tblAccount->getServiceTblIdentification()->getName() == 'Token') {
+                    && ($tblAccount->getServiceTblIdentification()->getName() == 'Token'
+                        || $tblAccount->getServiceTblIdentification()->getName() == 'AuthenticatorApp')
+                ) {
                     $UserNamePrepare = $tblAccount->getUsername();
                     $separatorStringPos = strpos($UserNamePrepare, '-');
                     $UserNameBuild = new Success(substr($UserNamePrepare, 0, $separatorStringPos));
                     $UserNameBuild .= substr($UserNamePrepare, $separatorStringPos);
                     $UserName = new Bold($UserNameBuild);
-                    $AccountType = new ToolTip('M '.new Key(), 'Mitarbeiter');
+                    $AccountType = new ToolTip('M '
+                        . ($tblAccount->getServiceTblIdentification()->getName() == 'Token' ? new Key() : new PhoneMobil())
+                        , 'Mitarbeiter');
                 } elseif ($tblAccount) {
                     $UserName = $tblAccount->getUsername();
-                    $AccountType = new ToolTip('S &nbsp;'.new Family(), 'Soreberechtigte / Schüler');
+                    $AccountType = new ToolTip('S &nbsp;'.new Family(), 'Sorgeberechtigte / Schüler');
                 } else {
                     $UserName = '-NA-';
                     $AccountType = '-NA-';
@@ -196,7 +202,10 @@ class Session extends Extension implements IModuleInterface
                                 'Identifier' => 'Session',
                                 'Option' => ''
                             ), array(
-                                'order' => array(array(0, 'desc')),
+                                'order' => array(
+                                    array(3, 'asc'),
+                                    array(0, 'desc')
+                                ),
                                 'columnDefs' => array(
                                     array('width' => '1%', 'orderable' => false, 'targets' => -1)
                                 )

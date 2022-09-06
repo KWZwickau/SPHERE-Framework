@@ -24,7 +24,7 @@ class E04_1
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('E04.1 Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach der Anzahl der derzeit
-                    erlernten Fremdsprachen und </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Klassenstufen')
+                    erlernten Fremdsprachen und <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Klassenstufen')
             );
 
         $sliceList[] = (new Slice())

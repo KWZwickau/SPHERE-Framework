@@ -994,6 +994,7 @@ class Service
                                     trim($Document->getValue($Document->getCell($Location['Klasse'], $RunY))),
                                     $tblOptionTypeA,
                                     $tblOptionTypeB,
+                                    null,
                                     ''
                                 );
 

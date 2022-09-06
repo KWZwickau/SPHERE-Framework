@@ -4,7 +4,6 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
-use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
@@ -46,10 +45,6 @@ class Gradebook implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__.'\Gradebook'), new Link\Name('Notenbuch'),
                 new Link\Icon(new Book()))
         );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\Student\Gradebook'), new Link\Name('Notenübersicht'),
-                new Link\Icon(new Family()))
-        );
 
         /**
          * Route
@@ -82,11 +77,6 @@ class Gradebook implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Gradebook\Teacher\Selected',
                 __NAMESPACE__.'\Frontend::frontendTeacherSelectedGradebook')
-        );
-
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Student\Gradebook',
-                __NAMESPACE__.'\Frontend::frontendStudentGradebook')
         );
 
         // studentoverview for teachers

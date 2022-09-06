@@ -21,6 +21,7 @@ namespace Doctrine\ORM\Query;
 
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * An LL(*) recursive-descent parser for the context-free grammar of the Doctrine Query Language.
@@ -1103,8 +1104,17 @@ class Parser
         // Peek beyond the matching closing parenthesis ')'
         $peek = $this->peekBeyondClosingParenthesis();
 
-        if (in_array($peek['value'], array("=", "<", "<=", "<>", ">", ">=", "!=")) ||
-            in_array($peek['type'],
+        $Operator = '';
+        if(isset($peek['value'])){
+            $Operator = $peek['value'];
+        }
+        $Type = '';
+        if(isset($peek['type'])){
+            $Type = $peek['type'];
+        }
+
+        if (in_array($Operator, array("=", "<", "<=", "<>", ">", ">=", "!=")) ||
+            in_array($Type,
                 array(Lexer::T_NOT, Lexer::T_BETWEEN, Lexer::T_LIKE, Lexer::T_IN, Lexer::T_IS, Lexer::T_EXISTS)) ||
             $this->isMathOperator($peek)
         ) {
@@ -1475,7 +1485,12 @@ class Parser
     private function isMathOperator($token)
     {
 
-        return in_array($token['type'], array(Lexer::T_PLUS, Lexer::T_MINUS, Lexer::T_DIVIDE, Lexer::T_MULTIPLY));
+        $Type = '';
+        if(isset($token['type'])){
+            $Type = $token['type'];
+        }
+
+        return in_array($Type, array(Lexer::T_PLUS, Lexer::T_MINUS, Lexer::T_DIVIDE, Lexer::T_MULTIPLY));
     }
 
     /**
@@ -2419,7 +2434,7 @@ class Parser
 
         $escapeChar = null;
 
-        if ($this->lexer->lookahead['type'] === Lexer::T_ESCAPE) {
+        if (isset($this->lexer->lookahead['type']) && $this->lexer->lookahead['type'] === Lexer::T_ESCAPE) {
             $this->match(Lexer::T_ESCAPE);
             $this->match(Lexer::T_STRING);
 

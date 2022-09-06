@@ -1,10 +1,10 @@
 <div {% if( Hash is not empty ) %}id="{{ Hash }}"{% endif %} class="panel {{ Type }}">
-    {% if( Title|length > 0) %}
+    {% if( Title is not empty) %}
         <div class="panel-heading">
             <h6 class="panel-title">{{ Title }}</h6>
         </div>
     {% endif %}
-    {% if( Content|length > 0) %}
+    {% if( Content is not empty) %}
         <div class="panel-body">
             {{ Content }}
         </div>

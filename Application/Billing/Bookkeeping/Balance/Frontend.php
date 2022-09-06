@@ -2,7 +2,10 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
+use DateTime;
 use SPHERE\Application\Api\Billing\Inventory\ApiDocument;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Document\Document;
 use SPHERE\Application\Billing\Inventory\Item\Item;
@@ -76,17 +79,17 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendBalance()
     {
 
-        $Stage = new Stage('Dashboard', 'Belegdruck');
+        $Stage = new Stage('Dashboard', 'Druck');
         return $Stage;
     }
 
     public function frontendBalanceExcel($Balance = array())
     {
 
-        $Stage = new Stage('Belegdruck', 'Serienbrief');
+        $Stage = new Stage('Bescheinigung', 'Serienbrief');
 
         if(!isset($Balance['Year'])){
-            $Now = new \DateTime();
+            $Now = new DateTime();
             $_POST['Balance']['Year'] = $Now->format('Y');
         }
         if(!isset($Balance['From'])){
@@ -97,6 +100,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if(!isset($Balance['Filter'])){
             $_POST['Balance']['Filter'] = self::FILTER_CLASS;
+        }
+        // required from Select2
+        if(!isset($Balance['BasketType'])){
+            $_POST['Balance']['BasketType'] = '-1';
         }
         // Standard Download
         $Download = (new PrimaryLink('Herunterladen', '', new Download()))->setDisabled();
@@ -176,14 +183,18 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach($tblPersonList as $tblPerson){
                     /** @var TblItem $tblItem */
                     foreach($tblItemList as $tblItem){
+                        if(isset($Balance['BasketType'])){
+                            $BasketTypeId = $Balance['BasketType'];
+                        } else {
+                            $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
+                            $BasketTypeId = $tblBasketType->getId();
+                        }
                         // Rechnungen zusammengefasst (je Beitragsart)
                         $PriceList = Balance::useService()->getPriceListByItemAndPerson($tblItem, $Balance['Year'],
-                            $Balance['From'], $Balance['To'], $tblPerson, $PriceList);
+                            $Balance['From'], $Balance['To'], $tblPerson, $BasketTypeId, $PriceList);
                     }
                 }
-                // Summe der einzelnen Beiträge erstellen
                 $PriceList = Balance::useService()->getSummaryByItemPrice($PriceList);
-                //
                 $tableContent = Balance::useService()->getTableContentByItemPriceList($PriceList);
                 if($tblDivision){
                     $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
@@ -193,6 +204,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'From'       => $Balance['From'],
                             'To'         => $Balance['To'],
                             'DivisionId' => $Balance['Division'],
+                            'BasketTypeId' => $Balance['BasketType'],
                         ));
                 } elseif($tblGroup) {
                     $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
@@ -202,6 +214,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'From'       => $Balance['From'],
                             'To'         => $Balance['To'],
                             'GroupId' => $Balance['Group'],
+                            'BasketTypeId' => $Balance['BasketType'],
                         ));
                 } elseif($tblPerson) {
                     $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
@@ -211,6 +224,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'From'       => $Balance['From'],
                             'To'         => $Balance['To'],
                             'PersonId' => $Balance['PersonId'],
+                            'BasketTypeId' => $Balance['BasketType'],
                         ));
                 }
             }
@@ -229,7 +243,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if(!empty($tableContent) && $tblItemList){
 
-            $TableHead['Debtor'] = 'Beitragszahler Test';
+            $TableHead['Debtor'] = 'Beitragszahler';
             $TableHead['Causer'] = 'Beitragsverursacher';
             foreach($tblItemList as $tblItem){
                 $TableHead['Id'.$tblItem->getId()] = $tblItem->getName();
@@ -284,9 +298,9 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendBalancePdf($Balance = array())
     {
 
-        $Stage = new Stage('Belegdruck', 'PDF');
+        $Stage = new Stage('Bescheinigung', 'PDF');
         if(!isset($Balance['Year'])){
-            $Now = new \DateTime();
+            $Now = new DateTime();
             $_POST['Balance']['Year'] = $Now->format('Y');
         }
         if(!isset($Balance['From'])){
@@ -294,6 +308,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if(!isset($Balance['To'])){
             $_POST['Balance']['To'] = '12';
+        }
+        // required from Select2
+        if(!isset($Balance['BasketType'])){
+            $_POST['Balance']['BasketType'] = '-1';
         }
 
         if(!isset($Balance['Filter'])){
@@ -338,18 +356,33 @@ class Frontend extends Extension implements IFrontendInterface
                     $PriceList = array();
                     if (isset($Balance['Search'])) {
                         if ($tblPerson) {
-                            $PriceList = Balance::useService()->getPriceListByPerson(
+                            if(isset($Balance['BasketType'])){
+                                $BasketTypeId = $Balance['BasketType'];
+                            } else {
+                                $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
+                                $BasketTypeId = $tblBasketType->getId();
+                            }
+                            $PriceList = Balance::useService()->getPriceListByItemAndPerson(
                                 $tblItem,
                                 $Balance['Year'],
                                 $Balance['From'],
                                 $Balance['To'],
-                                $tblPerson
+                                $tblPerson,
+                                $BasketTypeId
                             );
+                            $PriceList = Balance::useService()->getSummaryByItemPrice($PriceList);
                         }
                     } else {
+                        if(isset($Balance['BasketType'])){
+                            $BasketTypeId = $Balance['BasketType'];
+                        } else {
+                            $tblBasketType = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
+                            $BasketTypeId = $tblBasketType->getId();
+                        }
                         $PriceList = Balance::useService()->getPriceListByItemAndYear(
                             $tblItem,
                             $Balance['Year'],
+                            $BasketTypeId,
                             $Balance['From'],
                             $Balance['To'],
                             $tblDivision ? $tblDivision->getId() : '0',
@@ -357,7 +390,7 @@ class Frontend extends Extension implements IFrontendInterface
                         );
                     }
 
-                    $tableContent = Balance::useService()->getTableContentByPriceList($PriceList);
+                    $tableContent = Balance::useService()->getTableContentByItemPriceList($PriceList);
                     $countPdfs = count($tableContent);
                 }
             } else {
@@ -378,6 +411,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Debtor' => 'Beitragszahler',
                 'Causer' => 'Beitragsverursacher',
                 'Value'  => 'Summe',
+                'Info'  => new EyeOpen(),
             ), array(
                 'columnDefs' => array(
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0, 1)),
@@ -398,7 +432,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     $Table .= new Well($this->getPdfForm($tblItem, $tblDocumentList, $countPdfs, $Balance));
                 } else {
-                    $Table .= new Warning('Für die Beitragsart: ' . $tblItem->getName() . ' ist kein Beleg eingestellt.', new Exclamation());
+                    $Table .= new Warning('Für die Beitragsart: ' . $tblItem->getName() . ' ist keine Bescheinigung eingestellt.', new Exclamation());
                 }
             }
             $Space = '';
@@ -407,7 +441,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(new Layout(
             new LayoutGroup(array(
                 new LayoutRow(
-                    new LayoutColumn(new Well(new Title('Filterung für Belegdruck', '') . $filterBlock))
+                    new LayoutColumn(new Well(new Title('Filterung für Bescheinigung', '') . $filterBlock))
                 ),
                 new LayoutRow(
                     new LayoutColumn($Table)
@@ -444,13 +478,19 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($Filter) {
-            $YearList = Invoice::useService()->getYearList(1, 1);
+            $YearList = Invoice::useService()->getYearList(3, 1);
             $MonthList = Invoice::useService()->getMonthList();
             $tblItemAll = Item::useService()->getItemAll();
 
+            // Inhalt Selectbox
+            $BasketTypeSelect = array('-1' => 'Abrechnung - Gutschrift', '2' => 'Auszahlung', '3' => 'Gutschrift',);
+
             // ohne Mehrfachauswahl Beitragsarten
-            $ItemSelect = new FormColumn((new SelectBox('Balance[Item]', 'Beitragsart',
-                array('{{ Name }}' => $tblItemAll)))->setRequired(), 3);
+            $ItemSelect = array(new FormColumn((new SelectBox('Balance[Item]', 'Beitragsart',
+                array('{{ Name }}' => $tblItemAll)))->setRequired(), 6),
+                new FormColumn(
+                    new SelectBox('Balance[BasketType]', 'Variantenauswahl', $BasketTypeSelect)
+                    , 6));
             // mit Mehrfachauswahl Beitragsarten
             if($IsMultiItem != '0'){
                 $CheckboxItemList = array();
@@ -459,21 +499,23 @@ class Frontend extends Extension implements IFrontendInterface
                         $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']', $tblItem->getName(), $tblItem->getId());
                     }
                 }
-                $ItemSelect = new FormColumn(
+                $ItemSelect = array(new FormColumn(
                     new Panel(new Bold('Beitragsarten '.new DangerText('*')),
                         $CheckboxItemList, Panel::PANEL_TYPE_INFO)
-                , 6);
+                    , 6),
+                    new FormColumn(
+                        new SelectBox('Balance[BasketType]', 'Variantenauswahl', $BasketTypeSelect)
+                    , 6));
             }
 
-            $tblYear = false;
-            if (($tblYearList = Term::useService()->getYearByNow())) {
-                $tblYear = current($tblYearList);
-            }
+            $tblYearList = Term::useService()->getYearByNow();
             if ($Filter == self::FILTER_CLASS || $Filter == self::FILTER_GROUP) {
                 $tblDivisionList = array();
-                if ($tblYear) {
-                    if (!($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
-                        $tblDivisionList = array();
+                if ($tblYearList) {
+                    foreach($tblYearList as $tblYear){
+                        if(($tblDivisionTempList = Division::useService()->getDivisionByYear($tblYear))){
+                            $tblDivisionList = array_merge($tblDivisionList, $tblDivisionTempList);
+                        }
                     }
                 }
                 if(empty($tblDivisionList)){
@@ -482,7 +524,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if ($Filter == self::FILTER_CLASS) {
                     $selectBox = (new SelectBox('Balance[Division]', 'Klasse ' . new ToolTip(new InfoIcon(),
-                            'Klassen aus dem aktuellem Schuljahr (Datum ' . (new \DateTime())->format('d.m.Y') . ')'),
+                            'Klassen aus dem aktuellem Schuljahr (Datum ' . (new DateTime())->format('d.m.Y') . ')'),
                         array('{{ tblLevel.Name }} {{ Name }}' => $tblDivisionList), null, true,
                         null))->setRequired();
                 } else {
@@ -507,8 +549,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 new FormColumn(
                                     new Panel(
                                         'Filter für',
-                                        (new SelectBox('Balance[Filter]', '',
-                                            $filterOptions))->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem)),
+                                        (new SelectBox('Balance[Filter]', '', $filterOptions))
+                                            ->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem))
+                                            ->configureLibrary(Selectbox::LIBRARY_SELECTER),
                                         Panel::PANEL_TYPE_PRIMARY
                                     )
                                 , 3)
@@ -521,9 +564,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     null), 3),
                                 new FormColumn($selectBox, 3),
                             )),
-                            new FormRow(array(
-                                $ItemSelect,
-                            )),
+                            new FormRow(
+                                $ItemSelect
+                            ),
                             new FormRow(
                                 new FormColumn(new Primary('Filtern', new Filter()))
                             )
@@ -537,11 +580,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 new FormColumn(
                                     new Panel(
                                         'Filter für',
-                                        (new SelectBox('Balance[Filter]', '',
-                                            $filterOptions))->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem)),
+                                        (new SelectBox('Balance[Filter]', '', $filterOptions))
+                                            ->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem))
+                                            ->configureLibrary(Selectbox::LIBRARY_SELECTER),
                                         Panel::PANEL_TYPE_PRIMARY
                                     )
-                                )
+                                , 3)
                             ),
                             new FormRow(array(
                                 new FormColumn((new SelectBox('Balance[Year]', 'Jahr', $YearList))->setRequired(), 4),
@@ -550,15 +594,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 new FormColumn(new SelectBox('Balance[To]', 'Zeitraum Bis', $MonthList, null, true,
                                     null), 4),
                             )),
-                            new FormRow(array(
-                                $ItemSelect,
-                            )),
+                            new FormRow(
+                                $ItemSelect
+                            ),
                             new FormRow(array(
                                 new FormColumn(array(
                                     (new TextField(
                                         'Balance[Search]',
                                         '',
-                                        'Suche',
+                                        'Suche des Beitragsverursachers',
                                         new Search()
                                     ))->ajaxPipelineOnKeyUp(ApiDocument::pipelineSearchPerson()),
                                     ApiDocument::receiverBlock(
@@ -651,8 +695,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             $firstDocument = reset($tblDocumentList);
             $global->POST['Data']['Document'] = $firstDocument->getId();
-            $global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
-            $Date = (new \DateTime())->format('d.m.Y');
+            $global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');
+            $Date = (new DateTime())->format('d.m.Y');
 
             if (($tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll())) {
                 /** @var TblResponsibility $tblResponsibility */
@@ -679,6 +723,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $global->POST['Data']['Year'] = $Balance['Year'];
                 $global->POST['Data']['From'] = $Balance['From'];
                 $global->POST['Data']['To'] = $Balance['To'];
+                $global->POST['Data']['BasketType'] = $Balance['BasketType'];
                 if (isset($Balance['Division'])) {
                     $global->POST['Data']['Division'] = $Balance['Division'];
                 }
@@ -710,6 +755,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new HiddenField('Data[To]')
                     , 1),
                 new FormColumn(
+                    new HiddenField('Data[BasketType]')
+                    , 1),
+                new FormColumn(
                     new HiddenField('Data[Division]')
                     , 1),
                 new FormColumn(
@@ -724,7 +772,7 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
-                    new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen des Belegs')
+                    new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen der Bescheinigung')
                     , 12)
             )),
             new FormRow(array(
@@ -764,7 +812,7 @@ class Frontend extends Extension implements IFrontendInterface
             $content = array();
             for ($i = 1; $i <= $countLists; $i++) {
                 $Data['List'] = $i;
-                $content[] = new SelectBoxItem($i, $i . '. Liste aus ' . ($i == $countLists && $modulo > 0 ? $modulo : self::MAX_PDF_PAGES) . ' Belegen');
+                $content[] = new SelectBoxItem($i, $i . '. Liste aus ' . ($i == $countLists && $modulo > 0 ? $modulo : self::MAX_PDF_PAGES) . ' Bescheinigungen');
             }
 
             return new Form(
@@ -815,7 +863,11 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $global = $this->getGlobal();
         $tblDocumentList = Document::useService()->getDocumentAllByItem($tblItem);
-        if (!($tblDocument = Document::useService()->getDocumentById($Data['Document']))) {
+        $DocumentId = 0;
+        if(isset($Data['Document'])){
+            $DocumentId = $Data['Document'];
+        }
+            if (!(($tblDocument = Document::useService()->getDocumentById($DocumentId)))) {
             $tblDocument = reset($tblDocumentList);
         }
         if ($tblDocument) {
@@ -837,16 +889,17 @@ class Frontend extends Extension implements IFrontendInterface
         $global->savePost();
 
         return new Panel(
-            'Beleg',
+            'Bescheinigung',
             array(
-                (new SelectBox('Data[Document]', 'Beleg', array('{{ Name }}' => $tblDocumentList)))
+                (new SelectBox('Data[Document]', 'Bescheinigung', array('{{ Name }}' => $tblDocumentList)))
                     ->ajaxPipelineOnChange(ApiDocument::pipelineLoadDocumentContent($tblItem->getId(), $Location,
-                        $Date)),
+                        $Date))
+                    ->configureLibrary(SelectBox::LIBRARY_SELECTER),
                 new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(array(
                         new TextField('Data[Subject]',
                             'z.B. Schulgeldbescheinigung für das Kalenderjahr [Jahr]', 'Betreff'),
-                        new TextArea('Data[Content]', 'Inhalt des Belegs', 'Inhalt', null, 20)
+                        new TextArea('Data[Content]', 'Inhalt der Bescheinigung', 'Inhalt', null, 20)
                     ), 9),
                     new LayoutColumn(new Panel('Platzhalter', Document::useFrontend()->getFreeFields(),
                         Panel::PANEL_TYPE_INFO), 3)

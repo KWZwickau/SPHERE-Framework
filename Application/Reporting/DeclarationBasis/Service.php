@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Reporting\DeclarationBasis;
 
+use DateTime;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
@@ -12,6 +13,8 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Window\Stage;
@@ -24,12 +27,12 @@ use SPHERE\System\Extension\Extension;
 class Service extends Extension
 {
     /**
+     * @param DateTime $date
+     *
      * @return FilePointer|Stage
      */
-    public function createDivisionReportExcel()
+    public function createDivisionReportExcel(DateTime $date)
     {
-
-        $tblYearList = false;
         $DataContent = array();
         $DataBlind = array();
         $DataHear = array();
@@ -41,13 +44,11 @@ class Service extends Extension
         $DataFocus = array();
         $DataSickStudent = array();
 
-        $YearString = '20.../20...';
-        $YearList = Term::useService()->getYearByNow();
-        if ($YearList) {
-            $YearString = current($YearList)->getYear();
-            $tblYearList = Term::useService()->getYearsByYear(current($YearList));
-        }
-        if ($tblYearList) {
+        $isSaxony = Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN);
+
+        $YearString = '';
+        if (($tblYearList = Term::useService()->getYearAllByDate($date))) {
+            $YearString = current($tblYearList)->getYear();
             foreach ($tblYearList as $tblYear) {
                 $tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear);
                 if ($tblDivisionList) {
@@ -66,7 +67,7 @@ class Service extends Extension
                                 }
                                 foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                                     if (($tblPerson = $tblDivisionStudent->getServiceTblPerson())
-                                        && ($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+                                        && ($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson, $date))
                                         && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
                                         && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
                                     ) {
@@ -144,9 +145,6 @@ class Service extends Extension
             }
         }
 
-//        Debugger::screenDump($DataFocus);
-//        exit;
-
         $fileLocation = Storage::createFilePointer('xlsx');
         /** @var PhpExcel $export */
         $export = Document::getDocument($fileLocation->getFileLocation());
@@ -203,41 +201,43 @@ class Service extends Extension
             $export->setWorksheetFitToPage();
 
             // Header
-            $export->setValue($export->getCell(0, $Row),
-                "Meldung der Schülerzahl gem. § 14 Abs. 2 SächsFrTrSchulG i.V.m. § 8 ZuschussVO");
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
-                ->setFontSize(12)
-                ->mergeCells()
-                ->setFontBold()
-                ->setAlignmentCenter();
-            $Row++;
-            $export->setValue($export->getCell(0, $Row),
-                "zum Antrag vom ………………….. auf Gewährung von Zuschüssen für Schulen in freier Trägerschaft");
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
-                ->setFontSize(12)
-                ->mergeCells()
-                ->setFontBold()
-                ->setAlignmentCenter();
-            $Row++;
-            $export->setValue($export->getCell(0, $Row),
-                "für allgemeinbildende Schulen und allgemeinbildende Förderschulen");
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
-                ->setFontSize(12)
-                ->mergeCells()
-                ->setFontBold()
-                ->setAlignmentCenter();
-            $Row++;
-            $export->setValue($export->getCell(0, $Row),
-                " - Abgabe bei der Sächsischen Bildungsagentur spätestens:    24. Oktober - ");
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
-                ->setRowHeight(23)
-                ->mergeCells()
-                ->setFontBold()
-                ->setAlignmentCenter()
-                ->setAlignmentMiddle()
-                ->setFontColor('FFFF0000')
-                ->setFontItalic();
-            $Row++;
+            if ($isSaxony) {
+                $export->setValue($export->getCell(0, $Row),
+                    "Meldung der Schülerzahl gem. § 14 Abs. 2 SächsFrTrSchulG i.V.m. § 8 ZuschussVO");
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                    ->setFontSize(12)
+                    ->mergeCells()
+                    ->setFontBold()
+                    ->setAlignmentCenter();
+                $Row++;
+                $export->setValue($export->getCell(0, $Row),
+                    "zum Antrag vom ………………….. auf Gewährung von Zuschüssen für Schulen in freier Trägerschaft");
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                    ->setFontSize(12)
+                    ->mergeCells()
+                    ->setFontBold()
+                    ->setAlignmentCenter();
+                $Row++;
+                $export->setValue($export->getCell(0, $Row),
+                    "für allgemeinbildende Schulen und allgemeinbildende Förderschulen");
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                    ->setFontSize(12)
+                    ->mergeCells()
+                    ->setFontBold()
+                    ->setAlignmentCenter();
+                $Row++;
+                $export->setValue($export->getCell(0, $Row),
+                    " - Abgabe bei der Sächsischen Bildungsagentur spätestens:    24. Oktober - ");
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                    ->setRowHeight(23)
+                    ->mergeCells()
+                    ->setFontBold()
+                    ->setAlignmentCenter()
+                    ->setAlignmentMiddle()
+                    ->setFontColor('FFFF0000')
+                    ->setFontItalic();
+                $Row++;
+            }
             $export->setValue($export->getCell(0, $Row), "Schulträger:");
             $export->setStyle($export->getCell(0, $Row), $export->getCell(0, $Row))
                 ->setFontItalic();
@@ -256,15 +256,17 @@ class Service extends Extension
             $export->setValue($export->getCell(0, $Row), $ResponsibilityStringExtended);
             $export->setStyle($export->getCell(0, $Row), $export->getCell(4, ($Row)))
                 ->mergeCells();
-            $export->setValue($export->getCell(7, $Row), "(10. Oktober oder abweichender Stichtag  gem. § 8 Abs. 3 Satz6 ZuschussVO:
-Fällt ein Stichtag auf einen unterrichtsfreien Tag, gilt der letzte vorhergehende
-Unterrichtstag als Stichtag. Dieser ist anzugeben.)");
-            $export->setStyle($export->getCell(7, $Row), $export->getCell(15, ($Row + 2)))
-                ->mergeCells()
-                ->setFontSize(10.5)
-                ->setFontItalic()
-                ->setFontColor('FFFF0000')
-                ->setWrapText();
+            if ($isSaxony) {
+                $export->setValue($export->getCell(7, $Row), "(10. Oktober oder abweichender Stichtag  gem. § 8 Abs. 3 Satz6 ZuschussVO:
+                    Fällt ein Stichtag auf einen unterrichtsfreien Tag, gilt der letzte vorhergehende
+                    Unterrichtstag als Stichtag. Dieser ist anzugeben.)");
+                $export->setStyle($export->getCell(7, $Row), $export->getCell(15, ($Row + 2)))
+                    ->mergeCells()
+                    ->setFontSize(10.5)
+                    ->setFontItalic()
+                    ->setFontColor('FFFF0000')
+                    ->setWrapText();
+            }
             $Row++;
             $export->setValue($export->getCell(0, $Row), "Name u. Standort der Schule:");
             $export->setStyle($export->getCell(0, $Row), $export->getCell(0, $Row))
@@ -292,11 +294,13 @@ Unterrichtstag als Stichtag. Dieser ist anzugeben.)");
                 ->mergeCells()
                 ->setBorderBottom();
             $Row++;
-            $export->setValue($export->getCell(1, $Row), "(Bezeichnung entsprechend der Anlage zu § 1 ZuschussVO)");
-            $export->setStyle($export->getCell(1, $Row), $export->getCell(15, $Row))
-                ->setAlignmentCenter()
-                ->setFontItalic()
-                ->mergeCells();
+            if ($isSaxony) {
+                $export->setValue($export->getCell(1, $Row), "(Bezeichnung entsprechend der Anlage zu § 1 ZuschussVO)");
+                $export->setStyle($export->getCell(1, $Row), $export->getCell(15, $Row))
+                    ->setAlignmentCenter()
+                    ->setFontItalic()
+                    ->mergeCells();
+            }
             $Row++;
             $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
                 ->setBorderBottom(2);
@@ -662,18 +666,20 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setRowHeight(21)
                 ->setAlignmentTop();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), '§ 14 Abs. 2 Nr. 1 SächsFrTrSchulG: Ein Schüler wird beschult, wenn er am maßgeblichen Stichtag aufgrund eines Vertragsverhältnisses am Unterricht teilnimmt
+            if ($isSaxony) {
+                $export->setValue($export->getCell(0, $Row), '§ 14 Abs. 2 Nr. 1 SächsFrTrSchulG: Ein Schüler wird beschult, wenn er am maßgeblichen Stichtag aufgrund eines Vertragsverhältnisses am Unterricht teilnimmt
  oder entschuldigt nicht teilnimmt. Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler den Schulbesuch am Stichtag bereits
  endgültig beendet oder abgebrochen, gilt er nicht als beschult.');
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
-                ->setFontSize(10)
-                ->mergeCells()
-                ->setRowHeight(40)
-                ->setWrapText();
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                    ->setFontSize(10)
+                    ->mergeCells()
+                    ->setRowHeight(40)
+                    ->setWrapText();
+            }
             $Row++;
             $Row++;
             $Row++;
-            $export->setValue($export->getCell(0, $Row), (new \DateTime())->format('d.m.Y'));
+            $export->setValue($export->getCell(0, $Row), (new DateTime())->format('d.m.Y'));
             $export->setStyle($export->getCell(0, $Row))
                 ->setBorderBottom();
             $export->setStyle($export->getCell(8, $Row), $export->getCell(15, $Row))
@@ -812,11 +818,13 @@ Kostenerstattung durch andere öffentlichen Träger");
                     ->setAlignmentCenter()
                     ->setBorderBottom();
                 $Row++;
-                $export->setValue($export->getCell(3, $Row), '(Bezeichnung entsprechend der Anlage zu § 1 ZuschussVO)');
-                $export->setStyle($export->getCell(3, $Row), $export->getCell(9, $Row))
-                    ->mergeCells()
-                    ->setAlignmentCenter()
-                    ->setFontItalic();
+                if ($isSaxony) {
+                    $export->setValue($export->getCell(3, $Row), '(Bezeichnung entsprechend der Anlage zu § 1 ZuschussVO)');
+                    $export->setStyle($export->getCell(3, $Row), $export->getCell(9, $Row))
+                        ->mergeCells()
+                        ->setAlignmentCenter()
+                        ->setFontItalic();
+                }
                 $Row++;
                 $Row++;
                 $RowStart = $Row;
@@ -915,7 +923,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 $export->setWorksheetFitToPage();
                 $Row++;
                 $Row++;
-                $export->setValue($export->getCell(0, $Row), (new \DateTime())->format('d.m.Y'));
+                $export->setValue($export->getCell(0, $Row), (new DateTime())->format('d.m.Y'));
                 $export->setStyle($export->getCell(0, $Row), $export->getCell(2, $Row))
                     ->mergeCells()
                     ->setBorderBottom();
@@ -941,8 +949,6 @@ Kostenerstattung durch andere öffentlichen Träger");
                 $export->setStyle($export->getCell(9, 0))->setColumnWidth(34.5);
             }
         }
-
-//        exit;
 
         $export->selectWorksheetByIndex(0);
 

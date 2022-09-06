@@ -3,9 +3,11 @@ namespace SPHERE\Application\Setting\Consumer;
 
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Service\Data;
+use SPHERE\Application\Setting\Consumer\Service\Entity\TblAccountDownloadLock;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
 use SPHERE\Application\Setting\Consumer\Service\Setup;
@@ -92,18 +94,10 @@ class Service extends AbstractService
         $Value = str_replace(' ', '', $Value);
         $ValueList = explode(',', $Value);
         $tblSchoolTypeList = array();
-        if($ValueList){
-            foreach ($ValueList as $Number){
-                switch ($Number) {
-                    case '1':
-                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GRUND_SCHULE);
-                    break;
-                    case '2':
-                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
-                    break;
-                    case '3':
-                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM);
-                    break;
+        if($Value != '' && $ValueList){
+            foreach ($ValueList as $ShortName){
+                if(($tblType = Type::useService()->getTypeByShortName($ShortName))){
+                    $tblSchoolTypeList[$tblType->getId()] = $tblType;
                 }
             }
         }
@@ -299,5 +293,76 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSettingByConsumer($tblSetting, $tblConsumer);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param \DateTime $dateTime
+     * @param $identifier
+     * @param $isLocked
+     * @param $isLockedLastLoad
+     *
+     * @return TblAccountDownloadLock
+     */
+    public function createAccountDownloadLock(
+        TblAccount $tblAccount,
+        \DateTime $dateTime,
+        $identifier,
+        $isLocked,
+        $isLockedLastLoad
+    ) {
+        return (new Data($this->getBinding()))->createAccountDownloadLock(
+            $tblAccount,
+            $dateTime,
+            $identifier,
+            $isLocked,
+            $isLockedLastLoad
+        );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param $identifier
+     *
+     * @return false|TblAccountDownloadLock
+     */
+    public function getAccountDownloadLock(
+        TblAccount $tblAccount,
+        $identifier
+    ) {
+        return (new Data($this->getBinding()))->getAccountDownloadLock($tblAccount, $identifier);
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $Value
+     */
+    public function createAccountSetting(
+        string $Identifier,
+        string $Value
+    ) {
+        if (($tblAccount = Account::useService()->getAccountBySession())) {
+            (new Data($this->getBinding()))->createAccountSetting(
+                $tblAccount,
+                $Identifier,
+                $Value
+            );
+        }
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return string|false
+     */
+    public function getAccountSettingValue(
+        string $Identifier
+    ) {
+        if (($tblAccount = Account::useService()->getAccountBySession())
+            && ($tblAccountSetting = (new Data($this->getBinding()))->getAccountSetting($tblAccount, $Identifier))) {
+            return $tblAccountSetting->getValue();
+        } else {
+            return false;
+        }
     }
 }

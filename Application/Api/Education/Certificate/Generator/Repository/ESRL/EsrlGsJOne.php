@@ -56,7 +56,7 @@ class EsrlGsJOne extends EsrlStyle
                     self::getESRLName($personId)
                 )
                 ->addSection(
-                    self::getESRLRemark($personId, '520px')
+                    self::getESRLRemark($personId, true, '520px')
                 )
                 ->addSection(
                     self::getESRLMissing($personId)

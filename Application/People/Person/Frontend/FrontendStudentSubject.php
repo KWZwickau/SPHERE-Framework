@@ -61,10 +61,11 @@ class FrontendStudentSubject  extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public static function getStudentSubjectContent($PersonId = null)
+    public static function getStudentSubjectContent($PersonId = null, $AllowEdit = 1)
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -77,7 +78,14 @@ class FrontendStudentSubject  extends FrontendReadOnly
                     $Ranking = $tblStudentSubject->getTblStudentSubjectRanking()->getId();
                     $text = '&ndash;';
                     if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                        $text = $tblSubject->getDisplayName();
+                        // SSW-1067
+                        if ($tblSubject->getName() == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
+                            $text = $tblSubject->getAcronym() . '-' . 'Gemeinschaftskunde/ Rechtserziehung/Wirtschaft';
+                        } elseif ($tblSubject->getName() == 'Gemeinschaftskunde/Rechtserziehung') {
+                            $text = $tblSubject->getAcronym() . '-' . 'Gemeinschaftskunde/ Rechtserziehung';
+                        } else {
+                            $text = $tblSubject->getDisplayName();
+                        }
                         $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
                         $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
                         if ($fromLevel || $tillLevel) {
@@ -99,12 +107,12 @@ class FrontendStudentSubject  extends FrontendReadOnly
              * Wahlfächer
              */
             $electiveRows = array();
-            for ($i = 1; $i < 4; $i++)
+            for ($i = 1; $i < 6; $i++)
             {
                 $electiveRows[] =
                     new LayoutRow(array(
-                        self::getLayoutColumnLabel($i . '. Wahlfach', 6),
-                        self::getLayoutColumnValue(isset($subjects['ELECTIVE'][$i]) ? $subjects['ELECTIVE'][$i] : '&ndash;', 6),
+                        self::getLayoutColumnLabel($i . '. WF', 3),
+                        self::getLayoutColumnValue(isset($subjects['ELECTIVE'][$i]) ? $subjects['ELECTIVE'][$i] : '&ndash;', 9),
                     ));
             }
             $electiveContent = new Layout(new LayoutGroup($electiveRows));
@@ -113,12 +121,12 @@ class FrontendStudentSubject  extends FrontendReadOnly
              * Arbeitsgemeinschaften
              */
             $teamRows = array();
-            for ($i = 1; $i < 4; $i++)
+            for ($i = 1; $i < 6; $i++)
             {
                 $teamRows[] =
                     new LayoutRow(array(
-                        self::getLayoutColumnLabel($i . '. AG', 6),
-                        self::getLayoutColumnValue(isset($subjects['TEAM'][$i]) ? $subjects['TEAM'][$i] : '&ndash;', 6),
+                        self::getLayoutColumnLabel($i . '. AG', 3),
+                        self::getLayoutColumnValue(isset($subjects['TEAM'][$i]) ? $subjects['TEAM'][$i] : '&ndash;', 9),
                     ));
             }
             $teamContent = new Layout(new LayoutGroup($teamRows));
@@ -131,8 +139,8 @@ class FrontendStudentSubject  extends FrontendReadOnly
             {
                 $foreignLanguageContent[] = new Layout(new LayoutGroup(array(
                     new LayoutRow(array(
-                        self::getLayoutColumnLabel($i . '. FS', 4),
-                        self::getLayoutColumnValue(isset($subjects['FOREIGN_LANGUAGE'][$i]) ? $subjects['FOREIGN_LANGUAGE'][$i] : '&ndash;', 8),
+                        self::getLayoutColumnLabel($i . '. FS', 3),
+                        self::getLayoutColumnValue(isset($subjects['FOREIGN_LANGUAGE'][$i]) ? $subjects['FOREIGN_LANGUAGE'][$i] : '&ndash;', 9),
                     )),
                 )));
             }
@@ -155,7 +163,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
                             isset($subjects['PROFILE'][1]) ? $subjects['PROFILE'][1] : '&ndash;'
                         ),
                         FrontendReadOnly::getSubContent(
-                            'Neigungskurs',
+                            (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName(),
                             isset($subjects['ORIENTATION'][1]) ? $subjects['ORIENTATION'][1] : '&ndash;'
                         ),
                     ), 3),
@@ -174,14 +182,18 @@ class FrontendStudentSubject  extends FrontendReadOnly
                 )),
             )));
 
-            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentSubjectContent($PersonId));
+            $editLink = '';
+            if($AllowEdit == 1){
+                $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentSubjectContent($PersonId));
+            }
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 $content,
                 array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Education()
             );
         }
@@ -289,6 +301,8 @@ class FrontendStudentSubject  extends FrontendReadOnly
         FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
         $tblStudent = $tblPerson->getStudent();
 
+        $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
+
         return (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
@@ -303,16 +317,17 @@ class FrontendStudentSubject  extends FrontendReadOnly
                         $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1,
                             ($tblStudent ? $tblStudent : null), $Year,
                             $Division, $tblPerson),
-                        $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation, 1,
+                        $this->panelSubjectList('ORIENTATION', $tblStudentSubjectTypeOrientation->getName() . 'e',
+                            $tblStudentSubjectTypeOrientation->getName(), $tblSubjectOrientation, 1,
                             ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
                     ), 3),
                     new FormColumn(array(
-                        $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3,
+                        $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 5,
                             ($tblStudent ? $tblStudent : null), $Year,
                             $Division, $tblPerson),
                     ), 3),
                     new FormColumn(array(
-                        $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 3,
+                        $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 5,
                             ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
                     ), 3),
                 )),

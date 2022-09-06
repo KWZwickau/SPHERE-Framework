@@ -7,7 +7,9 @@ use SPHERE\Application\Document\Storage\Service\Entity\TblFile;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFileCategory;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFileType;
 use SPHERE\Application\Document\Storage\Service\Entity\TblPartition;
+use SPHERE\Application\Document\Storage\Service\Entity\TblPersonPicture;
 use SPHERE\Application\Document\Storage\Service\Entity\TblReferenceType;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -489,5 +491,64 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPersonPicture
+     */
+    public function getPersonPictureByPerson(TblPerson $tblPerson)
+    {
+
+        /** @var TblPersonPicture $Entity */
+        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblPersonPicture',
+            array(TblPersonPicture::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()));
+        return (null === $Entity ? false : $Entity);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param           $File
+     *
+     * @return void
+     */
+    public function insertPersonPicture(TblPerson $tblPerson, $File)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblPersonPicture')->findOneBy(array(
+            TblPersonPicture::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+        ));
+
+        if(null === $Entity){
+            // create
+            $Entity = new TblPersonPicture();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setPicture($File);
+
+            $Manager->saveEntity($Entity);
+            //            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            //                $Entity);
+        } else {
+            // update
+            /** @var TblPersonPicture $Entity */
+            $Entity->setPicture($File);
+            $Manager->saveEntity($Entity);
+        }
+    }
+
+    /**
+     * @param TblPersonPicture $TblPersonPicture
+     *
+     * @return void
+     */
+    public function destroyPersonPicture(TblPersonPicture $TblPersonPicture)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        //        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $TblPersonPicture);
+
+        $Manager->killEntity($TblPersonPicture);
     }
 }

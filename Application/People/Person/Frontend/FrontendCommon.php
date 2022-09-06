@@ -11,12 +11,13 @@ namespace SPHERE\Application\People\Person\Frontend;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -75,6 +76,7 @@ class FrontendCommon extends FrontendReadOnly
 
                 $nationality = $tblCommonInformation->getNationality();
                 $denomination = $tblCommonInformation->getDenomination();
+                $contactNumber = $tblCommonInformation->getContactNumber();
                 $isAssistance = $tblCommonInformation->isAssistance();
                 if ($isAssistance == TblCommonInformation::VALUE_IS_ASSISTANCE_YES) {
                     $isAssistance = 'Ja';
@@ -93,15 +95,31 @@ class FrontendCommon extends FrontendReadOnly
 
                 $nationality = '';
                 $denomination = '';
+                $contactNumber = '';
                 $isAssistance = '';
                 $assistanceActivity = '';
 
                 $remark = '';
             }
 
+            $thirdRow = array();
+            if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){// || true
+                $thirdRow = array(
+                    self::getLayoutColumnLabel('Geschlecht'),
+                    self::getLayoutColumnValue($gender),
+                    self::getLayoutColumnLabel('Kontakt Nummer'),
+                    self::getLayoutColumnValue($contactNumber));
+            } else {
+                $thirdRow = array(
+                    self::getLayoutColumnLabel('Geschlecht'),
+                    self::getLayoutColumnValue($gender),
+                    self::getLayoutColumnEmpty(8)
+                );
+            }
+
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
-                    self::getLayoutColumnLabel('Geburtstag'),
+                    self::getLayoutColumnLabel('Geburtsdatum'),
                     self::getLayoutColumnValue($birthday),
                     self::getLayoutColumnLabel('Staatsangehörigkeit'),
                     self::getLayoutColumnValue($nationality),
@@ -113,14 +131,13 @@ class FrontendCommon extends FrontendReadOnly
                     self::getLayoutColumnValue($birthplace),
                     self::getLayoutColumnLabel('Konfession'),
                     self::getLayoutColumnValue($denomination),
-                    self::getLayoutColumnLabel('Mitarbeitbereitschaft - Tätigkeiten'),
+//                    self::getLayoutColumnLabel('Mitarbeitbereitschaft - Tätigkeiten'),
+                    self::getLayoutColumnLabel('Mitarbeitb.&nbsp;-&nbsp;Tätigkeiten'),
                     self::getLayoutColumnValue($assistanceActivity),
                 )),
-                new LayoutRow(array(
-                    self::getLayoutColumnLabel('Geschlecht'),
-                    self::getLayoutColumnValue($gender),
-                    self::getLayoutColumnEmpty(8),
-                )),
+                new LayoutRow(
+                    $thirdRow
+                ),
                 new LayoutRow(array(
                     self::getLayoutColumnLabel('Bemerkungen'),
                     self::getLayoutColumnValue($remark, 10),
@@ -129,12 +146,13 @@ class FrontendCommon extends FrontendReadOnly
 
             $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditCommonContent($PersonId));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 self::getSubContent('Personendaten', $content),
                 array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Tag()
             );
         }
@@ -189,8 +207,9 @@ class FrontendCommon extends FrontendReadOnly
      */
     public function getEditCommonTitle(TblPerson $tblPerson = null, $isCreatePerson = false)
     {
+        $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
         $title = new Title(new Tag() . ' ' . self::TITLE, 'der Person '
-            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '')
+            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '').$DivisionString
             . ($isCreatePerson ? ' anlegen' : ' bearbeiten'));
         if ($isCreatePerson) {
             return $title;
@@ -230,73 +249,46 @@ class FrontendCommon extends FrontendReadOnly
     }
 
     /**
+     * @param TblPerson|null $tblPerson
+     * @param $Meta
+     *
+     * @return bool|string
+     */
+    public function checkInputCommonContent(TblPerson $tblPerson = null, $Meta = array())
+    {
+        $error = false;
+        $form = $this->getEditCommonForm($tblPerson ? $tblPerson : null);
+
+        if ($error) {
+            return $this->getEditCommonTitle($tblPerson ? $tblPerson : null)
+                . new Well($form);
+        }
+
+        return false;
+    }
+
+    /**
      * @param int $genderId
      *
      * @return FormRow
      */
     public function getCommonFormRow($genderId = 0)
     {
-        $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
-        $tblBirthplaceAll = array();
-        if ($tblCommonBirthDatesAll) {
-            array_walk($tblCommonBirthDatesAll,
-                function (TblCommonBirthDates &$tblCommonBirthDates) use (&$tblBirthplaceAll) {
 
-                    if ($tblCommonBirthDates->getBirthplace()) {
-                        if (!in_array($tblCommonBirthDates->getBirthplace(), $tblBirthplaceAll)) {
-                            array_push($tblBirthplaceAll, $tblCommonBirthDates->getBirthplace());
-                        }
-                    }
-                });
-        }
+        // get all existing City names (without deleted Person's)
+        $viewPeopleMetaCommonAll = Common::useService()->getViewPeopleMetaCommonAll();
 
-        $tblCommonInformationAll = Common::useService()->getCommonInformationAll();
-        $tblNationalityAll = array();
-        $tblDenominationAll = array();
-        if ($tblCommonInformationAll) {
-            array_walk($tblCommonInformationAll,
-                function (TblCommonInformation &$tblCommonInformation) use (&$tblNationalityAll, &$tblDenominationAll) {
-
-                    if ($tblCommonInformation->getNationality()) {
-                        if (!in_array($tblCommonInformation->getNationality(), $tblNationalityAll)) {
-                            array_push($tblNationalityAll, $tblCommonInformation->getNationality());
-                        }
-                    }
-                    if ($tblCommonInformation->getDenomination()) {
-                        if (!in_array($tblCommonInformation->getDenomination(), $tblDenominationAll)) {
-                            array_push($tblDenominationAll, $tblCommonInformation->getDenomination());
-                        }
-                    }
-                });
-            $DefaultDenomination = array(
-                'Altkatholisch',
-                'Evangelisch',
-                'Evangelisch-lutherisch',
-                'Evangelisch-reformiert',
-                'Französisch-reformiert',
-                'Freireligiöse Landesgemeinde Baden',
-                'Freireligiöse Landesgemeinde Pfalz',
-                'Israelitische Religionsgemeinschaft Baden',
-                'Römisch-katholisch',
-                'Saarland: israelitisch'
-            );
-            array_walk($DefaultDenomination, function ($Denomination) use (&$tblDenominationAll) {
-
-                if (!in_array($Denomination, $tblDenominationAll)) {
-                    array_push($tblDenominationAll, $Denomination);
-                }
-            });
-        }
+        list($tblNationalityAll, $tblDenominationAll) = Person::useService()->getCommonInformationForAutoComplete();
 
         $genderReceiver = ApiPersonReadOnly::receiverBlock($this->getGenderSelectBox($genderId), 'SelectedGender');
 
         return new FormRow(array(
             new FormColumn(array(
                 new Panel('Geburtsdaten', array(
-                    new DatePicker('Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
+                    new DatePicker('Meta[BirthDates][Birthday]', 'Geburtsdatum', 'Geburtsdatum',
                         new Calendar()),
                     new AutoCompleter('Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort',
-                        $tblBirthplaceAll,
+                        array('Birthplace' => $viewPeopleMetaCommonAll),
                         new MapMarker()),
                     $genderReceiver,
                 ), Panel::PANEL_TYPE_INFO),
@@ -346,10 +338,9 @@ class FrontendCommon extends FrontendReadOnly
         $global->POST['Meta']['BirthDates']['Gender'] = $GenderId;
         $global->savePost();
 
-        return new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array(
-            TblCommonBirthDates::VALUE_GENDER_NULL => '',
-            TblCommonBirthDates::VALUE_GENDER_MALE => 'Männlich',
-            TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
-        ), new Child());
+        $tblCommonGenderAll = Common::useService()->getCommonGenderAll(true);
+
+        return new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array('{{ Name }}' => $tblCommonGenderAll)
+            , new Child(), true, null);
     }
 }

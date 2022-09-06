@@ -1,8 +1,7 @@
 <?php
-
 namespace SPHERE\Application\Document\Standard\StudentTransfer;
 
-
+use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
@@ -39,8 +38,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -86,7 +83,7 @@ class StudentTransfer extends Extension
     public static function frontendSelectPerson()
     {
 
-        $Stage = new Stage('Schulbescheinigung', 'Schüler auswählen');
+        $Stage = new Stage('Schülerüberweisung', 'Schüler auswählen');
 
         $dataList = array();
         if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
@@ -110,16 +107,6 @@ class StudentTransfer extends Extension
             }
         }
 
-        $YearString = '(SJ ';
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $YearString .= current($tblYearList)->getYear();
-        } else {
-            $YearString .= new ToolTip(new Danger((new \DateTime())->format('Y')),
-                'Kein Schuljahr mit aktuellem Zeitraum');
-        }
-        $YearString .= ')';
-
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -131,7 +118,7 @@ class StudentTransfer extends Extension
                                 array(
                                     'Name'     => 'Name',
                                     'Address'  => 'Adresse',
-                                    'Division' => 'Klasse '.$YearString,
+                                    'Division' => 'Klasse',
                                     'Option'   => ''
                                 ),
                                 array(
@@ -165,57 +152,51 @@ class StudentTransfer extends Extension
         if ($tblPerson) {
             $Global->POST['Data']['PersonId'] = $Id;
             $Global->POST['Data']['LastFirstName'] = $tblPerson->getLastFirstName();
-            $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
+            $Global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
             if ($tblStudent) {
                 // Schuldaten der Schule des Schülers
-                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                    $tblStudentTransferType);
-                if ($tblStudentTransfer) {
-                    $tblCompanySchool = $tblStudentTransfer->getServiceTblCompany();
-                    if ($tblCompanySchool) {
-                        $Global->POST['Data']['LeaveSchool'] = $tblCompanySchool->getDisplayName();
-                        $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
-                        if ($tblAddressSchool) {
-                            $Global->POST['Data']['AddressStreet'] = $tblAddressSchool->getStreetName().' '.$tblAddressSchool->getStreetNumber();
-                            $tblCitySchool = $tblAddressSchool->getTblCity();
-                            if ($tblCitySchool) {
-                                $Global->POST['Data']['AddressCity'] = $tblCitySchool->getCode().', '.$tblCitySchool->getName();
+                if (($tblCompanySchool = Student::useService()->getCurrentSchoolByPerson($tblPerson))) {
+                    $Global->POST['Data']['LeaveSchool'] = $tblCompanySchool->getDisplayName();
+                    $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
+                    if ($tblAddressSchool) {
+                        $Global->POST['Data']['AddressStreet'] = $tblAddressSchool->getStreetName().' '.$tblAddressSchool->getStreetNumber();
+                        $tblCitySchool = $tblAddressSchool->getTblCity();
+                        if ($tblCitySchool) {
+                            $Global->POST['Data']['AddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
+                        }
+                    }
+
+                    $tblToPersonList = Phone::useService()->getPhoneAllByCompany($tblCompanySchool);
+                    $tblToPersonPhoneList = array();
+                    $tblToPersonFaxList = array();
+                    if ($tblToPersonList) {
+                        foreach ($tblToPersonList as $tblToPerson) {
+                            if ($tblType = $tblToPerson->getTblType()) {
+                                $TypeName = $tblType->getName();
+                                $TypeDescription = $tblType->getDescription();
+                                if (($TypeName == 'Privat' || $TypeName == 'Geschäftlich') && $TypeDescription == 'Festnetz') {
+                                    $tblToPersonPhoneList[] = $tblToPerson;
+                                }
+                                if ($TypeName == 'Fax') {
+                                    $tblToPersonFaxList[] = $tblToPerson;
+                                }
                             }
                         }
-
-                        $tblToPersonList = Phone::useService()->getPhoneAllByCompany($tblCompanySchool);
-                        $tblToPersonPhoneList = array();
-                        $tblToPersonFaxList = array();
-                        if ($tblToPersonList) {
-                            foreach ($tblToPersonList as $tblToPerson) {
-                                if ($tblType = $tblToPerson->getTblType()) {
-                                    $TypeName = $tblType->getName();
-                                    $TypeDescription = $tblType->getDescription();
-                                    if (($TypeName == 'Privat' || $TypeName == 'Geschäftlich') && $TypeDescription == 'Festnetz') {
-                                        $tblToPersonPhoneList[] = $tblToPerson;
-                                    }
-                                    if ($TypeName == 'Fax') {
-                                        $tblToPersonFaxList[] = $tblToPerson;
-                                    }
-                                }
+                        if (!empty($tblToPersonPhoneList)) {
+                            /** @var TblToPersonPhone $tblPersonToPhone */
+                            $tblPersonToPhone = current($tblToPersonPhoneList);
+                            $tblPhone = $tblPersonToPhone->getTblPhone();
+                            if ($tblPhone) {
+                                $Global->POST['Data']['Phone'] = $tblPhone->getNumber();
                             }
-                            if (!empty($tblToPersonPhoneList)) {
-                                /** @var TblToPersonPhone $tblPersonToPhone */
-                                $tblPersonToPhone = current($tblToPersonPhoneList);
-                                $tblPhone = $tblPersonToPhone->getTblPhone();
-                                if ($tblPhone) {
-                                    $Global->POST['Data']['Phone'] = $tblPhone->getNumber();
-                                }
-                            }
-                            if (!empty($tblToPersonFaxList)) {
-                                /** @var TblToPersonPhone $tblPersonToFax */
-                                $tblPersonToFax = current($tblToPersonFaxList);
-                                $tblPhoneFax = $tblPersonToFax->getTblPhone();
-                                if ($tblPhoneFax) {
-                                    $Global->POST['Data']['Fax'] = $tblPhoneFax->getNumber();
-                                }
+                        }
+                        if (!empty($tblToPersonFaxList)) {
+                            /** @var TblToPersonPhone $tblPersonToFax */
+                            $tblPersonToFax = current($tblToPersonFaxList);
+                            $tblPhoneFax = $tblPersonToFax->getTblPhone();
+                            if ($tblPhoneFax) {
+                                $Global->POST['Data']['Fax'] = $tblPhoneFax->getNumber();
                             }
                         }
                     }
@@ -228,12 +209,12 @@ class StudentTransfer extends Extension
                     $EntryDate = $tblStudentTransfer->getTransferDate();
                     $Global->POST['Data']['SchoolEntry'] = $EntryDate;
                     if ($EntryDate != '') {
-                        $tblYearList = Term::useService()->getYearAllByDate(new \DateTime($EntryDate));
+                        $tblYearList = Term::useService()->getYearAllByDate(new DateTime($EntryDate));
                         if ($tblYearList) {
                             foreach ($tblYearList as $tblYear) {
                                 $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
                                 if ($tblDivision && $tblDivision->getTblLevel()) {
-                                    $Global->POST['Data']['SchoolEntryDivision'] = $tblDivision->getTblLevel()->getName();
+                                    $Global->POST['Data']['SchoolEntryDivision'] = $tblDivision->getDisplayName();
                                 }
                             }
                         }
@@ -248,25 +229,40 @@ class StudentTransfer extends Extension
                     $LeaveDate = $tblStudentTransfer->getTransferDate();
                     $Global->POST['Data']['DateUntil'] = $LeaveDate;
                     if(($tblCompanyLeave = $tblStudentTransfer->getServiceTblCompany())){
-                        // Lange Schulnamen (ab 42 Buchstaben) werden auf 2 Zeilen aufgeteilt
-                        if(strlen($tblCompanyLeave->getName()) >= 42){
-                            // Versuch, nach letztem Leerzeichen zu trennen.
-                            $ShortString = substr($tblCompanyLeave->getName(), 0, 41);
-                            $CutPosition = strripos($ShortString, ' ');
-                            if($CutPosition){
-                                $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, $CutPosition);
-                                $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), $CutPosition);
-                                $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
-                            } else {
-                                // trennt Notalls fest
-                                $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, 41);
-                                $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), 41);
-                                $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
-                            }
-                        } else {
+//                        // Lange Schulnamen (ab 42 Buchstaben) werden auf 2 Zeilen aufgeteilt
+//                        if(strlen($tblCompanyLeave->getName()) >= 42){
+//                            // Versuch, nach letztem Leerzeichen zu trennen.
+//                            $ShortString = substr($tblCompanyLeave->getName(), 0, 41);
+//                            $CutPosition = strripos($ShortString, ' ');
+//                            if($CutPosition){
+//                                $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, $CutPosition);
+//                                $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), $CutPosition);
+//                                $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
+//                            } else {
+//                                // trennt Notalls fest
+//                                $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, 41);
+//                                $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), 41);
+//                                $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
+//                            }
+//                        } else {
+
                             $Global->POST['Data']['NewSchool1'] = $tblCompanyLeave->getName();
                             $Global->POST['Data']['NewSchool2'] = $tblCompanyLeave->getExtendedName();
-                        }
+                            if($tblCompanyLeave->getExtendedName()){
+                                $LineCount = 3;
+                            } else {
+                                $LineCount = 2;
+                            }
+                                if(($tblAddressCompany = Address::useService()->getAddressByCompany($tblCompanyLeave))){
+                                    $Global->POST['Data']['NewSchool'.$LineCount++] = $tblAddressCompany->getStreetName().' '.$tblAddressCompany->getStreetNumber();
+                                    if(($tblCityCompany = $tblAddressCompany->getTblCity())){
+                                        $Global->POST['Data']['NewSchool'.$LineCount] = $tblCityCompany->getCode().' '.$tblCityCompany->getDisplayName();
+                                    }
+                                }
+
+
+
+//                        }
                     }
                 }
             }
@@ -312,11 +308,17 @@ class StudentTransfer extends Extension
                     $tblDivision = $tblDivisionStudent->getTblDivision();
                     if ($tblDivision) {
                         $tblLevel = $tblDivision->getTblLevel();
-                        if (!array_key_exists($tblLevel->getName(), $DivisionArray)) {
-                            $DivisionArray[$tblLevel->getName()] = $tblDivision->getDisplayName();
-                        } elseif ($tblLevel->getName() != '') {
-                            $DivisionRepeatArray[] = $tblDivision->getTblLevel()->getName();
+                        $tblType = $tblDivision->getType();
+                        if (!array_key_exists($tblLevel->getName().$tblType->getId(), $DivisionArray)) {
+                            $DivisionArray[$tblLevel->getName().$tblType->getId()] = $tblDivision->getDisplayName();
+                        } else {
+                            $DivisionRepeatArray[] = $tblDivision->getDisplayName();
                         }
+//                        } elseif (array_key_exists($tblType->getId(), $DivisionArray)) {
+//                            $DivisionRepeatArray[] = $tblDivision->getDisplayName();
+//                        } elseif ($tblLevel->getName() != '') {
+//                            $DivisionRepeatArray[] = $tblDivision->getDisplayName();
+//                        }
                     }
                 }
             }
@@ -448,6 +450,11 @@ class StudentTransfer extends Extension
                                                 new LayoutRow(
                                                     new LayoutColumn(
                                                         new TextField('Data[NewSchool3]', '', '')
+                                                        , 6)
+                                                ),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new TextField('Data[NewSchool4]', '', '')
                                                         , 6)
                                                 ),
                                             ))

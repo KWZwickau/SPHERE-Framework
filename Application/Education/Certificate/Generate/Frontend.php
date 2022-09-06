@@ -19,6 +19,7 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -47,6 +48,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -105,7 +107,18 @@ class Frontend extends Extension
                 if (($tblGenerateCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                     && $tblGenerateCertificateType->getIdentifier() == 'DIPLOMA'
                 ) {
-                    $hasDiplomaCertificate = true;
+                    // Prüfungsausschuss nur bei Gy und OS, nicht bei Bfs oder Fs
+                    if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                        foreach ($tblPrepareList as $tblPrepare) {
+                            if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                && ($tblType = $tblDivision->getType())
+                                && ($tblType->getName() == 'Gymnasium' || $tblType->getName() == 'Mittelschule / Oberschule')
+                            ) {
+                                $hasDiplomaCertificate = true;
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 $tableData[] = array(
@@ -237,7 +250,7 @@ class Frontend extends Extension
                 $Global->POST['Data']['Year'] = $tblYear ? $tblYear->getId() : 0;
 
                 // Halbjahr oder Jahreszeugnis vorauswählen an Hand des aktuellen Datums
-                if (($tblPeriodList = $tblYear->getTblPeriodAll(false))
+                if (($tblPeriodList = $tblYear->getTblPeriodAll(null))
                     && count($tblPeriodList) == 2
                 ) {
                     $tblCurrentPeriod = false;
@@ -306,6 +319,9 @@ class Frontend extends Extension
                             )->setRequired(),
                             (new TextField('Data[Name]', '', 'Name des Zeugnisauftrags'))->setRequired(),
                             (new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()))->setRequired(),
+                            (new DatePicker('Data[AppointedDateForAbsence]', '', new ToolTip('Optionaler Stichtag für Fehlzeiten',
+                                'Für die Fehlzeiten kann ein optionaler Stichtag gesetzt werden, ansonsten wird
+                                das Zeugnisdatum als Stichtag verwendet.'), new Calendar())),
                             (new SelectBox('Data[Type]', 'Typ', array('Name' => $certificateTypeList)))->setRequired()
                         ),
                         Panel::PANEL_TYPE_INFO
@@ -428,6 +444,17 @@ class Frontend extends Extension
                                     } elseif ($type->getName() == 'Mittelschule / Oberschule'
                                         && (($tblLevel = $tblDivision->getTblLevel()))
                                         && ($tblLevel->getName() == '9' || $tblLevel->getName() == '10')
+                                    ) {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    } elseif ($type->getName() == 'Berufsfachschule') {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    } elseif ($type->getName() == 'Fachschule') {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    } elseif ($type->getName() == 'Berufsgrundbildungsjahr') {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    } elseif ($type->getName() == 'Fachoberschule'
+                                        && (($tblLevel = $tblDivision->getTblLevel()))
+                                        && $tblLevel->getName() == '12'
                                     ) {
                                         $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
                                     }
@@ -773,22 +800,31 @@ class Frontend extends Extension
             $checkSubjectList = Prepare::useService()->checkCertificateSubjectsForStudents($tblPrepare);
             if (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
                 $count = 0;
-                $Global = $this->getGlobal();
                 foreach ($tblStudentList as $tblPerson) {
                     $isMuted = $isCourseMainDiploma && $isDiploma;
 
-                    $tblCourse = false;
-                    $tblCompany = false;
-                    if (($tblStudent = $tblPerson->getStudent())
-                        && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                    ) {
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                            $tblTransferType);
-                        if ($tblStudentTransfer) {
-                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                            $tblCompany = $tblStudentTransfer->getServiceTblCompany();
-                            if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
-                                $isMuted = false;
+                    if (($tblType = $tblDivision->getType())) {
+                        $isTechnicalSchool = $tblType->isTechnical();
+                    } else {
+                        $isTechnicalSchool = false;
+                    }
+
+                    $courseName = '';
+                    $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision);
+                    if ($isTechnicalSchool) {
+                        $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                    } else {
+                        if (($tblStudent = $tblPerson->getStudent())
+                            && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                        ) {
+                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                $tblTransferType);
+                            if ($tblStudentTransfer) {
+                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
+                                    $isMuted = false;
+                                }
+                                $courseName = $tblCourse ? $tblCourse->getName() : '';
                             }
                         }
                     }
@@ -805,8 +841,6 @@ class Frontend extends Extension
                         $checkSubjectsString = '';
                     }
 
-                    $courseName = $tblCourse ? $tblCourse->getName() : '';
-
                     // Primärer Förderschwerpunkt -> zur Hilfe für Auswahl des Zeugnisses
                     $primaryFocus = '';
                     if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
@@ -821,7 +855,7 @@ class Frontend extends Extension
                         'Student' => $isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName(),
                         'Course' => $isMuted ? new Muted($courseName) : $courseName,
                         'School' => $isMuted ? '' : ($tblCompany ? $tblCompany->getName() : new Warning(
-                            new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt'
+                            new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt oder bei der Klasse hinterlegt.'
                         )),
                         'PrimaryFocus' => $isMuted ? new Muted($primaryFocus) : $primaryFocus,
                         'CheckSubjects' => $checkSubjectsString,
@@ -841,30 +875,13 @@ class Frontend extends Extension
                                 $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation');
                             }
                         }
-                        if ($Global && $tblCertificate) {
-                            $Global->POST['Data'][$tblPerson->getId()] = $tblCertificate->getId();
-                            $Global->savePost();
-                        }
 
-                        // Alle Zeungisse nach Zeugnistyp zur Auswahl
-                        $tblCertificateType = false;
-                        if ($tblPrepare->getServiceTblGenerateCertificate()) {
-                            $tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType();
-                        }
-
-                        if ($tblCertificateType) {
-                            $tblCertificateAllByType = Generator::useService()->getCertificateAllByType($tblCertificateType);
-                            if (!$tblCertificateAllByType) {
-                                $tblCertificateAllByType = array();
-                            }
-                        } else {
-                            $tblCertificateAllByType = array();
-                        }
-                        $tableData[$tblPerson->getId()]['Template'] = new SelectBox('Data[' . $tblPerson->getId() . ']',
-                            '',
-                            array(
-                                '{{ serviceTblConsumer.Acronym }} {{ Name }} {{Description}}' => $tblCertificateAllByType
-                            )
+                        $tableData[$tblPerson->getId()]['Template'] = ApiGenerate::receiverContent(
+                            $this->getCertificateSelectBox(
+                                $tblPerson->getId(),
+                                $tblCertificate ? $tblCertificate->getId() : 0,
+                                $tblCertificateType ? $tblCertificateType->getId() : 0
+                            ), 'ChangeCertificate_' . $tblPerson->getId()
                         );
                     }
                 }
@@ -881,9 +898,27 @@ class Frontend extends Extension
                                 'Course' => 'Bildungsgang',
                                 'School' => 'Aktuelle Schule',
                                 'PrimaryFocus' => 'primärer FS',
-                                'Template' => 'Zeugnisvorlage',
+                                'Template' => 'Zeugnisvorlage'
+                                    . ApiGenerate::receiverModal()
+                                    . new PullRight(
+                                        (new Standard('Alle bearbeiten', ApiGenerate::getEndpoint()))
+                                            ->ajaxPipelineOnClick(ApiGenerate::pipelineOpenCertificateModal($tblPrepare->getId()))
+                                    ),
                                 'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
-                            ), null
+                                ),
+                                array(
+                                    'columnDefs' => array(
+                                        array("orderable" => false, "targets" => array(1,2,3,4,5,6)),
+                                    ),
+                                    'order' => array(
+                                        array(0, 'asc'),
+                                    ),
+                                    'pageLength' => -1,
+                                    'paging' => false,
+                                    'info' => false,
+                                    'searching' => false,
+                                    'responsive' => false
+                                )
                             )
                         )
                     )
@@ -928,6 +963,43 @@ class Frontend extends Extension
     }
 
     /**
+     * @param $personId
+     * @param $certificateId
+     * @param $certificateTypeId
+     *
+     * @return SelectBox
+     */
+    public function getCertificateSelectBox($personId, $certificateId, $certificateTypeId)
+    {
+        $global = $this->getGlobal();
+        $global->POST['Data'][$personId] = $certificateId;
+        $global->savePost();
+
+        $tblCertificateAllByType = array();
+        if (($tblCertificateType = Generator::useService()->getCertificateTypeById($certificateTypeId))) {
+            $tblConsumer = Consumer::useService()->getConsumerBySession(null);
+            $tblCertificateAllStandard = Generator::useService()->getCertificateAllByConsumerAndCertificateType(null, $tblCertificateType);
+            $tblCertificateAllConsumer = Generator::useService()->getCertificateAllByConsumerAndCertificateType($tblConsumer, $tblCertificateType);
+            if ($tblCertificateAllConsumer) {
+                $tblCertificateAllByType = array_merge($tblCertificateAllByType, $tblCertificateAllConsumer);
+            }
+            if ($tblCertificateAllStandard) {
+                $tblCertificateAllByType = array_merge($tblCertificateAllByType, $tblCertificateAllStandard);
+            }
+        }
+
+        return new SelectBox('Data[' . $personId . ']',
+            '',
+            array(
+                '{{ serviceTblConsumer.Acronym }} {{ Name }} {{Description}}' => $tblCertificateAllByType
+            ),
+            null,
+            true,
+            null
+        );
+    }
+
+    /**
      * @param null $Id
      * @param null $Data
      *
@@ -949,6 +1021,7 @@ class Frontend extends Extension
             if (!$Global->POST) {
 
                 $Global->POST['Data']['Date'] = $tblGenerateCertificate->getDate();
+                $Global->POST['Data']['AppointedDateForAbsence'] = $tblGenerateCertificate->getAppointedDateForAbsence();
                 $Global->POST['Data']['Name'] = $tblGenerateCertificate->getName();
                 $Global->POST['Data']['IsTeacherAvailable'] = $tblGenerateCertificate->isDivisionTeacherAvailable();
                 $Global->POST['Data']['HeadmasterName'] = $tblGenerateCertificate->getHeadmasterName();
@@ -1056,6 +1129,9 @@ class Frontend extends Extension
                         array(
                             (new TextField('Data[Name]', '', 'Name des Zeugnisauftrags'))->setRequired(),
                             (new DatePicker('Data[Date]', '', 'Zeugnisdatum', new Calendar()))->setRequired(),
+                            (new DatePicker('Data[AppointedDateForAbsence]', '', new ToolTip('Optionaler Stichtag für Fehlzeiten',
+                                'Für die Fehlzeiten kann ein optionaler Stichtag gesetzt werden, ansonsten wird
+                                das Zeugnisdatum als Stichtag verwendet.'), new Calendar()))
                         ),
                         Panel::PANEL_TYPE_INFO
                     ), 4
@@ -1117,7 +1193,7 @@ class Frontend extends Extension
 
             if (!$Confirm) {
                 $divisionList = array();
-                $divisionList[0] = 'Zeungisdatum: ' . $tblGenerateCertificate->getDate();
+                $divisionList[0] = 'Zeugnisdatum: ' . $tblGenerateCertificate->getDate();
                 $divisionList[1] = 'Typ: ' . (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                         ? $tblCertificateType->getName() : '');
                 $divisionList[2] = 'Name: ' . $tblGenerateCertificate->getName();

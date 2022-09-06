@@ -241,4 +241,16 @@ abstract class Element extends Extension
             return (float)str_replace(',', '.', str_replace('.', '', $Value ));
         }
     }
+
+    /**
+     * @param $Value
+     * @return mixed|null
+     */
+    protected function changeFalseToNull($Value)
+    {
+        if(false === $Value){
+            $Value = null;
+        }
+        return $Value;
+    }
 }

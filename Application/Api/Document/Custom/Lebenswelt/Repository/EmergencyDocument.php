@@ -28,11 +28,12 @@ class EmergencyDocument extends AbstractDocument
     }
 
     /**
-     * @param array $pageList
+     * @param array  $pageList
+     * @param string $part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument($pageList = array(), $part = '0')
     {
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())

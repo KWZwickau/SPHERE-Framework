@@ -10,6 +10,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount;
 
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -51,6 +52,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -71,6 +73,10 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendMinimumGradeCount($MinimumGradeCount = null)
     {
+
+        if(!isset($_POST['MinimumGradeCount']['Period'])){
+            $_POST['MinimumGradeCount']['Period'] = SelectBoxItem::PERIOD_FULL_YEAR;
+        }
 
         $Stage = new Stage('Mindestnotenanzahl', 'Übersicht');
         $Stage->setMessage(
@@ -118,6 +124,13 @@ class Frontend extends Extension implements IFrontendInterface
                             . 'C' . $tblMinimumGradeCount->getCourse()
                             . 'N' . $tblMinimumGradeCount->getCount()]
                             ['Subjects'][$tblSubject->getId()] = $tblSubject->getAcronym();
+
+                            $list['H' . $tblMinimumGradeCount->getHighlighted()
+                            . 'G' . ($tblGradeType ? $tblGradeType->getId() : 0)
+                            . 'P' . $tblMinimumGradeCount->getPeriod()
+                            . 'C' . $tblMinimumGradeCount->getCourse()
+                            . 'N' . $tblMinimumGradeCount->getCount()]
+                            ['SubjectsLevelVerify'][$tblSubject->getId()][$tblLevel->getId()] = $levelName;
                         }
 
                     } else {
@@ -133,7 +146,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'Course' => $tblMinimumGradeCount->getCourseDisplayName(),
                             'Count' => $tblMinimumGradeCount->getCount(),
                             'Levels' => array($tblLevel->getId() => $levelName),
-                            'Subjects' => $subjects
+                            'Subjects' => $subjects,
+                            'SubjectsLevelVerify' => array($tblSubject ? $tblSubject->getId() : 0 => array($tblLevel->getId() => $levelName))
                         );
                     }
                 }
@@ -141,8 +155,28 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         foreach ($list as $item) {
-            sort($item['Levels']);
-            sort($item['Subjects']);
+            sort($item['Levels'], SORT_NATURAL);
+            asort($item['Subjects']);
+
+            // Fächer Suchen welche nicht in weniger Klassenstufen verwendet werden
+            if (isset($item['SubjectsLevelVerify'])) {
+                $maxCount = 0;
+                foreach ($item['SubjectsLevelVerify'] as $subjectId => $levels) {
+                    if (($count = count($levels)) > $maxCount) {
+                        $maxCount = $count;
+                    }
+                }
+
+                foreach ($item['SubjectsLevelVerify'] as $subjectTempId => $levelsTemp) {
+                    if (count($levelsTemp) < $maxCount
+                        && isset($item['Subjects'][$subjectTempId])
+                    ) {
+                        sort($levelsTemp, SORT_NATURAL);
+                        $item['Subjects'][$subjectTempId] = new ToolTip('(' . $item['Subjects'][$subjectTempId] . ')', implode(', ', $levelsTemp));
+                    }
+                }
+            }
+
             $TableContent[] = array(
                 'GradeType' => $item['GradeType'],
                 'Period' => $item['Period'],
@@ -220,7 +254,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_ALL, 'Alle Zensuren-Typen');
-        $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED, 'Nur große Zensuren-Typen (Fett marktiert)');
+        $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED, 'Nur große Zensuren-Typen (Fett markiert)');
         $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_IS_NOT_HIGHLIGHTED, 'Nur kleine Zensuren-Typen (nicht Fett markiert)');
 
         $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FULL_YEAR, '-Gesamtes Schuljahr-');
@@ -242,24 +276,26 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $levelColumns = array();
-        if (isset($schoolTypeList[6])) {
-            ksort($schoolTypeList[6]);
-            $levelColumns[] = new LayoutColumn(
-                new Panel('Grundschule', $schoolTypeList[6]), 3
-            );
+        foreach ($schoolTypeList as $typeId => $levels) {
+            if (($tblTypeItem = Type::useService()->getTypeById($typeId))) {
+                ksort($levels);
+                // für Sortierung
+                if ($tblTypeItem->getName() == 'Grundschule') {
+                    $key = 1;
+                } elseif ($tblTypeItem->getName() == 'Mittelschule / Oberschule') {
+                    $key = 2;
+                } elseif ($tblTypeItem->getName() == 'Gymnasium') {
+                    $key = 3;
+                } else {
+                    $key = 10  + $typeId;
+                }
+
+                $levelColumns[$key] = new LayoutColumn(
+                    new Panel($tblTypeItem->getName(), $levels), 3
+                );
+            }
         }
-        if (isset($schoolTypeList[8])) {
-            ksort($schoolTypeList[8]);
-            $levelColumns[] = new LayoutColumn(
-                new Panel('Mittelschule / Oberschule', $schoolTypeList[8]), 3
-            );
-        }
-        if (isset($schoolTypeList[7])) {
-            ksort($schoolTypeList[7]);
-            $levelColumns[] = new LayoutColumn(
-                new Panel('Gymnasium', $schoolTypeList[7]), 3
-            );
-        }
+        ksort($levelColumns);
 
         if (($tblSubjectAll = Subject::useService()->getSubjectAll())) {
             $tblSubjectAll = $this->getSorter($tblSubjectAll)->sortObjectBy('Name');
@@ -532,6 +568,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblYear = reset($tblYearList);
             $global->POST['Data']['Year'] = $tblYear->getId();
+            $global->POST['Data']['Period'] = SelectBoxItem::PERIOD_FULL_YEAR;
 
             $global->savePost();
         }
@@ -548,6 +585,12 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
 
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FULL_YEAR, '-Gesamtes Schuljahr-');
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FIRST_PERIOD, '1. Halbjahr');
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_SECOND_PERIOD, '2. Halbjahr');
+
+        $periodSelectBox = new SelectBox('Data[Period]', 'Zeitraum', array('Name' => $periodList));
+
         $button = (new \SPHERE\Common\Frontend\Link\Repository\Primary('Filtern', '', new Filter()))
             ->ajaxPipelineOnClick(ApiMinimumGradeCount::pipelineCreateMinimumGradeCountReportingContent($receiverContent, $Data, $IsDivisionTeacher, $PersonId));
 
@@ -558,13 +601,16 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout (new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                $yearSelectBox, 4
+                                $yearSelectBox, 3
                             ),
                             new LayoutColumn(
-                                $typeSelectBox, 4
+                                $typeSelectBox, 3
                             ),
                             new LayoutColumn(
-                                $divisionTextField, 4
+                                $divisionTextField, 3
+                            ),
+                            new LayoutColumn(
+                                $periodSelectBox, 3
                             ),
                         )),
                         new LayoutRow(array(

@@ -24,7 +24,7 @@ class E03
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('E03. <u>Schüler, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist,</u> im
-                    Schuljahr {{ Content.SchoolYear.Current }} </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                    Schuljahr {{ Content.SchoolYear.Current }} <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
                     nach dem Land der Staatsangehörigkeit und Klassen- bzw. Jahrgangsstufen')
             );
 
@@ -179,7 +179,7 @@ class E03
                 )
             );
 
-        for ($i = 0; $i < 7; $i++) {
+        for ($i = 0; $i < 12; $i++) {
             $section = new Section();
             $section
                 ->addElementColumn((new Element())

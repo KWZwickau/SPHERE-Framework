@@ -396,6 +396,19 @@ class TblTest extends Element
     /**
      * @return string
      */
+    public function getGradeTypeCode(): string
+    {
+
+        if ($this->getServiceTblGradeType()){
+            return $this->getServiceTblGradeType()->getCode();
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * @return string
+     */
     public function getFinishDate()
     {
 

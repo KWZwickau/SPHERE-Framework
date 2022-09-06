@@ -752,13 +752,15 @@ final class DocParser
 
         $className = $this->lexer->token['value'];
 
-        while ($this->lexer->lookahead['position'] === ( $this->lexer->token['position'] + strlen($this->lexer->token['value']) )
-            && $this->lexer->isNextToken(DocLexer::T_NAMESPACE_SEPARATOR)) {
+        if(isset($this->lexer->lookahead['position'])){
+            while ($this->lexer->lookahead['position'] === ( $this->lexer->token['position'] + strlen($this->lexer->token['value']) )
+                && $this->lexer->isNextToken(DocLexer::T_NAMESPACE_SEPARATOR)) {
 
-            $this->match(DocLexer::T_NAMESPACE_SEPARATOR);
-            $this->matchAny(self::$classIdentifiers);
+                $this->match(DocLexer::T_NAMESPACE_SEPARATOR);
+                $this->matchAny(self::$classIdentifiers);
 
-            $className .= '\\'.$this->lexer->token['value'];
+                $className .= '\\'.$this->lexer->token['value'];
+            }
         }
 
         return $className;

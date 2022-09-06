@@ -16,6 +16,11 @@ class TblCommonGender extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const VALUE_NULL = 0;
+    const VALUE_MALE = 1;
+    const VALUE_FEMALE = 2;
+    const VALUE_DIVERS = 3;
+    const VALUE_OTHER = 4;
 
     /**
      * @Column(type="string")
@@ -38,5 +43,14 @@ class TblCommonGender extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * m, w, d, o
+     * @return false|string
+     */
+    public function getShortName()
+    {
+        return substr(strtolower($this->Name), 0, 1);
     }
 }

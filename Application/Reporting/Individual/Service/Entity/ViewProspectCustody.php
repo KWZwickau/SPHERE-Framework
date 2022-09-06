@@ -35,16 +35,27 @@ class ViewProspectCustody extends AbstractView
     const TBL_ADDRESS_STREET_NAME_S1 = 'TblAddress_StreetName_S1';
     const TBL_ADDRESS_STREET_NUMBER_S1 = 'TblAddress_StreetNumber_S1';
     const TBL_CITY_CODE_S1 = 'TblCity_Code_S1';
-    const TBL_CITY_CITY_S1 = 'TblCity_City_S1';
+    const TBL_CITY_NAME_S1 = 'TblCity_Name_S1';
     const TBL_CITY_DISTRICT_S1 = 'TblCity_District_S1';
     const TBL_ADDRESS_COUNTY_S1 = 'TblAddress_County_S1';
     const TBL_ADDRESS_STATE_S1 = 'TblState_Name_S1';
     const TBL_ADDRESS_NATION_S1 = 'TblAddress_Nation_S1';
     const TBL_PHONE_NUMBER_S1 = 'TblPhone_Number_S1';
+    const TBL_PHONE_NUMBER_PF_S1 = 'TblPhone_Number_PF_S1';
+    const TBL_PHONE_NUMBER_PM_S1 = 'TblPhone_Number_PM_S1';
+    const TBL_PHONE_NUMBER_GF_S1 = 'TblPhone_Number_GF_S1';
+    const TBL_PHONE_NUMBER_GM_S1 = 'TblPhone_Number_GM_S1';
+    const TBL_PHONE_NUMBER_NF_S1 = 'TblPhone_Number_NF_S1';
+    const TBL_PHONE_NUMBER_NM_S1 = 'TblPhone_Number_NM_S1';
+    const TBL_PHONE_NUMBER_FP_S1 = 'TblPhone_Number_FP_S1';
+    const TBL_PHONE_NUMBER_FG_S1 = 'TblPhone_Number_FG_S1';
     const TBL_MAIL_ADDRESS_S1 = 'TblMail_Address_S1';
     const TBL_MAIL_ADDRESS_PRIVATE_S1 = 'TblMail_AddressPrivate_S1';
     const TBL_MAIL_ADDRESS_COMPANY_S1 = 'TblMail_AddressCompany_S1';
-    const TBL_To_Person_Is_Single_Parent_S1 = 'TblToPerson_IsSingleParent_S1';
+    const TBL_TO_PERSON_IS_SINGLE_PARENT_S1 = 'TblToPerson_IsSingleParent_S1';
+    const TBL_CUSTODY_OCCUPATION_S1 = 'TblCustody_Occupation_S1';
+    const TBL_CUSTODY_EMPLOYMENT_S1 = 'TblCustody_Employment_S1';
+    const TBL_CUSTODY_REMARK_S1 = 'TblCustody_Remark_S1';
 
     // S2
     const TBL_SALUTATION_SALUTATION_S2 = 'TblSalutation_Salutation_S2';
@@ -58,16 +69,27 @@ class ViewProspectCustody extends AbstractView
     const TBL_ADDRESS_STREET_NAME_S2 = 'TblAddress_StreetName_S2';
     const TBL_ADDRESS_STREET_NUMBER_S2 = 'TblAddress_StreetNumber_S2';
     const TBL_CITY_CODE_S2 = 'TblCity_Code_S2';
-    const TBL_CITY_CITY_S2 = 'TblCity_City_S2';
+    const TBL_CITY_NAME_S2 = 'TblCity_Name_S2';
     const TBL_CITY_DISTRICT_S2 = 'TblCity_District_S2';
     const TBL_ADDRESS_COUNTY_S2 = 'TblAddress_County_S2';
     const TBL_ADDRESS_STATE_S2 = 'TblState_Name_S2';
     const TBL_ADDRESS_NATION_S2 = 'TblAddress_Nation_S2';
     const TBL_PHONE_NUMBER_S2 = 'TblPhone_Number_S2';
+    const TBL_PHONE_NUMBER_PF_S2 = 'TblPhone_Number_PF_S2';
+    const TBL_PHONE_NUMBER_PM_S2 = 'TblPhone_Number_PM_S2';
+    const TBL_PHONE_NUMBER_GF_S2 = 'TblPhone_Number_GF_S2';
+    const TBL_PHONE_NUMBER_GM_S2 = 'TblPhone_Number_GM_S2';
+    const TBL_PHONE_NUMBER_NF_S2 = 'TblPhone_Number_NF_S2';
+    const TBL_PHONE_NUMBER_NM_S2 = 'TblPhone_Number_NM_S2';
+    const TBL_PHONE_NUMBER_FP_S2 = 'TblPhone_Number_FP_S2';
+    const TBL_PHONE_NUMBER_FG_S2 = 'TblPhone_Number_FG_S2';
     const TBL_MAIL_ADDRESS_S2 = 'TblMail_Address_S2';
     const TBL_MAIL_ADDRESS_PRIVATE_S2 = 'TblMail_AddressPrivate_S2';
     const TBL_MAIL_ADDRESS_COMPANY_S2 = 'TblMail_AddressCompany_S2';
-    const TBL_To_Person_Is_Single_Parent_S2 = 'TblToPerson_IsSingleParent_S2';
+    const TTBL_TO_PERSON_IS_SINGLE_PARENT_S2 = 'TblToPerson_IsSingleParent_S2';
+    const TBL_CUSTODY_OCCUPATION_S2 = 'TblCustody_Occupation_S2';
+    const TBL_CUSTODY_EMPLOYMENT_S2 = 'TblCustody_Employment_S2';
+    const TBL_CUSTODY_REMARK_S2 = 'TblCustody_Remark_S2';
 
     // S3
     const TBL_SALUTATION_SALUTATION_S3 = 'TblSalutation_Salutation_S3';
@@ -81,16 +103,27 @@ class ViewProspectCustody extends AbstractView
     const TBL_ADDRESS_STREET_NAME_S3 = 'TblAddress_StreetName_S3';
     const TBL_ADDRESS_STREET_NUMBER_S3 = 'TblAddress_StreetNumber_S3';
     const TBL_CITY_CODE_S3 = 'TblCity_Code_S3';
-    const TBL_CITY_CITY_S3 = 'TblCity_City_S3';
+    const TBL_CITY_NAME_S3 = 'TblCity_Name_S3';
     const TBL_CITY_DISTRICT_S3 = 'TblCity_District_S3';
     const TBL_ADDRESS_COUNTY_S3 = 'TblAddress_County_S3';
     const TBL_ADDRESS_STATE_S3 = 'TblState_Name_S3';
     const TBL_ADDRESS_NATION_S3 = 'TblAddress_Nation_S3';
     const TBL_PHONE_NUMBER_S3 = 'TblPhone_Number_S3';
+    const TBL_PHONE_NUMBER_PF_S3 = 'TblPhone_Number_PF_S3';
+    const TBL_PHONE_NUMBER_PM_S3 = 'TblPhone_Number_PM_S3';
+    const TBL_PHONE_NUMBER_GF_S3 = 'TblPhone_Number_GF_S3';
+    const TBL_PHONE_NUMBER_GM_S3 = 'TblPhone_Number_GM_S3';
+    const TBL_PHONE_NUMBER_NF_S3 = 'TblPhone_Number_NF_S3';
+    const TBL_PHONE_NUMBER_NM_S3 = 'TblPhone_Number_NM_S3';
+    const TBL_PHONE_NUMBER_FP_S3 = 'TblPhone_Number_FP_S3';
+    const TBL_PHONE_NUMBER_FG_S3 = 'TblPhone_Number_FG_S3';
     const TBL_MAIL_ADDRESS_S3 = 'TblMail_Address_S3';
     const TBL_MAIL_ADDRESS_PRIVATE_S3 = 'TblMail_AddressPrivate_S3';
     const TBL_MAIL_ADDRESS_COMPANY_S3 = 'TblMail_AddressCompany_S3';
-    const TBL_To_Person_Is_Single_Parent_S3 = 'TblToPerson_IsSingleParent_S3';
+    const TBL_TO_PERSON_IS_SINGLE_PARENT_S3 = 'TblToPerson_IsSingleParent_S3';
+    const TBL_CUSTODY_OCCUPATION_S3 = 'TblCustody_Occupation_S3';
+    const TBL_CUSTODY_EMPLOYMENT_S3 = 'TblCustody_Employment_S3';
+    const TBL_CUSTODY_REMARK_S3 = 'TblCustody_Remark_S3';
 
     /**
      * @return array
@@ -152,7 +185,7 @@ class ViewProspectCustody extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblCity_City_S1;
+    protected $TblCity_Name_S1;
     /**
      * @Column(type="string")
      */
@@ -176,6 +209,38 @@ class ViewProspectCustody extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPhone_Number_PF_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_PM_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GF_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GM_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NF_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NM_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FP_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FG_S1;
+    /**
+     * @Column(type="string")
+     */
     protected $TblMail_Address_S1;
     /**
      * @Column(type="string")
@@ -189,6 +254,18 @@ class ViewProspectCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblToPerson_IsSingleParent_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCustody_Occupation_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCustody_Employment_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCustody_Remark_S1;
 
     /**
      * @Column(type="string")
@@ -237,7 +314,7 @@ class ViewProspectCustody extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblCity_City_S2;
+    protected $TblCity_Name_S2;
     /**
      * @Column(type="string")
      */
@@ -261,6 +338,38 @@ class ViewProspectCustody extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPhone_Number_PF_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_PM_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GF_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GM_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NF_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NM_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FP_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FG_S2;
+    /**
+     * @Column(type="string")
+     */
     protected $TblMail_Address_S2;
     /**
      * @Column(type="string")
@@ -274,6 +383,18 @@ class ViewProspectCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblToPerson_IsSingleParent_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCustody_Occupation_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCustody_Employment_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCustody_Remark_S2;
 
     /**
      * @Column(type="string")
@@ -322,7 +443,7 @@ class ViewProspectCustody extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblCity_City_S3;
+    protected $TblCity_Name_S3;
     /**
      * @Column(type="string")
      */
@@ -346,6 +467,38 @@ class ViewProspectCustody extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPhone_Number_PF_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_PM_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GF_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GM_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NF_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NM_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FP_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FG_S3;
+    /**
+     * @Column(type="string")
+     */
     protected $TblMail_Address_S3;
     /**
      * @Column(type="string")
@@ -359,6 +512,18 @@ class ViewProspectCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblToPerson_IsSingleParent_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCustody_Occupation_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCustody_Employment_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCustody_Remark_S3;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -376,20 +541,31 @@ class ViewProspectCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_CALL_NAME_S1, 'S1: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S1, 'S1: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S1, 'S1: Geburtsname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S1, 'S1: Geburtstag');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S1, 'S1: Geburtsdatum');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S1, 'S1: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S1, 'S1: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_S1, 'S1: PLZ');
-        $this->setNameDefinition(self::TBL_CITY_CITY_S1, 'S1: Ort');
+        $this->setNameDefinition(self::TBL_CITY_NAME_S1, 'S1: Ort');
         $this->setNameDefinition(self::TBL_CITY_DISTRICT_S1, 'S1: Ortsteil');
         $this->setNameDefinition(self::TBL_ADDRESS_COUNTY_S1, 'S1: Landkreis');
         $this->setNameDefinition(self::TBL_ADDRESS_STATE_S1, 'S1: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_S1, 'S1: Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S1, 'S1: Telefon');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PF_S1, 'S1: Telefon Privat Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PM_S1, 'S1: Telefon Privat Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GF_S1, 'S1: Telefon Geschäftlich Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GM_S1, 'S1: Telefon Geschäftlich Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NF_S1, 'S1: Telefon Notfall Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NM_S1, 'S1: Telefon Notfall Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FP_S1, 'S1: Telefon Fax Privat');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FG_S1, 'S1: Telefon Fax Geschäftlich');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S1, 'S1: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S1, 'S1: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S1, 'S1: E-Mail Geschäftlich');
-        $this->setNameDefinition(self::TBL_To_Person_Is_Single_Parent_S1, 'S1: Alleinerziehend');
+        $this->setNameDefinition(self::TBL_TO_PERSON_IS_SINGLE_PARENT_S1, 'S1: Alleinerziehend');
+        $this->setNameDefinition(self::TBL_CUSTODY_OCCUPATION_S1, 'S1: Beruf');
+        $this->setNameDefinition(self::TBL_CUSTODY_EMPLOYMENT_S1, 'S1: Arbeitsstelle');
+        $this->setNameDefinition(self::TBL_CUSTODY_REMARK_S1, 'S1: Bemerkung');
         // S2
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S2, 'S2: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S2, 'S2: Titel');
@@ -398,20 +574,31 @@ class ViewProspectCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_CALL_NAME_S2, 'S2: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S2, 'S2: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S2, 'S2: Geburtsname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S2, 'S2: Geburtstag');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S2, 'S2: Geburtsdatum');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S2, 'S2: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S2, 'S2: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_S2, 'S2: PLZ');
-        $this->setNameDefinition(self::TBL_CITY_CITY_S2, 'S2: Ort');
+        $this->setNameDefinition(self::TBL_CITY_NAME_S2, 'S2: Ort');
         $this->setNameDefinition(self::TBL_CITY_DISTRICT_S2, 'S2: Ortsteil');
         $this->setNameDefinition(self::TBL_ADDRESS_COUNTY_S2, 'S2: Landkreis');
         $this->setNameDefinition(self::TBL_ADDRESS_STATE_S2, 'S2: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_S2, 'S2: Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S2, 'S2: Telefon');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PF_S2, 'S2: Telefon Privat Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PM_S2, 'S2: Telefon Privat Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GF_S2, 'S2: Telefon Geschäftlich Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GM_S2, 'S2: Telefon Geschäftlich Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NF_S2, 'S2: Telefon Notfall Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NM_S2, 'S2: Telefon Notfall Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FP_S2, 'S2: Telefon Fax Privat');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FG_S2, 'S2: Telefon Fax Geschäftlich');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S2, 'S2: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S2, 'S2: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S2, 'S2: E-Mail Geschäftlich');
-        $this->setNameDefinition(self::TBL_To_Person_Is_Single_Parent_S2, 'S2: Alleinerziehend');
+        $this->setNameDefinition(self::TTBL_TO_PERSON_IS_SINGLE_PARENT_S2, 'S2: Alleinerziehend');
+        $this->setNameDefinition(self::TBL_CUSTODY_OCCUPATION_S2, 'S2: Beruf');
+        $this->setNameDefinition(self::TBL_CUSTODY_EMPLOYMENT_S2, 'S2: Arbeitsstelle');
+        $this->setNameDefinition(self::TBL_CUSTODY_REMARK_S2, 'S2: Bemerkung');
         // S3
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S3, 'S3: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S3, 'S3: Titel');
@@ -420,20 +607,31 @@ class ViewProspectCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_CALL_NAME_S3, 'S3: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S3, 'S3: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S3, 'S3: Geburtsname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S3, 'S3: Geburtstag');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S3, 'S3: Geburtsdatum');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S3, 'S3: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S3, 'S3: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_S3, 'S3: PLZ');
-        $this->setNameDefinition(self::TBL_CITY_CITY_S3, 'S3: Ort');
+        $this->setNameDefinition(self::TBL_CITY_NAME_S3, 'S3: Ort');
         $this->setNameDefinition(self::TBL_CITY_DISTRICT_S3, 'S3: Ortsteil');
         $this->setNameDefinition(self::TBL_ADDRESS_COUNTY_S3, 'S3: Landkreis');
         $this->setNameDefinition(self::TBL_ADDRESS_STATE_S3, 'S3: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_S3, 'S3: Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S3, 'S3: Telefon');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PF_S3, 'S3: Telefon Privat Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PM_S3, 'S3: Telefon Privat Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GF_S3, 'S3: Telefon Geschäftlich Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GM_S3, 'S3: Telefon Geschäftlich Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NF_S3, 'S3: Telefon Notfall Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NM_S3, 'S3: Telefon Notfall Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FP_S3, 'S3: Telefon Fax Privat');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FG_S3, 'S3: Telefon Fax Geschäftlich');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S3, 'S3: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S3, 'S3: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S3, 'S3: E-Mail Geschäftlich');
-        $this->setNameDefinition(self::TBL_To_Person_Is_Single_Parent_S3, 'S3: Alleinerziehend');
+        $this->setNameDefinition(self::TBL_TO_PERSON_IS_SINGLE_PARENT_S3, 'S3: Alleinerziehend');
+        $this->setNameDefinition(self::TBL_CUSTODY_OCCUPATION_S3, 'S3: Beruf');
+        $this->setNameDefinition(self::TBL_CUSTODY_EMPLOYMENT_S3, 'S3: Arbeitsstelle');
+        $this->setNameDefinition(self::TBL_CUSTODY_REMARK_S3, 'S3: Bemerkung');
 
         //GroupDefinition
 
@@ -449,16 +647,27 @@ class ViewProspectCustody extends AbstractView
             self::TBL_ADDRESS_STREET_NAME_S1,
             self::TBL_ADDRESS_STREET_NUMBER_S1,
             self::TBL_CITY_CODE_S1,
-            self::TBL_CITY_CITY_S1,
+            self::TBL_CITY_NAME_S1,
             self::TBL_CITY_DISTRICT_S1,
             self::TBL_ADDRESS_COUNTY_S1,
             self::TBL_ADDRESS_STATE_S1,
             self::TBL_ADDRESS_NATION_S1,
             self::TBL_PHONE_NUMBER_S1,
+            self::TBL_PHONE_NUMBER_PF_S1,
+            self::TBL_PHONE_NUMBER_PM_S1,
+            self::TBL_PHONE_NUMBER_GF_S1,
+            self::TBL_PHONE_NUMBER_GM_S1,
+            self::TBL_PHONE_NUMBER_NF_S1,
+            self::TBL_PHONE_NUMBER_NM_S1,
+            self::TBL_PHONE_NUMBER_FP_S1,
+            self::TBL_PHONE_NUMBER_FG_S1,
             self::TBL_MAIL_ADDRESS_S1,
             self::TBL_MAIL_ADDRESS_PRIVATE_S1,
             self::TBL_MAIL_ADDRESS_COMPANY_S1,
-            self::TBL_To_Person_Is_Single_Parent_S1
+            self::TBL_TO_PERSON_IS_SINGLE_PARENT_S1,
+            self::TBL_CUSTODY_OCCUPATION_S1,
+            self::TBL_CUSTODY_EMPLOYMENT_S1,
+            self::TBL_CUSTODY_REMARK_S1
         ));
         $this->setGroupDefinition('Sorge. S2 (Zusatzinfo)', array(
             self::TBL_SALUTATION_SALUTATION_S2,
@@ -472,16 +681,27 @@ class ViewProspectCustody extends AbstractView
             self::TBL_ADDRESS_STREET_NAME_S2,
             self::TBL_ADDRESS_STREET_NUMBER_S2,
             self::TBL_CITY_CODE_S2,
-            self::TBL_CITY_CITY_S2,
+            self::TBL_CITY_NAME_S2,
             self::TBL_CITY_DISTRICT_S2,
             self::TBL_ADDRESS_COUNTY_S2,
             self::TBL_ADDRESS_STATE_S2,
             self::TBL_ADDRESS_NATION_S2,
             self::TBL_PHONE_NUMBER_S2,
+            self::TBL_PHONE_NUMBER_PF_S2,
+            self::TBL_PHONE_NUMBER_PM_S2,
+            self::TBL_PHONE_NUMBER_GF_S2,
+            self::TBL_PHONE_NUMBER_GM_S2,
+            self::TBL_PHONE_NUMBER_NF_S2,
+            self::TBL_PHONE_NUMBER_NM_S2,
+            self::TBL_PHONE_NUMBER_FP_S2,
+            self::TBL_PHONE_NUMBER_FG_S2,
             self::TBL_MAIL_ADDRESS_S2,
             self::TBL_MAIL_ADDRESS_PRIVATE_S2,
             self::TBL_MAIL_ADDRESS_COMPANY_S2,
-            self::TBL_To_Person_Is_Single_Parent_S2
+            self::TTBL_TO_PERSON_IS_SINGLE_PARENT_S2,
+            self::TBL_CUSTODY_OCCUPATION_S2,
+            self::TBL_CUSTODY_EMPLOYMENT_S2,
+            self::TBL_CUSTODY_REMARK_S2
         ));
         $this->setGroupDefinition('Sorge. S3 (Zusatzinfo)', array(
             self::TBL_SALUTATION_SALUTATION_S3,
@@ -495,16 +715,27 @@ class ViewProspectCustody extends AbstractView
             self::TBL_ADDRESS_STREET_NAME_S3,
             self::TBL_ADDRESS_STREET_NUMBER_S3,
             self::TBL_CITY_CODE_S3,
-            self::TBL_CITY_CITY_S3,
+            self::TBL_CITY_NAME_S3,
             self::TBL_CITY_DISTRICT_S3,
             self::TBL_ADDRESS_COUNTY_S3,
             self::TBL_ADDRESS_STATE_S3,
             self::TBL_ADDRESS_NATION_S3,
             self::TBL_PHONE_NUMBER_S3,
+            self::TBL_PHONE_NUMBER_PF_S3,
+            self::TBL_PHONE_NUMBER_PM_S3,
+            self::TBL_PHONE_NUMBER_GF_S3,
+            self::TBL_PHONE_NUMBER_GM_S3,
+            self::TBL_PHONE_NUMBER_NF_S3,
+            self::TBL_PHONE_NUMBER_NM_S3,
+            self::TBL_PHONE_NUMBER_FP_S3,
+            self::TBL_PHONE_NUMBER_FG_S3,
             self::TBL_MAIL_ADDRESS_S3,
             self::TBL_MAIL_ADDRESS_PRIVATE_S3,
             self::TBL_MAIL_ADDRESS_COMPANY_S3,
-            self::TBL_To_Person_Is_Single_Parent_S3
+            self::TBL_TO_PERSON_IS_SINGLE_PARENT_S3,
+            self::TBL_CUSTODY_OCCUPATION_S3,
+            self::TBL_CUSTODY_EMPLOYMENT_S3,
+            self::TBL_CUSTODY_REMARK_S3
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
@@ -519,16 +750,27 @@ class ViewProspectCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S1);
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S1);
         $this->setDisableDefinition(self::TBL_CITY_CODE_S1);
-        $this->setDisableDefinition(self::TBL_CITY_CITY_S1);
+        $this->setDisableDefinition(self::TBL_CITY_NAME_S1);
         $this->setDisableDefinition(self::TBL_CITY_DISTRICT_S1);
         $this->setDisableDefinition(self::TBL_ADDRESS_COUNTY_S1);
         $this->setDisableDefinition(self::TBL_ADDRESS_STATE_S1);
         $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S1);
         $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S1);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PF_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PM_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GF_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GM_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NF_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NM_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FP_S1,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FG_S1,);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S1);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S1);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S1);
-        $this->setDisableDefinition(self::TBL_To_Person_Is_Single_Parent_S1);
+        $this->setDisableDefinition(self::TBL_TO_PERSON_IS_SINGLE_PARENT_S1);
+        $this->setDisableDefinition(self::TBL_CUSTODY_OCCUPATION_S1);
+        $this->setDisableDefinition(self::TBL_CUSTODY_EMPLOYMENT_S1);
+        $this->setDisableDefinition(self::TBL_CUSTODY_REMARK_S1);
         $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S2);
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S2);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S2);
@@ -540,16 +782,27 @@ class ViewProspectCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S2);
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S2);
         $this->setDisableDefinition(self::TBL_CITY_CODE_S2);
-        $this->setDisableDefinition(self::TBL_CITY_CITY_S2);
+        $this->setDisableDefinition(self::TBL_CITY_NAME_S2);
         $this->setDisableDefinition(self::TBL_CITY_DISTRICT_S2);
         $this->setDisableDefinition(self::TBL_ADDRESS_COUNTY_S2);
         $this->setDisableDefinition(self::TBL_ADDRESS_STATE_S2);
         $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S2);
         $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S2);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PF_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PM_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GF_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GM_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NF_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NM_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FP_S2,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FG_S2,);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S2);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S2);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S2);
-        $this->setDisableDefinition(self::TBL_To_Person_Is_Single_Parent_S2);
+        $this->setDisableDefinition(self::TTBL_TO_PERSON_IS_SINGLE_PARENT_S2);
+        $this->setDisableDefinition(self::TBL_CUSTODY_OCCUPATION_S2);
+        $this->setDisableDefinition(self::TBL_CUSTODY_EMPLOYMENT_S2);
+        $this->setDisableDefinition(self::TBL_CUSTODY_REMARK_S2);
         $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S3);
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S3);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S3);
@@ -561,16 +814,27 @@ class ViewProspectCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S3);
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S3);
         $this->setDisableDefinition(self::TBL_CITY_CODE_S3);
-        $this->setDisableDefinition(self::TBL_CITY_CITY_S3);
+        $this->setDisableDefinition(self::TBL_CITY_NAME_S3);
         $this->setDisableDefinition(self::TBL_CITY_DISTRICT_S3);
         $this->setDisableDefinition(self::TBL_ADDRESS_COUNTY_S3);
         $this->setDisableDefinition(self::TBL_ADDRESS_STATE_S3);
         $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S3);
         $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S3);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PF_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PM_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GF_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GM_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NF_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NM_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FP_S3,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FG_S3,);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S3);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S3);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S3);
-        $this->setDisableDefinition(self::TBL_To_Person_Is_Single_Parent_S3);
+        $this->setDisableDefinition(self::TBL_TO_PERSON_IS_SINGLE_PARENT_S3);
+        $this->setDisableDefinition(self::TBL_CUSTODY_OCCUPATION_S3);
+        $this->setDisableDefinition(self::TBL_CUSTODY_EMPLOYMENT_S3);
+        $this->setDisableDefinition(self::TBL_CUSTODY_REMARK_S3);
     }
 
     /**

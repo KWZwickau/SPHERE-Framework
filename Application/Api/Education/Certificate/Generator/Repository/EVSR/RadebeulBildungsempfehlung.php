@@ -317,7 +317,7 @@ class RadebeulBildungsempfehlung extends Certificate
                         ->stylePaddingBottom()
                         ->styleMarginTop('20px')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         , '9%')
                 )
                 ->addSection((new Section())

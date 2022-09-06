@@ -34,15 +34,16 @@ abstract class AbstractStudentCard extends AbstractDocument
     abstract public function getTypeId();
 
     /**
-     * @param array $subjectPosition
-     * @param int $countSubjectColumns
-     * @param int $widthFirstColumns
-     * @param int $widthLastColumns
+     * @param array  $subjectPosition
+     * @param int    $countSubjectColumns
+     * @param int    $widthFirstColumns
+     * @param int    $widthLastColumns
      * @param string $heightHeader
      * @param string $paddingLeftHeader
      * @param string $thicknessOutLines
      * @param string $thicknessInnerLines
      * @param string $textSizeSmall
+     * @param bool   $isSecondary
      *
      * @return array
      */
@@ -52,10 +53,11 @@ abstract class AbstractStudentCard extends AbstractDocument
         $widthFirstColumns = 6,
         $widthLastColumns = 5,
         $heightHeader = '150px',
-        $paddingLeftHeader = '-140px',
+        $paddingLeftHeader = '-80px',
         $thicknessOutLines = '1.2px',
         $thicknessInnerLines = '0.5px',
-        $textSizeSmall = '9px'
+        $textSizeSmall = '9px',
+        $isSecondary = false
     ) {
 
         $countGradesTotal = $countSubjectColumns + 4;
@@ -119,7 +121,7 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 3: $text = 'Schulhalbjahr'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '10px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
@@ -135,7 +137,7 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 4: $text = 'Ordnung'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '-2px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
@@ -157,10 +159,21 @@ abstract class AbstractStudentCard extends AbstractDocument
                 $text = '&nbsp;';
             }
 
+            // umbrüche (<br><wbr> etc.) erzeugen Fehler bei der Darstellung
+            $text = str_replace('/', ' / ' ,$text);
+
+            if ($isSecondary) {
+                $paddingTop = '-67px';
+                $paddingLeft = '-93px';
+            } else {
+                $paddingTop = '-53px';
+                $paddingLeft = '-67px';
+            }
+
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '-2px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, $paddingTop , $paddingLeft, '-40px'))
                 ->styleHeight($heightHeader)
-                ->styleTextSize(strlen($text) > 30 && $heightHeader <= '150px' ? '6px' : $textSizeSmall)
+                ->styleTextSize(strlen($text) > 35 ? '6px' : $textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
 
             $section->addElementColumn($element, $widthString);
@@ -171,10 +184,10 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 1: $text = 'Datum des Zeugnisses'; break;
                 case 2: $text = 'Versetzungsvermerke'; break;
                 case 3: $text = 'Versäumnisse'; break;
-                case 4: $text = 'Signums des Lehrers'; break;
+                case 4: $text = 'Signum des Lehrers'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '6px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines)
@@ -375,13 +388,14 @@ abstract class AbstractStudentCard extends AbstractDocument
      *
      * @return string
      */
-    protected function setRotatedContend($text = '&nbsp;', $paddingTop = '0px', $paddingLeft = '-90px')
+    protected function setRotatedContend($text = '&nbsp;', $paddingTop = '0px', $paddingLeft = '-90px', $paddingRight = '')
     {
 
         return
             '<div style="padding-top: ' . $paddingTop
             . '!important;padding-left: ' . $paddingLeft
-            . '!important;transform: rotate(270deg)!important;">'
+            . ($paddingRight !== '' ? '!important; padding-right: ' . $paddingRight : '')
+            . '!important;transform: rotate(-90deg)!important;">'
             . $text
             . '</div>';
     }
@@ -471,7 +485,8 @@ abstract class AbstractStudentCard extends AbstractDocument
                         $pointer++;
                         return $tblSubject;
                     } else {
-                        return $this->getNextSubject($tblDocument, $tblSubjectList, ++$pointer);
+                        $pointer++;
+                        return $this->getNextSubject($tblDocument, $tblSubjectList, $pointer);
                     }
                 }
             }

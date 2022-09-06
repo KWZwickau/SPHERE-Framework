@@ -55,12 +55,13 @@ class FrontendStudentIntegration extends FrontendReadOnly
         ) {
             $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadIntegrationContent($PersonId));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 new Info('Die Integrations-Daten sind ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
                 array($showLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Tag(),
                 true
             );
@@ -90,12 +91,13 @@ class FrontendStudentIntegration extends FrontendReadOnly
 
             $hideLink = (new Link(new EyeMinus() . ' Ausblenden', ApiPersonReadOnly::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadIntegrationTitle($PersonId));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 $content,
                 array($hideLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Tag()
             );
         }
@@ -117,7 +119,7 @@ class FrontendStudentIntegration extends FrontendReadOnly
         $Accordion = new Accordion('');
         $Accordion->addItem('Förderantrag/Förderbescheid '.ApiSupport::receiverInline('', 'SupportCount'), $SupportContent, true);
         $Accordion->addItem('Entwicklungsbesonderheiten '.ApiSupport::receiverInline('', 'SpecialCount'), $SpecialContent, false);
-        $Accordion->addItem('Nachteilsaugleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent, false);
+        $Accordion->addItem('Nachteilsausgleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent, false);
 
         $content = ApiSupport::pipelineLoadTable($tblPerson->getId())
             . new Layout(array(
@@ -166,7 +168,7 @@ class FrontendStudentIntegration extends FrontendReadOnly
         $Accordion = new Accordion('');
         $Accordion->addItem('Förderantrag/Förderbescheid', Student::useFrontend()->getSupportTable($tblPerson, false), true);
         $Accordion->addItem('Entwicklungsbesonderheiten', Student::useFrontend()->getSpecialTable($tblPerson, false), false);
-        $Accordion->addItem('Nachteilsaugleich', Student::useFrontend()->getHandyCapTable($tblPerson, false), false);
+        $Accordion->addItem('Nachteilsausgleich', Student::useFrontend()->getHandyCapTable($tblPerson, false), false);
 
         $content = new Layout(array(
             new LayoutGroup(

@@ -205,6 +205,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblScoreRule', 'IsActive')) {
             $Table->addColumn('IsActive', 'boolean', array('default' => true));
         }
+        $this->createColumn($Table, 'DescriptionForExtern', self::FIELD_TYPE_TEXT, false, '');
 
         return $Table;
     }

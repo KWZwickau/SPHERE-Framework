@@ -19,6 +19,7 @@ class TblGroup extends Element
     const ATTR_IS_LOCKED = 'IsLocked';
     const ATTR_META_TABLE = 'MetaTable';
 
+    const ATTR_COMMON = 'COMMON';
     const ATTR_SCHOOL = 'SCHOOL';
     const ATTR_NURSERY = 'NURSERY';
 

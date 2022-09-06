@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
@@ -69,7 +70,7 @@ class GymAbgSekII extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+        $Header = $this->getHead($this->isSample());
 
         $pageList[] = (new Page());
 
@@ -282,6 +283,13 @@ class GymAbgSekII extends Certificate
         $textSize = '13px';
         $padding = '8.5px';
         $padding2 = '7.5px';
+
+        // Extra Fach aus den Einstellungen der Fächer bei den Zeugnisvorlagen
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekII'))) {
+            $tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex($tblCertificate, 1, 1);
+        } else {
+            $tblCertificateSubject = false;
+        }
 
         $slice = new Slice();
         $slice
@@ -500,11 +508,12 @@ class GymAbgSekII extends Certificate
             ->addSection($this->setSubjectRow($personId))
             ->addSection($this->setSubjectRow($personId, 'RELIGION'))
             ->addSection($this->setSubjectRow($personId, 'Sport'))
-            ->addSection($this->setSubjectRow($personId))
+            ->addSection($this->setSubjectRow($personId, $tblCertificateSubject && $tblCertificateSubject->getServiceTblSubject()
+                ? $tblCertificateSubject->getServiceTblSubject()->getName() : '&nbsp;'))
             ->addSection($this->setFieldRow())
-            ->addSection($this->setSubjectRow($personId))
-            ->addSection($this->setSubjectRow($personId))
-            ->addSection($this->setSubjectRow($personId, '&nbsp;', false, true))
+            ->addSection($this->setSubjectRow($personId, 'Astronomie'))
+            ->addSection($this->setSubjectRow($personId, 'Informatik'))
+            ->addSection($this->setSubjectRow($personId, 'Philosophie', false, true))
         ;
 
         $pageList[] = (new Page())
@@ -646,7 +655,8 @@ class GymAbgSekII extends Certificate
     {
 
         $textSize = '13px';
-        $colorPoints = '#BBB';
+        $textSizeSmall = '12px';
+        $colorPoints = self::BACKGROUND_GRADE_FIELD;
         $colorForeignLanguage = 'lightgrey';
 
         $tblLeaveStudent = false;
@@ -680,6 +690,9 @@ class GymAbgSekII extends Certificate
         $tblSubject = Subject::useService()->getSubjectByName($subjectName);
         if (!$tblSubject && $subjectName == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('GRW');
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('G/R/W');
+            }
         }
 
         $subjectName .= $postFix;
@@ -783,7 +796,8 @@ class GymAbgSekII extends Certificate
         $section
             ->addElementColumn((new Element())
                 ->setContent($grades['11-1'])
-                ->styleTextSize($textSize)
+                ->styleTextSize($grades['11-1'] == 'nicht erteilt' ? $textSizeSmall : $textSize)
+                ->stylePaddingTop($grades['11-1'] == 'nicht erteilt' ? '1px' : '0px')
                 ->styleAlignCenter()
                 ->styleBackgroundColor($colorPoints)
                 ->styleBorderTop()
@@ -792,7 +806,8 @@ class GymAbgSekII extends Certificate
                 , '9%')
             ->addElementColumn((new Element())
                 ->setContent($grades['11-2'])
-                ->styleTextSize($textSize)
+                ->styleTextSize($grades['11-2'] == 'nicht erteilt' ? $textSizeSmall : $textSize)
+                ->stylePaddingTop($grades['11-2'] == 'nicht erteilt' ? '1px' : '0px')
                 ->styleAlignCenter()
                 ->styleBackgroundColor($colorPoints)
                 ->styleBorderTop()
@@ -801,7 +816,8 @@ class GymAbgSekII extends Certificate
                 , '9%')
             ->addElementColumn((new Element())
                 ->setContent($grades['12-1'])
-                ->styleTextSize($textSize)
+                ->styleTextSize($grades['12-1'] == 'nicht erteilt' ? $textSizeSmall : $textSize)
+                ->stylePaddingTop($grades['12-1'] == 'nicht erteilt' ? '1px' : '0px')
                 ->styleAlignCenter()
                 ->styleBackgroundColor($colorPoints)
                 ->styleBorderTop()
@@ -810,7 +826,8 @@ class GymAbgSekII extends Certificate
                 , '9%')
             ->addElementColumn((new Element())
                 ->setContent($grades['12-2'])
-                ->styleTextSize($textSize)
+                ->styleTextSize($grades['12-2'] == 'nicht erteilt' ? $textSizeSmall : $textSize)
+                ->stylePaddingTop($grades['12-2'] == 'nicht erteilt' ? '1px' : '0px')
                 ->styleAlignCenter()
                 ->styleBackgroundColor($colorPoints)
                 ->styleBorderTop()
@@ -1015,22 +1032,14 @@ class GymAbgSekII extends Certificate
         $name = '&nbsp;';
         $address = '&nbsp;';
         // get company name
-        if (($tblPerson = Person::useService()->getPersonById($personId))) {
-            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
-                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType);
-                    if ($tblStudentTransfer) {
-                        if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())) {
-                            $name = $isSchoolExtendedNameDisplayed ? $tblCompany->getName() .
-                                ($separator ? ' ' . $separator . ' ' : ' ') . $tblCompany->getExtendedName() : $tblCompany->getName();
+        if (($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
+        ) {
+            $name = $isSchoolExtendedNameDisplayed ? $tblCompany->getName() .
+                ($separator ? ' ' . $separator . ' ' : ' ') . $tblCompany->getExtendedName() : $tblCompany->getName();
 
-                            if (($mainAddress = $tblCompany->fetchMainAddress())) {
-                                $address = $mainAddress->getGuiString();
-                            }
-                        }
-                    }
-                }
+            if (($mainAddress = $tblCompany->fetchMainAddress())) {
+                $address = $mainAddress->getGuiString();
             }
         }
 

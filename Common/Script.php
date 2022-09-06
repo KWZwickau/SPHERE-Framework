@@ -253,7 +253,7 @@ class Script extends Extension
         );
 
         $this->setSource(
-            'jQuery.Select2', '/Library/jQuery.Select2/4.0.3/dist/js/select2.full.min.js',
+            'jQuery.Select2', '/Library/jQuery.Select2/4.0.13/dist/js/select2.full.js',
             "'undefined' !== typeof jQuery.fn.select2"
         );
 
@@ -267,6 +267,14 @@ class Script extends Extension
         );
         $this->setSource('CookieScript', '/Library/CookieScript/CookieScript.js',
             "'undefined' !== typeof window.hasCookieHinweis"
+        );
+        $this->setSource(
+            'tinymce', '/Library/TinyMCE/tinymce.min.js',
+            "'undefined' !== typeof tinymce"
+        );
+        $this->setSource(
+            'jQueryTinymce', '/Library/TinyMCE/jquery.tinymce.min.js',
+            "'undefined' !== typeof jQuery.fn.tinymce"
         );
 
         /**
@@ -374,6 +382,9 @@ class Script extends Extension
         );
         $this->setModule(
             'ModCookie', array('CookieScript')
+        );
+        $this->setModule(
+            'ModTinyMCE', array('tinymce', 'jQueryTinymce', 'jQuery')
         );
     }
 

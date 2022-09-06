@@ -24,6 +24,9 @@ class TblAccount extends Element
     const ATTR_PASSWORD = 'Password';
     const SERVICE_TBL_CONSUMER = 'serviceTblConsumer';
     const SERVICE_TBL_TOKEN = 'serviceTblToken';
+    const ATTR_USER_ALIAS = 'UserAlias';
+    const ATTR_AUTHENTICATOR_APP_SECRET = 'AuthenticatorAppSecret';
+
     /**
      * @Column(type="string")
      */
@@ -40,6 +43,20 @@ class TblAccount extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblConsumer;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $UserAlias;
+    /**
+     * @Column(type="string")
+     */
+    protected $BackupMail;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $AuthenticatorAppSecret;
 
     /**
      * @param string $Username
@@ -142,5 +159,53 @@ class TblAccount extends Element
         } else {
             return false;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserAlias()
+    {
+        return $this->UserAlias;
+    }
+
+    /**
+     * @param string $UserAlias
+     */
+    public function setUserAlias($UserAlias)
+    {
+        $this->UserAlias = $UserAlias;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRecoveryMail()
+    {
+        return $this->BackupMail;
+    }
+
+    /**
+     * @param string $RecoveryMail
+     */
+    public function setRecoveryMail($RecoveryMail)
+    {
+        $this->BackupMail = $RecoveryMail;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAuthenticatorAppSecret()
+    {
+        return $this->AuthenticatorAppSecret;
+    }
+
+    /**
+     * @param string $AuthenticatorAppSecret
+     */
+    public function setAuthenticatorAppSecret($AuthenticatorAppSecret)
+    {
+        $this->AuthenticatorAppSecret = $AuthenticatorAppSecret;
     }
 }

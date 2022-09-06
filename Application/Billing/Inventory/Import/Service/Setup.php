@@ -50,7 +50,7 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->createTable($Schema, 'tblImport');
-        $this->createColumn($Table, 'Row', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Number', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'FirstName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'LastName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Birthday', self::FIELD_TYPE_STRING);
@@ -66,10 +66,12 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'DebtorFirstName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'DebtorLastName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'serviceTblPersonDebtor', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Owner', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'DebtorNumber', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Bank', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IsYear', self::FIELD_TYPE_STRING);
 
         return $Table;
     }

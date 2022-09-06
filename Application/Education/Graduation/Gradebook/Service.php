@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use DateTime;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
@@ -42,7 +43,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -197,6 +200,14 @@ class Service extends ServiceScoreRule
     }
 
     /**
+     * @return false|TblGrade[]
+     */
+    public function getGradeAllByFromCreateDate(DateTime $fromCreateDate, DateTime $toCreateDate)
+    {
+        return (new Data($this->getBinding()))->getGradeAllByFromCreateDate($fromCreateDate, $toCreateDate);
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|Service\Entity\TblGradeType
@@ -231,7 +242,7 @@ class Service extends ServiceScoreRule
      *
      * @return IFormInterface|Redirect
      */
-    public function getGradeBook(IFormInterface $Stage = null, $DivisionSubjectId = null, $Select = null, $BasicRoute)
+    public function getGradeBook(IFormInterface $Stage = null, $DivisionSubjectId = null, $Select = null, $BasicRoute = '')
     {
 
         /**
@@ -339,7 +350,10 @@ class Service extends ServiceScoreRule
                     $sum = 0;
                     $count = 0;
                     foreach ($tblGradeList as $tblGrade) {
-                        if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                        if ($tblGrade->getGrade() !== null
+                            && $tblGrade->getGrade() !== ''
+                            && is_numeric($tblGrade->getGrade())
+                        ) {
                             $value = floatval($tblGrade->getGrade());
                             $sum += $value;
                             $count++;
@@ -375,7 +389,7 @@ class Service extends ServiceScoreRule
         IFormInterface $Stage = null,
         $TestId = null,
         $Grade = null,
-        $BasicRoute,
+        $BasicRoute = '',
         TblScoreType $tblScoreType = null,
         $studentTestList = null,
         TblTest $tblNextTest = null
@@ -504,7 +518,7 @@ class Service extends ServiceScoreRule
                 $tblPersonTeacher = $tblPersonAllByAccount[0];
             }
         }
-
+        $tblPersonTeacher = $tblPersonTeacher ? $tblPersonTeacher : null;
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
@@ -540,7 +554,7 @@ class Service extends ServiceScoreRule
                             $hasCreatedGrade = true;
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
-                                $tblPersonTeacher ? $tblPersonTeacher : null,
+                                $tblPersonTeacher,
                                 $tblTestByPerson->getServiceTblDivision(),
                                 $tblTestByPerson->getServiceTblSubject(),
                                 $tblTestByPerson->getServiceTblSubjectGroup() ? $tblTestByPerson->getServiceTblSubjectGroup() : null,
@@ -560,7 +574,7 @@ class Service extends ServiceScoreRule
                             $hasCreatedGrade = true;
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
-                                $tblPersonTeacher ? $tblPersonTeacher : null,
+                                $tblPersonTeacher,
                                 $tblTestByPerson->getServiceTblDivision(),
                                 $tblTestByPerson->getServiceTblSubject(),
                                 $tblTestByPerson->getServiceTblSubjectGroup() ? $tblTestByPerson->getServiceTblSubjectGroup() : null,
@@ -580,7 +594,7 @@ class Service extends ServiceScoreRule
                             $hasCreatedGrade = true;
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
-                                $tblPersonTeacher ? $tblPersonTeacher : null,
+                                $tblPersonTeacher,
                                 $tblTestByPerson->getServiceTblDivision(),
                                 $tblTestByPerson->getServiceTblSubject(),
                                 $tblTestByPerson->getServiceTblSubjectGroup() ? $tblTestByPerson->getServiceTblSubjectGroup() : null,
@@ -732,7 +746,7 @@ class Service extends ServiceScoreRule
     ) {
 
         // bei übergebener Notenliste diese verwenden
-        if (!$tblGradeList) {
+        if ($tblGradeList === false) {
             $tblGradeList = $this->getGradesByStudent(
                 $tblPerson, $tblDivision, $tblSubject, $tblTestType, $tblPeriod, $tblSubjectGroup
             );
@@ -779,26 +793,26 @@ class Service extends ServiceScoreRule
         // entfernen aller Noten nach dem Stichtag (bei Stichtagsnotenauftägen)
         if ($taskDate && $tblGradeList) {
             $tempGradeList = array();
-            $taskDate = new \DateTime($taskDate);
+            $taskDate = new DateTime($taskDate);
             foreach ($tblGradeList as $item) {
                 if ($item->getServiceTblTest()) {
                     // Zensuren-Datum
                     if ($item->getServiceTblTest()->isContinues() && $item->getDate()) {
-                        $gradeDate = new \DateTime($item->getDate());
+                        $gradeDate = new DateTime($item->getDate());
                         // Noten nur vom vor dem Stichtag
                         if ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')) {
                             $tempGradeList[] = $item;
                         }
                     } // Enddatum des Tests, falls vorhanden
                     elseif ($item->getServiceTblTest()->isContinues() && $item->getServiceTblTest()->getFinishDate()) {
-                        $gradeDate = new \DateTime($item->getServiceTblTest()->getFinishDate());
+                        $gradeDate = new DateTime($item->getServiceTblTest()->getFinishDate());
                         // Noten nur vom vor dem Stichtag
                         if ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')) {
                             $tempGradeList[] = $item;
                         }
                     } // Test-Datum
                     elseif ($item->getServiceTblTest()->getDate()) {
-                        $testDate = new \DateTime($item->getServiceTblTest()->getDate());
+                        $testDate = new DateTime($item->getServiceTblTest()->getDate());
                         // Noten nur vom vor dem Stichtag
                         if ($taskDate->format('Y-m-d') >= $testDate->format('Y-m-d')) {
                             $tempGradeList[] = $item;
@@ -826,14 +840,13 @@ class Service extends ServiceScoreRule
             $sum = 0;
 
             if ($tblScoreRule) {
-                $tblLevel = $tblDivision->getTblLevel();
                 $tblYear = $tblDivision->getServiceTblYear();
                 $tblScoreCondition = $this->getScoreConditionByStudent(
                     $tblScoreRule,
                     $tblGradeList,
                     $tblYear ? $tblYear : null,
                     $tblPeriod ? $tblPeriod : null,
-                    $tblLevel && $tblLevel->getName() == '12'
+                    $tblDivision
                 );
             } else {
                 $tblScoreCondition = false;
@@ -1014,16 +1027,16 @@ class Service extends ServiceScoreRule
      * @param $tblGradeList
      * @param TblYear|null $tblYear
      * @param TblPeriod|null $tblPeriod
-     * @param bool $isLevel12
+     * @param TblDivision|null $tblDivision
      *
-     * @return bool|TblScoreCondition
+     * @return false|mixed|TblScoreCondition
      */
     public function getScoreConditionByStudent(
         TblScoreRule $tblScoreRule,
         $tblGradeList,
         TblYear $tblYear = null,
         TblPeriod $tblPeriod = null,
-        $isLevel12 = false
+        TblDivision $tblDivision = null
     ){
         // get ScoreCondition
         $tblScoreCondition = false;
@@ -1040,7 +1053,7 @@ class Service extends ServiceScoreRule
 
                             // check period
                             if (($period = $item->getPeriod())) {
-                                if (($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $isLevel12))) {
+                                if (($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision))) {
                                     $firstPeriod = reset($tblPeriodList);
                                     if ($period == TblScoreCondition::PERIOD_FIRST_PERIOD) {
                                         if ($tblPeriod && $firstPeriod->getId() == $tblPeriod->getId()) {
@@ -1269,8 +1282,14 @@ class Service extends ServiceScoreRule
         /**
          * Skip to Frontend
          */
-        if ($Data === null || $tblYear == null) {
+        if ($Data === null /*|| $tblYear == null*/) {
             return $Stage;
+        }
+
+        // Info, wohin zurück geleitet werden soll
+        $yearIsNull = false;
+        if(null === $tblYear){
+            $yearIsNull = true;
         }
 
         if (is_array($Data)) {
@@ -1305,6 +1324,11 @@ class Service extends ServiceScoreRule
             $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
             foreach ($tblScoreTypeDivisionSubjectList as $tblScoreTypeDivisionSubject) {
                 $tblDivision = $tblScoreTypeDivisionSubject->getServiceTblDivision();
+                // $yearIsNull Jahr nur Indivuduell suchen, wenn es nicht angegeben ist (aktuelles Schuljahr)
+                // dann aber auch für alle Einträge neu setzen, weil sie abweichen können
+                if($tblDivision && $yearIsNull){
+                    $tblYear = $tblDivision->getServiceTblYear();
+                }
                 $tblSubject = $tblScoreTypeDivisionSubject->getServiceTblSubject();
                 if ($tblDivision
                     && $tblSubject
@@ -1327,12 +1351,20 @@ class Service extends ServiceScoreRule
                 }
             }
         }
+        if($yearIsNull){
+            // aktuelles Schuljahr ohne YearId
+            $RedirectArray = array(
+                'Id' => $tblScoreType->getId()
+            );
+        } else {
+            $RedirectArray = array(
+                'Id' => $tblScoreType->getId(),
+                'YearId' => $tblYear->getId()
+            );
+        }
 
         return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-        . new Redirect('/Education/Graduation/Gradebook/Type/Select', Redirect::TIMEOUT_SUCCESS, array(
-            'Id' => $tblScoreType->getId(),
-            'YearId' => $tblYear->getId()
-        ));
+        . new Redirect('/Education/Graduation/Gradebook/Type/Select', Redirect::TIMEOUT_SUCCESS, $RedirectArray);
     }
 
     /**
@@ -1619,6 +1651,16 @@ class Service extends ServiceScoreRule
     public function updateGradesGradeTypeByTest(TblTest $tblTest, TblGradeType $tblGradeType) {
         if (($tblGradeList = $this->getGradeAllByTest($tblTest))) {
             (new Data($this->getBinding()))->updateGradesGradeType($tblGradeType, $tblGradeList);
+        }
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblPeriod $tblPeriod
+     */
+    public function updateGradesPeriodByTest(TblTest $tblTest, TblPeriod $tblPeriod) {
+        if (($tblGradeList = $this->getGradeAllByTest($tblTest))) {
+            (new Data($this->getBinding()))->updateGradesPeriod($tblPeriod, $tblGradeList);
         }
     }
 
@@ -2016,5 +2058,397 @@ class Service extends ServiceScoreRule
                 array('DivisionId' => $tblDivision->getId(), 'TaskId' => $tblTask->getId(),
                     'GradeTypeId' => $tblNextGradeType ? $tblNextGradeType->getId() : null)
             );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblTestType $tblTestType
+     *
+     * @return false|TblGrade[]
+     */
+    public function getSubjectGradesByAllYears(
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        TblTestType $tblTestType
+    ) {
+
+        $tblGradeList = (new Data($this->getBinding()))->getSubjectGradesByAllYears($tblPerson, $tblSubject, $tblTestType);
+        if ($tblGradeList
+            && ($tblDivisionRepeatList = Division::useService()->getRepeatedDivisionAllByPerson($tblPerson))
+        ) {
+            $resultList = array();
+            // Zensuren vom wiederholten Schuljahr herausfiltern
+            foreach ($tblGradeList as $tblGrade) {
+                if (($tblDivision = $tblGrade->getServiceTblDivision())
+                    && !isset($tblDivisionRepeatList[$tblDivision->getId()])
+                ) {
+                    $resultList[$tblGrade->getId()] = $tblGrade;
+                }
+            }
+
+            return empty($resultList) ? false : $resultList;
+        } else {
+            return $tblGradeList;
+        }
+    }
+
+    /**
+     * @param $average
+     * @param string $separator
+     *
+     * @return string
+     */
+    public function getAverageInWord($average, $separator = ',')
+    {
+        $array = explode($separator, $average);
+        $result = '';
+
+        if (isset($array[0])) {
+            if (($word1 = $this->getWordByNumber($array[0]))) {
+                $result .= $word1;
+            } else {
+                return '';
+            }
+        }
+        if (isset($array[1])) {
+            if (($word2 = $this->getWordByNumber($array[1]))) {
+                $result .= ' Komma ' . $word2;
+            } else {
+                return '';
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param $number
+     *
+     * @return false|string
+     */
+    private function getWordByNumber($number)
+    {
+        $number = intval($number);
+        switch ($number) {
+            case 0: return 'Null';
+            case 1: return 'Eins';
+            case 2: return 'Zwei';
+            case 3: return 'Drei';
+            case 4: return 'Vier';
+            case 5: return 'Fünf';
+            case 6: return 'Sechs';
+            case 7: return 'Sieben';
+            case 8: return 'Acht';
+            case 9: return 'Neun';
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDivision $tblSourceDivision
+     * @param TblSubject $tblSourceSubject
+     * @param TblSubjectGroup|null $tblSourceSubjectGroup
+     * @param TblDivision $tblTargetDivision
+     * @param TblSubject $tblTargetSubject
+     * @param TblSubjectGroup|null $tblTargetSubjectGroup
+     */
+    private function copyScoreRule(
+        TblDivision $tblSourceDivision,
+        TblSubject $tblSourceSubject,
+        ?TblSubjectGroup $tblSourceSubjectGroup,
+        TblDivision $tblTargetDivision,
+        TblSubject $tblTargetSubject,
+        ?TblSubjectGroup $tblTargetSubjectGroup
+    ) {
+        if (($tblSourceScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblSourceDivision, $tblSourceSubject))) {
+            if (($tblTargetScoreRule = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblTargetDivision, $tblTargetSubject))) {
+                (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
+                    $tblTargetScoreRule,
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreRule() ? $tblSourceScoreRuleDivisionSubject->getTblScoreRule() : null,
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreType() ? $tblSourceScoreRuleDivisionSubject->getTblScoreType() : null
+                );
+            } else {
+                (new Data($this->getBinding()))->createScoreRuleDivisionSubject(
+                    $tblTargetDivision,
+                    $tblTargetSubject,
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreRule() ? $tblSourceScoreRuleDivisionSubject->getTblScoreRule() : null,
+                    $tblSourceScoreRuleDivisionSubject->getTblScoreType() ? $tblSourceScoreRuleDivisionSubject->getTblScoreType() : null
+                );
+            }
+        }
+
+        if ($tblSourceSubjectGroup
+            && $tblTargetSubjectGroup
+            && ($tblSourceScoreRuleSubjectGroup = $this->getScoreRuleSubjectGroupByDivisionAndSubjectAndGroup($tblSourceDivision, $tblSourceSubject, $tblSourceSubjectGroup))
+            && ($tblSourceScoreRule = $tblSourceScoreRuleSubjectGroup->getTblScoreRule())
+        ) {
+            if (($tblTargetScoreRuleSubjectGroup = $this->getScoreRuleSubjectGroupByDivisionAndSubjectAndGroup($tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup))) {
+                (new Data($this->getBinding()))->removeScoreRuleSubjectGroup($tblTargetScoreRuleSubjectGroup);
+            }
+
+            (new Data($this->getBinding()))->addScoreRuleSubjectGroup($tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup, $tblSourceScoreRule);
+        }
+    }
+
+    /**
+     * @param TblDivision $tblSourceDivision
+     * @param TblSubject $tblSourceSubject
+     * @param TblSubjectGroup|null $tblSourceSubjectGroup
+     * @param TblDivision $tblTargetDivision
+     * @param TblSubject $tblTargetSubject
+     * @param TblSubjectGroup|null $tblTargetSubjectGroup
+     *
+     * @return array
+     */
+    public function copyTestsAndGrades(
+        TblDivision $tblSourceDivision,
+        TblSubject $tblSourceSubject,
+        ?TblSubjectGroup $tblSourceSubjectGroup,
+        TblDivision $tblTargetDivision,
+        TblSubject $tblTargetSubject,
+        ?TblSubjectGroup $tblTargetSubjectGroup
+    ): array {
+
+        $protocol = array();
+        $protocol['DeleteTests'] = array();
+        $protocol['UpdateTests'] = array();
+        $protocol['CreateTests'] = array();
+        $protocol['DeleteTestsCount'] = '';
+        $protocol['UpdateTestsCount'] = '';
+        $protocol['CreateTestsCount'] = '';
+
+        // Berechnungssystem und Bewertungssystem kopieren
+        $this->copyScoreRule($tblSourceDivision, $tblSourceSubject, $tblSourceSubjectGroup,
+            $tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup);
+
+        // löschen vorhandene Leistungsüberprüfungen und Zensuren
+        $destroyGrades = array();
+        $destroyTests = array();
+        if (($tblTargetTestList = Evaluation::useService()->getTestDistinctListBy($tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup))) {
+            foreach ($tblTargetTestList as $tblTargetTest) {
+                // erstmal nur Notenaufträge löschen -> sind sonst eventuell doppelt
+                if (($tblTargetTestType = $tblTargetTest->getTblTestType())
+                    && ($tblTargetTestType == 'APPOINTED_DATE_TASK' || $tblTargetTestType == 'BEHAVIOR_TASK')
+                ) {
+                    $test = 'Test: ' . $tblTargetTest->getDate() . ' ' . $tblTargetTest->getGradeTypeCode()
+                        . ' - ' . $tblTargetTest->getDescription() . ' gelöscht';
+                    if (($tblTargetGradeList = Gradebook::useService()->getGradeAllByTest($tblTargetTest))) {
+                        $grades = count($tblTargetGradeList) . ' Zensuren gelöscht';
+                        $destroyGrades = array_merge($destroyGrades, $tblTargetGradeList);
+                    } else {
+                        $grades = '0 Zensuren gelöscht';
+                    }
+                    $destroyTests[] = $tblTargetTest;
+                    $protocol['DeleteTests'][$tblTargetTest->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn($test, 6),
+                        new LayoutColumn($grades, 6)
+                    ))));
+                }
+            }
+        }
+        $protocol['DeleteTestsCount'] = count($destroyTests);
+        if (!empty($destroyGrades)) {
+            (new Data($this->getBinding()))->destroyGradeList($destroyGrades);
+        }
+        if (!empty($destroyTests)) {
+            // Verknüpfung von Tests löschen
+            Evaluation::useService()->destroyTestLinkList($destroyTests);
+            Evaluation::useService()->destroyTestList($destroyTests);
+        }
+
+        // Periode → erstmal nicht möglich zwischen verschiedenen Schuljahren zu verschieben
+        // falls 2 verschiedene Schuljahre
+        // was soll mit den Notenaufträgen passieren für verschiedene Schuljahre
+
+        // aufspaltung in 2 oder mehr Gruppen, falls erforderlich
+        // prüfen, ob alle Zensuren in der Gruppe zu zugeordneten Schülern gehören
+        $createTestList = array();
+        $gradeListAlreadyUpdated = array();
+        $tblSourceTestList = Evaluation::useService()->getTestDistinctListBy($tblSourceDivision, $tblSourceSubject, $tblSourceSubjectGroup);
+        if ($tblTargetSubjectGroup
+            && ($tblTargetDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                $tblTargetDivision,
+                $tblTargetSubject,
+                $tblTargetSubjectGroup
+            ))
+        ) {
+            $personTargetGroupList = array();
+            $personOtherGroupList = array();
+            $gradePersonNotInGroup = array();
+            // Person in der richtigen Gruppe
+            if (($tblTargetPersonList = Division::useService()->getSubjectStudentByDivisionSubject($tblTargetDivisionSubject))) {
+                foreach ($tblTargetPersonList as $tblSubjectStudent) {
+                    if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())) {
+                        $personTargetGroupList[$tblPerson->getId()] = $tblPerson;
+                    }
+                }
+            }
+            // Person in anderen Gruppen zu dieser Fach-Klasse
+            if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                $tblTargetDivision,
+                $tblTargetSubject,
+            ))) {
+                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                    if ($tblDivisionSubject->getId() != $tblTargetDivisionSubject->getId()
+                        && ($tblOtherSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+                        && ($tblOtherPersonList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))) {
+                        foreach ($tblOtherPersonList as $tblOtherSubjectStudent) {
+                            if (($tblOtherPerson = $tblOtherSubjectStudent->getServiceTblPerson())) {
+                                $personOtherGroupList[$tblOtherPerson->getId()] = $tblOtherSubjectGroup;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ($tblSourceTestList) {
+                foreach ($tblSourceTestList as $tblSourceTest) {
+                    if (($tblSourceGradeList = Gradebook::useService()->getGradeAllByTest($tblSourceTest))) {
+                        foreach ($tblSourceGradeList as $tblSourceGrade) {
+                            if (($tblPersonGrade = $tblSourceGrade->getServiceTblPerson())) {
+                                if (!isset($personTargetGroupList[$tblPersonGrade->getId()])) {
+                                    if (isset($personOtherGroupList[$tblPersonGrade->getId()])) {
+                                        // [SubjectGroupId][TestId][GradeId]
+                                        $createTestList
+                                        [$personOtherGroupList[$tblPersonGrade->getId()]->getId()]
+                                        [$tblSourceTest->getId()]
+                                        [$tblSourceGrade->getId()]
+                                            = $tblSourceGrade;
+                                        $gradeListAlreadyUpdated[$tblSourceGrade->getId()] = $tblSourceGrade;
+                                    } elseif ($tblSourceGrade->getGrade() === null) {
+                                        // nicht teilgenommen
+                                        // diese Zensuren ignorieren
+                                    } else {
+                                        $gradePersonNotInGroup[$tblPersonGrade->getId()] = $tblPersonGrade->getLastFirstName();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Fehler, wenn der Schüler in keiner Gruppe ist → dann erstmal nicht kopieren
+                if (!empty($gradePersonNotInGroup)) {
+                    $protocol['Error'] = $gradePersonNotInGroup;
+
+                    return $protocol;
+                }
+
+                if (!empty($createTestList)) {
+                    $countCreatedTests = 0;
+                    foreach ($createTestList as $subjectGroupId => $testList) {
+                        if (($tblSubjectGroup = Division::useService()->getSubjectGroupById($subjectGroupId))) {
+                            foreach ($testList as $testId => $gradeList) {
+                                if (($tblTest = Evaluation::useService()->getTestById($testId))
+                                    && ($tblNewTest = Evaluation::useService()->insertTest(
+                                        $tblTargetDivision,
+                                        $tblTargetSubject,
+                                        $tblSubjectGroup,
+                                        $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod() : null,
+                                        $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType() : null,
+                                        $tblTest->getTblTestType() ? $tblTest->getTblTestType() : null,
+                                        $tblTest->getTblTask() ? $tblTest->getTblTask() : null,
+                                        $tblTest->getDescription(),
+                                        $tblTest->getDate() ? $tblTest->getDate() : null,
+                                        $tblTest->getCorrectionDate() ? $tblTest->getCorrectionDate() : null,
+                                        $tblTest->getReturnDate() ? $tblTest->getReturnDate() : null,
+                                        $tblTest->isContinues(),
+                                        $tblTest->getFinishDate() ? $tblTest->getFinishDate() : null
+                                    ))
+                                ) {
+                                    (new Data($this->getBinding()))->updateGrades(
+                                        $gradeList,
+                                        $tblTargetDivision,
+                                        $tblTargetSubject,
+                                        $tblSubjectGroup,
+                                        $tblNewTest
+                                    );
+
+                                    $protocol['CreateTests'][$tblNewTest->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
+                                        new LayoutColumn('Test: ' . $tblNewTest->getDate() . ' ' . $tblNewTest->getGradeTypeCode()
+                                            . ' - ' . $tblNewTest->getDescription() . ' neu angelegt in Gruppe: '
+                                            . $tblSubjectGroup->getName(), 6),
+                                        new LayoutColumn(count($gradeList) . ' Zensuren verschoben', 6)
+                                    ))));
+
+                                    $countCreatedTests++;
+                                }
+                            }
+                        }
+                    }
+
+                    $protocol['CreateTestsCount'] = $countCreatedTests;
+                }
+            }
+        }
+
+        // Leistungsüberprüfungen verschieben
+        $updateGrades = array();
+        $updateTests = array();
+        if ($tblSourceTestList) {
+            foreach ($tblSourceTestList as $tblSourceTest) {
+                $test = 'Test: ' . $tblSourceTest->getDate() . ' ' . $tblSourceTest->getGradeTypeCode()
+                    . ' - ' . $tblSourceTest->getDescription() . ' verschoben';
+                $count = 0;
+                if (($tblGradeList = Gradebook::useService()->getGradeAllByTest($tblSourceTest))) {
+                    foreach ($tblGradeList as $tblGrade) {
+                        if (!isset($gradeListAlreadyUpdated[$tblGrade->getId()])) {
+                            $count++;
+                            $updateGrades[] = $tblGrade;
+                        }
+                    }
+                }
+
+                $grades = $count . ' Zensuren verschoben';
+                $updateTests[] = $tblSourceTest;
+                $protocol['UpdateTests'][$tblSourceTest->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn($test, 6),
+                    new LayoutColumn($grades, 6)
+                ))));
+            }
+        }
+        $protocol['UpdateTestsCount'] = count($updateTests);
+        if (!empty($updateGrades)) {
+            (new Data($this->getBinding()))->updateGrades($updateGrades, $tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup);
+        }
+        if (!empty($updateTests)) {
+            Evaluation::useService()->updateTests($updateTests, $tblTargetDivision, $tblTargetSubject, $tblTargetSubjectGroup);
+        }
+
+        // Zeugnisnoten verschieben, erstmal nicht, da bei verschiedenen Klassen verschiedene Zeugnisvorbereitungen vorliegen
+
+        return $protocol;
+    }
+
+    /**
+     * @param TblGrade $tblGrade
+     * @param TblPeriod $tblPeriod
+     *
+     * @return bool
+     */
+    public function isAppointedDateGradeInPeriod(TblGrade $tblGrade, TblPeriod $tblPeriod): bool
+    {
+        $dateFromPeriod = $tblPeriod->getFromDate();
+        $dateToPeriod = $tblPeriod->getToDate();
+        if (($tblTest = $tblGrade->getServiceTblTest())) {
+            $dateGrade = $tblTest->getDate();
+        } else {
+            $dateGrade = false;
+        }
+        if ($dateFromPeriod && $dateToPeriod && $dateGrade) {
+            // Karenzzeit fürs Halbjahr
+            $dateInterval = new \DateInterval('P21D');
+            $dateFromPeriod = (new DateTime($dateFromPeriod))->add($dateInterval);
+            $dateToPeriod = (new DateTime($dateToPeriod))->add($dateInterval);
+            $dateGrade = new DateTime($dateGrade);
+
+            if ($dateGrade > $dateFromPeriod && $dateGrade < $dateToPeriod) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

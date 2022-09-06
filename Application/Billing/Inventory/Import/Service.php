@@ -84,6 +84,12 @@ class Service extends AbstractService
             foreach ($tblImportList as $tblImport) {
                 $tblPerson = $tblImport->getServiceTblPerson();
                 $tblPersonDebtor = $tblImport->getServiceTblPersonDebtor();
+                if($tblImport->getOwner()){
+                    $Owner = $tblImport->getOwner();
+                } else {
+                    $Owner = $tblPersonDebtor->getFirstName().' '.$tblPersonDebtor->getLastName();
+                }
+
                 $tblBankAccount = $tblBankReference = false;
                 if($tblPersonDebtor){
                     // Debitor als Beitragszahler hinzufügen
@@ -92,14 +98,13 @@ class Service extends AbstractService
                     //Debitornummer zum Debitor
                     if(($DebtorNumber = $tblImport->getDebtorNumber())){
                         // Debitornummer wird nur gespeichert, wenn noch keine hinterlegt ist.
-                        if(!Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor)){
+                        if(!Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor, true)){
                             Debtor::useService()->createDebtorNumber($tblPersonDebtor, $DebtorNumber);
                         }
                     }
                     // Kontodaten zum Debitor
                     if($tblImport->getIBAN()){
-                        $tblBankAccount = Debtor::useService()->createBankAccount($tblPersonDebtor,
-                            $tblPersonDebtor->getFirstName().' '.$tblPersonDebtor->getLastName(),
+                        $tblBankAccount = Debtor::useService()->createBankAccount($tblPersonDebtor, $Owner,
                             $tblImport->getBank(), $tblImport->getIBAN(), $tblImport->getBIC());
                     }
                 }
@@ -117,7 +122,11 @@ class Service extends AbstractService
                 // Zahlungszuweisungen (SEPA) // andere Zahlungsarten werden nicht importiert!
                 if($tblBankAccount && $tblBankReference && $tblItem){
                     $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
-                    $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName(TblDebtorPeriodType::ATTR_MONTH);
+                    if($tblImport->getIsYear()){
+                        $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName(TblDebtorPeriodType::ATTR_YEAR);
+                    } else {
+                        $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName(TblDebtorPeriodType::ATTR_MONTH);
+                    }
                     $Value = 0;
                     if(!($tblVariant = Item::useService()->getItemVariantByItemAndName($tblItem, $tblImport->getPriceVariant()))){
                         $tblVariant = null;

@@ -84,7 +84,7 @@ class ViewStudentAgreement extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Einverständnis';
+        return 'Einverständniserklärung';
     }
 
     /**
@@ -95,8 +95,8 @@ class ViewStudentAgreement extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition(self::TBL_STUDENT_AGREEMENT_CATEGORY_NAME, 'Einverständnis: Kategorie');
-        $this->setNameDefinition(self::TBL_STUDENT_AGREEMENT_TYPE_NAME, 'Einverständnis: Typ');
+        $this->setNameDefinition(self::TBL_STUDENT_AGREEMENT_CATEGORY_NAME, 'Einverständniserklärung: Kategorie');
+        $this->setNameDefinition(self::TBL_STUDENT_AGREEMENT_TYPE_NAME, 'Einverständniserklärung: Typ');
     }
 
     /**

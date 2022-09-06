@@ -57,6 +57,7 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblGenerateCertificate');
         $this->createColumn( $Table, 'Date', self::FIELD_TYPE_DATETIME );
+        $this->createColumn( $Table, 'AppointedDateForAbsence', self::FIELD_TYPE_DATETIME, true );
         $this->createColumn( $Table, 'Name', self::FIELD_TYPE_STRING );
         $this->createColumn( $Table, 'serviceTblCertificateType', self::FIELD_TYPE_BIGINT );
         $this->createColumn( $Table, 'serviceTblAppointedDateTask', self::FIELD_TYPE_BIGINT, true );

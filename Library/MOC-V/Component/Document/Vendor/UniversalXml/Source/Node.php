@@ -360,20 +360,20 @@ class Node extends NodeType
     {
 
         $AttributeList = $this->AttributeList;
-        array_walk($AttributeList, create_function('&$Value,$Key', '$Value = $Key.\'="\'.$Value.\'"\';'));
+        array_walk($AttributeList, function(&$Value,$Key){ $Value = $Key.'="'.$Value.'"';});
 
         return implode(' ', $AttributeList);
     }
 
-    public function __destruct()
-    {
-
-        /** @var Node $Node */
-        unset( $this->Parent );
-        array_walk($this->ChildList, function (Node $Node) {
-
-            $Node->__destruct();
-        });
-        unset( $this );
-    }
+//    public function __destruct()
+//    {
+//
+//        /** @var Node $Node */
+//        unset( $this->Parent );
+//        array_walk($this->ChildList, function (Node $Node) {
+//
+//            $Node->__destruct();
+//        });
+//        unset( $this );
+//    }
 }

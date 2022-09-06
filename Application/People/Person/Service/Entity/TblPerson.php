@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\People\Meta\Child\Child;
+use SPHERE\Application\People\Meta\Child\Service\Entity\TblChild;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
@@ -23,6 +25,7 @@ class TblPerson extends Element
 {
 
     const ATTR_FIRST_NAME = 'FirstName';
+    const ATTR_SECOND_NAME = 'SecondName';
     const ATTR_LAST_NAME = 'LastName';
     const ATTR_IMPORT_ID = 'ImportId';
 
@@ -269,6 +272,14 @@ class TblPerson extends Element
     }
 
     /**
+     * @return bool|TblChild
+     */
+    public function getChild()
+    {
+        return Child::useService()->getChildByPerson($this);
+    }
+
+    /**
      * @param bool $isForced
      *
      * @return bool|TblStudent
@@ -303,6 +314,22 @@ class TblPerson extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @param string $format
+     *
+     * @return string
+     */
+    public function getBirthday(string $format = 'd.m.Y'): string
+    {
+        if (($tblCommon = $this->getCommon())) {
+            if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                return $tblCommonBirthDates->getBirthday($format);
+            }
+        }
+
+        return '';
     }
 
     /**

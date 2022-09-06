@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Billing\Accounting;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -33,6 +34,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -287,7 +289,9 @@ class ApiCreditor extends Extension implements IApiInterface
                         (new TextField("Creditor[IBAN]", "DE00 0000 0000 0000 0000 00", "IBAN", null, 'AA99 9999 9999 9999 9999 99'))->setRequired()
                         , 6),
                     new FormColumn(
-                        new TextField('Creditor[BIC]', 'BIC', 'BIC')
+                        (new TextField('Creditor[BIC]', 'BIC', 'BIC', null, '***********'))
+                            ->setCaseToUpper(true)
+                            ->setRequired()
                         , 6),
                 )),
                 new FormRow(array(
@@ -362,9 +366,34 @@ class ApiCreditor extends Extension implements IApiInterface
         if(isset($Creditor['CreditorId']) && empty($Creditor['CreditorId'])){
             $form->setError('Creditor[CreditorId]', 'Bitte geben Sie eine Gläubiger Id an');
             $Error = true;
-        }if(isset($Creditor['IBAN']) && empty($Creditor['IBAN'])){
+        }
+        if(isset($Creditor['IBAN']) && empty($Creditor['IBAN'])){
             $form->setError('Creditor[IBAN]', 'Bitte geben Sie eine IBAN an');
             $Error = true;
+        } elseif(strpos($Creditor['IBAN'], 'DE') === 0) {
+            $Iban = str_replace(' ', '', $Creditor['IBAN']);
+            if(strlen($Iban) !== 22){
+                $form->setError('Creditor[IBAN]', 'Deutsche IBAN-Länge muss 22 Zeichen betragen');
+                $Error = true;
+            } else {
+                $Iban = str_replace(' ', '', $Creditor['IBAN']);
+                if(($IbanArray = Account::useService()->getControlIban($Iban)) && !$IbanArray['control']){
+                    // aktuelle Prüfziffer $IbanArray['number']
+                    // errechnete Prüfziffer $IbanArray['controlNumber']
+                    $form->setError('Creditor[IBAN]', 'Deutsche IBAN-Prüfziffer nicht korrekt'.new ToolTip('.', $IbanArray['number'].' != '.$IbanArray['controlNumber']));
+                    $Error = true;
+                }
+            }
+        }
+
+        if(isset($Creditor['BIC']) && empty($Creditor['BIC'])){
+            $form->setError('Creditor[BIC]', 'Bitte geben Sie die BIC an');
+            $Error = true;
+        } else {
+            if(strlen($Creditor['BIC']) < 8){
+                $form->setError('Creditor[BIC]', 'Eine BIC hat mindestens 8, maximal 11 Zeichen');
+                $Error = true;
+            }
         }
 
         if($Error){
@@ -416,7 +445,7 @@ class ApiCreditor extends Extension implements IApiInterface
             $Creditor['Number']
             , $Creditor['Code'], $Creditor['City'], $Creditor['District'], $Creditor['CreditorId'],
             $Creditor['BankName'], $Creditor['IBAN']
-            , $Creditor['BIC']);
+            , strtoupper($Creditor['BIC']));
 
         return ($tblCreditor
             ? new Success('Gläubiger erfolgreich angelegt').self::pipelineCloseModal($Identifier)
@@ -456,7 +485,7 @@ class ApiCreditor extends Extension implements IApiInterface
             $IsChange = Creditor::useService()->changeCreditor($tblCreditor, $Creditor['Owner'], $Creditor['Street']
                 , $Creditor['Number'], $Creditor['Code'], $Creditor['City'], $Creditor['District'],
                 $Creditor['CreditorId']
-                , $Creditor['BankName'], $Creditor['IBAN'], $Creditor['BIC']);
+                , $Creditor['BankName'], $Creditor['IBAN'], strtoupper($Creditor['BIC']));
         }
 
         return ($IsChange

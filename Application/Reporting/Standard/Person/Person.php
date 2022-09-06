@@ -45,6 +45,18 @@ class Person extends AbstractModule implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/Absence'), new Link\Name('Fehlzeiten'))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/Club'), new Link\Name('Fördervereinsmitgliedschaft'))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/StudentArchive'), new Link\Name('Ehemalige Schüler'))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/StudentAgreement'), new Link\Name('Schüler Einverständniserklärung'))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/PersonAgreement'), new Link\Name('Mitarbeiter Einverständniserklärung'))
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPerson'
@@ -75,6 +87,18 @@ class Person extends AbstractModule implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Absence', __NAMESPACE__.'\Frontend::frontendAbsence'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Club', __NAMESPACE__.'\Frontend::frontendClub'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/StudentArchive', __NAMESPACE__.'\Frontend::frontendStudentArchive'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/StudentAgreement', __NAMESPACE__.'\Frontend::frontendStudentAgreement'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/PersonAgreement', __NAMESPACE__.'\Frontend::frontendAgreement'
         ));
     }
 

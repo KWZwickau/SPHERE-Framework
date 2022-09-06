@@ -29,7 +29,9 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $this->setTableType($Schema);
+        $tblCategory = $this->setTableCategory($Schema);
+        $this->setTableType($Schema, $tblCategory);
+
         /**
          * Migration & Protocol
          */
@@ -51,19 +53,37 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     * @param Table $tblCategory
      *
      * @return Table
      */
-    private function setTableType(Schema &$Schema)
+    private function setTableType(Schema &$Schema, Table $tblCategory)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblType');
-        if (!$this->getConnection()->hasColumn('tblType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblType', 'Description')) {
-            $Table->addColumn('Description', 'string');
-        }
+
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'ShortName', self::FIELD_TYPE_STRING, false, '');
+        $this->createColumn($Table, 'IsBasic', self::FIELD_TYPE_BOOLEAN, false, 0);
+
+        $this->createForeignKey($Table, $tblCategory, true);
+
         return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableCategory(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblCategory');
+
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+
+        return $table;
     }
 }

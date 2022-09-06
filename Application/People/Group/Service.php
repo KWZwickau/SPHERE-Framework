@@ -14,6 +14,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -89,6 +90,17 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->getMemberByPersonAndGroup($tblPerson, $tblGroup, ( $IsForced ? $IsForced : null ));
+    }
+
+    /**
+     * @param bool $isCoreGroup
+     *
+     * @return false|TblGroup[]
+     */
+    public function getGroupListByIsCoreGroup($isCoreGroup = true)
+    {
+
+        return ( new Data($this->getBinding()) )->getGroupListByIsCoreGroup($isCoreGroup);
     }
 
     /**
@@ -204,12 +216,13 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            if ((new Data($this->getBinding()))->createGroup(
-                $Group['Name'], $Group['Description'], $Group['Remark']
-            )
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
-                    .' Die Gruppe wurde erfolgreich erstellt').new Redirect('/People/Group',
+            $isCoreGroup = false;
+            if(isset($Group['IsCoreGroup'])){
+                $isCoreGroup = true;
+            }
+            if ((new Data($this->getBinding()))
+                ->createGroup($Group['Name'], $Group['Description'], $Group['Remark'], false, '', $isCoreGroup)) {
+                return new Success(new SuccessIcon().' Die Gruppe wurde erfolgreich erstellt').new Redirect('/People/Group',
                     Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger(new Ban().' Die Gruppe konnte nicht erstellt werden').new Redirect('/People/Group',
@@ -232,15 +245,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Name
+     * @param string $Name
+     * @param string $Description
      *
      * @return bool|TblGroup
      */
-    public function createGroupFromImport($Name)
+    public function createGroupFromImport($Name, $Description = '')
     {
 
         if (!($tblGroup = $this->getGroupByName($Name))) {
-            return (new Data($this->getBinding()))->createGroup($Name, '', '');
+            return (new Data($this->getBinding()))->createGroup($Name, $Description, '');
         } else {
             return $tblGroup;
         }
@@ -255,6 +269,15 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getGroupByMetaTable($MetaTable);
+    }
+
+    /**
+     * @return bool|TblGroup[]
+     */
+    public function getGroupByNotLocked()
+    {
+
+        return (new Data($this->getBinding()))->getGroupByNotLocked();
     }
 
     /**
@@ -288,11 +311,15 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
+            $isCoreGroup = false;
+            if(isset($Group['IsCoreGroup'])){
+                $isCoreGroup = true;
+            }
             if ((new Data($this->getBinding()))->updateGroup(
-                $tblGroup, $Group['Name'], $Group['Description'], $Group['Remark']
+                $tblGroup, $Group['Name'], $Group['Description'], $Group['Remark'], $isCoreGroup
             )
             ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Änderungen wurden erfolgreich gespeichert')
+                return new Success(new SuccessIcon().' Die Änderungen wurden erfolgreich gespeichert')
                 .new Redirect('/People/Group', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger(new Ban().' Die Änderungen konnte nicht gespeichert werden')
@@ -410,7 +437,8 @@ class Service extends AbstractService
             // control settings
             $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
             if($tblSetting && $tblSetting->getValue()) {
-                $this->setAutoStudentNumber($tblPerson);
+                $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
+                $this->setAutoStudentNumber($tblPerson, $MaxIdentifier);
             }
         }
         return (new Data($this->getBinding()))->addGroupPerson($tblGroup, $tblPerson);
@@ -430,30 +458,37 @@ class Service extends AbstractService
             // control settings
             $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
             if($tblSetting && $tblSetting->getValue()) {
+                $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
                 foreach($tblPersonList as $tblPerson){
-                    $this->setAutoStudentNumber($tblPerson);
+                    $MaxIdentifier = $this->setAutoStudentNumber($tblPerson, $MaxIdentifier);
                 }
             }
         }
         return $result;
     }
 
-    private function setAutoStudentNumber(TblPerson $tblPerson)
+    /**
+     * @param TblPerson $tblPerson
+     * @param int       $MaxIdentifier
+     *
+     * @return int
+     */
+    private function setAutoStudentNumber(TblPerson $tblPerson, $MaxIdentifier = 0)
     {
 
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
         if($tblStudent){
             if($tblStudent->getIdentifier() == ''){
-                $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
                 $MaxIdentifier++;
                 Student::useService()->updateStudentIdentifier($tblStudent, $MaxIdentifier);
             }
         } else {
-            $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
             $MaxIdentifier++;
             $Prefix = '';
             Student::useService()->createStudent($tblPerson, $Prefix, $MaxIdentifier);
         }
+
+        return $MaxIdentifier;
     }
 
     /**
@@ -515,11 +550,11 @@ class Service extends AbstractService
      *
      * @return TblGroup
      */
-    public function insertGroup($Name, $Description = '', $Remark = '')
+    public function insertGroup($Name, $Description = '', $Remark = '', $isCoreGroup = false)
     {
 
         return (new Data($this->getBinding()))->createGroup(
-            $Name, $Description, $Remark
+            $Name, $Description, $Remark, false, '', $isCoreGroup
         );
     }
 
@@ -559,7 +594,7 @@ class Service extends AbstractService
             $this->addPersonListToGroup($tblGroup, $DataAddPerson);
         }
 
-        return new Success('Daten erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        return new Success('Daten erfolgreich gespeichert', new SuccessIcon())
         .new Redirect('/People/Group/Person/Add', Redirect::TIMEOUT_SUCCESS, array(
             'Id'               => $tblGroup->getId(),
             'FilterGroupId'    => $tblFilterGroup ? $tblFilterGroup->getId() : null,
@@ -625,7 +660,7 @@ class Service extends AbstractService
         }
 
         return new Success('Die verfügbaren Personen werden gefiltert.',
-            new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            new SuccessIcon())
         .new Redirect('/People/Group/Person/Add', Redirect::TIMEOUT_SUCCESS, array(
             'Id'               => $tblGroup->getId(),
             'FilterGroupId'    => $tblFilterGroup ? $tblFilterGroup->getId() : null,
@@ -738,44 +773,34 @@ class Service extends AbstractService
     /**
      * @param TblPerson|null $tblPerson
      *
-     * @return TblGroup[]
+     * @return TblGroup[]|false
      */
     public function getTudorGroupAll(TblPerson $tblPerson = null)
     {
-        $list = array();
-        if (($tblStudentGroup = $this->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
-            && ($tblTudorGroup = $this->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
-            && ($tblGroupList = $this->getGroupAll())
+        $list = $this->getGroupListByIsCoreGroup(true);
+        if ($tblPerson
+            && $list
         ) {
-            foreach ($tblGroupList as $tblGroup) {
-                if (!$tblGroup->isLocked()) {
-                    if ($tblPerson && !$this->existsGroupPerson($tblGroup, $tblPerson)) {
-                        continue;
-                    }
-
-                    if (($tblPersonList = $this->getPersonAllByGroup($tblGroup))) {
-                        $isAdded = false;
-                        foreach ($tblPersonList as $tblMember) {
-                            if (($hasTudor = $this->existsGroupPerson($tblTudorGroup, $tblMember))) {
-                                $isAdded = true;
-                            }
-
-                            if (!$this->existsGroupPerson($tblStudentGroup, $tblMember)
-                                && !$hasTudor
-                            ) {
-                                $isAdded = false;
-                                break;
-                            }
-                        }
-
-                        if ($isAdded) {
-                            $list[] = $tblGroup;
-                        }
-                    }
+            $tudorGroupList = array();
+            foreach ($list as $tblGroup) {
+                if ($this->existsGroupPerson($tblGroup, $tblPerson)) {
+                    $tudorGroupList[] = $tblGroup;
                 }
             }
-        }
 
-        return $list;
+            return empty($tudorGroupList) ? false : $tudorGroupList;
+        } else {
+            return $list;
+        }
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return false|TblGroup[]
+     */
+    public function getGroupListLike($Name)
+    {
+        return (new Data($this->getBinding()))->getGroupListLike($Name);
     }
 }

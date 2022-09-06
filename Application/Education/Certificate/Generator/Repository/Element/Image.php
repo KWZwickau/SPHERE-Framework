@@ -6,7 +6,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 class Image extends Element
 {
 
-    public function __construct($Location, $Width = '100%', $Height = '100%')
+    public function __construct($Location, $Width = 'auto', $Height = 'auto')
     {
 
         parent::__construct();
@@ -21,9 +21,14 @@ class Image extends Element
     private function getPdfImage($Location)
     {
 
+        $ProtocolSecure = 'http://';
+        if(strpos($this->getRequest()->getHost(), 'schulsoftware.schule')){
+            $ProtocolSecure = 'https://';
+        }
+
         $PathBase = $this->getRequest()->getPathBase();
         if (empty( $PathBase )) {
-            $PathBase = 'https://'.$_SERVER['SERVER_NAME'];
+            $PathBase = $ProtocolSecure.$_SERVER['SERVER_NAME'];
         }
         return $PathBase.'/'.trim($Location, '/\\');
     }

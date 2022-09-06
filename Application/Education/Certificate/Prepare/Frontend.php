@@ -8,8 +8,11 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
+use DateTime;
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\BeGs;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekII;
+use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
@@ -18,6 +21,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Abitur\LeavePoints;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
@@ -37,15 +41,19 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\Editor;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
@@ -59,6 +67,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -77,10 +86,13 @@ use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
+use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -92,7 +104,10 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Table\Structure\TableHead;
+use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -101,14 +116,13 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\Education\Certificate\Prepare
  */
-class Frontend extends Extension implements IFrontendInterface
+class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 {
 
     /**
@@ -154,6 +168,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $divisionTable = array();
         if ($IsGroup) {
+            $Stage->setDescription('Gruppe auswählen');
             // tudorGroups
             if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
                 foreach ($tblGroupAll as $tblGroup) {
@@ -201,6 +216,11 @@ class Frontend extends Extension implements IFrontendInterface
                         && (($tblSchoolType->getName() == 'Mittelschule / Oberschule'
                                 && ($tblLevel->getName() == '09' || $tblLevel->getName() == '9' || $tblLevel->getName() == '10'))
                             || (($tblSchoolType->getName() == 'Gymnasium'
+                                && $tblLevel->getName() == '12'))
+                            || $tblSchoolType->getName() == 'Berufsfachschule'
+                            || $tblSchoolType->getName() == 'Fachschule'
+                            || $tblSchoolType->getName() == 'Berufsgrundbildungsjahr'
+                            || (($tblSchoolType->getName() == 'Fachoberschule'
                                 && $tblLevel->getName() == '12'))
                         )
                     ) {
@@ -287,6 +307,7 @@ class Frontend extends Extension implements IFrontendInterface
         $divisionTable = array();
         if ($tblPerson) {
             if ($IsGroup) {
+                $Stage->setDescription('Gruppe auswählen');
                 if (($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
                     && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
                 ) {
@@ -403,6 +424,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $divisionTable = array();
         if ($IsGroup) {
+            $Stage->setDescription('Gruppe auswählen');
             // tudorGroups
             if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
                 foreach ($tblGroupAll as $tblGroup) {
@@ -646,11 +668,16 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblPrepareAllByDivision as $tblPrepareCertificate) {
                 $tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate();
                 $tblCertificateType = $tblGenerateCertificate ? $tblGenerateCertificate->getServiceTblCertificateType() : false;
+                $tblSchoolType = $tblDivision->getType();
 
                 if ($tblCertificateType) {
                     if ($Route != 'Diploma') {
                         // Abschlusszeugnisse überspringen
-                        if ($tblCertificateType->getIdentifier() == 'DIPLOMA') {
+                        if ($tblCertificateType->getIdentifier() == 'DIPLOMA'
+                            // Ausnahme bei HOGA sollen die Klassenlehrer die Abschlusszeugnisse bearbeiten können, todo später Mandanteneintstellung
+                            && !(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA') && $Route == 'Teacher' && $tblSchoolType
+                                && ($tblSchoolType->getShortName() == 'OS' || $tblSchoolType->getShortName() == 'FOS'))
+                        ) {
                             continue;
                         }
                     } else {
@@ -659,11 +686,12 @@ class Frontend extends Extension implements IFrontendInterface
                             continue;
                         }
                     }
+                } else {
+                    continue;
                 }
 
                 if ($Route == 'Diploma'
-                    && ($tblLevel = $tblDivision->getTblLevel())
-                    && ($tblSchoolType = $tblLevel->getServiceTblType())
+                    && $tblSchoolType
                     && $tblSchoolType->getName() == 'Gymnasium'
                 ) {
                     $options = new Standard(
@@ -678,7 +706,16 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     $options = (new Standard(
                         '', '/Education/Certificate/Prepare/Prepare'
-                        . ($Route == 'Diploma' ? '/Diploma' : '')
+                        . ($tblCertificateType->getIdentifier() == 'DIPLOMA'
+                            ? '/Diploma' . ($tblSchoolType
+                                && ($tblSchoolType->getName() == 'Fachschule'
+                                    || $tblSchoolType->getName() == 'Berufsgrundbildungsjahr'
+//                                Fachoberschule, Berufsfachschule ist wie Oberschule
+//                                    || $tblSchoolType->getName() == 'Fachoberschule'
+//                                    || $tblSchoolType->getName() == 'Berufsfachschule'
+                                )
+                                ? '/Technical' : '')
+                            : '')
                         . '/Setting', new Setup(),
                         array(
                             'PrepareId' => $tblPrepareCertificate->getId(),
@@ -719,6 +756,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $IsNotGradeType
      * @param null $Data
      * @param null $CertificateList
+     * @param null $Page
      *
      * @return Stage|string
      */
@@ -729,13 +767,16 @@ class Frontend extends Extension implements IFrontendInterface
         $GradeTypeId = null,
         $IsNotGradeType = null,
         $Data = null,
-        $CertificateList = null
+        $CertificateList = null,
+        $Page = null
     ) {
 
         $description = '';
         $tblPrepareList = false;
         $tblGroup = false;
+        $headTableColumnList = array();
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))) {
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
             $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
             if ($GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId))) {
                 $description = 'Gruppe ' . $tblGroup->getName();
@@ -775,11 +816,23 @@ class Frontend extends Extension implements IFrontendInterface
                     $showProposalBehaviorGrade = false;
                 }
 
-                if (($tblPrepare->getServiceTblBehaviorTask())) {
-                    $tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
-                        $tblDivision);
+                if (($tblSettingAbsence = ConsumerSetting::useService()->getSetting(
+                    'Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+                ) {
+                    $useClassRegisterForAbsence = $tblSettingAbsence->getValue();
                 } else {
-                    $tblTestList = false;
+                    $useClassRegisterForAbsence = false;
+                }
+
+                $tblTestList = false;
+                foreach ($tblPrepareList as $tblPrepareCertificateItem) {
+                    if (($tblPrepareCertificateItem->getServiceTblBehaviorTask())
+                        && ($tblPrepareDivision = $tblPrepareCertificateItem->getServiceTblDivision())
+                        && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepareCertificateItem->getServiceTblBehaviorTask(),
+                            $tblPrepareDivision))
+                    ) {
+                        break;
+                    }
                 }
 
                 // Kopfnoten festlegen
@@ -864,6 +917,11 @@ class Frontend extends Extension implements IFrontendInterface
                         );
                     }
 
+                    // Erstellt zusätzliche "Tabs" für weitere Sonstige Informationen und die Fehlzeiten
+                    /** @noinspection PhpUnusedLocalVariableInspection */
+                    list($informationPageList, $pageList, $CertificateHasAbsenceList, $StudentHasAbsenceLessonsList)
+                        = Prepare::useService()->getCertificateInformationPages($tblPrepareList, $tblGroup, $useClassRegisterForAbsence);
+
                     $buttonList[] = new Standard('Sonstige Informationen',
                         '/Education/Certificate/Prepare/Prepare/Setting', null, array(
                             'PrepareId' => $tblPrepare->getId(),
@@ -872,6 +930,23 @@ class Frontend extends Extension implements IFrontendInterface
                             'IsNotGradeType' => true
                         )
                     );
+                    foreach ($pageList as $item) {
+                        if ($item == 'Absence') {
+                            $text = 'Fehlzeiten';
+                        } else {
+                            $text = 'Sonstige Informationen (Seite ' . $item . ')';
+                        }
+
+                        $buttonList[] = new Standard($text,
+                            '/Education/Certificate/Prepare/Prepare/Setting', null, array(
+                                'PrepareId' => $tblPrepare->getId(),
+                                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                                'Route' => $Route,
+                                'IsNotGradeType' => true,
+                                'Page' => $item
+                            )
+                        );
+                    }
 
                     $studentTable = array();
                     $columnTable = array(
@@ -905,26 +980,42 @@ class Frontend extends Extension implements IFrontendInterface
                         ) {
                             foreach ($tblStudentList as $tblPerson) {
                                 if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                    $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem, $tblPerson);
 
                                     $studentTable[$tblPerson->getId()] = array(
-                                        'Number' => count($studentTable) + 1,
+                                        'Number' => (count($studentTable) + 1) . ' '
+                                            . ($tblPrepareStudent && $tblPrepareStudent->isApproved()
+                                                ? new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban()),
+                                                    'Das Zeugnis des Schülers wurde bereits freigegeben und kann nicht mehr bearbeitet werden.')
+                                                : new ToolTip(new Success(new Edit()), 'Das Zeugnis des Schülers kann bearbeitet werden.')),
                                         'Name' => $tblPerson->getLastFirstName()
                                             . ($tblGroup
                                                 ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
                                     );
 
+                                    if (($tblType = $tblDivisionItem->getType())) {
+                                        $isTechnicalSchool = $tblType->isTechnical();
+                                    } else {
+                                        $isTechnicalSchool = false;
+                                    }
+
                                     // Bildungsgang
-                                    $tblCourse = false;
-                                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                                    ) {
-                                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                            $tblTransferType);
-                                        if ($tblStudentTransfer) {
-                                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                    $courseName = '';
+                                    if ($isTechnicalSchool) {
+                                        $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                                    } else {
+                                        if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                                        ) {
+                                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                                $tblTransferType);
+                                            if ($tblStudentTransfer) {
+                                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                                $courseName = $tblCourse ? $tblCourse->getName() : '';
+                                            }
                                         }
                                     }
-                                    $studentTable[$tblPerson->getId()]['Course'] = $tblCourse ? $tblCourse->getName() : '';
+                                    $studentTable[$tblPerson->getId()]['Course'] = $courseName;
 
                                     if ($tblCurrentGradeType) {
                                         $subjectGradeList = array();
@@ -1057,8 +1148,6 @@ class Frontend extends Extension implements IFrontendInterface
                                             }
                                         }
 
-                                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem,
-                                            $tblPerson);
                                         // Post setzen
                                         if ($Data === null
                                             && $tblPrepareStudent
@@ -1073,9 +1162,11 @@ class Frontend extends Extension implements IFrontendInterface
                                             if ($tblPrepareGrade) {
                                                 $gradeValue = $tblPrepareGrade->getGrade();
                                                 $Global->POST['Data'][$tblPrepareStudent->getId()] = $gradeValue;
-                                            } elseif ($averageStudent) {
+                                            } elseif ($averageStudent && !$tblPrepareStudent->isApproved()) {
                                                 // Noten aus dem Notendurchschnitt als Vorschlag eintragen
-                                                $hasPreviewGrades = true;
+                                                if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                    $hasPreviewGrades = true;
+                                                }
                                                 $Global->POST['Data'][$tblPrepareStudent->getId()] = round($averageStudent, 0);
                                             }
 
@@ -1113,7 +1204,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $columnDef = array(
                         array(
-                            "width" => "7px",
+                            "width" => "18px",
                             "targets" => 0
                         ),
                         array(
@@ -1272,24 +1363,145 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
-                    $buttonList[] = new Standard(new Info(new Bold('Sonstige Informationen')),
-                        '/Education/Certificate/Prepare/Prepare/Setting', new Edit(), array(
-                            'PrepareId' => $tblPrepare->getId(),
-                            'GroupId' => $tblGroup ? $tblGroup->getId() : null,
-                            'Route' => $Route,
-                            'IsNotGradeType' => true
-                        )
-                    );
+                    // Aufteilung der Sonstigen Informationen auf mehrere Seiten
+                    list($informationPageList, $pageList, $CertificateHasAbsenceList, $StudentHasAbsenceLessonsList)
+                        = Prepare::useService()->getCertificateInformationPages($tblPrepareList, $tblGroup, $useClassRegisterForAbsence);
+
+                    if ($Page == null) {
+                        $buttonList[] = new Standard(new Info(new Bold('Sonstige Informationen')),
+                            '/Education/Certificate/Prepare/Prepare/Setting', new Edit(), array(
+                                'PrepareId' => $tblPrepare->getId(),
+                                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                                'Route' => $Route,
+                                'IsNotGradeType' => true
+                            )
+                        );
+                    } else {
+                        $buttonList[] = new Standard('Sonstige Informationen',
+                            '/Education/Certificate/Prepare/Prepare/Setting', null, array(
+                                'PrepareId' => $tblPrepare->getId(),
+                                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                                'Route' => $Route,
+                                'IsNotGradeType' => true
+                            )
+                        );
+                    }
+
+                    $nextPage = null;
+                    $isCurrentPage = $Page == null;
+                    foreach ($pageList as $item) {
+                        if ($item == 'Absence') {
+                            $text = 'Fehlzeiten';
+                        } else {
+                            $text = 'Sonstige Informationen (Seite ' . $item . ')';
+                        }
+
+                        if ($Page == $item) {
+                            $buttonList[] = new Standard(new Info(new Bold($text)),
+                                '/Education/Certificate/Prepare/Prepare/Setting', new Edit(), array(
+                                    'PrepareId' => $tblPrepare->getId(),
+                                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                                    'Route' => $Route,
+                                    'IsNotGradeType' => true,
+                                    'Page' => $item
+                                )
+                            );
+                            $isCurrentPage = true;
+                        } else {
+                            $buttonList[] = new Standard($text,
+                                '/Education/Certificate/Prepare/Prepare/Setting', null, array(
+                                    'PrepareId' => $tblPrepare->getId(),
+                                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                                    'Route' => $Route,
+                                    'IsNotGradeType' => true,
+                                    'Page' => $item
+                                )
+                            );
+
+                            if ($isCurrentPage) {
+                                $nextPage = $item;
+                                $isCurrentPage = false;
+                            }
+                        }
+                    }
 
                     $studentTable = array();
-                    $columnTable = array(
-                        'Number' => '#',
-                        'Name' => 'Name',
-                        'IntegrationButton' => 'Integration',
-                        'Course' => 'Bildungsgang',
-                        'ExcusedDays' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
-                        'UnexcusedDays' => 'U-FZ' // 'unent&shy;schuld&shy;igte FZ'
-                    );
+                    if ($Page == 'Absence') {
+                        $Stage->setDescription('Fehlzeiten festlegen');
+                        if ($useClassRegisterForAbsence) {
+                            $Stage->setMessage(
+                                new \SPHERE\Common\Frontend\Text\Repository\Warning(new Bold('Hinweis: ')
+                                    . new Container('Die Fehlzeiten werden im Klassenbuch erfasst. Hier können für fehlende
+                                    Unterrichtseinheiten zusätzliche Tage eingeben werden. Die Fehlzeiten auf dem Zeugnis
+                                    ergeben sich dann aus den <b>"Fehltagen im Klassenbuch"</b> + <b>"die hier eingebenen
+                                    Zusatz-Tage für fehlende Unterrichtseinheiten"</b>.')
+                                    . new Container('Es können nur Zusatz-Tage für Unterrichtseinheiten bei einem Schüler
+                                    erfasst werden, wenn der Schüler eine Zeugnisvorlage mit Fehlzeiten besitzt und im
+                                    Klassenbuch auch entsprechende fehlende Unterrichtseinheiten erfasst wurden.')
+                                    . new Container('&nbsp;')
+                                    . new Container(new Bold(new Exclamation() . ' Bitte speichern Sie die Fehlzeiten erst,
+                                    wenn alle Fehlzeiten im Klassenbuch erfasst wurden. Sie können diese Seite mit
+                                    "Ohne Speichern weiter" überspringen.'))
+                                )
+                            );
+                        } else {
+                            $Stage->setMessage(
+                                new \SPHERE\Common\Frontend\Text\Repository\Warning(new Bold('Hinweis: ')
+                                    . new Container('Die Fehlzeiten für die Zeugnisse werden hier erfasst. Bitte tragen
+                                    Sie hier die Fehlzeiten-Tage für das Zeugnis ein. Wurden schon Fehltage im Klassenbuch
+                                    erfasst, werden diese unter <b>"Ganze Tage"</b> angezeigt. Wurden schon fehlende
+                                    Unterrichtseinheiten im Klassenbuch erfasst, werden diese unter <b>"UE"</b> angezeigt.')
+                                    . new Container('Es können nur Fehltage für das Zeugnis erfasst werden, wenn der Schüler
+                                    eine Zeugnisvorlage mit Fehlzeiten besitzt.')
+                                )
+                            );
+                        }
+
+                        $headTableColumnList[] = new TableColumn('Schüler', 4);
+                        $headTableColumnList[] = new TableColumn('Entschuldigte Fehlzeiten', 3);
+                        $headTableColumnList[] = new TableColumn('Unentschuldigte Fehlzeiten', 3);
+
+                        if ($useClassRegisterForAbsence) {
+                            $columnTable = array(
+                                'Number' => '#',
+                                'Name' => 'Name',
+                                'IntegrationButton' => 'Integration',
+                                'Course' => 'Bildungsgang',
+
+                                'ExcusedDays' => 'Ganze Tage',
+                                'ExcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten'),
+                                'ExcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für Unterrichts&shy;einheiten',
+                                    'Für fehlende Unterrichtseinheiten können zusätzliche Fehltage erfasst werden'),
+
+                                'UnexcusedDays' => 'Ganze Tage',
+                                'UnexcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten'),
+                                'UnexcusedDaysFromLessons' => new ToolTip('Zusatz-Tage für Unterrichts&shy;einheiten',
+                                    'Für fehlende Unterrichtseinheiten können zusätzliche Fehltage erfasst werden')
+                            );
+                        } else {
+                            $columnTable = array(
+                                'Number' => '#',
+                                'Name' => 'Name',
+                                'IntegrationButton' => 'Integration',
+                                'Course' => 'Bildungsgang',
+
+                                'ExcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
+                                'ExcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
+                                'ExcusedDays' => 'Tage auf dem Zeugnis',
+
+                                'UnexcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
+                                'UnexcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
+                                'UnexcusedDays' => 'Tage auf dem Zeugnis',
+                            );
+                        }
+                    } else {
+                        $columnTable = array(
+                            'Number' => '#',
+                            'Name' => 'Name',
+                            'IntegrationButton' => 'Integration',
+                            'Course' => 'Bildungsgang'
+                        );
+                    }
 
                     foreach ($tblPrepareList as $tblPrepareItem) {
                         if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
@@ -1297,79 +1509,192 @@ class Frontend extends Extension implements IFrontendInterface
                         ) {
                             foreach ($tblStudentList as $tblPerson) {
                                 if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                    $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem, $tblPerson);
                                     $studentTable[$tblPerson->getId()] = array(
-                                        'Number' => count($studentTable) + 1,
+                                        'Number' => (count($studentTable) + 1) . ' '
+                                            . ($tblPrepareStudent && $tblPrepareStudent->isApproved()
+                                                ? new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban()),
+                                                    'Das Zeugnis des Schülers wurde bereits freigegeben und kann nicht mehr bearbeitet werden.')
+                                                : new ToolTip(new Success(new Edit()), 'Das Zeugnis des Schülers kann bearbeitet werden.')),
                                         'Name' => $tblPerson->getLastFirstName()
                                             . ($tblGroup
                                                 ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
                                     );
 
+                                    if (($tblType = $tblDivisionItem->getType())) {
+                                        $isTechnicalSchool = $tblType->isTechnical();
+                                    } else {
+                                        $isTechnicalSchool = false;
+                                    }
+
                                     // Bildungsgang
-                                    $tblCourse = false;
-                                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                                    ) {
-                                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                            $tblTransferType);
-                                        if ($tblStudentTransfer) {
-                                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                    $courseName = '';
+                                    if ($isTechnicalSchool) {
+                                        $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                                    } else {
+                                        if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                                        ) {
+                                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                                $tblTransferType);
+                                            if ($tblStudentTransfer) {
+                                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                                $courseName = $tblCourse ? $tblCourse->getName() : '';
+                                            }
                                         }
                                     }
-                                    $studentTable[$tblPerson->getId()]['Course'] = $tblCourse ? $tblCourse->getName() : '';
+                                    $studentTable[$tblPerson->getId()]['Course'] = $courseName;
 
                                     $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem,
                                         $tblPerson);
 
+                                    /**
+                                     * Post-Data
+                                     */
                                     if ($Data === null && $tblPrepareStudent) {
                                         $Global = $this->getGlobal();
-                                        /*
-                                         * Fehlzeiten
-                                         */
-                                        // Post setzen von Fehlzeiten und Fehlzeiten aus dem Klassenbuch voreintragen
-                                        if ($Global) {
-                                            $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDays'] =
-                                                $tblPrepareStudent && $tblPrepareStudent->getExcusedDays() !== null
-                                                    ? $tblPrepareStudent->getExcusedDays()
-                                                    : Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                                                    $tblDivisionItem, new \DateTime($tblPrepareItem->getDate()));
-                                            $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDays'] =
-                                                $tblPrepareStudent && $tblPrepareStudent->getUnexcusedDays() !== null
-                                                    ? $tblPrepareStudent->getUnexcusedDays()
-                                                    : Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                                    $tblDivisionItem, new \DateTime($tblPrepareItem->getDate()));
-                                        }
 
-                                        /*
-                                        * Individuelle Zeugnisse EVGSM Meerane Klassename vorsetzen
-                                        */
-                                        if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                                            && $tblConsumer->getAcronym() == 'EVGSM'
-                                            && ($tblCertificateStudent = $tblPrepareStudent->getServiceTblCertificate())
-                                            && strpos($tblCertificateStudent->getCertificate(), 'EVGSM') !== false
-                                        ) {
-                                            $Global->POST['Data'][$tblPrepareStudent->getId()]['DivisionName'] = $tblDivisionItem->getDisplayName();
+                                        if ($Page == null) {
+                                            /*
+                                            * Individuelle Zeugnisse EVGSM Meerane Klassename vorsetzen
+                                            */
+                                            if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EVGSM')
+                                                && ($tblCertificateStudent = $tblPrepareStudent->getServiceTblCertificate())
+                                                && strpos($tblCertificateStudent->getCertificate(), 'EVGSM') !== false
+                                            ) {
+                                                $Global->POST['Data'][$tblPrepareStudent->getId()]['DivisionName']
+                                                    = $tblDivisionItem->getDisplayName();
+                                            }
                                         }
 
                                         $Global->savePost();
                                     }
 
-                                    if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
-                                        $studentTable[$tblPerson->getId()]['ExcusedDays'] =
-                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][ExcusedDays]', '',
-                                                ''))->setDisabled();
-                                        $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
-                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][UnexcusedDays]', '',
-                                                ''))->setDisabled();
-                                    } elseif ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
-                                        $studentTable[$tblPerson->getId()]['ExcusedDays'] =
-                                            new NumberField('Data[' . $tblPrepareStudent->getId() . '][ExcusedDays]', '', '');
-                                        $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
-                                            new NumberField('Data[' . $tblPrepareStudent->getId() . '][UnexcusedDays]', '', '');
-                                    } else {
-                                        // keine Zeugnisvorlage ausgewählt
-                                        $studentTable[$tblPerson->getId()]['ExcusedDays'] = '';
-                                        $studentTable[$tblPerson->getId()]['UnexcusedDays'] = '';
+                                    if ($Page == 'Absence') {
+                                        $excusedDays = 0;
+                                        $excusedLessons = 0;
+                                        $excusedDaysFromClassRegister = 0;
+                                        $unexcusedDays = 0;
+                                        $unexcusedLessons = 0;
+                                        $unexcusedDaysFromClassRegister = 0;
+
+                                        if ($tblPrepareStudent) {
+                                            if ($tblGenerateCertificate && $tblGenerateCertificate->getAppointedDateForAbsence()) {
+                                                $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                                            } else {
+                                                $date = new DateTime($tblPrepareItem->getDate());
+                                            }
+
+                                            $excusedDays =  $tblPrepareStudent->getExcusedDays();
+                                            $excusedDaysFromClassRegister = Absence::useService()->getExcusedDaysByPerson(
+                                                $tblPerson,
+                                                $tblDivisionItem,
+                                                $date,
+                                                $excusedLessons
+                                            );
+
+                                            $unexcusedDays =  $tblPrepareStudent->getUnexcusedDays();
+                                            $unexcusedDaysFromClassRegister = Absence::useService()->getUnexcusedDaysByPerson(
+                                                $tblPerson,
+                                                $tblDivisionItem,
+                                                $date,
+                                                $unexcusedLessons
+                                            );
+
+                                            /*
+                                             * Post Fehlzeiten
+                                             */
+                                            if ($Data === null && $tblPrepareStudent) {
+                                                $Global = $this->getGlobal();
+                                                if ($Global) {
+                                                    if ($useClassRegisterForAbsence) {
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDaysFromLessons']
+                                                            = $tblPrepareStudent->getExcusedDaysFromLessons();
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDaysFromLessons']
+                                                            = $tblPrepareStudent->getUnexcusedDaysFromLessons();
+                                                    } else {
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDays']
+                                                            = $excusedDays;
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDays']
+                                                            = $unexcusedDays;
+                                                    }
+                                                }
+                                                $Global->savePost();
+                                            }
+                                        }
+
+                                        if ($tblPrepareStudent
+                                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                            && (isset($CertificateHasAbsenceList[$tblCertificate->getId()]))
+                                        ) {
+                                            if ($useClassRegisterForAbsence) {
+                                                // Fehlzeiten werden im Klassenbuch gepflegt
+                                                if ($excusedDays === null) {
+                                                    $excusedDays = $excusedDaysFromClassRegister;
+                                                }
+                                                if ($unexcusedDays === null) {
+                                                    $unexcusedDays = $unexcusedDaysFromClassRegister;
+                                                }
+
+                                                $studentTable[$tblPerson->getId()]['ExcusedDays'] = $excusedDays;
+                                                $studentTable[$tblPerson->getId()]['ExcusedLessons'] = $excusedLessons;
+
+                                                $studentTable[$tblPerson->getId()]['UnexcusedDays'] = $unexcusedDays;
+                                                $studentTable[$tblPerson->getId()]['UnexcusedLessons'] = $unexcusedLessons;
+
+                                                // Eingabe nur möglich wenn UEs beim Schüler erfasst wurden
+                                                if (isset($StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_EXCUSED])) {
+                                                    $inputExcusedDaysFromLessons = new NumberField(
+                                                        'Data[' . $tblPrepareStudent->getId() . '][ExcusedDaysFromLessons]',
+                                                        '',
+                                                        ''
+                                                    );
+
+                                                    if ($tblPrepareStudent->isApproved()) {
+                                                        $inputExcusedDaysFromLessons->setDisabled();
+                                                    }
+                                                    $studentTable[$tblPerson->getId()]['ExcusedDaysFromLessons'] = $inputExcusedDaysFromLessons;
+                                                }
+                                                if (isset($StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_UNEXCUSED])) {
+                                                    $inputUnexcusedDaysFromLessons = new NumberField(
+                                                        'Data[' . $tblPrepareStudent->getId() . '][UnexcusedDaysFromLessons]',
+                                                        '',
+                                                        ''
+                                                    );
+                                                    if ($tblPrepareStudent->isApproved()) {
+                                                        $inputUnexcusedDaysFromLessons->setDisabled();
+                                                    }
+                                                    $studentTable[$tblPerson->getId()]['UnexcusedDaysFromLessons'] = $inputUnexcusedDaysFromLessons;
+                                                }
+                                            } else {
+                                                // Fehlzeiten werden hier (Zeugnisvorbereitung) gepflegt
+                                                $studentTable[$tblPerson->getId()]['ExcusedDaysInClassRegister'] = $excusedDaysFromClassRegister;
+                                                $studentTable[$tblPerson->getId()]['ExcusedLessons'] = $excusedLessons;
+
+                                                $studentTable[$tblPerson->getId()]['UnexcusedDaysInClassRegister'] = $unexcusedDaysFromClassRegister;
+                                                $studentTable[$tblPerson->getId()]['UnexcusedLessons'] = $unexcusedLessons;
+
+                                                $inputExcusedDays = new NumberField(
+                                                    'Data[' . $tblPrepareStudent->getId() . '][ExcusedDays]',
+                                                    '',
+                                                    ''
+                                                );
+                                                $inputUnexcusedDays = new NumberField(
+                                                    'Data[' . $tblPrepareStudent->getId() . '][UnexcusedDays]',
+                                                    '',
+                                                    ''
+                                                );
+                                                if ($tblPrepareStudent->isApproved()) {
+                                                    $inputExcusedDays->setDisabled();
+                                                    $inputUnexcusedDays->setDisabled();
+                                                }
+                                                $studentTable[$tblPerson->getId()]['ExcusedDays'] = $inputExcusedDays;
+                                                $studentTable[$tblPerson->getId()]['UnexcusedDays'] = $inputUnexcusedDays;
+                                            }
+
+                                        }
                                     }
+
                                     // Integration ReadOnlyButton
                                     if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                                         $studentTable[$tblPerson->getId()]['IntegrationButton'] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
@@ -1381,9 +1706,17 @@ class Frontend extends Extension implements IFrontendInterface
                                     /*
                                      * Sonstige Informationen der Zeugnisvorlage
                                      */
-                                    $this->getTemplateInformation($tblPrepareItem, $tblPerson, $studentTable, $columnTable,
+                                    $this->getTemplateInformation(
+                                        $tblPrepareItem,
+                                        $tblPerson,
+                                        $studentTable,
+                                        $columnTable,
                                         $Data,
-                                        $CertificateList);
+                                        $CertificateList,
+                                        $Page,
+                                        $informationPageList,
+                                        $GroupId
+                                    );
 
                                     // leere Elemente auffühlen (sonst steht die Spaltennummer drin)
                                     foreach ($columnTable as $columnKey => $columnName) {
@@ -1398,11 +1731,19 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
-                    $tableData = new TableData($studentTable, null, $columnTable,
-                        array(
+                    $SpaceWithFalseTable = '';
+                    // if using false table, need to be space between buttons & table
+                    // same consumer as those who using Editor ad inputfield
+                    if($tblConsumer
+                        && ($tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'REF') || $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EVAB'))
+                    ) {
+                        $Interactive = false;
+                        $SpaceWithFalseTable = new Container('&nbsp;');
+                    } else {
+                        $Interactive = array(
                             "columnDefs" => array(
                                 array(
-                                    "width" => "7px",
+                                    "width" => "18px",
                                     "targets" => 0
                                 ),
                                 array(
@@ -1412,10 +1753,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     "width" => "80px",
                                     "targets" => 2
-                                ),
-                                array(
-                                    "width" => "50px",
-                                    "targets" => array(3, 4)
                                 ),
                             ),
                             'order' => array(
@@ -1427,9 +1764,26 @@ class Frontend extends Extension implements IFrontendInterface
                             "info" => false,  // Deaktivieren Such-Info
                             "sort" => false,
                             "responsive" => false
-                        ),
-                        true
+                        );
+                    }
+
+                    $tableData = new TableData($studentTable, null, $columnTable,
+                        $Interactive, true
                     );
+
+                    $formButtons[] = new Primary('Speichern', new Save());
+                    if ($Page == 'Absence' && !empty($headTableColumnList)) {
+                        $tableData->prependHead(
+                            new TableHead(
+                                new TableRow(
+                                    $headTableColumnList
+                                )
+                            )
+                        );
+
+                        $formButtons[] = new Standard('Ohne Speichern weiter', '/Education/Certificate/Prepare/Prepare/Preview',
+                            null, array('PrepareId' => $PrepareId, 'Route' => $Route = 'Teacher', 'GroupId' => $GroupId));
+                    }
 
                     $form = new Form(
                         new FormGroup(array(
@@ -1439,8 +1793,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ),
                                 new FormColumn(new HiddenField('Data[IsSubmit]'))
                             )),
+                            new FormRow(new FormColumn($formButtons))
                         ))
-                        , new Primary('Speichern', new Save())
                     );
 
                     $Stage->setContent(
@@ -1470,8 +1824,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutRow(array(
                                     new LayoutColumn(array(
                                         ApiSupportReadOnly::receiverOverViewModal(),
+                                        $SpaceWithFalseTable,
                                         Prepare::useService()->updatePrepareInformationList($form, $tblPrepare,
-                                            $tblGroup ? $tblGroup : null, $Route, $Data, $CertificateList)
+                                            $tblGroup ? $tblGroup : null, $Route, $Data, $CertificateList, $nextPage)
                                     ))
                                 ))
                             ))
@@ -1500,14 +1855,20 @@ class Frontend extends Extension implements IFrontendInterface
      * @param array $columnTable
      * @param array|null $Data
      * @param array|null $CertificateList
+     * @param null|integer $Page
+     * @param null|array $informationPageList
+     * @param null $GroupId
      */
-    private function getTemplateInformation(
+    protected function getTemplateInformation(
         TblPrepareCertificate $tblPrepareCertificate,
         TblPerson $tblPerson,
         &$studentTable,
         &$columnTable,
         &$Data,
-        &$CertificateList
+        &$CertificateList,
+        $Page = null,
+        $informationPageList = null,
+        $GroupId = null
     ) {
 
         $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareCertificate, $tblPerson);
@@ -1517,13 +1878,33 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCertificate = false;
         }
 
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Certificate', 'Prepare', 'ShowOrientationsInCertificateRemark'))) {
+            $showOrientationsInCertificateRemark = $tblSetting->getValue();
+        } else {
+            $showOrientationsInCertificateRemark = false;
+        }
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Certificate', 'Prepare', 'ShowTeamsInCertificateRemark'))) {
+            $showTeamsInCertificateRemark = $tblSetting->getValue();
+        } else {
+            $showTeamsInCertificateRemark = false;
+        }
+
         if ($tblCertificate && ($tblDivision = $tblPrepareCertificate->getServiceTblDivision())) {
             $Certificate = null;
             if ($tblCertificate) {
                 $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                 if (class_exists($CertificateClass)) {
+                    // Wahlbereich gibt es nur bei der Oberschule
+                    $showOrientationsInCertificateRemark = $showOrientationsInCertificateRemark
+                        && ($tblSchoolType = $tblCertificate->getServiceTblSchoolType())
+                        && ($tblSchoolType->getShortName() == 'OS');
 
-                    $tblDivision = $tblPrepareCertificate->getServiceTblDivision();
+                    if (($tblDivision = $tblPrepareCertificate->getServiceTblDivision())) {
+                        $tblLevel = $tblDivision->getTblLevel();
+                    } else {
+                        $tblLevel = false;
+                    }
+
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
                     $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
 
@@ -1534,7 +1915,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
                     $FormField = Generator::useService()->getFormField();
-                    $FormLabel = Generator::useService()->getFormLabel();
+                    $FormLabel = Generator::useService()->getFormLabel(($tblType = $tblDivision->getType()) ? $tblType : null);
 
                     if ($Data === null) {
                         $Global = $this->getGlobal();
@@ -1543,14 +1924,20 @@ class Frontend extends Extension implements IFrontendInterface
                         $hasTransfer = false;
                         $isTeamSet = false;
                         $hasRemarkText = false;
+                        $isSubjectAreaSet = false;
+                        $tblStudent = $tblPerson->getStudent();
                         if ($tblPrepareInformationAll) {
                             foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
                                 if ($tblPrepareInformation->getField() == 'Team' || $tblPrepareInformation->getField() == 'TeamExtra') {
                                     $isTeamSet = true;
                                 }
 
-                                if ($tblPrepareInformation->getField() == 'Remark') {
+                                if ($tblPrepareInformation->getField() == 'Remark' || $tblPrepareInformation->getField() == 'RemarkWithoutTeam') {
                                     $hasRemarkText = true;
+                                }
+
+                                if ($tblPrepareInformation->getField() == 'SubjectArea') {
+                                    $isSubjectAreaSet = true;
                                 }
 
                                 if ($tblPrepareInformation->getField() == 'SchoolType'
@@ -1565,13 +1952,33 @@ class Frontend extends Extension implements IFrontendInterface
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
                                         array_search($tblPrepareInformation->getValue(),
                                             $Certificate->selectValuesType());
+                                }  elseif ($tblPrepareInformation->getField() == 'Success'
+                                    && method_exists($Certificate, 'selectValuesSuccess')
+                                ) {
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
+                                        array_search($tblPrepareInformation->getValue(),
+                                            $Certificate->selectValuesSuccess());
                                 } elseif ($tblPrepareInformation->getField() == 'Transfer'
                                     && method_exists($Certificate, 'selectValuesTransfer')
                                 ) {
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
+                                        array_search($tblPrepareInformation->getValue(), $Certificate->selectValuesTransfer());
+                                        $hasTransfer = true;
+                                } elseif ($tblPrepareInformation->getField() == 'Job_Grade_Text'
+                                    && method_exists($Certificate, 'selectValuesJobGradeText')
+                                ) {
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
                                         array_search($tblPrepareInformation->getValue(),
-                                            $Certificate->selectValuesTransfer());
-                                    $hasTransfer = true;
+                                            $Certificate->selectValuesJobGradeText());
+                                } elseif (strpos($tblPrepareInformation->getField(), '_GradeText')
+                                    && ($tblGradeText = Gradebook::useService()->getGradeTextByName($tblPrepareInformation->getValue()))
+                                ) {
+                                    // Zeugnistext umwandeln
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] = $tblGradeText->getId();
+                                } elseif ($tblPrepareInformation->getField() == 'AdditionalRemarkFhr') {
+                                    // Checkbox
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()]
+                                        = $tblPrepareInformation->getValue() ? 1 : 0;
                                 } else {
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()]
                                         = $tblPrepareInformation->getValue();
@@ -1581,13 +1988,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                         // Coswig Versetzungsvermerk in die Bemerkung vorsetzten
                         if (!$hasRemarkText
-                            && ($tblConsumer = Consumer::useService()->getConsumerBySession())
-                            && $tblConsumer->getAcronym() == 'EVSC'
+                            && Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVSC')
                             && ($tblCertificateType = $tblCertificate->getTblCertificateType())
                             && $tblCertificateType->getIdentifier() == 'YEAR'
                         ) {
                             $nextLevel = 'x';
-                            if (($tblLevel = $tblDivision->getTblLevel())
+                            if ($tblLevel
                                 && is_numeric($tblLevel->getName())
                             ) {
                                 $nextLevel = floatval($tblLevel->getName()) + 1;
@@ -1597,8 +2003,8 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         // Arbeitsgemeinschaften aus der Schülerakte laden
-                        if (!$isTeamSet) {
-                            if (($tblStudent = $tblPerson->getStudent())
+                        if (!$isTeamSet && $showTeamsInCertificateRemark) {
+                            if ($tblStudent
                                 && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'))
                                 && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
                                     $tblStudent, $tblSubjectType
@@ -1617,6 +2023,24 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
 
+                        // Wahlbereich aus der Schülerakte laden
+                        if ($showOrientationsInCertificateRemark) {
+                            if ($tblStudent
+                                && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+                                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                                    $tblStudent, $tblSubjectType
+                                ))
+                            ) {
+                                /** @var TblStudentSubject $tblStudentSubject */
+                                $tblStudentSubject = reset($tblStudentSubjectList);
+                                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['Orientation']
+                                        = $tblPerson->getFirstSecondName() . ' hat im Rahmen des Wahlbereiches am Kurs '
+                                        . $tblSubject->getName() . ' teilgenommen.';
+                                }
+                            }
+                        }
+
                         // Vorsetzen auf Versetzungsvermerk: wird versetzt
                         if (!$hasTransfer) {
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['Transfer'] = 1;
@@ -1624,8 +2048,11 @@ class Frontend extends Extension implements IFrontendInterface
 
                         // SSW-340 Halbjahreszeugnis Klasse 10 OS -> abgewählte Fächer in die Bemerkung vorsetzen
                         if (!$hasRemarkText
-                            && ($Certificate->getCertificateEntity()->getCertificate() == 'MsHjRs')
-                        ) {
+                            && (($Certificate->getCertificateEntity()->getCertificate() == 'MsHjRs')
+                                || ($tblLevel
+                                    && intval($tblLevel->getName()) == 10
+                                    && $Certificate->getCertificateEntity()->getCertificate() == 'HOGA\MsHjZ')
+                        )) {
                             if (($tblDroppedSubjectList = Prepare::useService()->getAutoDroppedSubjects($tblPerson, $tblDivision))) {
                                 $countDroppedSubjects = count($tblDroppedSubjectList);
                                 if ($countDroppedSubjects == 1) {
@@ -1651,7 +2078,146 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
 
+                        // GTA setzen, werden in der Schülerakte als Arbeitsgemeinschaften gepflegt
+                        if (($tblStudent = $tblPerson->getStudent())
+                            && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM'))
+                            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                                $tblStudent, $tblSubjectType
+                            ))
+                        ) {
+                            $tempList = array();
+                            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                                if ($tblStudentSubject->getServiceTblSubject()) {
+                                    $tempList[] = $tblStudentSubject->getServiceTblSubject()->getName();
+                                }
+                            }
+
+                            $textGTA = $tblPerson->getFirstSecondName() . ' besuchte in diesem Schuljahr ';
+
+                            switch (count($tempList)) {
+                                case 1: $textGTA .= 'das GTA ' . $tempList[0] . '.';
+                                    break;
+                                case 2: $textGTA .= 'die GTA ' . $tempList[0]
+                                    . ' und ' . $tempList[1] . '.';
+                                    break;
+                                case 3: $textGTA .= 'die GTA ' . $tempList[0]
+                                    . ', ' . $tempList[1]
+                                    . ' und ' . $tempList[2] . '.';
+                                    break;
+                                case 4: $textGTA .= 'die GTA ' . $tempList[0]
+                                    . ', ' . $tempList[1]
+                                    . ', ' . $tempList[2]
+                                    . ' und ' . $tempList[3] . '.';
+                                    break;
+                                case 5: $textGTA .= 'die GTA ' . $tempList[0]
+                                    . ', ' . $tempList[1]
+                                    . ', ' . $tempList[2]
+                                    . ', ' . $tempList[3]
+                                    . ' und ' . $tempList[4] . '.';
+                                    break;
+                            }
+
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['GTA'] = $textGTA;
+                        }
+
+                        $isSupportForPrimarySchool = false;
+                        // Seelitz Förderbedarf-Satz in die Bemerkung vorsetzen
+                        if (!$hasRemarkText
+                            && Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESRL')
+                        ) {
+                           $isSupportForPrimarySchool = true;
+                        // staatliche und pseudostaatliche Grundschulzeugnisse Förderbedarf-Satz in die Bemerkung vorsetzen
+                        } elseif (!$hasRemarkText
+                            && ($Certificate->getCertificateEntity()->getCertificate() == 'GsHjInformation'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'GsHjOneInfo'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'GsJa'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'GsJOne'
+
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheHjInfoGs'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheHjInfoGsOne'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheJGs'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESZC\CheJGsOne'
+                            )
+                        ) {
+                            $isSupportForPrimarySchool = true;
+                        } elseif (!$hasRemarkText
+                            && ($Certificate->getCertificateEntity()->getCertificate() == 'ESBD\EsbdGsHjInformation'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESBD\EsbdGsHjOneInfo'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESBD\EsbdGsJa'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'ESBD\EsbdGsJOne'
+                            )
+                        ) {
+                            $isSupportForPrimarySchool = true;
+                        }
+
+                        if ($isSupportForPrimarySchool) {
+                            $textSupport = '';
+                            if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+                                && ($tblPrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport))
+                            ) {
+                                if ($tblPrimaryFocus->getName() == 'Lernen') {
+                                    $textSupport = $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName()
+                                        . ' wurde inklusiv nach den Lehrplänen der Schule mit dem Förderschwerpunkt Lernen unterrichtet.';
+                                }
+                                if ($tblPrimaryFocus->getName() == 'Geistige Entwicklung') {
+                                    $textSupport = $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName()
+                                        . ' wurde inklusiv nach den Lehrplänen der Schule mit dem Förderschwerpunkt geistige Entwicklung unterrichtet.';
+                                }
+                            }
+
+                            // Seelitz
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $textSupport;
+                            // staatliche GS-Zeugnisse
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['Remark'] = $textSupport;
+                        }
+
+                        // Fachschule
+                        if (!$hasRemarkText
+                            && ($Certificate->getCertificateEntity()->getCertificate() == 'FsAbs'
+                                || $Certificate->getCertificateEntity()->getCertificate() == 'FsAbsFhr')
+                        ) {
+                            $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
+                                . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
+                        }
+                        // Vorsetzen der Fachrichtung bei Fachschulen
+                        if (!$isSubjectAreaSet
+                            && $tblStudent
+                            && ($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
+                            && ($tblTechnicalSubjectArea = $tblStudentTechnicalSchool->getServiceTblTechnicalSubjectArea())
+                        ) {
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['SubjectArea'] = $tblTechnicalSubjectArea->getName();
+                        }
+
+                        // Berufsfachschule
+                        if (!$hasRemarkText
+                            && $Certificate->getCertificateEntity()->getCertificate() == 'BfsAbs'
+                        ) {
+                            $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
+                                . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 4 zugeordnet.';
+                        }
+
+                        // Berufsfachschule Pflegeberufe
+                        if (!$hasRemarkText
+                            && $Certificate->getCertificateEntity()->getCertificate() == 'BfsPflegeJ'
+                        ) {
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $tblPerson->getFullName()
+                                . ' ' . ' WURDE ZUR ABSCHLUSSPRÜFUNG NICHT ZUGELASSEN / HAT DIE ABSCHLUSSPRÜFUNG NICHT BESTANDEN '
+                                . 'und kann erst nach erfolgreicher Wiederholung der Klassenstufe erneut an der Abschlussprüfung teilnehmen.';
+                        }
+
                         $Global->savePost();
+                    }
+
+                    // bei der Aufteilung der sonstigen Informationen auf mehrere Seite müssen, diese auf der 1. Seite ignoriert werden
+                    $ignoreInformationOnFirstPage = array();
+                    if ($Page == null && isset($informationPageList[$tblCertificate->getId()])) {
+                        foreach($informationPageList[$tblCertificate->getId()] as $pageList) {
+                            foreach ($pageList as $pageItem) {
+                                $ignoreInformationOnFirstPage[$pageItem] = $pageItem;
+                            }
+                        }
                     }
 
                     // Create Form, Additional Information from Template
@@ -1669,7 +2235,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblPerson,
                                 $tblPrepareStudent,
                                 $tblCertificate,
-                                &$hasTeamExtra
+                                &$hasTeamExtra,
+                                $Page,
+                                $ignoreInformationOnFirstPage,
+                                $informationPageList,
+                                $tblPrepareCertificate,
+                                $GroupId,
+                                $showTeamsInCertificateRemark,
+                                $showOrientationsInCertificateRemark
                             ) {
 
                                 $PlaceholderList = explode('.', $Placeholder);
@@ -1686,7 +2259,19 @@ class Frontend extends Extension implements IFrontendInterface
                                 $PlaceholderName = str_replace('.P' . $tblPerson->getId(), '', $Placeholder);
 
                                 $Type = array_shift($Identifier);
-                                if (!method_exists($Certificate, 'get' . $Type)) {
+                                $key = str_replace('Content.Input.', '', $PlaceholderName);
+
+                                // Entscheidung ob das Field auf der aktuelle Seite der sonstige Informationen angezeigt wird
+                                $addField = true;
+                                if ($Page == null) {
+                                    if (isset($ignoreInformationOnFirstPage[$key])) {
+                                        $addField = false;
+                                    }
+                                } else {
+                                    $addField = isset($informationPageList[$tblCertificate->getId()][$Page][$key]);
+                                }
+
+                                if ($addField && !method_exists($Certificate, 'get' . $Type)) {
                                     if (isset($FormField[$PlaceholderName])) {
                                         if (isset($FormLabel[$PlaceholderName])) {
                                             $Label = $FormLabel[$PlaceholderName];
@@ -1694,7 +2279,33 @@ class Frontend extends Extension implements IFrontendInterface
                                             $Label = $PlaceholderName;
                                         }
 
-                                        $key = str_replace('Content.Input.', '', $PlaceholderName);
+                                        $isApiField = false;
+                                        $isAdded = isset($columnTable[$key]);
+                                        // ApiButton
+                                        if (method_exists($Certificate, 'getApiModalColumns')) {
+                                            /** @var BeGs $Certificate */
+                                            if (isset($Certificate->getApiModalColumns()[$key])) {
+                                                $isApiField = true;
+                                                if (!$isAdded) {
+                                                    $columnTable[$key] = $Label
+                                                        . ApiPrepare::receiverModal()
+                                                        . new PullRight(
+                                                            (new Standard('Alle bearbeiten', ApiPrepare::getEndpoint()))
+                                                                ->ajaxPipelineOnClick(ApiPrepare::pipelineOpenInformationModal(
+                                                                    $tblPrepareCertificate->getId(),
+                                                                    $GroupId,
+                                                                    $key,
+                                                                    $tblCertificate->getCertificate()
+                                                                ))
+                                                        );
+
+                                                    $isAdded = true;
+                                                }
+                                            }
+                                        }
+                                        if (!$isAdded) {
+                                            $columnTable[$key] = $Label;
+                                        }
 
                                         if ($key == 'TeamExtra' /*|| isset($columnTable['TeamExtra'])*/) {
                                             $hasTeamExtra = true;
@@ -1712,32 +2323,119 @@ class Frontend extends Extension implements IFrontendInterface
                                                     && method_exists($Certificate, 'selectValuesType')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesType();
+                                                } elseif ($PlaceholderName == 'Content.Input.Success'
+                                                    && method_exists($Certificate, 'selectValuesSuccess')
+                                                ) {
+                                                    $selectBoxData = $Certificate->selectValuesSuccess();
                                                 } elseif ($PlaceholderName == 'Content.Input.Transfer'
                                                     && method_exists($Certificate, 'selectValuesTransfer')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesTransfer();
+                                                } elseif ($PlaceholderName == 'Content.Input.Job_Grade_Text'
+                                                    && method_exists($Certificate, 'selectValuesJobGradeText')
+                                                ) {
+                                                    $selectBoxData = $Certificate->selectValuesJobGradeText();
+                                                } elseif (strpos($PlaceholderName, '_GradeText') !== false) {
+                                                    if (($tblGradeTextList = Gradebook::useService()->getGradeTextAll())) {
+                                                        $selectBoxData = array(TblGradeText::ATTR_NAME => $tblGradeTextList);
+                                                    }
                                                 }
+                                                $selectBox = new SelectBox($dataFieldName, '', $selectBoxData);
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
-                                                    $studentTable[$tblPerson->getId()][$key]
-                                                        = (new SelectBox($dataFieldName, '',
-                                                        $selectBoxData))->setDisabled();
+                                                    $studentTable[$tblPerson->getId()][$key] = $selectBox->setDisabled();
                                                 } else {
-                                                    $studentTable[$tblPerson->getId()][$key]
-                                                        = (new SelectBox($dataFieldName, '', $selectBoxData));
+                                                    if ($isApiField) {
+                                                        $studentTable[$tblPerson->getId()][$key] = ApiPrepare::receiverContent(
+                                                            $selectBox,
+                                                            'ChangeInformation_' . $key . '_' . $tblPerson->getId()
+                                                        );
+                                                    } else {
+                                                        $studentTable[$tblPerson->getId()][$key] = $selectBox;
+                                                    }
                                                 }
+                                            } elseif ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter') {
+                                                // Zensurenfeld
+                                                $selectCompleterData[-1] = '';
+                                                if (strpos($PlaceholderName, '_Average') !== false) {
+                                                    // _Average
+                                                    for ($i = 1; $i < 6; $i++) {
+                                                        for ($j = 0; $j < 10; $j++) {
+                                                            $value = $i . ',' . $j;
+                                                            $selectCompleterData[$value] = $value;
+                                                        }
+                                                    }
+                                                    $selectCompleterData['6,0'] = '6,0';
+                                                } else {
+                                                    // _Grade
+                                                    for ($i = 1; $i <= 6; $i++) {
+                                                        $selectCompleterData[$i] = (string)($i);
+                                                    }
+                                                }
+                                                $selectCompleter = new SelectCompleter($dataFieldName, '', '', $selectCompleterData);
+                                                if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
+                                                    $studentTable[$tblPerson->getId()][$key] = $selectCompleter->setDisabled();
+                                                } else {
+                                                    // noch kein Api verfügbar
+//                                                    if ($isApiField) {
+//                                                        $studentTable[$tblPerson->getId()][$key] = ApiPrepare::receiverContent(
+//                                                            $selectCompleter,
+//                                                            'ChangeInformation_' . $key . '_' . $tblPerson->getId()
+//                                                        );
+//                                                    } else {
+                                                        $studentTable[$tblPerson->getId()][$key] = $selectCompleter;
+//                                                    }
+                                                }
+                                            } elseif ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\CheckBox') {
+                                                // funktioniert aktuell nur für das Feld AdditionalRemarkFhr
+                                                // auch noch kein Api verfügbar
+                                                $checkBox = new CheckBox($dataFieldName, 'Erfolglose Teilnahme', 1);
+                                                if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
+                                                    $studentTable[$tblPerson->getId()][$key] = $checkBox->setDisabled();
+                                                } else {
+//                                                    if ($isApiField) {
+//                                                        $studentTable[$tblPerson->getId()][$key] = ApiPrepare::receiverContent(
+//                                                            $checkBox,
+//                                                            'ChangeInformation_' . $key . '_' . $tblPerson->getId()
+//                                                        );
+//                                                    } else {
+                                                        $studentTable[$tblPerson->getId()][$key] = $checkBox;
+//                                                    }
+                                                }
+                                            } elseif ($Field == '\SPHERE\Common\Frontend\Form\Repository\Field\Editor') {
+                                                if ($tblPrepareStudent && $tblPrepareStudent->isApproved()){
+                                                    $Editor = (new Editor($dataFieldName))->setDisabled();
+                                                } else {
+                                                    $Editor = new Editor($dataFieldName);
+                                                }
+                                                $studentTable[$tblPerson->getId()][$key] = $Editor;
                                             } else {
                                                 if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
-                                                    /** @noinspection PhpUndefinedMethodInspection */
                                                     $studentTable[$tblPerson->getId()][$key]
                                                         = (new $Field($dataFieldName, '', ''))->setDisabled();
                                                 } else {
                                                     // Arbeitsgemeinschaften beim Bemerkungsfeld
-                                                    if (!$hasTeamExtra && $key == 'Remark') {
+                                                    if ($showTeamsInCertificateRemark
+                                                        && !$hasTeamExtra
+                                                        && $key == 'Remark'
+                                                    ) {
                                                         if (!isset($columnTable['Team'])) {
                                                             $columnTable['Team'] = 'Arbeitsgemeinschaften';
                                                         }
                                                         $studentTable[$tblPerson->getId()]['Team']
                                                             = (new TextField('Data[' . $tblPrepareStudent->getId() . '][Team]',
+                                                            '', ''));
+                                                    }
+
+                                                    // Wahlbereiche beim Bemerkungsfeld
+                                                    if ($showOrientationsInCertificateRemark
+                                                        && $key == 'Remark'
+                                                    ) {
+                                                        if (!isset($columnTable['Orientation'])) {
+                                                            $columnTable['Orientation'] =
+                                                                (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName();
+                                                        }
+                                                        $studentTable[$tblPerson->getId()]['Orientation']
+                                                            = (new TextArea('Data[' . $tblPrepareStudent->getId() . '][Orientation]',
                                                             '', ''));
                                                     }
 
@@ -1753,8 +2451,14 @@ class Frontend extends Extension implements IFrontendInterface
                                                             $CharCount, true
                                                         );
                                                     } else {
-                                                        $studentTable[$tblPerson->getId()][$key]
-                                                            = (new $Field($dataFieldName, '', ''));
+                                                        if ($isApiField) {
+                                                            $studentTable[$tblPerson->getId()][$key] = ApiPrepare::receiverContent(
+                                                                new $Field($dataFieldName, '', ''),
+                                                                'ChangeInformation_' . $key . '_' . $tblPerson->getId()
+                                                            );
+                                                        } else  {
+                                                            $studentTable[$tblPerson->getId()][$key] = (new $Field($dataFieldName, '', ''));
+                                                        }
                                                     }
                                                 }
                                             }
@@ -1767,32 +2471,30 @@ class Frontend extends Extension implements IFrontendInterface
                                                     = (new TextField($FieldName, '', ''));
                                             }
                                         }
-
-                                        if (!isset($columnTable[$key])) {
-                                            $columnTable[$key] = $Label;
-                                        }
                                     }
                                 }
                             });
                     }
 
-                    // für Förderzeugnisse Lernen extra Spalte Inklusive Unterrichtung
-                    $isSupportLearningCertificate = false;
-                    if (strpos($tblCertificate->getCertificate(), 'FsLernen') !== false) {
-                        $isSupportLearningCertificate = true;
-                    }
-
-                    if ($isSupportLearningCertificate && $tblPrepareStudent) {
-                        if (!isset($columnTable['Support'])) {
-                            $columnTable['Support'] = 'Inklusive Unterrichtung';
+                    if ($Page == null) {
+                        // für Förderzeugnisse Lernen extra Spalte Inklusive Unterrichtung
+                        $isSupportLearningCertificate = false;
+                        if (strpos($tblCertificate->getCertificate(), 'FsLernen') !== false) {
+                            $isSupportLearningCertificate = true;
                         }
 
-                        $textArea = new TextArea('Data[' . $tblPrepareStudent->getId() . '][Support]', '', '');
-                        if ($tblPrepareStudent->isApproved()) {
-                            $textArea->setDisabled();
-                        }
+                        if ($isSupportLearningCertificate && $tblPrepareStudent) {
+                            if (!isset($columnTable['Support'])) {
+                                $columnTable['Support'] = 'Inklusive Unterrichtung';
+                            }
 
-                        $studentTable[$tblPerson->getId()]['Support'] = $textArea;
+                            $textArea = new TextArea('Data[' . $tblPrepareStudent->getId() . '][Support]', '', '');
+                            if ($tblPrepareStudent->isApproved()) {
+                                $textArea->setDisabled();
+                            }
+
+                            $studentTable[$tblPerson->getId()]['Support'] = $textArea;
+                        }
                     }
                 }
             }
@@ -1937,6 +2639,14 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        if ($tblPrepareCertificate && ($tblDivision = $tblPrepareCertificate->getServiceTblDivision())
+            && ($tblSchoolType = $tblDivision->getType()) && $tblSchoolType->getShortName() != 'OS')
+        {
+            unset($columnTable['Course']);
+        }
+
+        $hasSetIsPrepareButton = false;
+        $hasResetIsPrepareButton = false;
         $personSignerList = array();
         if ($tblPrepareList) {
             $studentTable = array();
@@ -1946,21 +2656,32 @@ class Frontend extends Extension implements IFrontendInterface
                 if (($tblDivision = $tblPrepare->getServiceTblDivision())
                     && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
                 ) {
+                    $certificateList = [];
                     foreach ($tblStudentList as $tblPerson) {
                         if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                            if (($tblType = $tblDivision->getType())) {
+                                $isTechnicalSchool = $tblType->isTechnical();
+                            } else {
+                                $isTechnicalSchool = false;
+                            }
+
                             $isMuted = $isCourseMainDiploma;
                             $course = '';
                             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                                $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                                if ($tblTransferType) {
-                                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                        $tblTransferType);
-                                    if ($tblStudentTransfer) {
-                                        $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                                        if ($tblCourse) {
-                                            $course = $tblCourse->getName();
-                                            if ($course == 'Hauptschule') {
-                                                $isMuted = false;
+                                if ($isTechnicalSchool) {
+                                    $course = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                                } else {
+                                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                                    if ($tblTransferType) {
+                                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                            $tblTransferType);
+                                        if ($tblStudentTransfer) {
+                                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                            if ($tblCourse) {
+                                                $course = $tblCourse->getName();
+                                                if ($course == 'Hauptschule') {
+                                                    $isMuted = false;
+                                                }
                                             }
                                         }
                                     }
@@ -1983,7 +2704,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             $countSubjectGrades = 0;
                             // Zensuren zählen
-                            if ($isDiploma) {
+                            if ($isDiploma && ($tblType && ($tblType->getShortName() == 'OS' || $tblType->getShortName() == 'FOS' || $tblType->getShortName() == 'BFS'))) {
                                 if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
                                     && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
                                         $tblPrepare,
@@ -2006,7 +2727,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                                                 $tblPerson))
                                             && $tblTest->getServiceTblSubject()
-                                            && $tblGradeItem->getGrade() !== null && $tblGradeItem->getGrade() !== ''
+                                            && (($tblGradeItem->getGrade() !== null && $tblGradeItem->getGrade() !== '')
+                                                || $tblGradeItem->getTblGradeText() != null)
                                         ) {
                                             $countSubjectGrades++;
                                         }
@@ -2039,14 +2761,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 $behaviorGradesText = 'Kein Kopfnoten ausgewählt';
                             }
 
-                            $excusedDays = null;
-                            $unexcusedDays = null;
                             $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
                             $signer = '';
                             if ($tblPrepareStudent) {
                                 $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
-                                $excusedDays = $tblPrepareStudent->getExcusedDays();
-                                $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
                                 // überschreiben für Gruppen
                                 if ($tblPrepareStudent->getServiceTblPersonSigner()) {
 //                                    $tblPersonSigner = $tblPrepareStudent->getServiceTblPersonSigner();
@@ -2062,20 +2780,83 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblCertificate = false;
                             }
 
-                            if ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
-                                if ($excusedDays === null) {
-                                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                                        $tblDivision,
-                                        new \DateTime($tblPrepare->getDate()));
+                            if (($tblSettingAbsence = ConsumerSetting::useService()->getSetting(
+                                'Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+                            ) {
+                                $useClassRegisterForAbsence = $tblSettingAbsence->getValue();
+                            } else {
+                                $useClassRegisterForAbsence = false;
+                            }
+
+                            $excusedDays = null;
+                            $unexcusedDays = null;
+                            if ($tblPrepareStudent && $tblCertificate) {
+                                if ($tblPrepareStudent->getIsPrepared()) {
+                                    $hasResetIsPrepareButton = true;
+                                    $prepareStatus = new Success(new Check());
+                                } else {
+                                    $hasSetIsPrepareButton = true;
+                                    $prepareStatus = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked());
                                 }
-                                if ($unexcusedDays === null) {
-                                    $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                        $tblDivision,
-                                        new \DateTime($tblPrepare->getDate()));
+
+                                if (isset($certificateList[$tblCertificate->getId()])) {
+                                    $hasCertificateAbsence = $certificateList[$tblCertificate->getId()];
+                                } else {
+                                    $hasCertificateAbsence = Prepare::useService()->hasCertificateAbsence($tblCertificate,
+                                        $tblDivision, $tblPerson);
+                                    $certificateList[$tblCertificate->getId()] = $hasCertificateAbsence;
+                                }
+
+                                if ($hasCertificateAbsence) {
+                                    // Fehlzeiten nur Anzeigen, wenn Fehltage auf der Zeugnisvorlage sind
+                                    $excusedDays = $tblPrepareStudent->getExcusedDays();
+                                    $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
+                                    if ($useClassRegisterForAbsence) {
+                                        if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                                            && $tblGenerateCertificate->getAppointedDateForAbsence()
+                                        ) {
+                                            $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                                        } else {
+                                            $date = new DateTime($tblPrepare->getDate());
+                                        }
+
+                                        if ($excusedDays === null) {
+                                            $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson,
+                                                $tblDivision, $date);
+                                        }
+                                        if ($unexcusedDays === null) {
+                                            $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
+                                                $tblDivision, $date);
+                                        }
+                                        // Zusatz-Tage von fehlenden Unterrichtseinheiten
+                                        $excusedDaysFromLessons = $tblPrepareStudent->getExcusedDaysFromLessons();
+                                        $unexcusedDaysFromLessons = $tblPrepareStudent->getUnexcusedDaysFromLessons();
+                                        if ($excusedDaysFromLessons) {
+                                            $excusedDays = new ToolTip((string)($excusedDays + $excusedDaysFromLessons),
+                                                'Fehltage: ' . $excusedDays . ' + Zusatz-Tage: ' . $excusedDaysFromLessons);
+                                        }
+                                        if ($unexcusedDaysFromLessons) {
+                                            $unexcusedDays = new ToolTip((string)($unexcusedDays + $unexcusedDaysFromLessons),
+                                                'Fehltage: ' . $unexcusedDays . ' + Zusatz-Tage: ' . $unexcusedDaysFromLessons);
+                                        }
+                                    } else {
+                                        if ($excusedDays === null) {
+                                            $excusedDays = new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()),
+                                                'Keine entschuldigten Fehltage erfasst');
+                                        }
+                                        if ($unexcusedDays === null) {
+                                            $unexcusedDays = new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()),
+                                                'Keine unentschuldigten Fehltage erfasst');
+                                        }
+                                    }
+                                } else {
+                                    $excusedDays = '&nbsp;';
+                                    $unexcusedDays = '&nbsp;';
                                 }
                             } else {
-                                $excusedDays = '';
-                                $unexcusedDays = '';
+                                $excusedDays = '&nbsp;';
+                                $unexcusedDays = '&nbsp;';
+                                $prepareStatus = '&nbsp;';
                             }
 
                             $number = count($studentTable) + 1;
@@ -2121,6 +2902,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'BehaviorGrades' => $behaviorGradesDisplayText,
                                 'CheckSubjects' => $checkSubjectsString,
                                 'Signer' => $signer,
+                                'PrepareStatus' => $prepareStatus,
                                 'Option' =>
                                     $isDiploma && $isMuted ? '' : ($tblCertificate
                                         ? (new Standard(
@@ -2143,7 +2925,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             ),
                                             'Zeugnis als Muster herunterladen'))
                                         // Mittelschule Abschlusszeugnis Realschule
-                                        . (($tblCertificate->getCertificate() == 'MsAbsRs'
+                                        . ((strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false
                                             && $tblPrepareStudent
                                             && !$tblPrepareStudent->isApproved())
                                             ? new Standard(
@@ -2169,7 +2951,7 @@ class Frontend extends Extension implements IFrontendInterface
                             // Noten vom Vorjahr ermitteln (abgeschlossene Fächer) und speichern
                             // Mittelschule Abschlusszeugnis Realschule
                             if (!($isDiploma && $isMuted)
-                                && $tblCertificate && $tblCertificate->getCertificate() == 'MsAbsRs'
+                                && $tblCertificate && (strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false)
                                 && ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
                             ) {
                                 if (!isset($columnTable['DroppedSubjects'])) {
@@ -2241,6 +3023,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $personSignerDisplayData[] = $buttonSigner;
 
+            $columnTable['PrepareStatus'] = 'Zeugnis&shy;vorbereitung';
             $columnTable['Option'] = '';
 
             $columnDef = array(
@@ -2309,7 +3092,31 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Name' => 'Musterzeugnis'
                                     ),
                                     false
-                                )
+                                ),
+                                $hasSetIsPrepareButton
+                                    ? new Standard(
+                                        'Zeugnisvorbereitung abgeschlossen',
+                                        '/Education/Certificate/Prepare/SetIsPrepared',
+                                        new Check(),
+                                        array(
+                                            'PrepareId' => $PrepareId,
+                                            'GroupId' => $GroupId,
+                                            'Route' => $Route,
+                                            'IsPrepared' => 1
+                                        )
+                                    ) : null,
+                                $hasResetIsPrepareButton
+                                    ? new Standard(
+                                    'Zeugnisvorbereitung abgeschlossen entfernen',
+                                    '/Education/Certificate/Prepare/SetIsPrepared',
+                                    new Remove(),
+                                    array(
+                                        'PrepareId' => $PrepareId,
+                                        'GroupId' => $GroupId,
+                                        'Route' => $Route,
+                                        'IsPrepared' => 0
+                                    )
+                                ) : null,
                             ))
                         )),
                     )),
@@ -2379,7 +3186,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
                     $FormField = Generator::useService()->getFormField();
-                    $FormLabel = Generator::useService()->getFormLabel();
+                    $FormLabel = Generator::useService()->getFormLabel(($tblType = $tblDivision->getType()) ? $tblType : null);
 
                     $PlaceholderList = $Certificate->getCertificate()->getPlaceholder();
 
@@ -2490,6 +3297,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableHeaderList = array();
             $divisionList = array();
             $divisionPersonList = array();
+            $averageGradeList = array();
 
             if ($tblPrepareList
                 && $tblGenerateCertificate
@@ -2502,9 +3310,12 @@ class Frontend extends Extension implements IFrontendInterface
                         // Alle Klassen ermitteln in denen der Schüler im Schuljahr Unterricht hat
                         foreach ($tblDivisionStudentAll as $tblPerson) {
                             if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
                                 if (($tblYear = $tblDivision->getServiceTblYear())
-                                    && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson,
-                                        $tblYear))
+                                    && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYearAndIsNotInActive(
+                                        $tblPerson,
+                                        $tblYear
+                                    ))
                                 ) {
                                     foreach ($tblPersonDivisionList as $tblDivisionItem) {
                                         if (!isset($divisionList[$tblDivisionItem->getId()])) {
@@ -2520,10 +3331,14 @@ class Frontend extends Extension implements IFrontendInterface
                             if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask,
                                 $tblDivisionItem))
                             ) {
+                                $tblType = $tblDivisionItem->getType();
+                                $hasExams = ($Route == 'Diploma' && ($tblType && ($tblType->getShortName() == 'OS' || $tblType->getShortName() == 'FOS' || $tblType->getShortName() == 'BFS')));
+
                                 foreach ($tblTestAllByTask as $tblTest) {
                                     $tblSubject = $tblTest->getServiceTblSubject();
                                     if ($tblSubject && $tblTest->getServiceTblDivision()) {
                                         $tableHeaderList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
+                                        $studentList[0][$tblSubject->getAcronym()] = '';
 
                                         $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
                                             $tblTest->getServiceTblDivision(),
@@ -2539,8 +3354,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                                                     $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                                     if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
-                                                        if ($tblPerson) {
-                                                            if ($Route == 'Diploma') {
+                                                        if ($tblPerson && isset($divisionPersonList[$tblPerson->getId()])) {
+                                                            if ($hasExams) {
                                                                 $studentList = $this->setDiplomaGrade($tblPrepareItem,
                                                                     $tblPerson,
                                                                     $tblSubject, $studentList);
@@ -2549,7 +3364,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                                     $tblTest, $tblSubject, $tblPerson, $studentList,
                                                                     $tblDivisionSubject->getTblSubjectGroup()
                                                                         ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                                                    $tblPrepareItem
+                                                                    $tblPrepareItem,
+                                                                    $averageGradeList
                                                                 );
                                                             }
                                                         }
@@ -2573,7 +3389,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                     if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                                                         // nur Schüler der ausgewählten Klasse
                                                         if (isset($divisionPersonList[$tblPerson->getId()])) {
-                                                            if ($Route == 'Diploma') {
+                                                            if ($hasExams) {
                                                                 $studentList = $this->setDiplomaGrade($tblPrepareItem,
                                                                     $tblPerson,
                                                                     $tblSubject, $studentList);
@@ -2581,7 +3397,9 @@ class Frontend extends Extension implements IFrontendInterface
                                                                 $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                                     $tblTest, $tblSubject, $tblPerson, $studentList,
                                                                     null,
-                                                                    $tblPrepareItem);
+                                                                    $tblPrepareItem,
+                                                                    $averageGradeList
+                                                                );
                                                             }
                                                         }
                                                     }
@@ -2603,6 +3421,17 @@ class Frontend extends Extension implements IFrontendInterface
                     if (!isset($studentList[$personId][$column])) {
                         $studentList[$personId][$column] = '';
                     }
+                }
+            }
+
+            // Durchschnitte pro Fach-Klasse
+            $studentList[0]['Number'] = '';
+            $studentList[0]['Name'] = new Muted('&#216; Fach-Klasse');
+            foreach ($averageGradeList as $subjectId => $grades) {
+                $countGrades = count($grades);
+                if (($item = Subject::useService()->getSubjectById($subjectId))) {
+                    $studentList[0][$item->getAcronym()] = $countGrades > 0
+                        ? round(array_sum($grades) / $countGrades, 2) : '';
                 }
             }
 
@@ -2662,10 +3491,9 @@ class Frontend extends Extension implements IFrontendInterface
         TblPerson $tblPerson,
         $studentList,
         TblSubjectGroup $tblSubjectGroup = null,
-        TblPrepareCertificate $tblPrepare = null
+        TblPrepareCertificate $tblPrepare = null,
+        &$averageGradeList = array()
     ) {
-        $studentList[$tblPerson->getId()]['Name'] =
-            $tblPerson->getLastFirstName();
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
@@ -2701,6 +3529,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $gradeValue = $tblGrade->getGrade();
+
+            if ($gradeValue !== null && $gradeValue !== '') {
+                $averageGradeList[$tblSubject->getId()][$tblPerson->getId()] = $gradeValue;
+            }
 
             $isGradeInRange = true;
             if ($average !== ' ' && $average && $gradeValue !== null) {
@@ -2944,7 +3776,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 !empty($personList)
                                     ? new Well(Prepare::useService()->updatePrepareSetSigner($form,
                                     $tblPrepare, $tblGroup ? $tblGroup : null, $Data, $Route))
-                                    : new Warning('Für diese Klasse sind keine Klassenlehrer/Mentoren/Tudoren vorhanden.')
+                                    : new Warning('Für diese Klasse sind keine Klassenlehrer/Mentoren/Tutoren vorhanden.')
                             )),
                         ))
                     ))
@@ -3058,6 +3890,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Option' => ''
                                     ),
                                     array(
+                                        'rowReorderColumn' => 1,
                                         'ExtensionRowReorder' => array(
                                             'Enabled' => true,
                                             'Url' => '/Api/Education/Prepare/Reorder',
@@ -3140,7 +3973,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('Data[Subject]', 'Fach', array('Name' => $availableSubjectList)), 6
+                        new SelectBox('Data[Subject]', 'Fach', array('DisplayName' => $availableSubjectList)), 6
                     ),
                     new FormColumn(
                         new TextField('Data[Grade]', '', 'Zensur'), 6
@@ -3340,6 +4173,8 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Data
      * @param null $CertificateList
      *
+     * Schulart Mittelschule / Oberschule, Fachoberschule
+     *
      * @return Stage|string
      */
     public function frontendPrepareDiplomaSetting(
@@ -3431,8 +4266,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
-                    'Course' => 'Bildungsgang',
                 );
+                if (($tblSchoolType = $tblDivision->getType()) && $tblSchoolType->getShortName() == 'OS') {
+                    $columnTable['Course'] = 'Bildungsgang';
+                }
 
                 foreach ($tblPrepareList as $tblPrepareItem) {
                     if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
@@ -3457,8 +4294,16 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
                                     }
                                 }
+
+                                $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem, $tblPerson);
+
                                 $studentTable[$tblPerson->getId()] = array(
-                                    'Number' => $isMuted ? new Muted(count($studentTable) + 1) : count($studentTable) + 1,
+                                    'Number' => $isMuted ? new Muted(count($studentTable) + 1) : (count($studentTable) + 1)
+                                        . ' '
+                                        . ($tblPrepareStudent && $tblPrepareStudent->isApproved()
+                                            ? new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban()),
+                                                'Das Zeugnis des Schülers wurde bereits freigegeben und kann nicht mehr bearbeitet werden.')
+                                            : new ToolTip(new Success(new Edit()), 'Das Zeugnis des Schülers kann bearbeitet werden.')),
                                     'Name' => ($isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName())
                                         . ($tblGroup
                                             ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
@@ -3493,7 +4338,7 @@ class Frontend extends Extension implements IFrontendInterface
                     array(
                         "columnDefs" => array(
                             array(
-                                "width" => "7px",
+                                "width" => "18px",
                                 "targets" => 0
                             ),
                             array(
@@ -3657,6 +4502,9 @@ class Frontend extends Extension implements IFrontendInterface
                 'LM' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LM'))
                     ? $tblPrepareAdditionalGradeType->getName() : 'Lm',
             );
+            if (($tblSchoolType = $tblDivision->getType()) && $tblSchoolType->getShortName() == 'OS') {
+                $columnTable['Course'] = 'Bildungsgang';
+            }
             if ($IsFinalGrade) {
                 $columnTable['Average'] = '&#216;';
                 $columnTable['EN'] = 'En (Endnote)';
@@ -3676,16 +4524,18 @@ class Frontend extends Extension implements IFrontendInterface
             $columnTable = array(
                 'Number' => '#',
                 'Name' => 'Name',
-                'Course' => 'Bildungsgang',
-                'JN' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('JN'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Jn',
-                'PS' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PS'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Ps',
-                'PM' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PM'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Pm',
-                'PZ' => ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PZ'))
-                    ? $tblPrepareAdditionalGradeType->getName() : 'Pz',
             );
+            if (($tblSchoolType = $tblDivision->getType()) && $tblSchoolType->getShortName() == 'OS') {
+                $columnTable['Course'] = 'Bildungsgang';
+            }
+            $columnTable['JN'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('JN'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Jn';
+            $columnTable['PS'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PS'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Ps';
+            $columnTable['PM'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PM'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Pm';
+            $columnTable['PZ'] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PZ'))
+                    ? $tblPrepareAdditionalGradeType->getName() : 'Pz';
             if ($IsFinalGrade) {
                 $columnTable['Average'] = '&#216;';
                 $columnTable['EN'] = 'En (Endnote)';
@@ -3707,7 +4557,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $columnDef = array(
             array(
-                "width" => "7px",
+                "width" => "18px",
                 "targets" => 0
             ),
             array(
@@ -3944,6 +4794,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tabIndex = 1;
         foreach ($tblPrepareList as $tblPrepareItem) {
             if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
+                && ($tblSchoolType = $tblDivisionItem->getType())
                 && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
             ) {
                 $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepareItem);
@@ -3976,7 +4827,12 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         $studentTable[$tblPerson->getId()] = array(
-                            'Number' => $isMuted ? new Muted(count($studentTable) + 1) : count($studentTable) + 1,
+                            'Number' => $isMuted ? new Muted(count($studentTable) + 1) : (count($studentTable) + 1)
+                                . ' '
+                                . ($tblPrepareStudent && $tblPrepareStudent->isApproved()
+                                    ? new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban()),
+                                        'Das Zeugnis des Schülers wurde bereits freigegeben und kann nicht mehr bearbeitet werden.')
+                                    : new ToolTip(new Success(new Edit()), 'Das Zeugnis des Schülers kann bearbeitet werden.')),
                             'Name' => ($isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName())
                                 . ($tblGroup
                                     ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
@@ -4037,6 +4893,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['JN'] = $gradeValue;
                                                     if ($gradeValue && is_numeric($gradeValue)) {
                                                         $gradeList['JN'] = $gradeValue;
+                                                    } else {
+                                                        $gradeList['JN_TEXT'] = $gradeValue;
                                                     }
                                                 }
                                             }
@@ -4050,6 +4908,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['JN'] = $gradeValue;
                                                     if ($gradeValue && is_numeric($gradeValue)) {
                                                         $gradeList['JN'] = $gradeValue;
+                                                    } else {
+                                                        $gradeList['JN_TEXT'] = $gradeValue;
                                                     }
                                                 }
                                             }
@@ -4115,11 +4975,18 @@ class Frontend extends Extension implements IFrontendInterface
                                                         $tblCurrentSubject,
                                                         Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
                                                     )
-                                                    && $calcValue
                                                 ) {
-                                                    $hasPreviewGrades = true;
-                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue,
-                                                        0);
+                                                    if ($calcValue) {
+                                                        if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                            $hasPreviewGrades = true;
+                                                        }
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue, 0);
+                                                    } elseif (isset($gradeList['JN_TEXT']) && ($tblGradeTextTemp = Gradebook::useService()->getGradeTextByName($gradeList['JN_TEXT']))) {
+                                                        if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                            $hasPreviewGrades = true;
+                                                        }
+                                                        $Global->POST['Data'][$tblPrepareStudent->getId()]['Text'] = $tblGradeTextTemp->getId();
+                                                    }
                                                 }
                                             }
                                         } else {
@@ -4134,7 +5001,12 @@ class Frontend extends Extension implements IFrontendInterface
                                                     }
                                                 } else {
                                                     if (isset($gradeList['PS'])) {
-                                                        $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
+                                                        if (isset($gradeList['PM'])) {
+                                                            // Sonderfall Englisch
+                                                            $calc = ($gradeList['JN'] + $gradeList['PS'] + $gradeList['PM']) / 3;
+                                                        } else {
+                                                            $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
+                                                        }
                                                     } elseif (isset($gradeList['PM'])) {
                                                         $calc = ($gradeList['JN'] + $gradeList['PM']) / 2;
                                                     }
@@ -4154,10 +5026,27 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $tblCurrentSubject,
                                                     Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
                                                 )
-                                                && $calcValue
                                             ) {
-                                                $hasPreviewGrades = true;
-                                                $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue, 0);
+                                                if ($calcValue) {
+                                                    if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                        $hasPreviewGrades = true;
+                                                    }
+                                                    // bei ,5 entscheidet die Prüfungsnote bei FOS und BFS
+                                                    if (($tblSchoolType->getShortName() == 'FOS' || $tblSchoolType->getShortName() == 'BFS')
+                                                        && strpos($calcValue, '.5') !== false
+                                                        && $gradeList['JN'] > $calcValue
+                                                    ) {
+                                                        $round = PHP_ROUND_HALF_DOWN;
+                                                    } else {
+                                                        $round = PHP_ROUND_HALF_UP;
+                                                    }
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue, 0, $round);
+                                                } elseif (isset($gradeList['JN_TEXT']) && ($tblGradeTextTemp = Gradebook::useService()->getGradeTextByName($gradeList['JN_TEXT']))) {
+                                                    if ($tblPrepareStudent->getServiceTblCertificate()) {
+                                                        $hasPreviewGrades = true;
+                                                    }
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['Text'] = $tblGradeTextTemp->getId();
+                                                }
                                             }
                                         }
                                     }
@@ -4292,9 +5181,6 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubject $tblSubject,
         $studentList
     ) {
-
-        $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
-
         if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
             && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
                 $tblPrepare,
@@ -4321,15 +5207,20 @@ class Frontend extends Extension implements IFrontendInterface
     private function sortSubjects(TblPrepareCertificate $tblPrepare, $tblTestList)
     {
         $tblCertificate = false;
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && ($tblSchoolType = $tblLevel->getServiceTblType())
-            && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+        // Ermittelung richtiges Zeugnis von Schülern
+        if (($tblDivisionItem = $tblPrepare->getServiceTblDivision())
+            && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
         ) {
-            if ($tblLevel->getName() == '10') {
-                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbsRs');
-            } elseif ($tblLevel->getName() == '9' || $tblLevel->getName() == '09') {
-                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbsHsQ');
+            foreach ($tblStudentList as $tblPerson) {
+                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                    && ($tblCertificateStudent = $tblPrepareStudent->getServiceTblCertificate())
+                ) {
+
+                    if ($tblCertificateStudent->getTblCertificateType()->getIdentifier() == 'DIPLOMA') {
+                        $tblCertificate = $tblCertificateStudent;
+                        break;
+                    }
+                }
             }
         }
 
@@ -4368,6 +5259,8 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null $YearId
+     *
      * @return Stage
      */
     public function frontendLeaveSelectStudent($YearId = null)
@@ -4410,7 +5303,11 @@ class Frontend extends Extension implements IFrontendInterface
                         && !$tblLevel->getIsChecked()
                         && ($tblType = $tblLevel->getServiceTblType())
                         && ($tblType->getName() == 'Mittelschule / Oberschule'
-                            || $tblType->getName() == 'Gymnasium')
+                            || $tblType->getName() == 'Gymnasium'
+                            || $tblType->getName() == 'Berufsfachschule'
+                            || $tblType->getName() == 'Fachschule'
+                            || $tblType->getName() == 'Fachoberschule'
+                        )
                         && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
                     ) {
                         foreach ($tblPersonList as $tblPerson) {
@@ -4494,6 +5391,8 @@ class Frontend extends Extension implements IFrontendInterface
             $subjectData = array();
             $tblLeaveStudent = false;
 
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+
             if (($tblStudent = $tblPerson->getStudent())
                 && ($tblDivision = Division::useService()->getDivisionById($DivisionId))
             ){
@@ -4512,16 +5411,25 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     if ($tblType) {
                         if ($tblType->getName() == 'Mittelschule / Oberschule') {
-//                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbg');
-                            return $this->getSelectLeaveCertificateStage($tblPerson, $tblDivision, $tblType, $tblCourse ? $tblCourse : null, $Data);
+                            // Herrnhut hat ein individuelles Abgangszeugnis
+                            if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')) {
+                                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshMsAbg');
+                            } else {
+                                // Auswahl der Zeugnisvorlage, da es mehrere gibt
+                                return $this->getSelectLeaveCertificateStage($tblPerson, $tblDivision, $tblType, $tblCourse ? $tblCourse : null, $Data);
+                            }
                         } elseif ($tblType->getName() == 'Gymnasium') {
                             if ($tblLevel) {
                                 // Herrnhut hat ein individuelles Abgangszeugnis
-                                if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                                    && ($tblConsumer->getAcronym() == 'EZSH')
+                                if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')
                                     && intval($tblLevel->getName()) == 10
-                                ){
+                                ) {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshGymAbg');
+                                } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
+                                    && intval($tblLevel->getName()) <= 10
+                                ) {
+                                    // HOGA hat ein individuelles Abgangszeugnis
+                                    $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('HOGA\GymAbgSekI');
                                 } elseif (intval($tblLevel->getName()) <= 10) {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekI');
                                 } else {
@@ -4535,6 +5443,13 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
                                 }
                             }
+                        } elseif ($tblType->getName() == 'Berufsfachschule') {
+                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BfsAbg');
+                        } elseif ($tblType->getName() == 'Fachschule') {
+                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('FsAbg');
+                        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA') && $tblType->getName() == 'Fachoberschule') {
+                            // HOGA hat ein individuelles Abgangszeugnis
+                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('HOGA\FosAbg');
                         }
                     }
                 }
@@ -4542,13 +5457,32 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($tblCertificate && $tblCertificate->getCertificate() == 'GymAbgSekII') {
                 $layoutGroups = $this->setLeaveContentForSekTwo(
-                    $tblCertificate ? $tblCertificate : null,
+                    $tblCertificate,
                     $tblLeaveStudent ? $tblLeaveStudent : null,
                     $tblDivision ? $tblDivision : null,
                     $tblPerson ? $tblPerson : null,
                     $stage,
                     $tblType ? $tblType : null,
-                    $tblCourse ? $tblCourse : null);
+                    $tblCourse ? $tblCourse : null
+                );
+
+                $stage->setContent(
+                    new Layout($layoutGroups)
+                );
+            } elseif ($tblCertificate
+                && ($tblCertificate->getCertificate() == 'BfsAbg' || $tblCertificate->getCertificate() == 'FsAbg')
+            ) {
+                $layoutGroups = $this->setLeaveContentForTechnicalSchool(
+                    $tblCertificate,
+                    $tblLeaveStudent ? $tblLeaveStudent : null,
+                    $tblDivision ? $tblDivision : null,
+                    $tblPerson ? $tblPerson : null,
+                    $Data,
+                    $stage,
+                    $subjectData,
+                    $tblType ? $tblType : null,
+                    $tblCertificate->getCertificate() == 'BfsAbg'
+                );
 
                 $stage->setContent(
                     new Layout($layoutGroups)
@@ -4563,7 +5497,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $stage,
                     $subjectData,
                     $tblType ? $tblType : null,
-                    $tblCourse ? $tblCourse : null);
+                    $tblCourse ? $tblCourse : null
+                );
 
                 $stage->setContent(
                     new Layout($layoutGroups)
@@ -4718,6 +5653,7 @@ class Frontend extends Extension implements IFrontendInterface
         $isApproved = false;
         $hasMissingSubjects = false;
         $hasCertificateGrades = false;
+        $tblAppointedDateTask = false;
 
         if (Student::useService()->getIsSupportByPerson($tblPerson)) {
             $support = ApiSupportReadOnly::openOverViewModal($tblPerson->getId(), false);
@@ -4740,7 +5676,10 @@ class Frontend extends Extension implements IFrontendInterface
                     'Zeugnis als Muster herunterladen'));
             }
 
+            $certificateDate = false;
+
             // Post setzen
+            $isSetSubjectArea = false;
             if ($tblLeaveStudent) {
                 $Global = $this->getGlobal();
 
@@ -4757,14 +5696,52 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
                     foreach ($tblLeaveInformationList as $tblLeaveInformation) {
-                        $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $tblLeaveInformation->getValue();
+                        $value = $tblLeaveInformation->getValue();
+                        // HOGA\FosAbg
+                        if ($tblLeaveInformation->getField() == 'Job_Grade_Text') {
+                            switch ($value) {
+                                case 'bestanden': $value = 1; break;
+                                case 'nicht bestanden': $value = 2; break;
+                                default: $value = '';
+                            }
+                        }
+                        if ($tblLeaveInformation->getField() == 'Exam_Text') {
+                            switch ($value) {
+                                case 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.': $value = 1; break;
+                                case 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.': $value = 2; break;
+                                default: $value = '';
+                            }
+                        }
+
+                        $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $value;
+
+                        if ($tblLeaveInformation->getField() == 'CertificateDate' && $value != '') {
+                            $certificateDate = new DateTime($value);
+                        }
+
+                        if ($tblLeaveInformation->getField() == 'SubjectArea') {
+                            $isSetSubjectArea = true;
+                        }
                     }
+                }
+
+                if (!$isSetSubjectArea
+                    && $tblCertificate->getCertificate() == 'HOGA\FosAbg'
+                    && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                    && ($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
+                    && ($tblTechnicalSubjectArea = $tblStudentTechnicalSchool->getServiceTblTechnicalSubjectArea())
+                ) {
+                    $Global->POST['Data']['InformationList']['SubjectArea'] = $tblTechnicalSubjectArea->getName();
                 }
 
                 $Global->savePost();
             }
 
-            if ($tblCertificate && $tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung') {
+            if (!$certificateDate) {
+                $certificateDate = new DateTime('now');
+            }
+
+            if ($tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung') {
                 $hasCertificateGrades = false;
             } else {
                 $hasCertificateGrades = true;
@@ -4784,6 +5761,10 @@ class Frontend extends Extension implements IFrontendInterface
                     $selectListPoints[$i] = (string)$i;
                 }
 
+                if ($certificateDate && $tblDivision) {
+                    $tblAppointedDateTask = Evaluation::useService()->getTaskByDivisionAndDateAndInterval($tblDivision, $certificateDate);
+                }
+
                 if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
                     && $tblDivision
                     && ($tblYear = $tblDivision->getServiceTblYear())
@@ -4795,9 +5776,15 @@ class Frontend extends Extension implements IFrontendInterface
                         if (($tblDivisionItem = $tblDivisionSubject->getTblDivision())
                             && ($tblSubjectItem = $tblDivisionSubject->getServiceTblSubject())
                         ) {
+                            // Fächer ohne Benotung überspringen
+                            if (!$tblDivisionSubject->getHasGrading()) {
+                                continue;
+                            }
+
                             $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
                             $gradeList = array();
                             $average = '';
+                            $taskGrade = '';
                             $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
                                 $tblDivisionItem,
                                 $tblSubjectItem,
@@ -4840,6 +5827,41 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
                                 }
 
+                                $hasNoLeaveGrade = !$tblLeaveStudent || !Prepare::useService()->getLeaveGradeBy($tblLeaveStudent, $tblSubjectItem);
+
+                                $hasTaskGrade = false;
+                                // Stichtagsnote ermitteln falls vorhanden
+                                if ($tblAppointedDateTask
+                                    && ($tblTestFromTask = Evaluation::useService()->getTestByTaskAndDivisionAndSubject(
+                                        $tblAppointedDateTask,
+                                        $tblDivisionItem,
+                                        $tblSubjectItem,
+                                        $tblSubjectGroup ? $tblSubjectGroup : null
+                                    ))
+                                    && ($tblGradeFromTask = Gradebook::useService()->getGradeByTestAndStudent(
+                                        $tblTestFromTask,
+                                        $tblPerson
+                                    ))
+                                ) {
+                                    if ($hasNoLeaveGrade) {
+                                        if (($value = $tblGradeFromTask->getGrade())) {
+                                            $hasPreviewGrades = true;
+                                            $hasTaskGrade = true;
+                                            $Global = $this->getGlobal();
+                                            $Global->POST['Data']['Grades'][$tblSubjectItem->getId()]['Grade'] = $value;
+                                            $Global->savePost();
+                                        } elseif (($gradeTextValue = $tblGradeFromTask->getTblGradeText())) {
+                                            $hasPreviewGrades = true;
+                                            $hasTaskGrade = true;
+                                            $Global = $this->getGlobal();
+                                            $Global->POST['Data']['Grades'][$tblSubjectItem->getId()]['GradeText'] = $gradeTextValue;
+                                            $Global->savePost();
+                                        }
+                                    }
+
+                                    $taskGrade = $tblGradeFromTask->getDisplayGrade();
+                                }
+
                                 /**
                                  * Average
                                  */
@@ -4857,10 +5879,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         strpos($average, '('));
 
                                     // Zensuren voreintragen, wenn noch keine vergeben ist
-                                    if (($average || $average === (float)0) && (!$tblLeaveStudent
-                                            || !Prepare::useService()->getLeaveGradeBy($tblLeaveStudent,
-                                                $tblSubjectItem))
-                                    ) {
+                                    if (($average || $average === (float)0) && $hasNoLeaveGrade && !$hasTaskGrade) {
                                         $hasPreviewGrades = true;
                                         $Global = $this->getGlobal();
                                         $Global->POST['Data']['Grades'][$tblSubjectItem->getId()]['Grade'] =
@@ -4901,6 +5920,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'SubjectName' => $subjectName,
                                 'GradeList' => implode(' | ', $gradeList),
                                 'Average' => $average,
+                                'TaskGrade' => $taskGrade,
                                 'Grade' => $selectComplete,
                                 'GradeText' => $gradeText
                             );
@@ -4992,18 +6012,32 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
+            if ($tblAppointedDateTask) {
+                $date = $tblAppointedDateTask->getDate();
+                $columns = array(
+                    'SubjectName' => 'Fach',
+                    'GradeList' => 'Noten',
+                    'Average' => '&#216;',
+                    'TaskGrade' => new ToolTip('SN', 'Stichtagsnote vom ' . ($date ? $date : '-')),
+                    'Grade' => 'Zensur',
+                    'GradeText' => 'oder Zeugnistext'
+                );
+            } else {
+                $columns = array(
+                    'SubjectName' => 'Fach',
+                    'GradeList' => 'Noten',
+                    'Average' => '&#216;',
+                    'Grade' => 'Zensur',
+                    'GradeText' => 'oder Zeugnistext'
+                );
+            }
+
             if (!empty($subjectData)) {
                 ksort($subjectData);
                 $subjectTable = new TableData(
                     $subjectData,
                     null,
-                    array(
-                        'SubjectName' => 'Fach',
-                        'GradeList' => 'Noten',
-                        'Average' => '&#216;',
-                        'Grade' => 'Zensur',
-                        'GradeText' => 'oder Zeugnistext'
-                    ),
+                    $columns,
                     null
                 );
             } else {
@@ -5026,6 +6060,17 @@ class Frontend extends Extension implements IFrontendInterface
                     $arrangementTextArea,
                     $remarkTextArea
                 );
+            } elseif ($tblCertificate->getCertificate() == 'EZSH\EzshMsAbg') {
+                $remarkTextArea = new TextArea('Data[InformationList][RemarkWithoutTeam]', '', 'Bemerkungen');
+
+                if ($isApproved) {
+                    $datePicker->setDisabled();
+                    $remarkTextArea->setDisabled();
+                }
+                $otherInformationList = array(
+                    $datePicker,
+                    $remarkTextArea
+                );
             } else {
                 if ($tblCertificate->getCertificate() == 'MsAbgLernen'
                     || $tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung'
@@ -5045,7 +6090,10 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             }
 
-            if ($tblCertificate->getCertificate() == 'GymAbgSekI' || $tblCertificate->getCertificate() == 'EZSH\EzshGymAbg') {
+            if ($tblCertificate->getCertificate() == 'GymAbgSekI'
+                || $tblCertificate->getCertificate() == 'EZSH\EzshGymAbg'
+                || $tblCertificate->getCertificate() == 'HOGA\GymAbgSekI'
+            ) {
                 $radio1 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
                     'gemäß § 7 Absatz 7 Satz 2 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe 10 nach
@@ -5067,7 +6115,10 @@ class Frontend extends Extension implements IFrontendInterface
                     array($radio1, $radio2),
                     Panel::PANEL_TYPE_DEFAULT
                 );
-            } elseif ($tblCertificate->getCertificate() == 'MsAbg') {
+            } elseif ($tblCertificate->getCertificate() == 'MsAbg'
+                || $tblCertificate->getCertificate() == 'EZSH\EzshMsAbg'
+                || $tblCertificate->getCertificate() == 'HOGA\MsAbg'
+            ) {
                 $radio1 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
                     'gemäß § 6 Absatz 1 Satz 7 des Sächsischen Schulgesetzes mit der Versetzung in die Klassenstufe 10
@@ -5109,13 +6160,64 @@ class Frontend extends Extension implements IFrontendInterface
                 $teacherSelectBox->setDisabled();
             }
 
+            // Facharbeit
+            if ($tblCertificate->getCertificate() == 'HOGA\FosAbg') {
+                $frontend = (new \SPHERE\Application\Education\Certificate\Prepare\TechnicalSchool\Frontend());
+//                $panelJob = $frontend->getPanelWithoutInput('Fachpraktischer Teil der Ausbildung', 'Job', $isApproved);
+                $selectBoxJob = new SelectBox('Data[InformationList][Job_Grade_Text]', 'Fachpraktischer Teil der Ausbildung', array(
+                        1 => "bestanden",
+                        2 => "nicht bestanden"
+                    ));
+                if ($isApproved) {
+                    $selectBoxJob->setDisabled();
+                }
+                $panelJob = new Panel(
+                    'Fachpraktischer Teil der Ausbildung',
+                    $selectBoxJob,
+                    Panel::PANEL_TYPE_INFO
+                    );
+                $panelSkilledWork = $frontend->getPanel('Facharbeit', 'SkilledWork', 'Thema', $isApproved);
+
+                $subjectAreaInput = (new TextField('Data[InformationList][SubjectArea]', '', 'Fachrichtung'));
+                $educationDateFrom = new DatePicker('Data[InformationList][EducationDateFrom]', '', 'Ausbildung Datum vom');
+                if ($isApproved) {
+                    $subjectAreaInput->setDisabled();
+                    $educationDateFrom->setDisabled();
+                }
+                $panelEducation = new Panel(
+                    'Ausbildung',
+                    array(
+                        $educationDateFrom,
+                        $subjectAreaInput
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                );
+
+                $selectBoxExam = new SelectBox('Data[InformationList][Exam_Text]', 'Abschlussprüfung', array(
+                    1 => 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.',
+                    2 => 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.'
+                ));
+                if ($isApproved) {
+                    $selectBoxExam->setDisabled();
+                }
+                $panelExam = new Panel(
+                    'Abschlussprüfung',
+                    $selectBoxExam,
+                    Panel::PANEL_TYPE_INFO
+                );
+            } else {
+                $panelJob = false;
+                $panelSkilledWork = false;
+                $panelEducation = false;
+                $panelExam = false;
+            }
+
             $form = new Form(new FormGroup(array(
-                $subjectTable
-                    ? new FormRow(new FormColumn(
-                        $subjectTable
-                    ))
-                    : null
-                ,
+                $subjectTable ? new FormRow(new FormColumn($subjectTable)) : null,
+                $panelEducation ? new FormRow(new FormColumn($panelEducation)) : null,
+                $panelJob ? new FormRow(new FormColumn($panelJob)) : null,
+                $panelSkilledWork ? new FormRow(new FormColumn($panelSkilledWork)) : null,
+                $panelExam ? new FormRow(new FormColumn($panelExam)) : null,
                 new FormRow(new FormColumn(
                     new Panel(
                         'Sonstige Informationen',
@@ -5272,8 +6374,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Id' => $tblLeaveStudent->getId(),
                             )
                         ),
-                        '</br>',
-                        '</br>'
+                        '<br />',
+                        '<br />'
                     )),
                 )),
             ));
@@ -5640,5 +6742,35 @@ class Frontend extends Extension implements IFrontendInterface
                 . new Danger('Schüler nicht gefunden', new Ban())
                 . new Redirect('/Education/Certificate/Prepare/Leave', Redirect::TIMEOUT_ERROR);
         }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $GroupId
+     * @param null $Route
+     * @param int $IsPrepared
+     *
+     * @return Stage|string
+     */
+    public function frontendSetIsPrepared($PrepareId = null, $GroupId = null, $Route = null, int $IsPrepared = 0)
+    {
+        $IsPrepared = (bool) $IsPrepared;
+        $stage = new Stage('Zeugnisvorbeitung', $IsPrepared ? 'abgeschlossen' : 'abgeschlossen entfernen');
+
+        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+
+        if ($tblPrepare) {
+            Prepare::useService()->setIsPrepared($tblPrepare, $tblGroup ? $tblGroup : null, $IsPrepared);
+            return $stage . new \SPHERE\Common\Frontend\Message\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                    . ' Zeugnisvorbereitung abgeschlossen wurde ' . ($IsPrepared ? ' gesetzt.' : ' entfernt.'))
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                    'PrepareId' => $tblPrepare->getId(),
+                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                    'Route' => $Route
+                ));
+        }
+
+        return $stage;
     }
 }

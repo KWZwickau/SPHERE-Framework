@@ -50,7 +50,7 @@ class EzshMsJ extends EzshStyle
                         )
                     )
                     ->addSectionList(
-                        self::getEZSHHeadLine('JAHRESZEUGNIS', 'OBERSCHULE – staatlich genehmigte Ersatzschule')
+                        self::getEZSHHeadLine('JAHRESZEUGNIS', 'OBERSCHULE – staatlich anerkannte Ersatzschule')
                     )
                     ->addElement((new Element())
                         ->styleMarginTop('35px')

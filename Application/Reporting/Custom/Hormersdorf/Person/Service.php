@@ -7,6 +7,7 @@ use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -14,6 +15,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Reporting\Standard\Person\Person;
 use SPHERE\System\Extension\Extension;
 
 class Service extends Extension
@@ -146,10 +148,7 @@ class Service extends Extension
      * @param $PersonList
      * @param $tblPersonList
      *
-     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
-     * @throws \PHPExcel_Reader_Exception
+     * @return bool|FilePointer
      */
     public function createClassListExcel($PersonList, $tblPersonList)
     {
@@ -201,14 +200,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Stand '.date("d.m.Y"));
@@ -251,10 +243,7 @@ class Service extends Extension
      * @param $PersonList
      * @param $tblPersonList
      *
-     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
-     * @throws \PHPExcel_Reader_Exception
+     * @return bool|FilePointer
      */
     public function createStaffListExcel($PersonList, $tblPersonList)
     {
@@ -277,14 +266,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

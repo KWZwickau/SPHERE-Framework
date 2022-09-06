@@ -460,6 +460,9 @@ class BlockII extends AbstractBlock
         $tblSubject = Subject::useService()->getSubjectByName($subjectName);
         if (!$tblSubject && $subjectName == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('GRW');
+            if (!$tblSubject)  {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('G/R/W');
+            }
         }
 
         if ($tblSubject

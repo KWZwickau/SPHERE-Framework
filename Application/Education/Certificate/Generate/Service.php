@@ -15,8 +15,10 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Setup;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateLevel;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
@@ -92,6 +94,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblCertificateType $tblCertificateType
+     *
+     * @return false|TblGenerateCertificate[]
+     */
+    public function getGenerateCertificateAllByCertificateType(TblCertificateType $tblCertificateType)
+    {
+        return (new Data($this->getBinding()))->getGenerateCertificateAllByCertificateType($tblCertificateType);
+    }
+
+    /**
      * @param IFormInterface|null $Form
      * @param null $Data
      *
@@ -143,7 +155,8 @@ class Service extends AbstractService
             isset($Data['IsTeacherAvailable']),
             isset($Data['GenderHeadmaster'])
             && ($tblCommonGender = Common::useService()->getCommonGenderById($Data['GenderHeadmaster']))
-                ? $tblCommonGender : null
+                ? $tblCommonGender : null,
+            $Data['AppointedDateForAbsence']
         )
         ) {
             return new Success('Die Zeugniserstellung ist angelegt worden',
@@ -180,15 +193,15 @@ class Service extends AbstractService
         if ($Data !== null && isset($Data['Division'])) {
             $saveCertificatesForStudents = array();
             $tblConsumerBySession = Consumer::useService()->getConsumerBySession();
+            $tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType();
             foreach ($Data['Division'] as $divisionId => $value) {
                 if (($tblDivision = Division::useService()->getDivisionById($divisionId))) {
                     if (($tblPrepare = Prepare::useService()->createPrepareData(
                         $tblDivision,
                         $tblGenerateCertificate->getDate(),
                         $tblGenerateCertificate->getName(),
-                        $tblGenerateCertificate->getServiceTblCertificateType()
-                            ? ($tblGenerateCertificate->getServiceTblCertificateType()->getIdentifier() == 'GRADE_INFORMATION'
-                            ? true : false)
+                        $tblCertificateType
+                            ? ($tblCertificateType->getIdentifier() == 'GRADE_INFORMATION' ? true : false)
                             : false,
                         $tblGenerateCertificate,
                         $tblGenerateCertificate->getServiceTblAppointedDateTask()
@@ -217,7 +230,10 @@ class Service extends AbstractService
 
                                 // bei Mittelschule und Primärer Förderschwerpunkt Lernen oder geistige Entwicklung soll keine
                                 // Zeugnisvorlage vorausgewählt werden
-                                if ($tblType && !$this->checkAutoSelect($tblPerson, $tblType)) {
+                                // SSW-1647 Noteninformation soll unabhängig vom FS immer gesetzt werden
+                                if ($tblType && !$this->checkAutoSelect($tblPerson, $tblType)
+                                    && $tblCertificateType && $tblCertificateType->getIdentifier() != 'GRADE_INFORMATION'
+                                ) {
                                     continue;
                                 }
 
@@ -346,17 +362,7 @@ class Service extends AbstractService
             $countStudents = count($tblPersonList);
             foreach ($tblPersonList as $tblPerson) {
                 // Schulnamen
-                $tblCompany = false;
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                    && ($tblStudent = $tblPerson->getStudent())
-                ) {
-                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType);
-                    if ($tblStudentTransfer) {
-                        $tblCompany = $tblStudentTransfer->getServiceTblCompany();
-                    }
-                }
-                if ($tblCompany) {
+                if (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision))) {
                     if (!array_search($tblCompany->getName(), $schoolNameList)) {
                         $schoolNameList[$tblCompany->getId()] = $tblCompany->getName();
                     }
@@ -413,6 +419,12 @@ class Service extends AbstractService
                 $tblSchoolType
             ))
         ) {
+            // SSW-939 - Noteninformation Zuweisung Vorlage
+            if ($tblCertificateType->getIdentifier() == 'GRADE_INFORMATION'
+                && ($tblCertificate = Setting::useService()->getCertificateByCertificateClassName('GradeInformation'))
+            ) {
+                return $tblCertificateList;
+            }
 
             $tblCourse = false;
             // Bildungsgang nur hier relevant sonst klappt es bei den anderen nicht korrekt
@@ -573,7 +585,8 @@ class Service extends AbstractService
                 ? $tblCommonGender : null,
             $tblAppointedDateTask ? $tblAppointedDateTask : null,
             $tblBehaviorTask ? $tblBehaviorTask : null,
-            $Data['Name']
+            $Data['Name'],
+            $Data['AppointedDateForAbsence']
         )
         ) {
             if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {

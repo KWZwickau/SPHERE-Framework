@@ -45,12 +45,36 @@ class RadebeulOsJahreszeugnis extends Certificate
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
+        $gradeFieldWidth = 18;
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
+        $gradeLanesSlice = $this->getGradeLanesForRadebeul(
+            $personId,
+            self::TEXT_COLOR_BLUE,
+            '10pt',
+            'rgb(224,226,231)',
+            false,
+            '20px',
+            $gradeFieldWidth
+        );
+
+        $subjectLanesSlice = $this->getSubjectLanesForRadebeul(
+            $personId,
+            self::TEXT_COLOR_BLUE,
+            '10pt',
+            'rgb(224,226,231)',
+            false,
+            '8px',
+            $gradeFieldWidth,
+            self::FONT_FAMILY,
+            '265px',
+            true
+        );
+
         return (new Page())
             ->addSlice(self::getHeader('Jahreszeugnis'))
-            ->addSliceArray($this->getBody($personId, true));
+            ->addSliceArray($this->getBody($personId, true, $gradeLanesSlice, $subjectLanesSlice));
     }
 
     /**
@@ -67,7 +91,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                 ->addElementColumn((new Element())
                     , '10%')
                 ->addSliceColumn((new Slice())
-                    ->styleMarginTop('15px')
+                    ->styleMarginTop('2px')
                     ->addSection((new Section())
                         ->addElementColumn(
                             self::getHeaderElement(' Evangelisches Schulzentrum Radebeul', '26px')
@@ -75,7 +99,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn(
-                            self::getHeaderElement($schoolType, '22px', '10px')
+                            self::getHeaderElement($schoolType, '22px', '0px')
                         )
                     )
                     ->addSection((new Section())
@@ -83,7 +107,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                             ->setContent(
                                 'Staatlich ' . $extra . ' Ersatzschule in freier Trägerschaft'
                             )
-                            ->styleMarginTop('-4px')
+                            ->styleMarginTop('-6px')
                             ->styleTextColor(self::TEXT_COLOR_BLUE)
                             ->styleTextSize('15px')
                             ->styleAlignCenter()
@@ -104,11 +128,11 @@ class RadebeulOsJahreszeugnis extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn(
-                            self::getHeaderElement($name, '32px', '20px')
+                            self::getHeaderElement($name, '32px', '2px')
                         )
                     )
                 )
-                ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/RadebeulLogo.jpg',
+                ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/EVSR.jpg',
                     '80px', '80px'))
                     ->styleMarginTop('30px')
                     ->styleAlignCenter()
@@ -141,10 +165,11 @@ class RadebeulOsJahreszeugnis extends Certificate
     /**
      * @param $personId
      * @param bool $hasTransfer
-     *
+     * @param Slice $gradeLanesSlice
+     * @param Slice $subjectLanesSlice
      * @return Slice[]
      */
-    public function getBody($personId, $hasTransfer)
+    public function getBody($personId, $hasTransfer, Slice $gradeLanesSlice, Slice $subjectLanesSlice)
     {
         // zusammen 100%
         $width1 = '20%';
@@ -216,28 +241,14 @@ class RadebeulOsJahreszeugnis extends Certificate
         $sliceArray[] = (new Slice)
             ->addElement(self::getBodyElement($course));
 
-        $sliceArray[] = $this->getGradeLanesForRadebeul(
-            $personId,
-            self::TEXT_COLOR_BLUE,
-            '10pt'
-        );
+        $sliceArray[] = $gradeLanesSlice;
 
         $sliceArray[] = (new Slice())
             ->addElement(self::getBodyElement('Leistung in den einzelnen Fächern:', true, '10px'));
 
-        $sliceArray[] = $this->getSubjectLanesForRadebeul(
-            $personId,
-            self::TEXT_COLOR_BLUE,
-            '10pt',
-            'rgb(224,226,231)',
-            false,
-            '8px',
-            28,
-            self::FONT_FAMILY,
-            '265px'
-        );
+        $sliceArray[] = $subjectLanesSlice;
 
-        $sliceArray[] = self::getOrientation($personId);
+//        $sliceArray[] = self::getOrientation($personId);
 
         $sliceArray[] = (new Slice)
             ->addSection((new Section())
@@ -259,7 +270,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     ->styleLineHeight(self::LINE_HEIGHT)
                     ->styleTextColor(self::TEXT_COLOR_BLUE)
                     ->styleMarginTop('0px')
-                    ->styleHeight($hasTransfer ? '25px' : '55px'))
+                    ->styleHeight($hasTransfer ? '80px' : '110px'))
             );
 
         if ($hasTransfer) {
@@ -269,7 +280,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                         , '22%')
                     ->addElementColumn(self::getBodyElement(
                         '{% if(Content.P' . $personId . '.Input.Transfer) %}
-                            {{ Content.P' . $personId . '.Input.Transfer }}
+                            {{ Content.P' . $personId . '.Input.Transfer }}.
                         {% else %}
                               &nbsp;
                         {% endif %}'
@@ -334,6 +345,8 @@ class RadebeulOsJahreszeugnis extends Certificate
     }
 
     /**
+     * @deprecated
+     *
      * @param $personId
      * @param string $TextSize
      * @param bool $IsGradeUnderlined

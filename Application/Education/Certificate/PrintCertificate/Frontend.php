@@ -13,8 +13,11 @@ use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
@@ -37,6 +40,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -162,6 +166,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'CertificateType' =>
                         ($tblCertificateType = $tblPrepare->getCertificateType()) ? $tblCertificateType->getName() : '',
                     'Name' => $tblPrepare->getName(),
+                    'PrepareStatus' => $this->checkIsPreparedStatus($tblPrepare),
                     'Option' => new Standard(
                         'Zeugnisse herunterladen und revisionssicher speichern',
                         '/Education/Certificate/PrintCertificate/Confirm',
@@ -209,6 +214,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Division' => 'Klasse',
                                     'Name' => 'Name',
                                     'CertificateType' => 'Zeugnistyp',
+                                    'PrepareStatus' => 'Zeugnis&shy;vorbereitung',
                                     'Option' => ''
                                 ),
                                 array(
@@ -243,16 +249,16 @@ class Frontend extends Extension implements IFrontendInterface
         $tableContent = array();
         $prepareList = array();
 
-        $tblPerson = false;
+        $tblPersonAccount = false;
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
             $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
             if ($tblPersonAllByAccount) {
-                $tblPerson = $tblPersonAllByAccount[0];
+                $tblPersonAccount = $tblPersonAllByAccount[0];
             }
         }
-        if ($tblPerson
-            && ($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByPerson($tblPerson))
+        if ($tblPersonAccount
+            && ($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByPerson($tblPersonAccount))
         ) {
             $divisionList = array();
             foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
@@ -314,6 +320,56 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        // Stammgruppen
+        if ($tblPersonAccount
+            && ($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
+            && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPersonAccount)
+        ) {
+            if (($tblGroupAll = Group::useService()->getTudorGroupAll($tblPersonAccount))) {
+                foreach ($tblGroupAll as $tblGroup) {
+                    if (($tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup))) {
+                        foreach ($tblStudentList as $tblStudent) {
+                            if (($tblPrepareStudentListByStudent = Prepare::useService()->getPrepareStudentAllWherePrintedByPerson(
+                                $tblStudent, false
+                            ))) {
+                                foreach ($tblPrepareStudentListByStudent as $item) {
+                                    if (($tblPrepareItem = $item->getTblPrepareCertificate())) {
+                                        if (isset($tableContent[$tblPrepareItem->getId()])) {
+                                            continue;
+                                        }
+
+                                        $tblCertificateType = $tblPrepareItem->getCertificateType();
+                                        $tblDivision = $tblPrepareItem->getServiceTblDivision();
+                                        if ($item->isApproved()
+                                            || ($tblCertificateType && $tblCertificateType->isAutomaticallyApproved())
+                                        ) {
+                                            $tableContent[$tblPrepareItem->getId()] = array(
+                                                'Year' => $tblDivision && $tblDivision->getServiceTblYear()
+                                                    ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                                                'Date' => $tblPrepareItem->getDate(),
+                                                'Division' => $tblGroup->getName(),
+                                                'CertificateType' => $tblCertificateType ? $tblCertificateType->getName() : '',
+                                                'Name' => $tblPrepareItem->getName(),
+                                                'Option' => new Standard(
+                                                    'Zeugnisse herunterladen und revisionssicher speichern',
+                                                    '/Education/Certificate/PrintCertificate/Confirm',
+                                                    new Download(),
+                                                    array(
+                                                        'PrepareId' => $tblPrepareItem->getId(),
+                                                        'Route' => 'DivisionTeacher',
+                                                        'GroupId' => $tblGroup->getId()
+                                                    ))
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         /** @var TblPrepareCertificate $tblPrepare */
         foreach ($prepareList as $tblPrepare) {
             if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
@@ -325,6 +381,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'CertificateType' =>
                         ($tblCertificateType = $tblPrepare->getCertificateType()) ? $tblCertificateType->getName() : '',
                     'Name' => $tblPrepare->getName(),
+                    'PrepareStatus' => $this->checkIsPreparedStatus($tblPrepare),
                     'Option' => new Standard(
                         'Zeugnisse herunterladen und revisionssicher speichern',
                         '/Education/Certificate/PrintCertificate/Confirm',
@@ -350,9 +407,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'Year' => 'Schuljahr',
                                     'Date' => 'Zeugnisdatum',
-                                    'Division' => 'Klasse',
+                                    'Division' => 'Klasse/Gruppe',
                                     'Name' => 'Name',
                                     'CertificateType' => 'Zeugnistyp',
+                                    'PrepareStatus' => 'Zeugnis&shy;vorbereitung',
                                     'Option' => ''
                                 ),
                                 array(
@@ -381,6 +439,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $DivisionId
      * @param bool $IsLeave
      * @param string $Route
+     * @param null $GroupId
      *
      * @return Stage
      */
@@ -388,7 +447,8 @@ class Frontend extends Extension implements IFrontendInterface
         $PrepareId = null,
         $DivisionId = null,
         $IsLeave = false,
-        $Route = 'All'
+        $Route = 'All',
+        $GroupId = null
     ) {
 
         $Stage = new Stage('Zeugnis', 'Herunterladen und revisionssicher abspeichern');
@@ -397,6 +457,14 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $backRoute = '/Education/Certificate/DivisionTeacherPrintCertificate';
         }
+
+        $message = new Warning(
+            'Bitte drucken Sie die finalen Zeugnisse nicht direkt aus dem Browser heraus, 
+                            sondern speichern Sie die PDF-Datei auf Ihrem PC und öffnen diese anschließend im 
+                            Adobe Acrobat Reader oder einem vergleichbaren PDF-Reader. <br/> Beim Druck der Zeugnisse 
+                            über den Adobe Acrobat Reader verwenden Sie in den Druckeinstellungen, die Option 
+                            „Seite anpassen und Optionen“ und den Punkt „Tatsächliche Größe“. Bei anderen PDF-Reader 
+                            schauen Sie bitte ebenfalls nach einer vergleichbaren Option.', new Exclamation());
 
         if ($IsLeave) {
             if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
@@ -432,6 +500,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO
                         ),
+                        $message,
                         new Panel(
                             new Question() . ' Diese Zeugnisse wirklich drucken und revisionssicher abspeichern?',
                             $data,
@@ -470,6 +539,12 @@ class Frontend extends Extension implements IFrontendInterface
                 && ($tblDivision = $tblPrepare->getServiceTblDivision())
             ) {
 
+                if ($GroupId) {
+                    $tblGroup = Group::useService()->getGroupById($GroupId);
+                } else {
+                    $tblGroup = false;
+                }
+
                 $Stage->addButton(new Standard(
                     'Zurück', $backRoute, new ChevronLeft()
                 ));
@@ -482,17 +557,34 @@ class Frontend extends Extension implements IFrontendInterface
                     $isAutomaticallyApproved = false;
                 }
 
+                $tblPrepareList = false;
+                if ($tblGroup) {
+                    if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
+                        if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())) {
+                            $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
+                        }
+                    }
+                } else {
+                    $tblPrepareList = array(0 => $tblPrepare);
+                }
+
                 $data = array();
-                if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
-                    foreach ($tblPersonList as $tblPerson) {
-                        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
-                            && $tblPrepareStudent->getServiceTblCertificate()
-                            && !$tblPrepareStudent->isPrinted()
+                if ($tblPrepareList) {
+                    foreach ($tblPrepareList as $item) {
+                        if (($tblDivisionItem = $item->getServiceTblDivision())
+                            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivisionItem))
                         ) {
-                            if ($tblPrepareStudent->isApproved()
-                                || $isAutomaticallyApproved
-                            ) {
-                                $data[] = $tblPerson->getLastFirstName();
+                            foreach ($tblPersonList as $tblPerson) {
+                                if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                    if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($item, $tblPerson))
+                                        && $tblPrepareStudent->getServiceTblCertificate()
+                                        && !$tblPrepareStudent->isPrinted()
+                                    ) {
+                                        if ($tblPrepareStudent->isApproved() || $isAutomaticallyApproved) {
+                                            $data[] = $tblPerson->getLastFirstName();
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -501,10 +593,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(
-                            'Klasse',
-                            $tblDivision->getDisplayName(),
+                            $tblGroup ? 'Stammgruppe' : 'Klasse',
+                            $tblGroup ? $tblGroup->getName() : $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO
                         ),
+                        $message,
                         new Panel(
                             new Question() . ' Dieses Zeugnis wirklich drucken und revisionssicher abspeichern?',
                             $data,
@@ -513,9 +606,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Ja',
                                 '/Api/Education/Certificate/Generator/DownLoadMultiPdf',
                                 new Ok(),
-                                array(
-                                    'PrepareId' => $tblPrepare->getId(),
-                                ),
+                                $tblGroup
+                                    ? array('PrepareId'  => $tblPrepare->getId(), 'GroupId' => $tblGroup->getId())
+                                    : array('PrepareId'  => $tblPrepare->getId())
+                                ,
                                 'Zeugnisse herunterladen und revisionssicher abspeichern'))
                                 ->setRedirect($backRoute, 60)
                             . new Standard(
@@ -839,5 +933,57 @@ class Frontend extends Extension implements IFrontendInterface
                 . new Danger('Klasse nicht gefunden', new Ban())
                 . new Redirect('/Education/Certificate/PrintCertificate/History/Division', Redirect::TIMEOUT_ERROR);
         }
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     *
+     * @return string
+     */
+    private function checkIsPreparedStatus(TblPrepareCertificate $tblPrepare) : string
+    {
+        if (($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))) {
+            $countStudents = 0;
+            $countPrepared = 0;
+            $isInEdit = false;
+            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                    && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                    && $tblPrepareStudent->getServiceTblCertificate()
+                    && !$tblPrepareStudent->isPrinted()
+                    && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
+                    && ($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivisionItem, $tblPerson))
+                    && (!$tblDivisionStudent->isInActive())
+                    && ($tblCertificateType = $tblPrepareStudent->getServiceTblCertificate()->getTblCertificateType())
+                    && ($tblPrepareStudent->isApproved()
+                        || $tblCertificateType->isAutomaticallyApproved())
+                ) {
+                    $countStudents++;
+                    if ($tblPrepareStudent->getIsPrepared()) {
+                        $countPrepared++;
+                    } else {
+                        if (!$isInEdit
+                            && (Prepare::useService()->getPrepareGradeAllByPerson(
+                                    $tblPrepare, $tblPerson, Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
+                                || Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare, $tblPerson))
+                        ) {
+                            $isInEdit = true;
+                        }
+                    }
+                }
+            }
+
+            if ($countPrepared == $countStudents) {
+                $prepareStatus = new Success('abgeschlossen');
+            } elseif ($isInEdit) {
+                $prepareStatus = new \SPHERE\Common\Frontend\Text\Repository\Warning('in Bearbeitung');
+            } else {
+                $prepareStatus = new \SPHERE\Common\Frontend\Text\Repository\Danger('offen');
+            }
+        } else {
+            $prepareStatus = '&nbsp;';
+        }
+
+        return $prepareStatus;
     }
 }

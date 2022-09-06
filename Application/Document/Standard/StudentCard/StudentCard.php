@@ -22,7 +22,10 @@ class StudentCard extends AbstractModule implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Schülerkartei'))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendSelectPerson'
+            __NAMESPACE__ , __NAMESPACE__ . '\Frontend::frontendSelectPerson'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Division', __NAMESPACE__ . '\Frontend::frontendSelectDivision'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Setting', __NAMESPACE__ . '\Frontend::frontendSelectStudentCard'

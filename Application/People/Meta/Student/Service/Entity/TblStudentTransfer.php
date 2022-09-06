@@ -25,6 +25,7 @@ class TblStudentTransfer extends Element
     const ATTR_TBL_STUDENT = 'tblStudent';
     const ATTR_TBL_TRANSFER_TYPE = 'tblStudentTransferType';
     const ATTR_TBL_SCHOOL_ENROLLMENT_TYPE = 'tblStudentSchoolEnrollmentType';
+    const ATTR_SERVICE_TBL_COMPANY = 'serviceTblCompany';
 
     /**
      * @Column(type="bigint")

@@ -54,6 +54,21 @@ class Style
     }
 
     /**
+     * @param string $Type
+     *
+     * @return $this
+     */
+    public function setCellType(string $Type = \PHPExcel_Cell_DataType::TYPE_STRING): self
+    {
+
+        $CellList = $this->getRangeCellList();
+        foreach ($CellList as $Cell) {
+            $this->Worksheet->getCell($Cell)->setDataType($Type);
+        }
+        return $this;
+    }
+
+    /**
      * @param float|int $Value [-1 = Auto]
      *
      * @return $this

@@ -769,13 +769,13 @@ class Service
                                 if(preg_match('!(\w+) und (\w+)!', $firstName)){
                                     $FirstNameArray = explode(' und ', $firstName);
                                     foreach($FirstNameArray as $FirstNamePerson){
-                                        $tblPersonToList = Person::useService()->getPersonByNameAndBirthday($FirstNamePerson, $lastName, $GebDatum);
+                                        $tblPersonToList = Person::useService()->getPersonByName($FirstNamePerson, $lastName, $GebDatum);
                                         if($tblPersonToList){
                                             $tblPersonList[] = $tblPersonToList;
                                         }
                                     }
                                 } else {
-                                    $tblPerson = Person::useService()->getPersonByNameAndBirthday($firstName, $lastName, $GebDatum);
+                                    $tblPerson = Person::useService()->getPersonByName($firstName, $lastName, $GebDatum);
                                 }
                             } else {
                                 if(preg_match('!(\w+) und (\w+)!', $firstName)){
@@ -1115,13 +1115,13 @@ class Service
                             if(preg_match('!(\w+) und (\w+)!', $firstName)){
                                 $FirstNameArray = explode(' und ', $firstName);
                                 foreach($FirstNameArray as $FirstNamePerson){
-                                    $tblPersonToList = Person::useService()->getPersonByNameAndBirthday($FirstNamePerson, $lastName, $birthday);
+                                    $tblPersonToList = Person::useService()->getPersonByName($FirstNamePerson, $lastName, $birthday);
                                     if($tblPersonToList){
                                         $tblPersonList[] = $tblPersonToList;
                                     }
                                 }
                             } else {
-                                $tblPerson = Person::useService()->getPersonByNameAndBirthday($firstName, $lastName, $birthday);
+                                $tblPerson = Person::useService()->getPersonByName($firstName, $lastName, $birthday);
                             }
                         } else {
                             if(preg_match('!(\w+) und (\w+)!', $firstName)){

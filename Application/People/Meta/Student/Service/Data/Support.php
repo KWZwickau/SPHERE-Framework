@@ -192,6 +192,7 @@ abstract class Support extends Integration
      * @param string $LearnTarget
      * @param string $RemarkLesson
      * @param string $RemarkRating
+     * @param string $RemarkCertificate
      * @param bool $IsCanceled
      *
      * @return TblHandyCap
@@ -203,6 +204,7 @@ abstract class Support extends Integration
         $LearnTarget = '',
         $RemarkLesson = '',
         $RemarkRating = '',
+        $RemarkCertificate = '',
         $IsCanceled = false
     ) {
 
@@ -216,6 +218,7 @@ abstract class Support extends Integration
         $Entity->setLearnTarget($LearnTarget);
         $Entity->setRemarkLesson($RemarkLesson);
         $Entity->setRemarkRating($RemarkRating);
+        $Entity->setRemarkCertificate($RemarkCertificate);
         $Entity->setIsCanceled($IsCanceled);
 
         $Manager->saveEntity($Entity);
@@ -351,6 +354,7 @@ abstract class Support extends Integration
      * @param string $LearnTarget
      * @param string $RemarkLesson
      * @param string $RemarkRating
+     * @param string $RemarkCertificate
      * @param bool $IsCanceled
      *
      * @return bool
@@ -362,6 +366,7 @@ abstract class Support extends Integration
         $LearnTarget = '',
         $RemarkLesson = '',
         $RemarkRating = '',
+        $RemarkCertificate = '',
         $IsCanceled = false
     ) {
 
@@ -377,6 +382,7 @@ abstract class Support extends Integration
             $Entity->setLearnTarget($LearnTarget);
             $Entity->setRemarkLesson($RemarkLesson);
             $Entity->setRemarkRating($RemarkRating);
+            $Entity->setRemarkCertificate($RemarkCertificate);
             $Entity->setIsCanceled($IsCanceled);
 
             $Manager->saveEntity($Entity);

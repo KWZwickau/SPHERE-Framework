@@ -27,6 +27,11 @@ class Person extends Extension implements IApplicationInterface, IModuleInterfac
                 new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Person())
             )
         );
+        Main::getDisplay()->addApplicationNavigation(
+            new Link(new Link\Route(__NAMESPACE__ . '/Family/Create'), new Link\Name('Familie anlegen'),
+                new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Group())
+            )
+        );
     }
 
     public static function registerModule()
@@ -37,6 +42,12 @@ class Person extends Extension implements IApplicationInterface, IModuleInterfac
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Create', __NAMESPACE__. '\FrontendReadOnly::frontendPersonCreate'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Family/Create', __NAMESPACE__. '\Frontend\FrontendFamily::frontendFamilyCreate'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Family/CreateAddress', __NAMESPACE__. '\Frontend\FrontendFamily::frontendFamilyAddressCreate'
         ));
 
         Main::getDispatcher()->registerRoute(

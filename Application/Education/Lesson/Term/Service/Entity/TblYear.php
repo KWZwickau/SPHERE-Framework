@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Fitting\Element;
@@ -77,15 +78,15 @@ class TblYear extends Element
     }
 
     /**
-     * @param bool $IsLevel12
-     * @param bool $IsAll
+     * @param TblDivision|null $tblDivision
+     * @param false $IsAll
      *
      * @return bool|TblPeriod[]
      */
-    public function getTblPeriodAll($IsLevel12 = false, $IsAll = false)
+    public function getTblPeriodAll(TblDivision $tblDivision = null, bool $IsAll = false)
     {
 
-        return Term::useService()->getPeriodAllByYear($this, $IsLevel12, $IsAll);
+        return Term::useService()->getPeriodAllByYear($this, $tblDivision, $IsAll);
     }
 
     /**

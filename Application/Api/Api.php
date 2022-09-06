@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Corporation\Corporation;
 use SPHERE\Application\Api\Document\Document;
 use SPHERE\Application\Api\Education\Education;
 use SPHERE\Application\Api\MassReplace\MassReplace;
+use SPHERE\Application\Api\ParentStudentAccess\ParentStudentAccess;
 use SPHERE\Application\Api\People\Person;
 use SPHERE\Application\Api\Platform\Platform;
 use SPHERE\Application\Api\Reporting\Reporting;
@@ -32,6 +33,7 @@ class Api implements IClusterInterface
         Document::registerApplication();
         Education::registerApplication();
         MassReplace::registerApplication();
+        ParentStudentAccess::registerApplication();
         Person::registerApplication();
         Platform::registerApplication();
         Reporting::registerApplication();

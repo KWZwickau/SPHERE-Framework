@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare\Abitur;
 
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
@@ -226,7 +227,7 @@ class LeavePoints extends Extension
                             if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
                                 && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
                                 && ($tblYear = $tblDivisionItem->getServiceTblYear())
-                                && ($tblPeriodList = $tblYear->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12'))
+                                && ($tblPeriodList = $tblYear->getTblPeriodAll($tblDivision))
                                 && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriodByDivision($tblDivision))
                                 && ($tblFirstPeriod = current($tblPeriodList))
                                 && $tblPeriod->getId() != $tblFirstPeriod->getId()
@@ -252,6 +253,9 @@ class LeavePoints extends Extension
         $tblSubject = Subject::useService()->getSubjectByName($subjectName);
         if (!$tblSubject && $subjectName == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('GRW');
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('G/R/W');
+            }
         }
 
         if ($tblSubject && (($tblLeaveStudent = $this->tblLeaveStudent))) {
@@ -391,6 +395,13 @@ class LeavePoints extends Extension
     private function getScientificTable()
     {
 
+        // Extra Fach aus den Einstellungen der Fächer bei den Zeugnisvorlagen
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekII'))) {
+            $tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex($tblCertificate, 1, 1);
+        } else {
+            $tblCertificateSubject = false;
+        }
+
         $dataList = array();
         $dataList = $this->setSubjectRow($dataList, 'Mathematik');
         $dataList = $this->setSubjectRow($dataList, 'Biologie');
@@ -399,7 +410,8 @@ class LeavePoints extends Extension
         $dataList = $this->setSubjectRow($dataList, '&nbsp;');
         $dataList = $this->setSubjectRow($dataList, $this->tblReligionSubject ? $this->tblReligionSubject->getName() : 'Ev./Kath. Religion/Ethik');
         $dataList = $this->setSubjectRow($dataList, 'Sport');
-        $dataList = $this->setSubjectRow($dataList, '&nbsp;');
+        $dataList = $this->setSubjectRow($dataList, $tblCertificateSubject && $tblCertificateSubject->getServiceTblSubject()
+            ? $tblCertificateSubject->getServiceTblSubject()->getName() : '&nbsp;');
         $dataList = $this->setSubjectRow($dataList, 'Astronomie');
         $dataList = $this->setSubjectRow($dataList, 'Informatik');
         $dataList = $this->setSubjectRow($dataList, 'Philosophie');

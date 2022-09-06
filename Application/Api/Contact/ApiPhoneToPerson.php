@@ -12,6 +12,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -20,6 +21,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -34,6 +36,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -72,6 +75,8 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('openDeletePhoneToPersonModal');
         $Dispatcher->registerMethod('saveDeletePhoneToPersonModal');
+
+        $Dispatcher->registerMethod('transferPhone');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -129,11 +134,12 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param $PersonId
+     * @param $OnlineContactId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreatePhoneToPersonModal($PersonId)
+    public static function pipelineOpenCreatePhoneToPersonModal($PersonId, $OnlineContactId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -141,7 +147,8 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
             self::API_TARGET => 'openCreatePhoneToPersonModal',
         ));
         $ModalEmitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'OnlineContactId' => $OnlineContactId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -150,10 +157,11 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
+     * @param $OnlineContactId
      *
      * @return Pipeline
      */
-    public static function pipelineCreatePhoneToPersonSave($PersonId)
+    public static function pipelineCreatePhoneToPersonSave($PersonId, $OnlineContactId): Pipeline
     {
 
         $Pipeline = new Pipeline();
@@ -162,7 +170,8 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
             self::API_TARGET => 'saveCreatePhoneToPersonModal'
         ));
         $ModalEmitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'OnlineContactId' => $OnlineContactId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -171,12 +180,13 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param $PersonId
      * @param $ToPersonId
+     * @param $OnlineContactId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditPhoneToPersonModal($PersonId, $ToPersonId)
+    public static function pipelineOpenEditPhoneToPersonModal($PersonId, $ToPersonId, $OnlineContactId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -186,6 +196,7 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
             'ToPersonId' => $ToPersonId,
+            'OnlineContactId' => $OnlineContactId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -195,10 +206,11 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
     /**
      * @param $PersonId
      * @param $ToPersonId
+     * @param $OnlineContactId
      *
      * @return Pipeline
      */
-    public static function pipelineEditPhoneToPersonSave($PersonId, $ToPersonId)
+    public static function pipelineEditPhoneToPersonSave($PersonId, $ToPersonId, $OnlineContactId): Pipeline
     {
 
         $Pipeline = new Pipeline();
@@ -208,7 +220,8 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
-            'ToPersonId' => $ToPersonId
+            'ToPersonId' => $ToPersonId,
+            'OnlineContactId' => $OnlineContactId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -273,26 +286,29 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
+     * @param $OnlineContactId
      *
      * @return string
      */
-    public function openCreatePhoneToPersonModal($PersonId)
+    public function openCreatePhoneToPersonModal($PersonId, $OnlineContactId)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getPhoneToPersonModal(Phone::useFrontend()->formNumberToPerson($PersonId), $tblPerson);
+        return $this->getPhoneToPersonModal(Phone::useFrontend()->formNumberToPerson($PersonId, null, true, $OnlineContactId),
+            $tblPerson, null, $OnlineContactId);
     }
 
     /**
      * @param $PersonId
      * @param $ToPersonId
+     * @param $OnlineContactId
      *
      * @return string
      */
-    public function openEditPhoneToPersonModal($PersonId, $ToPersonId)
+    public function openEditPhoneToPersonModal($PersonId, $ToPersonId, $OnlineContactId)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -303,17 +319,20 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
             return new Danger('Die Telefonnummer wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getPhoneToPersonModal(Phone::useFrontend()->formNumberToPerson($PersonId, $ToPersonId, true), $tblPerson, $ToPersonId);
+        return $this->getPhoneToPersonModal(Phone::useFrontend()->formNumberToPerson($PersonId, $ToPersonId, true, $OnlineContactId),
+            $tblPerson, $ToPersonId, $OnlineContactId);
     }
 
     /**
      * @param $form
      * @param TblPerson $tblPerson
      * @param null $ToPersonId
+     * @param null $OnlineContactId
+     * @param bool $isPhoneTransfer
      *
      * @return string
      */
-    private function getPhoneToPersonModal($form, TblPerson $tblPerson,  $ToPersonId = null)
+    private function getPhoneToPersonModal($form, TblPerson $tblPerson,  $ToPersonId = null, $OnlineContactId = null, $isPhoneTransfer = false)
     {
         if ($ToPersonId) {
             $title = new Title(new Edit() . ' Telefonnummer bearbeiten');
@@ -321,26 +340,34 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
             $title = new Title(new Plus() . ' Telefonnummer hinzufügen');
         }
 
+        if ($OnlineContactId && ($tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId))) {
+            $columns[] = new LayoutColumn(new Panel(
+                $tblOnlineContact->getContactTypeIcon() . $tblOnlineContact->getContactTypeName(),
+                array(
+                    'Telefonnummer: ' . $tblOnlineContact->getContactContent(),
+                    $tblOnlineContact->getContactCreate(),
+                    $tblOnlineContact->getRemark() ? new Muted('Bemerkung vom Ersteller: ' . $tblOnlineContact->getRemark()) : '',
+                    $ToPersonId && !$isPhoneTransfer ? (new Primary('Telefonnummer ins Formular übernehmen', self::getEndpoint(), new ChevronLeft()))->ajaxPipelineOnClick(
+                        self::pipelineTransferPhone($tblPerson->getId(), $ToPersonId, $OnlineContactId)
+                    ) : '',
+                ),
+                Panel::PANEL_TYPE_DEFAULT
+            ));
+        }
+        $columns[] = new LayoutColumn(new Well($form));
+
         return $title
             . new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(
                             new LayoutColumn(
-                                new Panel(new PersonIcon() . ' Person',
-                                    new Bold($tblPerson ? $tblPerson->getFullName() : ''),
-                                    Panel::PANEL_TYPE_SUCCESS
-
-                                )
+                                new Panel(new PersonIcon() . ' Person', new Bold($tblPerson->getFullName()), Panel::PANEL_TYPE_SUCCESS)
                             )
                         ),
                     )),
                     new LayoutGroup(
                         new LayoutRow(
-                            new LayoutColumn(
-                                new Well(
-                                    $form
-                                )
-                            )
+                            $columns
                         )
                     ))
             );
@@ -390,26 +417,32 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
+     * @param $OnlineContactId
      * @param $Number
      * @param $Type
      *
      * @return Danger|string
      */
-    public function saveCreatePhoneToPersonModal($PersonId, $Number, $Type)
+    public function saveCreatePhoneToPersonModal($PersonId, $OnlineContactId, $Number, $Type)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Phone::useService()->checkFormPhoneToPerson($tblPerson, $Number, $Type))) {
+        if (($form = Phone::useService()->checkFormPhoneToPerson($tblPerson, $Number, $Type, $OnlineContactId))) {
             // display Errors on form
-            return $this->getPhoneToPersonModal($form, $tblPerson);
+            return $this->getPhoneToPersonModal($form, $tblPerson, null, $OnlineContactId);
         }
 
         if (Phone::useService()->createPhoneToPerson($tblPerson, $Number, $Type)) {
+            if ($OnlineContactId && ($tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId))) {
+                OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContact);
+            }
+
             return new Success('Die Telefonnummer wurde erfolgreich gespeichert.')
                 . self::pipelineLoadPhoneToPersonContent($PersonId)
+                . ($OnlineContactId ? ApiContactDetails::pipelineLoadContactDetailsStageContent() : '')
                 . self::pipelineClose();
         } else {
             return new Danger('Die Telefonnummer konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -421,10 +454,11 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      * @param $ToPersonId
      * @param $Number
      * @param $Type
+     * @param $OnlineContactId
      *
      * @return Danger|string
      */
-    public function saveEditPhoneToPersonModal($PersonId, $ToPersonId, $Number, $Type)
+    public function saveEditPhoneToPersonModal($PersonId, $ToPersonId, $Number, $Type, $OnlineContactId)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -435,14 +469,19 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
             return new Danger('Die Telefonnummer wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Phone::useService()->checkFormPhoneToPerson($tblPerson, $Number, $Type, $tblToPerson))) {
+        if (($form = Phone::useService()->checkFormPhoneToPerson($tblPerson, $Number, $Type, $OnlineContactId, $tblToPerson))) {
             // display Errors on form
-            return $this->getPhoneToPersonModal($form, $tblPerson, $ToPersonId);
+            return $this->getPhoneToPersonModal($form, $tblPerson, $ToPersonId, $OnlineContactId);
         }
 
         if (Phone::useService()->updatePhoneToPerson($tblToPerson, $Number, $Type)) {
+            if ($OnlineContactId && ($tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId))) {
+                OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContact);
+            }
+
             return new Success('Die Telefonnummer wurde erfolgreich gespeichert.')
                 . self::pipelineLoadPhoneToPersonContent($PersonId)
+                . ($OnlineContactId ? ApiContactDetails::pipelineLoadContactDetailsStageContent() : '')
                 . self::pipelineClose();
         } else {
             return new Danger('Die Telefonnummer konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -473,5 +512,51 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
         } else {
             return new Danger('Die Telefonnummer konnte nicht gelöscht werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param $PersonId
+     * @param $ToPersonId
+     * @param $OnlineContactId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineTransferPhone($PersonId, $ToPersonId, $OnlineContactId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'transferPhone',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'ToPersonId' => $ToPersonId,
+            'OnlineContactId' => $OnlineContactId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     * @param $ToPersonId
+     * @param $OnlineContactId
+     *
+     * @return string
+     */
+    public function transferPhone($PersonId, $ToPersonId, $OnlineContactId)
+    {
+
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblToPerson = Phone::useService()->getPhoneToPersonById($ToPersonId))) {
+            return new Danger('Die Telefonnummer wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getPhoneToPersonModal(Phone::useFrontend()->formNumberToPerson($PersonId, $ToPersonId, true, $OnlineContactId, true),
+            $tblPerson, $ToPersonId, $OnlineContactId, true);
     }
 }

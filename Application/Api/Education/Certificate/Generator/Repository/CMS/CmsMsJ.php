@@ -87,22 +87,14 @@ class CmsMsJ extends CmsStyle
                 )
                 ->addSection((new Section())
                     ->addSliceColumn(
-                        self::getCMSSubjectLanes($personId, true, '260px')
+                        self::getCMSSubjectLanes($personId, true, '287px')
                     )
                 )
                 ->addElement((new Element())
-                    ->styleMarginTop('10px')
-                )
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        self::getCMSOrientationStandard($personId)
-                    )
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('10px')
+                    ->styleMarginTop('30px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '20px', true)
+                    self::getCMSRemark($personId, '55px', true)
                 )
                 ->addSection(
                     self::getCMSMissing($personId)

@@ -404,25 +404,41 @@ class Creator extends Extension
             }
 
             if (!empty($FileList)) {
-                $ZipFile = new FilePointer('zip');
-                $ZipFile->saveFile();
+//                $ZipFile = new FilePointer('zip');
+//                $ZipFile->saveFile();
+                $MergeFile = Storage::createFilePointer('pdf');
+                $PdfMerger = new PdfMerge();
 
-                $ZipArchive = $this->getPacker($ZipFile->getRealPath());
+//                $ZipArchive = $this->getPacker($ZipFile->getRealPath());
                 /** @var FilePointer $File */
                 foreach ($FileList as $File) {
-                    $ZipArchive->compactFile(
-                        new \MOC\V\Component\Packer\Component\Parameter\Repository\FileParameter(
-                            $File->getRealPath()
-                        )
-                        , false);
+//                    $ZipArchive->compactFile(
+//                        new \MOC\V\Component\Packer\Component\Parameter\Repository\FileParameter(
+//                            $File->getRealPath()
+//                        )
+//                        , false);
+                    $PdfMerger->addPdf($File);
                 }
 
-                return FileSystem::getDownload(
-                    $ZipFile->getRealPath(),
-                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".zip"
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+
+                // aufräumen der Temp-Files
+                /** @var FilePointer $File */
+                foreach($FileList as $File){
+                    $File->setDestruct();
+                }
+
+//                return FileSystem::getDownload(
+//                    $MergeFile->getRealPath(),
+//                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".pdf"
+//                )->__toString();
+                return FileSystem::getStream(
+                    $MergeFile->getRealPath(),
+                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".pdf"
                 )->__toString();
             } else {
-                return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
                     . new Redirect('/Education/Certificate/PrintCertificate');
             }
         }
@@ -468,25 +484,41 @@ class Creator extends Extension
             }
 
             if (!empty($FileList)) {
-                $ZipFile = new FilePointer('zip');
-                $ZipFile->saveFile();
+//                $ZipFile = new FilePointer('zip');
+//                $ZipFile->saveFile();
+                $MergeFile = Storage::createFilePointer('pdf');
+                $PdfMerger = new PdfMerge();
 
-                $ZipArchive = $this->getPacker($ZipFile->getRealPath());
+//                $ZipArchive = $this->getPacker($ZipFile->getRealPath());
                 /** @var FilePointer $File */
                 foreach ($FileList as $File) {
-                    $ZipArchive->compactFile(
-                        new \MOC\V\Component\Packer\Component\Parameter\Repository\FileParameter(
-                            $File->getRealPath()
-                        )
-                        , false);
+//                    $ZipArchive->compactFile(
+//                        new \MOC\V\Component\Packer\Component\Parameter\Repository\FileParameter(
+//                            $File->getRealPath()
+//                        )
+//                        , false);
+                    $PdfMerger->addPdf($File);
                 }
 
-                return FileSystem::getDownload(
-                    $ZipFile->getRealPath(),
-                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".zip"
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+
+                // aufräumen der Temp-Files
+                /** @var FilePointer $File */
+                foreach($FileList as $File){
+                    $File->setDestruct();
+                }
+
+//                return FileSystem::getDownload(
+//                    $MergeFile->getRealPath(),
+//                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".pdf"
+//                )->__toString();
+                return FileSystem::getStream(
+                    $MergeFile->getRealPath(),
+                    $Name . '-' . $tblDivision->getDisplayName() . '-' . date("Y-m-d H:i:s") . ".pdf"
                 )->__toString();
             } else {
-                return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
                     . new Redirect('/Education/Certificate/PrintCertificate');
             }
         }
@@ -495,7 +527,7 @@ class Creator extends Extension
     }
 
 
-    private static function buildMultiDummyFile($Data = array(), $pageList = array())
+    private static function buildMultiDummyFile($Data = array(), $pageList = array(), $certificateList = array())
     {
 
         ini_set('memory_limit', '1G');
@@ -506,7 +538,7 @@ class Creator extends Extension
         $File = Storage::createFilePointer('pdf');
         /** @var DomPdf $Document */
         $Document = Document::getPdfDocument($File->getFileLocation());
-        $Content = $MultiCertificate->createCertificate($Data, $pageList);
+        $Content = $MultiCertificate->createCertificate($Data, $pageList, $certificateList);
         $Document->setContent($Content);
         $Document->saveFile(new FileParameter($File->getFileLocation()));
 
@@ -533,6 +565,9 @@ class Creator extends Extension
             ));
         }
 
+        $pageList = array();
+        $certificateList = array();
+
         $tblPrepareList = false;
         $tblGroup = false;
         $description = '';
@@ -550,11 +585,6 @@ class Creator extends Extension
                 }
             }
         }
-
-        // Fieldpointer auf dem der Merge durchgeführt wird, (download)
-        $MergeFile = Storage::createFilePointer('pdf');
-        $PdfMerger = new PdfMerge();
-        $FileList = array();
 
         if ($tblPrepareList) {
             foreach ($tblPrepareList as $tblPrepareItem) {
@@ -586,45 +616,28 @@ class Creator extends Extension
                                     }
 
                                     $page = $Certificate->buildPages($tblPerson);
+                                    $pageList[$tblPerson->getId()] = $page;
 
-                                    $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
-                                    $personLastName = str_replace('ü', 'ue', $personLastName);
-                                    $personLastName = str_replace('ö', 'oe', $personLastName);
-                                    $personLastName = str_replace('ß', 'ss', $personLastName);
-                                    $File = Storage::createFilePointer('pdf', $Name . '-' . $personLastName
-                                        . '-' . date('Y-m-d') . '--');
-                                    /** @var DomPdf $Document */
-                                    $Document = Document::getPdfDocument($File->getFileLocation());
-                                    $Content = $Certificate->createCertificate($Data, array(0 => $page));
-                                    $Document->setContent($Content);
-                                    $Document->saveFile(new FileParameter($File->getFileLocation()));
-
-                                    // hinzufügen für das mergen
-                                    $PdfMerger->addPdf($File);
-                                    // speichern der Files zum nachträglichem bereinigen
-                                    $FileList[] = $File;
+                                    if (isset($certificateList[$tblCertificate->getCertificate()])) {
+                                        $certificateList[$tblCertificate->getCertificate()]++;
+                                    } else {
+                                        $certificateList[$tblCertificate->getCertificate()] = 1;
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-
-            // mergen aller hinzugefügten PDF-Datein
-            $PdfMerger->mergePdf($MergeFile);
-            if(!empty($FileList)){
-                // aufräumen der Temp-Files
-                /** @var FilePointer $File */
-                foreach($FileList as $File){
-                    $File->setDestruct();
-                }
-            }
         }
 
-        if (!empty($FileList) && $tblPrepare) {
+        if ($tblPrepare && !empty($pageList)) {
+            $Data = Prepare::useService()->getCertificateMultiContent($tblPrepare, $tblGroup ? $tblGroup : null);
+            $File = self::buildMultiDummyFile($Data, $pageList, $certificateList);
+
             $FileName = $Name . ' ' . ($description ? $description : '-') . ' ' . date("Y-m-d") . ".pdf";
 
-            return self::buildDownloadFile($MergeFile, $FileName);
+            return self::buildDownloadFile($File, $FileName);
         }
 
         return "Keine Zeugnisse vorhanden!";
@@ -649,6 +662,7 @@ class Creator extends Extension
         }
 
         $pageList = array();
+        $certificateList = array();
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
             && ($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByDivision($tblDivision))
         ) {
@@ -673,6 +687,12 @@ class Creator extends Extension
 
                         $page = $Certificate->buildPages($tblPerson);
                         $pageList[$tblPerson->getId()] = $page;
+
+                        if (isset($certificateList[$tblCertificate->getCertificate()])) {
+                            $certificateList[$tblCertificate->getCertificate()]++;
+                        } else {
+                            $certificateList[$tblCertificate->getCertificate()] = 1;
+                        }
                     }
                 }
             }
@@ -680,7 +700,7 @@ class Creator extends Extension
             if (!empty($pageList)) {
                 $Data = Prepare::useService()->getCertificateMultiLeaveContent($tblDivision);
 
-                $File = self::buildMultiDummyFile($Data, $pageList);
+                $File = self::buildMultiDummyFile($Data, $pageList, $certificateList);
                 $FileName = $Name . ' ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
 
                 return self::buildDownloadFile($File, $FileName);
@@ -692,121 +712,146 @@ class Creator extends Extension
 
     /**
      * @param null $PrepareId
+     * @param null $GroupId
      * @param string $Name
      * @param bool $Redirect
      *
      * @return string
      */
-    public static function downloadMultiPdf($PrepareId = null, $Name = 'Zeugnis', $Redirect = true)
+    public static function downloadMultiPdf($PrepareId = null, $GroupId = null, $Name = 'Zeugnis', $Redirect = true)
     {
 
         if ($Redirect) {
             return self::displayWaitingPage('/Api/Education/Certificate/Generator/DownLoadMultiPdf', array(
                 'PrepareId' => $PrepareId,
+                'GroupId' => $GroupId,
                 'Name' => $Name,
                 'Redirect' => 0
             ));
         }
 
-        // Fieldpointer auf dem der Merge durchgeführt wird, (download)
-        $MergeFile = Storage::createFilePointer('pdf');
-        $PdfMerger = new PdfMerge();
-        $FileList = array();
+        $pageList = array();
+        $certificateList = array();
 
-        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
-            && ($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
-        ) {
-            if (($tblCertificateType = $tblPrepare->getCertificateType())
-                && $tblCertificateType->isAutomaticallyApproved()
-            ) {
-                $isAutomaticallyApproved = true;
-            } else {
-                $isAutomaticallyApproved = false;
-            }
+        if ($GroupId) {
+            $tblGroup = Group::useService()->getGroupById($GroupId);
+        } else {
+            $tblGroup = false;
+        }
 
-            foreach ($tblStudentList as $tblPerson) {
-                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
-                    && !$tblPrepareStudent->isPrinted()
-                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                ) {
-                    $isApproved = $tblPrepareStudent->isApproved();
-                    // bei automatischer Freigabe --> freigeben + kopieren der Zensuren
-                    if (!$isApproved && $isAutomaticallyApproved) {
-                        Prepare::useService()->updatePrepareStudentSetApproved($tblPrepareStudent);
-                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson, true);
-                        $isApproved = true;
+        $tblPrepareList = false;
+        $description = '';
+        if (($tblPrepareCertificate = Prepare::useService()->getPrepareById($PrepareId))) {
+            if ($tblGroup) {
+                $description = $tblGroup->getName();
+                if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
+                    if (($tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate())) {
+                        $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
                     }
+                }
+            } else {
+                $description = $tblPrepareCertificate->getServiceTblDivision()
+                    ? $tblPrepareCertificate->getServiceTblDivision()->getDisplayName()
+                    : '';
+                $tblPrepareList = array(0 => $tblPrepareCertificate);
+            }
+        }
 
-                    if ($isApproved) {
-                        $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
-                        if (class_exists($CertificateClass)) {
+        if ($tblPrepareList) {
+            foreach ($tblPrepareList as $tblPrepare) {
+                if (($tblCertificateType = $tblPrepare->getCertificateType())
+                    && $tblCertificateType->isAutomaticallyApproved()
+                ) {
+                    $isAutomaticallyApproved = true;
+                } else {
+                    $isAutomaticallyApproved = false;
+                }
 
-                            /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                            $Certificate = new $CertificateClass($tblDivision, $tblPrepare, false);
+                if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                    && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
+                ) {
+                    foreach ($tblStudentList as $tblPerson) {
+                        ini_set('memory_limit', '1G');
+                        if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                                    $tblPerson))
+                                && !$tblPrepareStudent->isPrinted()
+                                && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                            ) {
+                                $isApproved = $tblPrepareStudent->isApproved();
+                                // bei automatischer Freigabe --> freigeben + kopieren der Zensuren und Fehlzeiten (optional)
+                                if (!$isApproved && $isAutomaticallyApproved) {
+                                    Prepare::useService()->updatePrepareStudentSetApproved($tblPrepareStudent);
+                                    $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                                        $tblPerson, true);
+                                    $isApproved = true;
+                                }
 
-                            // get Content
-                            $Data = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
-                            $personId = $tblPerson->getId();
-                            if (isset($Data['P' . $personId]['Grade'])) {
-                                $Certificate->setGrade($Data['P' . $personId]['Grade']);
-                            }
-                            if (isset($Data['P' . $personId]['AdditionalGrade'])) {
-                                $Certificate->setAdditionalGrade($Data['P' . $personId]['AdditionalGrade']);
-                            }
+                                if ($isApproved) {
+                                    $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+                                    if (class_exists($CertificateClass)) {
 
-                            $page = $Certificate->buildPages($tblPerson);
+                                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                                        $Certificate = new $CertificateClass($tblDivision, $tblPrepare, false);
 
-                            $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
-                            $personLastName = str_replace('ü', 'ue', $personLastName);
-                            $personLastName = str_replace('ö', 'oe', $personLastName);
-                            $personLastName = str_replace('ß', 'ss', $personLastName);
-                            $File = Storage::createFilePointer('pdf', $Name . '-' . $personLastName
-                                . '-' . date('Y-m-d') . '--');
-                            /** @var DomPdf $Document */
-                            $Document = Document::getPdfDocument($File->getFileLocation());
-                            $Content = $Certificate->createCertificate($Data, array(0 => $page));
-                            $Document->setContent($Content);
-                            $Document->saveFile(new FileParameter($File->getFileLocation()));
+                                        // get Content
+                                        $Data = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                                        $personId = $tblPerson->getId();
+                                        if (isset($Data['P' . $personId]['Grade'])) {
+                                            $Certificate->setGrade($Data['P' . $personId]['Grade']);
+                                        }
+                                        if (isset($Data['P' . $personId]['AdditionalGrade'])) {
+                                            $Certificate->setAdditionalGrade($Data['P' . $personId]['AdditionalGrade']);
+                                        }
 
-                            // Revisionssicher speichern
-                            if (($tblDivision = $tblPrepare->getServiceTblDivision()) && !$tblPrepareStudent->isPrinted()) {
-                                if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivision,
-                                    $Certificate,
-                                    $File, $tblPrepare)
-                                ) {
-                                    Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
+                                        $page = $Certificate->buildPages($tblPerson);
+                                        $pageList[$tblPerson->getId()] = $page;
+
+                                        if (isset($certificateList[$tblCertificate->getCertificate()])) {
+                                            $certificateList[$tblCertificate->getCertificate()]++;
+                                        } else {
+                                            $certificateList[$tblCertificate->getCertificate()] = 1;
+                                        }
+
+                                        $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
+                                        $personLastName = str_replace('ü', 'ue', $personLastName);
+                                        $personLastName = str_replace('ö', 'oe', $personLastName);
+                                        $personLastName = str_replace('ß', 'ss', $personLastName);
+                                        $File = Storage::createFilePointer('pdf', $Name . '-' . $personLastName
+                                            . '-' . date('Y-m-d') . '--');
+                                        /** @var DomPdf $Document */
+                                        $Document = Document::getPdfDocument($File->getFileLocation());
+                                        $Content = $Certificate->createCertificate($Data, array(0 => $page));
+                                        $Document->setContent($Content);
+                                        $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+                                        // Revisionssicher speichern
+                                        if (($tblDivision = $tblPrepare->getServiceTblDivision()) && !$tblPrepareStudent->isPrinted()) {
+                                            if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivision,
+                                                $Certificate,
+                                                $File, $tblPrepare)
+                                            ) {
+                                                Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
+                                            }
+                                        }
+                                    }
                                 }
                             }
-
-                            // hinzufügen für das mergen
-                            $PdfMerger->addPdf($File);
-                            // speichern der Files zum nachträglichem bereinigen
-                            $FileList[] = $File;
                         }
                     }
                 }
             }
 
-            if(!empty($FileList)){
-                // mergen aller hinzugefügten PDF-Datein
-                $PdfMerger->mergePdf($MergeFile);
+            if ($tblPrepareCertificate && !empty($pageList)) {
+                $Data = Prepare::useService()->getCertificateMultiContent($tblPrepareCertificate, $tblGroup ? $tblGroup : null);
+                $File = self::buildMultiDummyFile($Data, $pageList, $certificateList);
+                $FileName = $Name . ' ' . $description . ' ' . date("Y-m-d") . ".pdf";
 
-                // aufräumen der Temp-Files
-                /** @var FilePointer $File */
-                foreach($FileList as $File){
-                    $File->setDestruct();
-                }
-            }
-
-            if (!empty($FileList) && $tblPrepare) {
-                $FileName = $Name . ' ' . ($tblDivision ? $tblDivision->getDisplayName() : '-') . ' ' . date("Y-m-d") . ".pdf";
-
-                return self::buildDownloadFile($MergeFile, $FileName);
+                return self::buildDownloadFile($File, $FileName);
 
             } else {
 
-                return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
                     . new Redirect('/Education/Certificate/PrintCertificate');
             }
         }
@@ -833,6 +878,7 @@ class Creator extends Extension
         }
 
         $pageList = array();
+        $certificateList = array();
 
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             if (($tblCertificateTypeLeave = Generator::useService()->getCertificateTypeByIdentifier('LEAVE'))
@@ -873,6 +919,11 @@ class Creator extends Extension
 
                                 $page = $Certificate->buildPages($tblPerson);
                                 $pageList[$tblPerson->getId()] = $page;
+                                if (isset($certificateList[$tblCertificate->getCertificate()])) {
+                                    $certificateList[$tblCertificate->getCertificate()]++;
+                                } else {
+                                    $certificateList[$tblCertificate->getCertificate()] = 1;
+                                }
 
                                 $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                                 $personLastName = str_replace('ü', 'ue', $personLastName);
@@ -903,14 +954,14 @@ class Creator extends Extension
 
             if (!empty($pageList)) {
                 $Data = Prepare::useService()->getCertificateMultiLeaveContent($tblDivision);
-                $File = self::buildMultiDummyFile($Data, $pageList);
+                $File = self::buildMultiDummyFile($Data, $pageList, $certificateList);
                 $FileName = $Name . ' ' . ($tblDivision ? $tblDivision->getDisplayName() : '-') . ' ' . date("Y-m-d") . ".pdf";
 
                 return self::buildDownloadFile($File, $FileName);
 
             } else {
 
-                return new Stage($Name, 'Keine weiteren Zeungnisse zum Druck bereit.')
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
                     . new Redirect('/Education/Certificate/PrintCertificate');
             }
         }

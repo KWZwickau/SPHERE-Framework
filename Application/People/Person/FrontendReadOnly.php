@@ -2,22 +2,33 @@
 
 namespace SPHERE\Application\People\Person;
 
+use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
+use SPHERE\Application\Api\Contact\ApiContactDetails;
 use SPHERE\Application\Api\Contact\ApiMailToPerson;
 use SPHERE\Application\Api\Contact\ApiPhoneToPerson;
 use SPHERE\Application\Api\Contact\ApiRelationshipToCompany;
 use SPHERE\Application\Api\Contact\ApiRelationshipToPerson;
+use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
+use SPHERE\Application\People\Person\Frontend\FrontendChild;
 use SPHERE\Application\People\Person\Frontend\FrontendClub;
 use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Application\People\Person\Frontend\FrontendCustody;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonMasern;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonPicture;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
+use SPHERE\Application\People\Person\Frontend\FrontendProspectTransfer;
 use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
 use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
@@ -32,14 +43,19 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Class FrontendReadOnly
@@ -77,7 +93,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendPersonReadOnly($Id = null, $Group = null)
+    public function frontendPersonReadOnly($Id = null, $Group = null, UploadedFile $FileUpload = null, $IsUpload = '')
     {
 
         $stage = new Stage('Person', 'Datenblatt ' . ($Id ? 'bearbeiten' : 'anlegen'));
@@ -87,45 +103,44 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
         // Person bearbeiten
         if ($Id != null && ($tblPerson = Person::useService()->getPersonById($Id))) {
-
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
+            $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id, $Group), 'BasicContent');
+            $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
 
-            $basicContent = ApiPersonReadOnly::receiverBlock(
-                FrontendBasic::getBasicContent($Id), 'BasicContent'
-            );
+            // Anzeige Foto & Bearbeitung nur bei Schülern
+            $PictureContent = false;
+            $PictureCollectGroups[] = TblGroup::META_TABLE_STUDENT;
+//            $PictureCollectGroups[] = TblGroup::META_TABLE_STAFF;
+//            $PictureCollectGroups[] = TblGroup::META_TABLE_TEACHER;
+            foreach($PictureCollectGroups as $GroupMeta){
+                if(($tblGroup = Group::useService()->getGroupByMetaTable($GroupMeta))
+                && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)){
+                    $PictureContent = null;
+                }
+            }
+            if($PictureContent === null){
+                if($IsUpload){
+                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getEditPersonPictureContent($Id, $Group, $FileUpload));
+                } else {
+                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id, $Group));
+                }
+            }
 
-            $commonContent = ApiPersonReadOnly::receiverBlock(
-                FrontendCommon::getCommonContent($Id), 'CommonContent'
-            );
-
-            $prospectContent = ApiPersonReadOnly::receiverBlock(
-                FrontendProspect::getProspectContent($Id), 'ProspectContent'
-            );
-
-            $teacherContent = ApiPersonReadOnly::receiverBlock(
-                FrontendTeacher::getTeacherContent($Id), 'TeacherContent'
-            );
-
-            $custodyContent = ApiPersonReadOnly::receiverBlock(
-                FrontendCustody::getCustodyContent($Id), 'CustodyContent'
-            );
-
-            $clubContent = ApiPersonReadOnly::receiverBlock(
-                FrontendClub::getClubContent($Id), 'ClubContent'
-            );
-
-
-            $studentContent = ApiPersonReadOnly::receiverBlock(
-              FrontendStudent::getStudentTitle($Id), 'StudentContent'
-            );
-
-            $integrationContent = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentIntegration::getIntegrationTitle($Id), 'IntegrationContent'
-            );
+            $personAgreementContent = ApiPersonReadOnly::receiverBlock(FrontendPersonAgreement::getPersonAgreementContent($Id), 'PersonAgreementContent');
+            $personMasern = ApiPersonReadOnly::receiverBlock(FrontendPersonMasern::getPersonMasernContent($Id), 'PersonMasernContent');
+            $childContent = ApiPersonReadOnly::receiverBlock(FrontendChild::getChildContent($Id), 'ChildContent');
+            $prospectContent = ApiPersonReadOnly::receiverBlock(FrontendProspect::getProspectContent($Id), 'ProspectContent');
+            $prospectTransferContent = ApiPersonReadOnly::receiverBlock(FrontendProspectTransfer::getProspectTransferContent($Id), 'ProspectTransferContent');
+            $teacherContent = ApiPersonReadOnly::receiverBlock(FrontendTeacher::getTeacherContent($Id), 'TeacherContent');
+            $custodyContent = ApiPersonReadOnly::receiverBlock(FrontendCustody::getCustodyContent($Id), 'CustodyContent');
+            $clubContent = ApiPersonReadOnly::receiverBlock(FrontendClub::getClubContent($Id), 'ClubContent');
+            $studentContent = ApiPersonReadOnly::receiverBlock(FrontendStudent::getStudentTitle($Id), 'StudentContent');
+            $integrationContent = ApiPersonReadOnly::receiverBlock(FrontendStudentIntegration::getIntegrationTitle($Id), 'IntegrationContent');
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             $addressReceiver = ApiAddressToPerson::receiverBlock(Address::useFrontend()->frontendLayoutPersonNew($tblPerson),
                 'AddressToPersonContent');
-            $addressContent = ApiAddressToPerson::receiverModal()
+            $addressContent = ApiAddressToPerson::receiverModal() . ApiContactDetails::receiverModal()
                 . TemplateReadOnly::getContent(
                     'Adressdaten',
                     $addressReceiver,
@@ -135,13 +150,13 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                             ApiAddressToPerson::getEndpoint()
                         ))->ajaxPipelineOnClick(ApiAddressToPerson::pipelineOpenCreateAddressToPersonModal($tblPerson->getId()))
                     ),
-                    'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                    'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                     new MapMarker()
                 );
 
             $phoneReceiver = ApiPhoneToPerson::receiverBlock(Phone::useFrontend()->frontendLayoutPersonNew($tblPerson),
                 'PhoneToPersonContent');
-            $phoneContent = ApiPhoneToPerson::receiverModal()
+            $phoneContent = ApiPhoneToPerson::receiverModal() . ApiContactDetails::receiverModal()
                 . TemplateReadOnly::getContent(
                     'Telefonnummern',
                     $phoneReceiver,
@@ -151,13 +166,13 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                             ApiPhoneToPerson::getEndpoint()
                         ))->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineOpenCreatePhoneToPersonModal($tblPerson->getId())),
                     ),
-                    'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                    'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                     new \SPHERE\Common\Frontend\Icon\Repository\Phone()
                 );
 
             $mailReceiver = ApiMailToPerson::receiverBlock(Mail::useFrontend()->frontendLayoutPersonNew($tblPerson),
                 'MailToPersonContent');
-            $mailContent = ApiMailToPerson::receiverModal()
+            $mailContent = ApiMailToPerson::receiverModal() . ApiContactDetails::receiverModal()
                 . TemplateReadOnly::getContent(
                 'E-Mail Adressen',
                 $mailReceiver,
@@ -167,7 +182,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                         ApiMailToPerson::getEndpoint()
                     ))->ajaxPipelineOnClick(ApiMailToPerson::pipelineOpenCreateMailToPersonModal($tblPerson->getId())),
                 ),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new \SPHERE\Common\Frontend\Icon\Repository\Mail()
             );
 
@@ -189,22 +204,35 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                         ApiRelationshipToCompany::getEndpoint()
                     ))->ajaxPipelineOnClick(ApiRelationshipToCompany::pipelineOpenCreateRelationshipToCompanyModal($tblPerson->getId())),
                 ),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())) . ' zu Personen und Institutionen',
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString.' zu Personen und Institutionen',
                 new \SPHERE\Common\Frontend\Icon\Repository\Link(),
                 false
             );
-
             $stage->setContent(
                 ($validationMessage ? $validationMessage : '')
-                . $basicContent
-                . $commonContent
+                .
+                ($PictureContent === false
+                ? $basicContent. $commonContent
+                : new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        $basicContent
+                        . $commonContent
+                        , 9),
+                    new LayoutColumn(
+                        $PictureContent
+                        , 3)
+                ))))
+                )
+                . $personAgreementContent
+                . $childContent
                 . $prospectContent
+                . $prospectTransferContent
                 . $teacherContent
+                . $personMasern
                 . $studentContent
                 . $custodyContent
                 . $clubContent
                 . $integrationContent
-
                 . $addressContent
                 . $phoneContent
                 . $mailContent
@@ -226,6 +254,20 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
         }
 
         return $stage;
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     *
+     * @return string
+     */
+    public static function getDivisionString(TblPerson $tblPerson = null): string
+    {
+        $DivisionString = '';
+        if($tblPerson && ($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))){
+            $DivisionString = ' Klasse '.$tblDivision->getDisplayName();
+        }
+        return $DivisionString;
     }
 
     /**
@@ -277,8 +319,9 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
      */
     protected static function getEditTitleDescription(TblPerson $tblPerson = null)
     {
-        return 'der Person'
-            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '')
+        $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
+        return 'der Person '
+            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '').$DivisionString
             . ' bearbeiten';
     }
 

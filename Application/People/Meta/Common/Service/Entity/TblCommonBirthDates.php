@@ -49,9 +49,11 @@ class TblCommonBirthDates extends Element
     protected $tblCommonGender;
 
     /**
+     * @param string $format
+     *
      * @return string
      */
-    public function getBirthday()
+    public function getBirthday($format = 'd.m.Y')
     {
 
         if (null === $this->Birthday) {
@@ -60,7 +62,7 @@ class TblCommonBirthDates extends Element
         /** @var \DateTime $Birthday */
         $Birthday = $this->Birthday;
         if ($Birthday instanceof \DateTime) {
-            return $Birthday->format('d.m.Y');
+            return $Birthday->format($format);
         } else {
             return (string)$Birthday;
         }
@@ -117,15 +119,15 @@ class TblCommonBirthDates extends Element
     public function setGender($Gender)
     {
         $this->Gender = $Gender;
-        switch ( $Gender ) {
-            case self::VALUE_GENDER_MALE:
-            case self::VALUE_GENDER_FEMALE:
-                $Gender = Common::useService()->getCommonGenderById($Gender);
-                break;
-            default:
-                $Gender = null;
-        }
-        $this->setTblCommonGender( $Gender );
+//        switch ( $Gender ) {
+//            case self::VALUE_GENDER_MALE:
+//            case self::VALUE_GENDER_FEMALE:
+//                $Gender = Common::useService()->getCommonGenderById($Gender);
+//                break;
+//            default:
+//                $Gender = null;
+//        }
+//        $this->setTblCommonGender( $Gender );
     }
 
     /**
@@ -146,6 +148,7 @@ class TblCommonBirthDates extends Element
      */
     public function setTblCommonGender(TblCommonGender $tblCommonGender = null)
     {
+        $this->setGender($tblCommonGender ? $tblCommonGender->getId() : 0);
 
         $this->tblCommonGender = ( null === $tblCommonGender ? null : $tblCommonGender->getId() );
     }

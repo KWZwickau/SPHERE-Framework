@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student;
 
+use DateTime;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -11,19 +12,33 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalDiploma;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalSubjectArea;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreement;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentInsuranceState;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectRanking;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTechnicalSchool;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
@@ -173,19 +188,22 @@ class Service extends Support
      * @param $LockerNumber
      * @param $LockerLocation
      * @param $KeyNumber
+     * @param string $CombinationLockNumber
      *
      * @return TblStudentLocker
      */
     public function insertStudentLocker(
         $LockerNumber,
         $LockerLocation,
-        $KeyNumber
+        $KeyNumber,
+        $CombinationLockNumber = ''
     ) {
 
         return (new Data($this->getBinding()))->createStudentLocker(
             $LockerNumber,
             $LockerLocation,
-            $KeyNumber
+            $KeyNumber,
+            $CombinationLockNumber
         );
     }
 
@@ -203,11 +221,15 @@ class Service extends Support
     }
 
     /**
-     * @param string   $Disease
-     * @param string   $Medication
-     * @param string   $Insurance
-     * @param int|null $InsuranceState
-     * @param string   $AttendingDoctor
+     * @param string $Disease
+     * @param string $Medication
+     * @param string $Insurance
+     * @param int $InsuranceState
+     * @param string $AttendingDoctor
+     * @param DateTime|null $MasernDate
+     * @param TblStudentMasernInfo|null $MasernDocumentType
+     * @param TblStudentMasernInfo|null $MasernCreatorType
+     * @param string $InsuranceNumber
      *
      * @return TblStudentMedicalRecord
      */
@@ -216,7 +238,11 @@ class Service extends Support
         $Medication,
         $Insurance,
         $InsuranceState = 0,
-        $AttendingDoctor = ''
+        $AttendingDoctor = '',
+        $MasernDate = null,
+        TblStudentMasernInfo $MasernDocumentType = null,
+        TblStudentMasernInfo $MasernCreatorType = null,
+        $InsuranceNumber = ''
     ) {
 
         return (new Data($this->getBinding()))->createStudentMedicalRecord(
@@ -224,7 +250,11 @@ class Service extends Support
             $Medication,
             $AttendingDoctor,
             $InsuranceState,
-            $Insurance
+            $Insurance,
+            $InsuranceNumber,
+            $MasernDate,
+            $MasernDocumentType,
+            $MasernCreatorType
         );
     }
 
@@ -247,6 +277,7 @@ class Service extends Support
      * @param        $StationEntrance
      * @param        $StationExit
      * @param string $Remark
+     * @param boolean $IsDriverStudent
      *
      * @return TblStudentTransport
      */
@@ -254,14 +285,16 @@ class Service extends Support
         $Route,
         $StationEntrance,
         $StationExit,
-        $Remark = ''
+        $Remark = '',
+        $IsDriverStudent = false
     ) {
 
         return (new Data($this->getBinding()))->createStudentTransport(
             $Route,
             $StationEntrance,
             $StationExit,
-            $Remark
+            $Remark,
+            $IsDriverStudent
         );
     }
 
@@ -301,16 +334,18 @@ class Service extends Support
     }
 
     /**
-     * @param TblPerson                    $tblPerson
-     * @param string                       $Prefix
-     * @param string                       $Identifier
+     * @param TblPerson $tblPerson
+     * @param string $Prefix
+     * @param string $Identifier
      * @param TblStudentMedicalRecord|null $tblStudentMedicalRecord
-     * @param TblStudentTransport|null     $tblStudentTransport
-     * @param TblStudentBilling|null       $tblStudentBilling
-     * @param TblStudentLocker|null        $tblStudentLocker
-     * @param TblStudentBaptism|null       $tblStudentBaptism
-     * @param TblStudentIntegration|null   $tblStudentIntegration
-     * @param string                       $SchoolAttendanceStartDate
+     * @param TblStudentTransport|null $tblStudentTransport
+     * @param TblStudentBilling|null $tblStudentBilling
+     * @param TblStudentLocker|null $tblStudentLocker
+     * @param TblStudentBaptism|null $tblStudentBaptism
+     * @param TblStudentIntegration|null $tblStudentIntegration
+     * @param TblStudentSpecialNeeds|null $tblStudentSpecialNeeds
+     * @param string $SchoolAttendanceStartDate
+     * @param TblStudentTechnicalSchool|null $tblStudentTechnicalSchool
      *
      * @return TblStudent
      */
@@ -324,6 +359,8 @@ class Service extends Support
         TblStudentLocker $tblStudentLocker = null,
         TblStudentBaptism $tblStudentBaptism = null,
         TblStudentIntegration $tblStudentIntegration = null,
+        TblStudentSpecialNeeds $tblStudentSpecialNeeds = null,
+        TblStudentTechnicalSchool $tblStudentTechnicalSchool = null,
         $SchoolAttendanceStartDate = ''
     ) {
 
@@ -336,7 +373,10 @@ class Service extends Support
             $tblStudentLocker,
             $tblStudentBaptism,
             $tblStudentIntegration,
-            $SchoolAttendanceStartDate);
+            $tblStudentSpecialNeeds,
+            $tblStudentTechnicalSchool,
+            $SchoolAttendanceStartDate
+        );
     }
 
     /**
@@ -374,9 +414,17 @@ class Service extends Support
 
         $Prefix = $Meta['Student']['Prefix'];
         $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
-        if($tblSetting && $tblSetting->getValue()){
+
+        if($tblSetting && $tblSetting->getValue() && !$tblStudent->getIdentifier()){
+            // höchste Schülernummer setzen, wenn noch nicht vorhanden
             $biggestIdentifier = Student::useService()->getStudentMaxIdentifier();
             $Meta['Student']['Identifier'] = $biggestIdentifier + 1;
+        } elseif($tblSetting && $tblSetting->getValue() && $tblStudent->getIdentifier()){
+            // vorhandene Schülernummer übergeben
+            $Meta['Student']['Identifier'] = $tblStudent->getIdentifier();
+        } elseif(!isset($Meta['Student']['Identifier'])){
+            // sollte nie vorkommen, wenn wird die vorhandene Einstellung übergeben (keine Änderung)
+            $Meta['Student']['Identifier'] = $tblStudent->getIdentifier();
         }
 
         if ($tblStudent) {
@@ -483,8 +531,18 @@ class Service extends Support
             } else {
                 $tblStateCompany = false;
             }
-            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeArrive->getId()]['Type']);
-            $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeArrive->getId()]['Course']);
+
+            if (isset($Meta['Transfer'][$TransferTypeArrive->getId()]['Type'])) {
+                $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeArrive->getId()]['Type']);
+            } else {
+                $tblType = false;
+            }
+            if (isset($Meta['Transfer'][$TransferTypeArrive->getId()]['Course'])) {
+                $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeArrive->getId()]['Course']);
+            } else {
+                $tblCourse = false;
+            }
+
             if ($tblStudentTransferByTypeArrive) {
                 (new Data($this->getBinding()))->updateStudentTransfer(
                     $tblStudentTransferByTypeArrive,
@@ -650,6 +708,74 @@ class Service extends Support
      *
      * @return bool|TblStudent
      */
+    public function updateStudentTransferArrive(TblPerson $tblPerson, $Meta)
+    {
+
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
+            $TransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
+            $tblStudentTransferByTypeArrive = Student::useService()->getStudentTransferByType(
+                $tblStudent,
+                $TransferTypeArrive
+            );
+            $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeArrive->getId()]['School']);
+            if (isset($Meta['Transfer'][$TransferTypeArrive->getId()]['StateSchool'])) {
+                $tblStateCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeArrive->getId()]['StateSchool']);
+            } else {
+                $tblStateCompany = false;
+            }
+
+            if (isset($Meta['Transfer'][$TransferTypeArrive->getId()]['Type'])) {
+                $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeArrive->getId()]['Type']);
+            } else {
+                $tblType = false;
+            }
+            if (isset($Meta['Transfer'][$TransferTypeArrive->getId()]['Course'])) {
+                $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeArrive->getId()]['Course']);
+            } else {
+                $tblCourse = false;
+            }
+
+            if ($tblStudentTransferByTypeArrive) {
+                (new Data($this->getBinding()))->updateStudentTransfer(
+                    $tblStudentTransferByTypeArrive,
+                    $tblStudent,
+                    $TransferTypeArrive,
+                    $tblCompany ? $tblCompany : null,
+                    $tblStateCompany ? $tblStateCompany : null,
+                    $tblType ? $tblType : null,
+                    $tblCourse ? $tblCourse : null,
+                    $Meta['Transfer'][$TransferTypeArrive->getId()]['Date'],
+                    $Meta['Transfer'][$TransferTypeArrive->getId()]['Remark']
+                );
+            } else {
+                (new Data($this->getBinding()))->createStudentTransfer(
+                    $tblStudent,
+                    $TransferTypeArrive,
+                    $tblCompany ? $tblCompany : null,
+                    $tblStateCompany ? $tblStateCompany : null,
+                    $tblType ? $tblType : null,
+                    $tblCourse ? $tblCourse : null,
+                    $Meta['Transfer'][$TransferTypeArrive->getId()]['Date'],
+                    $Meta['Transfer'][$TransferTypeArrive->getId()]['Remark']
+                );
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblStudent
+     */
     public function updateStudentMedicalRecord(TblPerson $tblPerson, $Meta)
     {
 
@@ -657,6 +783,24 @@ class Service extends Support
         $tblStudent = $tblPerson->getStudent(true);
         if (!$tblStudent) {
             $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+        // nicht ausgewählt = 0 -> false
+        if($Meta['MedicalRecord']['Masern']['DocumentType']){
+            $DocumentType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['Masern']['DocumentType']);
+        }
+        if(!isset($DocumentType) || !$DocumentType){
+            $DocumentType = null;
+        }
+        // nicht ausgewählt = 0 -> false
+        if($Meta['MedicalRecord']['Masern']['CreatorType']){
+            $CreatorType = $this->getStudentMasernInfoById($Meta['MedicalRecord']['Masern']['CreatorType']);
+        }
+        if(!isset($CreatorType) || !$CreatorType){
+            $CreatorType = null;
+        }
+        $MasernDate = null;
+        if(isset($Meta['MedicalRecord']['Masern']['Date']) && $Meta['MedicalRecord']['Masern']['Date']){
+            $MasernDate = new DateTime($Meta['MedicalRecord']['Masern']['Date']);
         }
 
         if ($tblStudent) {
@@ -667,7 +811,11 @@ class Service extends Support
                     $Meta['MedicalRecord']['Medication'],
                     $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
-                    $Meta['MedicalRecord']['Insurance']['Company']
+                    $Meta['MedicalRecord']['Insurance']['Company'],
+                    $Meta['MedicalRecord']['Insurance']['Number'],
+                    $MasernDate,
+                    $DocumentType,
+                    $CreatorType
                 );
             } else {
                 $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
@@ -675,7 +823,11 @@ class Service extends Support
                     $Meta['MedicalRecord']['Medication'],
                     $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
-                    $Meta['MedicalRecord']['Insurance']['Company']
+                    $Meta['MedicalRecord']['Insurance']['Company'],
+                    $Meta['MedicalRecord']['Insurance']['Number'],
+                    $MasernDate,
+                    $DocumentType,
+                    $CreatorType
                 );
 
                 if ($tblStudentMedicalRecord) {
@@ -686,7 +838,9 @@ class Service extends Support
                         $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
                         $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
                         $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
-                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null
+                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                        $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
+                        $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
                     );
                 } else {
                     return false;
@@ -720,13 +874,15 @@ class Service extends Support
                     $tblStudent->getTblStudentLocker(),
                     $Meta['Additional']['Locker']['Number'],
                     $Meta['Additional']['Locker']['Location'],
-                    $Meta['Additional']['Locker']['Key']
+                    $Meta['Additional']['Locker']['Key'],
+                    $Meta['Additional']['Locker']['CombinationLockNumber']
                 );
             } else {
                 $tblStudentLocker = (new Data($this->getBinding()))->createStudentLocker(
                     $Meta['Additional']['Locker']['Number'],
                     $Meta['Additional']['Locker']['Location'],
-                    $Meta['Additional']['Locker']['Key']
+                    $Meta['Additional']['Locker']['Key'],
+                    $Meta['Additional']['Locker']['CombinationLockNumber']
                 );
             }
 
@@ -749,14 +905,16 @@ class Service extends Support
                     $Meta['Transport']['Route'],
                     $Meta['Transport']['Station']['Entrance'],
                     $Meta['Transport']['Station']['Exit'],
-                    $Meta['Transport']['Remark']
+                    $Meta['Transport']['Remark'],
+                    isset($Meta['Transport']['IsDriverStudent'])
                 );
             } else {
                 $tblStudentTransport = (new Data($this->getBinding()))->createStudentTransport(
                     $Meta['Transport']['Route'],
                     $Meta['Transport']['Station']['Entrance'],
                     $Meta['Transport']['Station']['Exit'],
-                    $Meta['Transport']['Remark']
+                    $Meta['Transport']['Remark'],
+                    isset($Meta['Transport']['IsDriverStudent'])
                 );
             }
 
@@ -779,7 +937,9 @@ class Service extends Support
                 $tblStudentBilling ? $tblStudentBilling : null,
                 $tblStudentLocker ? $tblStudentLocker : null,
                 $tblStudentBaptism ? $tblStudentBaptism : null,
-                $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null
+                $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
+                $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
             );
 
             /*
@@ -803,26 +963,50 @@ class Service extends Support
                     }
                 }
             }
+            return true;
+        }
+        return false;
+    }
 
+    /**
+     * @param TblPerson $tblPerson
+     * @param           $Meta
+     *
+     * @return bool
+     */
+    public function updateStudentAgreement(TblPerson $tblPerson, $Meta, $isUnlocked = false)
+    {
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
             /*
              * Agreement
              */
             $tblStudentAgreementAllByStudent = $this->getStudentAgreementAllByStudent($tblStudent);
             if ($tblStudentAgreementAllByStudent) {
-                foreach ($tblStudentAgreementAllByStudent as $tblStudentAgreement) {
-                    if (!isset(
-                        $Meta['Agreement']
-                        [$tblStudentAgreement->getTblStudentAgreementType()->getTblStudentAgreementCategory()->getId()]
-                        [$tblStudentAgreement->getTblStudentAgreementType()->getId()]
-                    )
-                    ) {
-                        (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
+                array_walk($tblStudentAgreementAllByStudent, function (TblStudentAgreement $tblStudentAgreement) use (&$isUnlocked){
+                    $tblCategory = false;
+                    if(($tblType = $tblStudentAgreement->getTblStudentAgreementType())){
+                        $tblCategory = $tblType->getTblStudentAgreementCategory();
                     }
-                }
+                    if(!$isUnlocked){
+                        if (!isset($Meta['Agreement'][$tblCategory->getId()][$tblType->getId()])) {
+                            (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
+                        }
+                    } else {
+                        if (!isset($Meta['Agreement'][$tblCategory->getId()][$tblType->getId()]) && $tblType->getIsUnlocked()) {
+                            (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
+                        }
+                    }
+                });
             }
-            if (isset( $Meta['Agreement'] )) {
+            if (isset($Meta['Agreement'])) {
                 foreach ($Meta['Agreement'] as $Category => $Items) {
-                    $tblStudentAgreementCategory = $this->getStudentAgreementTypeById($Category);
+                    $tblStudentAgreementCategory = $this->getStudentAgreementCategoryById($Category);
                     if ($tblStudentAgreementCategory) {
                         foreach ($Items as $Type => $Value) {
                             $tblStudentAgreementType = $this->getStudentAgreementTypeById($Type);
@@ -834,10 +1018,8 @@ class Service extends Support
                     }
                 }
             }
-
             return true;
         }
-
         return false;
     }
 
@@ -910,7 +1092,7 @@ class Service extends Support
     }
 
     /**
-     * @return bool|int
+     * @return int
      */
     public function getStudentMaxIdentifier()
     {
@@ -932,9 +1114,8 @@ class Service extends Support
      *
      * @return bool|TblStudentMedicalRecord
      */
-    public function getStudentMedicalRecordById(
-        $Id
-    ) {
+    public function getStudentMedicalRecordById($Id)
+    {
 
         return (new Data($this->getBinding()))->getStudentMedicalRecordById($Id);
     }
@@ -942,11 +1123,61 @@ class Service extends Support
     /**
      * @param int $Id
      *
+     * @return bool|TblStudentInsuranceState
+     */
+    public function getStudentInsuranceStateById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getStudentInsuranceStateById($Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblStudentInsuranceState
+     */
+    public function getStudentInsuranceStateByName($Name)
+    {
+        return (new Data($this->getBinding()))->getStudentInsuranceStateByName($Name);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblStudentMasernInfo
+     */
+    public function getStudentMasernInfoById($Id)
+    {
+        return (new Data($this->getBinding()))->getStudentMasernInfoById($Id);
+    }
+
+    /**
+     * @param string $Type
+     * TblStudentMasernInfo::TYPE_DOCUMENT || TblStudentMasernInfo::TYPE_CREATOR
+     *
+     * @return false|TblStudentMasernInfo[]
+     */
+    public function getStudentMasernInfoByType($Type = TblStudentMasernInfo::TYPE_DOCUMENT)
+    {
+        return (new Data($this->getBinding()))->getStudentMasernInfoByType($Type);
+    }
+
+    /**
+     * @return bool|TblStudentInsuranceState[]
+     */
+    public function getStudentInsuranceStateAll()
+    {
+
+        return (new Data($this->getBinding()))->getStudentInsuranceStateAll();
+    }
+
+    /**
+     * @param int $Id
+     *
      * @return bool|TblStudentBaptism
      */
-    public function getStudentBaptismById(
-        $Id
-    ) {
+    public function getStudentBaptismById($Id)
+    {
 
         return (new Data($this->getBinding()))->getStudentBaptismById($Id);
     }
@@ -989,15 +1220,16 @@ class Service extends Support
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isStudentGroup
      *
      * @return false|TblDivision[]
      */
-    public function getCurrentDivisionListByPerson(TblPerson $tblPerson)
+    public function getCurrentDivisionListByPerson(TblPerson $tblPerson, bool $isStudentGroup = true)
     {
 
         $tblDivisionList = array();
-        if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'),
-            $tblPerson)
+        if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'), $tblPerson)
+            || !$isStudentGroup
         ) {
             $tblYearList = Term::useService()->getYearByNow();
             if ($tblYearList) {
@@ -1022,24 +1254,29 @@ class Service extends Support
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblYear|null $tblYear
      *
      * @return false|TblDivision
      */
-    public function getCurrentMainDivisionByPerson(TblPerson $tblPerson)
+    public function getCurrentMainDivisionByPerson(TblPerson $tblPerson, TblYear $tblYear = null)
     {
 
         if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'),
             $tblPerson)
         ) {
-            $tblYearList = Term::useService()->getYearByNow();
+            if ($tblYear) {
+                $tblYearList = array(0 => $tblYear);
+            } else {
+                $tblYearList = Term::useService()->getYearByNow();
+            }
             if ($tblYearList) {
                 $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
                 if ($tblDivisionStudentList) {
                     foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                        foreach ($tblYearList as $tblYear) {
+                        foreach ($tblYearList as $tblYearItem) {
                             if ($tblDivisionStudent->getTblDivision()) {
                                 $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
-                                if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                                if ($divisionYear && $divisionYear->getId() == $tblYearItem->getId()) {
                                     if(($tblDivision = $tblDivisionStudent->getTblDivision())){
                                         if (($tblLevel = $tblDivision->getTblLevel())
                                             && !$tblLevel->getIsChecked()
@@ -1195,6 +1432,32 @@ class Service extends Support
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionListByPersonAndYearAndIsNotInActive(TblPerson $tblPerson, TblYear $tblYear)
+    {
+
+        $tblDivisionList = array();
+
+        $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+        if ($tblDivisionStudentList) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if ($tblDivisionStudent->getTblDivision() && !$tblDivisionStudent->isInActive()) {
+                    $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
+                    if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                        $tblDivisionList[] = $tblDivisionStudent->getTblDivision();
+                    }
+                }
+            }
+        }
+
+        return empty($tblDivisionList) ? false : $tblDivisionList;
+    }
+
+    /**
      * @param array $EntityList
      * @param array $ProtocolList
      *
@@ -1208,5 +1471,400 @@ class Service extends Support
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision|null $tblDivision
+     *
+     * @return bool|TblCompany
+     */
+    public function getCurrentSchoolByPerson(TblPerson $tblPerson, TblDivision $tblDivision = null)
+    {
+        if ($tblDivision && $tblDivision->getServiceTblCompany()) {
+            return $tblDivision->getServiceTblCompany();
+        } elseif (($tblCurrentDivision = $this->getCurrentDivisionByPerson($tblPerson))
+            && $tblCurrentDivision->getServiceTblCompany()
+        ) {
+            return $tblCurrentDivision->getServiceTblCompany();
+        } else {
+            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                && ($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType))
+            ) {
+                return $tblTransfer->getServiceTblCompany();
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $IsHeavyMultipleHandicapped
+     * @param $IncreaseFactorHeavyMultipleHandicappedSchool
+     * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
+     * @param $RemarkHeavyMultipleHandicapped
+     * @param $DegreeOfHandicap
+     * @param $Sign
+     * @param $ValidTo
+     * @param TblStudentSpecialNeedsLevel|null $tblStudentSpecialNeedsLevel
+     *
+     * @return TblStudentSpecialNeeds
+     */
+    public function createStudentSpecialNeeds(
+        $IsHeavyMultipleHandicapped,
+        $IncreaseFactorHeavyMultipleHandicappedSchool,
+        $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
+        $RemarkHeavyMultipleHandicapped,
+        $DegreeOfHandicap,
+        $Sign,
+        $ValidTo,
+        TblStudentSpecialNeedsLevel $tblStudentSpecialNeedsLevel = null
+    ) {
+        return (new Data($this->getBinding()))->createStudentSpecialNeeds(
+            $IsHeavyMultipleHandicapped,
+            $IncreaseFactorHeavyMultipleHandicappedSchool,
+            $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
+            $RemarkHeavyMultipleHandicapped,
+            $DegreeOfHandicap,
+            $Sign,
+            $ValidTo,
+            $tblStudentSpecialNeedsLevel
+        );
+    }
+
+    /**
+     * @param TblStudentMedicalRecord $tblStudentMedicalRecord
+     * @param $Disease
+     * @param $Medication
+     * @param $AttendingDoctor
+     * @param $InsuranceState
+     * @param $Insurance
+     * @param $InsuranceNumber
+     * @param null $MasernDate
+     * @param TblStudentMasernInfo|null $MasernDocumentType
+     * @param TblStudentMasernInfo|null $MasernCreatorType
+     *
+     * @return bool
+     */
+    public function updateStudentMedicalRecordService(
+        TblStudentMedicalRecord $tblStudentMedicalRecord,
+        $Disease,
+        $Medication,
+        $AttendingDoctor,
+        $InsuranceState,
+        $Insurance,
+        $InsuranceNumber,
+        $MasernDate = null,
+        TblStudentMasernInfo $MasernDocumentType = null,
+        TblStudentMasernInfo $MasernCreatorType = null
+    ) {
+        return (new Data($this->getBinding()))->updateStudentMedicalRecord(
+            $tblStudentMedicalRecord,
+            $Disease,
+            $Medication,
+            $AttendingDoctor,
+            $InsuranceState,
+            $Insurance,
+            $InsuranceNumber,
+            $MasernDate,
+            $MasernDocumentType,
+            $MasernCreatorType
+        );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblStudent
+     */
+    public function updateStudentSpecialNeeds(TblPerson $tblPerson, $Meta)
+    {
+
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
+            $tblStudentSpecialNeedsLevel = $this->getStudentSpecialNeedsLevelById($Meta['SpecialNeeds']['TblStudentSpecialNeedsLevel']);
+
+            if (($tblStudentSpecialNeeds = $tblStudent->getTblStudentSpecialNeeds())) {
+                (new Data($this->getBinding()))->updateStudentSpecialNeeds(
+                    $tblStudentSpecialNeeds,
+                    isset($Meta['SpecialNeeds']['IsHeavyMultipleHandicapped']),
+                    $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedSchool'],
+                    $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities'],
+                    $Meta['SpecialNeeds']['RemarkHeavyMultipleHandicapped'],
+                    $Meta['SpecialNeeds']['DegreeOfHandicap'],
+                    $Meta['SpecialNeeds']['Sign'],
+                    $Meta['SpecialNeeds']['ValidTo'],
+                    $tblStudentSpecialNeedsLevel ? $tblStudentSpecialNeedsLevel : null
+                );
+            } else {
+
+                $tblStudentSpecialNeeds = (new Data($this->getBinding()))->createStudentSpecialNeeds(
+                    isset($Meta['SpecialNeeds']['IsHeavyMultipleHandicapped']),
+                    $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedSchool'],
+                    $Meta['SpecialNeeds']['IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities'],
+                    $Meta['SpecialNeeds']['RemarkHeavyMultipleHandicapped'],
+                    $Meta['SpecialNeeds']['DegreeOfHandicap'],
+                    $Meta['SpecialNeeds']['Sign'],
+                    $Meta['SpecialNeeds']['ValidTo'],
+                    $tblStudentSpecialNeedsLevel ? $tblStudentSpecialNeedsLevel : null
+                );
+
+                if ($tblStudentSpecialNeeds) {
+                    (new Data($this->getBinding()))->updateStudentField(
+                        $tblStudent,
+                        $tblStudent->getTblStudentMedicalRecord() ? $tblStudent->getTblStudentMedicalRecord() : null,
+                        $tblStudent->getTblStudentTransport() ? $tblStudent->getTblStudentTransport() : null,
+                        $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
+                        $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
+                        $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
+                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                        $tblStudentSpecialNeeds,
+                        $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
+                    );
+                } else {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblStudent
+     */
+    public function updateStudentTechnicalSchool(TblPerson $tblPerson, $Meta)
+    {
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
+            $tblTechnicalCourse = Course::useService()->getTechnicalCourseById($Meta['TechnicalSchool']['serviceTblTechnicalCourse']);
+            $tblSchoolDiploma = Course::useService()->getSchoolDiplomaById($Meta['TechnicalSchool']['serviceTblSchoolDiploma']);
+            $tblSchoolType = Type::useService()->getTypeById($Meta['TechnicalSchool']['serviceTblSchoolType']);
+            $tblTechnicalDiploma = Course::useService()->getTechnicalDiplomaById($Meta['TechnicalSchool']['serviceTblTechnicalDiploma']);
+            $tblTechnicalType = Type::useService()->getTypeById($Meta['TechnicalSchool']['serviceTblTechnicalType']);
+
+            $tblStudentTenseOfLesson = $this->getStudentTenseOfLessonById($Meta['TechnicalSchool']['tblStudentTenseOfLesson']);
+            $tblStudentTrainingStatus = $this->getStudentTrainingStatusById($Meta['TechnicalSchool']['tblStudentTrainingStatus']);
+
+            $tblTechnicalSubjectArea = Course::useService()->getTechnicalSubjectAreaById($Meta['TechnicalSchool']['serviceTblTechnicalSubjectArea']);
+
+            if (($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())) {
+                (new Data($this->getBinding()))->updateStudentTechnicalSchool(
+                    $tblStudentTechnicalSchool,
+                    $Meta['TechnicalSchool']['PraxisLessons'],
+                    $Meta['TechnicalSchool']['DurationOfTraining'],
+                    $Meta['TechnicalSchool']['Remark'],
+                    $tblTechnicalCourse ? $tblTechnicalCourse : null,
+                    $tblSchoolDiploma ? $tblSchoolDiploma : null,
+                    $tblSchoolType ? $tblSchoolType : null,
+                    $tblTechnicalDiploma ? $tblTechnicalDiploma : null,
+                    $tblTechnicalType ? $tblTechnicalType : null,
+                    $tblStudentTenseOfLesson ? $tblStudentTenseOfLesson : null,
+                    $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null,
+                    $Meta['TechnicalSchool']['YearOfSchoolDiploma'],
+                    $Meta['TechnicalSchool']['YearOfTechnicalDiploma'],
+                    $tblTechnicalSubjectArea ? $tblTechnicalSubjectArea : null,
+                    isset($Meta['TechnicalSchool']['HasFinancialAid']),
+                    $Meta['TechnicalSchool']['FinancialAidApplicationYear'],
+                    $Meta['TechnicalSchool']['FinancialAidBureau']
+                );
+            } else {
+
+                $tblStudentTechnicalSchool = (new Data($this->getBinding()))->createStudentTechnicalSchool(
+                    $Meta['TechnicalSchool']['PraxisLessons'],
+                    $Meta['TechnicalSchool']['DurationOfTraining'],
+                    $Meta['TechnicalSchool']['Remark'],
+                    $tblTechnicalCourse ? $tblTechnicalCourse : null,
+                    $tblSchoolDiploma ? $tblSchoolDiploma : null,
+                    $tblSchoolType ? $tblSchoolType : null,
+                    $tblTechnicalDiploma ? $tblTechnicalDiploma : null,
+                    $tblTechnicalType ? $tblTechnicalType : null,
+                    $tblStudentTenseOfLesson ? $tblStudentTenseOfLesson : null,
+                    $tblStudentTrainingStatus ? $tblStudentTrainingStatus : null,
+                    $Meta['TechnicalSchool']['YearOfSchoolDiploma'],
+                    $Meta['TechnicalSchool']['YearOfTechnicalDiploma'],
+                    $tblTechnicalSubjectArea ? $tblTechnicalSubjectArea : null,
+                    isset($Meta['TechnicalSchool']['HasFinancialAid']),
+                    $Meta['TechnicalSchool']['FinancialAidApplicationYear'],
+                    $Meta['TechnicalSchool']['FinancialAidBureau']
+                );
+
+                if ($tblStudentTechnicalSchool) {
+                    (new Data($this->getBinding()))->updateStudentField(
+                        $tblStudent,
+                        $tblStudent->getTblStudentMedicalRecord() ? $tblStudent->getTblStudentMedicalRecord() : null,
+                        $tblStudent->getTblStudentTransport() ? $tblStudent->getTblStudentTransport() : null,
+                        $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
+                        $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
+                        $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
+                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
+                        $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
+                        $tblStudentTechnicalSchool
+                    );
+                } else {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblTechnicalCourse
+     */
+    public function getTechnicalCourseByPerson(TblPerson $tblPerson)
+    {
+        if (($tblStudent = $tblPerson->getStudent())
+            && ($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
+        ) {
+            return $tblTechnicalSchool->getServiceTblTechnicalCourse();
+        }
+
+        return  false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    public function getTechnicalCourseGenderNameByPerson(TblPerson $tblPerson)
+    {
+        if (($tblTechnicalCourse = $this->getTechnicalCourseByPerson($tblPerson))) {
+            $tblCommonGender = $tblPerson->getGender();
+            return $tblTechnicalCourse->getDisplayName($tblCommonGender ? $tblCommonGender : null);
+        }
+
+        return '';
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentLiberationType $tblStudentLiberationType
+     *
+     * @return Service\Entity\TblStudentLiberation
+     */
+    public function addStudentLiberation(
+        TblStudent $tblStudent,
+        TblStudentLiberationType $tblStudentLiberationType
+    ) {
+        return (new Data($this->getBinding()))->addStudentLiberation($tblStudent, $tblStudentLiberationType);
+    }
+
+    /**
+     * @param $praxisLessons
+     * @param $durationOfTraining
+     * @param $remark
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
+     * @param TblSchoolDiploma|null $tblSchoolDiploma
+     * @param TblType|null $tblSchoolType
+     * @param TblTechnicalDiploma|null $tblTechnicalDiploma
+     * @param TblType|null $tblTechnicalType
+     * @param TblStudentTenseOfLesson|null $tblStudentTenseOfLesson
+     * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
+     * @param string $yearOfSchoolDiploma
+     * @param string $yearOfTechnicalDiploma
+     * @param TblTechnicalSubjectArea|null $tblTechnicalSubjectArea
+     * @param bool $hasFinancialAid
+     * @param string $financialAidApplicationYear
+     * @param string $financialAidBureau
+     *
+     * @return TblStudentTechnicalSchool
+     */
+    public function insertStudentTechnicalSchool(
+        $praxisLessons,
+        $durationOfTraining,
+        $remark,
+        TblTechnicalCourse $tblTechnicalCourse = null,
+        TblSchoolDiploma $tblSchoolDiploma = null,
+        TblType $tblSchoolType = null,
+        TblTechnicalDiploma $tblTechnicalDiploma = null,
+        TblType $tblTechnicalType = null,
+        TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
+        TblStudentTrainingStatus $tblStudentTrainingStatus = null,
+        $yearOfSchoolDiploma = '',
+        $yearOfTechnicalDiploma = '',
+        TblTechnicalSubjectArea $tblTechnicalSubjectArea = null,
+        $hasFinancialAid = false,
+        $financialAidApplicationYear = '',
+        $financialAidBureau = ''
+    ) {
+        return (new Data($this->getBinding()))->createStudentTechnicalSchool(
+            $praxisLessons,
+            $durationOfTraining,
+            $remark,
+            $tblTechnicalCourse,
+            $tblSchoolDiploma,
+            $tblSchoolType,
+            $tblTechnicalDiploma,
+            $tblTechnicalType,
+            $tblStudentTenseOfLesson,
+            $tblStudentTrainingStatus,
+            $yearOfSchoolDiploma,
+            $yearOfTechnicalDiploma,
+            $tblTechnicalSubjectArea,
+            $hasFinancialAid,
+            $financialAidApplicationYear,
+            $financialAidBureau
+        );
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentMedicalRecord|null $tblStudentMedicalRecord
+     * @param TblStudentTransport|null $tblStudentTransport
+     * @param TblStudentBilling|null $tblStudentBilling
+     * @param TblStudentLocker|null $tblStudentLocker
+     * @param TblStudentBaptism|null $tblStudentBaptism
+     * @param TblStudentIntegration|null $tblStudentIntegration
+     * @param TblStudentSpecialNeeds|null $tblStudentSpecialNeeds
+     * @param TblStudentTechnicalSchool|null $tblStudentTechnicalSchool
+     *
+     * @return bool
+     */
+    public function updateStudentField(
+        TblStudent $tblStudent,
+        TblStudentMedicalRecord $tblStudentMedicalRecord = null,
+        TblStudentTransport $tblStudentTransport = null,
+        TblStudentBilling $tblStudentBilling = null,
+        TblStudentLocker $tblStudentLocker = null,
+        TblStudentBaptism $tblStudentBaptism = null,
+        TblStudentIntegration $tblStudentIntegration = null,
+        TblStudentSpecialNeeds $tblStudentSpecialNeeds = null,
+        TblStudentTechnicalSchool $tblStudentTechnicalSchool = null
+    ) : bool {
+        return (new Data($this->getBinding()))->updateStudentField(
+            $tblStudent,
+            $tblStudentMedicalRecord,
+            $tblStudentTransport,
+            $tblStudentBilling,
+            $tblStudentLocker,
+            $tblStudentBaptism,
+            $tblStudentIntegration,
+            $tblStudentSpecialNeeds,
+            $tblStudentTechnicalSchool
+        );
     }
 }

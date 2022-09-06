@@ -33,6 +33,9 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/Teacher/Add', __NAMESPACE__.'\Frontend::frontendTeacherAdd'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/ClassRepresentative/Add', __NAMESPACE__.'\Frontend::frontendRepresentativeAdd'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Custody/Add', __NAMESPACE__.'\Frontend::frontendCustodyAdd'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -74,6 +77,19 @@ class Division implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDivisionDestroy'
         ));
+
+        /*
+         * Sort
+         */
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Sort', __NAMESPACE__ . '\Sort\Frontend::frontendSortDivision')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Sort\Alphabetically', __NAMESPACE__ . '\Sort\Frontend::frontendSortDivisionAlphabetically')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'\Sort\Gender', __NAMESPACE__.'\Sort\Frontend::frontendSortDivisionGender')
+        );
     }
 
     /**

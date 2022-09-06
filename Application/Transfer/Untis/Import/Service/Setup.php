@@ -27,6 +27,8 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $this->setTableUntisImportLectureship($Schema);
+        $tblUntisImportStudent = $this->setTableUntisImportStudent($Schema);
+        $this->setTableUntisImportStudentCourse($Schema, $tblUntisImportStudent);
 
         /**
          * Migration & Protocol
@@ -84,6 +86,47 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblUntisImportLectureship', 'IsIgnore')) {
             $Table->addColumn('IsIgnore', 'boolean');
         }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableUntisImportStudent(Schema &$Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblUntisImportStudent');
+        $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Level', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IsIgnore', self::FIELD_TYPE_BOOLEAN);
+//        $this->getConnection()->addForeignKey($Table, $tblItemType);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblUntisImportStudent
+     *
+     * @return Table
+     */
+    private function setTableUntisImportStudentCourse(Schema &$Schema, $tblUntisImportStudent)
+    {
+
+        $Table = $this->createTable($Schema, 'tblUntisImportStudentCourse');
+        $this->createColumn($Table, 'SubjectName', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'SubjectGroup', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'CourseNumber', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'IsIntensiveCourse', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'IsIgnoreCourse', self::FIELD_TYPE_BOOLEAN);
+        $this->getConnection()->addForeignKey($Table, $tblUntisImportStudent);
 
         return $Table;
     }

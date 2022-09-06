@@ -87,19 +87,11 @@ class CmsMsJExt extends CmsStyle
                 )
                 ->addSection((new Section())
                     ->addSliceColumn(
-                        self::getCMSSubjectLanes($personId)
+                        self::getCMSSubjectLanes($personId, true, '295px')
                     )
                 )
                 ->addElement((new Element())
-                    ->styleMarginTop('10px')
-                )
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        self::getCMSOrientationStandard($personId)
-                    )
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('10px')
+                    ->styleMarginTop('20px')
                 )
                 ->addSectionList(
                     self::getCMSRemark($personId, '250px', true)
@@ -119,7 +111,7 @@ class CmsMsJExt extends CmsStyle
                     ->styleMarginTop('20px')
                 )
                 ->addSectionList(
-                    self::getCMSSecondRemark($personId, '725px')
+                    self::getCMSSecondRemark($personId, '705px')
                 )
                 ->addSection(
                     self::getCMSMissing($personId)

@@ -53,7 +53,7 @@ class B02
                             ->styleBorderRight(), '17.6%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Ralschul-<br/>schulabschluss')
+                            ->setContent('Realschul-<br/>abschluss')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '17.6%'
                         )
@@ -138,16 +138,16 @@ class B02
                         $identifier = 'Leave';
                         break;
                     case 1:
-                        $identifier = 'MsAbsHs';
+                        $identifier = 'LeaveHS';
                         break;
                     case 2:
-                        $identifier = 'MsAbsHsQ';
+                        $identifier = 'LeaveRS';
                         break;
                     case 3:
-                        $identifier = 'MsAbsRs';
+                        $identifier = 'GymAbitur';
                         break;
                     default:
-                        $identifier = 'Default';
+                        $identifier = '';
                 }
                 $section
                     ->addElementColumn((new Element())

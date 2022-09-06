@@ -103,7 +103,7 @@ class Service extends AbstractService
                 }
                 if ($tblDivision = $tblTest->getServiceTblDivision()) {
                     if ($tbLevel = $tblDivision->getTblLevel()) {
-                        if ($tbLevel->getName() == '11' || $tbLevel->getName() == '12') {
+                        if ($tbLevel->getName() == '11' || $tbLevel->getName() == '12' || $tbLevel->getName() == '13') {
                             $GradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
                             if ($GradeList) {
                                 foreach ($GradeList as $Grade) {
@@ -142,13 +142,14 @@ class Service extends AbstractService
         if (!$tblTask) {
             return false;
         }
+
         $PeopleGradeList = array();
         $tblTestList = Evaluation::useService()->getTestAllByTask($tblTask);
         if ($tblTestList) {
             foreach ($tblTestList as $tblTest) {
                 if ($tblDivision = $tblTest->getServiceTblDivision()) {
                     if ($tbLevel = $tblDivision->getTblLevel()) {
-                        if ($tbLevel->getName() == '11' || $tbLevel->getName() == '12') {
+                        if ($tbLevel->getName() == '11' || $tbLevel->getName() == '12' || $tbLevel->getName() == '13') {
                             $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
                             if ($tblGradeList) {
 
@@ -278,7 +279,7 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function createIndiwareStudentSubjectOrderBulk($ImportList = array(), $Period, TblTask $tblTask)
+    public function createIndiwareStudentSubjectOrderBulk($ImportList, $Period, TblTask $tblTask)
     {
 
         return (new Data($this->getBinding()))->createIndiwareStudentSubjectOrderBulk($ImportList, $Period, $tblTask);

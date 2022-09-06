@@ -28,6 +28,13 @@ class Platform implements IClusterInterface
         $tblAccount = Account::useService()->getAccountBySession();
         $tblIdentification = Account::useService()->getIdentificationByName('System');
         if ($tblAccount && $tblIdentification) {
+            $LabelColor = Label::LABEL_TYPE_DANGER;
+            if($tblAccount->getServiceTblConsumer()){
+                $Acronym = $tblAccount->getServiceTblConsumer()->getAcronym();
+                if($Acronym == 'REF' || $Acronym == 'DEMO'){
+                    $LabelColor = Label::LABEL_TYPE_DEFAULT;
+                }
+            }
             if ($tblAccount->getServiceTblIdentification()
                 && $tblAccount->getServiceTblIdentification()->getId() == $tblIdentification->getId()) {
                 Main::getDisplay()->addServiceNavigation(
@@ -37,7 +44,7 @@ class Platform implements IClusterInterface
                             new Bold( new Label(
                                 'Mandant '
                                 . ($tblAccount->getServiceTblConsumer()?$tblAccount->getServiceTblConsumer()->getAcronym() : '')
-                            , Label::LABEL_TYPE_DANGER) )
+                            , $LabelColor) )
                         )
                     )
                 );

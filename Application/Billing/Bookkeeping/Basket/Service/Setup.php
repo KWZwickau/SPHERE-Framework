@@ -75,6 +75,9 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'BillTime', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'IsDone', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'IsArchive', self::FIELD_TYPE_BOOLEAN, false, false);
+        if($this->hasColumn($Table, 'IsCompanyCredit')){
+            $Table->dropColumn('IsCompanyCredit');
+        }
         $this->createColumn($Table, 'SepaDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'SepaUser', self::FIELD_TYPE_STRING, true);
         $this->createColumn($Table, 'DatevDate', self::FIELD_TYPE_DATETIME, true);
@@ -84,6 +87,8 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblDebtorPeriodType', self::FIELD_TYPE_BIGINT, true, 1);
         $this->createColumn($Table, 'tblBasketType', self::FIELD_TYPE_BIGINT, false, 1);
+        $this->createColumn($Table, 'FibuAccount', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'FibuToAccount', self::FIELD_TYPE_STRING);
         // Update vorhandener Daten deswegen ist kein Fremdschlüssel mehr möglich
 //        $this->getConnection()->addForeignKey($Table, $tblBasketType);
 

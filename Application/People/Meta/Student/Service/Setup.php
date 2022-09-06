@@ -49,16 +49,24 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
+        $this->setTableStudentInsuranceState($Schema);
         $tblStudentMedicalRecord = $this->setTableStudentMedicalRecord($Schema);
+        $this->setTableStudentMasernInfo($Schema);
         $tblStudentTransport = $this->setTableStudentTransport($Schema);
         $tblStudentBilling = $this->setTableStudentBilling($Schema);
         $tblStudentLocker = $this->setTableStudentLocker($Schema);
         $tblStudentBaptism = $this->setTableStudentBaptism($Schema);
         $tblStudentIntegration = $this->setTableStudentIntegration($Schema);
+        $tblStudentSpecialNeedsLevel = $this->setTableStudentSpecialNeedsLevel($Schema);
+        $tblStudentSpecialNeeds = $this->setTableStudentSpecialNeeds($Schema, $tblStudentSpecialNeedsLevel);
+        $tblStudentTenseOfLesson = $this->setTableStudentTenseOfLesson($Schema);
+        $tblStudentTrainingStatus = $this->setTableStudentTrainingStatus($Schema);
+        $tblStudentTechnicalSchool = $this->setTableStudentTechnicalSchool($Schema, $tblStudentTenseOfLesson, $tblStudentTrainingStatus);
 
         $tblStudent = $this->setTableStudent(
             $Schema, $tblStudentMedicalRecord, $tblStudentTransport,
-            $tblStudentBilling, $tblStudentLocker, $tblStudentBaptism, $tblStudentIntegration
+            $tblStudentBilling, $tblStudentLocker, $tblStudentBaptism, $tblStudentIntegration,
+            $tblStudentSpecialNeeds, $tblStudentTechnicalSchool
         );
 
         $tblStudentTransferType = $this->setTableStudentTransferType($Schema);
@@ -170,6 +178,21 @@ class Setup extends AbstractSetup
         return $this->getConnection()->getProtocol($Simulate);
     }
 
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentInsuranceState(Schema &$Schema)
+    {
+        $Table = $this->createTable($Schema, 'tblStudentInsuranceState');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
+
+        return $Table;
+    }
+
     /**
      * @param Schema $Schema
      *
@@ -194,12 +217,33 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'Insurance')) {
             $Table->addColumn('Insurance', 'string');
         }
-
-        // entfernen alter Rückstände
-        if ($this->getConnection()->hasColumn('tblStudentMedicalRecord', 'serviceTblPersonAttendingDoctor')) {
-            $Table->dropColumn('serviceTblPersonAttendingDoctor');
+        if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'MasernDate')) {
+            $Table->addColumn('MasernDate', 'datetime', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'MasernDocumentType')) {
+            $Table->addColumn('MasernDocumentType', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'MasernCreatorType')) {
+            $Table->addColumn('MasernCreatorType', 'bigint', array('notnull' => false));
+        }
+        $this->createColumn($Table, 'InsuranceNumber', self::FIELD_TYPE_STRING, false, '');
 
+//        // entfernen alter Rückstände
+//        if ($this->getConnection()->hasColumn('tblStudentMedicalRecord', 'serviceTblPersonAttendingDoctor')) {
+//            $Table->dropColumn('serviceTblPersonAttendingDoctor');
+//        }
+
+        return $Table;
+    }
+
+    private function setTableStudentMasernInfo(Schema $Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblStudentMasernInfo');
+        $this->createColumn($Table, 'Meta', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Type', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'TextShort', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'TextLong', self::FIELD_TYPE_TEXT);
         return $Table;
     }
 
@@ -224,6 +268,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentTransport', 'Remark')) {
             $Table->addColumn('Remark', 'text');
         }
+        $this->createColumn($Table, 'IsDriverStudent', self::FIELD_TYPE_BOOLEAN, false, false);
         return $Table;
     }
 
@@ -260,6 +305,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentLocker', 'KeyNumber')) {
             $Table->addColumn('KeyNumber', 'string');
         }
+        $this->createColumn($Table, 'CombinationLockNumber', self::FIELD_TYPE_STRING);
         return $Table;
     }
 
@@ -330,6 +376,8 @@ class Setup extends AbstractSetup
      * @param Table $tblStudentLocker
      * @param Table $tblStudentBaptism
      * @param Table $tblStudentIntegration
+     * @param Table $tblStudentSpecialNeeds
+     * @param Table $tblStudentTechnicalSchool
      *
      * @return Table
      */
@@ -340,7 +388,9 @@ class Setup extends AbstractSetup
         Table $tblStudentBilling,
         Table $tblStudentLocker,
         Table $tblStudentBaptism,
-        Table $tblStudentIntegration
+        Table $tblStudentIntegration,
+        Table $tblStudentSpecialNeeds,
+        Table $tblStudentTechnicalSchool
     ) {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblStudent');
@@ -368,6 +418,9 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblStudentLocker, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentBaptism, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentIntegration, true);
+        $this->getConnection()->addForeignKey($Table, $tblStudentSpecialNeeds, true);
+        $this->getConnection()->addForeignKey($Table, $tblStudentTechnicalSchool, true);
+
         return $Table;
     }
 
@@ -463,6 +516,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentAgreementType', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+        $this->createColumn($Table, 'isUnlocked', self::FIELD_TYPE_BOOLEAN);
         $this->getConnection()->addForeignKey($Table, $tblStudentAgreementCategory);
         return $Table;
     }
@@ -839,9 +893,116 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'LearnTarget', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'RemarkLesson', self::FIELD_TYPE_TEXT);
         $this->createColumn($table, 'RemarkRating', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'RemarkCertificate', self::FIELD_TYPE_TEXT);
         $this->createColumn($table, 'IsCanceled', self::FIELD_TYPE_BOOLEAN);
 
         return $table;
     }
 
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentSpecialNeedsLevel(Schema &$Schema)
+    {
+
+        $table = $this->createTable($Schema, 'tblStudentSpecialNeedsLevel');
+
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblStudentSpecialNeedsLevel
+     *
+     * @return Table
+     */
+    private function setTableStudentSpecialNeeds(Schema &$Schema, Table $tblStudentSpecialNeedsLevel)
+    {
+
+        $table = $this->createTable($Schema, 'tblStudentSpecialNeeds');
+
+        if ($table->hasColumn('IsMultipleHandicapped')) {
+            $table->dropColumn('IsMultipleHandicapped');
+        }
+//        $this->createColumn($table, 'IsMultipleHandicapped', self::FIELD_TYPE_BOOLEAN);
+
+        $this->createColumn($table, 'IsHeavyMultipleHandicapped', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'IncreaseFactorHeavyMultipleHandicappedSchool', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'RemarkHeavyMultipleHandicapped', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'DegreeOfHandicap', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Sign', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'ValidTo', self::FIELD_TYPE_STRING);
+
+        $this->createForeignKey($table, $tblStudentSpecialNeedsLevel, true);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentTenseOfLesson(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblStudentTenseOfLesson');
+
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentTrainingStatus(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblStudentTrainingStatus');
+
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblStudentTenseOfLesson
+     * @param Table $tblStudentTrainingStatus
+     *
+     * @return Table
+     */
+    private function setTableStudentTechnicalSchool(Schema &$Schema, Table $tblStudentTenseOfLesson, Table $tblStudentTrainingStatus)
+    {
+        $table = $this->createTable($Schema, 'tblStudentTechnicalSchool');
+
+        $this->createColumn($table, 'serviceTblTechnicalCourse', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'serviceTblSchoolDiploma', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'serviceTblTechnicalDiploma', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'serviceTblTechnicalType', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'PraxisLessons', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'DurationOfTraining', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Remark', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'YearOfSchoolDiploma', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'YearOfTechnicalDiploma', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'serviceTblTechnicalSubjectArea', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'HasFinancialAid', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'FinancialAidApplicationYear', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'FinancialAidBureau', self::FIELD_TYPE_STRING);
+
+        $this->createForeignKey($table, $tblStudentTenseOfLesson, true);
+        $this->createForeignKey($table, $tblStudentTrainingStatus, true);
+
+        return $table;
+    }
 }

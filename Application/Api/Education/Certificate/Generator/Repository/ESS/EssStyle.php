@@ -86,7 +86,7 @@ abstract class EssStyle extends Certificate
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
 //                        ->styleAlignCenter()
-//                        ->styleBackgroundColor('#CCC')
+//                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->stylePaddingTop('1px')
                         ->stylePaddingBottom('1px')
                         ->styleMarginTop($marginTop)
@@ -240,7 +240,7 @@ abstract class EssStyle extends Certificate
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
 //                        ->styleAlignCenter()
-//                        ->styleBackgroundColor('#BBB')
+//                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->stylePaddingTop(
                             '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)

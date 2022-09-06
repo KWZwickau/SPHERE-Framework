@@ -21,6 +21,7 @@ abstract class CmsStyle extends Certificate
 {
 
     const TEXT_SIZE = '10pt';
+    const BACKGROUND_COLOR = self::BACKGROUND_GRADE_FIELD;
 
     /**
      * @param int $PictureHeight
@@ -36,7 +37,7 @@ abstract class CmsStyle extends Certificate
                     ->styleTextSize('30px')
                     ->stylePaddingTop('20px')
                     , '33%')
-                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS_Logo.jpg',
+                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS.jpg',
                     'auto', $PictureHeight.'px'))
                     ->styleAlignCenter()
                     , '34%')
@@ -49,7 +50,7 @@ abstract class CmsStyle extends Certificate
             $Header = (new Slice)->addSection((new Section())
                 ->addElementColumn((new Element())
                     , '33%')
-                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS_Logo.jpg',
+                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS.jpg',
                     'auto', $PictureHeight.'px'))
                     ->styleAlignCenter()
                     , '34%')
@@ -274,7 +275,7 @@ abstract class CmsStyle extends Certificate
                                          &ndash;
                                      {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_COLOR)
                         ->stylePaddingTop()
                         ->stylePaddingBottom()
                         ->styleMarginTop('10px')
@@ -393,7 +394,7 @@ abstract class CmsStyle extends Certificate
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_COLOR)
                         ->styleMarginTop('10px')
                         ->stylePaddingTop(
                             '{% if((Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty)
@@ -438,6 +439,8 @@ abstract class CmsStyle extends Certificate
     }
 
     /**
+     * @deprecated
+     *
      * @param        $personId
      * @param string $TextSize
      * @param bool   $IsGradeUnderlined
@@ -524,7 +527,7 @@ abstract class CmsStyle extends Certificate
                                 &ndash;
                             {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_COLOR)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
@@ -584,7 +587,7 @@ abstract class CmsStyle extends Certificate
                                 &ndash;
                             {% endif %}')
                             ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
+                            ->styleBackgroundColor(self::BACKGROUND_COLOR)
                             ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                             ->stylePaddingTop(
                                 '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
@@ -671,7 +674,7 @@ abstract class CmsStyle extends Certificate
                 $elementGrade = (new Element())
                     ->setContent('&ndash;')
                     ->styleAlignCenter()
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor(self::BACKGROUND_COLOR)
                     ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                     ->stylePaddingTop('0px')
                     ->stylePaddingBottom('0px')
@@ -717,7 +720,7 @@ abstract class CmsStyle extends Certificate
             $elementGrade = (new Element())
                 ->setContent('&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_COLOR)
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop('0px')
                 ->stylePaddingBottom('0px')
@@ -859,7 +862,7 @@ abstract class CmsStyle extends Certificate
             , '21%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Transfer) %}
-                                        {{ Content.P'.$personId.'.Input.Transfer }}
+                                        {{ Content.P'.$personId.'.Input.Transfer }}.
                                     {% else %}
                                           &nbsp;
                                     {% endif %}')

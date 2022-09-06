@@ -66,10 +66,11 @@ class FrontendStudentProcess extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public static function getStudentProcessContent($PersonId = null)
+    public static function getStudentProcessContent($PersonId = null, $AllowEdit = 1)
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -176,14 +177,18 @@ class FrontendStudentProcess extends FrontendReadOnly
                 ))
             )));
 
-            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentProcessContent($PersonId));
+            $editLink = '';
+            if($AllowEdit == 1){
+                $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentProcessContent($PersonId));
+            }
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 $content,
                 array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new History()
             );
         }

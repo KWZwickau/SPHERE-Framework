@@ -6,12 +6,13 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Reporting\Standard\Person\Person as PersonReportingStandard;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -23,8 +24,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -45,7 +46,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClassList($LevelId = null, $YearId = null)
     {
 
-        $Stage = new Stage('Auswertung', 'Klassenliste');
+        $Stage = new Stage('Auswertung', 'Klassenlisten');
         if (null !== $LevelId || $YearId !== null) {
             $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Muldental/Person/ClassList', new ChevronLeft()));
         }
@@ -134,9 +135,6 @@ class Frontend extends Extension implements IFrontendInterface
                                             array(0, 'desc'),
                                             array(1, 'asc'),
                                             array(2, 'asc'),
-                                        ),
-                                        "columnDefs" => array(
-                                            array('type' => 'natural', 'targets' => array(1,3)),
                                         ),
                                     )
                                 )
@@ -229,10 +227,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Code'                  => 'PLZ',
                                         'City'                  => 'Wohnort',
                                         'District'              => 'Ortsteil',
-                                        'PhoneNumbersPrivate'   => 'privat',
-                                        'PhoneNumbersBusiness'  => 'dienstlich M.',
-                                        'PhoneNumbersGuardian1' => 'Mutter',
-                                        'PhoneNumbersGuardian2' => 'Vater',
+                                        'PhoneNumbersPrivate'   => new ToolTip('S1 Tel. privat '.new Info(), 'Festnetz'),
+                                        'PhoneNumbersBusiness'  => new ToolTip('S1 Tel. dienstlich '.new Info(), 'Festnetz'),
+                                        'PhoneNumbersGuardian1' => new ToolTip('S1 Tel. '.new Info(), 'Mobil'),
+                                        'PhoneNumbersGuardian2' => new ToolTip('S2 Tel. '.new Info(), 'Mobil'),
                                         'MailAddress'           => 'E-Mail',
                                         'Birthday'              => 'Geb.-Datum',
                                     ),
@@ -252,36 +250,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    ( $tblPersonList
-                        ? new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Panel('Weiblich', array(
-                                        'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4),
-                                new LayoutColumn(
-                                    new Panel('Männlich', array(
-                                        'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4),
-                                new LayoutColumn(
-                                    new Panel('Gesamt', array(
-                                        'Anzahl: '.count($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4)
-                            )),
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    ( Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                        new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                        entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                        in den Stammdaten der Personen.') :
-                                        null )
-                                )
-                            )
-                        ))
-                        : '' )
+                    PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
                 ))
             );
         }

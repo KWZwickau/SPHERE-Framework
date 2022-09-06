@@ -34,7 +34,9 @@
         }, options), _self = this;
 
         this.datetimepicker(settings).on('dp.change',function(){
-            _self.trigger('change')
+            console.log('change modpicker')
+//             _self.trigger('change')
+            _self.trigger('focusout')
         });
         return this;
 

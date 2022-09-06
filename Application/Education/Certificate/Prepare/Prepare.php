@@ -61,6 +61,9 @@ class Prepare implements IModuleInterface
             __NAMESPACE__ . '\Prepare\Diploma\Setting' , __NAMESPACE__ . '\Frontend::frontendPrepareDiplomaSetting')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Prepare\Diploma\Technical\Setting' , __NAMESPACE__ . '\Frontend::frontendPrepareDiplomaTechnicalSetting')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Prepare\Diploma\Abitur\Preview' , __NAMESPACE__ . '\Abitur\Frontend::frontendPrepareDiplomaAbiturPreview')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -101,6 +104,9 @@ class Prepare implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Leave\Student\Abitur\Information', __NAMESPACE__ . '\Frontend::frontendLeaveStudentAbiturInformation')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\SetIsPrepared', __NAMESPACE__ . '\Frontend::frontendSetIsPrepared')
         );
     }
 

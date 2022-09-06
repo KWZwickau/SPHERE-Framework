@@ -2,10 +2,9 @@
 namespace SPHERE\Application\Api\Document\Standard;
 
 use SPHERE\Application\Api\Document\Creator;
-use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Main;
+use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -24,6 +23,9 @@ class Standard extends Extension implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/StudentCard/Create', __CLASS__ . '::createStudentCardPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/StudentCard/CreateMulti', __CLASS__ . '::createStudentCardMultiPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/KamenzReport/Create', 'SPHERE\Application\Api\Document\Creator::createKamenzPdf'
@@ -61,12 +63,30 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/BillingDocumentWarning/Create', 'SPHERE\Application\Api\Document\Creator::createBillingDocumentWarningPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Account/Create', 'SPHERE\Application\Api\Document\Creator::createAccountPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Manual/Create/Pdf', 'SPHERE\Application\Api\Document\Creator::createManualPdf'
+        ));
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/Manual/Create/xlsx', 'SPHERE\Application\Api\Document\Creator::createManualExcel'
+//        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/EnrollmentDocument/CreateMulti', __CLASS__ . '::createEnrollmentDocumentMultiPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/ClassRegister/Create', __CLASS__ . '::createClassRegisterPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/CourseContent/Create', __CLASS__ . '::createCourseContentPdf'
+        ));
     }
 
     /**
      * @param array $Data
      *
-     * @return \SPHERE\Common\Window\Stage|string
+     * @return Stage|string
      */
     public static function createEnrollmentDocumentPdf($Data = array())
     {
@@ -76,27 +96,32 @@ class Standard extends Extension implements IModuleInterface
 
     /**
      * @param null $PersonId
+     * @param bool $Redirect
      *
-     * @return \SPHERE\Common\Window\Stage|string
+     * @return Stage|string
      */
-    public static function createStudentCardPdf($PersonId = null)
+    public static function createStudentCardPdf($PersonId = null, $Redirect = true)
     {
+        return Creator::createStudentCardPdf($PersonId, $Redirect);
+    }
 
-        if (($tblPerson = Person::useService()->getPersonById($PersonId))
-            && ($tblSchoolTypeList = Generator::useService()->getSchoolTypeListForStudentCard($tblPerson))
-        ) {
-
-            return Creator::createMultiPdf($tblPerson, $tblSchoolTypeList);
-        } else {
-            return ('Keine Schülerkartei vorhanden');
-        }
+    /**
+     * @param null|int $DivisionId
+     * @param null|int $List
+     * @param bool $Redirect
+     *
+     * @return Stage|string
+     */
+    public static function createStudentCardMultiPdf($DivisionId = null, $List = null, $Redirect = true)
+    {
+        return Creator::createMultiStudentCardPdf($DivisionId, $List, $Redirect);
     }
 
     /**
      * @param null $PersonId
      * @param null $DivisionId
      *
-     * @return \SPHERE\Common\Window\Stage|string
+     * @return Stage|string
      */
     public static function createGradebookOverviewPdf($PersonId = null, $DivisionId = null)
     {
@@ -108,7 +133,7 @@ class Standard extends Extension implements IModuleInterface
      * @param null $DivisionId
      * @param bool $Redirect
      *
-     * @return \SPHERE\Common\Window\Stage|string
+     * @return Stage|string
      */
     public static function createMultiGradebookOverviewPdf($DivisionId = null, $Redirect = true)
     {
@@ -119,7 +144,7 @@ class Standard extends Extension implements IModuleInterface
     /**
      * @param array $Data
      *
-     * @return \SPHERE\Common\Window\Stage|string
+     * @return Stage|string
      */
     public static function createStudentTransferPdf($Data = array())
     {
@@ -129,7 +154,7 @@ class Standard extends Extension implements IModuleInterface
     /**
      * @param array $Data
      *
-     * @return \SPHERE\Common\Window\Stage|string
+     * @return Stage|string
      */
     public static function createSignOutCertificatePdf($Data = array())
     {
@@ -139,7 +164,7 @@ class Standard extends Extension implements IModuleInterface
     /**
      * @param array $Data
      *
-     * @return \SPHERE\Common\Window\Stage|string
+     * @return Stage|string
      */
     public static function createAccidentReportPdf($Data = array())
     {
@@ -151,7 +176,7 @@ class Standard extends Extension implements IModuleInterface
      * @param array $Data
      * @param bool  $Redirect
      *
-     * @return \SPHERE\Common\Window\Stage|string
+     * @return Stage|string
      */
     public static function createPasswordChangePdf($Data = array(), $Redirect = true)
     {
@@ -171,7 +196,7 @@ class Standard extends Extension implements IModuleInterface
      * @param array $Data
      * @param bool  $Redirect
      *
-     * @return \SPHERE\Common\Window\Stage|string
+     * @return Stage|string
      */
     public static function createMultiPasswordPdf($Data = array(), $Redirect = true)
     {
@@ -186,6 +211,54 @@ class Standard extends Extension implements IModuleInterface
         }
 
         return Creator::createMultiPasswordPdf($Data, Creator::PAPERORIENTATION_PORTRAIT);
+    }
+
+    /**
+     * @param null $AccountId
+     * @param bool $Redirect
+     *
+     * @return Stage|string
+     */
+    public static function createAccountPdf($AccountId = null, $Redirect = true)
+    {
+        return Creator::createAccountPdf($AccountId, $Redirect);
+    }
+
+    /**
+     * @param string $DivisionId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createEnrollmentDocumentMultiPdf(string $DivisionId, bool $Redirect = true): string
+    {
+        return Creator::createMultiEnrollmentDocumentPdf($DivisionId, $Redirect);
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     * @param null $YearId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createClassRegisterPdf($DivisionId = null, $GroupId = null, $YearId = null, bool $Redirect = true): string
+    {
+        return Creator::createClassRegisterPdf($DivisionId, $GroupId, $YearId, $Redirect);
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $SubjectId
+     * @param null $SubjectGroupId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createCourseContentPdf($DivisionId = null, $SubjectId = null, $SubjectGroupId = null, bool $Redirect = true): string
+    {
+        return Creator::createCourseContentPdf($DivisionId, $SubjectId, $SubjectGroupId, $Redirect);
     }
 
     /**

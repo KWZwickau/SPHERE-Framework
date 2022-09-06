@@ -30,6 +30,7 @@ class ImportControl extends AbstractConverter
         'Beitragszahler Vorname',
         'Beitragszahler Nachname',
 //        'Debitorennummer',
+        'Kontoinhaber',
         'IBAN',
         'BIC',
 //        'Bank Name',
@@ -52,10 +53,12 @@ class ImportControl extends AbstractConverter
         'Datum beitragspflichtig bis',
         'Beitragszahler Vorname',
         'Beitragszahler Nachname',
+        'Kontoinhaber',
         'Debitorennummer',
         'IBAN',
         'BIC',
         'Bank Name',
+        'Zahlung Jährlich',
     );
 
     /**
@@ -127,7 +130,6 @@ class ImportControl extends AbstractConverter
             // Match (Spaltenname) => Index (Spalte)
         );
 
-        $this->ColumnScan;
         foreach ($Row as $Column => $Part) {
             foreach ($this->ColumnScan as $Pattern) {
                 if (preg_match('!^('.$Pattern.')$!is', $Part['Field'], $Match)) {

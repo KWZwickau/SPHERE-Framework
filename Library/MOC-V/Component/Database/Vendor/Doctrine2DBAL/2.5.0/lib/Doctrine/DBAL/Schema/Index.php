@@ -233,6 +233,9 @@ class Index extends AbstractAsset implements Constraint
         $numberOfColumns = count($columns);
         $sameColumns = true;
 
+        // Server (EKBO Live) dreht Columns manchmal
+        sort($columnNames);
+        sort($columns);
         for ($i = 0; $i < $numberOfColumns; $i++) {
             if (!isset( $columnNames[$i] ) || $this->trimQuotes(strtolower($columns[$i])) !== $this->trimQuotes(strtolower($columnNames[$i]))) {
                 $sameColumns = false;

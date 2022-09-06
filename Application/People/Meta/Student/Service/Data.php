@@ -1,12 +1,25 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service;
 
+use DateTime;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalDiploma;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalSubjectArea;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Data\Support;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentInsuranceState;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTechnicalSchool;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
@@ -177,37 +190,48 @@ class Data extends Support
     public function setupDatabaseContent()
     {
 
-        $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
-            'Foto des Schülers',
-            'Sowohl Einzelaufnahmen als auch in Gruppen (z.B. zufällig)'
-        );
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
+        $this->createStudentInsuranceState('Pflicht');
+        $this->createStudentInsuranceState('Freiwillig');
+        $this->createStudentInsuranceState('Privat');
+        $this->createStudentInsuranceState('Familie Vater');
+        $this->createStudentInsuranceState('Familie Mutter');
 
-        $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
-            'Namentliche Erwähnung des Schülers',
-            ''
-        );
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
-        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
+        // Werte nur bei der Initialisierung verwenden
+        if(!$this->getStudentAgreementCategoryAll()){
+            $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
+                'Foto des Schülers',
+                'Sowohl Einzelaufnahmen als auch in Gruppen (z.B. zufällig)'
+            );
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
+
+            $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
+                'Namentliche Erwähnung des Schülers',
+                ''
+            );
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
+            $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
+        }
 
         $Entity = $this->getStudentSubjectTypeByIdentifier('ORIENTATION');
         if ($Entity) {
-            if ($Entity->getName() !== 'Neigungskurs') {
-                $this->updateStudentSubjectType($Entity, 'Neigungskurs');
+            // ist mit Absicht das der Neigungskurs nur einmal in Wahlbereich umbenannt wird und danach per DB pro Mandant
+            // ein individueller Name vergeben werden kann
+            if ($Entity->getName() == 'Neigungskurs') {
+                $this->updateStudentSubjectType($Entity, 'Wahlbereich');
             }
         } else {
-            $this->createStudentSubjectType('ORIENTATION', 'Neigungskurs');
+            $this->createStudentSubjectType('ORIENTATION', 'Wahlbereich');
         }
         $Entity = $this->getStudentSubjectTypeByIdentifier('ADVANCED');
         if ($Entity) {
@@ -362,14 +386,99 @@ class Data extends Support
         } else {
             $this->createSupportType('Widerspruch', '');
         }
+
+        // Masern
+        $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_IDENTIFICATION, TblStudentMasernInfo::TYPE_DOCUMENT, 'Impfausweis'
+            , 'Impfdokumentation (Impfausweis)');
+        $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_VACCINATION_PROTECTION, TblStudentMasernInfo::TYPE_DOCUMENT, 'Ausreichender Impfschutz'
+            , 'ärztliches Zeugnis über das Bestehen eines ausreichenden Impfschutzes');
+        $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_IMMUNITY, TblStudentMasernInfo::TYPE_DOCUMENT, 'Immunität gegen Masern'
+            , 'ärztliches Zeugnis über die Immunität gegen Masern');
+        $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION, TblStudentMasernInfo::TYPE_DOCUMENT, 'keine Schutzimpfung möglich'
+            , 'ärztliches Zeugnis, dass das Kind nicht an einer Schutzimpfung (Kontraindikation) oder anderen Maßnahmen zur spezifischen Prophylaxe teilnehmen kann');
+
+        $this->createStudentMasernInfo(TblStudentMasernInfo::CREATOR_STATE, TblStudentMasernInfo::TYPE_CREATOR, 'Staatlich'
+            , 'staatliche Stelle');
+        $this->createStudentMasernInfo(TblStudentMasernInfo::CREATOR_COMMUNITY, TblStudentMasernInfo::TYPE_CREATOR, 'Gemeinschaftseinrichtung'
+            , 'Leitung der bisher besuchten Gemeinschaftseinrichtung');
+
+        // Förderschule
+        $this->createStudentSpecialNeedsLevel('Unterstufe', 'LOWER');
+        $this->createStudentSpecialNeedsLevel('Mittelstufe', 'MIDDLE');
+        $this->createStudentSpecialNeedsLevel('Oberstufe', 'UPPER');
+        $this->createStudentSpecialNeedsLevel('Werkstufe', 'WORK');
+
+        // Berufsbildende Schulen
+        $this->createStudentTenseOfLesson(TblStudentTenseOfLesson::FULL_TIME, 'Vollzeitunterricht');
+        $this->createStudentTenseOfLesson(TblStudentTenseOfLesson::PART_TIME, 'Teilzeitunterricht');
+        $this->createStudentTrainingStatus(TblStudentTrainingStatus::STUDENT, 'Auszubildende/Schüler');
+        $this->createStudentTrainingStatus(TblStudentTrainingStatus::CHANGE_STUDENT, 'Umschüler');
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblStudentInsuranceState
+     */
+    public function createStudentInsuranceState($Name = '', $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblStudentInsuranceState')->findOneBy(array(
+            TblStudentInsuranceState::ATTR_NAME => $Name
+        ));
+        if (null === $Entity) {
+            $Entity = new TblStudentInsuranceState();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param string $Meta
+     * @param string $Type
+     * @param string $TextShort
+     * @param string $TextLont
+     *
+     * @return TblStudentMasernInfo
+     */
+    public function createStudentMasernInfo($Meta = '', $Type = '', $TextShort = '', $TextLont = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudentMasernInfo')->findOneBy(array(
+            TblStudentMasernInfo::ATTR_META => $Meta
+        ));
+
+        if($Entity === null){
+            $Entity = new TblStudentMasernInfo();
+            $Entity->setMeta($Meta);
+            $Entity->setType($Type);
+            $Entity->setTextShort($TextShort);
+            $Entity->setTextLong($TextLont);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 
     /**
      * @param string $Disease
      * @param string $Medication
      * @param string $AttendingDoctor
-     * @param int    $InsuranceState
+     * @param int $InsuranceState
      * @param string $Insurance
+     * @param string $InsuranceNumber
+     * @param DateTime|null $MasernDate
+     * @param TblStudentMasernInfo|null $MasernDocumentType
+     * @param TblStudentMasernInfo|null $MasernCreatorType
      *
      * @return TblStudentMedicalRecord
      */
@@ -378,10 +487,18 @@ class Data extends Support
         $Medication,
         $AttendingDoctor,
         $InsuranceState,
-        $Insurance
+        $Insurance,
+        $InsuranceNumber,
+        $MasernDate = null,
+        TblStudentMasernInfo $MasernDocumentType = null,
+        TblStudentMasernInfo  $MasernCreatorType = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
+
+        if ($InsuranceState === null || $InsuranceState === '') {
+            $InsuranceState = 0;
+        }
 
         $Entity = new TblStudentMedicalRecord();
         $Entity->setDisease($Disease);
@@ -389,6 +506,10 @@ class Data extends Support
         $Entity->setAttendingDoctor($AttendingDoctor);
         $Entity->setInsuranceState($InsuranceState);
         $Entity->setInsurance($Insurance);
+        $Entity->setInsuranceNumber($InsuranceNumber);
+        $Entity->setMasernDate($MasernDate);
+        $Entity->setMasernDocumentType($MasernDocumentType);
+        $Entity->setMasernCreatorType($MasernCreatorType);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -397,11 +518,15 @@ class Data extends Support
 
     /**
      * @param TblStudentMedicalRecord $tblStudentMedicalRecord
-     * @param string                  $Disease
-     * @param string                  $Medication
-     * @param string                  $AttendingDoctor
-     * @param int                     $InsuranceState
-     * @param string                  $Insurance
+     * @param string $Disease
+     * @param string $Medication
+     * @param string $AttendingDoctor
+     * @param int $InsuranceState
+     * @param string $Insurance
+     * @param $InsuranceNumber
+     * @param DateTime|null $MasernDate
+     * @param TblStudentMasernInfo|null $MasernDocumentType
+     * @param TblStudentMasernInfo|null $MasernCreatorType
      *
      * @return bool
      */
@@ -411,7 +536,11 @@ class Data extends Support
         $Medication,
         $AttendingDoctor,
         $InsuranceState,
-        $Insurance
+        $Insurance,
+        $InsuranceNumber,
+        $MasernDate = null,
+        TblStudentMasernInfo $MasernDocumentType = null,
+        TblStudentMasernInfo $MasernCreatorType = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -424,6 +553,10 @@ class Data extends Support
             $Entity->setAttendingDoctor($AttendingDoctor);
             $Entity->setInsuranceState($InsuranceState);
             $Entity->setInsurance($Insurance);
+            $Entity->setInsuranceNumber($InsuranceNumber);
+            $Entity->setMasernDate($MasernDate);
+            $Entity->setMasernDocumentType($MasernDocumentType);
+            $Entity->setMasernCreatorType($MasernCreatorType);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
@@ -481,6 +614,68 @@ class Data extends Support
     }
 
     /**
+     * @param int $Id
+     *
+     * @return bool|TblStudentMedicalRecord
+     */
+    public function getStudentInsuranceStateById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentInsuranceState', $Id
+        );
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblStudentInsuranceState
+     */
+    public function getStudentInsuranceStateByName($Name)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentInsuranceState', array(
+                TblStudentInsuranceState::ATTR_NAME => $Name
+            )
+        );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblStudentMasernInfo
+     */
+    public function getStudentMasernInfoById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblStudentMasernInfo', $Id);
+    }
+
+    /**
+     * @param string $Type
+     *
+     * @return false|TblStudentMasernInfo[]
+     */
+    public function getStudentMasernInfoByType($Type = TblStudentMasernInfo::TYPE_DOCUMENT)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblStudentMasernInfo', array(
+                TblStudentMasernInfo::ATTR_TYPE => $Type
+            )
+        );
+    }
+
+    /**
+     * @return bool|TblStudentMedicalRecord[]
+     */
+    public function getStudentInsuranceStateAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentInsuranceState'
+        );
+    }
+
+    /**
      * @param string $BaptismDate
      * @param string $Location
      *
@@ -494,7 +689,7 @@ class Data extends Support
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblStudentBaptism();
-        $Entity->setBaptismDate(( $BaptismDate ? new \DateTime($BaptismDate) : null ));
+        $Entity->setBaptismDate(( $BaptismDate ? new DateTime($BaptismDate) : null ));
         $Entity->setLocation($Location);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -520,7 +715,7 @@ class Data extends Support
         $Entity = $Manager->getEntityById('TblStudentBaptism', $tblStudentBaptism->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
-            $Entity->setBaptismDate(( $BaptismDate ? new \DateTime($BaptismDate) : null ));
+            $Entity->setBaptismDate(( $BaptismDate ? new DateTime($BaptismDate) : null ));
             $Entity->setLocation($Location);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -602,13 +797,15 @@ class Data extends Support
      * @param string $LockerNumber
      * @param string $LockerLocation
      * @param string $KeyNumber
+     * @param string $CombinationLockNumber
      *
      * @return TblStudentLocker
      */
     public function createStudentLocker(
         $LockerNumber,
         $LockerLocation,
-        $KeyNumber
+        $KeyNumber,
+        $CombinationLockNumber
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -617,6 +814,8 @@ class Data extends Support
         $Entity->setLockerNumber($LockerNumber);
         $Entity->setLockerLocation($LockerLocation);
         $Entity->setKeyNumber($KeyNumber);
+        $Entity->setCombinationLockNumber($CombinationLockNumber);
+
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -628,6 +827,7 @@ class Data extends Support
      * @param string           $LockerNumber
      * @param string           $LockerLocation
      * @param string           $KeyNumber
+     * @param string           $CombinationLockNumber
      *
      * @return bool
      */
@@ -635,7 +835,8 @@ class Data extends Support
         TblStudentLocker $tblStudentLocker,
         $LockerNumber,
         $LockerLocation,
-        $KeyNumber
+        $KeyNumber,
+        $CombinationLockNumber
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -646,6 +847,8 @@ class Data extends Support
             $Entity->setLockerNumber($LockerNumber);
             $Entity->setLockerLocation($LockerLocation);
             $Entity->setKeyNumber($KeyNumber);
+            $Entity->setCombinationLockNumber($CombinationLockNumber);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
@@ -671,6 +874,7 @@ class Data extends Support
      * @param string $StationEntrance
      * @param string $StationExit
      * @param string $Remark
+     * @param boolean $IsDriverStudent
      *
      * @return TblStudentTransport
      */
@@ -678,7 +882,8 @@ class Data extends Support
         $Route,
         $StationEntrance,
         $StationExit,
-        $Remark
+        $Remark,
+        $IsDriverStudent
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -688,6 +893,8 @@ class Data extends Support
         $Entity->setStationEntrance($StationEntrance);
         $Entity->setStationExit($StationExit);
         $Entity->setRemark($Remark);
+        $Entity->setIsDriverStudent($IsDriverStudent);
+
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -700,6 +907,7 @@ class Data extends Support
      * @param string              $StationEntrance
      * @param string              $StationExit
      * @param string              $Remark
+     * @param boolean             $IsDriverStudent
      *
      * @return bool
      */
@@ -708,7 +916,8 @@ class Data extends Support
         $Route,
         $StationEntrance,
         $StationExit,
-        $Remark
+        $Remark,
+        $IsDriverStudent
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -720,6 +929,8 @@ class Data extends Support
             $Entity->setStationEntrance($StationEntrance);
             $Entity->setStationExit($StationExit);
             $Entity->setRemark($Remark);
+            $Entity->setIsDriverStudent($IsDriverStudent);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
@@ -764,6 +975,278 @@ class Data extends Support
             }
             $Manager->flushCache();
             Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param $IsHeavyMultipleHandicapped
+     * @param $IncreaseFactorHeavyMultipleHandicappedSchool
+     * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
+     * @param $RemarkHeavyMultipleHandicapped
+     * @param $DegreeOfHandicap
+     * @param $Sign
+     * @param $ValidTo
+     * @param TblStudentSpecialNeedsLevel|null $tblStudentSpecialNeedsLevel
+     *
+     * @return TblStudentSpecialNeeds
+     */
+    public function createStudentSpecialNeeds(
+        $IsHeavyMultipleHandicapped,
+        $IncreaseFactorHeavyMultipleHandicappedSchool,
+        $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
+        $RemarkHeavyMultipleHandicapped,
+        $DegreeOfHandicap,
+        $Sign,
+        $ValidTo,
+        TblStudentSpecialNeedsLevel $tblStudentSpecialNeedsLevel = null
+    ) {
+
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblStudentSpecialNeeds();
+        $Entity->setIsHeavyMultipleHandicapped($IsHeavyMultipleHandicapped);
+        $Entity->setIncreaseFactorHeavyMultipleHandicappedSchool($IncreaseFactorHeavyMultipleHandicappedSchool);
+        $Entity->setIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities($IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities);
+        $Entity->setRemarkHeavyMultipleHandicapped($RemarkHeavyMultipleHandicapped);
+        $Entity->setDegreeOfHandicap($DegreeOfHandicap);
+        $Entity->setSign($Sign);
+        $Entity->setValidTo($ValidTo);
+        $Entity->setTblStudentSpecialNeedsLevel($tblStudentSpecialNeedsLevel);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentSpecialNeeds $tblStudentSpecialNeeds
+     * @param $IsHeavyMultipleHandicapped
+     * @param $IncreaseFactorHeavyMultipleHandicappedSchool
+     * @param $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities
+     * @param $RemarkHeavyMultipleHandicapped
+     * @param $DegreeOfHandicap
+     * @param $Sign
+     * @param $ValidTo
+     * @param TblStudentSpecialNeedsLevel|null $tblStudentSpecialNeedsLevel
+     *
+     * @return bool
+     */
+    public function updateStudentSpecialNeeds(
+        TblStudentSpecialNeeds $tblStudentSpecialNeeds,
+        $IsHeavyMultipleHandicapped,
+        $IncreaseFactorHeavyMultipleHandicappedSchool,
+        $IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities,
+        $RemarkHeavyMultipleHandicapped,
+        $DegreeOfHandicap,
+        $Sign,
+        $ValidTo,
+        TblStudentSpecialNeedsLevel $tblStudentSpecialNeedsLevel = null
+    ) {
+
+        $Manager = $this->getEntityManager();
+        /** @var null|TblStudentSpecialNeeds $Entity */
+        $Entity = $Manager->getEntityById('TblStudentSpecialNeeds', $tblStudentSpecialNeeds->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setIsHeavyMultipleHandicapped($IsHeavyMultipleHandicapped);
+            $Entity->setIncreaseFactorHeavyMultipleHandicappedSchool($IncreaseFactorHeavyMultipleHandicappedSchool);
+            $Entity->setIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities($IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities);
+            $Entity->setRemarkHeavyMultipleHandicapped($RemarkHeavyMultipleHandicapped);
+            $Entity->setDegreeOfHandicap($DegreeOfHandicap);
+            $Entity->setSign($Sign);
+            $Entity->setValidTo($ValidTo);
+            $Entity->setTblStudentSpecialNeedsLevel($tblStudentSpecialNeedsLevel);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $Name
+     *
+     * @return TblStudentTenseOfLesson
+     */
+    public function createStudentTenseOfLesson($Identifier, $Name)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudentTenseOfLesson')->findOneBy(array(
+            TblStudentTenseOfLesson::ATTR_IDENTIFIER => $Identifier
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblStudentTenseOfLesson();
+            $Entity->setIdentifier($Identifier);
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $Name
+     *
+     * @return TblStudentTrainingStatus
+     */
+    public function createStudentTrainingStatus($Identifier, $Name)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudentTrainingStatus')->findOneBy(array(
+            TblStudentTrainingStatus::ATTR_IDENTIFIER => $Identifier
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblStudentTrainingStatus();
+            $Entity->setIdentifier($Identifier);
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param $praxisLessons
+     * @param $durationOfTraining
+     * @param $remark
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
+     * @param TblSchoolDiploma|null $tblSchoolDiploma
+     * @param TblType|null $tblSchoolType
+     * @param TblTechnicalDiploma|null $tblTechnicalDiploma
+     * @param TblType|null $tblTechnicalType
+     * @param TblStudentTenseOfLesson|null $tblStudentTenseOfLesson
+     * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
+     * @param string $yearOfSchoolDiploma
+     * @param string $yearOfTechnicalDiploma
+     * @param TblTechnicalSubjectArea|null $tblTechnicalSubjectArea
+     * @param bool $hasFinancialAid
+     * @param string $financialAidApplicationYear
+     * @param string $financialAidBureau
+     *
+     * @return TblStudentTechnicalSchool
+     */
+    public function createStudentTechnicalSchool(
+        $praxisLessons,
+        $durationOfTraining,
+        $remark,
+        TblTechnicalCourse $tblTechnicalCourse = null,
+        TblSchoolDiploma $tblSchoolDiploma = null,
+        TblType $tblSchoolType = null,
+        TblTechnicalDiploma $tblTechnicalDiploma = null,
+        TblType $tblTechnicalType = null,
+        TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
+        TblStudentTrainingStatus $tblStudentTrainingStatus = null,
+        $yearOfSchoolDiploma = '',
+        $yearOfTechnicalDiploma = '',
+        TblTechnicalSubjectArea $tblTechnicalSubjectArea = null,
+        $hasFinancialAid = false,
+        $financialAidApplicationYear = '',
+        $financialAidBureau = ''
+    ) {
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblStudentTechnicalSchool();
+        $Entity->setPraxisLessons($praxisLessons);
+        $Entity->setDurationOfTraining($durationOfTraining);
+        $Entity->setRemark($remark);
+        $Entity->setServiceTblTechnicalCourse($tblTechnicalCourse);
+        $Entity->setServiceTblSchoolDiploma($tblSchoolDiploma);
+        $Entity->setServiceTblSchoolType($tblSchoolType);
+        $Entity->setServiceTblTechnicalDiploma($tblTechnicalDiploma);
+        $Entity->setServiceTblTechnicalType($tblTechnicalType);
+        $Entity->setTblStudentTenseOfLesson($tblStudentTenseOfLesson);
+        $Entity->setTblStudentTrainingStatus($tblStudentTrainingStatus);
+        $Entity->setYearOfSchoolDiploma($yearOfSchoolDiploma);
+        $Entity->setYearOfTechnicalDiploma($yearOfTechnicalDiploma);
+        $Entity->setServiceTblTechnicalSubjectArea($tblTechnicalSubjectArea);
+        $Entity->setHasFinancialAid($hasFinancialAid);
+        $Entity->setFinancialAidApplicationYear($financialAidApplicationYear);
+        $Entity->setFinancialAidBureau($financialAidBureau);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentTechnicalSchool $tblStudentTechnicalSchool
+     * @param $praxisLessons
+     * @param $durationOfTraining
+     * @param $remark
+     * @param TblTechnicalCourse|null $tblTechnicalCourse
+     * @param TblSchoolDiploma|null $tblSchoolDiploma
+     * @param TblType|null $tblSchoolType
+     * @param TblTechnicalDiploma|null $tblTechnicalDiploma
+     * @param TblType|null $tblTechnicalType
+     * @param TblStudentTenseOfLesson|null $tblStudentTenseOfLesson
+     * @param TblStudentTrainingStatus|null $tblStudentTrainingStatus
+     * @param string $yearOfSchoolDiploma
+     * @param string $yearOfTechnicalDiploma
+     * @param TblTechnicalSubjectArea|null $tblTechnicalSubjectArea
+     * @param bool $hasFinancialAid
+     * @param string $financialAidApplicationYear
+     * @param string $financialAidBureau
+     *
+     * @return bool
+     */
+    public function updateStudentTechnicalSchool(
+        TblStudentTechnicalSchool $tblStudentTechnicalSchool,
+        $praxisLessons,
+        $durationOfTraining,
+        $remark,
+        TblTechnicalCourse $tblTechnicalCourse = null,
+        TblSchoolDiploma $tblSchoolDiploma = null,
+        TblType $tblSchoolType = null,
+        TblTechnicalDiploma $tblTechnicalDiploma = null,
+        TblType $tblTechnicalType = null,
+        TblStudentTenseOfLesson $tblStudentTenseOfLesson = null,
+        TblStudentTrainingStatus $tblStudentTrainingStatus = null,
+        $yearOfSchoolDiploma = '',
+        $yearOfTechnicalDiploma = '',
+        TblTechnicalSubjectArea $tblTechnicalSubjectArea = null,
+        $hasFinancialAid = false,
+        $financialAidApplicationYear = '',
+        $financialAidBureau = ''
+    ) {
+
+        $Manager = $this->getEntityManager();
+        /** @var null|TblStudentTechnicalSchool $Entity */
+        $Entity = $Manager->getEntityById('TblStudentTechnicalSchool', $tblStudentTechnicalSchool->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+
+            $Entity->setPraxisLessons($praxisLessons);
+            $Entity->setDurationOfTraining($durationOfTraining);
+            $Entity->setRemark($remark);
+            $Entity->setServiceTblTechnicalCourse($tblTechnicalCourse);
+            $Entity->setServiceTblSchoolDiploma($tblSchoolDiploma);
+            $Entity->setServiceTblSchoolType($tblSchoolType);
+            $Entity->setServiceTblTechnicalDiploma($tblTechnicalDiploma);
+            $Entity->setServiceTblTechnicalType($tblTechnicalType);
+            $Entity->setTblStudentTenseOfLesson($tblStudentTenseOfLesson);
+            $Entity->setTblStudentTrainingStatus($tblStudentTrainingStatus);
+            $Entity->setYearOfSchoolDiploma($yearOfSchoolDiploma);
+            $Entity->setYearOfTechnicalDiploma($yearOfTechnicalDiploma);
+            $Entity->setServiceTblTechnicalSubjectArea($tblTechnicalSubjectArea);
+            $Entity->setHasFinancialAid($hasFinancialAid);
+            $Entity->setFinancialAidApplicationYear($financialAidApplicationYear);
+            $Entity->setFinancialAidBureau($financialAidBureau);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;

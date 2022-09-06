@@ -46,7 +46,7 @@ class FilePointer extends DummyFile
                 $this->FileName = $Prefix . '-' . md5(uniqid($Prefix, true)) . '.' . $Extension;
                 break;
             case FilePointer::TYPE_DATE:
-                $this->FileName = $Prefix . '-' . date('dmy') . '.' . $Extension;
+                $this->FileName = $Prefix . '-' . date('ymd') . '.' . $Extension;
                 break;
             default:
                 $this->FileName = $Prefix . '-' . md5(uniqid($Prefix, true)) . '.' . $Extension;
@@ -124,7 +124,7 @@ class FilePointer extends DummyFile
     public function saveFile()
     {
 
-        if (!$this->getRealPath()) {
+        if (empty($this->getRealPath())) {
             touch($this->getFileLocation());
         }
         file_put_contents($this->getRealPath(), $this->getFileContent(), LOCK_EX);

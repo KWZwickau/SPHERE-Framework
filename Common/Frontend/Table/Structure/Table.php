@@ -28,20 +28,21 @@ class Table extends Extension implements ITemplateInterface
     protected $Hash = '';
 
     /**
-     * @param TableHead  $TableHead
-     * @param TableBody  $TableBody
-     * @param Title      $TableTitle
+     * @param TableHead $TableHead
+     * @param TableBody $TableBody
+     * @param Title $TableTitle
      * @param bool|array $Interactive
-     * @param TableFoot  $TableFoot
+     * @param TableFoot $TableFoot
+     * @param bool|string $Twig
      */
     public function __construct(
         TableHead $TableHead,
         TableBody $TableBody,
         Title $TableTitle = null,
         $Interactive = false,
-        TableFoot $TableFoot = null
+        TableFoot $TableFoot = null,
+        $Twig = false
     ) {
-
         $this->Interactive = $Interactive;
 
         if (!is_array($TableHead)) {
@@ -79,7 +80,11 @@ class Table extends Extension implements ITemplateInterface
             $Options = preg_replace( '!"(function\s*\(.*?\)\s*\{.*?\})"!is', '${1}', $Options );
             $this->Template->setVariable('InteractiveOption', $Options);
         } else {
-            $this->Template = $this->getTemplate(__DIR__.'/Table.twig');
+            if ($Twig) {
+                $this->Template = $this->getTemplate(__DIR__ . '/' . $Twig . '.twig');
+            } else {
+                $this->Template = $this->getTemplate(__DIR__.'/Table.twig');
+            }
         }
         $this->Template->setVariable('TableTitle', $TableTitle);
     }

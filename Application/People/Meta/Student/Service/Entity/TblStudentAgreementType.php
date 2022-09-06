@@ -31,6 +31,10 @@ class TblStudentAgreementType extends Element
      * @Column(type="text")
      */
     protected $Description;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $isUnlocked;
 
     /**
      * @return string
@@ -89,5 +93,21 @@ class TblStudentAgreementType extends Element
     ) {
 
         $this->tblStudentAgreementCategory = ( null === $tblStudentAgreementCategory ? null : $tblStudentAgreementCategory->getId() );
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsUnlocked()
+    {
+        return $this->isUnlocked;
+    }
+
+    /**
+     * @param bool $isUnlocked
+     */
+    public function setIsUnlocked($isUnlocked = false): void
+    {
+        $this->isUnlocked = $isUnlocked;
     }
 }

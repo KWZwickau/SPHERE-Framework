@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\School\Type;
 
 use SPHERE\Application\Education\School\Type\Service\Data;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblCategory;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Service\Setup;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -35,12 +36,23 @@ class Service extends AbstractService
     }
 
     /**
+     * liefert alle Standard-Schularten
+     *
      * @return bool|TblType[]
      */
     public function getTypeAll()
     {
+        return (new Data($this->getBinding()))->getTypeBasicAll();
+    }
 
-        return (new Data($this->getBinding()))->getTypeAll();
+    /**
+     * @param TblCategory $tblCategory
+     *
+     * @return bool|TblType[]
+     */
+    public function getTypeAllByCategory(TblCategory $tblCategory)
+    {
+        return (new Data($this->getBinding()))->getTypeAllByCategory($tblCategory);
     }
 
     /**
@@ -63,5 +75,76 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTypeByName($Name);
+    }
+
+    /**
+     * @param string $ShortName
+     *
+     * @return bool|TblType
+     */
+    public function getTypeByShortName($ShortName)
+    {
+        return (new Data($this->getBinding()))->getTypeByShortName($ShortName);
+    }
+
+    /**
+     * @deprecated use ShortName
+     *
+     * @param TblType $tblType
+     *
+     * @return string
+     */
+    public function getSchoolTypeString(TblType $tblType){
+        $Short = '';
+        switch ($tblType->getName()){
+            case 'Berufliches Gymnasium':
+                $Short = 'BGYM';
+                break;
+            case 'Berufsfachschule':
+                $Short = 'BFS';
+                break;
+            case 'Berufsschule':
+                $Short = 'BS';
+                break;
+            case 'Fachoberschule':
+                $Short = 'FOS';
+                break;
+            case 'Fachschule':
+                $Short = 'FS';
+                break;
+            case 'Grundschule':
+                $Short = 'GS';
+                break;
+            case 'Gymnasium':
+                $Short = 'GYM';
+                break;
+            case 'Mittelschule / Oberschule':
+                $Short = 'OS';
+                break;
+            case 'allgemein bildende Förderschule':
+                $Short = 'ABFS';
+                break;
+        }
+        return $Short;
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblCategory
+     */
+    public function getCategoryById($Id)
+    {
+        return (new Data($this->getBinding()))->getCategoryById($Id);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return false|TblCategory
+     */
+    public function getCategoryByIdentifier($Identifier)
+    {
+        return (new Data($this->getBinding()))->getCategoryByIdentifier($Identifier);
     }
 }

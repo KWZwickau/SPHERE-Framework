@@ -7,13 +7,16 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -77,19 +80,57 @@ class Import extends Extension implements IModuleInterface
                     .new Standard('', '/Transfer/Untis/Import/Lectureship/Destroy', new Remove(), array(), 'Löschen'));
         }
 
+        $PanelStudentCourse[] = new PullClear('Schüler-Kurse SEK II importieren: '.
+            new Center(new Standard('', '/Transfer/Untis/Import/StudentCourse/Prepare', new Upload()
+                , array(), 'Hochladen, danach bearbeiten')));
+//        $tblUntisImportStudentCourse = Import::useService()->getUntisImportStudentCourseAll(true);
+        $tblUntisImportStudentCourse = Import::useService()->getUntisImportStudentAll(true);
+        // load if TblUntisImportLectureship exist (by Account)
+        if ($tblUntisImportStudentCourse) {
+            $PanelStudentCourse[] = 'Vorhandenen Import der Schüler-Kurse SEK II bearbeiten: '.
+                new Center(new Standard('', '/Transfer/Untis/Import/StudentCourse/Show', new Edit(), array(), 'Bearbeiten')
+                    .new Standard('', '/Transfer/Untis/Import/StudentCourse/Destroy', new Remove(), array(), 'Löschen'));
+        }
+        $PanelTimetable[] = new PullClear('Stundenplan aus Untis: '.
+            new Center(new Standard('', '/Transfer/Untis/Import/Timetable', new Upload())));
+        $PanelTimetableReplacement[] = new PullClear('Vertretungsplan aus Untis: '.
+            new Center(new Standard('', '/Transfer/Untis/Import/Replacement', new Upload())));
+
         $Stage->setMessage('Importvorbereitung / Daten importieren');
 
         $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Panel('Untis-Import für Lehraufträge:', $PanelLectureshipImport
-                                , Panel::PANEL_TYPE_INFO)
-                            , 4)
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Warning(
+                            new Container('Bitte beachten Sie die Reihenfolge für den Import:').
+                            new Container('1. Untis-Import für Schüler-Kurse SEK II').
+                            new Container('2. Untis-Import für Lehraufträge')
+                        )
                     )
-                )
-            )
+                ),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Untis-Import für Schüler-Kurse SEK II:', $PanelStudentCourse
+                            , Panel::PANEL_TYPE_INFO)
+                    , 4),
+                    new LayoutColumn(
+                        new Panel('Untis-Import für Lehraufträge:', $PanelLectureshipImport
+                            , Panel::PANEL_TYPE_INFO)
+                    , 4),
+                    new LayoutColumn(
+                        new Ruler()
+                    ),
+                    new LayoutColumn(
+                        new Panel('Import Stundenplan:', $PanelTimetable
+                            , Panel::PANEL_TYPE_INFO)
+                    , 4),
+                    new LayoutColumn(
+                        new Panel('Import Vertretungsplan:', $PanelTimetableReplacement
+                            , Panel::PANEL_TYPE_INFO)
+                    , 4),
+                ))
+            )))
         );
 
         return $Stage;

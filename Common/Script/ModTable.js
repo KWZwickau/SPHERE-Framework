@@ -40,6 +40,7 @@
             "lengthChange": true,
             "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Alle']],
             "pageLength": 25,
+            "rowReorderColumn": 1,
             "dom": "<'row'<'col-sm-5 hidden-xs'liB><'col-sm-7 hidden-xs'fp>>" +
             "<'row'<'col-sm-12'tr>>" +
             "<'row'<'col-sm-5'i><'col-sm-7'p>>",
@@ -205,30 +206,27 @@
                 dataSrc = settings.columns[0].data;
             }
 
-            if (settings.responsive) {
+            // select Column for Reorder
+            settings.rowReorderColumn++;
                 settings.rowReorder = {
                     dataSrc: dataSrc ? dataSrc: 0,
-                    selector: 'td:nth-child(2)',
+                    selector: 'td:nth-child(' + settings.rowReorderColumn + ')',
                     snapX: 0
                 }
-            } else {
-                settings.rowReorder = {
-                    dataSrc: dataSrc ? dataSrc: 0,
-                    snapX: 0
-                };
-            }
 
+            // target in Data for Reorder
+            settings.rowReorderColumn--;
             if (settings.columnDefs) {
                 settings.columnDefs = settings.columnDefs.concat([
                     {orderable: true, targets: 0},
                     {orderable: false, targets: '_all'},
-                    {className: 'reorder', targets: settings.responsive ? 1 : 0}
+                    {className: 'reorder', targets: settings.rowReorderColumn}
                 ]);
             } else {
                 settings.columnDefs = [
                     {orderable: true, targets: 0},
                     {orderable: false, targets: '_all'},
-                    {className: 'reorder', targets: settings.responsive ? 1 : 0}
+                    {className: 'reorder', targets: settings.rowReorderColumn}
                 ];
             }
 

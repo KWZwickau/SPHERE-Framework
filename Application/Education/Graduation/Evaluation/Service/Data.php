@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data
@@ -295,15 +296,13 @@ class Data extends AbstractData
     {
 
         $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
-        $queryBuilder->select('t')
-            ->from(__NAMESPACE__ . '\Entity\TblTestType', 't')
-            ->where($queryBuilder->expr()->notLike('t.Identifier', '?1'))
-            ->setParameter(1, '%TASK%');
+        $queryBuilder->select('t')->from(__NAMESPACE__ . '\Entity\TblTestType', 't');
+        $queryBuilder->where($queryBuilder->expr()->notLike('t.Identifier', '?1'));
+        $queryBuilder->setParameter(1, '%TASK%');
 
         $query = $queryBuilder->getQuery();
-        $result = $query->getResult();
 
-        return $result;
+        return $query->getResult();
     }
 
     /**
@@ -319,9 +318,8 @@ class Data extends AbstractData
             ->setParameter(1, '%TASK%');
 
         $query = $queryBuilder->getQuery();
-        $result = $query->getResult();
 
-        return $result;
+        return $query->getResult();
     }
 
     /**
@@ -415,6 +413,7 @@ class Data extends AbstractData
      * @param null $ReturnDate
      * @param null $FinishDate
      * @param TblGradeType $tblGradeType
+     * @param TblPeriod|null $tblPeriod
      *
      * @return bool
      */
@@ -425,7 +424,8 @@ class Data extends AbstractData
         $CorrectionDate = null,
         $ReturnDate = null,
         $FinishDate = null,
-        TblGradeType $tblGradeType = null
+        TblGradeType $tblGradeType = null,
+        TblPeriod $tblPeriod = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -441,6 +441,9 @@ class Data extends AbstractData
             $Entity->setFinishDate($FinishDate ? new \DateTime($FinishDate) : null);
             if ($tblGradeType) {
                 $Entity->setServiceTblGradeType($tblGradeType);
+            }
+            if ($tblPeriod) {
+                $Entity->setServiceTblPeriod($tblPeriod);
             }
 
             $Manager->saveEntity($Entity);
@@ -743,6 +746,9 @@ class Data extends AbstractData
             array(
                 TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
                 TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
+            ),
+            array(
+                TblTest::ATTR_DATE => self::ORDER_DESC
             )
         );
 
@@ -1085,5 +1091,148 @@ class Data extends AbstractData
         )) ? true : false;
     }
 
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     *
+     * @return false|TblTest
+     */
+    public function getTestByTaskAndDivisionAndSubject(
+        TblTask $tblTask,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null
+    ) {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblTest', array(
+            TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+            TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup ? $tblSubjectGroup->getId() : null
+        ));
+    }
 
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     *
+     * @return false|TblTest[]
+     */
+    public function getTestDistinctListBy(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null
+    ) {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTest', array(
+            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+            TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup ? $tblSubjectGroup->getId() : null
+        ));
+    }
+
+    /**
+     * @param $tblTestList
+     *
+     * @return bool
+     */
+    public function destroyTestList(
+        $tblTestList
+    ): bool {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblTest $tblTest */
+        foreach ($tblTestList as $tblTest) {
+            /** @var TblTest $Entity */
+            $Entity = $Manager->getEntityById('TblTest', $tblTest->getId());
+
+            if (null !== $Entity) {
+                $Manager->bulkKillEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param TblTest[] $tblTestList
+     *
+     * @return bool
+     */
+    public function destroyTestLinkList(
+        array $tblTestList
+    ): bool {
+        $Manager = $this->getEntityManager();
+
+        foreach ($tblTestList as $tblTest) {
+            /** @var TblTest $Entity */
+            if (($tblTestLinkList = $this->getForceEntityListBy(__METHOD__,
+                $Manager, 'TblTestLink', array(TblTestLink::ATTR_TBL_TEST => $tblTest->getId())))
+            ) {
+                foreach ($tblTestLinkList as $tblTestLink) {
+                    $Entity = $Manager->getEntityById('TblTestLink', $tblTestLink->getId());
+
+                    if (null !== $Entity) {
+                        $Manager->bulkKillEntity($Entity);
+                        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+                    }
+                }
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param $tblTestList
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @param TblPeriod|null $tblPeriod
+     *
+     * @return bool
+     */
+    public function updateTests(
+        $tblTestList,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        ?TblSubjectGroup $tblSubjectGroup,
+        ?TblPeriod $tblPeriod
+    ): bool {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblTest $tblTest */
+        foreach ($tblTestList as $tblTest) {
+            /** @var TblTest $Entity */
+            $Entity = $Manager->getEntityById('TblTest', $tblTest->getId());
+
+            $Protocol = clone $Entity;
+            if (null !== $Entity) {
+                $Entity->setServiceTblDivision($tblDivision);
+                $Entity->setServiceTblSubject($tblSubject);
+                $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
+
+                if ($tblPeriod) {
+                    $Entity->setServiceTblPeriod($tblPeriod);
+                }
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
 }

@@ -34,7 +34,7 @@ class E03
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('E03. <u>Schüler, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist,</u> 
-                    im Schuljahr {{Content.SchoolYear.Current}} </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach dem Land der Staatsangehörigkeit und Klassenstufen')
+                    im Schuljahr {{Content.SchoolYear.Current}} <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach dem Land der Staatsangehörigkeit und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())

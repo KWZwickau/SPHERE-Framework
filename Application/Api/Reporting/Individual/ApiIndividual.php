@@ -17,7 +17,10 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblWorkSpace;
@@ -26,8 +29,11 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroup;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupClub;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspect;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspectTransfer;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentBasic;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentSpecialNeeds;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentSubject;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTechnicalSchool;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTransfer;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupTeacher;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPerson;
@@ -37,6 +43,7 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentAuthorized;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustody;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -60,6 +67,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\FolderClosed;
 use SPHERE\Common\Frontend\Icon\Repository\FolderOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -89,6 +97,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -117,16 +126,19 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'TblGroup_Id',
     );
 
-    // ummappen der Spaltennamen auf "_Name"
+    // ummappen der Spaltennamen "_Id" auf "_Name"
     private $IdSearchList = array(
         'TblLevel_Id',
         'TblGroup_Id',
+        'TblType_Id',
+        'TblTechnicalType_Id',
+        'TblTechnicalDiploma_Id',
     );
 
     // sortierung der Spalten nach Datum
     private $FieldNameSortByDate = array(
         'Grunddaten:_Schulpflicht_beginn',
-        'Person:_Geburtstag',
+        'Person:_Geburtsdatum',
         'Einschulung:_Datum',
         'Aufnahme:_Datum',
         'Abgabe:_Datum',
@@ -135,7 +147,15 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'Integration:_Datum_F_oE_rderantrag',
         'Integration:_Datum_F_oE_rderbescheid_SBA',
         'Verein:_Eintrittsdatum',
-        'Verein:_Austrittsdatum'
+        'Verein:_Austrittsdatum',
+        'S1:_Geburtsdatum',
+        'S2:_Geburtsdatum',
+        'S3:_Geburtsdatum',
+        'Bev:_Geburtsdatum',
+        'Termin:_Eingangsdatum',
+        'Termin:_Aufnahmegespr_aE_che',
+        'Termin:_Schnuppertag',
+        'Masern:_Datum'
     );
 
     // sortieren der Spalten nach GermanString
@@ -156,6 +176,12 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'S3:_Zweiter_Vorname',
         'S3:_Nachname',
         'S3:_Geburtsname',
+    );
+
+    // sortierung der Spalten nach einer natürlichen Zahl
+    private $FieldNameSortByNumeric = array(
+        'Bildung:_Klasse',
+        'Bildung:_Klassenstufe'
     );
 
     use ApiTrait, AppTrait;
@@ -580,12 +606,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     foreach($tblWorkSpaceList as $tblWorkSpace){
                         // aktuelles Schuljahr finden
                         if($tblWorkSpace->getField() === 'TblYear_Year'){
-                            // Liste aller aktuellen Schuljahre
-                            if(($YearList = Term::useService()->getYearByNow())){
-                                $tblYear = current($YearList);
-                                // Speichern im Post
-                                $PostArray['TblYear_Year[1]'] = $tblYear->getName();
-                            }
+                            // Eintragung in das Post anhand des Kalenders
+                            $Date = Term::useService()->getYearString();
+                            // Speichern im Post
+                            $PostArray['TblYear_Year[1]'] = $Date;
                         }
                     }
                 }
@@ -636,12 +660,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         if($Field === 'TblYear_Year'){
             // Nur für Schüler-View
             if($ViewType === TblWorkSpace::VIEW_TYPE_STUDENT) {
-                //Liste aller aktuellen Schuljahre
-                if (($YearList = Term::useService()->getYearByNow())) {
-                    $tblYear = current($YearList);
-                    // Speichern im Post
-                    $PostArray['TblYear_Year[1]'] = $tblYear->getName();
-                }
+                // Eintragung in das Post anhand des Kalenders
+                $Date = Term::useService()->getYearString();
+                // Speichern im Post
+                $PostArray['TblYear_Year[1]'] = $Date;
             }
         }
         $Emitter->setPostPayload($PostArray);
@@ -680,12 +702,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 foreach($tblWorkSpaceList as $tblWorkSpace){
                     // aktuelles Schuljahr finden
                     if($tblWorkSpace->getField() === 'TblYear_Year'){
-                        // Liste aller aktuellen Schuljahre
-                        if(($YearList = Term::useService()->getYearByNow())){
-                            $tblYear = current($YearList);
-                            // Speichern im Post
-                            $PostArray['TblYear_Year[1]'] = $tblYear->getName();
-                        }
+                        $Date = Term::useService()->getYearString();
+                        // Speichern im Post
+                        $PostArray['TblYear_Year[1]'] = $Date;
                     }
                 }
             }
@@ -815,9 +834,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             $tblAccount = Account::useService()->getAccountBySession();
             array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $ViewType, $tblAccount) {
 
+                $PostValue = $tblPreset->getPostValue();
                 $Item['Name'] = $tblPreset->getName();
                 $Item['IsPublic'] = ($tblPreset->getIsPublic() ? new SuccessText(new Check()) : new DangerText(new Disable()));
-                $Item['IsPost'] = (!empty($tblPreset->getPostValue()) ? new SuccessText('Filterung hinterlegt') : new SuccessText('Filterung leer'));
+                $Item['IsPost'] = (!empty($PostValue) ? new SuccessText('Filterung hinterlegt') : new SuccessText('Filterung leer'));
                 $Item['PersonCreator'] = $tblPreset->getPersonCreator();
                 $Item['EntityCreate'] = $tblPreset->getEntityCreate();
                 $Item['FieldCount'] = '';
@@ -906,13 +926,22 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             $ViewType = TblWorkSpace::VIEW_TYPE_ALL;
             if ($tblPresetSettingList) {
                 foreach ($tblPresetSettingList as $tblPresetSetting) {
+                    $FiledCount = 1;
+                    $PostValue = $tblPreset->getPostValue();
+                    if(!empty($PostValue)){
+                        if(isset($PostValue[$tblPresetSetting->getField()])){
+                            $FiledCount = count($PostValue[$tblPresetSetting->getField()]);
+                        }
+                    }
+
                     $ViewType = $tblPresetSetting->getViewType();
                     Individual::useService()->addWorkSpaceField(
                         $tblPresetSetting->getField(),
                         $tblPresetSetting->getView(),
                         $tblPresetSetting->getPosition(),
                         $tblPresetSetting->getViewType(),
-                        $tblPreset);
+                        $tblPreset,
+                        ($FiledCount >= 1? $FiledCount : 1));
                 }
             }
 
@@ -974,8 +1003,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
         if ($tblPresetList) {
             array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $ViewType) {
+                $PostValue = $tblPreset->getPostValue();
                 $Item['Name'] = $tblPreset->getName();
-                $Item['IsPost'] = (!empty($tblPreset->getPostValue()) ? new SuccessText('hinterlegt') : new SuccessText('leer'));
+                $Item['IsPost'] = (!empty($PostValue) ? new SuccessText('hinterlegt') : new SuccessText('leer'));
                 $Item['IsPublic'] = ($tblPreset->getIsPublic() ? new SuccessText(new Check()) : new DangerText(new Disable()));
                 $Item['PersonCreator'] = $tblPreset->getPersonCreator();
                 $Item['EntityCreate'] = $tblPreset->getEntityCreate();
@@ -1212,6 +1242,29 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Dropdown( 'Bildung:', new Scrollable( $Block ) );
                     }
                 }
+                if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'WVSZ')) {
+                    $Block = $this->getPanelList(new ViewGroupStudentSpecialNeeds(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+                    if( !empty( $Block ) ) {
+                        if( isset($ViewList['ViewGroupStudentSpecialNeeds']) ) {
+                            $AccordionList[] = new Panel( 'Förderschüler:', new Scrollable( $Block, 245 ));
+                        } else {
+                            $AccordionList[] = new Dropdown( 'Förderschüler:', new Scrollable( $Block ) );
+                        }
+                    }
+                }
+
+                // Ladebedingung -> muss Berufs-, Berufsfach- oder Fachschule eingestellt haben
+                if (School::useService()->hasConsumerTechnicalSchool()){
+                    $Block = $this->getPanelList(new ViewGroupStudentTechnicalSchool(), $WorkSpaceList,
+                        TblWorkSpace::VIEW_TYPE_STUDENT);
+                    if(!empty($Block)){
+                        if(isset($ViewList['ViewGroupStudentTechnicalSchool'])){
+                            $AccordionList[] = new Panel('Schüler Berufsbildende Schulen:', new Scrollable($Block, 300));
+                        } else {
+                            $AccordionList[] = new Dropdown('Schüler Berufsbildende Schulen:', new Scrollable($Block));
+                        }
+                    }
+                }
                 $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewPersonContact']) ) {
@@ -1254,6 +1307,14 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Panel( 'Interessent:', new Scrollable( $Block, 300 ));
                     } else {
                         $AccordionList[] = new Dropdown( 'Interessent:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewGroupProspectTransfer(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_PROSPECT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewGroupProspectTransfer']) ) {
+                        $AccordionList[] = new Panel( 'Interessent Aufnahme:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Interessent Aufnahme:', new Scrollable( $Block ) );
                     }
                 }
                 $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_PROSPECT);
@@ -1312,12 +1373,38 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 $Block = $this->getPanelList(new ViewGroupTeacher(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_TEACHER);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewGroupTeacher']) ) {
-                        $AccordionList[] = new Panel( 'Lehrer:', new Scrollable( $Block, 300 ));
+                        $AccordionList[] = new Panel( 'Lehrer:', new Scrollable( $Block, 190 ));
                     } else {
                         $AccordionList[] = new Dropdown( 'Lehrer:', new Scrollable( $Block ) );
                     }
                 }
                 $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_TEACHER);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPersonContact']) ) {
+                        $AccordionList[] = new Panel( 'Kontakt:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
+                    }
+                }
+                break;
+            case TblWorkSpace::VIEW_TYPE_STAFF:
+                $Block = $this->getPanelList(new ViewPerson(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STAFF);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPerson']) ) {
+                        $AccordionList[] = new Panel( 'Person:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Person:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewGroupTeacher(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STAFF);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewGroupTeacher']) ) {
+                        $AccordionList[] = new Panel( 'Mitarbeiter:', new Scrollable( $Block, 190 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Mitarbeiter:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STAFF);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewPersonContact']) ) {
                         $AccordionList[] = new Panel( 'Kontakt:', new Scrollable( $Block, 300 ));
@@ -1380,7 +1467,6 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $PanelString = '';
 
         $ViewBlockList = array();
-        /** @noinspection PhpUndefinedMethodInspection */
         $ConstantList = $View::getConstants();    // auslesen der Konstanten
         if ($ConstantList) {
             foreach ($ConstantList as $Constant) {
@@ -1806,11 +1892,12 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
     /**
      * @param string $ViewType
+     * @param bool   $IsPersonLink
      * @param bool   $SqlReturn
      *
-     * @return \Doctrine\ORM\Query|null
+     * @return \Doctrine\ORM\Query|Code|null
      */
-    private function buildSearchQuery($ViewType = TblWorkSpace::VIEW_TYPE_ALL, $SqlReturn = false)
+    private function buildSearchQuery($ViewType = TblWorkSpace::VIEW_TYPE_ALL, $IsPersonLink = false, $SqlReturn = false)
     {
         $Binding = Individual::useService()->getBinding();
         $Manager = $Binding->getEntityManager();
@@ -1844,6 +1931,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             );
                         }
                         $ViewList[] = $tblWorkSpace->getView();
+                    }
+                    if($IsPersonLink){
+                        $IsPersonLink = false;
+                        $Builder->addSelect($tblWorkSpace->getView() . '.TblPerson_Id AS Link');
                     }
 
                     // Add Field to Select
@@ -2006,8 +2097,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 $Query = $Builder->getQuery();
 
                 if($SqlReturn){
-                    return $Query->getSQL();
-//                    return new Code(print_r($ParameterList, true));
+                    return new Code($Query->getSQL(). print_r($ParameterList, true));
                 }
 
                 $Query->useQueryCache(true);
@@ -2083,6 +2173,18 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 $ParameterList[$Parameter] = TblGroup::META_TABLE_TEACHER;
                 $ViewList[] = 'ViewGroup';
                 break;
+            case TblWorkSpace::VIEW_TYPE_STAFF:
+                $viewGroup = new ViewGroup();
+                $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
+                $Builder->from($viewGroup->getEntityFullName(),
+                    $viewGroup->getViewObjectName());
+                $Builder->andWhere(
+                    $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                        $Parameter)
+                );
+                $ParameterList[$Parameter] = TblGroup::META_TABLE_STAFF;
+                $ViewList[] = 'ViewGroup';
+                break;
             case TblWorkSpace::VIEW_TYPE_CLUB:
                 $viewGroup = new ViewGroup();
                 $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
@@ -2117,7 +2219,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             case 1:
                 $ParameterList[$Parameter] = '%'.$Value.'%';
                 return $Builder->expr()->like($View . '.' . $Field, $Parameter);
-                break;
+//                break;
             case 2:
                 $ParameterList[$Parameter] = '%'.$Value.'%';
                 $Builder->expr()->notLike($View . '.' . $Field, $Parameter);
@@ -2129,11 +2231,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     $Builder->expr()->eq($View . '.' . $Field,
                         $Parameter)
                 );
-                break;
+//                break;
             case 4:
                 $ParameterList[$Parameter] = '_%';
                 return $Builder->expr()->like($View . '.' . $Field, $Parameter);
-                break;
+//                break;
         }
         //default
         $ParameterList[$Parameter] = '%'.$Value.'%';
@@ -2185,8 +2287,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     public function getSearchResult($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-//        return $this->buildSearchQuery($ViewType, true);
-        $Query = $this->buildSearchQuery($ViewType);
+        $Query = $this->buildSearchQuery($ViewType, true);
+//
+//        return $Query->getSQL();
         if( null === $Query ) {
             return 'Error';
         } else {
@@ -2216,13 +2319,31 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     if(in_array($Name, $this->FieldNameSortByGermanString)) {
                         $GermanStringOrder[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => $i);
                     }
+                    if(in_array($Name, $this->FieldNameSortByNumeric)) {
+                        $GermanStringOrder[] = array('type' => 'natural', 'targets' => $i);
+                    }
                     $i++;
                 });
                 $ColumnDef = array_merge($DateOrder, $GermanStringOrder);
 
+                // replace PersonId to Link
+                foreach($Result as &$Row) {
+                    foreach($Row as $Key => &$value) {
+                        if($Key == 'Link'){
+                            $tblPerson = Person::useService()->getPersonById($value);
+                            if($tblPerson){
+                                $PersonName = $tblPerson->getLastFirstName();
+                                $Row[$Key] = '<span hidden>'.$PersonName.'</span>'.(new Link($PersonName, '/People/Person', new PersonIcon(),
+                                        array('Id' => $value)))->setExternal();
+                            }
+                        }
+                    }
+                }
+
                 $Result = (new TableData($Result, null, $ColumnDTNames,
 //                        false
                         array(
+                        'order'      => array(array(1, 'asc')),
                         'responsive' => false,
                         'fixedHeader'=> false,
                         'columnDefs' => $ColumnDef

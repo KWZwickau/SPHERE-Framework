@@ -41,7 +41,6 @@ class Filter extends Extension
     const DESCRIPTION_GROUP = 'Personengruppe';
     const DESCRIPTION_GENDER = 'Personendaten: Geschlecht';
     const DESCRIPTION_COURSE = 'Schülerakte: Bildungsgang';
-    const DESCRIPTION_SUBJECT_ORIENTATION = 'Schülerakte: Neigungskurs';
     const DESCRIPTION_SUBJECT_PROFILE = 'Schülerakte: Profil';
     const DESCRIPTION_SUBJECT_FOREIGN_LANGUAGE = 'Schülerakte: Fremdsprache';
     const DESCRIPTION_SUBJECT_RELIGION = 'Schülerakte: Religion';
@@ -148,7 +147,7 @@ class Filter extends Extension
             && ($tblSubjectOrientation = Subject::useService()->getSubjectById($Filter['SubjectOrientation']))
         ) {
             $this->tblSubjectOrientation = $tblSubjectOrientation;
-            $header['SubjectOrientation'] = 'Neigungskurs';
+            $header['SubjectOrientation'] = (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName();
         }
 
         if (isset($Filter['SubjectProfile'])
@@ -454,8 +453,8 @@ class Filter extends Extension
             ? null
             : new Warning(
                 new Bold(new Exclamation() . ' Folgende Schüler in dieser Fach-Gruppe stimmen nicht mit der Filterung überein:')
-                . '</br>'
-                . implode('</br>', $list)
+                . '<br />'
+                . implode('<br />', $list)
             );
     }
 
@@ -1040,7 +1039,8 @@ class Filter extends Extension
         }
 
         if (($tblSubjectOrientation = $this->getTblSubjectOrientation()) && !$this->hasSubjectOrientation($tblPerson)) {
-            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Field'] = Filter::DESCRIPTION_SUBJECT_ORIENTATION;
+            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Field']
+                = (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName();
             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] = $this->getTblSubjectOrientationStringByPerson($tblPerson);
 
             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['DivisionSubjects'][$tblDivisionSubject->getId()]
@@ -1198,7 +1198,8 @@ class Filter extends Extension
         }
 
         if (($tblSubjectOrientation = $this->getTblSubjectOrientation()) && $this->hasSubjectOrientation($tblPerson)) {
-            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Field'] = Filter::DESCRIPTION_SUBJECT_ORIENTATION;
+            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Field']
+                = (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName();
             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] = $this->getTblSubjectOrientationStringByPerson($tblPerson);
 
             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['DivisionSubjects'][$tblDivisionSubject->getId()]

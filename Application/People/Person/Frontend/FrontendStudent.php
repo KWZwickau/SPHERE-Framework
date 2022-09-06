@@ -8,6 +8,8 @@
 
 namespace SPHERE\Application\People\Person\Frontend;
 
+use DateInterval;
+use DateTime;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
 use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
@@ -17,13 +19,17 @@ use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -73,11 +79,30 @@ class FrontendStudent extends FrontendReadOnly
     public static function getStudentTitle($PersonId = null)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
-            && ($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
+            && ($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
             && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
         ) {
+            $AllowEdit = 1;
             $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentContent($PersonId));
+                ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentContent($PersonId, $AllowEdit));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
+
+            return TemplateReadOnly::getContent(
+                self::TITLE,
+                new Info('Die Schülerakte ist ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
+                array($showLink),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
+                new Tag(),
+                true
+            );
+        } // ReadOnly Archive
+         elseif (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_ARCHIVE))
+            && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
+        ) {
+            $AllowEdit = 0;
+            $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentContent($PersonId, $AllowEdit));
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
@@ -94,58 +119,87 @@ class FrontendStudent extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public static function getStudentContent($PersonId = null)
+    public static function getStudentContent($PersonId = null, $AllowEdit = 1)
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
+                $routeEnrollmentDocument = '\Document\Custom\Hoga\EnrollmentDocument\Fill';
+            } else {
+                $routeEnrollmentDocument = '\Document\Standard\EnrollmentDocument\Fill';
+            }
+
             $hasApiRight = Access::useService()->hasAuthorization('/Api/Document/Standard/StudentCard/Create');
             if ($hasApiRight && $tblPerson != null) {
                 $listingContent[] = new External(
                         'Herunterladen der Schülerkartei', 'SPHERE\Application\Api\Document\Standard\StudentCard\Create',
                         new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen')
                     .new External(
-                        'Erstellen der Schulbescheinigung', '\Document\Standard\EnrollmentDocument\Fill',
+                        'Erstellen der Schulbescheinigung', $routeEnrollmentDocument,
                         new Download(), array('PersonId' => $tblPerson->getId()),
-                        'Erstellen und Herunterladen einer Schulbescheinigung');
+                        'Erstellen und Herunterladen einer Schulbescheinigung')
+                    .new External(
+                        'Erstellen der Schülerüberweisung', '\Document\Standard\StudentTransfer\Fill',
+                        new Download(), array('Id' => $tblPerson->getId()),
+                        'Erstellen und Herunterladen einer Schülerüberweisung ');
             }
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                 self::getStudentBasicContent($PersonId), 'StudentBasicContent'
+                 self::getStudentBasicContent($PersonId, $AllowEdit), 'StudentBasicContent'
             );
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentTransfer::getStudentTransferContent($PersonId), 'StudentTransferContent'
+                FrontendStudentTransfer::getStudentTransferContent($PersonId, $AllowEdit), 'StudentTransferContent'
             );
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentProcess::getStudentProcessContent($PersonId), 'StudentProcessContent'
+                FrontendStudentProcess::getStudentProcessContent($PersonId, $AllowEdit), 'StudentProcessContent'
             );
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentMedicalRecord::getStudentMedicalRecordContent($PersonId), 'StudentMedicalRecordContent'
+                FrontendStudentMedicalRecord::getStudentMedicalRecordContent($PersonId, $AllowEdit), 'StudentMedicalRecordContent'
             );
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentGeneral::getStudentGeneralContent($PersonId), 'StudentGeneralContent'
+                FrontendStudentGeneral::getStudentGeneralContent($PersonId, $AllowEdit), 'StudentGeneralContent'
             );
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentSubject::getStudentSubjectContent($PersonId), 'StudentSubjectContent'
+                FrontendStudentAgreement::getStudentAgreementContent($PersonId, $AllowEdit), 'StudentAgreementContent'
+            );
+
+            if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'WVSZ')) {
+                $listingContent[] = ApiPersonReadOnly::receiverBlock(
+                    FrontendStudentSpecialNeeds::getStudentSpecialNeedsContent($PersonId, $AllowEdit), 'StudentSpecialNeedsContent'
+                );
+            }
+
+            if (School::useService()->hasConsumerTechnicalSchool()) {
+                $listingContent[] = ApiPersonReadOnly::receiverBlock(
+                    FrontendStudentTechnicalSchool::getStudentTechnicalSchoolContent($PersonId, $AllowEdit),
+                    'StudentTechnicalSchoolContent'
+                );
+            }
+
+            $listingContent[] = ApiPersonReadOnly::receiverBlock(
+                FrontendStudentSubject::getStudentSubjectContent($PersonId, $AllowEdit), 'StudentSubjectContent'
             );
 
             $content = new Listing($listingContent);
 
             $hideLink = (new Link(new EyeMinus() . ' Ausblenden', ApiPersonReadOnly::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentTitle($PersonId));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 $content,
                 array($hideLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Tag()
                 , true
             );
@@ -156,10 +210,11 @@ class FrontendStudent extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public static function getStudentBasicContent($PersonId = null)
+    public static function getStudentBasicContent($PersonId = null, $AllowEdit = 1)
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -167,38 +222,57 @@ class FrontendStudent extends FrontendReadOnly
                 $identifier = $tblStudent->getIdentifierComplete();
                 $schoolAttendanceStartDate = $tblStudent->getSchoolAttendanceStartDate();
                 $hasMigrationBackground = $tblStudent->getHasMigrationBackground() ? 'Ja' : 'Nein';
-                $isInPreparationDivisionForMigrants = $tblStudent->isInPreparationDivisionForMigrants() ? 'Ja' : 'Nein';
             } else {
                 $identifier = '';
                 $schoolAttendanceStartDate = '';
                 $hasMigrationBackground = '';
-                $isInPreparationDivisionForMigrants = '';
             }
+
+            if (($tblCommon = $tblPerson->getCommon())
+                && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+                && ($birthday = $tblCommonBirthDates->getBirthday())
+            ) {
+                $birthday = new DateTime($birthday);
+                $schoolAttendanceDate = $birthday->add(new DateInterval("P18Y"));
+                $now = new DateTime('now');
+                $hasSchoolAttendance = $now > $schoolAttendanceDate ? 'Ja' : 'Nein';
+            } else {
+                $hasSchoolAttendance = '';
+            }
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
-                    self::getLayoutColumnLabel('Identifikation'),
+                    self::getLayoutColumnLabel('Schülernummer'),
                     self::getLayoutColumnValue($identifier),
-                    self::getLayoutColumnLabel('Schulpflichtbeginn'),
-                    self::getLayoutColumnValue($schoolAttendanceStartDate),
-                    self::getLayoutColumnLabel('Migrationshintergrund'),
-                    self::getLayoutColumnValue($hasMigrationBackground)
-                )),
-                new LayoutRow(array(
-                    self::getLayoutColumnEmpty(8),
-                    self::getLayoutColumnLabel('Vorbereitungsklasse'),
-                    self::getLayoutColumnValue($isInPreparationDivisionForMigrants)
+                    new LayoutColumn(
+                        new Layout(new LayoutGroup(array(
+                            new LayoutRow(array(
+                                self::getLayoutColumnLabel('Schulpflichtbeginn', 6),
+                                self::getLayoutColumnValue($schoolAttendanceStartDate, 6),
+                            )),
+                            new LayoutRow(array(
+                                self::getLayoutColumnLabel('Schulpflicht erfüllt', 6),
+                                self::getLayoutColumnValue($hasSchoolAttendance, 6),
+                            )),
+                        )))
+                    ,4),
+                    self::getLayoutColumnLabel('Herkunftssprache ist nicht oder nicht ausschließlich Deutsch'),
+                    self::getLayoutColumnValue($hasMigrationBackground),
                 )),
             )));
 
-            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentBasicContent($PersonId));
+            $editLink = '';
+            if($AllowEdit == 1){
+                $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentBasicContent($PersonId));
+            }
 
             return TemplateReadOnly::getContent(
                 self::TITLE . ' - Grunddaten',
                 self::getSubContent('Grunddaten', $content),
                 array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Nameplate()
             );
         }
@@ -297,7 +371,7 @@ class FrontendStudent extends FrontendReadOnly
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Identifikation', array(
+                        new Panel('Schülernummer', array(
                             new Layout(
                                 new LayoutGroup(
                                     new LayoutRow(array(
@@ -371,17 +445,12 @@ class FrontendStudent extends FrontendReadOnly
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
-                        new Panel('Migration', array(
+                        new Panel('Kamenz-Statistik', array(
                             new CheckBox(
                                 'Meta[Student][HasMigrationBackground]',
-                                'Migrationshintergrund',
+                                'Herkunftssprache ist nicht oder nicht ausschließlich Deutsch',
                                 1
                             ),
-                            new CheckBox(
-                                'Meta[Student][IsInPreparationDivisionForMigrants]',
-                                'Besucht Vorbereitungsklasse für Migranten',
-                                1
-                            )
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                 )),

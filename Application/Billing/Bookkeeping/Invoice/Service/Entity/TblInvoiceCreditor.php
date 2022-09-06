@@ -31,6 +31,10 @@ class TblInvoiceCreditor extends Element
     /**
      * @Column(type="string")
      */
+    protected $SchoolName;
+    /**
+     * @Column(type="string")
+     */
     protected $Owner;
     /**
      * @Column(type="string")
@@ -157,5 +161,21 @@ class TblInvoiceCreditor extends Element
     {
 
         $this->serviceTblCreditor = (null === $tblCreditor ? null : $tblCreditor->getId());
+    }
+
+    /**
+     * @return string
+     */
+    public function getSchoolName(): string
+    {
+        return $this->SchoolName;
+    }
+
+    /**
+     * @param string $SchoolName
+     */
+    public function setSchoolName(string $SchoolName): void
+    {
+        $this->SchoolName = $SchoolName;
     }
 }

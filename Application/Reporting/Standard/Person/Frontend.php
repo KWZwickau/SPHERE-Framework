@@ -1,16 +1,22 @@
 <?php
 namespace SPHERE\Application\Reporting\Standard\Person;
 
+use DateTime;
 use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
+use SPHERE\Application\People\Meta\Agreement\Agreement;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Search\Group\Group;
+use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -32,6 +38,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -43,7 +50,12 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Table\Structure\TableHead;
+use SPHERE\Common\Frontend\Table\Structure\TableRow;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -130,6 +142,123 @@ class Frontend extends Extension implements IFrontendInterface
                 ));
         } else {
             $Stage = $this->showClassList($Stage, $DivisionId);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param Stage $Stage
+     * @param int   $DivisionId
+     * @param bool  $showDownLoadButton
+     *
+     * @return Stage|string
+     */
+    public function showClassList(Stage $Stage, $DivisionId, $showDownLoadButton = true)
+    {
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $PersonList = Person::useService()->createClassList($tblPersonList);
+
+        if ($tblDivision) {
+            if ($PersonList) {
+                if($showDownLoadButton){
+                    $Stage->addButton(
+                        new Primary('Herunterladen',
+                            '/Api/Reporting/Standard/Person/ClassList/Download', new Download(),
+                            array('DivisionId' => $tblDivision->getId()))
+                    );
+                }
+                $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+
+            }
+
+            $DivisionPanelContent = $this->getDivisionPanelContent($tblDivision);
+
+            $HeadList = array(
+                'Number'           => '#',
+                'LastName'         => 'Name',
+                'FirstName'        => 'Vorname',
+                'Gender'           => 'Geschlecht',
+                'Denomination'     => 'Konfession',
+                'Birthday'         => 'Geburtsdatum',
+                'Birthplace'       => 'Geburtsort',
+                'Address'          => 'Adresse',
+                'Phone'            => new ToolTip('Telefon ' . new Info(),
+                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt'),
+                'Mail'             => 'E-Mail',
+                'ForeignLanguage1' => 'Fremdsprache 1',
+                'ForeignLanguage2' => 'Fremdsprache 2',
+                'ForeignLanguage3' => 'Fremdsprache 3',
+                'Religion'         => 'Religion',
+            );
+            if(($tblLevel = $tblDivision->getTblLevel())){
+                if(($tblType = $tblLevel->getServiceTblType())){
+                    // Profil
+                    if(($tblLevel->getName() == 8
+                            || $tblLevel->getName() == 9
+                            || $tblLevel->getName() == 10)
+                        && $tblType->getName() == 'Gymnasium'){
+                        $HeadList['Profile'] = 'Profil';
+                    }
+                    // Wahlbereich
+                    if(($tblLevel->getName() == 7
+                            || $tblLevel->getName() == 8
+                            || $tblLevel->getName() == 9)
+                        && $tblType->getName() == 'Mittelschule / Oberschule'){
+                        $HeadList['Orientation'] = 'Wahlbereich';
+                    }
+                    // Wahlfach
+                    if($tblLevel->getName() == 10
+                        && $tblType->getName() == 'Mittelschule / Oberschule'){
+                        $HeadList['Elective'] = 'Wahlfächer';
+                    }
+
+                }
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            ($tblDivision->getServiceTblYear() ?
+                                new LayoutColumn(
+                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : ''),
+                            new LayoutColumn(
+                                new Panel('Klasse', $DivisionPanelContent,
+                                    Panel::PANEL_TYPE_SUCCESS), 4
+                            ),
+                            ($tblDivision->getTypeName() ?
+                                new LayoutColumn(
+                                    new Panel('Schulart', $tblDivision->getTypeName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : ''),
+                        )),
+                        ($inActivePanel = $this->getInActiveStudentPanel($tblDivision))
+                            ? new LayoutRow(new LayoutColumn($inActivePanel))
+                            : null
+                    )),
+                    new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(new TableData($PersonList, null,
+                            $HeadList
+                            , array(
+                                'pageLength' => -1,
+                                'responsive' => false,
+                                'columnDefs' => array(
+                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                ),
+                            )))
+                    ))),
+                    $this->getGenderLayoutGroup($tblPersonList)
+                ))
+            );
+        } else {
+            return $Stage . new Danger('Klasse nicht gefunden.', new Ban());
         }
 
         return $Stage;
@@ -245,6 +374,9 @@ class Frontend extends Extension implements IFrontendInterface
                     ));
                 }
 
+                $tableHead['AuthorizedToCollect'] = 'Abholberechtigte';
+
+                $DivisionPanelContent = $this->getDivisionPanelContent($tblDivision);
 
                 $Stage->setContent(
                     new Layout(array(
@@ -256,7 +388,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             Panel::PANEL_TYPE_SUCCESS), 4
                                     ) : ''),
                                 new LayoutColumn(
-                                    new Panel('Klasse', $tblDivision->getDisplayName(),
+                                    new Panel('Klasse', $DivisionPanelContent,
                                         Panel::PANEL_TYPE_SUCCESS), 4
                                 ),
                                 ($tblDivision->getTypeName() ?
@@ -285,34 +417,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         ),
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Panel('Weiblich', array(
-                                        'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4),
-                                new LayoutColumn(
-                                    new Panel('Männlich', array(
-                                        'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4),
-                                new LayoutColumn(
-                                    new Panel('Gesamt', array(
-                                        'Anzahl: ' . count($tblPersonList),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                    , 4)
-                            )),
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                        new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                        null)
-                                )
-                            )
-                        ))
+                        $this->getGenderLayoutGroup($tblPersonList)
                     ))
                 );
             } else {
@@ -448,7 +553,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Name' => 'Name, Vorname',
                                         'Address' => 'Anschrift',
                                         'Birthplace' => 'Geburtsort',
-                                        'Birthday' => 'Geburtsdatum',
+                                        'Birth' => 'Geburtsdatum',
+                                        'BirthDay' => 'Geburtstag',
+                                        'BirthMonth' => 'Geburtsmonat',
+                                        'BirthYear' => 'Geburtsjahr',
                                         'Age' => 'Alter',
                                     ),
                                     array(
@@ -463,34 +571,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
+                    $this->getGenderLayoutGroup($tblPersonList)
                 ))
             );
         }
@@ -637,34 +718,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
+                    $this->getGenderLayoutGroup($tblPersonList)
                 ))
             );
         }
@@ -705,7 +759,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Option'] = new Standard(new EyeOpen(), '/Reporting/Standard/Person/GroupList', null, array(
                         'GroupId' => $tblGroup->getId()
                     ), 'Anzeigen');
-                    array_push($TableContent, $Item);
+
+                    // nicht Gruppe Alle (Bei großen Schulen kommt hier eh ein Error 500)
+                    if ($tblGroup->getMetaTable() != 'COMMON') {
+                        array_push($TableContent, $Item);
+                    }
                 });
             }
 
@@ -761,6 +819,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Gender'                   => 'Geschlecht',
                     'Nationality'              => 'Staatsangehörigkeit',
                     'Religion'                 => 'Konfession',
+                    'Division'                 => 'aktuelle Klasse',
                     'ParticipationWillingness' => 'Mitarbeitsbereitschaft',
                     'ParticipationActivities'  => 'Mitarbeitsbereitschaft - Tätigkeiten',
                     'RemarkFrontend'           => 'Bemerkungen'
@@ -777,9 +836,9 @@ class Frontend extends Extension implements IFrontendInterface
                         'SchoolTypeB'         => 'Voranmeldung Schulart B'
                     );
                     $ColumnDefAdd = array(
-                        array('type' => 'de_date', 'targets' => 16),
                         array('type' => 'de_date', 'targets' => 17),
                         array('type' => 'de_date', 'targets' => 18),
+                        array('type' => 'de_date', 'targets' => 19),
                     );
                 }
                 if ($tblGroup->getMetaTable() == 'STUDENT') {
@@ -789,21 +848,16 @@ class Frontend extends Extension implements IFrontendInterface
                         'SchoolType'           => 'Schulart',
                         'SchoolCourse'         => 'Bildungsgang',
                         'Division'             => 'aktuelle Klasse',
-                        'PictureSchoolWriting' => 'Einverständnis Foto Schulschriften',
-                        'PicturePublication'   => 'Einverständnis Foto Veröffentlichungen',
-                        'PictureWeb'           => 'Einverständnis Foto Internetpräsenz',
-                        'PictureFacebook'      => 'Einverständnis Foto Facebookseite',
-                        'PicturePrint'         => 'Einverständnis Foto Druckpresse',
-                        'PictureFilm'          => 'Einverständnis Foto Ton/Video/Film',
-                        'PictureAdd'           => 'Einverständnis Foto Werbung in eigener Sache',
-                        'NameSchoolWriting'    => 'Einverständnis Name Schulschriften',
-                        'NamePublication'      => 'Einverständnis Name Veröffentlichungen',
-                        'NameWeb'              => 'Einverständnis Name Internetpräsenz',
-                        'NameFacebook'         => 'Einverständnis Name Facebookseite',
-                        'NamePrint'            => 'Einverständnis Name Druckpresse',
-                        'NameFilm'             => 'Einverständnis Name Ton/Video/Film',
-                        'NameAdd'              => 'Einverständnis Name Werbung in eigener Sache',
                     );
+                    //Agreement Head
+                    if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+                        foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                            $tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory);
+                            foreach($tblAgreementTypeList as $tblAgreementType){
+                                $ColumnCustom['AgreementType'.$tblAgreementType->getId()] = $tblAgreementType->getName();
+                            }
+                        }
+                    }
                 }
                 if ($tblGroup->getMetaTable() == 'CUSTODY') {
                     $ColumnCustom = array(
@@ -825,8 +879,8 @@ class Frontend extends Extension implements IFrontendInterface
                         'ClubRemark'     => 'Bemerkung Vereinsmitglied',
                     );
                     $ColumnDefAdd = array(
-                        array('type' => 'de_date', 'targets' => 17),
                         array('type' => 'de_date', 'targets' => 18),
+                        array('type' => 'de_date', 'targets' => 19),
                     );
                 }
                 // merge used column
@@ -857,8 +911,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel('Gruppe:',
                                     $tblGroup->getName().
-                                    (!empty($tblGroup->getDescription()) ? '<br/>' . $tblGroup->getDescription() : '').
-                                    (!empty($tblGroup->getRemark()) ? '<br/>' . $tblGroup->getRemark() : ''),
+                                    ($tblGroup->getDescription(true) ? '<br/>' . $tblGroup->getDescription(true) : '').
+                                    ($tblGroup->getRemark() ? '<br/>' . $tblGroup->getRemark() : ''),
                                     Panel::PANEL_TYPE_SUCCESS), 12
                             )
                         )
@@ -881,150 +935,9 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
+                    $this->getGenderLayoutGroup($tblPersonList)
                 ))
             );
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param Stage $Stage
-     * @param int   $DivisionId
-     * @param bool  $showDownLoadButton
-     *
-     * @return Stage|string
-     */
-    public function showClassList(Stage $Stage, $DivisionId, $showDownLoadButton = true)
-    {
-
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-        $PersonList = Person::useService()->createClassList($tblDivision);
-
-        if ($tblDivision) {
-            if ($PersonList) {
-                if($showDownLoadButton){
-                    $Stage->addButton(
-                        new Primary('Herunterladen',
-                            '/Api/Reporting/Standard/Person/ClassList/Download', new Download(),
-                            array('DivisionId' => $tblDivision->getId()))
-                    );
-                }
-                $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
-
-            }
-
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            ($tblDivision->getServiceTblYear() ?
-                                new LayoutColumn(
-                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : ''),
-                            new LayoutColumn(
-                                new Panel('Klasse', $tblDivision->getDisplayName(),
-                                    Panel::PANEL_TYPE_SUCCESS), 4
-                            ),
-                            ($tblDivision->getTypeName() ?
-                                new LayoutColumn(
-                                    new Panel('Schulart', $tblDivision->getTypeName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : ''),
-                        )),
-                        ($inActivePanel = $this->getInActiveStudentPanel($tblDivision))
-                            ? new LayoutRow(new LayoutColumn($inActivePanel))
-                            : null
-                    )),
-                    new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(new TableData($PersonList, null,
-                            array(
-                                'Number'       => '#',
-                                'LastName'     => 'Name',
-                                'FirstName'    => 'Vorname',
-                                'Gender'       => 'Geschlecht',
-                                'Denomination' => 'Konfession',
-                                'Birthday'     => 'Geburtsdatum',
-                                'Birthplace'   => 'Geburtsort',
-                                'Address'      => 'Adresse',
-                                'Phone'        => new ToolTip('Telefon '.new Info(),
-                                    'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt'),
-                                'Mail'         => 'E-Mail',
-
-                            ),
-                            array(
-                                'pageLength' => -1,
-                                'responsive' => false,
-                                'columnDefs' => array(
-                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-                                ),
-                            )
-                        ))
-                    ))),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
-                ))
-            );
-        } else {
-            return $Stage . new Danger('Klasse nicht gefunden.', new Ban());
         }
 
         return $Stage;
@@ -1035,7 +948,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return bool|Panel
      */
-    private function getInActiveStudentPanel(TblDivision $tblDivision)
+    public function getInActiveStudentPanel(TblDivision $tblDivision)
     {
         $inActiveStudentList = array();
         if (($tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true))) {
@@ -1059,7 +972,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Auswertung', 'Neuanmeldungen/Interessenten');
         $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('PROSPECT'));
-        $PersonList = Person::useService()->createInterestedPersonList();
+        $hasGuardian = false;
+        $hasAuthorizedPerson = false;
+        $PersonList = Person::useService()->createInterestedPersonList($hasGuardian, $hasAuthorizedPerson);
         if ($PersonList) {
             $Stage->addButton(
                 new Primary('Herunterladen',
@@ -1069,39 +984,60 @@ class Frontend extends Extension implements IFrontendInterface
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         }
 
+
+        $Item['TransferCompany'] = $Item['TransferStateCompany'] = $Item['TransferType'] = $Item['TransferCourse'] = $Item['TransferDate'] = $Item['TransferRemark'] = '';
+
+        $columns = array(
+            'FirstName'            => 'Vorname',
+            'LastName'             => 'Name',
+            'RegistrationDate'     => 'Anmeldedatum',
+            'InterviewDate'        => 'Aufnahmegespräch ',
+            'TrialDate'            => 'Schnuppertag ',
+            'SchoolYear'           => 'Schuljahr',
+            'DivisionLevel'        => 'Klassenstufe',
+            'TypeOptionA'          => 'Schulart 1',
+            'TypeOptionB'          => 'Schulart 2',
+            'TransferCompany'      => 'Abgebende Schule / Kita',
+            'TransferStateCompany' => 'Staatliche Stammschule',
+            'TransferType'         => 'Letzte Schulart',
+            'TransferCourse'       => 'Letzter Bildungsgang',
+            'TransferDate'         => 'Aufnahme Datum',
+            'TransferRemark'       => 'Aufnahme Bemerkung',
+            'Address'              => 'Adresse',
+            'Birthday'             => 'Geburtsdatum',
+            'Birthplace'           => 'Geburtsort',
+            'Nationality'          => 'Staatsangeh.',
+            'Denomination'         => 'Bekenntnis',
+            'Siblings'             => 'Geschwister',
+            'Custody1'             => 'Sorgeberechtigter 1',
+            'Custody2'             => 'Sorgeberechtigter 2',
+            'Custody3'             => 'Sorgeberechtigter 3'
+        );
+
+        if ($hasGuardian) {
+            $columns['Guardian'] = 'Vormund';
+        }
+        if ($hasAuthorizedPerson) {
+            $columns['AuthorizedPerson'] = 'Bevollmächtigter';
+        }
+
+        $columns['Phone'] = 'Telefon Interessent';
+        $columns['Mail'] = 'E-Mail Interessent';
+        $columns['PhoneGuardian'] = 'Telefon Sorgeberechtigte';
+        $columns['MailGuardian'] = 'E-Mail Sorgeberechtigte';
+        $columns['Remark'] = 'Bemerkung';
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($PersonList, null,
-                                array(
-                                    'RegistrationDate' => 'Anmeldedatum',
-                                    'InterviewDate'    => 'Aufnahmegespräch ',
-                                    'TrialDate'        => 'Schnuppertag ',
-                                    'FirstName'        => 'Vorname',
-                                    'LastName'         => 'Name',
-                                    'SchoolYear'       => 'Schuljahr',
-                                    'DivisionLevel'    => 'Klassenstufe',
-                                    'TypeOptionA'      => 'Schulart 1',
-                                    'TypeOptionB'      => 'Schulart 2',
-                                    'Address'          => 'Adresse',
-                                    'Birthday'         => 'Geburtsdatum',
-                                    'Birthplace'       => 'Geburtsort',
-                                    'Nationality'      => 'Staatsangeh.',
-                                    'Denomination'     => 'Bekenntnis',
-                                    'Siblings'         => 'Geschwister',
-                                    'Father'           => 'Sorgeberechtigter 1',
-                                    'Mother'           => 'Sorgeberechtigter 2',
-                                    'Phone'            => 'Telefon Interessent',
-                                    'PhoneGuardian'    => 'Telefon Sorgeberechtigte',
-                                    'MailGuardian'     => 'E-Mail Sorgeberechtigte',
-                                    'Remark'           => 'Bemerkung',
-                                ),
+                                $columns,
                                 array(
                                     'order' => array(
-                                        array(2, 'asc'),
-                                        array(1, 'asc')
+                                        array(4, 'asc'),
+                                        array(3, 'asc')
                                     ),
                                     "pageLength" => -1,
                                     "responsive" => false,
@@ -1117,34 +1053,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                 ),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Weiblich', array(
-                                'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Männlich', array(
-                                'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Gesamt', array(
-                                'Anzahl: ' . count($tblPersonList),
-                            ), Panel::PANEL_TYPE_INFO)
-                            , 4)
-                    )),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                null)
-                        )
-                    )
-                ))
+                $this->getGenderLayoutGroup($tblPersonList)
             ))
         );
 
@@ -1270,9 +1179,14 @@ class Frontend extends Extension implements IFrontendInterface
                                         'ForeignLanguage2' => 'Fremdsprache 2',
                                         'ForeignLanguage3' => 'Fremdsprache 3',
                                         'Profile'          => 'Profil',
-                                        'Orientation'      => 'Neigungskurs',
+                                        'Orientation'      => (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName(),
                                         'Religion'         => 'Religion',
                                         'Elective'         => 'Wahlfächer',
+                                        'Elective1'         => 'Wahlfach 1',
+                                        'Elective2'         => 'Wahlfach 2',
+                                        'Elective3'         => 'Wahlfach 3',
+                                        'Elective4'         => 'Wahlfach 4',
+                                        'Elective5'         => 'Wahlfach 5',
                                     ),
                                     array(
                                         "pageLength" => -1,
@@ -1285,34 +1199,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: '.Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: '.Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: '.count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
-                                    new Warning(new Child().' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
-                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
-                                    in den Stammdaten der Personen.') :
-                                    null)
-                            )
-                        )
-                    ))
+                    $this->getGenderLayoutGroup($tblPersonList)
                 ))
             );
         }
@@ -1336,7 +1223,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Result = Person::useService()->getStudentFilterResult($Person, $Year, $Division, $PersonGroup);
 
-        $TableContent = Person::useService()->getStudentTableContent($Result, $Option, $PersonGroup);
+        $Service = Person::useService();
+        $TableContent = $Service->getStudentTableContent($Result, $Option, $PersonGroup);
+        $MetaComparisonList = $Service->getMetaComparisonList();
 
         $AddCount = 0;
 
@@ -1346,18 +1235,24 @@ class Frontend extends Extension implements IFrontendInterface
         $TableHead['FirstName'] = 'Vorname';
         $TableHead['LastName'] = 'Nachname';
         $TableHead['Gender'] = 'Geschlecht';
-        $TableHead['Birthday'] = 'Geburtstag';
+        $TableHead['Birthday'] = 'Geburtsdatum';
         $TableHead['BirthPlace'] = 'Geburtsort';
+        $TableHead['Nationality'] = 'Staatsangehörigkeit';
         $TableHead['Address'] = 'Adresse';
+        $TableHead['Medication'] = 'Medikamente';
+        $TableHead['InsuranceState'] = 'Versicherungsstatus';
         $TableHead['Insurance'] = 'Krankenkasse';
-        $TableHead['Religion'] = 'Religion';
+        $TableHead['Religion'] = 'Konfession';
         $TableHead['PhoneFixedPrivate'] = 'Festnetz (Privat)';
         $TableHead['PhoneFixedWork'] = 'Festnetz (Geschäftl.)';
         $TableHead['PhoneFixedEmergency'] = 'Festnetz (Notfall)';
         $TableHead['PhoneMobilePrivate'] = 'Mobil (Privat)';
         $TableHead['PhoneMobileWork'] = 'Mobil (Geschäftl.)';
         $TableHead['PhoneMobileEmergency'] = 'Mobil (Notfall)';
-        if($PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID] != '0'){
+        $TableHead['MailPrivate'] = 'E-Mail Privat';
+        $TableHead['MailWork'] = 'E-Mail Geschäftlich';
+        if(isset($PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID])
+            && $PersonGroup[ViewPeopleGroupMember::TBL_GROUP_ID] != '0'){
             $TableHead['PersonGroup'] = 'Personengruppe';
             $AddCount = 1;
         }
@@ -1365,43 +1260,63 @@ class Frontend extends Extension implements IFrontendInterface
         $TableHead['Sibling_2'] = 'Geschwister2';
         $TableHead['Sibling_3'] = 'Geschwister3';
 
-        // 3 Sorgeberechtigte
-        for($i = 1; $i <= 3 ; $i++){
-            $TableHead['Custody_'.$i.'_Salutation'] = 'Sorg'.$i.' Anrede';
-            $TableHead['Custody_'.$i.'_Title'] = 'Sorg'.$i.' Titel';
-            $TableHead['Custody_'.$i.'_FirstName'] = 'Sorg'.$i.' Vorname';
-            $TableHead['Custody_'.$i.'_LastName'] = 'Sorg'.$i.' Nachname';
-            $TableHead['Custody_'.$i.'_Address'] = 'Sorg'.$i.' Adresse';
-            $TableHead['Custody_'.$i.'_PhoneFixedPrivate'] = 'Sorg'.$i.' Festnetz (Privat)';
-            $TableHead['Custody_'.$i.'_PhoneFixedWork'] = 'Sorg'.$i.' Festnetz (Geschäftl.)';
-            $TableHead['Custody_'.$i.'_PhoneFixedEmergency'] = 'Sorg'.$i.' Festnetz (Notfall)';
-            $TableHead['Custody_'.$i.'_PhoneMobilePrivate'] = 'Sorg'.$i.' Festnetz (Privat)';
-            $TableHead['Custody_'.$i.'_PhoneMobileWork'] = 'Sorg'.$i.' Festnetz (Geschäftl.)';
-            $TableHead['Custody_'.$i.'_PhoneMobileEmergency'] = 'Sorg'.$i.' Festnetz (Notfall)';
-            $TableHead['Custody_'.$i.'_Mail_Private'] = 'Sorg'.$i.' Mail (Privat)';
-            $TableHead['Custody_'.$i.'_Mail_Work'] = 'Sorg'.$i.' Mail (Geschäftl.)';
+        $ColumnDef = array(
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+            // Sibling
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (22 + $AddCount)),
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (23 + $AddCount)),
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (24 + $AddCount)),
+        );
+
+        $SortCount = 0;
+        foreach($MetaComparisonList as $Type => $TypeCount){
+            if($TypeCount >= 1){
+                for($i = 1; $i <= $TypeCount ; $i++) {
+                    $TableHead[$Type.$i.'_Salutation'] = $Type.' '.$i.' Anrede';
+                    $TableHead[$Type.$i.'_Title'] = $Type.' '.$i.' Titel';
+                    $TableHead[$Type.$i.'_FirstName'] = $Type.' '.$i.' Vorname';
+                    $TableHead[$Type.$i.'_LastName'] = $Type.' '.$i.' Nachname';
+                    $TableHead[$Type.$i.'_Birthday'] = $Type.' '.$i.' Geburtsdatum';
+                    $TableHead[$Type.$i.'_BirthPlace'] = $Type.' '.$i.' Geburtsort';
+                    $TableHead[$Type.$i.'_Job'] = $Type.' '.$i.' Beruf';
+                    $TableHead[$Type.$i.'_Address'] = $Type.' '.$i.' Adresse';
+                    $TableHead[$Type.$i.'_PhoneFixedPrivate'] = $Type.' '.$i.' Festnetz (Privat)';
+                    $TableHead[$Type.$i.'_PhoneFixedWork'] = $Type.' '.$i.' Festnetz (Geschäftl.)';
+                    $TableHead[$Type.$i.'_PhoneFixedEmergency'] = $Type.' '.$i.' Festnetz (Notfall)';
+                    $TableHead[$Type.$i.'_PhoneMobilePrivate'] = $Type.' '.$i.' Festnetz (Privat)';
+                    $TableHead[$Type.$i.'_PhoneMobileWork'] = $Type.' '.$i.' Festnetz (Geschäftl.)';
+                    $TableHead[$Type.$i.'_PhoneMobileEmergency'] = $Type.' '.$i.' Festnetz (Notfall)';
+                    $TableHead[$Type.$i.'_Mail_Private'] = $Type.' '.$i.' Mail (Privat)';
+                    $TableHead[$Type.$i.'_Mail_Work'] = $Type.' '.$i.' Mail (Geschäftl.)';
+                    $ColumnDef[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (27 + $AddCount + (16 * $SortCount)));
+                    $ColumnDef[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (28 + $AddCount + (16 * $SortCount)));
+                    $SortCount++;
+                }
+            }
         }
 
         $Table = new TableData($TableContent, null, $TableHead,
             array(
                 'order'      => array(array(1, 'asc')),
-                'columnDefs' => array(
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
-                    // Sibling
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (16 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (17 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (18 + $AddCount)),
-                    // Custody 1
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (21 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (22 + $AddCount)),
-                    // Custody 2
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (34 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (35 + $AddCount)),
-                    // Custody 3
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (47 + $AddCount)),
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (48 + $AddCount)),
-                ),
+                'columnDefs' => $ColumnDef,
+//                'columnDefs' => array(
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+//                    // Sibling
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (22 + $AddCount)),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (23 + $AddCount)),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (24 + $AddCount)),
+//                    // Custody 1
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (27 + $AddCount)),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (28 + $AddCount)),
+//                    // Custody 2
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (43 + $AddCount)),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (44 + $AddCount)),
+//                    // Custody 3
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (59 + $AddCount)),
+//                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (60 + $AddCount)),
+//                ),
 //                'pageLength' => -1,
 //                'paging'     => false,
 //                'searching'  => false,
@@ -1514,18 +1429,27 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($Data == null) {
             $global = $this->getGlobal();
-            $global->POST['Data']['Date'] = (new \DateTime('now'))->format('d.m.Y');
+            $global->POST['Data']['Date'] = (new DateTime('now'))->format('d.m.Y');
             $global->savePost();
         }
 
-        $receiverContent = ApiStandard::receiverFormSelect(
-            (new ApiStandard())->reloadAbsenceContent()
+        $receiverContent = ApiStandard::receiverBlock(
+            (new ApiStandard())->reloadAbsenceContent(), 'AbsenceContent'
         );
 
-        $datePicker = new DatePicker('Data[Date]', '', 'Datum', new Calendar());
+        $certificateRelevantList[] = new SelectBoxItem(0, '');
+        $certificateRelevantList[] = new SelectBoxItem(1, 'ja');
+        $certificateRelevantList[] = new SelectBoxItem(2, 'nein');
+
+        $datePickerFrom = new DatePicker('Data[Date]', '', 'Datum von', new Calendar());
+        $datePickerTo = new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar());
         $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
         $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
-        $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent($receiverContent));
+        $groupTextField = new TextField('Data[GroupName]', '', 'oder Personengruppe');
+        $certificateRelevantSelectBox = new SelectBox('Data[IsCertificateRelevant]', 'Fehlzeit zeugnisrelevant',
+            array('Name' => $certificateRelevantList));
+        $optionAbsenceOnline = new CheckBox('Data[IsAbsenceOnline]', 'Nur unbearbeitete Online Fehlzeiten von Eltern/Schülern anzeigen', 1);
+        $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineReloadAbsenceContent());
 
         $stage->setContent(
            new Form(new FormGroup(new FormRow(array(
@@ -1535,18 +1459,34 @@ class Frontend extends Extension implements IFrontendInterface
                         new Layout (new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    $datePicker, 4
+                                    $datePickerFrom, 4
                                 ),
+                                new LayoutColumn(
+                                    $datePickerTo, 4
+                                ),
+                                new LayoutColumn(
+                                    $certificateRelevantSelectBox, 4
+                                ),
+                            )),
+                            new LayoutRow(array(
                                 new LayoutColumn(
                                     $typeSelectBox, 4
                                 ),
                                 new LayoutColumn(
                                     $divisionTextField, 4
                                 ),
+                                new LayoutColumn(
+                                    $groupTextField, 4
+                                ),
                             )),
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    $button, 4
+                                    $optionAbsenceOnline . new Container('&nbsp;')
+                                ),
+                            )),
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    $button
                                 ),
                             ))
                         ))),
@@ -1558,5 +1498,502 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendClub()
+    {
+
+        $Stage = new Stage('Auswertung', 'Fördervereinsmitgliedschaft');
+        $PersonList = Person::useService()->createClubList();
+        if ($PersonList) {
+            $Stage->addButton(
+                new Primary('Herunterladen',
+                    '/Api/Reporting/Standard/Person/ClubList/Download', new Download())
+            );
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($PersonList, null,
+                                array(
+                                    'Number'                => 'Mitgliedsnummer',
+                                    'Title'                 => 'Titel',
+                                    'LastName'              => 'Sorgeberechtigt Name',
+                                    'FirstName'             => 'Sorgeberechtigt Vorname',
+                                    'StudentLastName'       => 'Schüler / Interessent Name',
+                                    'StudentFirstName'      => 'Schüler / Interessent Vorname',
+                                    'Type'                  => 'Typ',
+                                    'Year'                  => 'Schuljahr',
+                                    'activeDivision'        => 'Klasse',
+                                    'individualPersonGroup' => 'Personengruppen',
+                                ),
+                                array(
+                                    'order' => array(
+                                        array(0, 'asc'),
+                                        array(2, 'asc')
+                                    ),
+                                    "pageLength" => -1,
+                                    "responsive" => false,
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(2, 3, 5, 6)),
+                                    ),
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param string|null $YearId
+     *
+     * @return Stage
+     */
+    public function frontendStudentArchive(?string $YearId = null): Stage
+    {
+
+        $Stage = new Stage('Auswertung', 'Ehemalige Schüler');
+        // aktuelle Schuljahre herausfiltern
+        $yearList = array();
+        if (($tblYearAll = Term::useService()->getYearAll())
+            && ($tblYearListByNow = Term::useService()->getYearByNow())
+        ) {
+            foreach ($tblYearAll as $tblYear) {
+                $isAdd = true;
+                foreach ($tblYearListByNow as $tblYearNow) {
+                    if ($tblYear->getId() == $tblYearNow->getId()) {
+                        $isAdd = false;
+                        break;
+                    }
+                }
+
+                if ($isAdd) {
+                    $yearList[] = $tblYear;
+                }
+            }
+        } else {
+            $yearList = $tblYearAll;
+        }
+
+        $Stage->setContent(
+            (new SelectBox('YearId', 'Letztes Schuljahr der Schüler', array('{{ DisplayName }}' =>
+                $yearList)))->setRequired()->ajaxPipelineOnChange(ApiStandard::pipelineLoadStudentArchiveContent($YearId))
+            . ApiStandard::receiverBlock(
+                new Warning('Bitte wählen Sie ein Schuljahr aus!'),
+                'StudentArchiveContent'
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return string
+     */
+    public function getStudentArchiveContent(TblYear $tblYear): string
+    {
+        if (($personList = Division::useService()->getLeaveStudents($tblYear))) {
+            $dataList = Person::useService()->createStudentArchiveList($personList);
+
+            return
+                (new Primary('Herunterladen','/Api/Reporting/Standard/Person/StudentArchive/Download',
+                    new Download(), array('YearId' => $tblYear->getId())))
+                . (new Danger('Die dauerhafte Speicherung des Excel-Exports
+                        ist datenschutzrechtlich nicht zulässig!', new Exclamation()))
+                . (new TableData($dataList, null,
+                    array(
+                        'LastDivision' =>       'Abgangsklasse',
+                        'LastName' =>           'Name',
+                        'FirstName' =>          'Vorname',
+                        'Gender' =>             'Geschlecht',
+                        'Birthday' =>           'Geburtsdatum',
+                        'Custody1Salutation' => 'Anrede Sorg1',
+                        'Custody1FirstName' =>  'Vorname Sorg1',
+                        'Custody1LastName' =>   'Nachname Sorg1',
+                        'Custody2Salutation' => 'Anrede Sorg2',
+                        'Custody2FirstName' =>  'Vorname Sorg2',
+                        'Custody2LastName' =>   'Nachname Sorg2',
+                        'Street' =>             'Straße',
+                        'ZipCode' =>            'PLZ',
+                        'City' =>               'Ort',
+                        'LastSchool' =>         'Abgebende Schule',
+                        'NewSchool' =>          'Aufnehmende Schule',
+                        'LeaveDate' =>          'Abmeldedatum'
+                    ),
+                    array(
+                        'order' => array(
+                            array(0, 'asc'),
+                            array(1, 'asc'),
+                        ),
+                        "pageLength" => -1,
+                        "responsive" => false,
+                        'columnDefs' => array(
+                            array('type' => 'natural', 'targets' => 0),
+                            array('type' => 'de_date', 'targets' => 16),
+                                // dann ist die Tabelle leer, Api bringt Fehler
+//                            array(
+//                                'type' => Consumer::useService()->getGermanSortBySetting(),
+//                                'targets' => array(1, 2)
+//                            ),
+                        ),
+                    )
+                ));
+        }
+
+        return new Warning('Für das Schuljahr: ' . $tblYear->getDisplayName(). ' wurden keine Abgänger gefunden.', new Exclamation());
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return string
+     */
+    private function getDivisionPanelContent(TblDivision $tblDivision)
+    {
+
+        $DivisionPanelContent = new Bold($tblDivision->getDisplayName());
+        $DivisionPanelContent .= '<br/>';
+        if(($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))){
+            $TeacherArray = array();
+            foreach($tblDivisionTeacherList as $tblDivisionTeacher){
+                if($tblPerson = $tblDivisionTeacher->getServiceTblPerson()){
+                    $Description = $tblDivisionTeacher->getDescription();
+                    $TeacherArray[] = $tblPerson->getFullName() . ($Description ? ' ' . new Muted($Description) : '');
+                }
+            }
+            if(!empty($TeacherArray)){
+                $DivisionPanelContent .= new Bold('Klassenlehrer: ').implode(', ', $TeacherArray);
+                $DivisionPanelContent .= '<br/>';
+            }
+        }
+        if(($tblDivisionRepresentationList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))){
+            $Representation = array();
+            foreach($tblDivisionRepresentationList as $tblDivisionRepresentation){
+                $tblRepresentation = $tblDivisionRepresentation->getServiceTblPerson();
+                $Description = $tblDivisionRepresentation->getDescription();
+                $Representation[] = $tblRepresentation->getFirstSecondName().' '.$tblRepresentation->getLastName().' '.new Muted($Description);
+            }
+            $DivisionPanelContent .= new Bold('Klassensprecher: ').implode(', ', $Representation);
+        }
+        return $DivisionPanelContent;
+    }
+
+    /**
+     * @param false|array $tblPersonList
+     *
+     * @return LayoutGroup
+     */
+    public function getGenderLayoutGroup($tblPersonList): LayoutGroup
+    {
+
+        if(false === $tblPersonList){
+            $tblPersonList = array();
+        }
+
+        $Divers = Person::countDiversGenderByPersonList($tblPersonList);
+        $DiversColumn = new LayoutColumn(
+            new Panel('Divers', array(
+                'Anzahl: ' . $Divers,
+            ), Panel::PANEL_TYPE_INFO)
+            , 2);
+        $Other = Person::countOtherGenderByPersonList($tblPersonList);
+        $OtherColumn = new LayoutColumn(
+            new Panel('Ohne Angabe', array(
+                'Anzahl: ' . $Other,
+            ), Panel::PANEL_TYPE_INFO)
+            , 2);
+
+        return new LayoutGroup(array(
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new Panel('Weiblich', array(
+                        'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
+                    ), Panel::PANEL_TYPE_INFO)
+                    , 2),
+                new LayoutColumn(
+                    new Panel('Männlich', array(
+                        'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
+                    ), Panel::PANEL_TYPE_INFO)
+                    , 2),
+                ($Divers ? $DiversColumn : ''),
+                ($Other ? $OtherColumn : ''),
+                new LayoutColumn(
+                    new Panel('Gesamt', array(
+                        'Anzahl: '.($tblPersonList ? count($tblPersonList) : 0),
+                    ), Panel::PANEL_TYPE_INFO)
+                    , 2)
+            )),
+            new LayoutRow(
+                new LayoutColumn(
+                    (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?
+                        new Warning(new Child() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                        null)
+                )
+            )
+        ));
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return Stage
+     */
+    public function frontendStudentAgreement($Data = array()) {
+        $Stage = new Stage('Auswertung - Schüler', 'Einverständniserklärung');
+        $FilterForm = $this->getPersonStudentFilterForm();
+
+        $tblYear = $tblGroup = $tblType = false;
+        if(!empty($Data['Year'])){
+            $tblYear = Term::useService()->getYearById($Data['Year']);
+        }
+        if(!empty($Data['Group'])){
+            $tblGroup = Group::useService()->getGroupById($Data['Group']);
+        }
+        if(!empty($Data['Type'])){
+            $tblType = Type::useService()->getTypeById($Data['Type']);
+        }
+        $Level = !empty($Data['Level']) ? $Data['Level'] : '';
+        $Division = !empty($Data['Division']) ? $Data['Division'] : '';
+        $tblPersonList = null;
+        $TableContent = array();
+        if($tblYear){
+            $tblPersonList = Individual::useService()->getStudentPersonListByFilter($tblYear, $tblGroup, $tblType,
+                $Level, $Division);
+            if($tblPersonList && !empty($tblPersonList)){
+                $TableContent = Person::useService()->createAgreementList($tblPersonList);
+            }
+        }
+
+        $ColumnHead = array(
+            'FirstName'                => 'Vorname',
+            'LastName'                 => 'Nachname',
+            'Address'                  => '<div style="min-width: 160px">Anschrift</div>',
+            'Birthday'                 => 'Geburtstag',
+        );
+        //Agreement Head
+        if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+            foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                if (($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))) {
+                    foreach ($tblAgreementTypeList as $tblAgreementType) {
+                        $ColumnHead['AgreementType' . $tblAgreementType->getId()] = '<div style="min-width: 120px">' . $tblAgreementType->getName() . '</div>';
+                    }
+                }
+            }
+        }
+
+        $tableData = new TableData($TableContent, null, $ColumnHead, array(
+                'order'      => array(array(1, 'asc'), array(0, 'asc')),
+                'columnDefs' => array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0,1)),
+                array('type' => 'de_date', 'targets' => 3),
+                'pageLength' => -1,
+                'responsive' => false
+            ));
+
+        if ($tblAgreementCategoryAll) {
+            $headTableColumnList = array();
+            $headTableColumnList[] = new TableColumn('',4);
+            foreach ($tblAgreementCategoryAll as $tblAgreementCategory) {
+                if(($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))) {
+                    $headTableColumnList[] = new TableColumn($tblAgreementCategory->getName(), count($tblAgreementTypeList));
+                }
+            }
+            $tableData->prependHead(
+                new TableHead(
+                    new TableRow(
+                        $headTableColumnList
+                    )
+                )
+            );
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            $FilterForm
+                        ))
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            (null === $tblPersonList
+                            ? new Warning('Bitte führen Sie die gewünschte Filterung aus')
+                            : (false === $tblPersonList
+                                ? new Danger('Filterung enthält keine Personen')
+                                : new Primary('Download Einverständniserklärung', '/Api/Reporting/Standard/Person/AgreementStudentList/Download', new Download(),
+                                    array('Data' => $Data))
+                                )
+                            )
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ($TableContent && !empty($TableContent)
+                                ? $tableData
+                                : ''
+                            )
+                        )
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Form
+     */
+    private function getPersonStudentFilterForm()
+    {
+        $tblLevelShowList = array(0 => '');
+
+        if(($tblLevelList = Division::useService()->getLevelAll())){
+            foreach($tblLevelList as $tblLevel) {
+                if($tblLevel->getName()){
+                    $tblLevelShowList[$tblLevel->getName()] = $tblLevel->getName();
+                }
+            }
+        }
+        $tblGroupList = Group::useService()->getGroupByNotLocked();
+
+        if(!isset($_POST['Data']['Year'])){
+            $tblYearList = Term::useService()->getYearByNow();
+            if($tblYearList && count($tblYearList) == 1){
+                $_POST['Data']['Year'] = current($tblYearList)->getId();
+            }
+        }
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Bildung', array(
+                            (new SelectBox('Data[Year]', 'Schuljahr',
+                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
+                                ->setRequired(),
+                            new SelectBox('Data[Type]', 'Schulart',
+                                array('Name' => Type::useService()->getTypeAll()))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Klasse', array(
+                            new SelectBox('Data[Level]', 'Stufe', $tblLevelShowList),
+                            new AutoCompleter('Data[Division]', 'Gruppe',
+                                'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Gruppe',
+                            new SelectBox('Data[Group]', 'Personengruppe', array('{{ Name }}' => $tblGroupList))
+                            , Panel::PANEL_TYPE_INFO)
+                        , 4)
+                )),
+                new FormRow(
+                    new FormColumn(
+                        new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Filtern')
+                    )
+                )
+            ))
+        );
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return Stage
+     */
+    public function frontendAgreement($Data = array()) {
+        $Stage = new Stage('Auswertung - Mitarbeiter', 'Einverständniserklärung');
+
+        $TableContent = false;
+        $tblGroup = \SPHERE\Application\People\Group\Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+        $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+        if($tblPersonList && !empty($tblPersonList)){
+            $TableContent = Person::useService()->createPersonAgreementList($tblPersonList);
+        }
+
+        $ColumnHead = array(
+            'FirstName'                => 'Vorname',
+            'LastName'                 => 'Nachname',
+            'Address'                  => '<div style="min-width: 160px">Anschrift</div>',
+            'Birthday'                 => 'Geburtstag',
+        );
+        //Agreement Head
+        if(($tblAgreementCategoryAll = Agreement::useService()->getPersonAgreementCategoryAll())){
+            foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                if (($tblAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblAgreementCategory))) {
+                    foreach ($tblAgreementTypeList as $tblAgreementType) {
+                        $ColumnHead['AgreementType' . $tblAgreementType->getId()] = '<div style="min-width: 120px">' . $tblAgreementType->getName() . '</div>';
+                    }
+                }
+            }
+        }
+
+        $tableData = new TableData($TableContent, null, $ColumnHead, array(
+            'order'      => array(array(1, 'asc'), array(0, 'asc')),
+            'columnDefs' => array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0,1)),
+            array('type' => 'de_date', 'targets' => 3),
+            'pageLength' => -1,
+            'responsive' => false
+        ));
+
+        if ($tblAgreementCategoryAll) {
+            $headTableColumnList = array();
+            $headTableColumnList[] = new TableColumn('',4);
+            foreach ($tblAgreementCategoryAll as $tblAgreementCategory) {
+                if(($tblAgreementTypeList = Agreement::useService()->getPersonAgreementTypeAllByCategory($tblAgreementCategory))) {
+                    $headTableColumnList[] = new TableColumn($tblAgreementCategory->getName(), count($tblAgreementTypeList));
+                }
+            }
+            $tableData->prependHead(
+                new TableHead(
+                    new TableRow(
+                        $headTableColumnList
+                    )
+                )
+            );
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ($TableContent && !empty($TableContent)
+                                ? new Primary('Download Einverständniserklärung', '/Api/Reporting/Standard/Person/AgreementPersonList/Download', new Download())
+                                : ''
+                            )
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ($TableContent && !empty($TableContent)
+                                ? $tableData
+                                : ''
+                            )
+                        )
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
     }
 }

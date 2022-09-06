@@ -893,7 +893,7 @@ class Service
 
                                 $tblStudent = Student::useService()->insertStudent($tblPerson, '',
                                     $tblStudentMedicalRecord, null,
-                                    $tblStudentBilling, null, null, $tblStudentIntegration, $schoolAttendanceStartDate);
+                                    $tblStudentBilling, null, null, $tblStudentIntegration, null, $schoolAttendanceStartDate);
                                 if ($tblStudent) {
 
                                     // Schülertransfer
@@ -2143,7 +2143,7 @@ class Service
 
                                 $tblStudent = Student::useService()->insertStudent($tblPerson, '',
                                     $tblStudentMedicalRecord, null,
-                                    $tblStudentBilling, null, null, null, $schoolAttendanceStartDate);
+                                    $tblStudentBilling, null, null, null, null, $schoolAttendanceStartDate);
                                 if ($tblStudent) {
 
                                     // Schülertransfer

@@ -81,19 +81,15 @@ class Setup extends AbstractSetup
     private function setTableProspectReservation(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblProspectReservation');
-        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'ReservationYear')) {
-            $Table->addColumn('ReservationYear', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'ReservationDivision')) {
-            $Table->addColumn('ReservationDivision', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'serviceTblTypeOptionA')) {
-            $Table->addColumn('serviceTblTypeOptionA', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'serviceTblTypeOptionB')) {
-            $Table->addColumn('serviceTblTypeOptionB', 'bigint', array('notnull' => false));
-        }
+        $Table = $this->createTable($Schema, 'tblProspectReservation');
+        $this->createColumn($Table, 'ReservationYear', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'ReservationDivision', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'serviceTblTypeOptionA', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblTypeOptionB', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblCompany', self::FIELD_TYPE_BIGINT, true);
+        // e.g. ForeignKey
+//        $this->createForeignKey($Table, $WertAusFunktionsaufruf, true);
+
         return $Table;
     }
 

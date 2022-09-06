@@ -22,7 +22,29 @@
     {
         Client.Use('ModUpload', function()
         {
-            jQuery('input[type="file"][name="{{ ElementName }}"]').ModUpload({{ ElementOption }});
+            Field = jQuery('input[type="file"][name="{{ ElementName }}"]');
+
+            Field.on('change',function(Event){
+                if(this.files[0] !== undefined){
+                    // Picture Size and output prepare
+                    PictureSize = this.files[0].size;
+                    PictureSize = PictureSize / 1024 / 1024;
+                    PictureSizeString = PictureSize.toPrecision(2).toString()+"MB";
+                    // Max Size and output prepare
+                    MaxSize = {{ ElementMaxSize }};
+                    MaxSize = MaxSize / 1024 / 1024;
+                    MaxSizeString = MaxSize.toPrecision(2).toString()+"MB";
+
+                    if(this.files[0].size) {
+                        if(this.files[0].size > {{ ElementMaxSize }}){
+                            this.value = "";
+                            alert("Das Foto ist zu groß \""+PictureSizeString+"\". Der erlaubte Upload beträgt \""+MaxSizeString+"\".");
+                        }
+                    }
+                }
+            });
+
+            Field.ModUpload({{ ElementOption }});
         });
     });
 </script>

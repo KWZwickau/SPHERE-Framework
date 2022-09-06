@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -247,7 +248,7 @@ class Service
             } else {
                 return new Warning(
                     new Exclamation() . new Bold(' Folgende Einstellungen stimmen nicht zwischen der Personenverwaltung und dem Bildungsmodul überein:')
-                    . '</br></br>'
+                    . '<br /><br />'
                 .($IsTableAccordion
                     ? (new Accordion())->addItem('Warnungen '.new Small('('.$totalCount.')'),
                             new TableData(
@@ -286,9 +287,7 @@ class Service
      */
     public static function getPersonMessageTable(TblPerson $tblPerson)
     {
-        if (($tblStudent = $tblPerson->getStudent())
-            && ($tblDivisionList = $tblStudent->getCurrentDivisionList())
-        ) {
+        if (($tblDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
             $list = array();
             foreach ($tblDivisionList as $tblDivision) {
                 if (($tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
@@ -371,7 +370,7 @@ class Service
 
                 return new Warning(
                     new Exclamation() . new Bold(' Folgende Einstellungen stimmen nicht zwischen der Personenverwaltung und dem Bildungsmodul überein:')
-                    . '</br></br>'
+                    . '<br /><br />'
                     . new TableData(
                         $contentTable,
                         null,
@@ -463,7 +462,7 @@ class Service
                 $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] .=
                     (empty($list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'])
                         ? ''
-                        : '</br>')
+                        : '<br />')
                     . $value;
             }
         }
@@ -482,7 +481,7 @@ class Service
                 $list[$tblPerson->getId()]['Filters']['SubjectReligion']['Value'] .=
                     (empty($list[$tblPerson->getId()]['Filters']['SubjectReligion']['Value'])
                         ? ''
-                        : '</br>')
+                        : '<br />')
                     . $value;
             }
         }
@@ -495,8 +494,8 @@ class Service
                     if (!$tblStudent
                         || (!$tblStudent->getTblSubjectOrientation() && !$tblStudent->getTblSubjectForeignLanguage(2))
                     ) {
-                        $field = Filter::DESCRIPTION_SUBJECT_ORIENTATION;
-                        $value = new Exclamation() . ' Kein Neigungskurs/2.FS hinterlegt.';
+                        $field = (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName();
+                        $value = new Exclamation() . ' Kein ' . $field . '/2.FS hinterlegt.';
                         if (!isset($list[$tblPerson->getId()]['Filters']['SubjectOrientation'])) {
                             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Field'] = $field;
                             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] = $value;
@@ -505,7 +504,7 @@ class Service
                             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] .=
                                 (empty($list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'])
                                     ? ''
-                                    : '</br>')
+                                    : '<br />')
                                 . $value;
                         }
                     }
@@ -527,7 +526,7 @@ class Service
                         $list[$tblPerson->getId()]['Filters']['Course']['Value'] .=
                             (empty($list[$tblPerson->getId()]['Filters']['Course']['Value'])
                                 ? ''
-                                : '</br>')
+                                : '<br />')
                             . $value;
                     }
                 }
@@ -553,19 +552,19 @@ class Service
                         $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] .=
                             (empty($list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'])
                                 ? ''
-                                : '</br>')
+                                : '<br />')
                             . $value;
                     }
                 }
             }
 
-            // Gym in Klassen 8-10 muss ein Profil hinterlegt sein
+            // Gym in Klassen 8-10 muss ein Profil oder 3.FS hinterlegt sein
             if (preg_match('!(0?(8|9|10))!is', $tblLevel->getName())) {
                 if (!$tblStudent
-                    || !$tblStudent->getTblSubjectProfile()
+                    || (!$tblStudent->getTblSubjectProfile() && !$tblStudent->getTblSubjectForeignLanguage(3))
                 ) {
                     $field = Filter::DESCRIPTION_SUBJECT_PROFILE;
-                    $value = new Exclamation() . ' Kein Profil hinterlegt.';
+                    $value = new Exclamation() . ' Kein Profil/3.FS hinterlegt.';
                     if (!isset($list[$tblPerson->getId()]['Filters']['SubjectProfile'])) {
                         $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Field'] = $field;
                         $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'] = $value;
@@ -574,7 +573,7 @@ class Service
                         $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'] .=
                             (empty($list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'])
                                 ? ''
-                                : '</br>')
+                                : '<br />')
                             . $value;
                     }
                 }

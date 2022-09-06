@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Document\Standard\Repository\MultiPassword;
 
+use DateTime;
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -10,6 +11,8 @@ use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
 
@@ -63,9 +66,9 @@ class MultiPassword extends AbstractDocument
 
         $this->FieldValue['Gender'] = false;
         $this->FieldValue['UserAccount'] = '';
-        $this->FieldValue['Street'] = '';
-        $this->FieldValue['District'] = '';
-        $this->FieldValue['City'] = '';
+//        $this->FieldValue['Street'] = '';
+//        $this->FieldValue['District'] = '';
+//        $this->FieldValue['City'] = '';
 //        $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
         // School
         $this->FieldValue['CompanyName'] = (isset($DataPost['CompanyName']) && $DataPost['CompanyName'] != '' ? $DataPost['CompanyName'] : '&nbsp;');
@@ -85,7 +88,7 @@ class MultiPassword extends AbstractDocument
         if($this->FieldValue['GroupByTime'] && $this->FieldValue['GroupByCount']){
 
             if(($tblUserAccountList = Account::useService()->getUserAccountByTimeAndCount(
-                new \DateTime($this->FieldValue['GroupByTime']), $this->FieldValue['GroupByCount']))){
+                new DateTime($this->FieldValue['GroupByTime']), $this->FieldValue['GroupByCount']))){
 
                 foreach($tblUserAccountList as $tblUserAccount){
                     /** @var TblAccount $tblAccount */
@@ -145,7 +148,7 @@ class MultiPassword extends AbstractDocument
     public function getName()
     {
 
-        $UserAccountList = Account::useService()->getUserAccountByTime(new \DateTime($this->FieldValue['GroupByTime']));
+        $UserAccountList = Account::useService()->getUserAccountByTime(new DateTime($this->FieldValue['GroupByTime']));
         if($UserAccountList){
             if($UserAccountList[0]->getType() == 'CUSTODY'){
                 $ListIdentifierString = 'Sorgeberechtigte';
@@ -155,17 +158,19 @@ class MultiPassword extends AbstractDocument
         } else {
             $ListIdentifierString = $this->FieldValue['tblAccountList'][0];
         }
-        $Time = new \DateTime();
+        $Time = new DateTime();
         $Time = $Time->format('d_m_Y-h_i_s');
         return 'Zugang-Schulsoftware-'.$ListIdentifierString.'-Liste_'.$this->FieldValue['GroupByCount'].'_'.$Time;
     }
 
     /**
-     * @param array $pageList
      *
-     * @return $this|Frame
+     * @param array $pageList
+     * @param string $Part
+     *
+     * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument($pageList = array(), $Part = '0')
     {
 
         // wird jetzt nicht mehr verwendet
@@ -717,6 +722,10 @@ class MultiPassword extends AbstractDocument
      */
     private function getSecondLetterContent($AccountId)
     {
+        $Live = 'Adresse: https://schulsoftware.schule';
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+            $Live = 'Adresse: https://ekbo.schulsoftware.schule';
+        }
 
         $Slice = new Slice();
         if ($this->FieldValue['IsParent']) {
@@ -741,7 +750,7 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Adresse: https://schulsoftware.schule')
+                    ->setContent($Live)
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     , '92%'
                 )
@@ -891,7 +900,7 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Adresse: https://schulsoftware.schule')
+                        ->setContent($Live)
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         , '92%'
                     )

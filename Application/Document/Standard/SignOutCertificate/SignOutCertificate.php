@@ -34,8 +34,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -104,16 +102,6 @@ class SignOutCertificate extends Extension
             }
         }
 
-        $YearString = '(SJ ';
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $YearString .= current($tblYearList)->getYear();
-        } else {
-            $YearString .= new ToolTip(new Danger((new \DateTime())->format('Y')),
-                'Kein Schuljahr mit aktuellem Zeitraum');
-        }
-        $YearString .= ')';
-
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -125,7 +113,7 @@ class SignOutCertificate extends Extension
                                 array(
                                     'Name'     => 'Name',
                                     'Address'  => 'Adresse',
-                                    'Division' => 'Klasse '.$YearString,
+                                    'Division' => 'Klasse',
                                     'Option'   => ''
                                 ),
                                 array(
@@ -182,22 +170,16 @@ class SignOutCertificate extends Extension
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
             if ($tblStudent) {
                 // Schuldaten der Schule des Schülers
-                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                    $tblStudentTransferType);
-                if ($tblStudentTransfer) {
-                    $tblCompanySchool = $tblStudentTransfer->getServiceTblCompany();
-                    if ($tblCompanySchool) {
-                        $Global->POST['Data']['School1'] = $tblCompanySchool->getName();
-                        $Global->POST['Data']['School2'] = $tblCompanySchool->getExtendedName();
-                        $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
-                        if ($tblAddressSchool) {
-                            $Global->POST['Data']['SchoolAddressStreet'] = $tblAddressSchool->getStreetName().' '.$tblAddressSchool->getStreetNumber();
-                            $tblCitySchool = $tblAddressSchool->getTblCity();
-                            if ($tblCitySchool) {
-                                $Global->POST['Data']['SchoolAddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
-                                $Global->POST['Data']['SchoolCity'] = $tblCitySchool->getName().', ';
-                            }
+                if (($tblCompanySchool = Student::useService()->getCurrentSchoolByPerson($tblPerson))) {
+                    $Global->POST['Data']['School1'] = $tblCompanySchool->getName();
+                    $Global->POST['Data']['School2'] = $tblCompanySchool->getExtendedName();
+                    $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
+                    if ($tblAddressSchool) {
+                        $Global->POST['Data']['SchoolAddressStreet'] = $tblAddressSchool->getStreetName().' '.$tblAddressSchool->getStreetNumber();
+                        $tblCitySchool = $tblAddressSchool->getTblCity();
+                        if ($tblCitySchool) {
+                            $Global->POST['Data']['SchoolAddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
+                            $Global->POST['Data']['SchoolCity'] = $tblCitySchool->getName().', ';
                         }
                     }
                 }
@@ -236,12 +218,8 @@ class SignOutCertificate extends Extension
                 $LastDate = '';
                 foreach ($tblYearList as $tblYear) {
                     if (Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear)) {
-                        if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))){
-                            $tblLevel = $tblMainDivision->getTblLevel();
-                        } else {
-                            $tblLevel = false;
-                        }
-                        $tblPeriodList = $tblYear->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12');
+                        $tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+                        $tblPeriodList = $tblYear->getTblPeriodAll($tblMainDivision ? $tblMainDivision : null);
                         if ($tblPeriodList) {
                             foreach ($tblPeriodList as $tblPeriod) {
                                 if ($LastDate && new \DateTime($LastDate) < new \DateTime($tblPeriod->getToDate())) {
@@ -282,7 +260,7 @@ class SignOutCertificate extends Extension
                         new LayoutColumn(
                             new Title('Vorlage des Standard-Dokuments "Abmeldebescheinigung"')
                             .new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/Document/SignOutCertificate.png')
+                                FileSystem::getFileLoader('/Common/Style/Resource/Document/SignOutCertificate_V2.png')
                                 , ''
                             )
                             , 5),

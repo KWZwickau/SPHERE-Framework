@@ -14,6 +14,7 @@ use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -81,7 +82,7 @@ class Frontend
 
                     $tblSchoolType && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
                         ? new FormColumn(
-                        new Panel(Filter::DESCRIPTION_SUBJECT_ORIENTATION, array(
+                        new Panel((Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName(), array(
                             new SelectBox('Data[SubjectOrientation]', '', array('{{ Acronym }} - {{ Name }}' => $tblOrientationAll))
                         ),
                             Panel::PANEL_TYPE_INFO)

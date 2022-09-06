@@ -5,6 +5,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
@@ -171,7 +172,7 @@ class Subject implements IModuleInterface
                         new Standard('Zuweisen von Kategorien', __NAMESPACE__.'\Link\Category', new Transfer(),
                             array('Id' => $tblGroup->getId())
                         ),
-                        ($tblGroup->getName() == 'Neigungskurs' ?
+                        ($tblGroup->getName() == (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName() ?
                             new Standard('Zuweisen von Personen', __NAMESPACE__.'\Link\Person', new Transfer(),
                                 array('Id' => $tblGroup->getId())
                             ) : ''),
@@ -193,9 +194,10 @@ class Subject implements IModuleInterface
                                     .$tblSubject->getName().' '
                                     .new Small(new Muted($tblSubject->getDescription()));
                             });
+                            $Height = floor(((count($tblSubjectAll) + 2) / 3) + 1);
+                        } else {
+                            $Height = 1;
                         }
-
-                        $Height = floor(((count($tblSubjectAll) + 2) / 3) + 1);
                         Main::getDispatcher()->registerWidget($tblGroup->getIdentifier(),
                             new Panel(
                                 $tblCategory->getName().' '.$tblCategory->getDescription(),

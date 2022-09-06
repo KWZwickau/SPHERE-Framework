@@ -1,0 +1,22 @@
+SELECT
+    tS.serviceTblPerson AS TblPerson_Id,
+    tS.Id AS TblStudent_Id,
+    tSSNL.Name AS TblStudentSpecialNeedsLevel_Name,
+
+    (SELECT (IF(MONTH(SYSDATE()) > 7 , (YEAR(SYSDATE())-YEAR(tST.TransferDate)+1), (YEAR(SYSDATE())-YEAR(tST.TransferDate)))) as Zeitraum
+    FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
+        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT on tSTT.Id = tST.tblStudentTransferType
+    where tSTT.Identifier = "ENROLLMENT"
+        and tST.tblStudent = TblStudent_Id) AS TblStudentSpecialNeeds_SBJ,
+
+    IF (tSSN.IsHeavyMultipleHandicapped, 'Ja', 'Nein') AS TblStudentSpecialNeeds_IsHeavyMultipleHandicapped,
+    tSSN.RemarkHeavyMultipleHandicapped as TblStudentSpecialNeeds_RemarkHeavyMultipleHandicapped,
+    tSSN.DegreeOfHandicap as TblStudentSpecialNeeds_DegreeOfHandicap,
+    tSSN.Sign as TblStudentSpecialNeeds_Sign,
+    tSSN.ValidTo as TblStudentSpecialNeeds_ValidTo,
+    tSSN.IncreaseFactorHeavyMultipleHandicappedSchool as TblStudentSpecialNeeds_FactorHandicappedSchool,
+    tSSN.IncreaseFactorHeavyMultipleHandicappedRegionalAuthorities as TblStudentSpecialNeeds_FactorHandicappedRegionalAuthorities
+
+FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSpecialNeeds tSSN ON tSSN.Id = tS.tblStudentSpecialNeeds
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSpecialNeedsLevel tSSNL ON tSSNL.Id = tSSN.tblStudentSpecialNeedsLevel

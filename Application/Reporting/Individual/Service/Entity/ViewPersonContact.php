@@ -15,6 +15,7 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -35,7 +36,7 @@ class ViewPersonContact extends AbstractView
     const TBL_ADDRESS_STREET_NAME = 'TblAddress_StreetName';
     const TBL_ADDRESS_STREET_NUMBER = 'TblAddress_StreetNumber';
     const TBL_CITY_CODE = 'TblCity_Code';
-    const TBL_CITY_CITY = 'TblCity_City';
+    const TBL_CITY_NAME = 'TblCity_Name';
     const TBL_CITY_DISTRICT = 'TblCity_District';
     const TBL_ADDRESS_COUNTY = 'TblAddress_County';
     const TBL_ADDRESS_STATE = 'TblState_Name';
@@ -44,13 +45,22 @@ class ViewPersonContact extends AbstractView
     const TBL_ADDRESS_STREET_NAME_2 = 'TblAddress_StreetName2';
     const TBL_ADDRESS_STREET_NUMBER_2 = 'TblAddress_StreetNumber2';
     const TBL_CITY_CODE_2 = 'TblCity_Code2';
-    const TBL_CITY_CITY_2 = 'TblCity_City2';
+    const TBL_CITY_NAME_2 = 'TblCity_Name2';
     const TBL_CITY_DISTRICT_2 = 'TblCity_District2';
     const TBL_ADDRESS_COUNTY_2 = 'TblAddress_County2';
     const TBL_ADDRESS_STATE_2 = 'TblState_Name2';
     const TBL_ADDRESS_NATION_2 = 'TblAddress_Nation2';
 
     const TBL_PHONE_NUMBER = 'TblPhone_Number';
+    const TBL_PHONE_NUMBER_PF = 'TblPhone_Number_PF';
+    const TBL_PHONE_NUMBER_PM = 'TblPhone_Number_PM';
+    const TBL_PHONE_NUMBER_GF = 'TblPhone_Number_GF';
+    const TBL_PHONE_NUMBER_GM = 'TblPhone_Number_GM';
+    const TBL_PHONE_NUMBER_NF = 'TblPhone_Number_NF';
+    const TBL_PHONE_NUMBER_NM = 'TblPhone_Number_NM';
+    const TBL_PHONE_NUMBER_FP = 'TblPhone_Number_FP';
+    const TBL_PHONE_NUMBER_FG = 'TblPhone_Number_FG';
+
     const TBL_MAIL_ADDRESS = 'TblMail_Address';
     const TBL_MAIL_ADDRESS_PRIVATE = 'TblMail_AddressPrivate';
     const TBL_MAIL_ADDRESS_COMPANY = 'TblMail_AddressCompany';
@@ -83,7 +93,7 @@ class ViewPersonContact extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblCity_City;
+    protected $TblCity_Name;
     /**
      * @Column(type="string")
      */
@@ -116,7 +126,7 @@ class ViewPersonContact extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblCity_City2;
+    protected $TblCity_Name2;
     /**
      * @Column(type="string")
      */
@@ -138,6 +148,40 @@ class ViewPersonContact extends AbstractView
      * @Column(type="string")
      */
     protected $TblPhone_Number;
+
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_PF;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_PM;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_GF;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_GM;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_NF;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_NM;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_FP;
+    /**
+     * @column(type="string")
+     */
+    protected $TblPhone_Number_FG;
+
     /**
      * @Column(type="string")
      */
@@ -163,7 +207,7 @@ class ViewPersonContact extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Hauptadresse: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Hauptadresse: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE, 'Hauptadresse: Postleitzahl');
-        $this->setNameDefinition(self::TBL_CITY_CITY, 'Hauptadresse: Ort');
+        $this->setNameDefinition(self::TBL_CITY_NAME, 'Hauptadresse: Ort');
         $this->setNameDefinition(self::TBL_CITY_DISTRICT, 'Hauptadresse: Ortsteil');
         $this->setNameDefinition(self::TBL_ADDRESS_COUNTY, 'Hauptadresse: Landkreis');
         $this->setNameDefinition(self::TBL_ADDRESS_STATE, 'Hauptadresse: Bundesland');
@@ -172,13 +216,22 @@ class ViewPersonContact extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_2, 'Nebenadresse: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_2, 'Nebenadresse: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_2, 'Nebenadresse: Postleitzahl');
-        $this->setNameDefinition(self::TBL_CITY_CITY_2, 'Nebenadresse: Ort');
+        $this->setNameDefinition(self::TBL_CITY_NAME_2, 'Nebenadresse: Ort');
         $this->setNameDefinition(self::TBL_CITY_DISTRICT_2, 'Nebenadresse: Ortsteil');
         $this->setNameDefinition(self::TBL_ADDRESS_COUNTY_2, 'Nebenadresse: Landkreis');
         $this->setNameDefinition(self::TBL_ADDRESS_STATE_2, 'Nebenadresse: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_2, 'Nebenadresse: Land');
 
         $this->setNameDefinition(self::TBL_PHONE_NUMBER, 'Person: Telefon');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PF, 'Person: Telefon Privat Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PM, 'Person: Telefon Privat Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GF, 'Person: Telefon Geschäftlich Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GM, 'Person: Telefon Geschäftlich Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NF, 'Person: Telefon Notfall Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NM, 'Person: Telefon Notfall Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FP, 'Person: Telefon Fax Privat');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FG, 'Person: Telefon Fax Geschäftlich');
+
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS, 'Person: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE, 'Person: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY, 'Person: E-Mail Geschäftlich');
@@ -187,7 +240,7 @@ class ViewPersonContact extends AbstractView
             self::TBL_ADDRESS_STREET_NAME,
             self::TBL_ADDRESS_STREET_NUMBER,
             self::TBL_CITY_CODE,
-            self::TBL_CITY_CITY,
+            self::TBL_CITY_NAME,
             self::TBL_CITY_DISTRICT,
             self::TBL_ADDRESS_COUNTY,
             self::TBL_ADDRESS_STATE,
@@ -198,7 +251,7 @@ class ViewPersonContact extends AbstractView
             self::TBL_ADDRESS_STREET_NAME_2,
             self::TBL_ADDRESS_STREET_NUMBER_2,
             self::TBL_CITY_CODE_2,
-            self::TBL_CITY_CITY_2,
+            self::TBL_CITY_NAME_2,
             self::TBL_CITY_DISTRICT_2,
             self::TBL_ADDRESS_COUNTY_2,
             self::TBL_ADDRESS_STATE_2,
@@ -207,6 +260,14 @@ class ViewPersonContact extends AbstractView
 
         $this->setGroupDefinition('Kontaktdaten', array(
             self::TBL_PHONE_NUMBER,
+            self::TBL_PHONE_NUMBER_PF,
+            self::TBL_PHONE_NUMBER_PM,
+            self::TBL_PHONE_NUMBER_GF,
+            self::TBL_PHONE_NUMBER_GM,
+            self::TBL_PHONE_NUMBER_NF,
+            self::TBL_PHONE_NUMBER_NM,
+            self::TBL_PHONE_NUMBER_FP,
+            self::TBL_PHONE_NUMBER_FG,
             self::TBL_MAIL_ADDRESS,
             self::TBL_MAIL_ADDRESS_PRIVATE,
             self::TBL_MAIL_ADDRESS_COMPANY,
@@ -250,7 +311,7 @@ class ViewPersonContact extends AbstractView
     {
 
         switch ($PropertyName) {
-            case self::TBL_CITY_CITY:
+            case self::TBL_CITY_NAME:
                 // Test Address By Student
                 $Data = array();
                 $tblGroup = false;
@@ -268,8 +329,18 @@ class ViewPersonContact extends AbstractView
                         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
                         break;
                     default:
-                        // old version: all name from City
-                        $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
+                        // Alle Personen --// problem 3 sec. oder mehr zum laden
+//                        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_COMMON);
+
+//                        // old version: Alle Namen aller Städte  --// problem: Gelöschte Einträge werden auch angezeigt
+//                        $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
+                        // über View's
+                            // holen über View's
+//                        $viewContactAddressList = Individual::useService()->getViewContactAddressAll();
+//                        $Data = array('TblCity_Name' => $viewContactAddressList);
+                            // spiezielle Abfrage aus der View
+                        $cityNameList = Individual::useService()->getCityNameGroupByCityName();
+                        $Data = $cityNameList;
                         break;
                 }
                 if($tblGroup){
@@ -291,39 +362,27 @@ class ViewPersonContact extends AbstractView
 
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
-            case self::TBL_CITY_CITY_2:
+            case self::TBL_CITY_NAME_2:
                 // old version: all name from City
                 $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             case self::TBL_ADDRESS_STREET_NAME:
-                // old version: all name from City
-                $Data = Address::useService()->getPropertyList( new TblAddress(), TblAddress::ATTR_STREET_NAME );
-                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
-                break;
             case self::TBL_ADDRESS_STREET_NAME_2:
                 // old version: all name from City
                 $Data = Address::useService()->getPropertyList( new TblAddress(), TblAddress::ATTR_STREET_NAME );
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             case self::TBL_CITY_CODE:
-                // old version: all name from City
-                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_CODE );
-                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
-                break;
             case self::TBL_CITY_CODE_2:
                 // old version: all name from City
                 $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_CODE );
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             case self::TBL_CITY_DISTRICT:
-                // old version: all name from City
-                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_CODE );
-                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
-                break;
             case self::TBL_CITY_DISTRICT_2:
                 // old version: all name from City
-                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_CODE );
+                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_DISTRICT );
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             case self::TBL_MAIL_ADDRESS:

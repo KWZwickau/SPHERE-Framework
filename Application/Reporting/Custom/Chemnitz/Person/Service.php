@@ -22,6 +22,7 @@ use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Reporting\Standard\Person\Person;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
@@ -158,14 +159,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -290,14 +284,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -489,14 +476,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -593,14 +573,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -616,7 +589,7 @@ class Service extends Extension
     public function createInterestedPersonList()
     {
 
-        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
+        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT));
         $TableContent = array();
         if (!empty($tblPersonList)) {
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
@@ -627,6 +600,7 @@ class Service extends Extension
                 $Item['Address'] = '';
                 $Item['Phone'] = '';
                 $Item['PhoneGuardian'] = '';
+                $phoneGuardianList = array();
                 $Item['TypeOptionA'] = $Item['TypeOptionB'] = $Item['DivisionLevel'] = $Item['RegistrationDate'] = '';
                 $Item['SchoolYear'] = '';
                 $Item['Birthday'] = $Item['Birthplace'] = $Item['Denomination'] = $Item['Nationality'] = '';
@@ -739,22 +713,22 @@ class Service extends Extension
                                 if ($tblToPhoneList) {
                                     foreach ($tblToPhoneList as $tblToPhone) {
                                         if (( $tblPhone = $tblToPhone->getTblPhone() )) {
-                                            if (!isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] =
+                                            if (!isset($phoneGuardianList[$tblPersonGuardian->getId()])) {
+                                                $phoneGuardianList[$tblPersonGuardian->getId()] =
                                                     $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName().
                                                     ' ('.$tblPhone->getNumber().' '.
                                                     // modify TypeShort
                                                     str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                                             } else {
-                                                $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber().' '.
+                                                $phoneGuardianList[$tblPersonGuardian->getId()] .= ', '.$tblPhone->getNumber().' '.
                                                     // modify TypeShort
                                                     str_replace('.', '', Phone::useService()->getPhoneTypeShort($tblToPhone));
                                             }
                                         }
                                     }
                                 }
-                                if (isset($Item['PhoneGuardian'][$tblPersonGuardian->getId()])) {
-                                    $Item['PhoneGuardian'][$tblPersonGuardian->getId()] .= ')';
+                                if (isset($phoneGuardianList[$tblPersonGuardian->getId()])) {
+                                    $phoneGuardianList[$tblPersonGuardian->getId()] .= ')';
                                 }
                             }
 
@@ -775,8 +749,8 @@ class Service extends Extension
                     }
                 }
 
-                if (!empty($Item['PhoneGuardian'])) {
-                    $Item['PhoneGuardian'] = implode('; ', $Item['PhoneGuardian']);
+                if (!empty($phoneGuardianList)) {
+                    $Item['PhoneGuardian'] = implode('; ', $phoneGuardianList);
                 }
 
                 if ($father !== null) {
@@ -882,14 +856,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -955,14 +922,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -1076,14 +1036,7 @@ class Service extends Extension
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -1111,22 +1064,22 @@ class Service extends Extension
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblStudentGroup1, $tblStudentGroup2, $tblDivision, &$count) {
 
                 $Item['Number'] = $count++;
-                $Item['Orientation'] = '';
                 $Item['Education'] = '';
-                $Item['ExcelName'] = '';
+                $Item['ExcelName'] = array();
                 $Item['Address'] = '';
-                $Item['ExcelAddress'] = '';
+                $Item['ExcelAddress'] = array();
                 $Item['Birthday'] = $Item['Birthplace'] = '';
                 $Item['PhoneNumbers'] = '';
                 $Item['ExcelPhoneNumbers'] = '';
                 $Item['Orientation'] = '';
                 $Item['OrientationAndFrench'] = '';
+                $Item['Advanced'] = '';
                 $Item['Education'] = '';
                 $Item['Group'] = '';
                 $Item['Group1'] = false;
                 $Item['Group2'] = false;
                 $Item['Elective'] = '';
-                $Item['ExcelElective'] = '';
+                $Item['ExcelElective'] = array();
                 $Item['Integration'] = '';
                 $Item['French'] = '';
 
@@ -1331,14 +1284,21 @@ class Service extends Extension
                         $isSet = true;
                     }
                     // Neigungskurs
-                    if (!$isSet) {
-                        $tblStudentOrientation = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
-                            $tblStudent,
-                            Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION')
-                        );
-                        if ($tblStudentOrientation && ($tblSubject = $tblStudentOrientation[0]->getServiceTblSubject())) {
+                    $tblStudentOrientation = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                        $tblStudent,
+                        Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION')
+                    );
+                    if ($tblStudentOrientation && ($tblSubject = $tblStudentOrientation[0]->getServiceTblSubject())) {
+                        if (!$isSet) {
                             $Item['Orientation'] = $tblSubject->getAcronym();
 //                            $isSet = true;
+                        } else {
+                            if (($tblLevel = $tblDivision->getTblLevel())
+                                && (($tblType = $tblLevel->getServiceTblType()))
+                                && $tblType->getName() == 'Gymnasium'
+                            ) {
+                                $Item['Advanced'] = $tblSubject->getAcronym();
+                            }
                         }
                     }
 
@@ -1352,6 +1312,9 @@ class Service extends Extension
                         $Item['OrientationAndFrench'] = $Item['Orientation'];
                     }
 
+                    if ($Item['Advanced'] && $Item['OrientationAndFrench']) {
+                        $Item['OrientationAndFrench'] .= '<br/>' . $Item['Advanced'];
+                    }
 
                     // Vertiefungskurs // Erstmal deaktiviert (04.08.2016)
 //                    if (!$isSet) {
@@ -1477,10 +1440,12 @@ class Service extends Extension
             $tblGuardianCommon = Common::useService()->getCommonByPerson($tblGuardianPerson);
             if ($tblGuardianCommon) {
                 if (( $GuardianBirthDates = $tblGuardianCommon->getTblCommonBirthDates() )) {
-                    if ($GuardianBirthDates->getGender() == 1) {
-                        $person = 'V.';
-                    } elseif ($GuardianBirthDates->getGender() == 2) {
-                        $person = 'M.';
+                    if (($tblCommonGender = $GuardianBirthDates->getTblCommonGender())) {
+                        if ($tblCommonGender->getId() == 1) {
+                            $person = 'V.';
+                        } elseif ($tblCommonGender->getId() == 2) {
+                            $person = 'M.';
+                        }
                     }
                 }
             }
@@ -1539,7 +1504,7 @@ class Service extends Extension
             $export->setValue($export->getCell(2, 1), "Adresse");
             $export->setValue($export->getCell(3, 1), "Telefonnummer");
             $export->setValue($export->getCell(4, 1), "Gr");
-            $export->setValue($export->getCell(5, 1), "NK/P/FR");
+            $export->setValue($export->getCell(5, 1), "WB/P/FR");
             $export->setValue($export->getCell(6, 1), "BG");
             $export->setValue($export->getCell(7, 1), "WF");
             // Header bold
@@ -1600,6 +1565,8 @@ class Service extends Extension
                     && $tblType->getName() == 'Mittelschule / Oberschule'
                 ) {
                     $export->setValue($export->getCell(5, $Row+1), $PersonData['French']);
+                } elseif ($PersonData['Advanced']) {
+                    $export->setValue($export->getCell(5, $Row + 1), $PersonData['Advanced']);
                 }
 
                 $export->setValue($export->getCell(6, $Row), $PersonData['Education']);
@@ -1667,14 +1634,7 @@ class Service extends Extension
 
             // Personenanzahl
             $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Weiblich:');
-            $export->setValue($export->getCell(1, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Männlich:');
-            $export->setValue($export->getCell(1, $Row), Person::countMaleGenderByPersonList($tblPersonList));
-            $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Gesamt:');
-            $export->setValue($export->getCell(1, $Row), count($tblPersonList));
+            Person::setGenderFooter($export, $tblPersonList, $Row);
 
             if ($SetIntegrationNotice) {
                 $Row++;
@@ -1703,7 +1663,7 @@ class Service extends Extension
 
             if (!empty($orientationList)) {
                 $Row += 2;
-                $export->setValue($export->getCell(0, $Row), 'Neigungskurse/Profile');
+                $export->setValue($export->getCell(0, $Row), 'Wahlbereiche/Profile');
                 foreach ($orientationList as $orientation => $count) {
                     $Row++;
                     $export->setValue($export->getCell(0, $Row), $orientation . ':');
