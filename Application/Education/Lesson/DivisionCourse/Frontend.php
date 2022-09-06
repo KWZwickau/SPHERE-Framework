@@ -20,7 +20,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -52,7 +51,6 @@ use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
-use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
@@ -60,16 +58,18 @@ use SPHERE\Common\Window\Stage;
 class Frontend extends FrontendStudent implements IFrontendInterface
 {
     /**
+     * @param null $Filter
      * @return Stage
      */
-    public function frontendDivisionCourse(): Stage
+    public function frontendDivisionCourse($Filter = null): Stage
     {
         $stage = new Stage('Kurs', 'Übersicht');
-
-        $Filter['Year'] = -1;
+        if ($Filter == null) {
+            $Filter['Year'] = -1;
+        }
         $stage->setContent(
             ApiDivisionCourse::receiverModal()
-            . new Panel(new Filter() . ' Filter', $this->formFilter(), Panel::PANEL_TYPE_INFO)
+            . new Panel(new Filter() . ' Filter', $this->formFilter($Filter), Panel::PANEL_TYPE_INFO)
             . ApiDivisionCourse::receiverBlock($this->loadDivisionCourseTable($Filter), 'DivisionCourseContent')
         );
 
@@ -158,7 +158,7 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                     'SubCourses' => $subCourseText,
                     'Option' =>
                         new Standard('', '/Education/Lesson/DivisionCourse/Show',
-                            new EyeOpen(), array('DivisionCourseId' => $tblDivisionCourse->getId()), 'Kurs einsehen')
+                            new EyeOpen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter), 'Kurs einsehen')
                         . (new Standard('', ApiDivisionCourse::getEndpoint(), new Pen(), array(), 'Name des Kurses bearbeiten'))
                             ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenEditDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
                         . (new Standard('', ApiDivisionCourse::getEndpoint(), new LinkIcon(), array(), 'Unter-Kurse verknüpfen'))
@@ -242,9 +242,11 @@ class Frontend extends FrontendStudent implements IFrontendInterface
     }
 
     /**
+     * @param null $Filter
+     *
      * @return Form
      */
-    public function formFilter(): Form
+    public function formFilter($Filter = null): Form
     {
         $tblTypeAll = DivisionCourse::useService()->getDivisionCourseTypeAll();
         $tblYearAll = Term::useService()->getYearAll();
@@ -252,9 +254,11 @@ class Frontend extends FrontendStudent implements IFrontendInterface
 
             $tblYearAll[] = new SelectBoxItem(-1, 'Aktuelle Übersicht');
 
-            $Global = $this->getGlobal();
-            $Global->POST['Filter']['Year'] = -1;
-            $Global->savePost();
+            if (isset($Filter['Year']) && $Filter['Year'] == -1) {
+                $Global = $this->getGlobal();
+                $Global->POST['Filter']['Year'] = -1;
+                $Global->savePost();
+            }
         }
 
         return new Form(new FormGroup(array(
@@ -437,13 +441,14 @@ class Frontend extends FrontendStudent implements IFrontendInterface
 
     /**
      * @param null $DivisionCourseId
+     * @param null $Filter
      *
      * @return Stage
      */
-    public function frontendDivisionCourseShow($DivisionCourseId = null): Stage
+    public function frontendDivisionCourseShow($DivisionCourseId = null, $Filter = null): Stage
     {
         $stage = new Stage('Kursansicht', '');
-        $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse', new ChevronLeft())));
+        $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse', new ChevronLeft(), array('Filter' => $Filter))));
 
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
@@ -457,7 +462,7 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                 TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
             ) {
                 foreach ($tblStudentMemberList as $tblStudentMember) {
-                    // todo verknüpfte Kurse
+                    // todo verknüpfte Kurse, dann zusätzlich den kurs anzeigen
                     // todo weiter infos , bildungsgang bei berufsbildende Schule, fachrichtung
                     // todo Fächer, kurse sekII
                     if (($tblPerson = $tblStudentMember->getServiceTblPerson())) {
@@ -482,33 +487,12 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                             }
                         }
 
-                        if ($isInActive) {
-                            $status = new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Danger(new Disable()), 'Deaktivierung: ' . $tblStudentMember->getLeaveDate());
-//                            if ($tblYear && !Student::useService()->getMainDivisionByPersonAndYear($tblPerson, $tblYear)) {
-//                                $option =  StudentStatus::receiverModal()
-//                                    . (new \SPHERE\Common\Frontend\Link\Repository\Link('aktivieren', '#'))->ajaxPipelineOnClick(StudentStatus::pipelineActivateStudentSave(
-//                                        $tblDivision->getId(),
-//                                        $tblPerson->getId())
-//                                    );
-//                            } else {
-//                                $option = '';
-//                            }
-                        } else {
-                            $status = new SuccessText(new \SPHERE\Common\Frontend\Icon\Repository\Success());
-//                            $option = StudentStatus::receiverModal()
-//                                . (new Link('deaktivieren', '#'))->ajaxPipelineOnClick(StudentStatus::pipelineOpenDeactivateStudentModal(
-//                                    $tblDivision->getId(),
-//                                    $tblPerson->getId())
-//                                );
-                        }
-
                         $item = array(
-                            'FullName' => $isInActive ? new Strikethrough($fullName) : $fullName,
+                            'FullName' => $isInActive ? new ToolTip(new Strikethrough($fullName), 'Deaktivierung: ' . $tblStudentMember->getLeaveDate()) : $fullName,
                             'Address' => $isInActive ? new Strikethrough($address) : $address,
                             'Gender' => $isInActive ? new Strikethrough($gender) : $gender,
                             'Birthday' => $isInActive ? new Strikethrough($birthday) : $birthday,
                             'Course' => $isInActive ? new Strikethrough($course) : $course,
-                            'Status' => $status,
 //                            'Option' => $option
                         );
 
@@ -576,7 +560,6 @@ class Frontend extends FrontendStudent implements IFrontendInterface
 //            } else {
 //                $studentColumnList['Subjects'] =  'Fächer';
 //            }
-            $studentColumnList['Status'] = 'Status';
 //            $studentColumnList['Option'] = ' ';
 
             $memberColumnList = array(
@@ -608,10 +591,10 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                                 : new TableData($studentList, null, $studentColumnList, false)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler in der ' . $text
-                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId()))
+                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
                         . ' | '
                         . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
-                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_STUDENT))
+                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_STUDENT, 'Filter' => $Filter))
                     )),
 
                     new LayoutGroup(array(
@@ -621,10 +604,10 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                                 : (new TableData($divisionTeacherList, null, $memberColumnList, $interactiveMember))->setHash(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Person() . ' ' . $tblDivisionCourse->getDivisionTeacherName() . ' in der ' . $text
-                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/DivisionTeacher', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId()))
+                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/DivisionTeacher', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
                         . ' | '
                         . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
-                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER, 'Filter' => $Filter))
                     )),
 
                     new LayoutGroup(array(
@@ -634,10 +617,10 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                                 : (new TableData($representativeList, null, $memberColumnList, $interactiveMember))->setHash(TblDivisionCourseMemberType::TYPE_REPRESENTATIVE)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schülersprecher in der ' . $text
-                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Representative', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId()))
+                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Representative', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
                         . ' | '
                         . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
-                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))
+                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, 'Filter' => $Filter))
                     )),
 
                     new LayoutGroup(array(
@@ -647,10 +630,10 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                                 : (new TableData($custodyList, null, $memberColumnList, $interactiveMember))->setHash(TblDivisionCourseMemberType::TYPE_CUSTODY)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternvertreter in der ' . $text
-                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Custody', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId()))
+                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Custody', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
                         . ' | '
                         . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
-                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_CUSTODY))
+                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_CUSTODY, 'Filter' => $Filter))
                     )),
                 ))
             );

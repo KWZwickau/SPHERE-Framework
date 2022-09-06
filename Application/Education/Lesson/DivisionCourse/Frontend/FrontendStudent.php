@@ -57,14 +57,16 @@ class FrontendStudent extends FrontendMember
 {
     /**
      * @param null $DivisionCourseId
+     * @param null $Filter
      *
      * @return Stage
      */
-    public function frontendDivisionCourseStudent($DivisionCourseId = null): Stage
+    public function frontendDivisionCourseStudent($DivisionCourseId = null, $Filter = null): Stage
     {
         $stage = new Stage('Schüler', '');
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(), array('DivisionCourseId' => $tblDivisionCourse->getId()))));
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(),
+                array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))));
             $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
             $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
             if ($tblDivisionCourse->getDescription()) {
@@ -154,7 +156,11 @@ class FrontendStudent extends FrontendMember
                     new FormColumn(
                         (new Primary('Speichern', ApiDivisionCourseStudent::getEndpoint(), new Save()))
                             ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineChangeDivisionCourseSave($tblDivisionCourse->getId(), $tblPerson->getId()))
-                    )
+                    , 6),
+                    new FormColumn(
+                        (new Primary('Kein Wechsel im Schuljahr, Schüler entfernen', ApiDivisionCourseStudent::getEndpoint(), new MinusSign(), array(),  'Schüler entfernen'))
+                            ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineRemoveStudent($tblDivisionCourse->getId(), $tblPerson->getId()))
+                    , 6)
                 )),
             ))
         ))->disableSubmitAction();

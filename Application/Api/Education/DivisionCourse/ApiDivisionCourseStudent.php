@@ -339,7 +339,8 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
 
         if (DivisionCourse::useService()->removeStudentFromDivisionCourse($tblDivisionCourse, $tblPerson)) {
             return new Success('Schüler wurde erfolgreich entfernt.')
-                . self::pipelineLoadRemoveStudentContent($DivisionCourseId);
+                . self::pipelineLoadRemoveStudentContent($DivisionCourseId)
+                . self::pipelineClose();
         } else {
             return new Danger('Schüler konnte nicht entfernt werden.');
         }

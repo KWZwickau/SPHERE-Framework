@@ -68,15 +68,17 @@ class FrontendMember extends Extension implements IFrontendInterface
 
     /**
      * @param null $DivisionCourseId
+     * @param null $Filter
      *
      * @return Stage
      */
-    public function frontendDivisionCourseDivisionTeacher($DivisionCourseId = null): Stage
+    public function frontendDivisionCourseDivisionTeacher($DivisionCourseId = null, $Filter = null): Stage
     {
         $stage = new Stage('Klassenlehrer', '');
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $stage->setTitle($tblDivisionCourse->getDivisionTeacherName());
-            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(), array('DivisionCourseId' => $tblDivisionCourse->getId()))));
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(),
+                array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))));
             $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
             $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
             if ($tblDivisionCourse->getDescription()) {
@@ -179,14 +181,16 @@ class FrontendMember extends Extension implements IFrontendInterface
 
     /**
      * @param null $DivisionCourseId
+     * @param null $Filter
      *
      * @return Stage
      */
-    public function frontendDivisionCourseRepresentative($DivisionCourseId = null): Stage
+    public function frontendDivisionCourseRepresentative($DivisionCourseId = null, $Filter = null): Stage
     {
         $stage = new Stage('Schülersprecher', '');
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(), array('DivisionCourseId' => $tblDivisionCourse->getId()))));
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(),
+                array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))));
             $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
             $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
             if ($tblDivisionCourse->getDescription()) {
@@ -287,14 +291,16 @@ class FrontendMember extends Extension implements IFrontendInterface
 
     /**
      * @param null $DivisionCourseId
+     * @param null $Filter
      *
      * @return Stage
      */
-    public function frontendDivisionCourseCustody($DivisionCourseId = null): Stage
+    public function frontendDivisionCourseCustody($DivisionCourseId = null, $Filter = null): Stage
     {
         $stage = new Stage('Elternvertreter', '');
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(), array('DivisionCourseId' => $tblDivisionCourse->getId()))));
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(),
+                array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))));
             $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
             $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
             if ($tblDivisionCourse->getDescription()) {
@@ -405,10 +411,11 @@ class FrontendMember extends Extension implements IFrontendInterface
     /**
      * @param null $DivisionCourseId
      * @param string $MemberTypeIdentifier
+     * @param null $Filter
      *
      * @return Stage
      */
-    public function frontendMemberSort($DivisionCourseId = null, string $MemberTypeIdentifier = ''): Stage
+    public function frontendMemberSort($DivisionCourseId = null, string $MemberTypeIdentifier = '', $Filter = null): Stage
     {
         if (($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier($MemberTypeIdentifier))) {
             $member = $tblDivisionCourseMemberType->getName();
@@ -427,7 +434,8 @@ class FrontendMember extends Extension implements IFrontendInterface
                 $stage->setMessage($tblDivisionCourse->getDescription());
             }
 
-            $buttonList[] = (new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(), array('DivisionCourseId' => $tblDivisionCourse->getId())));
+            $buttonList[] = (new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(),
+                array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter)));
             $buttonList[] = (new Standard(
                 'Sortierung alphabetisch', ApiDivisionCourseMember::getEndpoint(), new ResizeVertical()))
                 ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineOpenSortMemberModal($tblDivisionCourse->getId(), $MemberTypeIdentifier,  'Sortierung alphabetisch'));
