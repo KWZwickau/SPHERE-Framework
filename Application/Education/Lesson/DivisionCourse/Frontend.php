@@ -457,46 +457,53 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                 $stage->setMessage($tblDivisionCourse->getDescription());
             }
 
+            $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+            DivisionCourse::useService()->getSubDivisionCourseRecursiveListByDivisionCourse($tblDivisionCourse, $tblDivisionCourseList);
+            $hasSubDivisionCourse = count($tblDivisionCourseList) > 1;
+
             $studentList = array();
-            if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
-                TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
-            ) {
-                foreach ($tblStudentMemberList as $tblStudentMember) {
-                    // todo verknüpfte Kurse, dann zusätzlich den kurs anzeigen
-                    // todo weiter infos , bildungsgang bei berufsbildende Schule, fachrichtung
-                    // todo Fächer, kurse sekII
-                    if (($tblPerson = $tblStudentMember->getServiceTblPerson())) {
-                        $isInActive = $tblStudentMember->isInActive();
-                        $fullName = $tblPerson->getLastFirstName();
-                        $address = ($tblAddress = $tblPerson->fetchMainAddress())
-                            ? $tblAddress->getGuiString()
-                            : new WarningText('Keine Adresse hinterlegt');
+            foreach ($tblDivisionCourseList as $tblDivisionCourseItem) {
+                if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourseItem,
+                    TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
+                ) {
+                    foreach ($tblStudentMemberList as $tblStudentMember) {
+                        // todo weiter infos , bildungsgang bei berufsbildende Schule, fachrichtung
+                        // todo Fächer, kurse sekII
+                        if (($tblPerson = $tblStudentMember->getServiceTblPerson())) {
+                            $isInActive = $tblStudentMember->isInActive();
+                            $fullName = $tblPerson->getLastFirstName();
+                            $address = ($tblAddress = $tblPerson->fetchMainAddress())
+                                ? $tblAddress->getGuiString()
+                                : new WarningText('Keine Adresse hinterlegt');
 
-                        // todo bildungsgang aus TblStudentEducation und nicht Schülerakte
-                        $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
-                        $course = $tblCourse ? $tblCourse->getName() : '';
+                            // todo bildungsgang aus TblStudentEducation und nicht Schülerakte
+                            $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
+                            $course = $tblCourse ? $tblCourse->getName() : '';
 
-                        $birthday = '';
-                        $gender = '';
-                        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
-                            if ($tblCommon->getTblCommonBirthDates()) {
-                                $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
-                                if ($tblGender = $tblCommon->getTblCommonBirthDates()->getTblCommonGender()) {
-                                    $gender = $tblGender->getShortName();
+                            $birthday = '';
+                            $gender = '';
+                            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                                if ($tblCommon->getTblCommonBirthDates()) {
+                                    $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+                                    if ($tblGender = $tblCommon->getTblCommonBirthDates()->getTblCommonGender()) {
+                                        $gender = $tblGender->getShortName();
+                                    }
                                 }
                             }
-                        }
 
-                        $item = array(
-                            'FullName' => $isInActive ? new ToolTip(new Strikethrough($fullName), 'Deaktivierung: ' . $tblStudentMember->getLeaveDate()) : $fullName,
-                            'Address' => $isInActive ? new Strikethrough($address) : $address,
-                            'Gender' => $isInActive ? new Strikethrough($gender) : $gender,
-                            'Birthday' => $isInActive ? new Strikethrough($birthday) : $birthday,
-                            'Course' => $isInActive ? new Strikethrough($course) : $course,
+                            $item = array(
+                                'DivisionCourse' => $tblDivisionCourseItem->getName(),
+                                'FullName' => $isInActive ? new ToolTip(new Strikethrough($fullName),
+                                    'Deaktivierung: ' . $tblStudentMember->getLeaveDate()) : $fullName,
+                                'Address' => $isInActive ? new Strikethrough($address) : $address,
+                                'Gender' => $isInActive ? new Strikethrough($gender) : $gender,
+                                'Birthday' => $isInActive ? new Strikethrough($birthday) : $birthday,
+                                'Course' => $isInActive ? new Strikethrough($course) : $course,
 //                            'Option' => $option
-                        );
+                            );
 
-                        $studentList[] = $item;
+                            $studentList[] = $item;
+                        }
                     }
                 }
             }
@@ -548,11 +555,16 @@ class Frontend extends FrontendStudent implements IFrontendInterface
 
             $studentColumnList = array(
                 'FullName' => 'Schüler',
+                'DivisionCourse' => 'Kurs',
                 'Gender'   => 'Ge&shy;schlecht',
                 'Birthday' => 'Geburts&shy;datum',
                 'Address'  => 'Adresse',
                 'Course'   => 'Bildungsgang'
             );
+            if(!$hasSubDivisionCourse) {
+                unset($studentColumnList['DivisionCourse']);
+            }
+
 //            if ($IsSekTwo) {
 //                $studentColumnList['AdvancedCourse1'] = '1. LK';
 //                $studentColumnList['AdvancedCourse2'] = '2. LK';

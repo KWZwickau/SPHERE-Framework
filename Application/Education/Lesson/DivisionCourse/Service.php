@@ -130,6 +130,27 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param array $resultList
+     *
+     * @return bool
+     */
+    public function getSubDivisionCourseRecursiveListByDivisionCourse(TblDivisionCourse $tblDivisionCourse, array &$resultList): bool
+    {
+        if (($tblDivisionCourseList = $this->getSubDivisionCourseListByDivisionCourse($tblDivisionCourse))) {
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (isset($resultList[$tblDivisionCourse->getId()])) {
+                    return false;
+                }
+                $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                $this->getSubDivisionCourseRecursiveListByDivisionCourse($tblDivisionCourse, $resultList);
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDivisionCourseLink
