@@ -193,9 +193,9 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                     if ($tblDivisionCourse->getIsReporting()) {
                         $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . 'Auswertung';
                     }
-                    if ($tblDivisionCourse->getIsUcs()) {
-                        $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . 'UCS';
-                    }
+//                    if ($tblDivisionCourse->getIsUcs()) {
+//                        $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . 'UCS';
+//                    }
                 } else {
                     $countActive = $tblDivisionCourse->getCountStudents();
                     $countInActive = $tblDivisionCourse->getCountInActiveStudents();
@@ -302,7 +302,7 @@ class Frontend extends FrontendStudent implements IFrontendInterface
             $Global->POST['Data']['Description'] = $tblDivisionCourse->getDescription();
             $Global->POST['Data']['IsShownInPersonData'] = $tblDivisionCourse->getIsShownInPersonData();
             $Global->POST['Data']['IsReporting'] = $tblDivisionCourse->getIsReporting();
-            $Global->POST['Data']['IsUcs'] = $tblDivisionCourse->getIsUcs();
+//            $Global->POST['Data']['IsUcs'] = $tblDivisionCourse->getIsUcs();
             $Global->savePost();
         }
 
@@ -350,13 +350,13 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new CheckBox('Data[IsShownInPersonData]', 'Kurs bei den Personenstammdaten anzeigen', 1)
-                        , 4),
+                        , 6),
                     new FormColumn(
                         new CheckBox('Data[IsReporting]', 'Kurs wird bei festen Auswertungen angezeigt', 1)
-                        , 4),
-                    new FormColumn(
-                        new CheckBox('Data[IsUcs]', 'Kurs wird ins UCS übertragen', 1)
-                        , 4),
+                        , 6),
+//                    new FormColumn(
+//                        new CheckBox('Data[IsUcs]', 'Kurs wird ins UCS übertragen', 1)
+//                        , 4),
                 )),
                 new FormRow(array(
                     new FormColumn(

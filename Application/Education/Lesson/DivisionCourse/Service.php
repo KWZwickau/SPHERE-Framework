@@ -276,7 +276,7 @@ class Service extends AbstractService
             && ($tblType = DivisionCourse::useService()->getDivisionCourseTypeById($Data['Type']))
         ) {
             return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $Data['Name'], $Data['Description'],
-                isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), isset($Data['IsUcs']));
+                isset($Data['IsShownInPersonData']), isset($Data['IsReporting']));
         } else {
             return false;
         }

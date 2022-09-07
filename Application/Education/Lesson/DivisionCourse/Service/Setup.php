@@ -72,7 +72,7 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'Description', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'IsShownInPersonData', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'IsReporting', self::FIELD_TYPE_BOOLEAN);
-        $this->createColumn($table, 'IsUcs', self::FIELD_TYPE_BOOLEAN);
+//        $this->createColumn($table, 'IsUcs', self::FIELD_TYPE_BOOLEAN);
 
         $this->createForeignKey($table, $tblType);
 

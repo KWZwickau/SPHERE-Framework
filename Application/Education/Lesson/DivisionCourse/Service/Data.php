@@ -90,16 +90,15 @@ class Data extends MigrateData
      * @param string $description
      * @param bool $isShownInPersonData
      * @param bool $isReporting
-     * @param bool $isUcs
      *
      * @return TblDivisionCourse
      */
     public function createDivisionCourse(TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description,
-        bool $isShownInPersonData, bool $isReporting, bool $isUcs): TblDivisionCourse
+        bool $isShownInPersonData, bool $isReporting): TblDivisionCourse
     {
         $Manager = $this->getEntityManager();
 
-        $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $isUcs);
+        $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -129,7 +128,7 @@ class Data extends MigrateData
             $Entity->setDescription($description);
             $Entity->setIsShownInPersonData($isShownInPersonData);
             $Entity->setIsReporting($isReporting);
-            $Entity->setIsUcs($isUcs);
+//            $Entity->setIsUcs($isUcs);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
