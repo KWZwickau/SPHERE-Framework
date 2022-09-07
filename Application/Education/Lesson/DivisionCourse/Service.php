@@ -845,18 +845,16 @@ class Service extends AbstractService
         }
 
         if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
-            if (!isset($Data['Division']) || !($tblDivisionCourseNew = DivisionCourse::useService()->getDivisionCourseById($Data['Division']))) {
-                $form->setError('Data[Division]', 'Bitte wählen Sie eine neue Klasse aus');
-                $error = true;
-            } elseif ($tblDivisionCourseNew->getId() == $tblDivisionCourse->getId()) {
+            if (($tblDivisionCourseNew = DivisionCourse::useService()->getDivisionCourseById($Data['Division']))
+                && $tblDivisionCourseNew->getId() == $tblDivisionCourse->getId())
+            {
                 $form->setError('Data[Division]', 'Bitte wählen Sie eine neue Klasse aus');
                 $error = true;
             }
         } else {
-            if (!isset($Data['CoreGroup']) || !($tblDivisionCourseNew = DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup']))) {
-                $form->setError('Data[CoreGroup]', 'Bitte wählen Sie eine neue Stammgruppe aus');
-                $error = true;
-            } elseif ($tblDivisionCourseNew->getId() == $tblDivisionCourse->getId()) {
+            if (($tblDivisionCourseNew = DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup']))
+                && $tblDivisionCourseNew->getId() == $tblDivisionCourse->getId()
+            ) {
                 $form->setError('Data[CoreGroup]', 'Bitte wählen Sie eine neue Stammgruppe aus');
                 $error = true;
             }
