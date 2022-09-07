@@ -786,11 +786,11 @@ class Data extends MigrateData
      * @param TblDivisionCourseMemberType $tblMemberType
      * @param TblPerson $tblPerson
      * @param string $description
-     *
+     * @param int|null $sortOrder
      * @return TblDivisionCourseMember
      */
     public function addDivisionCourseMemberToDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType,
-        TblPerson $tblPerson, string $description = ''): TblDivisionCourseMember
+        TblPerson $tblPerson, string $description = '', ?int $sortOrder = null): TblDivisionCourseMember
     {
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionCourseMember')
@@ -801,7 +801,7 @@ class Data extends MigrateData
             ));
 
         if (null === $Entity) {
-            $Entity = TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblMemberType, $tblPerson, $description);
+            $Entity = TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblMemberType, $tblPerson, $description, null, $sortOrder);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -876,6 +876,87 @@ class Data extends MigrateData
         Protocol::useService()->flushBulkEntries();
 
         return true;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourseMemberType $tblMemberType
+     *
+     * @return int|null
+     */
+    public function getDivisionCourseMemberMaxSortOrder(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType): ?int
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('Max(t.SortOrder) as MaxSortOrder')
+            ->from(__NAMESPACE__ . '\Entity\TblDivisionCourseMember', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.tblLessonDivisionCourse', '?1'),
+                    $queryBuilder->expr()->eq('t.tblLessonDivisionCourseMemberType', '?2'),
+                )
+            )
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->setParameter(2, $tblMemberType->getId())
+            ->orderBy('MaxSortOrder', 'DESC')
+            ->getQuery();
+
+        $result = $query->getResult();
+
+        return is_array($result) ? (current($result))['MaxSortOrder'] : null;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivision
+     *
+     * @return int|null
+     */
+    public function getStudentEducationDivisionMaxSortOrder(TblDivisionCourse $tblDivision): ?int
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('Max(t.DivisionSortOrder) as MaxSortOrder')
+            ->from(__NAMESPACE__ . '\Entity\TblStudentEducation', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.tblDivision', '?1'),
+                )
+            )
+            ->setParameter(1, $tblDivision->getId())
+            ->orderBy('MaxSortOrder', 'DESC')
+            ->getQuery();
+
+        $result = $query->getResult();
+
+        return is_array($result) ? (current($result))['MaxSortOrder'] : null;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblCoreGroup
+     *
+     * @return int|null
+     */
+    public function getStudentEducationCoreGroupMaxSortOrder(TblDivisionCourse $tblCoreGroup): ?int
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('Max(t.CoreGroupSortOrder) as MaxSortOrder')
+            ->from(__NAMESPACE__ . '\Entity\TblStudentEducation', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.tblCoreGroup', '?1'),
+                )
+            )
+            ->setParameter(1, $tblCoreGroup->getId())
+            ->orderBy('MaxSortOrder', 'DESC')
+            ->getQuery();
+
+        $result = $query->getResult();
+
+        return is_array($result) ? (current($result))['MaxSortOrder'] : null;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
+use DateInterval;
 use DateTime;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
@@ -31,6 +32,7 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 class Service extends AbstractService
@@ -417,7 +419,9 @@ class Service extends AbstractService
     public function addDivisionCourseMemberToDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType,
         TblPerson $tblPerson, string $description): TblDivisionCourseMember
     {
-        return (new Data($this->getBinding()))->addDivisionCourseMemberToDivisionCourse($tblDivisionCourse, $tblMemberType, $tblPerson, $description);
+        $maxSortOrder = $this->sortDivisionCourseMember($tblDivisionCourse, $tblMemberType);
+
+        return (new Data($this->getBinding()))->addDivisionCourseMemberToDivisionCourse($tblDivisionCourse, $tblMemberType, $tblPerson, $description, $maxSortOrder);
     }
 
     /**
@@ -428,6 +432,8 @@ class Service extends AbstractService
      */
     public function addStudentToDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson): bool
     {
+        $maxSortOrder = $this->sortDivisionCourseMember($tblDivisionCourse, $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT));
+
         // Schüler in Klassen und Stammgruppen werden anders gespeichert (TblStudentEducation)
         if (($tblDivisionCourseType = $tblDivisionCourse->getType())
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
@@ -436,10 +442,10 @@ class Service extends AbstractService
             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
                 if ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
                     $tblStudentEducation->setTblDivision($tblDivisionCourse);
-                    $tblStudentEducation->setDivisionSortOrder(null);
+                    $tblStudentEducation->setDivisionSortOrder($maxSortOrder);
                 } else {
                     $tblStudentEducation->setTblCoreGroup($tblDivisionCourse);
-                    $tblStudentEducation->setCoreGroupSortOrder(null);
+                    $tblStudentEducation->setCoreGroupSortOrder($maxSortOrder);
                 }
 
                 return (new Data($this->getBinding()))->updateStudentEducation($tblStudentEducation);
@@ -460,13 +466,80 @@ class Service extends AbstractService
             }
         } else {
            if ((new Data($this->getBinding()))->addDivisionCourseMemberToDivisionCourse(
-               $tblDivisionCourse, $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT), $tblPerson
+               $tblDivisionCourse, $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT), $tblPerson, '', $maxSortOrder
            )) {
                return true;
            }
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourseMemberType $tblDivisionCourseMemberType
+     *
+     * @return int|null
+     */
+    private function sortDivisionCourseMember(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblDivisionCourseMemberType): ?int
+    {
+        $maxSortOrder = $this->getDivisionCourseMemberMaxSortOrder($tblDivisionCourse, $tblDivisionCourseMemberType);
+        // Kurs ist noch nicht sortiert
+        if ($maxSortOrder === null) {
+            // ist der Kurs im aktuellen Schuljahr und Schuljahr noch nicht älter als 1 Monat → Schüler sortieren und neuen Schüler hinten anfügen
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+                $today = new DateTime('today');
+                /** @var DateTime $startDate */
+                list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                if ($startDate && $endDate
+                    && $today > $startDate
+                    && $today < $endDate
+                    && ($firstMonthDate = clone $startDate)
+                    && $today > ($firstMonthDate->add(new DateInterval('P1M')))
+                ) {
+                    if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
+                        $tblDivisionCourse, $tblDivisionCourseMemberType->getIdentifier(), true, false
+                    ))) {
+                        $tblMemberList = (new Extension())->getSorter($tblMemberList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
+                        $count = 1;
+                        /** @var TblDivisionCourseMember $tblMember */
+                        foreach ($tblMemberList as $tblMember) {
+                            $tblMember->setSortOrder($count++);
+                        }
+                        DivisionCourse::useService()->updateDivisionCourseMemberBulkSortOrder(
+                            $tblMemberList, $tblDivisionCourseMemberType->getIdentifier(), $tblDivisionCourse->getType() ?: null
+                        );
+                        $maxSortOrder = $count;
+                    }
+                }
+            }
+        } else {
+            $maxSortOrder++;
+        }
+
+        return $maxSortOrder;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourseMemberType $tblMemberType
+     *
+     * @return int|null
+     */
+    private function getDivisionCourseMemberMaxSortOrder(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseMemberType $tblMemberType): ?int
+    {
+        if ($tblMemberType->getIdentifier() == TblDivisionCourseMemberType::TYPE_STUDENT
+            && ($tblDivisionCourseType = $tblDivisionCourse->getType())
+            && ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+        ) {
+            if ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
+                return (new Data($this->getBinding()))->getStudentEducationDivisionMaxSortOrder($tblDivisionCourse);
+            } else {
+                return (new Data($this->getBinding()))->getStudentEducationCoreGroupMaxSortOrder($tblDivisionCourse);
+            }
+        } else {
+            return (new Data($this->getBinding()))->getDivisionCourseMemberMaxSortOrder($tblDivisionCourse, $tblMemberType);
+        }
     }
 
     /**
