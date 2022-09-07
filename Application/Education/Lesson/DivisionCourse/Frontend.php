@@ -140,9 +140,17 @@ class Frontend extends FrontendStudent implements IFrontendInterface
             $showExtraInfo = isset($Filter['ShowExtraInfo']);
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                if (($tblSubCourseList = DivisionCourse::useService()->getSubDivisionCourseListByDivisionCourse($tblDivisionCourse))) {
+                $countActive = 0;
+                $countInActive = 0;
+                $tblSubCourseList = array();
+                DivisionCourse::useService()->getSubDivisionCourseRecursiveListByDivisionCourse($tblDivisionCourse, $tblSubCourseList);
+                if ($tblSubCourseList) {
                     $subCourses = array();
                     foreach ($tblSubCourseList as $tblSubCourse) {
+                        if (!$showExtraInfo) {
+                            $countActive += $tblSubCourse->getCountStudents();
+                            $countInActive += $tblSubCourse->getCountInActiveStudents();
+                        }
                         $subCourses[] = $tblSubCourse->getName();
                     }
                     $subCourseText = implode(', ', $subCourses);
@@ -168,7 +176,8 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                 );
 
                 if ($showExtraInfo) {
-                    list($students, $genders) = DivisionCourse::useService()->getStudentInfoByDivisionCourse($tblDivisionCourse);
+                    $tblSubCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                    list($students, $genders) = DivisionCourse::useService()->getStudentInfoByDivisionCourseList($tblSubCourseList);
                     $item['Students'] = $students;
                     $item['Genders'] = $genders;
 
@@ -197,8 +206,8 @@ class Frontend extends FrontendStudent implements IFrontendInterface
 //                        $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . 'UCS';
 //                    }
                 } else {
-                    $countActive = $tblDivisionCourse->getCountStudents();
-                    $countInActive = $tblDivisionCourse->getCountInActiveStudents();
+                    $countActive += $tblDivisionCourse->getCountStudents();
+                    $countInActive += $tblDivisionCourse->getCountInActiveStudents();
                     $toolTip = $countInActive . ($countInActive == 1 ? ' deaktivierter Schüler' : ' deaktivierte Schüler');
                     $students = $countActive . ($countInActive > 0 ? ' + '
                         . new ToolTip('(' . $countInActive . new \SPHERE\Common\Frontend\Icon\Repository\Info() . ')', $toolTip) : '');

@@ -703,41 +703,43 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivisionCourse $tblDivisionCourse
-     *
+     * @param array $tblDivisionCourseList
      * @return array
      */
-    public function getStudentInfoByDivisionCourse(TblDivisionCourse $tblDivisionCourse): array
+    public function getStudentInfoByDivisionCourseList(array $tblDivisionCourseList): array
     {
         $countActive = 0;
         $countInActive = 0;
         $genderList = array();
         $genders = '';
 
-        if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
-            TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
-        ) {
-            foreach ($tblStudentMemberList as $tblStudentMember) {
-                if (($tblPerson = $tblStudentMember->getServiceTblPerson())) {
-                    if ($tblStudentMember->isInActive()) {
-                        $countInActive++;
-                    } else {
-                        $countActive++;
-                    }
-
-                    if(($tblGender = $tblPerson->getGender())){
-                        if (isset($genderList[$tblGender->getShortName()])) {
-                            $genderList[$tblGender->getShortName()]++;
+        /** @var TblDivisionCourse $tblDivisionCourse */
+        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+            if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
+                TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
+            ) {
+                foreach ($tblStudentMemberList as $tblStudentMember) {
+                    if (($tblPerson = $tblStudentMember->getServiceTblPerson())) {
+                        if ($tblStudentMember->isInActive()) {
+                            $countInActive++;
                         } else {
-                            $genderList[$tblGender->getShortName()] = 1;
+                            $countActive++;
+                        }
+
+                        if (($tblGender = $tblPerson->getGender())) {
+                            if (isset($genderList[$tblGender->getShortName()])) {
+                                $genderList[$tblGender->getShortName()]++;
+                            } else {
+                                $genderList[$tblGender->getShortName()] = 1;
+                            }
                         }
                     }
                 }
             }
+        }
 
-            foreach($genderList as $key => $count) {
-                $genders .= ($genders ? '<br/>' : '') . $key . ': ' . $count;
-            }
+        foreach ($genderList as $key => $count) {
+            $genders .= ($genders ? '<br/>' : '') . $key . ': ' . $count;
         }
 
         $toolTip = $countInActive . ($countInActive == 1 ? ' deaktivierter Schüler' : ' deaktivierte Schüler');
