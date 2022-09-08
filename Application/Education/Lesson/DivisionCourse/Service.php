@@ -19,6 +19,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Setup;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -461,6 +462,15 @@ class Service extends AbstractService
                 }
 
                 if ((new Data($this->getBinding()))->createStudentEducation($tblStudentEducation)) {
+                    // falls Interessent → dann Schüler draus machen
+                    if (($tblProspectGroup = PersonGroup::useService()->getGroupByMetaTable('PROSPECT'))
+                        && ($tblStudentGroup = PersonGroup::useService()->getGroupByMetaTable('STUDENT'))
+                        && PersonGroup::useService()->existsGroupPerson($tblProspectGroup, $tblPerson)
+                    ) {
+                        PersonGroup::useService()->removeGroupPerson($tblProspectGroup, $tblPerson);
+                        PersonGroup::useService()->addGroupPerson($tblStudentGroup, $tblPerson);
+                    }
+
                     return true;
                 }
             }

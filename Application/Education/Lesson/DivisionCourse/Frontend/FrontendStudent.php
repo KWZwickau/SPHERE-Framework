@@ -514,13 +514,16 @@ class FrontendStudent extends FrontendMember
                                 && ($tblProspectReservation = $tblProspect->getTblProspectReservation())
                             ) {
                                 $yearString = $tblProspectReservation->getReservationYear();
+                                $level = $tblProspectReservation->getReservationDivision();
                             } else {
                                 $yearString = '';
+                                $level =  '';
                             }
                             $resultList[] = array(
                                 'Name' => $tblPerson->getLastFirstName(),
                                 'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
                                 'Year' => $yearString,
+                                'Level' => $level,
                                 'Option' => $option
                             );
                         }
@@ -534,6 +537,7 @@ class FrontendStudent extends FrontendMember
                         'Name' => 'Name',
                         'Address' => 'Adresse',
                         'Year' => 'Schuljahr',
+                        'Level' => 'Klassenstufe',
                         'Option' => ''
                     ),
                     array(
