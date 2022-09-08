@@ -133,7 +133,8 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
 
         $stage->setContent(
             new Layout(new LayoutGroup(array(
-                Digital::useService()->getHeadLayoutRow($tblDivision ?: null, $tblGroup ?: null, $tblYear)
+                Digital::useService()->getHeadLayoutRow($tblDivision ?: null, $tblGroup ?: null, $tblYear),
+                Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null, '/Education/ClassRegister/Digital/SelectCourse', $BasicRoute)
             )))
             . new Container('&nbsp;')
             . new TableData(
