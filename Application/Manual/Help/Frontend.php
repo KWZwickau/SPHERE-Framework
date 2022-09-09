@@ -2,6 +2,8 @@
 namespace SPHERE\Application\Manual\Help;
 
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -33,6 +35,10 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Hilfe', 'Downloadbereich');
+
+        $isUcsApiActive = ($tblConsumer = Consumer::useService()->getConsumerBySession())
+            && ($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))
+            && $tblConsumerLogin->getIsActiveAPI();
 
         $Stage->setContent(
             new Layout(
@@ -87,7 +93,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 , 'ESDi Leistungsbeschreibung'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'ESDi'))
                         , 2),
-
+                    )),
+                    new LayoutRow(array(
+                        $isUcsApiActive
+                            ? new LayoutColumn(new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                                , 'Schnittstelle Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;05.09.2022'))->setPictureHeight()
+                                , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_UCS_DLLP')
+                            ), 2)
+                            : null
                     ))
                 ))
             )
