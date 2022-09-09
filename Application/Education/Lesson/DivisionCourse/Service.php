@@ -338,6 +338,30 @@ class Service extends AbstractService
     }
 
     /**
+     * Alle Schüler eines Kurses inklusive aller verknüpften Sub-Kurse
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param bool $withInActive
+     * @param bool $isResultPersonList
+     *
+     * @return false|TblDivisionCourseMember[]|TblPerson[]
+     */
+    public function getStudentListBy(TblDivisionCourse $tblDivisionCourse, bool $withInActive = false, bool $isResultPersonList = true)
+    {
+        $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+        DivisionCourse::useService()->getSubDivisionCourseRecursiveListByDivisionCourse($tblDivisionCourse, $tblDivisionCourseList);
+
+        $studentList = array();
+        foreach ($tblDivisionCourseList as $item) {
+            if (($list = $this->getDivisionCourseMemberListBy($item, TblDivisionCourseMemberType::TYPE_STUDENT, $withInActive, $isResultPersonList))) {
+                $studentList = array_merge($studentList, $list);
+            }
+        }
+
+        return empty($studentList) ? false : $studentList;
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param string $memberTypeIdentifier
      * @param bool $withInActive

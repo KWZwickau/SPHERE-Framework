@@ -48,7 +48,12 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
+use SPHERE\Common\Frontend\Table\Structure\Table;
+use SPHERE\Common\Frontend\Table\Structure\TableBody;
+use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Table\Structure\TableHead;
+use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -59,14 +64,12 @@ class Frontend extends FrontendStudent implements IFrontendInterface
 {
     /**
      * @param null $Filter
+     *
      * @return Stage
      */
     public function frontendDivisionCourse($Filter = null): Stage
     {
         $stage = new Stage('Kurs', 'Übersicht');
-        if ($Filter == null) {
-            $Filter['Year'] = -1;
-        }
         $stage->setContent(
             ApiDivisionCourse::receiverModal()
             . new Panel(new Filter() . ' Filter', $this->formFilter($Filter), Panel::PANEL_TYPE_INFO)
@@ -263,7 +266,8 @@ class Frontend extends FrontendStudent implements IFrontendInterface
 
             $tblYearAll[] = new SelectBoxItem(-1, 'Aktuelle Übersicht');
 
-            if (isset($Filter['Year']) && $Filter['Year'] == -1) {
+            if ($Filter == null) {
+                $Filter['Year'] = -1;
                 $Global = $this->getGlobal();
                 $Global->POST['Filter']['Year'] = -1;
                 $Global->savePost();
@@ -476,8 +480,6 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                     TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
                 ) {
                     foreach ($tblStudentMemberList as $tblStudentMember) {
-                        // todo weiter infos , bildungsgang bei berufsbildende Schule, fachrichtung
-                        // todo Fächer, kurse sekII
                         if (($tblPerson = $tblStudentMember->getServiceTblPerson())) {
                             $isInActive = $tblStudentMember->isInActive();
                             $fullName = $tblPerson->getLastFirstName();
@@ -485,9 +487,12 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                                 ? $tblAddress->getGuiString()
                                 : new WarningText('Keine Adresse hinterlegt');
 
-                            // todo bildungsgang aus TblStudentEducation und nicht Schülerakte
-                            $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
-                            $course = $tblCourse ? $tblCourse->getName() : '';
+                            $course = '';
+                            if (($tblYear = $tblDivisionCourseItem->getServiceTblYear())
+                                && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                            ) {
+                                $course = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : '';
+                            }
 
                             $birthday = '';
                             $gender = '';
@@ -500,16 +505,14 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                                 }
                             }
 
-                            $item = array(
-                                'DivisionCourse' => $tblDivisionCourseItem->getName(),
-                                'FullName' => $isInActive ? new ToolTip(new Strikethrough($fullName),
-                                    'Deaktivierung: ' . $tblStudentMember->getLeaveDate()) : $fullName,
-                                'Address' => $isInActive ? new Strikethrough($address) : $address,
-                                'Gender' => $isInActive ? new Strikethrough($gender) : $gender,
-                                'Birthday' => $isInActive ? new Strikethrough($birthday) : $birthday,
-                                'Course' => $isInActive ? new Strikethrough($course) : $course,
-//                            'Option' => $option
-                            );
+                            $item['FullName'] = $isInActive ? new ToolTip(new Strikethrough($fullName), 'Deaktivierung: ' . $tblStudentMember->getLeaveDate()) : $fullName;
+                            if ($hasSubDivisionCourse) {
+                                $item['DivisionCourse'] = $tblDivisionCourseItem->getName();
+                            }
+                            $item['Gender'] = $isInActive ? new Strikethrough($gender) : $gender;
+                            $item['Birthday'] = $isInActive ? new Strikethrough($birthday) : $birthday;
+                            $item['Address'] = $isInActive ? new Strikethrough($address) : $address;
+                            $item['Course'] = $isInActive ? new Strikethrough($course) : $course;
 
                             $studentList[] = $item;
                         }
@@ -562,45 +565,20 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                 }
             }
 
-            $studentColumnList = array(
-                'FullName' => 'Schüler',
-                'DivisionCourse' => 'Kurs',
-                'Gender'   => 'Ge&shy;schlecht',
-                'Birthday' => 'Geburts&shy;datum',
-                'Address'  => 'Adresse',
-                'Course'   => 'Bildungsgang'
-            );
-            if(!$hasSubDivisionCourse) {
-                unset($studentColumnList['DivisionCourse']);
+            $backgroundColor = '#E0F0FF';
+
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Schüler', $backgroundColor);
+            if ($hasSubDivisionCourse) {
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Kurs', $backgroundColor);
             }
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Ge&shy;schlecht', $backgroundColor);
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Geburts&shy;datum', $backgroundColor);
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Adresse', $backgroundColor);
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Bildungsgang', $backgroundColor);
 
-//            if ($IsSekTwo) {
-//                $studentColumnList['AdvancedCourse1'] = '1. LK';
-//                $studentColumnList['AdvancedCourse2'] = '2. LK';
-//                $studentColumnList['BasicCourses'] = 'Grundkurse';
-//            } else {
-//                $studentColumnList['Subjects'] =  'Fächer';
-//            }
-//            $studentColumnList['Option'] = ' ';
+            $headerMemberColumnList[] = $this->getTableHeaderColumn('Name', $backgroundColor, '30%');
+            $headerMemberColumnList[] = $this->getTableHeaderColumn('Beschreibung', $backgroundColor, '70%');
 
-            $memberColumnList = array(
-                'FullName' => 'Name',
-                'Description' => 'Beschreibung'
-            );
-
-            // todo TableCustom und keine Sortierung
-//            $interactiveMember = array(
-//                'columnDefs' => array(
-//                    array('orderable' => false, 'width' => '40%', 'targets' => 0),
-//                    array('orderable' => false, 'targets' => 1),
-//                ),
-//                'pageLength' => -1,
-//                'paging' => false,
-//                'info' => false,
-//                'searching' => false,
-//                'responsive' => false
-//            );
-            $interactiveMember = false;
 
             $stage->setContent(
                 DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
@@ -609,7 +587,7 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                         new LayoutRow(new LayoutColumn(
                             empty($studentList)
                                 ? new Warning('Keine Schüler dem Kurs zugewiesen')
-                                : new TableData($studentList, null, $studentColumnList, false)
+                                : $this->getTableCustom($headerStudentColumnList, $studentList)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler in der ' . $text
                         . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
@@ -622,7 +600,7 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                         new LayoutRow(new LayoutColumn(
                             empty($divisionTeacherList)
                                 ? new Warning('Keine ' . $tblDivisionCourse->getDivisionTeacherName() . ' dem Kurs zugewiesen')
-                                : (new TableData($divisionTeacherList, null, $memberColumnList, $interactiveMember))->setHash(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER)
+                                : $this->getTableCustom($headerMemberColumnList, $divisionTeacherList)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Person() . ' ' . $tblDivisionCourse->getDivisionTeacherName() . ' in der ' . $text
                         . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/DivisionTeacher', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
@@ -635,7 +613,7 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                         new LayoutRow(new LayoutColumn(
                             empty($representativeList)
                                 ? new Warning('Keine Schülersprecher dem Kurs zugewiesen')
-                                : (new TableData($representativeList, null, $memberColumnList, $interactiveMember))->setHash(TblDivisionCourseMemberType::TYPE_REPRESENTATIVE)
+                                : $this->getTableCustom($headerMemberColumnList, $representativeList)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schülersprecher in der ' . $text
                         . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Representative', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
@@ -648,7 +626,7 @@ class Frontend extends FrontendStudent implements IFrontendInterface
                         new LayoutRow(new LayoutColumn(
                             empty($custodyList)
                                 ? new Warning('Keine Elternvertreter dem Kurs zugewiesen')
-                                : (new TableData($custodyList, null, $memberColumnList, $interactiveMember))->setHash(TblDivisionCourseMemberType::TYPE_CUSTODY)
+                                : $this->getTableCustom($headerMemberColumnList, $custodyList)
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternvertreter in der ' . $text
                         . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Custody', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
@@ -665,5 +643,55 @@ class Frontend extends FrontendStudent implements IFrontendInterface
         }
 
         return $stage;
+    }
+
+    /**
+     * @param string $name
+     * @param string $backgroundColor
+     * @param string $width
+     * @param int $size
+     *
+     * @return TableColumn
+     */
+    private function getTableHeaderColumn(string $name, string $backgroundColor, string $width = 'auto', int $size = 1): TableColumn
+    {
+        return (new TableColumn($name, $size, $width))
+            ->setBackgroundColor($backgroundColor)
+            ->setPadding('5px')
+            ->setVerticalAlign('middle');
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return TableColumn
+     */
+    private function getTableBodyColumn(string $content): TableColumn
+    {
+        return (new TableColumn($content))
+            ->setPadding('5px')
+            ->setVerticalAlign('middle');
+    }
+
+    /**
+     * @param array $headerColumnList
+     * @param array $bodyColumnList
+     *
+     * @return Table
+     */
+    private function getTableCustom(array $headerColumnList, array $bodyColumnList): Table
+    {
+        $tableHead = new TableHead(new TableRow($headerColumnList));
+        $rows = array();
+        foreach ($bodyColumnList as $columnList) {
+            $columns = array();
+            foreach ($columnList as $item) {
+                $columns[] = $this->getTableBodyColumn($item);
+            }
+            $rows[] = new TableRow($columns);
+        }
+        $tableBody = new TableBody($rows);
+
+        return new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
     }
 }

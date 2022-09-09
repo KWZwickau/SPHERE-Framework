@@ -143,6 +143,9 @@ abstract class MigrateData extends AbstractData
                                     $tblStudentEducation->setServiceTblCompany($tblDivision->getServiceTblCompany() ?: null);
                                     $tblStudentEducation->setLevel(intval($tblLevel->getName()));
                                     $tblStudentEducation->setServiceTblSchoolType($tblSchoolType);
+                                    if (($tblStudent = $tblPerson->getStudent()) && ($tblCourse = $tblStudent->getCourse())) {
+                                        $tblStudentEducation->setServiceTblCourse($tblCourse);
+                                    }
 
                                     $tblStudentEducation->setDivisionSortOrder($tblDivisionStudent->getSortOrder());
                                     $Manager->bulkSaveEntity($tblStudentEducation);
