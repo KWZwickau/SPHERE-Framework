@@ -1312,10 +1312,11 @@ class Frontend extends FrontendScoreRule
             $dataList, null, $columnDefinition,
             array(
                 "columnDefs" => array(
-                    array(
-                        "orderable" => false,
-                        "targets"   => '_all',
-                    ),
+                    // nicht alle Filter Icons verschwinden
+//                    array(
+//                        "orderable" => false,
+//                        "targets"   => '_all',
+//                    ),
                     array('width' => '1%', 'targets' => 0),
                     array('width' => '1%', 'targets' => 2),
                     array('width' => '2%', 'targets' => 3),
@@ -1323,7 +1324,8 @@ class Frontend extends FrontendScoreRule
                 'pageLength' => -1,
                 'paging' => false,
                 'info' => false,
-                'responsive' => false
+                'responsive' => false,
+                'ordering' => false
             )
         );
 
@@ -2176,25 +2178,29 @@ class Frontend extends FrontendScoreRule
 
                 return new Panel(
                     'Mindesnotenanzahl',
+                    '<div style="margin-top: -18px;">'.
                     new TableData(
                         $minimumGradeCountContent,
                         null,
                         $columns,
                         array(
-                            "columnDefs" => array(
-                                array(
-                                    "orderable" => false,
-                                    "targets" => '_all'
-                                ),
-                            ),
+                            // nicht alle Filter Icons verschwinden
+//                            "columnDefs" => array(
+//                                array(
+//                                    "orderable" => false,
+//                                    "targets" => '_all'
+//                                ),
+//                            ),
                             'pageLength' => -1,
                             'paging' => false,
                             'info' => false,
                             'searching' => false,
-                            'responsive' => false
+                            'responsive' => false,
+                            'ordering' => false
                         )
-                    ),
+                    ).'</div>',
                     Panel::PANEL_TYPE_INFO
+
                 );
             }
         }

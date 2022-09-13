@@ -330,7 +330,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array('orderable' => false, 'width' => '60px', 'targets' => 0),
                                         array('orderable' => false, 'width' => '150px', 'targets' => 1),
                                         array('width' => '110px', 'targets' => -2),
-                                        array('orderable' => false, 'width' => '235px', 'targets' => -1),
+                                        array('orderable' => false, 'width' => '170px', 'targets' => -1),
                                         array('type' => 'natural', 'targets' => 4),
                                         array('type' => 'natural', 'targets' => 6),
                                         array('type' => 'natural', 'targets' => 8),
