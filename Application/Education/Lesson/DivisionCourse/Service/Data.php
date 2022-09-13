@@ -505,6 +505,18 @@ class Data extends MigrateData
 
     /**
      * @param TblPerson $tblPerson
+     *
+     * @return false|TblStudentEducation[]
+     */
+    public function getStudentEducationListByPerson(TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      *
      * @return false|TblStudentEducation
@@ -516,6 +528,16 @@ class Data extends MigrateData
             TblStudentEducation::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
             TblStudentEducation::ATTR_LEAVE_DATE => null
         ));
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return TblStudentEducation|false
+     */
+    public function getStudentEducationById($Id)
+    {
+        return $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', $Id);
     }
 
     /**

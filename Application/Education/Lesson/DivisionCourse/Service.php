@@ -784,6 +784,16 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     *
+     * @return false|TblStudentEducation[]
+     */
+    public function getStudentEducationListByPerson(TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getStudentEducationListByPerson($tblPerson);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      *
      * @return false|TblStudentEducation
@@ -791,6 +801,16 @@ class Service extends AbstractService
     public function getStudentEducationByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
     {
         return (new Data($this->getBinding()))->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return TblStudentEducation|false
+     */
+    public function getStudentEducationById($Id)
+    {
+        return (new Data($this->getBinding()))->getStudentEducationById($Id);
     }
 
     /**
@@ -831,9 +851,55 @@ class Service extends AbstractService
      */
     public function checkFormChangeDivisionCourse($Data, TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson)
     {
-        $error = false;
         $form = DivisionCourse::useFrontend()->formChangeDivisionCourse($tblDivisionCourse, $tblPerson, $tblDivisionCourse->getServiceTblYear());
 
+        $error = $this->checkStudentEducationData($Data, $form);
+
+        if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
+            if (($tblDivisionCourseNew = DivisionCourse::useService()->getDivisionCourseById($Data['Division']))
+                && $tblDivisionCourseNew->getId() == $tblDivisionCourse->getId())
+            {
+                $form->setError('Data[Division]', 'Bitte wählen Sie eine neue Klasse aus');
+                $error = true;
+            }
+        } else {
+            if (($tblDivisionCourseNew = DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup']))
+                && $tblDivisionCourseNew->getId() == $tblDivisionCourse->getId()
+            ) {
+                $form->setError('Data[CoreGroup]', 'Bitte wählen Sie eine neue Stammgruppe aus');
+                $error = true;
+            }
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param $Data
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse|null $tblDivisionCourse
+     * @param TblStudentEducation|null $tblStudentEducation
+     *
+     * @return false|Form
+     */
+    public function checkFormEditStudentEducation($Data, TblPerson $tblPerson, ?TblDivisionCourse $tblDivisionCourse, ?TblStudentEducation $tblStudentEducation)
+    {
+        $form = DivisionCourse::useFrontend()->formEditStudentEducation($tblPerson, $tblDivisionCourse, $tblStudentEducation);
+
+        $error = $this->checkStudentEducationData($Data, $form);
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param $Data
+     * @param Form $form
+     *
+     * @return bool
+     */
+    private function checkStudentEducationData($Data, Form $form): bool
+    {
+        $error = false;
         $tblSchoolType = false;
         if (!isset($Data['SchoolType']) || !($tblSchoolType = Type::useService()->getTypeById($Data['SchoolType']))) {
             $form->setError('Data[SchoolType]', 'Bitte wählen Sie eine Schulart aus');
@@ -880,23 +946,7 @@ class Service extends AbstractService
             $error = true;
         }
 
-        if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
-            if (($tblDivisionCourseNew = DivisionCourse::useService()->getDivisionCourseById($Data['Division']))
-                && $tblDivisionCourseNew->getId() == $tblDivisionCourse->getId())
-            {
-                $form->setError('Data[Division]', 'Bitte wählen Sie eine neue Klasse aus');
-                $error = true;
-            }
-        } else {
-            if (($tblDivisionCourseNew = DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup']))
-                && $tblDivisionCourseNew->getId() == $tblDivisionCourse->getId()
-            ) {
-                $form->setError('Data[CoreGroup]', 'Bitte wählen Sie eine neue Stammgruppe aus');
-                $error = true;
-            }
-        }
-
-        return $error ? $form : false;
+        return $error;
     }
 
     /**
@@ -995,5 +1045,21 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblStudentEducation $tblStudentEducation
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateStudentEducation(TblStudentEducation $tblStudentEducation, $Data): bool
+    {
+        $tblStudentEducation->setServiceTblSchoolType(Type::useService()->getTypeById($Data['SchoolType']) ?: null);
+        $tblStudentEducation->setServiceTblCompany(Company::useService()->getCompanyById($Data['Company']) ?: null);
+        $tblStudentEducation->setLevel($Data['Level']);
+        $tblStudentEducation->setServiceTblCourse(Course::useService()->getCourseById($Data['Course']) ?: null);
+
+        return (new Data($this->getBinding()))->updateStudentEducation($tblStudentEducation);
     }
 }

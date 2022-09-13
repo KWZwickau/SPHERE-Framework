@@ -274,4 +274,36 @@ class TblStudentEducation extends Element
     {
         return $this->LeaveDate;
     }
+
+    /**
+     * nicht entfernen, wichtig für Sortierung
+     *
+     * @return string
+     */
+    public function getYearName(): string
+    {
+        if (($tblYear = $this->getServiceTblYear())) {
+            return $tblYear->getDisplayName();
+        }
+
+        return '';
+    }
+
+    /**
+     * @return bool
+     */
+    public function isInActive(): bool
+    {
+        return $this->isInActiveByDateTime(new DateTime('now'));
+    }
+
+    /**
+     * @param DateTime $dateTime
+     *
+     * @return bool
+     */
+    public function isInActiveByDateTime(DateTime $dateTime): bool
+    {
+        return $this->getLeaveDateTime() !== null && $dateTime > $this->getLeaveDateTime();
+    }
 }

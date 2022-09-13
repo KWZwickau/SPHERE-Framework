@@ -10,10 +10,12 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -30,6 +32,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
@@ -42,14 +45,21 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\Table;
+use SPHERE\Common\Frontend\Table\Structure\TableBody;
+use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Table\Structure\TableHead;
+use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 
@@ -93,6 +103,70 @@ class FrontendStudent extends FrontendMember
         }
 
         return $stage;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse|null $tblDivisionCourse
+     * @param TblStudentEducation|null $tblStudentEducation
+     * @param bool $setPost
+     *
+     * @return Form
+     */
+    public function formEditStudentEducation(TblPerson $tblPerson, ?TblDivisionCourse $tblDivisionCourse,
+        ?TblStudentEducation $tblStudentEducation, bool $setPost = false): Form
+    {
+        if ($tblDivisionCourse && ($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+            $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+        }
+        // beim Checken der Input-Felder darf der Post nicht gesetzt werden
+        if ($setPost && $tblStudentEducation) {
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['Company'] = ($tblCompany = $tblStudentEducation->getServiceTblCompany()) ? $tblCompany->getId() : 0;
+            $Global->POST['Data']['SchoolType'] = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getId() : 0;
+            $Global->POST['Data']['Level'] = $tblStudentEducation->getLevel();
+            $Global->POST['Data']['Course'] = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getId() : 0;
+
+            $Global->savePost();
+        }
+
+        $tblSchoolTypeAll = Type::useService()->getTypeAll();
+        $tblCourseAll = Course::useService()->getCourseAll();
+
+        return (new Form(
+            new FormGroup(array(
+                // todo massenänderung
+                new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('Data[SchoolType]', 'Schulart', array('{{ Name }} {{ Description }}' => $tblSchoolTypeAll), new Education()))->setRequired()
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('Data[Company]', 'Schule', array(
+                            '{{ Name }} {{ ExtendedName }} {{ Description }}' => DivisionCourse::useService()->getSchoolListForStudentEducation()
+                        )))->setRequired()
+                    )
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new NumberField('Data[Level]', '', 'Klassenstufe'))->setRequired()
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('Data[Course]', 'Bildungsgang', array('{{ Name }}' => $tblCourseAll)))
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new Primary('Speichern', ApiDivisionCourseStudent::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineEditStudentEducationSave(
+                                $tblPerson->getId(), $tblDivisionCourse ? $tblDivisionCourse->getId() : null, $tblStudentEducation ? $tblStudentEducation->getId() : null))
+                    ),
+                )),
+            ))
+        ))->disableSubmitAction();
     }
 
     /**
@@ -562,5 +636,158 @@ class FrontendStudent extends FrontendMember
         }
 
         return $result;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadDivisionCourseStudentContent($DivisionCourseId): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+            DivisionCourse::useService()->getSubDivisionCourseRecursiveListByDivisionCourse($tblDivisionCourse, $tblDivisionCourseList);
+            $hasSubDivisionCourse = count($tblDivisionCourseList) > 1;
+
+            $studentList = array();
+            foreach ($tblDivisionCourseList as $tblDivisionCourseItem) {
+                if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourseItem,
+                    TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
+                ) {
+                    $count = 0;
+                    foreach ($tblStudentMemberList as $tblStudentMember) {
+                        if (($tblPerson = $tblStudentMember->getServiceTblPerson())) {
+                            $isInActive = $tblStudentMember->isInActive();
+                            $fullName = $tblPerson->getLastFirstName();
+
+//                            $address = ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt');
+
+                            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                                $company = ($tblCompany = $tblStudentEducation->getServiceTblCompany())
+                                    ? $tblCompany->getDisplayName() : new WarningText('Keine Schule hinterlegt');
+                                $level = $tblStudentEducation->getLevel() ?: new WarningText('Keine Klassenstufe hinterlegt');
+                                $schoolType = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                                    ? $tblSchoolType->getName() : new WarningText('Keine Schulart hinterlegt');
+
+                                $warningCourse = '';
+                                if ($tblSchoolType && $tblSchoolType->getShortName() == 'OS' && intval($level) > 6
+                                ) {
+                                    $warningCourse = new WarningText('Keine Bildungsgang hinterlegt');
+                                }
+                                $course = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : $warningCourse;
+                            } else {
+                                $company = new WarningText('Keine Schule hinterlegt');
+                                $level = new WarningText('Keine Klassenstufe hinterlegt');
+                                $schoolType = new WarningText('Keine Schulart hinterlegt');
+                                $course = '';
+                            }
+
+                            $birthday = '';
+                            $gender = '';
+                            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                                if ($tblCommon->getTblCommonBirthDates()) {
+                                    $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+                                    if ($tblGender = $tblCommon->getTblCommonBirthDates()->getTblCommonGender()) {
+                                        $gender = $tblGender->getShortName();
+                                    }
+                                }
+                            }
+
+                            $item['Number'] = $isInActive ? '' : ++$count;
+                            $item['FullName'] = $isInActive ? new ToolTip(new Strikethrough($fullName), 'Deaktivierung: ' . $tblStudentMember->getLeaveDate()) : $fullName;
+                            if ($hasSubDivisionCourse) {
+                                $item['DivisionCourse'] = $tblDivisionCourseItem->getName();
+                            }
+                            $item['Gender'] = $isInActive ? new Strikethrough($gender) : $gender;
+                            $item['Birthday'] = $isInActive ? new Strikethrough($birthday) : $birthday;
+//                            $item['Address'] = $isInActive ? new Strikethrough($address) : $address;
+                            $item['SchoolType'] = $isInActive ? new Strikethrough($schoolType) : $schoolType;
+                            $item['Company'] = $isInActive ? new Strikethrough($company) : $company;
+                            $item['Level'] = $isInActive ? new Strikethrough($level) : $level;
+                            $item['Course'] = $isInActive ? new Strikethrough($course) : $course;
+                            $item['Option'] = $isInActive ? ''
+                                : (new Link('Bearbeiten', ApiDivisionCourseStudent::getEndpoint(), new Pen()))
+                                    ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenEditStudentEducationModal($tblPerson->getId(), $DivisionCourseId, null));
+
+                            $studentList[] = $item;
+                        }
+                    }
+                }
+            }
+
+            $backgroundColor = '#E0F0FF';
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('#', $backgroundColor);
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Schüler', $backgroundColor);
+            if ($hasSubDivisionCourse) {
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Kurs', $backgroundColor);
+            }
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Ge&shy;schlecht', $backgroundColor);
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Geburts&shy;datum', $backgroundColor);
+//            $headerStudentColumnList[] = $this->getTableHeaderColumn('Adresse', $backgroundColor);
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Schul&shy;art', $backgroundColor);
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Schule', $backgroundColor);
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Klassen&shy;stufe', $backgroundColor);
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('Bildungs&shy;gang', $backgroundColor);
+            $headerStudentColumnList[] = $this->getTableHeaderColumn('&nbsp; ', $backgroundColor, '95px');
+
+            return empty($studentList)
+                ? new Warning('Keine Schüler dem Kurs zugewiesen')
+                : $this->getTableCustom($headerStudentColumnList, $studentList);
+        }
+
+        return '';
+    }
+
+    /**
+     * @param string $name
+     * @param string $backgroundColor
+     * @param string $width
+     * @param int $size
+     *
+     * @return TableColumn
+     */
+    public function getTableHeaderColumn(string $name, string $backgroundColor, string $width = 'auto', int $size = 1): TableColumn
+    {
+        return (new TableColumn($name, $size, $width))
+            ->setBackgroundColor($backgroundColor)
+            ->setPadding('5px')
+            ->setVerticalAlign('middle');
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return TableColumn
+     */
+    public function getTableBodyColumn(string $content): TableColumn
+    {
+        return (new TableColumn($content))
+            ->setPadding('5px')
+            ->setVerticalAlign('middle');
+    }
+
+    /**
+     * @param array $headerColumnList
+     * @param array $bodyColumnList
+     *
+     * @return Table
+     */
+    public function getTableCustom(array $headerColumnList, array $bodyColumnList): Table
+    {
+        $tableHead = new TableHead(new TableRow($headerColumnList));
+        $rows = array();
+        foreach ($bodyColumnList as $columnList) {
+            $columns = array();
+            foreach ($columnList as $item) {
+                $columns[] = $this->getTableBodyColumn($item);
+            }
+            $rows[] = new TableRow($columns);
+        }
+        $tableBody = new TableBody($rows);
+
+        return new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
     }
 }
