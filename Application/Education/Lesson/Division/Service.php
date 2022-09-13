@@ -3271,6 +3271,30 @@ class Service extends AbstractService
     }
 
     /**
+     * Hat der Lehrer einen Lehrauftrag in der Klasse
+     *
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     *
+     * @return bool
+     */
+    public function existsSubjectTeacherInDivision(TblPerson $tblPerson, TblDivision $tblDivision): bool
+    {
+        if (($tblSubjectTeacherList = $this->getSubjectTeacherAllByPerson($tblPerson))) {
+            foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
+                if (($tblDivisionSubject = $tblSubjectTeacher->getTblDivisionSubject())
+                    && ($tblDivisionItem = $tblDivisionSubject->getTblDivision())
+                    && $tblDivisionItem->getId() == $tblDivision->getId()
+                ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblDivision $tblDivision
      *
      * @return bool
