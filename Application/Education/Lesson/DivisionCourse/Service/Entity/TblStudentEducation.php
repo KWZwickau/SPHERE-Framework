@@ -276,14 +276,14 @@ class TblStudentEducation extends Element
     }
 
     /**
-     * nicht entfernen, wichtig für Sortierung
+     * nicht entfernen, nur für Sortierung verwenden
      *
      * @return string
      */
-    public function getYearName(): string
+    public function getYearNameForSorter(): string
     {
         if (($tblYear = $this->getServiceTblYear())) {
-            return $tblYear->getDisplayName();
+            return $tblYear->getDisplayName() . ' ' .  ($this->getLeaveDateTime() ? $this->getLeaveDateTime()->format('Y.m.d') : 'zzz');
         }
 
         return '';

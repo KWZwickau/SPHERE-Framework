@@ -13,12 +13,15 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\TemplateReadOnly;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\History;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\System\Extension\Extension;
@@ -42,25 +45,30 @@ class FrontendStudentProcess extends FrontendReadOnly
     public static function getStudentProcessContent($PersonId = null, $AllowEdit = 1): string
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            // todo verlauf mit Edit + neu für neues Schuljahr auswahl begrenzen auf neue Schuljahre + noch kein Eintrag TblStudentEducation
-            // tabelle wie bei Kursen
+            // Verlauf mit Edit + neu für neues Schuljahr auswahl begrenzen auf neue Schuljahre + noch kein Eintrag TblStudentEducation
             $studentEducationList = array();
             if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
-                $tblStudentEducationList = (new Extension())->getSorter($tblStudentEducationList)
-                    ->sortObjectBy('YearName', null, Sorter::ORDER_DESC);
+                $levelList = array();
+                // Sortierung aufsteigend, notwendig wegen Schuljahrwiederholung
+                $tblStudentEducationList = (new Extension())->getSorter($tblStudentEducationList)->sortObjectBy('YearNameForSorter', null, Sorter::ORDER_ASC);
                 foreach ($tblStudentEducationList as $tblStudentEducation) {
-                    // todo gleiches Level Schuljahr wiederholung
                     $isInActive = $tblStudentEducation->isInActive();
                     $year = ($tblYear = $tblStudentEducation->getServiceTblYear()) ? $tblYear->getDisplayName() : new WarningText('Kein Schuljahr hinterlegt');
                     $company = ($tblCompany = $tblStudentEducation->getServiceTblCompany())
                         ? $tblCompany->getDisplayName() : new WarningText('Keine Schule hinterlegt');
-                    $level = $tblStudentEducation->getLevel() ?: new WarningText('Keine Klassenstufe hinterlegt');
+                    if (($levelValue = intval($tblStudentEducation->getLevel()))) {
+                        $level = $levelValue;
+                        if (!$isInActive && isset($levelList[$levelValue])) {
+                            $level .= ' ' . new ToolTip(new Info(), 'Schuljahrwiederholung');
+                        }
+                    } else {
+                        $level = new WarningText('Keine Klassenstufe hinterlegt');
+                    }
                     $schoolType = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                         ? $tblSchoolType->getName() : new WarningText('Keine Schulart hinterlegt');
 
                     $warningCourse = '';
-                    if ($tblSchoolType && $tblSchoolType->getShortName() == 'OS' && intval($level) > 6
-                    ) {
+                    if ($tblSchoolType && $tblSchoolType->getShortName() == 'OS' && $levelValue > 6) {
                         $warningCourse = new WarningText('Keine Bildungsgang hinterlegt');
                     }
                     $course = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : $warningCourse;
@@ -79,7 +87,14 @@ class FrontendStudentProcess extends FrontendReadOnly
                             ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenEditStudentEducationModal($tblPerson->getId(), null, $tblStudentEducation->getId()));
                     }
                     $studentEducationList[] = $item;
+
+                    if (!$isInActive && $levelValue && !isset($levelList[$levelValue])) {
+                        $levelList[$levelValue] = $levelValue;
+                    }
                 }
+
+                // notwendig wegen Schuljahrwiederholung
+                $studentEducationList = array_reverse($studentEducationList);
             }
 
             $divisionCourseFrontend = DivisionCourse::useFrontend();
@@ -97,9 +112,8 @@ class FrontendStudentProcess extends FrontendReadOnly
 
             $newLink = '';
             if($AllowEdit == 1){
-                // todo neu nur bei verfügbaren zukünftigen Schuljahren
-//                $newLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-//                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentProcessContent($PersonId));
+                $newLink = (new Link(new Plus() . ' Hinzufügen', ApiDivisionCourseStudent::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenCreateStudentEducationModal($PersonId));
             }
 
             $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);

@@ -1062,4 +1062,46 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->updateStudentEducation($tblStudentEducation);
     }
+
+    /**
+     * @param $Data
+     * @param TblPerson $tblPerson
+     *
+     * @return false|Form
+     */
+    public function checkFormCreateStudentEducation($Data, TblPerson $tblPerson)
+    {
+        $form = DivisionCourse::useFrontend()->formCreateStudentEducation($tblPerson);
+
+        $error = $this->checkStudentEducationData($Data, $form);
+        if (!isset($Data['Year']) || !(Company::useService()->getCompanyById($Data['Year']))) {
+            $form->setError('Data[Year]', 'Bitte wählen Sie ein Schuljahr aus');
+            $error = true;
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param $Data
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblStudentEducation
+     */
+    public function createStudentEducation($Data, TblPerson $tblPerson)
+    {
+        $tblStudentEducation = new TblStudentEducation();
+        $tblStudentEducation->setServiceTblPerson($tblPerson);
+        if (($tblYear = Term::useService()->getYearById($Data['Year']))) {
+            $tblStudentEducation->setServiceTblYear($tblYear);
+            $tblStudentEducation->setServiceTblSchoolType(Type::useService()->getTypeById($Data['SchoolType']) ?: null);
+            $tblStudentEducation->setServiceTblCompany(Company::useService()->getCompanyById($Data['Company']) ?: null);
+            $tblStudentEducation->setLevel($Data['Level']);
+            $tblStudentEducation->setServiceTblCourse(Course::useService()->getCourseById($Data['Course']) ?: null);
+
+            return (new Data($this->getBinding()))->createStudentEducation($tblStudentEducation);
+        }
+
+        return false;
+    }
 }

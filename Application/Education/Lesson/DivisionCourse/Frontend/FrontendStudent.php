@@ -170,6 +170,84 @@ class FrontendStudent extends FrontendMember
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return Form
+     */
+    public function formCreateStudentEducation(TblPerson $tblPerson): Form
+    {
+        // es sollen nur Schuljahre zur Auswahl stehen, wo noch keine SchülerBildung angelegt wurde
+        $yearSelectList = array();
+        $hasNowStudentEducation = false;
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            foreach ($tblYearList as $tblYear) {
+                if (DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear)) {
+                    $hasNowStudentEducation = true;
+                    break;
+                }
+            }
+
+            if (!$hasNowStudentEducation) {
+                $yearSelectList = array_merge($yearSelectList, $tblYearList);
+            }
+        }
+        $hasFutureStudentEducation = false;
+        if (($tblFutureYearList = Term::useService()->getYearAllFutureYears(1))) {
+            foreach ($tblFutureYearList as $tblFutureYear) {
+                if (DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblFutureYear)) {
+                    $hasFutureStudentEducation = true;
+                    break;
+                }
+            }
+
+            if (!$hasFutureStudentEducation) {
+                $yearSelectList = array_merge($yearSelectList, $tblFutureYearList);
+            }
+        }
+
+        $tblSchoolTypeAll = Type::useService()->getTypeAll();
+        $tblCourseAll = Course::useService()->getCourseAll();
+
+        return (new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('Data[Year]', 'Schuljahr', array('{{ Name }} {{ Description }}' => $yearSelectList)))->setRequired()
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('Data[SchoolType]', 'Schulart', array('{{ Name }} {{ Description }}' => $tblSchoolTypeAll), new Education()))->setRequired()
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('Data[Company]', 'Schule', array(
+                            '{{ Name }} {{ ExtendedName }} {{ Description }}' => DivisionCourse::useService()->getSchoolListForStudentEducation()
+                        )))->setRequired()
+                    )
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new NumberField('Data[Level]', '', 'Klassenstufe'))->setRequired()
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('Data[Course]', 'Bildungsgang', array('{{ Name }}' => $tblCourseAll)))
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new Primary('Speichern', ApiDivisionCourseStudent::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineCreateStudentEducationSave($tblPerson->getId()))
+                    ),
+                )),
+            ))
+        ))->disableSubmitAction();
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear

@@ -8,6 +8,7 @@ use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -19,6 +20,7 @@ use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -29,6 +31,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\System\Extension\Extension;
 
 class ApiDivisionCourseStudent extends Extension implements IApiInterface
@@ -59,6 +62,9 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('openEditStudentEducationModal');
         $Dispatcher->registerMethod('saveEditStudentEducationModal');
+
+        $Dispatcher->registerMethod('openCreateStudentEducationModal');
+        $Dispatcher->registerMethod('saveCreateStudentEducationModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -641,6 +647,136 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
         if ($tblStudentEducation && DivisionCourse::useService()->updateStudentEducation($tblStudentEducation, $Data)) {
             return new Success('Die Schüler-Bildung wurde erfolgreich gespeichert.')
                 . ($DivisionCourseId ? self::pipelineLoadDivisionCourseStudentContent($DivisionCourseId) : ApiPersonReadOnly::pipelineLoadStudentProcessContent($PersonId))
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Schüler-Bildung konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $form
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private function getCreateStudentEducationModal($form, TblPerson $tblPerson): string
+    {
+        $content = '';
+        $hasNowStudentEducation = false;
+
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            foreach ($tblYearList as $tblYear) {
+                if (DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear)) {
+                    $hasNowStudentEducation = true;
+                    break;
+                }
+            }
+        }
+
+        if (($tblFutureYearList = Term::useService()->getYearAllFutureYears(1))) {
+            foreach ($tblFutureYearList as $tblFutureYear) {
+                if (DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblFutureYear)) {
+                    if ($hasNowStudentEducation) {
+                        $content = new Warning('Es existiert bereits eine Schüler-Bildung für diesen Schüler für das zukünftige Schuljahr, 
+                            bitte bearbeiten Sie diesen Eintrag.', new Exclamation());
+                    }
+                    break;
+                }
+            }
+        } elseif ($hasNowStudentEducation) {
+            $content = new Warning('Bitte legen Sie erst ein neues Schuljahr an, um für den Schüler eine neue Schüler-Bildung anzulegen.', new Exclamation());
+        }
+
+        return new Title(new Plus() . ' Schüler-Bildung hinzufügen')
+            . new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Schüler', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO)
+                    ),
+                )),
+                new LayoutRow(
+                    new LayoutColumn(
+                        $content ?: new Well($form)
+                    )
+                )
+            )));
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenCreateStudentEducationModal($PersonId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openCreateStudentEducationModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return string
+     */
+    public function openCreateStudentEducationModal($PersonId)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Schüler wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getCreateStudentEducationModal(DivisionCourse::useFrontend()->formCreateStudentEducation($tblPerson), $tblPerson);
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCreateStudentEducationSave($PersonId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreateStudentEducationModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     * @param $Data
+     *
+     * @return Danger|string
+     */
+    public function saveCreateStudentEducationModal($PersonId, $Data)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Schüler wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = DivisionCourse::useService()->checkFormCreateStudentEducation($Data, $tblPerson))) {
+            // display Errors on form
+            return $this->getCreateStudentEducationModal($form, $tblPerson);
+        }
+
+        if (DivisionCourse::useService()->createStudentEducation($Data, $tblPerson)) {
+            return new Success('Die Schüler-Bildung wurde erfolgreich gespeichert.')
+                . ApiPersonReadOnly::pipelineLoadStudentProcessContent($PersonId)
                 . self::pipelineClose();
         } else {
             return new Danger('Die Schüler-Bildung konnte nicht gespeichert werden.') . self::pipelineClose();
