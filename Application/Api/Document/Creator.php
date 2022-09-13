@@ -1067,6 +1067,11 @@ class Creator extends Extension
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=ESDi_Leistungsbeschreibung.pdf");
             header("Content-Length: ".filesize($file));
+        } elseif($Select == 'SSW_UCS_DLLP') {
+            $file = "Common/Style/Resource/Document/Manual/SSW_UCS_DLLP.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Kurzleidfaden_UCS_DLLP_05.09.2022.pdf");
+            header("Content-Length: ".filesize($file));
         }
 
         readfile($file);

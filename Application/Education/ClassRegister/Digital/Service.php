@@ -1451,30 +1451,31 @@ class Service extends AbstractService
                             if (($tblDivisionMain = Student::useService()->getCurrentMainDivisionByPerson($tblPersonStudent))
                                 && isset($divisionList[$tblDivisionMain->getId()])
                             ) {
+                                // Kursheft sollen nicht extra für die Stammgruppen angezeigt werden SSWHD-1870
                                 // Kurshefte
                                 if (Division::useService()->getIsDivisionCourseSystem($tblDivisionMain)) {
-                                    foreach ($divisionSubjectList as $tblDivisionSubjectTemp) {
-                                        if (($tblDivisionTemp = $tblDivisionSubjectTemp->getTblDivision())
-                                            && $tblDivisionMain->getId() == $tblDivisionTemp->getId()
-                                            && ($tblSubjectGroupTemp = $tblDivisionSubjectTemp->getTblSubjectGroup())
-                                        ) {
-                                            $resultList[] = array(
-                                                'Type' => $tblDivisionTemp->getTypeName(),
-                                                'Name' => $tblGroup->getName() . ' - ' . $tblSubjectGroupTemp->getName(),
-                                                'Option' => new Standard(
-                                                    '',
-                                                    $baseRoute . '/CourseContent',
-                                                    new Extern(),
-                                                    array(
-                                                        'DivisionSubjectId' => $tblDivisionSubjectTemp->getId(),
-                                                        'GroupId' => $tblGroup->getId(),
-                                                        'BasicRoute' => $baseRoute . '/Teacher'
-                                                    ),
-                                                    'Zum Kursheft wechseln'
-                                                )
-                                            );
-                                        }
-                                    }
+//                                    foreach ($divisionSubjectList as $tblDivisionSubjectTemp) {
+//                                        if (($tblDivisionTemp = $tblDivisionSubjectTemp->getTblDivision())
+//                                            && $tblDivisionMain->getId() == $tblDivisionTemp->getId()
+//                                            && ($tblSubjectGroupTemp = $tblDivisionSubjectTemp->getTblSubjectGroup())
+//                                        ) {
+//                                            $resultList[] = array(
+//                                                'Type' => $tblDivisionTemp->getTypeName(),
+//                                                'Name' => $tblGroup->getName() . ' - ' . $tblSubjectGroupTemp->getName(),
+//                                                'Option' => new Standard(
+//                                                    '',
+//                                                    $baseRoute . '/CourseContent',
+//                                                    new Extern(),
+//                                                    array(
+//                                                        'DivisionSubjectId' => $tblDivisionSubjectTemp->getId(),
+//                                                        'GroupId' => $tblGroup->getId(),
+//                                                        'BasicRoute' => $baseRoute . '/Teacher'
+//                                                    ),
+//                                                    'Zum Kursheft wechseln'
+//                                                )
+//                                            );
+//                                        }
+//                                    }
                                     // Klassentagebuch
                                 } else {
                                     $resultList[] = array(

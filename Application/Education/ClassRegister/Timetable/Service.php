@@ -483,6 +483,21 @@ class Service extends AbstractService
                                 }
                             }
                         }
+                    } else {
+                        // Fach wird nicht in der Klasse unterrichtet SSW-1895
+                        if (!Division::useService()->getIsDivisionCourseSystem($tblDivision)
+                            && Division::useService()->existsSubjectTeacherInDivision($tblPerson, $tblDivision)
+                        ) {
+                            $option = new Standard(
+                                '',
+                                $baseRoute . '/LessonContent',
+                                new Extern(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                ),
+                                'Zum Klassenbuch wechseln'
+                            );
+                        }
                     }
 
                     $dataList[] = array(
