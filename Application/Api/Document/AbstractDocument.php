@@ -14,6 +14,8 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -351,6 +353,19 @@ abstract class AbstractDocument
             }
         }
 
+        if(($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier(TblStudentSubjectType::TYPE_RELIGION))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblSubjectType))){
+            $tblStudentSubject = current($tblStudentSubjectList);
+            /** @var TblStudentSubject $tblStudentSubject */
+            if(($tblSubject =  $tblStudentSubject->getServiceTblSubject())){
+                if($tblSubject->getAcronym() == 'ETH'){
+                    $Data['Student']['Subject']['IsReligion'] = 'nein';
+                } else {
+                    $Data['Student']['Subject']['IsReligion'] = 'ja';
+                }
+            }
+        }
+
         return $Data;
     }
 
@@ -416,11 +431,21 @@ abstract class AbstractDocument
                         && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
                         && $tblToPerson->getServiceTblPersonTo()->getId() == $this->getTblPerson()->getId()
                     ) {
+
+                        $Ranking = $tblToPerson->getRanking();
+                        $Data['Person']['Parent']['S'.$Ranking]['Gender'] = $tblFromPerson->getGenderNameFromGenderOrSalutation();
+                        $Data['Person']['Parent']['S'.$Ranking]['Salutation'] = $tblFromPerson->getSalutation();
+                        $Data['Person']['Parent']['S'.$Ranking]['Name']['First'] = $tblFromPerson->getFirstName();
+                        $Data['Person']['Parent']['S'.$Ranking]['Name']['Last'] = $tblFromPerson->getLastName();
+                        $tblAddress = Address::useService()->getAddressByPerson($tblFromPerson);
+                        if ($tblAddress) {
+                            $Data['Person']['Parent']['S'.$Ranking]['AddressTwoRowString'] = $tblAddress->getGuiTwoRowString();
+                        }
+
                         if (!isset($Data['Person']['Parent']['Mother']['Name'])) {
                             $Data['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                             $Data['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
                             $Data['Person']['Parent']['Mother']['Name']['LastFirst'] = $tblFromPerson->getLastFirstName();
-                            $tblAddress = Address::useService()->getAddressByPerson($tblFromPerson);
                             if ($tblAddress) {
                                 $Data['Person']['Parent']['Mother']['Address'] = $tblAddress->getGuiString();
                             }
@@ -428,7 +453,6 @@ abstract class AbstractDocument
                             $Data['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                             $Data['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
                             $Data['Person']['Parent']['Father']['Name']['LastFirst'] = $tblFromPerson->getLastFirstName();
-                            $tblAddress = Address::useService()->getAddressByPerson($tblFromPerson);
                             if ($tblAddress) {
                                 $Data['Person']['Parent']['Father']['Address'] = $tblAddress->getGuiString();
                             }
