@@ -272,13 +272,12 @@ class StudentCardNew extends AbstractStudentCard
                             , '20%')
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                            {% if(Content.Person.Parent.S1.Salutation == "Frau") %}
-                                            {% if(Content.Person.Parent.S1.Gender == "Weiblich") %}
+                                            {% if(Content.Person.Parent.S1.Salutation == "Frau") or
+                                                 (Content.Person.Parent.S1.Gender == "Weiblich") %}
                                                  Mutter
                                                 
                                             {% else %}
-                                              Empty
-                                            {% endif %}
+                                              Mutter / Vater / Sonstiger Personenberechtigter²
                                             {% endif %}')
                                 ->stylePaddingLeft('110px')
                                 ->stylePaddingTop('3px')
@@ -289,13 +288,12 @@ class StudentCardNew extends AbstractStudentCard
                             ->addElementColumn((new Element())
                                 ->setContent(
                                     '
-                                            {% if(Content.Person.Parent.S2.Salutation == "Herr") %}
-                                            {% if(Content.Person.Parent.S2.Gender == "Männlich") %}
+                                            {% if(Content.Person.Parent.S2.Salutation == "Herr") or
+                                                 (Content.Person.Parent.S2.Gender == "Männlich") %}
                                                  Vater
                                                 
                                             {% else %}
-                                              Empty
-                                            {% endif %}
+                                              Mutter / Vater / Sonstiger Personenberechtigter²
                                             {% endif %}')
                                 ->stylePaddingLeft('110px')
                                 ->stylePaddingTop('3px')
@@ -351,11 +349,15 @@ class StudentCardNew extends AbstractStudentCard
                                 , '20%')
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                            {% if(Content.Person.Parent.S1.AddressTwoRowString) %}
-                                            {{ Content.Person.Parent.S1.AddressTwoRowString }}
-                                            {% else %}
+                                            {% if(Content.Person.Parent.S1.Address.Street) %}
+                                            {{ Content.Person.Parent.S1.Address.Street }}
+                                            {{ Content.Person.Parent.S1.Address.StreetNumber }}
+                                            <br>
+                                            {{ Content.Person.Parent.S1.Address.CityCode }}
+                                            {{ Content.Person.Parent.S1.Address.City }}
+                                        {% else %}
                                               &nbsp;
-                                            {% endif %}')
+                                        {% endif %}')
                                 ->stylePaddingLeft('5px')
                                 ->stylePaddingTop('10px')
                                 ->styleBorderRight($InnerLines)
@@ -363,8 +365,12 @@ class StudentCardNew extends AbstractStudentCard
                                 , '40%')
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                            {% if(Content.Person.Parent.S2.AddressTwoRowString) %}
-                                            {{ Content.Person.Parent.S2.AddressTwoRowString }}
+                                            {% if(Content.Person.Parent.S2.Address.Street) %}
+                                            {{ Content.Person.Parent.S2.Address.Street }}
+                                            {{ Content.Person.Parent.S2.Address.StreetNumber }}
+                                            <br>
+                                            {{ Content.Person.Parent.S2.Address.CityCode }}
+                                            {{ Content.Person.Parent.S2.Address.City }}
                                             {% else %}
                                               &nbsp;
                                             {% endif %}')

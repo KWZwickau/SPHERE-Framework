@@ -437,9 +437,9 @@ abstract class AbstractDocument
                         $Data['Person']['Parent']['S'.$Ranking]['Salutation'] = $tblFromPerson->getSalutation();
                         $Data['Person']['Parent']['S'.$Ranking]['Name']['First'] = $tblFromPerson->getFirstName();
                         $Data['Person']['Parent']['S'.$Ranking]['Name']['Last'] = $tblFromPerson->getLastName();
-                        $tblAddress = Address::useService()->getAddressByPerson($tblFromPerson);
+                        $tblAddress = $this->getTblPerson()->fetchMainAddress();
                         if ($tblAddress) {
-                            $Data['Person']['Parent']['S'.$Ranking]['AddressTwoRowString'] = $tblAddress->getGuiTwoRowString();
+                            $Data['Person']['Parent']['S'.$Ranking]['AddressTwoRowString'] = $tblAddress->getGuiString();
                         }
 
                         if (!isset($Data['Person']['Parent']['Mother']['Name'])) {
@@ -447,14 +447,20 @@ abstract class AbstractDocument
                             $Data['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
                             $Data['Person']['Parent']['Mother']['Name']['LastFirst'] = $tblFromPerson->getLastFirstName();
                             if ($tblAddress) {
-                                $Data['Person']['Parent']['Mother']['Address'] = $tblAddress->getGuiString();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['CityCode'] = $tblAddress->getTblCity()->getCode();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['City'] = $tblAddress->getTblCity()->getDisplayName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['Street'] = $tblAddress->getStreetName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['StreetNumber'] = $tblAddress->getStreetNumber();
                             }
                         } elseif (!isset($Data['Person']['Parent']['Father']['Name'])) {
                             $Data['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                             $Data['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
                             $Data['Person']['Parent']['Father']['Name']['LastFirst'] = $tblFromPerson->getLastFirstName();
                             if ($tblAddress) {
-                                $Data['Person']['Parent']['Father']['Address'] = $tblAddress->getGuiString();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['CityCode'] = $tblAddress->getTblCity()->getCode();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['City'] = $tblAddress->getTblCity()->getDisplayName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['Street'] = $tblAddress->getStreetName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['StreetNumber'] = $tblAddress->getStreetNumber();
                             }
                         }
                     }
