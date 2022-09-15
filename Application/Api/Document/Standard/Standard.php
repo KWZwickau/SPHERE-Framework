@@ -25,7 +25,13 @@ class Standard extends Extension implements IModuleInterface
             __NAMESPACE__ . '/StudentCard/Create', __CLASS__ . '::createStudentCardPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/StudentCardNew/Create', __CLASS__ . '::createStudentCardNewPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/StudentCard/CreateMulti', __CLASS__ . '::createStudentCardMultiPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/StudentCardNew/CreateMulti', __CLASS__ . '::createStudentCardMultiNewPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/KamenzReport/Create', 'SPHERE\Application\Api\Document\Creator::createKamenzPdf'
@@ -106,6 +112,17 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
+     * @param null $PersonId
+     * @param bool $Redirect
+     *
+     * @return Stage|string
+     */
+    public static function createStudentCardNewPdf($PersonId = null, $Redirect = true)
+    {
+        return Creator::createStudentCardNewPdf($PersonId, $Redirect);
+    }
+
+    /**
      * @param null|int $DivisionId
      * @param null|int $List
      * @param bool $Redirect
@@ -115,6 +132,18 @@ class Standard extends Extension implements IModuleInterface
     public static function createStudentCardMultiPdf($DivisionId = null, $List = null, $Redirect = true)
     {
         return Creator::createMultiStudentCardPdf($DivisionId, $List, $Redirect);
+    }
+
+    /**
+     * @param null|int $DivisionId
+     * @param null|int $List
+     * @param bool $Redirect
+     *
+     * @return Stage|string
+     */
+    public static function createStudentCardMultiNewPdf($DivisionId = null, $List = null, $Redirect = true)
+    {
+        return Creator::createMultiStudentCardNewPdf($DivisionId, $List, $Redirect);
     }
 
     /**
