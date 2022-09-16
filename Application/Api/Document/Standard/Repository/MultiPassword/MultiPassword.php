@@ -10,6 +10,7 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -135,7 +136,15 @@ class MultiPassword extends AbstractDocument
                     }
                 }
                 // set flag IsExport
-                Account::useService()->updateDownloadBulk($tblUserAccountList);
+                $isExportFlag = true;
+                // IsExport only by non System Accounts (Support) soll keine einträge
+                $tblAccount = AccountGatekeeper::useService()->getAccountBySession();
+                if($tblAccount->getServiceTblIdentification() && $tblAccount->getServiceTblIdentification()->getName() == 'System'){
+                    $isExportFlag = false;
+                }
+                if($isExportFlag){
+                    Account::useService()->updateDownloadBulk($tblUserAccountList);
+                }
             }
         }
 
