@@ -30,6 +30,8 @@ class TblStudentEducation extends Element
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_SERVICE_TBL_COMPANY = 'serviceTblCompany';
+    const ATTR_SERVICE_TBL_SCHOOL_TYPE = 'serviceTblSchoolType';
+    const ATTR_LEVEL = 'Level';
     const ATTR_LEAVE_DATE = 'LeaveDate';
     const ATTR_TBL_DIVISION = 'tblDivision';
     const ATTR_TBL_CORE_GROUP = 'tblCoreGroup';

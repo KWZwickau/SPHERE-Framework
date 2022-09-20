@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudent
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Setup;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -790,6 +791,21 @@ class Service extends AbstractService
     public function getStudentEducationListByPerson(TblPerson $tblPerson)
     {
         return (new Data($this->getBinding()))->getStudentEducationListByPerson($tblPerson);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblType|null $tblSchoolType
+     * @param null $level
+     * @param TblDivisionCourse|null $tblDivision
+     * @param TblDivisionCourse|null $tblCoreGroup
+     *
+     * @return false|TblStudentEducation[]
+     */
+    public function getStudentEducationListBy(TblYear $tblYear, TblType $tblSchoolType = null, $level = null, TblDivisionCourse $tblDivision = null,
+        TblDivisionCourse $tblCoreGroup = null)
+    {
+        return (new Data($this->getBinding()))->getStudentEducationListBy($tblYear, $tblSchoolType, $level, $tblDivision, $tblCoreGroup);
     }
 
     /**

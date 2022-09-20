@@ -4,7 +4,10 @@ namespace SPHERE\Application\Api\MassReplace;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -14,9 +17,7 @@ use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
-use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Error;
@@ -44,7 +45,6 @@ class ApiMassReplace extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('openModal');
-//        $Dispatcher->registerMethod('showFilter');
         $Dispatcher->registerMethod('saveModal');
         $Dispatcher->registerMethod('closeModal');
 
@@ -102,7 +102,8 @@ class ApiMassReplace extends Extension implements IApiInterface
             self::API_TARGET => 'openModal'
         ));
         $Emitter->setPostPayload(array(
-            'modalField' => base64_encode(serialize($Field))
+            'modalField' => base64_encode(serialize($Field)),
+            'Node' => $Node
         ));
         $Emitter->setLoadingMessage('Lädt');
         $Pipeline->appendEmitter($Emitter);
@@ -140,21 +141,38 @@ class ApiMassReplace extends Extension implements IApiInterface
     }
 
     /**
-     * @param AbstractField $modalField
-     * @param null          $useFilter
-     * @param null          $Year
-     * @param null          $Division
+     * @param $modalField
+     * @param $Node
+     * @param $Id
+     * @param string $useFilter
+     * @param $Data
      *
-     * @return Layout|string
+     * @return string
      */
-    public function openModal($modalField, $useFilter = null, $Year = null, $Division = null, $Node = null)
+    public function openModal($modalField, $Node, $Id, string $useFilter = StudentFilter::STUDENT_FILTER, $Data = null): string
     {
-
-        if ($useFilter == null) {
-            return new Warning('Filter einstellen!');
-        }
         if ($useFilter == StudentFilter::STUDENT_FILTER) {
-            return (new StudentFilter())->getFrontendStudentFilter($modalField, $Year, $Division, $Node);
+            if ($Id && $Data === null) {
+                $tblStudentEducation = false;
+                if (($tblYearList = Term::useService()->getYearByNow())
+                    && ($tblPerson = Person::useService()->getPersonById($Id))
+                ) {
+                    foreach ($tblYearList as $tblYear) {
+                        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                            break;
+                        }
+                    }
+                }
+
+                if ($tblStudentEducation) {
+                    $Data['Year'] = ($tblYear = $tblStudentEducation->getServiceTblYear()) ? $tblYear->getId() : 0;
+                    $Data['SchoolType'] = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getId() : 0;
+                    $Data['Level'] = ($tblStudentEducation->getLevel()) ?: '';
+                    // todo Stammgruppe / Klasse
+                }
+            }
+
+            return (new StudentFilter())->getFrontendStudentFilter($modalField, $Node, $Data);
         }
 
         // miss Filter match

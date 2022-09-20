@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Extension\Extension;
@@ -513,6 +514,36 @@ class Data extends MigrateData
         return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
             TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblType|null $tblSchoolType
+     * @param null $level
+     * @param TblDivisionCourse|null $tblDivision
+     * @param TblDivisionCourse|null $tblCoreGroup
+     *
+     * @return false|TblStudentEducation[]
+     */
+    public function getStudentEducationListBy(TblYear $tblYear, TblType $tblSchoolType = null, $level = null, TblDivisionCourse $tblDivision = null,
+        TblDivisionCourse $tblCoreGroup = null)
+    {
+        $parameters[TblStudentEducation::ATTR_SERVICE_TBL_YEAR] = $tblYear->getId();
+        $parameters[TblStudentEducation::ATTR_LEAVE_DATE] = null;
+        if ($tblSchoolType) {
+            $parameters[TblStudentEducation::ATTR_SERVICE_TBL_SCHOOL_TYPE] = $tblSchoolType->getId();
+        }
+        if ($level) {
+            $parameters[TblStudentEducation::ATTR_LEVEL] = $level;
+        }
+        if ($tblDivision) {
+            $parameters[TblStudentEducation::ATTR_TBL_DIVISION] = $tblDivision->getId();
+        }
+        if ($tblCoreGroup) {
+            $parameters[TblStudentEducation::ATTR_TBL_CORE_GROUP] = $tblCoreGroup->getId();
+        }
+
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', $parameters);
     }
 
     /**
