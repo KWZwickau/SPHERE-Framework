@@ -670,6 +670,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'Option' => ''
             );
         }
+        // name Downloadfile
+        $FileName = 'Fehlzeiten '.$tblPerson->getLastName().' '.$tblPerson->getFirstName().' '.(new DateTime())->format('d-m-Y');
 
         return new TableData(
             $tableData,
@@ -684,7 +686,13 @@ class Frontend extends Extension implements IFrontendInterface
                     array('type' => 'de_date', 'targets' => 1),
                     array('orderable' => false, 'width' => '60px', 'targets' => -1)
                 ),
-                'responsive' => false
+                'responsive' => false,
+//                'ExtensionColVisibility' => array('Enabled' => true),
+                'ExtensionDownloadExcel' => array(
+                    'Enabled' => true,
+                    'FileName' => $FileName,
+                    'Columns' => '0,1,2,3,4,5,6,7,8',
+                )
             )
         );
     }
