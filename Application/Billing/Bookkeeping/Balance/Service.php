@@ -34,6 +34,8 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
@@ -638,9 +640,20 @@ class Service extends AbstractService
             $export = Document::getDocument($fileLocation->getFileLocation());
             // Auswahl des Trennzeichen's
             $export->setDelimiter(';');
+
             $YearBegin = $tblBasket->getBillYear().'0101';
             $BookingFrom = $tblBasket->getBillYearMonth();
             $BookingTo = $tblBasket->getBillYearMonth(true);
+
+            if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
+                $BillDate = new \DateTime($tblBasket->getBillTime());
+                $Month = (int)$BillDate->format('m');
+                $Year = (int)$BillDate->format('Y');
+                if($Month < 8){
+                    $Year = $Year - 1;
+                }
+                $YearBegin = $Year.'0801';
+            }
 
             $ConsultNumber = '1';
             if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_CONSULT_NUMBER))){
