@@ -67,7 +67,8 @@ abstract class AccountDocument extends AbstractDocument
             )
             ->addElement((new Element())
                 ->setContent($this->tblAddress
-                    ? $this->tblAddress->getGuiTwoRowString(false, false)
+                    ? $this->tblAddress->getStreetName().' '.$this->tblAddress->getStreetNumber().'<br/>'.
+                    $this->tblAddress->getTblCity()->getCode().' '.$this->tblAddress->getTblCity()->getDisplayName()
                     : ''
                 )
             )
