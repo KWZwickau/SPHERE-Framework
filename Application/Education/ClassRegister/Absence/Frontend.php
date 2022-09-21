@@ -332,7 +332,9 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($tblPersonList) {
                 $formRows[] = new FormRow(new FormColumn(
-                    (new SelectBox('Data[PersonId]', 'Schüler', array('{{ LastFirstName }}' => $tblPersonList)))->setRequired()
+                    (new SelectBox('Data[PersonId]', 'Schüler', array('{{ LastFirstName }}' => $tblPersonList)))
+                        ->setRequired()
+                        ->ajaxPipelineOnChange(ApiAbsence::pipelineLoadType())
                 ));
             }
         } elseif ($hasSearch) {
