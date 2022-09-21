@@ -269,6 +269,8 @@ class StudentCardNew extends AbstractStudentCard
                                 ->setContent('&nbsp;')
                                 ->stylePaddingTop('3px')
                                 ->styleTextSize('7px')
+                                ->styleHeight('10px')
+                                ->styleBorderRight($InnerLines)
                             , '20%')
                             ->addElementColumn((new Element())
                                 ->setContent('
@@ -279,10 +281,11 @@ class StudentCardNew extends AbstractStudentCard
                                             {% else %}
                                               Mutter / Vater / Sonstiger Personenberechtigter²
                                             {% endif %}')
-                                ->stylePaddingLeft('110px')
                                 ->stylePaddingTop('3px')
+                                ->styleAlignCenter()
                                 ->styleBorderLeft($InnerLines)
                                 ->styleBorderRight($InnerLines)
+                                ->styleHeight('10px')
                                 ->styleTextSize('9px')
                                 , '40%')
                             ->addElementColumn((new Element())
@@ -295,8 +298,11 @@ class StudentCardNew extends AbstractStudentCard
                                             {% else %}
                                               Mutter / Vater / Sonstiger Personenberechtigter²
                                             {% endif %}')
-                                ->stylePaddingLeft('110px')
+                                ->styleAlignCenter()
                                 ->stylePaddingTop('3px')
+                                ->styleBorderLeft($InnerLines)
+                                ->styleHeight('10px')
+                                ->styleBorderRight($InnerLines)
                                 ->styleTextSize('9px')
                                 , '40%')
                         )
@@ -389,11 +395,9 @@ class StudentCardNew extends AbstractStudentCard
                                 ->styleHeight('25px')
                             , '20%')
                             ->addElementColumn((new Element())
-                                ->setContent('{% if(Content.Person.Parent.Father.Phone.Mobil) %}
-                                            {{ Content.Person.Parent.Father.Phone.Mobil }}
-                                             {% else %}
-                                              &nbsp;
-                                            {% endif %}')
+                                ->setContent('
+                                            {{ Content.Person.Parent.S1.Phone.Festnetz }}
+                                            {{ Content.Person.Parent.S1.Phone.Mobil }}')
                                 ->stylePaddingLeft('5px')
                                 ->stylePaddingTop('10px')
                                 ->styleBorderRight($InnerLines)
@@ -401,11 +405,8 @@ class StudentCardNew extends AbstractStudentCard
                                 , '40%')
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                             {% if(Content.Person.Parent.Mother.Phone.Mobil) %}
-                                            {{ Content.Person.Parent.Mother.Phone.Mobil }}
-                                             {% else %}
-                                              &nbsp;
-                                            {% endif %}')
+                                            {{ Content.Person.Parent.S2.Phone.Festnetz }}
+                                            {{ Content.Person.Parent.S2.Phone.Mobil }} ')
                                 ->stylePaddingLeft('5px')
                                 ->stylePaddingTop('10px')
                                 ->styleBorderRight($InnerLines)
