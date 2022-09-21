@@ -9,14 +9,11 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
-use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\Subject\MassReplaceSubject;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -298,7 +295,6 @@ class FrontendStudentSubject  extends FrontendReadOnly
             $tblSubjectAll = array(new TblSubject());
         }
 
-        FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
         $tblStudent = $tblPerson->getStudent();
 
         $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
@@ -308,27 +304,24 @@ class FrontendStudentSubject  extends FrontendReadOnly
                 new FormRow(array(
                     new FormColumn(array(
                         $this->panelSubjectList('FOREIGN_LANGUAGE', 'Fremdsprachen', 'Fremdsprache',
-                            $tblSubjectForeignLanguage, 4, ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
+                            $tblSubjectForeignLanguage, 4, ($tblStudent ? $tblStudent : null), $tblPerson),
                     ), 3),
                     new FormColumn(array(
                         $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1,
-                            ($tblStudent ? $tblStudent : null), $Year,
-                            $Division, $tblPerson),
+                            ($tblStudent ? $tblStudent : null), $tblPerson),
                         $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1,
-                            ($tblStudent ? $tblStudent : null), $Year,
-                            $Division, $tblPerson),
+                            ($tblStudent ? $tblStudent : null), $tblPerson),
                         $this->panelSubjectList('ORIENTATION', $tblStudentSubjectTypeOrientation->getName() . 'e',
                             $tblStudentSubjectTypeOrientation->getName(), $tblSubjectOrientation, 1,
-                            ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
+                            ($tblStudent ? $tblStudent : null), $tblPerson),
                     ), 3),
                     new FormColumn(array(
                         $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 5,
-                            ($tblStudent ? $tblStudent : null), $Year,
-                            $Division, $tblPerson),
+                            ($tblStudent ? $tblStudent : null), $tblPerson),
                     ), 3),
                     new FormColumn(array(
                         $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 5,
-                            ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
+                            ($tblStudent ? $tblStudent : null), $tblPerson),
                     ), 3),
                 )),
                 new FormRow(array(
@@ -363,8 +356,6 @@ class FrontendStudentSubject  extends FrontendReadOnly
         $SubjectList,
         $Count = 1,
         TblStudent $tblStudent = null,
-        $Year = array(),
-        $Division = array(),
         TblPerson $tblPerson = null
     ) {
 
@@ -411,15 +402,9 @@ class FrontendStudentSubject  extends FrontendReadOnly
                         ApiMassReplace::getEndpoint(), null, array(
                             ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
                             ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_SUBJECT,
-                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                             MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
                             MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
                             'Id'                                                            => $PersonId,
-                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                            'Node'                                                          => $Node,
                         )))->ajaxPipelineOnClick(
                         ApiMassReplace::pipelineOpen($Field, $Node)
                     ))
@@ -488,15 +473,9 @@ class FrontendStudentSubject  extends FrontendReadOnly
                         ApiMassReplace::getEndpoint(), null, array(
                             ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
                             ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_LEVEL_FROM,
-                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                             MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
                             MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
                             'Id'                                                            => $PersonId,
-                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                            'Node'                                                          => $Node,
                         )))->ajaxPipelineOnClick(
                         ApiMassReplace::pipelineOpen($Field, $Node)
                     ))
@@ -513,15 +492,9 @@ class FrontendStudentSubject  extends FrontendReadOnly
                         ApiMassReplace::getEndpoint(), null, array(
                             ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
                             ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_LEVEL_TILL,
-                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                             MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
                             MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
                             'Id'                                                            => $PersonId,
-                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                            'Node'                                                          => $Node,
                         )))->ajaxPipelineOnClick(
                         ApiMassReplace::pipelineOpen($Field, $Node)
                     ))

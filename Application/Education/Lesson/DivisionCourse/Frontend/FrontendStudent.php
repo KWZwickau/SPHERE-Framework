@@ -6,17 +6,14 @@ use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
-use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\Transfer\MassReplaceTransfer;
 use SPHERE\Application\Education\Lesson\Course\Course;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Type;
@@ -24,7 +21,6 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Frontend\FrontendStudent as PeopleFrontendStudent;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -140,8 +136,6 @@ class FrontendStudent extends FrontendMember
             $Global->savePost();
         }
 
-        PeopleFrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
-
         $tblCompanyAllSchool = \SPHERE\Application\Corporation\Group\Group::useService()->getCompanyAllByGroup(
             \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('SCHOOL')
         );
@@ -208,13 +202,7 @@ class FrontendStudent extends FrontendMember
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
-                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
-                                'Id'                                                      => $tblPerson->getId(),
-                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                                'Node'                                                          => $NodeProcess,
+                                'Id'                                                            => $tblPerson->getId(),
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field, $NodeProcess)
                         )),

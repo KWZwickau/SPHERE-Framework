@@ -11,13 +11,10 @@ namespace SPHERE\Application\People\Person\Frontend;
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
-use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Student\MassReplaceStudent;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -280,35 +277,6 @@ class FrontendStudent extends FrontendReadOnly
         }
 
         return '';
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param $Year
-     * @param $Division
-     */
-    public static function setYearAndDivisionForMassReplace(TblPerson $tblPerson, &$Year, &$Division)
-    {
-        $Year[ViewYear::TBL_YEAR_ID] = '';
-        $Division[ViewDivisionStudent::TBL_LEVEL_ID] = '';
-        $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = '';
-        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
-        // #SSW-1598 Fehlerbehebung Massen-Änderung
-
-        // get information without tblStudent information
-        $tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
-        if ($tblPerson && $tblDivision) {
-            $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = $tblDivision->getName();
-            if (($tblLevel = $tblDivision->getTblLevel())) {
-                $Division[ViewDivisionStudent::TBL_LEVEL_ID] = $tblLevel->getId();
-            }
-            if (($tblType = $tblLevel->getServiceTblType())) {
-                $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblType->getId();
-            }
-            if (($tblYear = $tblDivision->getServiceTblYear())) {
-                $Year[ViewYear::TBL_YEAR_ID] = $tblYear->getId();
-            }
-        }
     }
 
     /**

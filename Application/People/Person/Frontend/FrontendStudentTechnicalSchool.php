@@ -2,11 +2,8 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
-use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\TechnicalSchool\MassReplaceTechnicalSchool;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblCategory;
@@ -270,8 +267,6 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
      */
     private function getEditStudentTechnicalSchoolForm(TblPerson $tblPerson = null)
     {
-        FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
-
         $tblTechnicalCourseAll = Course::useService()->getTechnicalCourseAll();
         $tblTechnicalSubjectAreaAll = Course::useService()->getTechnicalSubjectAreaAll();
         $tblSchoolDiplomaAll = Course::useService()->getSchoolDiplomaAll();
@@ -348,13 +343,7 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTechnicalSchool::CLASS_MASS_REPLACE_TECHNICAL_SCHOOL,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTechnicalSchool::METHOD_REPLACE_COURSE,
-                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                                 'Id'                                                            => $tblPerson->getId(),
-                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                                'Node'                                                          => $Node,
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field, $Node)
                         ))
@@ -373,13 +362,7 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTechnicalSchool::CLASS_MASS_REPLACE_TECHNICAL_SCHOOL,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTechnicalSchool::METHOD_REPLACE_SUBJECT_AREA,
-                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                                 'Id'                                                            => $tblPerson->getId(),
-                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                                'Node'                                                          => $Node,
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field, $Node)
                         ))
@@ -397,13 +380,7 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTechnicalSchool::CLASS_MASS_REPLACE_TECHNICAL_SCHOOL,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTechnicalSchool::METHOD_REPLACE_STUDENT_TENSE_OF_LESSON,
-                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                                 'Id'                                                            => $tblPerson->getId(),
-                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                                'Node'                                                          => $Node,
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field, $Node)
                         ))
@@ -419,13 +396,7 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTechnicalSchool::CLASS_MASS_REPLACE_TECHNICAL_SCHOOL,
                                 ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTechnicalSchool::METHOD_REPLACE_STUDENT_TRAINING_STATUS,
-                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                                 'Id'                                                            => $tblPerson->getId(),
-                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                                'Node'                                                          => $Node,
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field, $Node)
                         ))
