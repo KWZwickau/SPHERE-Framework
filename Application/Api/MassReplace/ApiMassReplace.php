@@ -47,6 +47,8 @@ class ApiMassReplace extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openModal');
         $Dispatcher->registerMethod('saveModal');
         $Dispatcher->registerMethod('closeModal');
+        $Dispatcher->registerMethod('loadDivisionsSelectBox');
+        $Dispatcher->registerMethod('loadCoreGroupsSelectBox');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -168,7 +170,8 @@ class ApiMassReplace extends Extension implements IApiInterface
                     $Data['Year'] = ($tblYear = $tblStudentEducation->getServiceTblYear()) ? $tblYear->getId() : 0;
                     $Data['SchoolType'] = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getId() : 0;
                     $Data['Level'] = ($tblStudentEducation->getLevel()) ?: '';
-                    // todo Stammgruppe / Klasse
+                    $Data['Division'] = ($tblDivision = $tblStudentEducation->getTblDivision()) ? $tblDivision->getId() : 0;
+                    $Data['CoreGroup'] = ($tblCoreGroup = $tblStudentEducation->getTblCoreGroup()) ? $tblCoreGroup->getId() : 0;
                 }
             }
 
@@ -294,5 +297,76 @@ class ApiMassReplace extends Extension implements IApiInterface
         $Globals->savePost();
         $ReplaceField = $this->cloneField($Field, $Field->getName());
         return $ReplaceField;
+    }
+
+    /**
+     * @param string $Content
+     * @param string $Identifier
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverBlock(string $Content = '', string $Identifier = ''): BlockReceiver
+    {
+        return (new BlockReceiver($Content))->setIdentifier($Identifier);
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadDivisionsSelectBox($Data): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DivisionsSelectBox'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDivisionsSelectBox',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Data' => $Data,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return SelectBox|null
+     */
+    public function loadDivisionsSelectBox($Data = null): ?SelectBox
+    {
+        return (new StudentFilter())->loadDivisionsSelectBox($Data);
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadCoreGroupsSelectBox($Data): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CoreGroupsSelectBox'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadCoreGroupsSelectBox',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Data' => $Data,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return SelectBox|null
+     */
+    public function loadCoreGroupsSelectBox($Data = null): ?SelectBox
+    {
+        return (new StudentFilter())->loadCoreGroupsSelectBox($Data);
     }
 }

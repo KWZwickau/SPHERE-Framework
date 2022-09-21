@@ -383,7 +383,7 @@ class FrontendStudent extends FrontendReadOnly
                                 ApiMassReplace::getEndpoint(), null, array(
                                     ApiMassReplace::SERVICE_CLASS                                   => MassReplaceStudent::CLASS_MASS_REPLACE_STUDENT,
                                     ApiMassReplace::SERVICE_METHOD                                  => MassReplaceStudent::METHOD_REPLACE_START_DATE,
-                                    'PersonId'                                                      => $tblPerson->getId(),
+                                    'Id'                                                      => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $StartDatePrefix)
                             ))

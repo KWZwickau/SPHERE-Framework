@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Api\MassReplace;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -56,7 +57,8 @@ class StudentFilter extends Extension
             $global->POST['Data']['Year'] = $Data['Year'];
             $global->POST['Data']['SchoolType'] = $Data['SchoolType'];
             $global->POST['Data']['Level'] = $Data['Level'];
-            // todo kurs
+            $global->POST['Data']['Division'] = $Data['Division'];
+            $global->POST['Data']['CoreGroup'] = $Data['CoreGroup'];
 
             $global->savePost();
         }
@@ -65,21 +67,23 @@ class StudentFilter extends Extension
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        new SelectBox('Data[Year]', 'Schuljahr '.new DangerText('*'),
-                            array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1)))
+                        (new SelectBox('Data[Year]', 'Schuljahr '.new DangerText('*'), array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
+                            ->ajaxPipelineOnChange(array(ApiMassReplace::pipelineLoadDivisionsSelectBox($Data), ApiMassReplace::pipelineLoadCoreGroupsSelectBox($Data)))
                     ), 3),
                     new FormColumn(array(
                         new SelectBox('Data[SchoolType]', 'Schulart', array('Name' => Type::useService()->getTypeAll()))
                     ), 3),
+                )),
+                new FormRow(array(
                     new FormColumn(array(
                         new NumberField('Data[Level]', '', 'Klassenstufe')
                     ), 3),
-                    // todo kurs
-//                    new FormColumn(array(
-//                        new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Klasse: Gruppe',
-//                            'Klasse: Gruppe',
-//                            array('Name' => Division::useService()->getDivisionAll()))
-//                    ), 3),
+                    new FormColumn(array(
+                        ApiMassReplace::receiverBlock('', 'DivisionsSelectBox')
+                    ), 3),
+                    new FormColumn(array(
+                        ApiMassReplace::receiverBlock('', 'CoreGroupsSelectBox')
+                    ), 3),
                 )),
                 new FormRow(
                     new FormColumn(
@@ -89,13 +93,45 @@ class StudentFilter extends Extension
                             $this->getGlobal()->POST))->ajaxPipelineOnClick(ApiMassReplace::pipelineOpen($Field))
                     )
                 ),
-                new FormRow(
-                    new FormColumn(
-                        new DangerText('*'.new Small('Pflichtfeld'))
-                    )
-                )
+//                new FormRow(
+//                    new FormColumn(
+//                        new DangerText('*'.new Small('Pflichtfeld'))
+//                    )
+//                )
             ))
         ))->disableSubmitAction();
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return SelectBox|null
+     */
+    public function loadDivisionsSelectBox($Data): ?SelectBox
+    {
+        if (isset($Data['Year']) && ($tblYear = Term::useService()->getYearById($Data['Year']))) {
+            if (($tblDivisionCourseDivisionList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                return new SelectBox('Data[Division]', 'Klasse', array('Name' => $tblDivisionCourseDivisionList));
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return SelectBox|null
+     */
+    public function loadCoreGroupsSelectBox($Data): ?SelectBox
+    {
+        if (isset($Data['Year']) && ($tblYear = Term::useService()->getYearById($Data['Year']))) {
+            if (($tblDivisionCourseCoreGroupList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                return new SelectBox('Data[CoreGroup]', 'Stammgruppe', array('Name' => $tblDivisionCourseCoreGroupList));
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -202,8 +238,8 @@ class StudentFilter extends Extension
                     $tblYear,
                     Type::useService()->getTypeById($Data['SchoolType']) ?: null,
                     $Data['Level'] ?: null,
-//                    DivisionCourse::useService()->getDivisionCourseById($Data['Division']) ?: null,
-//                    DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup']) ?: null,
+                    DivisionCourse::useService()->getDivisionCourseById($Data['Division']) ?: null,
+                    DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup']) ?: null,
                 ))
             ) {
                 foreach ($tblStudentEducationList as $tblStudentEducation) {
