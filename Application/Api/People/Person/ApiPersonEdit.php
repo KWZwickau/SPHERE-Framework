@@ -5,6 +5,8 @@ namespace SPHERE\Application\Api\People\Person;
 use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Meta\Agreement\Agreement;
 use SPHERE\Application\People\Meta\Child\Child;
@@ -29,6 +31,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentAgreement;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentGeneral;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentMedicalRecord;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentProcess;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentSpecialNeeds;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentSubject;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentTechnicalSchool;
@@ -123,6 +126,9 @@ class ApiPersonEdit extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('editChildContent');
         $Dispatcher->registerMethod('saveChildContent');
+
+        $Dispatcher->registerMethod('editStudentProcessContent');
+        $Dispatcher->registerMethod('saveEditStudentProcess');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -2107,6 +2113,90 @@ class ApiPersonEdit extends Extension implements IApiInterface
                 . ApiPersonReadOnly::pipelineLoadChildContent($PersonId);
         } else {
             return new Danger('Die Daten konnten nicht gespeichert werden');
+        }
+    }
+
+    /**
+     * @param $PersonId
+     * @param $StudentEducationId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditStudentProcessContent($PersonId, $StudentEducationId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentProcessContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'editStudentProcessContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'StudentEducationId' => $StudentEducationId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     * @param $StudentEducationId
+     *
+     * @return string
+     */
+    public function editStudentProcessContent($PersonId, $StudentEducationId): string
+    {
+        return (new ApiDivisionCourseStudent())->editDivisionCourseStudentContent($StudentEducationId, $PersonId, null);
+    }
+
+    /**
+     * @param $PersonId
+     * @param $StudentEducationId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditStudentProcessSave($PersonId, $StudentEducationId): Pipeline
+    {
+        $pipeline = new Pipeline();
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentProcessContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditStudentProcess'
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'StudentEducationId' => $StudentEducationId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     * @param $StudentEducationId
+     * @param $Data
+     *
+     * @return Danger|string
+     */
+    public function saveEditStudentProcess($PersonId, $StudentEducationId, $Data)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Schüler wurde nicht gefunden', new Exclamation());
+        }
+
+        $tblStudentEducation = DivisionCourse::useService()->getStudentEducationById($StudentEducationId);
+
+        if (($form = DivisionCourse::useService()->checkFormEditStudentEducation($Data, $tblPerson, null, $tblStudentEducation ?: null))) {
+            // display Errors on form
+//            return $this->getEditStudentEducationModal($form, $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null);
+            return FrontendStudentProcess::getEditStudentProcessTitle($tblPerson) . new Well($form);
+        }
+
+        if ($tblStudentEducation && DivisionCourse::useService()->updateStudentEducation($tblStudentEducation, $Data)) {
+            return new Success('Die Schüler-Bildung wurde erfolgreich gespeichert.')
+                . ApiPersonReadOnly::pipelineLoadStudentProcessContent($PersonId);
+        } else {
+            return new Danger('Die Schüler-Bildung konnte nicht gespeichert werden.');
         }
     }
 }

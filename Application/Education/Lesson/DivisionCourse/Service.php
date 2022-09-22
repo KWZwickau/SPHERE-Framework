@@ -920,6 +920,8 @@ class Service extends AbstractService
         if (!isset($Data['SchoolType']) || !($tblSchoolType = Type::useService()->getTypeById($Data['SchoolType']))) {
             $form->setError('Data[SchoolType]', 'Bitte wählen Sie eine Schulart aus');
             $error = true;
+        } else {
+            $form->setSuccess('Data[SchoolType]');
         }
         if (!isset($Data['Level']) || empty($Data['Level']) || !intval($Data['Level'])) {
             $form->setError('Data[Level]', 'Bitte geben Sie eine Klassenstufe an');
@@ -935,31 +937,43 @@ class Service extends AbstractService
                         if ($level > 4) {
                             $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
                             $error = true;
+                        } else {
+                            $form->setSuccess('Data[Level]');
                         }
                         break;
                     case 'OS':
                         if ($level < 5 || $level > 10) {
                             $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
                             $error = true;
+                        } else {
+                            $form->setSuccess('Data[Level]');
                         }
                         break;
                     case 'Gy':
                         if ($level < 5 || $level > 12) {
                             $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
                             $error = true;
+                        } else {
+                            $form->setSuccess('Data[Level]');
                         }
                         break;
                     default:
                         if ($level > 13) {
                             $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
                             $error = true;
+                        } else {
+                            $form->setSuccess('Data[Level]');
                         }
                 }
             }
+        } else {
+            $form->setSuccess('Data[Level]');
         }
         if (!isset($Data['Company']) || !(Company::useService()->getCompanyById($Data['Company']))) {
             $form->setError('Data[Company]', 'Bitte wählen Sie eine Schule aus');
             $error = true;
+        } else {
+            $form->setSuccess('Data[Company]');
         }
 
         return $error;

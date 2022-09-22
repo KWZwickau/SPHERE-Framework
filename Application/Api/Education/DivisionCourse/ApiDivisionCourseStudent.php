@@ -7,7 +7,6 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
@@ -18,7 +17,6 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Transfer;
@@ -48,6 +46,7 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('loadDivisionCourseStudentContent');
+        $Dispatcher->registerMethod('editDivisionCourseStudentContent');
 
         $Dispatcher->registerMethod('loadRemoveStudentContent');
         $Dispatcher->registerMethod('loadAddStudentContent');
@@ -60,8 +59,8 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openChangeDivisionCourseModal');
         $Dispatcher->registerMethod('saveChangeDivisionCourseModal');
 
-        $Dispatcher->registerMethod('openEditStudentEducationModal');
-        $Dispatcher->registerMethod('saveEditStudentEducationModal');
+//        $Dispatcher->registerMethod('openEditStudentEducationModal');
+        $Dispatcher->registerMethod('saveEditStudentEducation');
 
         $Dispatcher->registerMethod('openCreateStudentEducationModal');
         $Dispatcher->registerMethod('saveCreateStudentEducationModal');
@@ -127,6 +126,42 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
     public function loadDivisionCourseStudentContent($DivisionCourseId): string
     {
         return DivisionCourse::useFrontend()->loadDivisionCourseStudentContent($DivisionCourseId);
+    }
+
+    /**
+     * @param $StudentEducationId
+     * @param $PersonId
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditDivisionCourseStudentContent($StudentEducationId, $PersonId, $DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DivisionCourseStudentContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'editDivisionCourseStudentContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'StudentEducationId' => $StudentEducationId,
+            'PersonId' => $PersonId,
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $StudentEducationId
+     * @param $PersonId
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function editDivisionCourseStudentContent($StudentEducationId, $PersonId, $DivisionCourseId): string
+    {
+        return DivisionCourse::useFrontend()->editDivisionCourseStudentContent($StudentEducationId, $PersonId, $DivisionCourseId);
     }
 
     /**
@@ -517,85 +552,85 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
         }
     }
 
-    /**
-     * @param $form
-     * @param TblPerson $tblPerson
-     * @param TblDivisionCourse|null $tblDivisionCourse
-     * @param TblStudentEducation|null $tblStudentEducation
-     *
-     * @return string
-     */
-    private function getEditStudentEducationModal($form, TblPerson $tblPerson, ?TblDivisionCourse $tblDivisionCourse, ?TblStudentEducation $tblStudentEducation): string
-    {
-        $tblYear = false;
-        if ($tblDivisionCourse) {
-            $tblYear = $tblDivisionCourse->getServiceTblYear();
-        } elseif ($tblStudentEducation) {
-            $tblYear = $tblStudentEducation->getServiceTblYear();
-        }
+//    /**
+//     * @param $form
+//     * @param TblPerson $tblPerson
+//     * @param TblDivisionCourse|null $tblDivisionCourse
+//     * @param TblStudentEducation|null $tblStudentEducation
+//     *
+//     * @return string
+//     */
+//    private function getEditStudentEducationModal($form, TblPerson $tblPerson, ?TblDivisionCourse $tblDivisionCourse, ?TblStudentEducation $tblStudentEducation): string
+//    {
+//        $tblYear = false;
+//        if ($tblDivisionCourse) {
+//            $tblYear = $tblDivisionCourse->getServiceTblYear();
+//        } elseif ($tblStudentEducation) {
+//            $tblYear = $tblStudentEducation->getServiceTblYear();
+//        }
+//
+//        return new Title(new Edit() . ' Schüler-Bildung bearbeiten')
+//            . new Layout(new LayoutGroup(array(
+//                new LayoutRow(array(
+//                    new LayoutColumn(
+//                        new Panel('Schüler', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO)
+//                        , 6),
+//                    new LayoutColumn(
+//                        new Panel('Schuljahr', $tblYear ? $tblYear->getDisplayName() : '', Panel::PANEL_TYPE_INFO)
+//                        , 6)
+//                )),
+//                new LayoutRow(
+//                    new LayoutColumn(
+//                        new Well($form)
+//                    )
+//                )
+//            )));
+//    }
 
-        return new Title(new Edit() . ' Schüler-Bildung bearbeiten')
-            . new Layout(new LayoutGroup(array(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        new Panel('Schüler', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO)
-                        , 6),
-                    new LayoutColumn(
-                        new Panel('Schuljahr', $tblYear ? $tblYear->getDisplayName() : '', Panel::PANEL_TYPE_INFO)
-                        , 6)
-                )),
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Well($form)
-                    )
-                )
-            )));
-    }
+//    /**
+//     * @param $PersonId
+//     * @param $DivisionCourseId
+//     * @param $StudentEducationId
+//     *
+//     * @return Pipeline
+//     */
+//    public static function pipelineOpenEditStudentEducationModal($PersonId, $DivisionCourseId, $StudentEducationId): Pipeline
+//    {
+//        $Pipeline = new Pipeline(false);
+//        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+//        $ModalEmitter->setGetPayload(array(
+//            self::API_TARGET => 'openEditStudentEducationModal',
+//        ));
+//        $ModalEmitter->setPostPayload(array(
+//            'PersonId' => $PersonId,
+//            'DivisionCourseId' => $DivisionCourseId,
+//            'StudentEducationId' => $StudentEducationId
+//        ));
+//        $Pipeline->appendEmitter($ModalEmitter);
+//
+//        return $Pipeline;
+//    }
 
-    /**
-     * @param $PersonId
-     * @param $DivisionCourseId
-     * @param $StudentEducationId
-     *
-     * @return Pipeline
-     */
-    public static function pipelineOpenEditStudentEducationModal($PersonId, $DivisionCourseId, $StudentEducationId): Pipeline
-    {
-        $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
-        $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openEditStudentEducationModal',
-        ));
-        $ModalEmitter->setPostPayload(array(
-            'PersonId' => $PersonId,
-            'DivisionCourseId' => $DivisionCourseId,
-            'StudentEducationId' => $StudentEducationId
-        ));
-        $Pipeline->appendEmitter($ModalEmitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param $PersonId
-     * @param $DivisionCourseId
-     * @param $StudentEducationId
-     *
-     * @return string
-     */
-    public function openEditStudentEducationModal($PersonId, $DivisionCourseId, $StudentEducationId)
-    {
-        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            return new Danger('Schüler wurde nicht gefunden', new Exclamation());
-        }
-
-        $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
-        $tblStudentEducation = DivisionCourse::useService()->getStudentEducationById($StudentEducationId);
-
-        return $this->getEditStudentEducationModal(DivisionCourse::useFrontend()->formEditStudentEducation(
-            $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null, true
-        ), $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null);
-    }
+//    /**
+//     * @param $PersonId
+//     * @param $DivisionCourseId
+//     * @param $StudentEducationId
+//     *
+//     * @return string
+//     */
+//    public function openEditStudentEducationModal($PersonId, $DivisionCourseId, $StudentEducationId)
+//    {
+//        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+//            return new Danger('Schüler wurde nicht gefunden', new Exclamation());
+//        }
+//
+//        $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
+//        $tblStudentEducation = DivisionCourse::useService()->getStudentEducationById($StudentEducationId);
+//
+//        return $this->getEditStudentEducationModal(DivisionCourse::useFrontend()->formEditStudentEducation(
+//            $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null, true
+//        ), $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null);
+//    }
 
     /**
      * @param $PersonId
@@ -606,20 +641,19 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
      */
     public static function pipelineEditStudentEducationSave($PersonId, $DivisionCourseId, $StudentEducationId): Pipeline
     {
-        $Pipeline = new Pipeline();
-        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
-        $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveEditStudentEducationModal'
+        $pipeline = new Pipeline();
+        $emitter = new ServerEmitter(self::receiverBlock('', 'DivisionCourseStudentContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditStudentEducation'
         ));
-        $ModalEmitter->setPostPayload(array(
+        $emitter->setPostPayload(array(
             'PersonId' => $PersonId,
             'DivisionCourseId' => $DivisionCourseId,
             'StudentEducationId' => $StudentEducationId
         ));
-        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
-        $Pipeline->appendEmitter($ModalEmitter);
+        $pipeline->appendEmitter($emitter);
 
-        return $Pipeline;
+        return $pipeline;
     }
 
     /**
@@ -630,7 +664,7 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
      *
      * @return Danger|string
      */
-    public function saveEditStudentEducationModal($PersonId, $DivisionCourseId, $StudentEducationId, $Data)
+    public function saveEditStudentEducation($PersonId, $DivisionCourseId, $StudentEducationId, $Data)
     {
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Schüler wurde nicht gefunden', new Exclamation());
@@ -641,7 +675,8 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
 
         if (($form = DivisionCourse::useService()->checkFormEditStudentEducation($Data, $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null))) {
             // display Errors on form
-            return $this->getEditStudentEducationModal($form, $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null);
+//            return $this->getEditStudentEducationModal($form, $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null);
+            return new Well($form);
         }
 
         if ($tblStudentEducation && DivisionCourse::useService()->updateStudentEducation($tblStudentEducation, $Data)) {
@@ -649,7 +684,7 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
                 . ($DivisionCourseId ? self::pipelineLoadDivisionCourseStudentContent($DivisionCourseId) : ApiPersonReadOnly::pipelineLoadStudentProcessContent($PersonId))
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Schüler-Bildung konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Die Schüler-Bildung konnte nicht gespeichert werden.');
         }
     }
 

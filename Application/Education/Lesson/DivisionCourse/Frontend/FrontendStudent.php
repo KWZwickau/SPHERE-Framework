@@ -7,6 +7,8 @@ use DateTime;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
 use SPHERE\Application\Api\People\Meta\Transfer\MassReplaceTransfer;
+use SPHERE\Application\Api\People\Person\ApiPersonEdit;
+use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -15,16 +17,14 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
-use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentProcess;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -34,6 +34,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
@@ -47,6 +48,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -136,125 +138,93 @@ class FrontendStudent extends FrontendMember
             $Global->savePost();
         }
 
-        $tblCompanyAllSchool = \SPHERE\Application\Corporation\Group\Group::useService()->getCompanyAllByGroup(
-            \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('SCHOOL')
-        );
-        $tblCompanyAllOwn = array();
-
-        $tblSchoolCourseAll = Course::useService()->getCourseAll();
-        if ($tblSchoolCourseAll) {
-            array_push($tblSchoolCourseAll, new TblCourse());
-        } else {
-            $tblSchoolCourseAll = array(new TblCourse());
-        }
-
-        $tblStudentTransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
-
-        // Normaler Inhalt
-        $tblSchoolList = School::useService()->getSchoolAll();
-        if ($tblSchoolList) {
-            foreach ($tblSchoolList as $tblSchool) {
-                if ($tblSchool->getServiceTblCompany()) {
-                    $tblCompanyAllOwn[] = $tblSchool->getServiceTblCompany();
-                }
-            }
-        }
-        if (empty($tblCompanyAllOwn)) {
-            $useCompanyAllSchoolProcess = $tblCompanyAllSchool;
-        } else {
-            $useCompanyAllSchoolProcess = $tblCompanyAllOwn;
-        }
-
-
-        // add selected Company if missing in list
-        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-        if ($tblStudent) {
-
-            // Erweiterung der SelectBox, wenn Daten vorhanden aber nicht enthalten sind
-            // Process
-            $tblStudentTransferTypeProcessEntity = Student::useService()->getStudentTransferByType($tblStudent,
-                $tblStudentTransferTypeProcess);
-            if ($tblStudentTransferTypeProcessEntity && ($TransferCompanyProcess = $tblStudentTransferTypeProcessEntity->getServiceTblCompany())) {
-                if (!array_key_exists($TransferCompanyProcess->getId(), $useCompanyAllSchoolProcess)) {
-                    $TransferCompanyProcessList = array($TransferCompanyProcess->getId() => $TransferCompanyProcess);
-                    $useCompanyAllSchoolProcess = array_merge($useCompanyAllSchoolProcess, $TransferCompanyProcessList);
-                }
-            }
-        }
-
         $NodeProcess = 'Schülertransfer - Aktueller Schulverlauf';
+        $tblSchoolTypeAll = Type::useService()->getTypeAll();
         $tblCourseAll = Course::useService()->getCourseAll();
 
-        return (new Form(
-            new FormGroup(array(
-                // todo massenänderung
-                new FormRow(array(
-                    new FormColumn(array(
-//                        (new SelectBox('Data[SchoolType]', 'Schulart', array('{{ Name }} {{ Description }}' => $tblSchoolTypeAll), new Education()))->setRequired()
-                        ApiMassReplace::receiverField((
-                        $Field = (new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
-                            'Aktuelle Schule', array(
-                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolProcess
-                            ))
-                        )->configureLibrary(SelectBox::LIBRARY_SELECT2))),
-                        ApiMassReplace::receiverModal($Field, 'Schülertransfer - Aktueller Schulverlauf'),
-                        new PullRight((new Link('Massen-Änderung',
-                            ApiMassReplace::getEndpoint(), null, array(
-                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
-                                'Id'                                                            => $tblPerson->getId(),
-                            )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field, $NodeProcess)
-                        )),
-                        )),
+        if ($tblDivisionCourse) {
+            $formRows[] = new FormRow(array(
+                new FormColumn(
+                    new Panel('Schüler', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO)
+                    , 6),
+                new FormColumn(
+                    new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
+                    , 6)
+            ));
+        }
+        $formRows[] = new FormRow(array(
+            new FormColumn(array(
+                ApiMassReplace::receiverField((
+                $Field = (new TextField('Data[Level]', '', 'Klassenstufe'))->setRequired()
                 )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        (new SelectBox('Data[Company]', 'Schule', array(
-                            '{{ Name }} {{ ExtendedName }} {{ Description }}' => DivisionCourse::useService()->getSchoolListForStudentEducation()
-                        )))->setRequired()
-//                        ApiMassReplace::receiverField((
-//                        $Field = (new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
-//                            'Aktuelle Schule', array(
-//                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolProcess
-//                            ))
-//                        )->configureLibrary(SelectBox::LIBRARY_SELECT2)))
-//                        .ApiMassReplace::receiverModal($Field, $NodeProcess)
-//                        .new PullRight((new Link('Massen-Änderung',
-//                            ApiMassReplace::getEndpoint(), null, array(
-//                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-//                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
-//                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
-//                                'Id'                                                      => $tblPerson->getId(),
-//                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-//                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-//                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-//                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-//                                'Node'                                                          => $NodeProcess,
-//                            )))->ajaxPipelineOnClick(
-//                            ApiMassReplace::pipelineOpen($Field, $NodeProcess)
-//                        ))
-                    ))
+                ApiMassReplace::receiverModal($Field, 'Schülertransfer - Aktueller Schulverlauf'),
+                new PullRight((new Link('Massen-Änderung',
+                    ApiMassReplace::getEndpoint(), null, array(
+                        // todo services anpassen
+                        ApiMassReplace::SERVICE_CLASS       => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                        ApiMassReplace::SERVICE_METHOD      => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
+                        'Id'                                => $tblPerson->getId(),
+                    )))->ajaxPipelineOnClick(
+                    ApiMassReplace::pipelineOpen($Field, $NodeProcess)
                 )),
-                new FormRow(array(
-                    new FormColumn(
-                        (new NumberField('Data[Level]', '', 'Klassenstufe'))->setRequired()
+            ), 6),
+            new FormColumn(array(
+                ApiMassReplace::receiverField((
+                $Field = (new SelectBox('Data[SchoolType]', 'Schulart', array('{{ Name }} {{ Description }}' => $tblSchoolTypeAll), new Education()))
+                    ->setRequired()
+                    ->configureLibrary(SelectBox::LIBRARY_SELECT2)
+                )),
+                ApiMassReplace::receiverModal($Field, 'Schülertransfer - Aktueller Schulverlauf'),
+                new PullRight((new Link('Massen-Änderung',
+                    ApiMassReplace::getEndpoint(), null, array(
+                        // todo services anpassen
+                        ApiMassReplace::SERVICE_CLASS       => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                        ApiMassReplace::SERVICE_METHOD      => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
+                        'Id'                                => $tblPerson->getId(),
+                    )))->ajaxPipelineOnClick(
+                    ApiMassReplace::pipelineOpen($Field, $NodeProcess)
+                )),
+            ), 6),
+        ));
+        $formRows[] =  new FormRow(array(
+            new FormColumn(array(
+                ApiMassReplace::receiverField((
+                $Field = (new SelectBox('Data[Company]', 'Schule', array('{{ Name }} {{ ExtendedName }} {{ Description }}'
+                => DivisionCourse::useService()->getSchoolListForStudentEducation())))
+                    ->setRequired()
+                    ->configureLibrary(SelectBox::LIBRARY_SELECT2)
+                )),
+                ApiMassReplace::receiverModal($Field, 'Schülertransfer - Aktueller Schulverlauf'),
+                new PullRight((new Link('Massen-Änderung',
+                    ApiMassReplace::getEndpoint(), null, array(
+                        // todo services anpassen
+                        ApiMassReplace::SERVICE_CLASS       => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                        ApiMassReplace::SERVICE_METHOD      => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
+                        'Id'                                => $tblPerson->getId(),
+                    )))->ajaxPipelineOnClick(
+                    ApiMassReplace::pipelineOpen($Field, $NodeProcess)
+                )),
+            ), 6),
+            new FormColumn(
+                (new SelectBox('Data[Course]', 'Bildungsgang', array('{{ Name }}' => $tblCourseAll)))
+                , 6),
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(array(
+                (new Primary('Speichern', ApiDivisionCourseStudent::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick($tblDivisionCourse
+                        ? ApiDivisionCourseStudent::pipelineEditStudentEducationSave($tblPerson->getId(), $tblDivisionCourse->getId(), $tblStudentEducation ? $tblStudentEducation->getId() : null)
+                        : ApiPersonEdit::pipelineEditStudentProcessSave($tblPerson->getId(), $tblStudentEducation ? $tblStudentEducation->getId() : null)
                     ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        (new SelectBox('Data[Course]', 'Bildungsgang', array('{{ Name }}' => $tblCourseAll)))
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        (new Primary('Speichern', ApiDivisionCourseStudent::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineEditStudentEducationSave(
-                                $tblPerson->getId(), $tblDivisionCourse ? $tblDivisionCourse->getId() : null, $tblStudentEducation ? $tblStudentEducation->getId() : null))
-                    ),
-                )),
-            ))
-        ))->disableSubmitAction();
+                (new Primary('Abbrechen', ApiDivisionCourseStudent::getEndpoint(), new Disable()))
+                    ->ajaxPipelineOnClick($tblDivisionCourse
+                        ? ApiDivisionCourseStudent::pipelineLoadDivisionCourseStudentContent($tblDivisionCourse->getId())
+                        : ApiPersonReadOnly::pipelineLoadStudentProcessContent($tblPerson->getId())
+                    )
+            )),
+        ));
+
+        return (new Form(new FormGroup($formRows)))->disableSubmitAction();
     }
 
     /**
@@ -876,7 +846,8 @@ class FrontendStudent extends FrontendMember
                             $item['Course'] = $isInActive ? new Strikethrough($course) : $course;
                             $item['Option'] = $isInActive ? ''
                                 : (new Link('Bearbeiten', ApiDivisionCourseStudent::getEndpoint(), new Pen()))
-                                    ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenEditStudentEducationModal($tblPerson->getId(), $DivisionCourseId, null));
+                                    ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineEditDivisionCourseStudentContent(
+                                        $tblStudentEducation->getId(), $tblPerson->getId(), $DivisionCourseId));
 
                             $studentList[] = $item;
                         }
@@ -902,6 +873,28 @@ class FrontendStudent extends FrontendMember
             return empty($studentList)
                 ? new Warning('Keine Schüler dem Kurs zugewiesen')
                 : $this->getTableCustom($headerStudentColumnList, $studentList);
+        }
+
+        return '';
+    }
+
+    /**
+     * @param $StudentEducationId
+     * @param $PersonId
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function editDivisionCourseStudentContent($StudentEducationId, $PersonId, $DivisionCourseId): string
+    {
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return (!$DivisionCourseId ? FrontendStudentProcess::getEditStudentProcessTitle($tblPerson) : '')
+                . new Well($this->formEditStudentEducation(
+                    $tblPerson,
+                    (DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)) ?: null,
+                    (DivisionCourse::useService()->getStudentEducationById($StudentEducationId)) ?: null,
+                    true
+                ));
         }
 
         return '';

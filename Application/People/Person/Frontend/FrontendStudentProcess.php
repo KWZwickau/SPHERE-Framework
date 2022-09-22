@@ -9,10 +9,13 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
+use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
+use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\History;
@@ -83,8 +86,8 @@ class FrontendStudentProcess extends FrontendReadOnly
                     $item['Division'] = $isInActive ? new Strikethrough($division) : $division;
                     $item['CoreGroup'] = $isInActive ? new Strikethrough($coreGroup) : $coreGroup;
                     if ($AllowEdit) {
-                        $item['Option'] = (new Link('Bearbeiten', ApiDivisionCourseStudent::getEndpoint(), new Pen()))
-                            ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenEditStudentEducationModal($tblPerson->getId(), null, $tblStudentEducation->getId()));
+                        $item['Option'] = (new Link('Bearbeiten', ApiPersonEdit::getEndpoint(), new Pen()))
+                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentProcessContent($tblPerson->getId(), $tblStudentEducation->getId()));
                     }
                     $studentEducationList[] = $item;
 
@@ -128,5 +131,15 @@ class FrontendStudentProcess extends FrontendReadOnly
         }
 
         return '';
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     *
+     * @return string
+     */
+    public static function getEditStudentProcessTitle(TblPerson $tblPerson = null): string
+    {
+        return new Title(new History() . ' ' . self::TITLE, self::getEditTitleDescription($tblPerson)) . self::getDataProtectionMessage();
     }
 }
