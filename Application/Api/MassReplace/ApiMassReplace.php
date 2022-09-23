@@ -147,15 +147,18 @@ class ApiMassReplace extends Extension implements IApiInterface
      * @param $Node
      * @param $Id
      * @param string $useFilter
-     * @param $Data
+     * @param null $StudentEducationId
+     * @param null $Data
      *
      * @return string
      */
-    public function openModal($modalField, $Node, $Id, string $useFilter = StudentFilter::STUDENT_FILTER, $Data = null): string
+    public function openModal($modalField, $Node, $Id, string $useFilter = StudentFilter::STUDENT_FILTER, $StudentEducationId = null, $Data = null): string
     {
         if ($useFilter == StudentFilter::STUDENT_FILTER) {
-            if ($Id && $Data === null) {
-                $tblStudentEducation = false;
+            $tblStudentEducation = false;
+            if ($StudentEducationId && $Data === null) {
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationById($StudentEducationId);
+            } elseif ($Id && $Data === null) {
                 if (($tblYearList = Term::useService()->getYearByNow())
                     && ($tblPerson = Person::useService()->getPersonById($Id))
                 ) {
@@ -165,14 +168,14 @@ class ApiMassReplace extends Extension implements IApiInterface
                         }
                     }
                 }
+            }
 
-                if ($tblStudentEducation) {
-                    $Data['Year'] = ($tblYear = $tblStudentEducation->getServiceTblYear()) ? $tblYear->getId() : 0;
-                    $Data['SchoolType'] = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getId() : 0;
-                    $Data['Level'] = ($tblStudentEducation->getLevel()) ?: '';
-                    $Data['Division'] = ($tblDivision = $tblStudentEducation->getTblDivision()) ? $tblDivision->getId() : 0;
-                    $Data['CoreGroup'] = ($tblCoreGroup = $tblStudentEducation->getTblCoreGroup()) ? $tblCoreGroup->getId() : 0;
-                }
+            if ($tblStudentEducation) {
+                $Data['Year'] = ($tblYear = $tblStudentEducation->getServiceTblYear()) ? $tblYear->getId() : 0;
+                $Data['SchoolType'] = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getId() : 0;
+                $Data['Level'] = ($tblStudentEducation->getLevel()) ?: '';
+                $Data['Division'] = ($tblDivision = $tblStudentEducation->getTblDivision()) ? $tblDivision->getId() : 0;
+                $Data['CoreGroup'] = ($tblCoreGroup = $tblStudentEducation->getTblCoreGroup()) ? $tblCoreGroup->getId() : 0;
             }
 
             return (new StudentFilter())->getFrontendStudentFilter($modalField, $Node, $Data);

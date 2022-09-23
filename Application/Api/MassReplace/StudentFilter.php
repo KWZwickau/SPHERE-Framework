@@ -63,11 +63,20 @@ class StudentFilter extends Extension
             $global->savePost();
         }
 
+        $tblYearList = Term::useService()->getYearAllSinceYears(1);
+        if (isset($Data['Year']) && ($tblYear = Term::useService()->getYearById($Data['Year']))) {
+            if ($tblYearList && !isset($tblYearList[$Data['Year']])) {
+                $tblYearList[$tblYear->getId()] = $tblYear;
+            } elseif (!$tblYearList) {
+                $tblYearList = array($tblYear->getId() => $tblYear);
+            }
+        }
+
         return (new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        (new SelectBox('Data[Year]', 'Schuljahr '.new DangerText('*'), array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
+                        (new SelectBox('Data[Year]', 'Schuljahr '.new DangerText('*'), array('{{ Name }} {{ Description }}' => $tblYearList)))
                             ->ajaxPipelineOnChange(array(ApiMassReplace::pipelineLoadDivisionsSelectBox($Data), ApiMassReplace::pipelineLoadCoreGroupsSelectBox($Data)))
                     ), 3),
                     new FormColumn(array(
@@ -256,6 +265,15 @@ class StudentFilter extends Extension
                         $DataPerson['Division'] = ($tblDivision = $tblStudentEducation->getTblDivision()) ? $tblDivision->getName() : '';
                         $DataPerson['CoreGroup'] = ($tblCoreGroup = $tblStudentEducation->getTblCoreGroup()) ? $tblCoreGroup->getName() : '';
 
+                        if (strpos($Field->getName(), 'StudentEducationData') !== false) {
+                            switch ($Label) {
+                                case 'Klassenstufe': $DataPerson['Edit'] = $tblStudentEducation->getLevel(); break;
+                                case 'Schulart': $DataPerson['Edit'] = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getName() : ''; break;
+                                case 'Schule': $DataPerson['Edit'] = ($tblCompany = $tblStudentEducation->getServiceTblCompany()) ? $tblCompany->getName() : ''; break;
+                                case 'Bildungsgang': $DataPerson['Edit'] = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : ''; break;
+                            }
+                        }
+
                         if (($tblStudent = $tblPerson->getStudent())) {
                             $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
 
@@ -350,16 +368,16 @@ class StudentFilter extends Extension
                                     }
 
                                     // Schulverlauf
-                                    if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aktuelle Schule'
-                                        && $tblStudentTransferType->getIdentifier() == 'PROCESS'
-                                    ) {
-                                        $DataPerson['Edit'] = $tblCompany->getName();
-                                    }
-                                    if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Aktueller Bildungsgang'
-                                        && $tblStudentTransferType->getIdentifier() == 'PROCESS'
-                                    ) {
-                                        $DataPerson['Edit'] = $tblCourse->getName();
-                                    }
+//                                    if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aktuelle Schule'
+//                                        && $tblStudentTransferType->getIdentifier() == 'PROCESS'
+//                                    ) {
+//                                        $DataPerson['Edit'] = $tblCompany->getName();
+//                                    }
+//                                    if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Aktueller Bildungsgang'
+//                                        && $tblStudentTransferType->getIdentifier() == 'PROCESS'
+//                                    ) {
+//                                        $DataPerson['Edit'] = $tblCourse->getName();
+//                                    }
     //                                if(( $tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Aktuelle Schulart'){
     //                                $DataPerson['Edit'] = $tblType->getName();
     //                                }

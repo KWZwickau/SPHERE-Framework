@@ -902,7 +902,7 @@ class Service extends AbstractService
     {
         $form = DivisionCourse::useFrontend()->formEditStudentEducation($tblPerson, $tblDivisionCourse, $tblStudentEducation);
 
-        $error = $this->checkStudentEducationData($Data, $form);
+        $error = $this->checkStudentEducationData($Data, $form, 'StudentEducationData');
 
         return $error ? $form : false;
     }
@@ -910,70 +910,71 @@ class Service extends AbstractService
     /**
      * @param $Data
      * @param Form $form
+     * @param string $DataName
      *
      * @return bool
      */
-    private function checkStudentEducationData($Data, Form $form): bool
+    private function checkStudentEducationData($Data, Form $form, string $DataName = 'Data'): bool
     {
         $error = false;
         $tblSchoolType = false;
         if (!isset($Data['SchoolType']) || !($tblSchoolType = Type::useService()->getTypeById($Data['SchoolType']))) {
-            $form->setError('Data[SchoolType]', 'Bitte wählen Sie eine Schulart aus');
+            $form->setError($DataName . '[SchoolType]', 'Bitte wählen Sie eine Schulart aus');
             $error = true;
         } else {
-            $form->setSuccess('Data[SchoolType]');
+            $form->setSuccess($DataName . '[SchoolType]');
         }
         if (!isset($Data['Level']) || empty($Data['Level']) || !intval($Data['Level'])) {
-            $form->setError('Data[Level]', 'Bitte geben Sie eine Klassenstufe an');
+            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine Klassenstufe an');
             $error = true;
         } elseif ($tblSchoolType) {
             $level = $Data['Level'];
             if ($level < 1) {
-                $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+                $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
                 $error = true;
             } else {
                 switch ($tblSchoolType->getShortName()) {
                     case 'GS':
                         if ($level > 4) {
-                            $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
                             $error = true;
                         } else {
-                            $form->setSuccess('Data[Level]');
+                            $form->setSuccess($DataName . '[Level]');
                         }
                         break;
                     case 'OS':
                         if ($level < 5 || $level > 10) {
-                            $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
                             $error = true;
                         } else {
-                            $form->setSuccess('Data[Level]');
+                            $form->setSuccess($DataName . '[Level]');
                         }
                         break;
                     case 'Gy':
                         if ($level < 5 || $level > 12) {
-                            $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
                             $error = true;
                         } else {
-                            $form->setSuccess('Data[Level]');
+                            $form->setSuccess($DataName . '[Level]');
                         }
                         break;
                     default:
                         if ($level > 13) {
-                            $form->setError('Data[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
                             $error = true;
                         } else {
-                            $form->setSuccess('Data[Level]');
+                            $form->setSuccess($DataName . '[Level]');
                         }
                 }
             }
         } else {
-            $form->setSuccess('Data[Level]');
+            $form->setSuccess($DataName . '[Level]');
         }
         if (!isset($Data['Company']) || !(Company::useService()->getCompanyById($Data['Company']))) {
-            $form->setError('Data[Company]', 'Bitte wählen Sie eine Schule aus');
+            $form->setError($DataName . '[Company]', 'Bitte wählen Sie eine Schule aus');
             $error = true;
         } else {
-            $form->setSuccess('Data[Company]');
+            $form->setSuccess($DataName . '[Company]');
         }
 
         return $error;
@@ -1091,6 +1092,16 @@ class Service extends AbstractService
         $tblStudentEducation->setServiceTblCourse(Course::useService()->getCourseById($Data['Course']) ?: null);
 
         return (new Data($this->getBinding()))->updateStudentEducation($tblStudentEducation);
+    }
+
+    /**
+     * @param array $tblStudentEducationList
+     *
+     * @return bool
+     */
+    public function updateStudentEducationBulk(array $tblStudentEducationList): bool
+    {
+        return (new Data($this->getBinding()))->updateStudentEducationBulk($tblStudentEducationList);
     }
 
     /**

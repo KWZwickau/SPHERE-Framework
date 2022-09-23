@@ -660,11 +660,11 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
      * @param $PersonId
      * @param $DivisionCourseId
      * @param $StudentEducationId
-     * @param $Data
+     * @param $StudentEducationData
      *
      * @return Danger|string
      */
-    public function saveEditStudentEducation($PersonId, $DivisionCourseId, $StudentEducationId, $Data)
+    public function saveEditStudentEducation($PersonId, $DivisionCourseId, $StudentEducationId, $StudentEducationData)
     {
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Schüler wurde nicht gefunden', new Exclamation());
@@ -673,13 +673,13 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
         $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
         $tblStudentEducation = DivisionCourse::useService()->getStudentEducationById($StudentEducationId);
 
-        if (($form = DivisionCourse::useService()->checkFormEditStudentEducation($Data, $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null))) {
+        if (($form = DivisionCourse::useService()->checkFormEditStudentEducation($StudentEducationData, $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null))) {
             // display Errors on form
 //            return $this->getEditStudentEducationModal($form, $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null);
             return new Well($form);
         }
 
-        if ($tblStudentEducation && DivisionCourse::useService()->updateStudentEducation($tblStudentEducation, $Data)) {
+        if ($tblStudentEducation && DivisionCourse::useService()->updateStudentEducation($tblStudentEducation, $StudentEducationData)) {
             return new Success('Die Schüler-Bildung wurde erfolgreich gespeichert.')
                 . ($DivisionCourseId ? self::pipelineLoadDivisionCourseStudentContent($DivisionCourseId) : ApiPersonReadOnly::pipelineLoadStudentProcessContent($PersonId))
                 . self::pipelineClose();

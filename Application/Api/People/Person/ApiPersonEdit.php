@@ -2174,11 +2174,11 @@ class ApiPersonEdit extends Extension implements IApiInterface
     /**
      * @param $PersonId
      * @param $StudentEducationId
-     * @param $Data
+     * @param $StudentEducationData
      *
      * @return Danger|string
      */
-    public function saveEditStudentProcess($PersonId, $StudentEducationId, $Data)
+    public function saveEditStudentProcess($PersonId, $StudentEducationId, $StudentEducationData)
     {
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Schüler wurde nicht gefunden', new Exclamation());
@@ -2186,13 +2186,13 @@ class ApiPersonEdit extends Extension implements IApiInterface
 
         $tblStudentEducation = DivisionCourse::useService()->getStudentEducationById($StudentEducationId);
 
-        if (($form = DivisionCourse::useService()->checkFormEditStudentEducation($Data, $tblPerson, null, $tblStudentEducation ?: null))) {
+        if (($form = DivisionCourse::useService()->checkFormEditStudentEducation($StudentEducationData, $tblPerson, null, $tblStudentEducation ?: null))) {
             // display Errors on form
 //            return $this->getEditStudentEducationModal($form, $tblPerson, $tblDivisionCourse ?: null, $tblStudentEducation ?: null);
             return FrontendStudentProcess::getEditStudentProcessTitle($tblPerson) . new Well($form);
         }
 
-        if ($tblStudentEducation && DivisionCourse::useService()->updateStudentEducation($tblStudentEducation, $Data)) {
+        if ($tblStudentEducation && DivisionCourse::useService()->updateStudentEducation($tblStudentEducation, $StudentEducationData)) {
             return new Success('Die Schüler-Bildung wurde erfolgreich gespeichert.')
                 . ApiPersonReadOnly::pipelineLoadStudentProcessContent($PersonId);
         } else {
