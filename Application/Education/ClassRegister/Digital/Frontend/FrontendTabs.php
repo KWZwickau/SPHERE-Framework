@@ -184,14 +184,22 @@ class FrontendTabs extends FrontendCourseContent
                 } else {
                     $name = 'Klassenliste';
                 }
-                $printLink = new Link((new Thumbnail(
-                    FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
-                    $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'))->setPictureHeight(),
-                    '/Api/Document/Standard/ClassRegister/Create', null, array(
-                        'DivisionId' => $DivisionId,
-                        'GroupId'    => $GroupId,
-                        'YearId'     => $tblYear ? $tblYear->getId() : null
-                    ));
+
+                $isCourseSystem = ($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))
+                    || ($tblGroup && $tblGroup->getIsGroupCourseSystem());
+
+                if ($isCourseSystem) {
+                    $printLink = null;
+                } else {
+                    $printLink = new Link((new Thumbnail(
+                        FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
+                        $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'))->setPictureHeight(),
+                        '/Api/Document/Standard/ClassRegister/Create', null, array(
+                            'DivisionId' => $DivisionId,
+                            'GroupId' => $GroupId,
+                            'YearId' => $tblYear ? $tblYear->getId() : null
+                        ));
+                }
             }
 
             $stage->setContent(

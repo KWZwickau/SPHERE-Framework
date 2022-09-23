@@ -306,8 +306,16 @@ class Service extends AbstractService
         $DivisionId = $tblDivision ? $tblDivision->getId() : null;
         $GroupId = $tblGroup ? $tblGroup->getId() : null;
 
-        $buttonList[] = $this->getButton('Klassentagebuch', '/Education/ClassRegister/Digital/LessonContent', new Book(),
-            $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonContent');
+        $isCourseSystem = ($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))
+            || ($tblGroup && $tblGroup->getIsGroupCourseSystem());
+
+        if ($isCourseSystem) {
+            $buttonList[] = $this->getButton('Kursheft auswählen', '/Education/ClassRegister/Digital/SelectCourse', new Book(),
+                $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/SelectCourse');
+        } else {
+            $buttonList[] = $this->getButton('Klassentagebuch', '/Education/ClassRegister/Digital/LessonContent', new Book(),
+                $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonContent');
+        }
 
         // Klassentagebuch Kontrolle: nur für Klassenlehrer, Tudor oder Schulleitung
         if (($tblPerson = Account::useService()->getPersonByLogin())
@@ -319,9 +327,7 @@ class Service extends AbstractService
             )
         ) {
             // Klassentagebuch Kontrolle: nicht bei Kurssystemen
-            if (!($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))
-                && !($tblGroup && $tblGroup->getIsGroupCourseSystem())
-            ) {
+            if (!$isCourseSystem) {
                 $buttonList[] = $this->getButton('Klassentagebuch Kontrolle', '/Education/ClassRegister/Digital/LessonWeek', new Ok(),
                     $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonWeek');
             }
@@ -336,8 +342,11 @@ class Service extends AbstractService
                 new Calendar(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
         }
 
-        $buttonList[] = $this->getButton('Belehrungen', '/Education/ClassRegister/Digital/Instruction',
-            new CommodityItem(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Instruction');
+        // Belehrungen: nicht bei Kurssystemen → Belehrungen direkt im Kursheft
+        if (!$isCourseSystem) {
+            $buttonList[] = $this->getButton('Belehrungen', '/Education/ClassRegister/Digital/Instruction',
+                new CommodityItem(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Instruction');
+        }
         $buttonList[] = $this->getButton('Unterrichtete Fächer / Lehrer', '/Education/ClassRegister/Digital/Lectureship',
             new Listing(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
         $buttonList[] = $this->getButton('Ferien', '/Education/ClassRegister/Digital/Holiday',
