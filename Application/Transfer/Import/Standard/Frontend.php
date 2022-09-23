@@ -10,6 +10,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -17,8 +18,11 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Window\Navigation\Link\Icon;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -47,6 +51,10 @@ class Frontend extends Extension implements IFrontendInterface
                 '/Transfer/Import',
                 new ChevronLeft()
             )
+        );
+        $Stage->addButton(
+            new External('Importvorlage', '/Api/Transfer/Standard/DownloadTemplateStudent',
+                new Download(), array(), false)
         );
 
         $Now = new DateTime();
@@ -77,10 +85,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         new FormColumn(
                                             new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
                                                 array('showPreview' => false))
-                                        , 8),
+                                            , 8),
                                         new FormColumn(
                                             new SelectBox('Data[Year]', 'Für welches Schuljahr gilt der Import', $YearList, null, false)
-                                        , 4)
+                                            , 4)
                                     ))), new Primary('Hochladen'))
                                     , $File, $Data
                                 )
@@ -113,6 +121,10 @@ class Frontend extends Extension implements IFrontendInterface
                 new ChevronLeft()
             )
         );
+            $Stage->addButton(
+                new External('Importvorlage', '/Api/Transfer/Standard/DownloadTemplateInteressent',
+                    new Download(), array(), false)
+            );
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -154,6 +166,10 @@ class Frontend extends Extension implements IFrontendInterface
                 '/Transfer/Import',
                 new ChevronLeft()
             )
+        );
+        $Stage->addButton(
+            new External('Importvorlage', '/Api/Billing/Inventory/DownloadTemplateTeacher',
+                new Download(), array(), false)
         );
         $Stage->setContent(
             new Layout(
@@ -197,6 +213,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new ChevronLeft()
             )
         );
+        $Stage->addButton(
+            new External('Importvorlage', '/Api/Billing/Inventory/DownloadTemplateSchool',
+            new Download(), array(), false)
+        );
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
