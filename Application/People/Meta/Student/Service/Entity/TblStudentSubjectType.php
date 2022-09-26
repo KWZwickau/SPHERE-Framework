@@ -18,6 +18,16 @@ class TblStudentSubjectType extends Element
     const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_NAME = 'Name';
 
+    const TYPE_ORIENTATION = 'ORIENTATION';
+    const TYPE_ADVANCED = 'ADVANCED';
+    const TYPE_PROFILE = 'PROFILE';
+    const TYPE_RELIGION = 'RELIGION';
+    const TYPE_FOREIGN_LANGUAGE = 'FOREIGN_LANGUAGE';
+    const TYPE_ELECTIVE = 'ELECTIVE';
+    const TYPE_TEAM = 'TEAM';
+    const TYPE_TRACK_INTENSIVE = 'TRACK_INTENSIVE';
+    const TYPE_TRACK_BASIC = 'TRACK_BASIC';
+
     /**
      * @Column(type="string")
      */

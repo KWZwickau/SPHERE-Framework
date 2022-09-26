@@ -127,22 +127,26 @@ class FrontendStudent extends FrontendReadOnly
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
             if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
-                $routeEnrollmentDocument = '\Document\Custom\Hoga\EnrollmentDocument\Fill';
+                $routeEnrollmentDocument = '/Document/Custom/Hoga/EnrollmentDocument/Fill';
             } else {
-                $routeEnrollmentDocument = '\Document\Standard\EnrollmentDocument\Fill';
+                $routeEnrollmentDocument = '/Document/Standard/EnrollmentDocument/Fill';
             }
 
             $hasApiRight = Access::useService()->hasAuthorization('/Api/Document/Standard/StudentCard/Create');
             if ($hasApiRight && $tblPerson != null) {
-                $listingContent[] = new External(
-                        'Herunterladen der Schülerkartei', 'SPHERE\Application\Api\Document\Standard\StudentCard\Create',
+                $listingContent[] =
+                    new External(
+                        'Herunterladen der Schülerkartei', '/Api/Document/Standard/StudentCardNew/Create',
+                        new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen')
+                    .new External(
+                        'Schülerkartei (alt)', '/Api/Document/Standard/StudentCard/Create',
                         new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen')
                     .new External(
                         'Erstellen der Schulbescheinigung', $routeEnrollmentDocument,
                         new Download(), array('PersonId' => $tblPerson->getId()),
                         'Erstellen und Herunterladen einer Schulbescheinigung')
                     .new External(
-                        'Erstellen der Schülerüberweisung', '\Document\Standard\StudentTransfer\Fill',
+                        'Erstellen der Schülerüberweisung', '/Document/Standard/StudentTransfer/Fill',
                         new Download(), array('Id' => $tblPerson->getId()),
                         'Erstellen und Herunterladen einer Schülerüberweisung ');
             }
