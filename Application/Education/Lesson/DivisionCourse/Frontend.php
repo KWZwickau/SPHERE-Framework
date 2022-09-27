@@ -5,7 +5,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourse;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Frontend\FrontendStudent;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Frontend\FrontendTeacher;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -34,7 +34,6 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -52,7 +51,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 
-class Frontend extends FrontendStudent implements IFrontendInterface
+class Frontend extends FrontendTeacher
 {
     /**
      * @param null $Filter

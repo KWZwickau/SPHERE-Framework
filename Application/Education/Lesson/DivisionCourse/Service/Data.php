@@ -15,7 +15,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Extension\Extension;
 
-class Data extends MigrateData
+class Data extends DataTeacher
 {
     public function setupDatabaseContent()
     {

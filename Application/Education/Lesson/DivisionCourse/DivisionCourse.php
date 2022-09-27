@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Blackboard;
+use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
@@ -15,6 +16,9 @@ class DivisionCourse implements IModuleInterface
     {
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Kurs'), new Link\Icon(new Blackboard()))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route('SPHERE\Application\Education\Lesson\TeacherLectureship'), new Link\Name('Lehrauftrag'), new Link\Icon(new Education()))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -37,6 +41,10 @@ class DivisionCourse implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Member/Sort', __NAMESPACE__.'\Frontend::frontendMemberSort'
+        ));
+
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            'SPHERE/Application/Education/Lesson/TeacherLectureship', __NAMESPACE__.'\Frontend::frontendTeacherLectureship'
         ));
     }
 

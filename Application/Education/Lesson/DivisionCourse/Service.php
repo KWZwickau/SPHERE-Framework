@@ -33,11 +33,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
-use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
-class Service extends AbstractService
+class Service extends ServiceTeacher
 {
     /**
      * @param bool $doSimulation
