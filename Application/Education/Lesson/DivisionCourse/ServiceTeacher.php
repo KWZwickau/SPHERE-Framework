@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -14,12 +15,13 @@ abstract class ServiceTeacher extends AbstractService
     /**
      * @param TblYear|null $tblYear
      * @param TblPerson|null $tblTeacher
+     * @param TblDivisionCourse|null $tblDivisionCourse
      * @param TblSubject|null $tblSubject
      *
      * @return false|TblTeacherLectureship[]
      */
-    public function getTeacherLectureshipListBy(TblYear $tblYear = null, TblPerson $tblTeacher = null, TblSubject $tblSubject = null)
+    public function getTeacherLectureshipListBy(TblYear $tblYear = null, TblPerson $tblTeacher = null, TblDivisionCourse $tblDivisionCourse = null, TblSubject $tblSubject = null)
     {
-        return (new Data($this->getBinding()))->getTeacherLectureshipListBy($tblYear, $tblTeacher, $tblSubject);
+        return (new Data($this->getBinding()))->getTeacherLectureshipListBy($tblYear, $tblTeacher, $tblDivisionCourse, $tblSubject);
     }
 }

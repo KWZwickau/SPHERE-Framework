@@ -213,6 +213,7 @@ abstract class MigrateData extends AbstractData
                                             && ($tblSubjectGroup = $groupItem->getTblSubjectGroup())
                                         ) {
                                             foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                                // todo fachgruppe
                                                 $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
                                                     $tblSubjectStudent, $tblYear, $tblSubject, $groupItem->getHasGrading(), $tblSubjectGroup->isAdvancedCourse()
                                                 ));
@@ -223,7 +224,7 @@ abstract class MigrateData extends AbstractData
                                                 foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
                                                     if (($tblTeacherPerson = $tblSubjectTeacher->getServiceTblPerson())) {
                                                         $Manager->bulkSaveEntity(TblTeacherLectureship::withParameter(
-                                                            $tblTeacherPerson, $tblYear, $tblDivision, $tblSubject
+                                                            $tblTeacherPerson, $tblYear, $tblDivisionCourse, $tblSubject, $tblSubjectGroup->getName()
                                                         ));
                                                     }
                                                 }
@@ -245,7 +246,7 @@ abstract class MigrateData extends AbstractData
                                 if (($tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))) {
                                     foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
                                         if (($tblTeacherPerson = $tblSubjectTeacher->getServiceTblPerson())) {
-                                            $Manager->bulkSaveEntity(TblTeacherLectureship::withParameter($tblTeacherPerson, $tblYear, $tblDivision, $tblSubject));
+                                            $Manager->bulkSaveEntity(TblTeacherLectureship::withParameter($tblTeacherPerson, $tblYear, $tblDivisionCourse, $tblSubject));
                                         }
                                     }
                                 }

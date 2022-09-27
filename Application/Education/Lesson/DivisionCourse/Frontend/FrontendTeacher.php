@@ -5,12 +5,12 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse\Frontend;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiTeacherLectureship;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -54,43 +54,72 @@ class FrontendTeacher extends FrontendStudent
         $tblTeacherFilter = Person::useService()->getPersonById($Filter['Teacher']);
 
         $tblTeacherLectureshipList = array();
-        if (isset($Filter['Year']) && $Filter['Year'] == -1) {
+        // Name like
+        if (isset($Filter['CourseName']) && $Filter['CourseName'] != '') {
+            if (isset($Filter['Year']) && $Filter['Year'] == -1) {
+                $tblYearList = Term::useService()->getYearByNow();
+                $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($Filter['CourseName'], $tblYearList ?: null);
+            } elseif (isset($Filter['Year']) && ($tblYear = Term::useService()->getYearById($Filter['Year']))) {
+                $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($Filter['CourseName'], array($tblYear));
+            } else {
+                $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($Filter['CourseName']);
+            }
+
+            if ($tblDivisionCourseList) {
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    if (($tblTeacherLectureshipDivisionCourseList = DivisionCourse::useService()->getTeacherLectureshipListBy(
+                        null, $tblTeacherFilter ?: null, $tblDivisionCourse, $tblSubjectFilter ?: null
+                    ))) {
+                        $tblTeacherLectureshipList = array_merge($tblTeacherLectureshipDivisionCourseList, $tblTeacherLectureshipList);
+                    }
+                }
+            }
+        } elseif (isset($Filter['Year']) && $Filter['Year'] == -1) {
             if (($tblYearList = Term::useService()->getYearByNow())) {
                 foreach ($tblYearList as $tblYearItem) {
-                    if (($tblTeacherLectureshipYearList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYearItem, $tblTeacherFilter ?: null, $tblSubjectFilter ?: null))) {
+                    if (($tblTeacherLectureshipYearList = DivisionCourse::useService()->getTeacherLectureshipListBy(
+                        $tblYearItem, $tblTeacherFilter ?: null, null, $tblSubjectFilter ?: null
+                    ))) {
                         $tblTeacherLectureshipList = array_merge($tblTeacherLectureshipYearList, $tblTeacherLectureshipList);
                     }
                 }
             }
             // ausgewähltes Schuljahr
         } elseif (isset($Filter['Year']) && ($tblYearFilter = Term::useService()->getYearById($Filter['Year']))) {
-            $tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYearFilter, $tblTeacherFilter ?: null, $tblSubjectFilter ?: null);
+            $tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(
+                $tblYearFilter, $tblTeacherFilter ?: null, null, $tblSubjectFilter ?: null
+            );
         } else {
             // alle Schuljahre
-            $tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(null, $tblTeacherFilter ?: null, $tblSubjectFilter ?: null);
+            $tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(
+                null, $tblTeacherFilter ?: null, null, $tblSubjectFilter ?: null
+            );
         }
 
         if ($tblTeacherLectureshipList) {
             $dataList = array();
-            /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
                 if (($tblPerson = $tblTeacherLectureship->getServiceTblPerson())
                     && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
                     && ($tblYear = $tblTeacherLectureship->getServiceTblYear())
-
+                    && ($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
                 ) {
                     $dataList[] = array(
                         'Year' => $tblYear->getDisplayName(),
                         'Name' => $tblPerson->getFullName(),
-                        'Subject' => $tblSubject->getDisplayName()
+                        'DivisionCourse' => $tblDivisionCourse->getName(),
+                        'Subject' => $tblSubject->getDisplayName(),
+                        'GroupName' => $tblTeacherLectureship->getGroupName()
                     );
                 }
             }
 
             $columns = array(
                 'Year' => 'Schuljahr',
-                'Name' => 'Name',
+                'Name' => 'Lehrer',
+                'DivisionCourse' => 'Kurs',
                 'Subject' => 'Fach',
+                'GroupName' => 'Gruppe'
             );
             $columns['Option'] = '&nbsp;';
 
@@ -140,15 +169,19 @@ class FrontendTeacher extends FrontendStudent
                 new FormColumn(
                     (new SelectBox('Filter[Year]', 'Schuljahr', array('{{ Name }} {{ Description }}' => $tblYearAll)))
                         ->ajaxPipelineOnChange(ApiTeacherLectureship::pipelineLoadTeacherLectureshipContent())
-                    , 4),
-                new FormColumn(
-                    (new SelectBox('Filter[Subject]', 'Fach', array('{{ Name }}' => $tblSubjectAll)))
-                        ->ajaxPipelineOnChange(ApiTeacherLectureship::pipelineLoadTeacherLectureshipContent())
-                    , 4),
+                    , 3),
                 new FormColumn(
                     (new SelectBox('Filter[Teacher]', 'Lehrer', array('{{ FullName }}' => $tblTeacherList)))
                         ->ajaxPipelineOnChange(ApiTeacherLectureship::pipelineLoadTeacherLectureshipContent())
-                    , 4),
+                    , 3),
+                new FormColumn(
+                    (new TextField('Filter[CourseName]', '', 'Kursname'))
+                        ->ajaxPipelineOnKeyUp(ApiTeacherLectureship::pipelineLoadTeacherLectureshipContent())
+                    , 3),
+                new FormColumn(
+                    (new SelectBox('Filter[Subject]', 'Fach', array('{{ Acronym }}-{{ Name }}' => $tblSubjectAll)))
+                        ->ajaxPipelineOnChange(ApiTeacherLectureship::pipelineLoadTeacherLectureshipContent())
+                    , 3)
             ))
         )));
     }

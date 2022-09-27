@@ -276,7 +276,7 @@ class Frontend extends FrontendTeacher
                         ->ajaxPipelineOnChange(ApiDivisionCourse::pipelineLoadDivisionCourseContent())
                     , 4),
                 new FormColumn(
-                    (new TextField('Filter[CourseName]', '7a', 'Kursname'))
+                    (new TextField('Filter[CourseName]', '', 'Kursname'))
                         ->ajaxPipelineOnKeyUp(ApiDivisionCourse::pipelineLoadDivisionCourseContent())
                     , 4)
             )),

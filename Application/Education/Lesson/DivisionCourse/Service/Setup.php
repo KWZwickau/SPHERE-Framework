@@ -25,7 +25,7 @@ class Setup extends AbstractSetup
         $this->setTableDivisionCourseLink($Schema, $tblDivisionCourse);
         $tblMemberType = $this->setTableDivisionCourseMemberType($Schema);
         $this->setTableDivisionCourseMember($Schema, $tblDivisionCourse, $tblMemberType);
-        $this->setTableTeacherLectureship($Schema);
+        $this->setTableTeacherLectureship($Schema, $tblDivisionCourse);
         $this->setTableStudentSubject($Schema);
         $this->setTableStudentEducation($Schema);
 
@@ -114,22 +114,27 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     * @param $tblDivisionCourse
      */
-    private function setTableTeacherLectureship(Schema &$Schema)
+    private function setTableTeacherLectureship(Schema &$Schema, $tblDivisionCourse)
     {
         $table = $this->getConnection()->createTable($Schema, 'tblLessonTeacherLectureship');
 
         $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'GroupName', self::FIELD_TYPE_STRING);
+
 
         // bei Foreign-Key kann kein Spaltenname angegeben werden
-        $this->createColumn($table, 'tblDivision', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($table, 'tblCoreGroup', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($table, 'tblTeachingGroup', self::FIELD_TYPE_BIGINT, true);
+//        $this->createColumn($table, 'tblDivision', self::FIELD_TYPE_BIGINT, true);
+//        $this->createColumn($table, 'tblCoreGroup', self::FIELD_TYPE_BIGINT, true);
+//        $this->createColumn($table, 'tblTeachingGroup', self::FIELD_TYPE_BIGINT, true);
 
         $this->createColumn($table, 'FromDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($table, 'ToDate', self::FIELD_TYPE_DATETIME, true);
+
+        $this->createForeignKey($table, $tblDivisionCourse);
 
 //        $this->createIndex($table, array(TblTeacherLectureship::ATTR_SERVICE_TBL_PERSON, TblTeacherLectureship::ATTR_SERVICE_TBL_YEAR));
     }

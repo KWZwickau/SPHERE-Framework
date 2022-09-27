@@ -7,7 +7,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -27,6 +26,7 @@ class TblTeacherLectureship extends Element
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const ATTR_TBL_DIVISION_COURSE = 'tblLessonDivisionCourse';
 
     /**
      * @Column(type="bigint")
@@ -46,17 +46,22 @@ class TblTeacherLectureship extends Element
     /**
      * @Column(type="bigint")
      */
-    protected ?int $tblDivision = null;
+    protected int $tblLessonDivisionCourse;
 
     /**
-     * @Column(type="bigint")
+     * @Column(type="string")
      */
-    protected ?int $tblCoreGroup = null;
+    protected string $GroupName = '';
 
-    /**
-     * @Column(type="bigint")
-     */
-    protected ?int $tblTeachingGroup = null;
+//    /**
+//     * @Column(type="bigint")
+//     */
+//    protected ?int $tblCoreGroup = null;
+//
+//    /**
+//     * @Column(type="bigint")
+//     */
+//    protected ?int $tblTeachingGroup = null;
 
     /**
      * @Column(type="datetime")
@@ -71,19 +76,22 @@ class TblTeacherLectureship extends Element
     /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param TblSubject $tblSubject
+     * @param string $groupName
      *
      * @return TblTeacherLectureship
      */
-    public static function withParameter(TblPerson $tblPerson, TblYear $tblYear, TblDivision $tblDivision, TblSubject $tblSubject): TblTeacherLectureship
+    public static function withParameter(TblPerson $tblPerson, TblYear $tblYear, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject,
+        string $groupName = ''): TblTeacherLectureship
     {
         $instance = new self();
 
         $instance->serviceTblPerson = $tblPerson->getId();
         $instance->serviceTblYear = $tblYear->getId();
-        $instance->tblDivision = $tblDivision->getId();
+        $instance->tblLessonDivisionCourse = $tblDivisionCourse->getId();
         $instance->serviceTblSubject = $tblSubject->getId();
+        $instance->setGroupName($groupName);
 
         return  $instance;
     }
@@ -141,50 +149,66 @@ class TblTeacherLectureship extends Element
     /**
      * @return false|TblDivisionCourse
      */
-    public function getTblDivision()
+    public function getTblDivisionCourse()
     {
-        return $this->tblDivision ? DivisionCourse::useService()->getDivisionCourseById($this->tblDivision) : false;
+        return $this->tblLessonDivisionCourse ? DivisionCourse::useService()->getDivisionCourseById($this->tblLessonDivisionCourse) : false;
     }
 
     /**
-     * @param ?TblDivisionCourse $tblDivision
+     * @param ?TblDivisionCourse $tblDivisionCourse
      */
-    public function setTblDivision(?TblDivisionCourse $tblDivision): void
+    public function setTblDivisionCourse(?TblDivisionCourse $tblDivisionCourse): void
     {
-        $this->tblDivision = $tblDivision ? $tblDivision->getId() : null;
+        $this->tblLessonDivisionCourse = $tblDivisionCourse ? $tblDivisionCourse->getId() : null;
     }
 
     /**
-     * @return false|TblDivisionCourse
+     * @return string
      */
-    public function getTblCoreGroup()
+    public function getGroupName(): string
     {
-        return $this->tblCoreGroup ? DivisionCourse::useService()->getDivisionCourseById($this->tblCoreGroup) : false;
+        return $this->GroupName;
     }
 
     /**
-     * @param ?TblDivisionCourse $tblCoreGroup
+     * @param string $GroupName
      */
-    public function setTblCoreGroup(?TblDivisionCourse $tblCoreGroup): void
+    public function setGroupName(string $GroupName): void
     {
-        $this->tblCoreGroup = $tblCoreGroup ? $tblCoreGroup->getId() : null;
+        $this->GroupName = $GroupName;
     }
 
-    /**
-     * @return false|TblDivisionCourse
-     */
-    public function getTblTeachingGroup()
-    {
-        return $this->tblTeachingGroup ? DivisionCourse::useService()->getDivisionCourseById($this->tblTeachingGroup) : false;
-    }
-
-    /**
-     * @param ?TblDivisionCourse $tblTeachingGroup
-     */
-    public function setTblTeachingGroup(?TblDivisionCourse $tblTeachingGroup): void
-    {
-        $this->tblTeachingGroup = $tblTeachingGroup ? $tblTeachingGroup->getId() : null;
-    }
+//    /**
+//     * @return false|TblDivisionCourse
+//     */
+//    public function getTblCoreGroup()
+//    {
+//        return $this->tblCoreGroup ? DivisionCourse::useService()->getDivisionCourseById($this->tblCoreGroup) : false;
+//    }
+//
+//    /**
+//     * @param ?TblDivisionCourse $tblCoreGroup
+//     */
+//    public function setTblCoreGroup(?TblDivisionCourse $tblCoreGroup): void
+//    {
+//        $this->tblCoreGroup = $tblCoreGroup ? $tblCoreGroup->getId() : null;
+//    }
+//
+//    /**
+//     * @return false|TblDivisionCourse
+//     */
+//    public function getTblTeachingGroup()
+//    {
+//        return $this->tblTeachingGroup ? DivisionCourse::useService()->getDivisionCourseById($this->tblTeachingGroup) : false;
+//    }
+//
+//    /**
+//     * @param ?TblDivisionCourse $tblTeachingGroup
+//     */
+//    public function setTblTeachingGroup(?TblDivisionCourse $tblTeachingGroup): void
+//    {
+//        $this->tblTeachingGroup = $tblTeachingGroup ? $tblTeachingGroup->getId() : null;
+//    }
 
     /**
      * @return string
