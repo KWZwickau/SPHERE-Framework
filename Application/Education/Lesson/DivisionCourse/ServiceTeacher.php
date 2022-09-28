@@ -13,6 +13,16 @@ use SPHERE\System\Database\Binding\AbstractService;
 abstract class ServiceTeacher extends AbstractService
 {
     /**
+     * @param $Id
+     *
+     * @return false|TblTeacherLectureship
+     */
+    public function getTeacherLectureshipById($Id)
+    {
+        return (new Data($this->getBinding()))->getTeacherLectureshipById($Id);
+    }
+
+    /**
      * @param TblYear|null $tblYear
      * @param TblPerson|null $tblTeacher
      * @param TblDivisionCourse|null $tblDivisionCourse

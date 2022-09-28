@@ -15,8 +15,12 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 
@@ -46,9 +50,8 @@ class FrontendTeacher extends FrontendStudent
      */
     public function loadTeacherLectureshipTable($Filter = null): string
     {
-        $addLink = '';
-//        $addLink = (new Primary('Kurs hinzufügen', ApiDivisionCourse::getEndpoint(), new Plus()))
-//            ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenCreateDivisionCourseModal($Filter));
+        $addLink = (new Primary('Lehrauftrag hinzufügen', ApiTeacherLectureship::getEndpoint(), new Plus()))
+            ->ajaxPipelineOnClick(ApiTeacherLectureship::pipelineOpenCreateTeacherLectureshipModal($Filter));
 
         $tblSubjectFilter = Subject::useService()->getSubjectById($Filter['Subject']);
         $tblTeacherFilter = Person::useService()->getPersonById($Filter['Teacher']);
@@ -184,5 +187,91 @@ class FrontendTeacher extends FrontendStudent
                     , 3)
             ))
         )));
+    }
+
+    /**
+     * @param null $TeacherLectureshipId
+     * @param null $Filter
+     * @param bool $setPost
+     *
+     * @return Form
+     */
+    public function formTeacherLectureship($TeacherLectureshipId = null,$Filter = null, bool $setPost = false): Form
+    {
+        // beim Checken der Input-Felder darf der Post nicht gesetzt werden
+        $tblTeacherLectureship = DivisionCourse::useService()->getTeacherLectureshipById($TeacherLectureshipId);
+        if ($setPost && $tblTeacherLectureship) {
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['DivisionCourse'] = ($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse()) ? $tblDivisionCourse->getId() : null;
+            $Global->POST['Data']['Subject'] = ($tblSubject = $tblTeacherLectureship->getServiceTblSubject()) ? $tblSubject->getId() : null;
+            $Global->POST['Data']['GroupName'] = $tblTeacherLectureship->getGroupName();
+            $Global->savePost();
+        } elseif ($setPost && !$tblTeacherLectureship && ($tblYearByNowList = Term::useService()->getYearByNow())) {
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['Year'] = (current($tblYearByNowList))->getId();
+            $Global->savePost();
+        }
+
+        if ($TeacherLectureshipId) {
+            $saveButton = (new Primary('Speichern', ApiTeacherLectureship::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiTeacherLectureship::pipelineEditTeacherLectureshipSave($TeacherLectureshipId, $Filter));
+        } else {
+            $saveButton = (new Primary('Speichern', ApiTeacherLectureship::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiTeacherLectureship::pipelineCreateTeacherLectureshipSave($Filter));
+        }
+        $buttonList[] = $saveButton;
+
+        $tblYearAll = Term::useService()->getYearAllSinceYears(0);
+
+        return (new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn($tblTeacherLectureship
+                        ? new Panel('Schuljahr', $tblTeacherLectureship->getYearName(), Panel::PANEL_TYPE_INFO)
+                        : (new SelectBox('Data[Year]', 'Schuljahr', array('{{ Name }} {{ Description }}' => $tblYearAll), new Education()))
+                            ->setRequired()
+                            ->ajaxPipelineOnChange(ApiTeacherLectureship::pipelineLoadDivisionCoursesSelectBox())
+                        , 6),
+                    new FormColumn($tblTeacherLectureship
+                        ? new Panel('Lehrer', $tblTeacherLectureship->getTeacherName(), Panel::PANEL_TYPE_INFO)
+                        : (new SelectBox('Data[Teacher]', 'Lehrer', array('{{ FullName }}'
+                            => Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('TEACHER')))))->setRequired()
+                        , 6)
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        ApiTeacherLectureship::receiverBlock('', 'DivisionCoursesSelectBox')
+                        , 6),
+                    new FormColumn(
+                        (new SelectBox('Data[Subject]', 'Fach', array('{{ DisplayName }}' => Subject::useService()->getSubjectAll())))->setRequired()
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new TextField('Data[GroupName]', '', 'Fachgruppe'))
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        $buttonList
+                    )
+                )),
+            ))
+        ))->disableSubmitAction();
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return SelectBox
+     */
+    public function loadDivisionCoursesSelectBox($Data): ?SelectBox
+    {
+        $tblDivisionCourseDivisionList = false;
+        if (isset($Data['Year']) && ($tblYear = Term::useService()->getYearById($Data['Year']))) {
+            $tblDivisionCourseDivisionList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear);
+        }
+
+        return (new SelectBox('Data[DivisionCourse]', 'Kurs', array('Name' => $tblDivisionCourseDivisionList)))->setRequired();
     }
 }

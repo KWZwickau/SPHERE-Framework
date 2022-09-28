@@ -257,4 +257,28 @@ class TblTeacherLectureship extends Element
     {
         return $this->ToDate;
     }
+
+    /**
+     * @return string
+     */
+    public function getYearName(): string
+    {
+        if (($tblYear = $this->getServiceTblYear())) {
+            return $tblYear->getDisplayName();
+        }
+
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getTeacherName(): string
+    {
+        if (($tblPerson = $this->getServiceTblPerson())) {
+            return $tblPerson->getFullName();
+        }
+
+        return '';
+    }
 }

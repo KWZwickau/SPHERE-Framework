@@ -11,6 +11,16 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 abstract class DataTeacher extends MigrateData
 {
     /**
+     * @param $Id
+     *
+     * @return false|TblTeacherLectureship
+     */
+    public function getTeacherLectureshipById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblTeacherLectureship', $Id);
+    }
+
+    /**
      * @param TblYear|null $tblYear
      * @param TblPerson|null $tblTeacher
      * @param TblDivisionCourse|null $tblDivisionCourse
