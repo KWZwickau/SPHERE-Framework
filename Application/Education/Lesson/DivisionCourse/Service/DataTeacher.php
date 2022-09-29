@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacher
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\System\Protocol\Protocol;
 
 abstract class DataTeacher extends MigrateData
 {
@@ -22,20 +23,20 @@ abstract class DataTeacher extends MigrateData
 
     /**
      * @param TblYear|null $tblYear
-     * @param TblPerson|null $tblTeacher
+     * @param TblPerson|null $tblPerson
      * @param TblDivisionCourse|null $tblDivisionCourse
      * @param TblSubject|null $tblSubject
      *
      * @return false|TblTeacherLectureship[]
      */
-    public function getTeacherLectureshipListBy(TblYear $tblYear = null, TblPerson $tblTeacher = null, TblDivisionCourse $tblDivisionCourse = null, TblSubject $tblSubject = null)
+    public function getTeacherLectureshipListBy(TblYear $tblYear = null, TblPerson $tblPerson = null, TblDivisionCourse $tblDivisionCourse = null, TblSubject $tblSubject = null)
     {
         $parameterList = array();
         if ($tblYear) {
             $parameterList[TblTeacherLectureship::ATTR_SERVICE_TBL_YEAR] = $tblYear->getId();
         }
-        if ($tblTeacher) {
-            $parameterList[TblTeacherLectureship::ATTR_SERVICE_TBL_PERSON] = $tblTeacher->getId();
+        if ($tblPerson) {
+            $parameterList[TblTeacherLectureship::ATTR_SERVICE_TBL_PERSON] = $tblPerson->getId();
         }
         if ($tblDivisionCourse) {
             $parameterList[TblTeacherLectureship::ATTR_TBL_DIVISION_COURSE] = $tblDivisionCourse->getId();
@@ -49,5 +50,56 @@ abstract class DataTeacher extends MigrateData
         } else {
             return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblTeacherLectureship');
         }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     * @param string $groupName
+     *
+     * @return TblTeacherLectureship
+     */
+    public function createTeacherLectureship(TblPerson $tblPerson, TblYear $tblYear, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject,
+        string $groupName = ''): TblTeacherLectureship
+    {
+        $Manager = $this->getConnection()->getEntityManager(false);
+        $Entity = $Manager->getEntity('TblTeacherLectureship')->findOneBy(array(
+            TblTeacherLectureship::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblTeacherLectureship::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
+            TblTeacherLectureship::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+            TblTeacherLectureship::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+            TblTeacherLectureship::ATTR_GROUP_NAME => $groupName
+        ));
+
+        if (null === $Entity) {
+            $Entity = TblTeacherLectureship::withParameter($tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $groupName);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblTeacherLectureship $tblTeacherLectureship
+     *
+     * @return bool
+     */
+    public function destroyTeacherLectureship(TblTeacherLectureship $tblTeacherLectureship): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblTeacherLectureship $Entity */
+        $Entity = $Manager->getEntityById('TblTeacherLectureship', $tblTeacherLectureship->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

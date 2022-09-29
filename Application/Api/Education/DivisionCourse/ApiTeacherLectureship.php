@@ -5,26 +5,10 @@ namespace SPHERE\Application\Api\Education\DivisionCourse;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Frontend;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
-use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
-use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
-use SPHERE\Common\Frontend\Form\Repository\Button\Close;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
-use SPHERE\Common\Frontend\Layout\Structure\Layout;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Extension\Extension;
 
 class ApiTeacherLectureship  extends Extension implements IApiInterface
@@ -40,21 +24,10 @@ class ApiTeacherLectureship  extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('loadTeacherLectureshipContent');
-        $Dispatcher->registerMethod('loadDivisionCoursesSelectBox');
-        $Dispatcher->registerMethod('openCreateTeacherLectureshipModal');
-        $Dispatcher->registerMethod('saveCreateTeacherLectureshipModal');
-        $Dispatcher->registerMethod('openEditTeacherLectureshipModal');
-        $Dispatcher->registerMethod('saveEditTeacherLectureshipModal');
+        $Dispatcher->registerMethod('loadCheckCoursesContent');
+        $Dispatcher->registerMethod('saveTeacherLectureship');
 
         return $Dispatcher->callMethod($Method);
-    }
-
-    /**
-     * @return ModalReceiver
-     */
-    public static function receiverModal(): ModalReceiver
-    {
-        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalReceiver');
     }
 
     /**
@@ -66,17 +39,6 @@ class ApiTeacherLectureship  extends Extension implements IApiInterface
     public static function receiverBlock(string $Content = '', string $Identifier = ''): BlockReceiver
     {
         return (new BlockReceiver($Content))->setIdentifier($Identifier);
-    }
-
-    /**
-     * @return Pipeline
-     */
-    public static function pipelineClose(): Pipeline
-    {
-        $Pipeline = new Pipeline();
-        $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
-
-        return $Pipeline;
     }
 
     /**
@@ -111,47 +73,56 @@ class ApiTeacherLectureship  extends Extension implements IApiInterface
     }
 
     /**
+     * @param null $Filter
+     * @param null $PersonId
+     *
      * @return Pipeline
      */
-    public static function pipelineLoadDivisionCoursesSelectBox(): Pipeline
+    public static function pipelineLoadCheckCoursesContent($Filter = null, $PersonId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DivisionCoursesSelectBox'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CheckCoursesContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'loadDivisionCoursesSelectBox',
+            self::API_TARGET => 'loadCheckCoursesContent',
         ));
-//        $ModalEmitter->setPostPayload(array(
-//            'Data' => $Data,
-//        ));
+        $ModalEmitter->setPostPayload(array(
+            'Filter' => $Filter,
+            'PersonId' => $PersonId,
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
     }
 
     /**
+     * @param null $Filter
+     * @param null $PersonId
      * @param null $Data
      *
-     * @return SelectBox|null
+     * @return string
      */
-    public function loadDivisionCoursesSelectBox($Data = null): ?SelectBox
+    public function loadCheckCoursesContent($Filter = null, $PersonId = null, $Data = null): string
     {
-        return (new Frontend())->loadDivisionCoursesSelectBox($Data);
+        return DivisionCourse::useFrontend()->loadCheckCoursesContent($Filter, $PersonId, $Data);
     }
 
     /**
-     * @param $Filter
+     * @param null $Filter
+     * @param null $PersonId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateTeacherLectureshipModal($Filter = null): Pipeline
+    public static function pipelineSaveTeacherLectureship($Filter = null, $PersonId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CheckCoursesContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openCreateTeacherLectureshipModal',
+            self::API_TARGET => 'saveTeacherLectureship',
         ));
         $ModalEmitter->setPostPayload(array(
-            'Filter' => $Filter
+            'Filter' => $Filter,
+            'PersonId' => $PersonId,
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -159,170 +130,14 @@ class ApiTeacherLectureship  extends Extension implements IApiInterface
     }
 
     /**
-     * @param $Filter
+     * @param null $Filter
+     * @param null $PersonId
+     * @param null $Data
      *
      * @return string
      */
-    public function openCreateTeacherLectureshipModal($Filter = null): string
+    public function saveTeacherLectureship($Filter = null, $PersonId = null, $Data = null): string
     {
-        return $this->getTeacherLectureshipModal(DivisionCourse::useFrontend()->formTeacherLectureship(null, $Filter, true));
-    }
-
-    /**
-     * @param $form
-     * @param string|null $TeacherLectureshipId
-     *
-     * @return string
-     */
-    private function getTeacherLectureshipModal($form, string $TeacherLectureshipId = null): string
-    {
-        if ($TeacherLectureshipId) {
-            $title = new Title(new Edit() . ' Lehrauftrag bearbeiten');
-        } else {
-            $title = new Title(new Plus() . ' Lehrauftrag hinzufügen');
-        }
-
-        return $title
-            . new Layout(array(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new Well(
-                                    $form
-                                )
-                            )
-                        )
-                    ))
-            );
-    }
-
-    /**
-     * @param null $Filter
-     *
-     * @return Pipeline
-     */
-    public static function pipelineCreateTeacherLectureshipSave($Filter = null): Pipeline
-    {
-        $Pipeline = new Pipeline();
-        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
-        $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveCreateTeacherLectureshipModal'
-        ));
-        $ModalEmitter->setPostPayload(array(
-            'Filter' => $Filter
-        ));
-        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
-        $Pipeline->appendEmitter($ModalEmitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param null $Filter
-     * @param array|null $Data
-     *
-     * @return string
-     */
-    public function saveCreateTeacherLectureshipModal($Filter = null, array $Data = null): string
-    {
-        if (($form = DivisionCourse::useService()->checkFormTeacherLectureship($Filter, $Data))) {
-            // display Errors on form
-            return $this->getTeacherLectureshipModal($form);
-        }
-
-        if (DivisionCourse::useService()->createTeacherLectureship($Data)) {
-            return new Success('Lehrauftrag wurde erfolgreich gespeichert.')
-                . self::pipelineLoadTeacherLectureshipContent($Filter)
-                . self::pipelineClose();
-        } else {
-            return new Danger('Lehrauftrag konnte nicht gespeichert werden.') . self::pipelineClose();
-        }
-    }
-
-    /**
-     * @param $TeacherLectureshipId
-     * @param $Filter
-     *
-     * @return Pipeline
-     */
-    public static function pipelineOpenEditTeacherLectureshipModal($TeacherLectureshipId, $Filter = null): Pipeline
-    {
-        $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
-        $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openEditTeacherLectureshipModal',
-        ));
-        $ModalEmitter->setPostPayload(array(
-            'TeacherLectureshipId' => $TeacherLectureshipId,
-            'Filter' => $Filter
-        ));
-        $Pipeline->appendEmitter($ModalEmitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param $TeacherLectureshipId
-     * @param null $Filter
-     *
-     * @return string
-     */
-    public function openEditTeacherLectureshipModal($TeacherLectureshipId, $Filter = null)
-    {
-        if (!($tblTeacherLectureship = DivisionCourse::useService()->getTeacherLectureshipById($TeacherLectureshipId))) {
-            return new Danger('Der Lehrauftrag wurde nicht gefunden', new Exclamation());
-        }
-
-        return $this->getTeacherLectureshipModal(DivisionCourse::useFrontend()->formTeacherLectureship($TeacherLectureshipId, $Filter, true), $TeacherLectureshipId);
-    }
-
-    /**
-     * @param $TeacherLectureshipId
-     * @param null $Filter
-     *
-     * @return Pipeline
-     */
-    public static function pipelineEditTeacherLectureshipSave($TeacherLectureshipId, $Filter = null): Pipeline
-    {
-        $Pipeline = new Pipeline();
-        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
-        $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveEditTeacherLectureshipModal'
-        ));
-        $ModalEmitter->setPostPayload(array(
-            'TeacherLectureshipId' => $TeacherLectureshipId,
-            'Filter' => $Filter
-        ));
-        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
-        $Pipeline->appendEmitter($ModalEmitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param $TeacherLectureshipId
-     * @param $Filter
-     * @param $Data
-     *
-     * @return Danger|string
-     */
-    public function saveEditTeacherLectureshipModal($TeacherLectureshipId, $Filter, $Data)
-    {
-        if (!($tblTeacherLectureship = DivisionCourse::useService()->getTeacherLectureshipById($TeacherLectureshipId))) {
-            return new Danger('Der Lehrauftrag wurde nicht gefunden', new Exclamation());
-        }
-
-        if (($form = DivisionCourse::useService()->checkFormTeacherLectureship($Filter, $Data, $tblTeacherLectureship))) {
-            // display Errors on form
-            return $this->getTeacherLectureshipModal($form, $TeacherLectureshipId);
-        }
-
-        if (DivisionCourse::useService()->updateTeacherLectureship($tblTeacherLectureship, $Data)) {
-            return new Success('Der Lehrauftrag wurde erfolgreich gespeichert.')
-                . self::pipelineLoadTeacherLectureshipContent($Filter)
-                . self::pipelineClose();
-        } else {
-            return new Danger('Der Lehrauftrag konnte nicht gespeichert werden.') . self::pipelineClose();
-        }
+        return DivisionCourse::useService()->createTeacherLectureship($Filter, $PersonId, $Data);
     }
 }

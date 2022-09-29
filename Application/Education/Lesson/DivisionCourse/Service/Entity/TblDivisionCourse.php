@@ -293,4 +293,14 @@ class TblDivisionCourse extends Element
     {
         return DivisionCourse::useService()->getCountInActiveStudentByDivisionCourse($this);
     }
+
+    /**
+     * Name (Beschreibung)
+     *
+     * @return string
+     */
+    public function getDisplayName(): string
+    {
+        return $this->getName() . (($description = $this->getDescription()) ? ' (' . $description . ')' : '');
+    }
 }

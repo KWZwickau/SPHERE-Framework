@@ -46,6 +46,9 @@ class DivisionCourse implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             'SPHERE/Application/Education/Lesson/TeacherLectureship', __NAMESPACE__.'\Frontend::frontendTeacherLectureship'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            'SPHERE/Application/Education/Lesson/TeacherLectureship/Edit', __NAMESPACE__.'\Frontend::frontendEditTeacherLectureship'
+        ));
     }
 
     /**

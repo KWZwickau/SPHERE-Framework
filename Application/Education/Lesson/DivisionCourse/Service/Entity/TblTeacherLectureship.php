@@ -27,6 +27,7 @@ class TblTeacherLectureship extends Element
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_TBL_DIVISION_COURSE = 'tblLessonDivisionCourse';
+    const ATTR_GROUP_NAME = 'GroupName';
 
     /**
      * @Column(type="bigint")
@@ -277,6 +278,23 @@ class TblTeacherLectureship extends Element
     {
         if (($tblPerson = $this->getServiceTblPerson())) {
             return $tblPerson->getFullName();
+        }
+
+        return '';
+    }
+
+    /**
+     * für Sortierung
+     *
+     * @return string
+     */
+    public function getSort(): string
+    {
+        if (($tblPerson = $this->getServiceTblPerson())
+            && ($tblSubject = $this->getServiceTblSubject())
+            && ($tblDivisionCourse = $this->getTblDivisionCourse())
+        ) {
+            return $tblPerson->getLastFirstName() . '_' . $tblSubject->getName() . '_' . $tblDivisionCourse->getName();
         }
 
         return '';
