@@ -9,7 +9,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
-abstract class DataTeacher extends MigrateData
+abstract class DataTeacher extends DataMigrate
 {
     /**
      * @param $Id

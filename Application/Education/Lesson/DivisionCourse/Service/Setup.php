@@ -131,8 +131,8 @@ class Setup extends AbstractSetup
 //        $this->createColumn($table, 'tblCoreGroup', self::FIELD_TYPE_BIGINT, true);
 //        $this->createColumn($table, 'tblTeachingGroup', self::FIELD_TYPE_BIGINT, true);
 
-        $this->createColumn($table, 'FromDate', self::FIELD_TYPE_DATETIME, true);
-        $this->createColumn($table, 'ToDate', self::FIELD_TYPE_DATETIME, true);
+//        $this->createColumn($table, 'FromDate', self::FIELD_TYPE_DATETIME, true);
+//        $this->createColumn($table, 'ToDate', self::FIELD_TYPE_DATETIME, true);
 
         $this->createForeignKey($table, $tblDivisionCourse);
 

@@ -22,6 +22,8 @@ class Data extends DataTeacher
         $this->createDivisionCourseType('Klasse', TblDivisionCourseType::TYPE_DIVISION);
         $this->createDivisionCourseType('Stammgruppe', TblDivisionCourseType::TYPE_CORE_GROUP);
         $this->createDivisionCourseType('Unterrichtsgruppe', TblDivisionCourseType::TYPE_TEACHING_GROUP);
+        $this->createDivisionCourseType('SekII-Leistungskurs', TblDivisionCourseType::TYPE_ADVANCED_COURSE);
+        $this->createDivisionCourseType('SekII-Grundkurs', TblDivisionCourseType::TYPE_BASIC_COURSE);
 
         $this->createDivisionCourseMemberType('Schüler', TblDivisionCourseMemberType::TYPE_STUDENT);
         $this->createDivisionCourseMemberType('Gruppenleiter', TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);

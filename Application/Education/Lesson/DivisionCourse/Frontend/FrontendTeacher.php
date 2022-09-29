@@ -5,6 +5,8 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse\Frontend;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiTeacherLectureship;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
@@ -357,16 +359,24 @@ class FrontendTeacher extends FrontendStudent
             foreach ($tblYearList as $tblYear) {
                 if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear))) {
                     $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('Name');
+                    /** @var TblDivisionCourse $tblDivisionCourse */
                     foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                        $dataList[$tblDivisionCourse->getType()->getId()][$tblDivisionCourse->getId()] =
-                            new CheckBox('Data[Courses][' . $tblDivisionCourse->getId() . ']', $tblDivisionCourse->getDisplayName(), 1);
+                        if (($tblType = $tblDivisionCourse->getType())) {
+                            if ($tblType->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE) {
+                                $typeId = -1;
+                            } else {
+                                $typeId = $tblType->getId();
+                            }
+
+                            $dataList[$typeId][$tblDivisionCourse->getId()] =
+                                new CheckBox('Data[Courses][' . $tblDivisionCourse->getId() . ']', $tblDivisionCourse->getDisplayName(), 1);
+                        }
                     }
                 }
             }
 
             $columnList = array();
             if (isset($dataList[$typeDivisionId])) {
-                // todo eventuell Klasse teilen bei hoher anzahl und noch platz
                 $columnList[] = new LayoutColumn(new Panel('Klasse', $dataList[$typeDivisionId], Panel::PANEL_TYPE_INFO), 3);
             }
             if (isset($dataList[$typeCoreGroupId])) {
@@ -375,7 +385,10 @@ class FrontendTeacher extends FrontendStudent
             if (isset($dataList[$typeTeachingGroupId])) {
                 $columnList[] = new LayoutColumn(new Panel('Unterrichtsgruppe', $dataList[$typeTeachingGroupId], Panel::PANEL_TYPE_INFO), 3);
             }
-            // todo Leistungskurse und Grundkurse als ein Panel
+            // Leistungskurse und Grundkurse als ein Panel
+            if (isset($dataList[-1])) {
+                $columnList[] = new LayoutColumn(new Panel('SekII-Kurs', $dataList[-1], Panel::PANEL_TYPE_INFO), 3);
+            }
 
             if ($columnList) {
                 return new Layout(new LayoutGroup(array(

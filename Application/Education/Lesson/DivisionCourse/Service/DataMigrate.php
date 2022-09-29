@@ -16,7 +16,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\System\Database\Binding\AbstractData;
 
-abstract class MigrateData extends AbstractData
+abstract class DataMigrate extends AbstractData
 {
     protected function migrateAll()
     {
@@ -42,7 +42,7 @@ abstract class MigrateData extends AbstractData
                     $description = '';
                     if ($tblDivision->getDescription()) {
                         $description = $tblDivision->getDescription();
-                    } elseif (($tblSchoolType = $tblDivision->getType())) {
+                    } elseif (($tblSchoolType = $tblDivision->getType()) && strtolower($tblSchoolType->getShortName()) != strtolower($tblDivision->getName())) {
                         $description = $tblSchoolType->getShortName();
                     }
                     $tblDivisionCourse = TblDivisionCourse::withParameterAndId($tblType, $tblYear, $tblDivision->getDisplayName(), $description,
@@ -106,6 +106,8 @@ abstract class MigrateData extends AbstractData
     private function migrateDivisionContent()
     {
         if (($tblDivisionList = Division::useService()->getDivisionAll())) {
+            $tblTypeAdvancedCourse = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_ADVANCED_COURSE);
+            $tblTypeBasicCourse = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_BASIC_COURSE);
             $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('Id');
             $Manager = $this->getEntityManager();
             /** @var TblDivision $tblDivision */
@@ -200,6 +202,7 @@ abstract class MigrateData extends AbstractData
                      * Fächer den Schülern und Lehraufträge den Lehrer zuordnen - TblDivisionSubject, TblSubjectGroup, TblSubjectStudent, TblSubjectTeacher
                      */
                     $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                    $isCourseSystem = Division::useService()->getIsDivisionCourseSystem($tblDivision);
                     if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false))) {
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                             if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
@@ -212,8 +215,23 @@ abstract class MigrateData extends AbstractData
                                         if (($tblSubjectStudentList = Division::useService()->getStudentByDivisionSubject($groupItem))
                                             && ($tblSubjectGroup = $groupItem->getTblSubjectGroup())
                                         ) {
+                                            // SekII-Kurs als Kurs anlegen
+                                            if ($isCourseSystem) {
+                                                $tblDivisionCourseSekII = TblDivisionCourse::withParameter(
+                                                    $tblSubjectGroup->isAdvancedCourse() ? $tblTypeAdvancedCourse : $tblTypeBasicCourse,
+                                                    $tblYear, $tblLevel->getName() . $tblSchoolType->getShortName() . ' ' . $tblSubjectGroup->getName(),
+                                                    '',
+                                                    $tblSubjectGroup->isAdvancedCourse(),
+                                                    $tblSubjectGroup->isAdvancedCourse()
+                                                );
+                                                // bulkSave nicht möglich, da ansonsten noch keine Id vorhanden ist
+                                                $Manager->saveEntity($tblDivisionCourseSekII);
+                                            } else {
+                                                $tblDivisionCourseSekII = false;
+                                            }
+
+                                            // todo bei SekII-kursen SchülerFächer direkt mit neuen Kurs, prüfen doppelt Speicherung wahrscheinlich am besten wie bei TblStudentEducation
                                             foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                                // todo fachgruppe
                                                 $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
                                                     $tblSubjectStudent, $tblYear, $tblSubject, $groupItem->getHasGrading(), $tblSubjectGroup->isAdvancedCourse()
                                                 ));
@@ -224,11 +242,17 @@ abstract class MigrateData extends AbstractData
                                                 foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
                                                     if (($tblTeacherPerson = $tblSubjectTeacher->getServiceTblPerson())) {
                                                         $Manager->bulkSaveEntity(TblTeacherLectureship::withParameter(
-                                                            $tblTeacherPerson, $tblYear, $tblDivisionCourse, $tblSubject, $tblSubjectGroup->getName()
+                                                            $tblTeacherPerson,
+                                                            $tblYear,
+                                                            $tblDivisionCourseSekII ?: $tblDivisionCourse,
+                                                            $tblSubject,
+                                                            $tblDivisionCourseSekII ? '' : $tblSubjectGroup->getName()
                                                         ));
                                                     }
                                                 }
-                                           }
+                                            }
+
+
                                         }
                                     }
                                 } else {

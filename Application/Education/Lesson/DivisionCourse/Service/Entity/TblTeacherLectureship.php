@@ -64,15 +64,15 @@ class TblTeacherLectureship extends Element
 //     */
 //    protected ?int $tblTeachingGroup = null;
 
-    /**
-     * @Column(type="datetime")
-     */
-    protected ?DateTime $FromDate = null;
+//    /**
+//     * @Column(type="datetime")
+//     */
+//    protected ?DateTime $FromDate = null;
 
-    /**
-     * @Column(type="datetime")
-     */
-    protected ?DateTime $ToDate = null;
+//    /**
+//     * @Column(type="datetime")
+//     */
+//    protected ?DateTime $ToDate = null;
 
     /**
      * @param TblPerson $tblPerson
@@ -211,53 +211,53 @@ class TblTeacherLectureship extends Element
 //        $this->tblTeachingGroup = $tblTeachingGroup ? $tblTeachingGroup->getId() : null;
 //    }
 
-    /**
-     * @return string
-     */
-    public function getFromDate(): string
-    {
-        return $this->FromDate instanceof DateTime ? $this->FromDate->format('d.m.Y') : '';
-    }
+//    /**
+//     * @return string
+//     */
+//    public function getFromDate(): string
+//    {
+//        return $this->FromDate instanceof DateTime ? $this->FromDate->format('d.m.Y') : '';
+//    }
+//
+//    /**
+//     * @param null|DateTime $Date
+//     */
+//    public function setFromDate(DateTime $Date = null)
+//    {
+//        $this->FromDate = $Date;
+//    }
+//
+//    /**
+//     * @return ?DateTime
+//     */
+//    public function getFromDateTime(): ?DateTime
+//    {
+//        return $this->FromDate;
+//    }
 
-    /**
-     * @param null|DateTime $Date
-     */
-    public function setFromDate(DateTime $Date = null)
-    {
-        $this->FromDate = $Date;
-    }
-
-    /**
-     * @return ?DateTime
-     */
-    public function getFromDateTime(): ?DateTime
-    {
-        return $this->FromDate;
-    }
-
-    /**
-     * @return string
-     */
-    public function getToDate(): string
-    {
-        return $this->ToDate instanceof DateTime ? $this->ToDate->format('d.m.Y') : '';
-    }
-
-    /**
-     * @param null|DateTime $Date
-     */
-    public function setToDate(DateTime $Date = null)
-    {
-        $this->ToDate = $Date;
-    }
-
-    /**
-     * @return ?DateTime
-     */
-    public function getToDateTime(): ?DateTime
-    {
-        return $this->ToDate;
-    }
+//    /**
+//     * @return string
+//     */
+//    public function getToDate(): string
+//    {
+//        return $this->ToDate instanceof DateTime ? $this->ToDate->format('d.m.Y') : '';
+//    }
+//
+//    /**
+//     * @param null|DateTime $Date
+//     */
+//    public function setToDate(DateTime $Date = null)
+//    {
+//        $this->ToDate = $Date;
+//    }
+//
+//    /**
+//     * @return ?DateTime
+//     */
+//    public function getToDateTime(): ?DateTime
+//    {
+//        return $this->ToDate;
+//    }
 
     /**
      * @return string

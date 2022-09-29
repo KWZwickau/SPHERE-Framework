@@ -21,6 +21,8 @@ class TblDivisionCourseType extends Element
     const TYPE_DIVISION = 'DIVISION';
     const TYPE_CORE_GROUP = 'CORE_GROUP';
     const TYPE_TEACHING_GROUP = 'TEACHING_GROUP';
+    const TYPE_ADVANCED_COURSE = 'ADVANCED_COURSE';
+    const TYPE_BASIC_COURSE = 'BASIC_COURSE';
 
     /**
      * @Column(type="string")
