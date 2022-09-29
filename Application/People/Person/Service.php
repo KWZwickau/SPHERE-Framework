@@ -8,6 +8,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Club\Club;
@@ -607,6 +608,12 @@ class Service extends AbstractService
      */
     public function destroyPerson(TblPerson $tblPerson)
     {
+        // alle Online-Kontakt-Daten Änderungswünsche zu der Person löschen
+        if (($tblOnlineContacts = OnlineContactDetails::useService()->getOnlineContactAllByPerson($tblPerson))) {
+            foreach ($tblOnlineContacts as $tblOnlineContact) {
+                OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContact);
+            }
+        }
 
         return (new Data($this->getBinding()))->destroyPerson($tblPerson);
     }

@@ -134,6 +134,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array('type' => 'de_date', 'targets' => 0),
                             array('orderable' => false, 'width' => '60px', 'targets' => -1),
                         ),
+                        'responsive' => false
                     )
                 );
         }
