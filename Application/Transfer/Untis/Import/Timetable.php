@@ -9,16 +9,23 @@ use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 use Symfony\Component\HttpFoundation\File\File;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -40,7 +47,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
  * Class Timetable
  * @package SPHERE\Application\Transfer\Untis\Import
  */
-class Timetable implements IModuleInterface
+class Timetable extends Extension implements IModuleInterface
 {
 
     public static function registerModule()
@@ -54,6 +61,9 @@ class Timetable implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Timetable/Import', __CLASS__.'::frontendImportTimetable'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Timetable/Edit', __CLASS__.'::frontendEditTimetable'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Timetable/Remove', __CLASS__.'::frontendRemoveTimetable'
@@ -89,8 +99,8 @@ class Timetable implements IModuleInterface
                 $item['DateFrom'] = $tblTimetable->getDateFrom();
                 $item['DateTo'] = $tblTimetable->getDateTo();
                 $item['Option'] =
-                    // new Standard('', '#', new Edit(), array('tblTimetableId' => $tblTimetable->getId()), 'Erneuter Upload für diesen Stundenplan') .
-                    new Standard('', '/Transfer/Untis/Import/Timetable/Remove', new Remove(), array('TimetableId' => $tblTimetable->getId()), 'Erneuter Upload für diesen Stundenplan');
+                     new Standard('', '/Transfer/Untis/Import/Timetable/Edit', new Edit(), array('TimetableId' => $tblTimetable->getId()), 'Bearbeiten') .
+                    new Standard('', '/Transfer/Untis/Import/Timetable/Remove', new Remove(), array('TimetableId' => $tblTimetable->getId()), 'Entfernen');
                 array_push($TableContent, $item);
             }
         }
@@ -144,10 +154,10 @@ class Timetable implements IModuleInterface
     /**
      * @return Form
      */
-    private function formTimetable()
+    private function formTimetable($IsUploadField = true, $ButtonText = 'Hochladen')
     {
 
-        return new Form(new FormGroup(array(
+        $form = new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
                     (new TextField('Data[Name]', '', 'Name'))
@@ -155,8 +165,11 @@ class Timetable implements IModuleInterface
                 new FormColumn(
                     new TextField('Data[Description]', '', 'Beschreibung')
                     , 8)
-            )),
-            new FormRow(array(
+            ))
+        )), new Primary($ButtonText),);
+
+        if($IsUploadField){
+            $form->appendGridGroup(new FormGroup(new FormRow(array(
                 new FormColumn(array(
                     (new DatePicker('Data[DateFrom]', '', 'Gültig ab', new Clock()))->setRequired()
                 ), 4),
@@ -167,18 +180,28 @@ class Timetable implements IModuleInterface
                     (new FileUpload('File', 'Datei auswählen', 'Datei auswählen '.new WarningText(new Exclamation().' GPU001.TXT'), null,
                         array('showPreview' => false)))->setRequired()
                     , 4),
-            )),
-            new FormRow(
+            ))));
+
+            $form->appendGridGroup(new FormGroup(new FormRow(
                 new FormColumn(new \SPHERE\Common\Frontend\Layout\Repository\Listing(
                     array(
                         new RadioBox('Data[IsImport]', 'Test des Imports', '0'),
                         new RadioBox('Data[IsImport]', 'Importieren', '1')
                     )
                 ), 4)
-            )
-        )), new Primary('Hochladen'),
-//            new Route(__CLASS__.'/Import')
-        );
+            )));
+        } else {
+            $form->appendGridGroup(new FormGroup(new FormRow(array(
+                new FormColumn(array(
+                    (new DatePicker('Data[DateFrom]', '', 'Gültig ab', new Clock()))->setRequired()
+                ), 4),
+                new FormColumn(array(
+                    (new DatePicker('Data[DateTo]', '', 'Gültig bis', new Clock()))->setRequired()
+                ), 4),
+            ))));
+        }
+
+        return $form;
     }
 
     /**
@@ -261,23 +284,88 @@ class Timetable implements IModuleInterface
     }
 
     /**
+     * @param array  $Data
      * @param string $TimetableId
-     * @return Warning|string
-     * @throws \Exception
+     *
+     * @return Stage
+     * @throws DocumentTypeException
      */
-    public function frontendRemoveTimetable(string $TimetableId)
+    public function frontendEditTimetable(array $Data = array(), string $TimetableId)
+    {
+
+        $Stage = new Stage('Stundenplan', 'Bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Transfer/Untis/Import/Timetable', new ChevronLeft()));
+
+        $tblTimetable = TimetableClassregister::useService()->getTimetableById($TimetableId);
+        if(!$tblTimetable){
+            $Stage->setContent(new Danger('Stundenplan nicht vorhanden'));
+            return $Stage;
+        }
+        $Global = $this->getGlobal();
+        if(!isset($Global->POST['Data']['Name'])){
+            $Global->POST['Data']['Name'] = $tblTimetable->getName();
+            $Global->POST['Data']['Description'] = $tblTimetable->getDescription();
+            $Global->POST['Data']['DateFrom'] = $tblTimetable->getDateFrom();
+            $Global->POST['Data']['DateTo'] = $tblTimetable->getDateTo();
+            $Global->savePost();
+        }
+
+        $form = $this->formTimetable(false, 'Speichern');
+
+        $Stage->setContent(
+            new Well(
+                Timetable::useService()->editTimetable($form, $tblTimetable, $Data)
+            )
+        );
+
+//        $Stage->setContent(new Success('Stundenplan erfolgreich entfernt')
+//            .new Redirect('/Transfer/Untis/Import/Timetable', Redirect::TIMEOUT_SUCCESS));
+        return $Stage;
+    }
+
+    /**
+     * @param string $TimetableId
+     * @param false  $isDelete
+     *
+     * @return Stage
+     */
+    public function frontendRemoveTimetable(string $TimetableId, $isDelete = false)
     {
 
         $Stage = new Stage('Stundenplan', 'entfernen');
-
+        $Stage->addButton(new Standard('Zurück', '/Transfer/Untis/Import/Timetable', new ChevronLeft()));
         $tblTimetable = TimetableClassregister::useService()->getTimetableById($TimetableId);
-        if($tblTimetable){
+        if(!$tblTimetable){
+            $Stage->setContent(new Danger('Stundenplan nicht vorhanden'));
+            return $Stage;
+        }
+        if(!$isDelete){
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn('&nbsp;', 3),
+                        new LayoutColumn(new Panel('Soll der Standenplan '.new Bold('"'.$tblTimetable->getName().'"').' wirklich gelöscht werden?', array(
+                            new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn('Gültig ab:', 2),
+                                new LayoutColumn($tblTimetable->getDateFrom(), 10),
+                            )))),
+                            new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn('Gültig bis:', 2),
+                                new LayoutColumn($tblTimetable->getDateTo(), 10),
+                            )))),
+                        ), Panel::PANEL_TYPE_DANGER)
+                        .new DangerLink('Ja', '/Transfer/Untis/Import/Timetable/Remove', new Check(), array('TimetableId' => $TimetableId, 'isDelete' => true))
+                        .new Standard('Nein', '/Transfer/Untis/Import/Timetable', new Disable())
+                        , 6),
+                    )),
+                )))
+            );
+        } else {
             TimetableClassregister::useService()->removeTimetable($tblTimetable);
             $Stage->setContent(new Success('Stundenplan erfolgreich entfernt')
                 .new Redirect('/Transfer/Untis/Import/Timetable', Redirect::TIMEOUT_SUCCESS));
             return $Stage;
         }
-        $Stage->setContent(new Warning('Stundenplan konnte nicht entfernt werden'));
         return $Stage;
     }
 }

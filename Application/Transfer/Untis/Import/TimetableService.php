@@ -3,11 +3,14 @@ namespace SPHERE\Application\Transfer\Untis\Import;
 
 use DateTime;
 use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeException;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassRegister;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -98,10 +101,6 @@ class TimetableService
                 $Form->setError('Data[DateTo]', '"Gültig bis" muss nach "Gültig ab" sein');
                 $IsError = true;
             }
-            if(TimetableClassRegister::useService()->getTimetableByNameAndTime($Data['Name'], $DateTimeFrom, $DateTimeTo)){
-                $Form->setError('Data[Name]', 'Für den Zeitraum ist der Name schon in Verwendung');
-                $IsError = true;
-            }
         }
 
         if($IsError){
@@ -134,5 +133,69 @@ class TimetableService
             return TimetableClassRegister::useService()->createTimetableNodeBulk($tblTimetable, $ImportList);
         }
         return false;
+    }
+
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param TblTimetable        $tblTimetable
+     * @param array               $Data
+     *
+     * @return IFormInterface|string|void|null
+     * @throws \Exception
+     */
+    public function editTimetable(IFormInterface $Form = null, TblTimetable $tblTimetable, array $Data = array())
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if(empty($Data)){
+            return $Form;
+        }
+        $IsError = false;
+        if(!isset($Data['Name']) || $Data['Name'] == ''){
+            $Form->setError('Data[Name]', 'Für den Stundenplan wird ein Name benötigt');
+            $IsError = true;
+        }
+        $DateFrom = '';
+        if(isset($Data['DateFrom'])){
+            $DateFrom = $Data['DateFrom'];
+        }
+        if($DateFrom == ''){
+            $Form->setError('Data[DateFrom]', 'Ein Gültigkeitszeitraum wird benötigt');
+            $IsError = true;
+        }
+        $DateTo = '';
+        if(isset($Data['DateTo'])){
+            $DateTo = $Data['DateTo'];
+        }
+        if($DateTo == ''){
+            $Form->setError('Data[DateTo]', 'Ein Gültigkeitszeitraum wird benötigt');
+            $IsError = true;
+        }
+
+        // Zeitraum sollte sich nicht mit anderen Zeiträumen der gleichen Klassen überschneiden
+
+        // Datum zueinander kontrollieren
+        if(!$IsError){
+            $DateTimeFrom = new DateTime($DateFrom);
+            $DateTimeTo = new DateTime($DateTo);
+            if($DateTimeFrom > $DateTimeTo){
+                $Form->setError('Data[DateFrom]', '"Gültig ab" muss vor "Gültig bis" sein');
+                $Form->setError('Data[DateTo]', '"Gültig bis" muss nach "Gültig ab" sein');
+                $IsError = true;
+            }
+        }
+
+        if($IsError){
+            return $Form;
+        }
+
+        if(TimetableClassRegister::useService()->updateTimetable($tblTimetable, $Data['Name'], $Data['Description'],
+            new \DateTime($DateFrom), new \DateTime($DateTo))){
+            return new Success('Der Studenplan ist erfolgreich geändert worden'). new Redirect('/Transfer/Untis/Import/Timetable', Redirect::TIMEOUT_SUCCESS);
+        }
+        return new Danger('Der Stundenplan konnte nicht geändert werden.');
     }
 }
