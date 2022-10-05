@@ -56,8 +56,8 @@ class Untis implements IApplicationInterface
                 new LayoutColumn(
                     new \SPHERE\Common\Frontend\Link\Repository\Link(
                         new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                            , 'Untis Import', 'Stunden und Vertretungsplan')
-                        , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'UntisTimeTable'))
+                            , 'Untis Import', 'Leitfaden zur Informationsbeschaffung')
+                        , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Untis'))
                     , 2),
             ))))
         );

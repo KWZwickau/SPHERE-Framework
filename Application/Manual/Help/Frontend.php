@@ -92,18 +92,13 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                            , 'Indiware Import', 'Stunden und Vertretungsplan'))->setPictureHeight()
-                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'IndiwareTimeTable')
+                            , 'Indiware Import', 'Leitfaden zur Informationsbeschaffung'))->setPictureHeight()
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware')
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                            , 'Indiware Import', 'Export der Lehraufträge'))->setPictureHeight()
-                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'IndiwareTeaching')
-                        ), 2),
-                        new LayoutColumn(new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                            , 'Untis Import', 'Stunden und Vertretungsplan'))->setPictureHeight()
-                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'UntisTimeTable')
+                            , 'Untis Import', 'Leitfaden zur Informationsbeschaffung'))->setPictureHeight()
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Untis')
                         ), 2),
                     )),
                     new LayoutRow(array(
