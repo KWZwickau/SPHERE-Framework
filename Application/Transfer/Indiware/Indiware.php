@@ -59,10 +59,16 @@ class Indiware implements IApplicationInterface
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
                     new \SPHERE\Common\Frontend\Link\Repository\Link(
-                        new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png'),
-                            'Anleitung Indiware', 'Export der Lehraufträge aus Indiware')
-                        , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware'))
+                        new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                        , 'Indiware Import', 'Stunden und Vertretungsplan')
+                        , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'IndiwareTimeTable'))
                 , 2),
+                new LayoutColumn(
+                    new \SPHERE\Common\Frontend\Link\Repository\Link(
+                        new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                            , 'Indiware Import', 'Export der Lehraufträge')
+                        , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'IndiwareTeaching'))
+                    , 2),
             ))))
         );
 

@@ -1202,11 +1202,6 @@ class Creator extends Extension
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=Anleitung_Fakturierung_21.02.2022.pdf");
             header("Content-Length: ".filesize($file));
-        } elseif($Select == 'Indiware') {
-            $file = "Common/Style/Resource/Document/Manual/Indiware.pdf";
-            header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Indiware.pdf");
-            header("Content-Length: ".filesize($file));
         } elseif($Select == 'PrintA3Certificate') {
             $file = "Common/Style/Resource/Document/Manual/SSWPrintA3Certificate.pdf";
             header("Content-Type: application/pdf");
@@ -1216,6 +1211,21 @@ class Creator extends Extension
             $file = "Common/Style/Resource/Document/Manual/SSW_ESDiLeistungsbeschreibung.pdf";
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=ESDi_Leistungsbeschreibung.pdf");
+            header("Content-Length: ".filesize($file));
+        } elseif($Select == 'IndiwareTeaching') {
+            $file = "Common/Style/Resource/Document/Manual/Indiware_Lehrauftrag.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Indiware_Lehrauftrag.pdf");
+            header("Content-Length: ".filesize($file));
+        } elseif($Select == 'IndiwareTimeTable') {
+            $file = "Common/Style/Resource/Document/Manual/Indiware_Stunden und Vertretungsplan.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Indiware_Stunden und Vertretungsplan.pdf");
+            header("Content-Length: ".filesize($file));
+        } elseif($Select == 'UntisTimeTable') {
+            $file = "Common/Style/Resource/Document/Manual/Untis_Stunden und Vertretungsplan.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Untis_Stunden und Vertretungsplan.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'SSW_UCS_DLLP') {
             $file = "Common/Style/Resource/Document/Manual/SSW_UCS_DLLP.pdf";

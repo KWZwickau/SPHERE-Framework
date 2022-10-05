@@ -79,11 +79,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Billing')
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                                , 'Import aus Indiware', 'Export der Lehraufträge aus Indiware'))->setPictureHeight()
-                                , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware')
-                        ), 2),
-                        new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png')
                                 , 'Druck Abschlusszeugnisse A3'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'PrintA3Certificate')
@@ -93,6 +88,23 @@ class Frontend extends Extension implements IFrontendInterface
                                 , 'ESDi Leistungsbeschreibung'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'ESDi'))
                         , 2),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                            , 'Indiware Import', 'Stunden und Vertretungsplan'))->setPictureHeight()
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'IndiwareTimeTable')
+                        ), 2),
+                        new LayoutColumn(new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                            , 'Indiware Import', 'Export der Lehraufträge'))->setPictureHeight()
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'IndiwareTeaching')
+                        ), 2),
+                        new LayoutColumn(new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                            , 'Untis Import', 'Stunden und Vertretungsplan'))->setPictureHeight()
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'UntisTimeTable')
+                        ), 2),
                     )),
                     new LayoutRow(array(
                         $isUcsApiActive
