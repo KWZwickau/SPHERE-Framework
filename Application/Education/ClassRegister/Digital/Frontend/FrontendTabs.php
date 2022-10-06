@@ -334,7 +334,7 @@ class FrontendTabs extends FrontendCourseContent
 
         $PersonPanel = '';
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
-            $PersonPanel = new Panel('Person', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO);
+            $PersonPanel = new Panel('Person', $tblPerson->getLastFirstNameWithCallNameUnderline(), Panel::PANEL_TYPE_INFO);
         }
         $DivisionPanel = '';
         if(($tblDivision = Division::useService()->getDivisionById($DivisionId))){

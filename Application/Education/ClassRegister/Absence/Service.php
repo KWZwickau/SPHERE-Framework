@@ -365,7 +365,7 @@ class Service extends AbstractService
             'TypeExcel' => $tblType->getShortName(),
             'Division' => $tblDivision->getDisplayName(),
             'Group' => $isGroup && isset($groupPersonList[$tblPerson->getId()]) ? $groupPersonList[$tblPerson->getId()] : '',
-            'Person' => $tblPerson->getLastFirstName(),
+            'Person' => $tblPerson->getLastFirstNameWithCallNameUnderline(),
             'DateSpan' => $tblAbsence->getDateSpan(),
             'DateSort' => $tblAbsence->getFromDate('Y.m.d'),
             'DateFrom' => ($isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getFromDate() . '</span>' : $tblAbsence->getFromDate()),
