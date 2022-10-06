@@ -23,11 +23,7 @@ class UniventionWorkGroup
     }
 
     /**
-     * @param string $property // name, firstname, lastname, birthday, record_uid (alle Properties "Resource Users")
-     * @param string $value // Suche nach Mandanten Beispiel: "ref-"
-     * @param bool   $fromFirstChar
-     *
-     * @return array|bool
+     * @return array|false
      */
     public function getWorkGroupListAll()
     {
@@ -67,56 +63,31 @@ class UniventionWorkGroup
         return (is_array($WorkGroupList) && !empty($WorkGroupList) ? $WorkGroupList : false);
     }
 
-    /** ToDO Rename & Refactor
-     * @param string $name
-     * @param string $email
-     * @param string $firstname
-     * @param string $lastname
-     * @param string $record_uid
-     * @param array  $roles
-     * @param array  $schools
-     * @param array  $school_classes
-     * @param string $recoveryMail
+    /**
+     * @param string $group
+     * @param string $school
      *
      * @return string|null
      */
-    public function createUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $school_classes = array(), $recoveryMail = '')
+    public function createUserWorkgroup($group = '', $school = '',$UserList = array())
     {
+
         curl_reset($this->curlhandle);
 
+        foreach($UserList as &$Name){
+            $Name = 'https://'.$this->server.'/v1/users/'.$Name;
+        }
+
         $PersonContent = array(
-            'name' => $name,
-//            'mailPrimaryAddress' => $email,
-            'email' => $email,
-            'firstname' => $firstname,
-            'lastname' => $lastname,
-            // AccountId
-            'record_uid' => $record_uid,
-            'roles' => $roles,
-            'schools' => $schools,
-            'school_classes' => $school_classes,
-            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail)
-//            'udm_properties' => array('pwdChangeNextLogin' => true),
-//            'kelvin_password_hashes' => array(
-//                'user_password' => array($password),
-//                'samba_nt_password' => 'string',
-//                'krb_5_key' => array(),
-//                'krb5_key_version_number' => 0,
-//                'samba_pwd_last_set' => 0,
-//            ),
-            // Mandant + AccountId
-//            'source_uid' => $source_uid // kann raus, ist nur für den CSV Import wichtig
+            'name' => $group,
+            'school' => $school,
+            'users' => $UserList,
         );
         $PersonContent = json_encode($PersonContent);
-//        echo'<pre>';
-//        echo 'Gesendete Daten:';
-//        var_dump($PersonContent);
-//        echo'</pre>';
-//        $PersonContent = http_build_query($PersonContent);
-
+//        return $PersonContent;
+        //  ToDO Refactor to correct API
         curl_setopt_array($this->curlhandle, array(
-            CURLOPT_URL => 'https://'.$this->server.'/v1/users/',
+            CURLOPT_URL => 'https://'.$this->server.'/v1/workgroups/',
             CURLOPT_POST => TRUE,
             CURLOPT_SSL_VERIFYHOST => FALSE,
             CURLOPT_HTTPHEADER => array('accept: application/json',
@@ -129,36 +100,16 @@ class UniventionWorkGroup
 
         /**
          * possible field's
-        - dn
-        - url
-        - ucsschool_roles
-        - name
-        - school
-        - firstname
-        - lastname
-        - birthday
-        - disabled
-        - email
-        - record_uid
-        - roles
-        - schools
-        - school_classes
-        - source_uid
-        - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
+         * User
+         * Group
          **/
         $Json = $this->execute($this->curlhandle);
-//        echo'<pre>';
-//        var_dump('Zeitstempel: '.(new \DateTime())->format('d.m.Y H:i:s'));
-//        var_dump('Antwort:');
-//        var_dump($Json);
-//        echo'</pre>';
-
         // return Server error as an Error
         if($Json == 'Internal Server Error'){
-            return $name.' '.new Bold('UCS: Internal Server Error');
+            return $group.' '.new Bold('UCS: Internal Server Error');
         }
         if($Json == 'Bad Gateway'){
-            return $name.' '.new Bold('UCS: Bad Gateway');
+            return $group.' '.new Bold('UCS: Bad Gateway');
         }
 
         // Object to Array
@@ -166,12 +117,12 @@ class UniventionWorkGroup
         $Error = null;
         if(isset($StdClassArray['detail'])){
             if(is_string($StdClassArray['detail'])){
-                $Error = new Bold($name.': ').$StdClassArray['detail'];
+                $Error = new Bold($group.': ').$StdClassArray['detail'];
             }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
                 foreach($StdClassArray['detail'] as $Detail){
                     if($Detail['msg']){
-                        $Error .= new Bold($name.': ').$Detail['msg'];
+                        $Error .= new Bold($group.': ').$Detail['msg'];
                     }
                 }
             }
@@ -180,7 +131,7 @@ class UniventionWorkGroup
         return $Error;
     }
 
-    /** ToDO Rename & Refactor
+    /**
      * @param string $name
      * @param string $email
      * @param string $firstname
@@ -193,99 +144,58 @@ class UniventionWorkGroup
      *
      * @return string|null
      */
-    public function updateUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $school_classes = array(), $recoveryMail = '')
+    public function updateUserWorkgroup($group = '', $Acronym = '', $UserList = array())
     {
+
         curl_reset($this->curlhandle);
 
-        // Verwendet für die Api "school" das erste element aus der Liste, da keine genauere Auswahl getroffen werden kann
-        $school = current($schools);
+        foreach($UserList as &$Name){
+            $Name = 'https://'.$this->server.'/v1/users/'.$Name;
+        }
+//        $NameList = array(current($NameList));
 
-        $PersonContent = array(
-            'name' => $name,
-        // keine reaktion der API auf dieses Feld
-//            'mailPrimaryAddress' => $email,
-        // letze Info email = mailPrimaryAddress,
-            'email' => $email,
-            // Weiteres E-Mail feld, welches als UDM Propertie zurück kommt ("e-mail") ist aber ein Array und für unsere Zwecke nicht zu verwenden
-//            'mail' => $email,
-            'firstname' => $firstname,
-            'lastname' => $lastname,
-            // AccountId
-            'record_uid' => $record_uid,
-            // Orientierung an connexion-ssw
-            'source_uid' => 'connexion-ssw',
-            'roles' => $roles,
-            'school' => $school, // one school
-            'schools' => $schools, // array school
-            'school_classes' => $school_classes,
-            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail)
-            // Mandant + AccountId to human resolve problems?
-//            'source_uid' => $source_uid
+        $PostFields = array(
+            'users' => $UserList
         );
+        $PostFields = json_encode($PostFields);
 
-//        Debugger::devDump($PersonContent);
-
-        $PersonContent = json_encode($PersonContent);
-//        $PersonContent = http_build_query($PersonContent);
-
-//        Debugger::devDump($PersonContent);
-
+//        return $PersonContent;
+        //  ToDO Refactor to correct API
         curl_setopt_array($this->curlhandle, array(
-            CURLOPT_URL => 'https://'.$this->server.'/v1/users/'.$name,
-            CURLOPT_CUSTOMREQUEST => 'PUT',
+            CURLOPT_URL => 'https://'.$this->server.'/v1/workgroups/'.$Acronym.'/'.$group,
+            CURLOPT_CUSTOMREQUEST => 'PATCH',
             CURLOPT_SSL_VERIFYHOST => FALSE,
             CURLOPT_HTTPHEADER => array('accept: application/json',
                 'Content-Type: application/json',
                 'Authorization: bearer '.$this->token),
             //return the transfer as a string
             CURLOPT_RETURNTRANSFER => TRUE,
-            CURLOPT_POSTFIELDS => $PersonContent
+            CURLOPT_POSTFIELDS => $PostFields
         ));
 
         /**
          * possible field's
-        - dn
-        - url
-        - ucsschool_roles
-        - name
-        - school
-        - firstname
-        - lastname
-        - birthday
-        - disabled
-        - email
-        - record_uid
-        - roles
-        - schools
-        - school_classes
-        - source_uid
-        - udm_properties { description, gidNumber, employeeType, organisation, phone, title, uidNumber }
+         * User
+         * Group
          **/
         $Json = $this->execute($this->curlhandle);
-//        echo '<pre>';
-//        var_dump($Json);
-//        var_dump((new \DateTime('now'))->format('H:i:s d.m.Y'));
-//        echo '</pre>';
-
-        // return Server error as an Error
         if($Json == 'Internal Server Error'){
-            return $name.' '.new Bold('UCS: Internal Server Error');
+            return $group.' '.new Bold('UCS: Internal Server Error');
         }
         if($Json == 'Bad Gateway'){
-            return $name.' '.new Bold('UCS: Bad Gateway');
+            return $group.' '.new Bold('UCS: Bad Gateway');
         }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
         if(isset($StdClassArray['detail'])){
             if(is_string($StdClassArray['detail'])){
-                $Error = new Bold($name.': ').$StdClassArray['detail'];
+                $Error = new Bold($group.': ').$StdClassArray['detail'];
             }elseif(is_array($StdClassArray['detail'])){
                 $Error = '';
                 foreach($StdClassArray['detail'] as $Detail){
                     if($Detail['msg']){
-                        $Error .= new Bold($name.'-> ').$Detail['loc'].':'.$Detail['msg'];
+                        $Error .= new Bold($group.'-> ').$Detail['loc'].':'.$Detail['msg'];
                     }
                 }
             }

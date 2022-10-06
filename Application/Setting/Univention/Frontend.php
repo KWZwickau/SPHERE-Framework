@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Share;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -658,25 +659,133 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('API', 'Arbeitsgruppen Abgleich');
-        $ApiWorkGroupList = (new UniventionWorkGroup())->getWorkGroupListAll();
-//        Debugger::devDump($ApiWorkGroupList);
+        $Acronym = Account::useService()->getMandantAcronym();
+        // dynamsiche Schulliste
+        $time_pre = microtime(true);
+        $schoolList = (new UniventionSchool())->getAllSchools();
+        // Fehlerausgabe
+        if($this->errorScan($Stage, $schoolList)){
+            return $Stage;
+        }
+        // early break if no answer
+        if(!is_array($schoolList)){
+            $Stage->setContent(new Warning('UCS liefert keine Informationen'));
+            return $Stage;
+        }
+        $time_post = microtime(true);
+        $exec_time = $time_post - $time_pre;
+        Debugger::devDump($exec_time);
+        $school = $schoolList[$Acronym];
+        // Mandant ist nicht in der Schulliste
+        if( !array_key_exists($Acronym, $schoolList)){
+            $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht in UCS freigeschalten'));
+            return $Stage;
+        }
 
-        $PersonGroupArray = array();
+        $ApiWorkGroupList = (new UniventionWorkGroup())->getWorkGroupListAll();
+        $time_post = microtime(true);
+        $exec_time = $time_post - $time_pre;
+        Debugger::devDump($exec_time);
+        $ApiGroupArray = array();
+        foreach($ApiWorkGroupList as $ApiWorkGroup){
+            $group = $ApiWorkGroup['name'];
+            if(!empty($ApiWorkGroup['users'])){
+                foreach($ApiWorkGroup['users'] as &$User){
+                    $Position = strpos($User, $Acronym.'-');
+                    $TempUser = str_split($User, $Position);
+                    $User = $TempUser[1];
+                }
+            }
+            sort($ApiWorkGroup['users']);
+            $ApiGroupArray[$group] = $ApiWorkGroup['users'];
+        }
+//        Debugger::devDump($ApiGroupArray);
+//        $UserUniventionList = Univention::useService()->getApiUser();
+//        $NameList = array();
+//        foreach($UserUniventionList as $UserUnivention){
+//            $NameList[] = $UserUnivention['name'];
+//        }
+//        Debugger::devDump($UserUniventionList);
+        $time_post = microtime(true);
+        $exec_time = $time_post - $time_pre;
+        Debugger::devDump($exec_time);
+        $GroupArray = array();
         if(($tblGroupList = Group::useService()->getGroupListByIsCoreGroup())){
+            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
             foreach($tblGroupList as $tblGroup){
                 if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
                     foreach($tblPersonList as $tblPerson){
-                        if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
-                            $PersonGroupArray[$tblPerson->getId()]['AccountId'] = $tblAccountList[0]->getId();
-                            $PersonGroupArray[$tblPerson->getId()]['Account'] = $tblAccountList[0]->getUsername();
-                            $PersonGroupArray[$tblPerson->getId()]['Group'][$tblGroup->getId()] = $tblGroup->getName();
+                        // Nur bei Schülern
+                        if(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStudent)){
+                            // Nur Schüler mit einem Account
+                            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
+                                $GroupArray[$tblGroup->getName()][] = $tblAccountList[0]->getUsername();
+                            }
                         }
-
                     }
+                }
+                if(!empty($GroupArray[$tblGroup->getName()])){
+                    sort($GroupArray[$tblGroup->getName()]);
                 }
             }
         }
-        Debugger::devDump($PersonGroupArray);
+        $time_post = microtime(true);
+        $exec_time = $time_post - $time_pre;
+        Debugger::devDump($exec_time);
+        // ToDO Compare both lists (Api vs SSW)
+        $EditList = array();
+        $AddList = array();
+        $Content = '';
+        foreach($GroupArray as $Group => $UserList){
+            if((array_key_exists($Group, $ApiGroupArray))){
+                $ApiUserList = $ApiGroupArray[$Group];
+                if(($Diff = array_diff($ApiUserList, $UserList))){
+                    $EditList[] = array($Group => $UserList);
+                    $Content .= new Container(new Bold('"'.$Group.'"').' ('.
+                        (new ToolTip(count($ApiUserList).' -> '.count($UserList), htmlspecialchars(implode('<br/>', $Diff))))->enableHtml()
+                        .') wurde angepasst');
+                } else {
+                    // Sonnst keine Änderungen
+                    $Content .= new Container(new Bold('"'.$Group.'"').' ('.count($UserList).') unverändert');
+                }
+            } else {
+                $AddList[] = array($Group => $UserList);
+                // neu erstellt
+                $Content .= new Container(new Bold('"'.$Group.'"').' ('.count($UserList).') wird angelegt');
+            }
+        }
+        $time_post = microtime(true);
+        $exec_time = $time_post - $time_pre;
+        Debugger::devDump($exec_time);
+
+        $ErrorList = array();
+        if(!empty($EditList)){
+            foreach($EditList as $GroupArray){
+                foreach($GroupArray as $Group => $UserList){
+                    $ErrorList[] = (new UniventionWorkGroup())->updateUserWorkgroup($Group, $Acronym, $UserList);
+                }
+            }
+        }
+        if(!empty($AddList)){
+            foreach($AddList as $GroupArray){
+                foreach($GroupArray as $Group => $UserList){
+                    $ErrorList[] = (new UniventionWorkGroup())->createUserWorkgroup($Group, $schoolList[$Acronym], $UserList);
+                }
+            }
+        }
+
+        $time_post = microtime(true);
+        $exec_time = $time_post - $time_pre;
+        Debugger::devDump($exec_time);
+
+        $ErrorList = array_filter($ErrorList);
+        if(!empty($ErrorList)){
+            $ErrorList = new Listing($ErrorList);
+        } else {
+            $ErrorList = '';
+        }
+
+        $Stage->setContent($Content.$ErrorList);
 
         return $Stage;
     }
@@ -701,13 +810,13 @@ class Frontend extends Extension implements IFrontendInterface
             $UserList = json_encode($UserList);
             if($ApiType == 'Create'){
                 $TypeFrontend = 'Anlegen von Nutzern';
-                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType,$CountMax);
+                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType, $CountMax);
             }elseif($ApiType == 'Update'){
                 $TypeFrontend = 'Bearbeiten von Nutzern';
-                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType,$CountMax);
+                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType, $CountMax);
             }elseif($ApiType == 'Delete'){
                 $TypeFrontend = 'Löschen von Nutzern';
-                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType,$CountMax);
+                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType, $CountMax);
             }
 
             // insert receiver into frontend

@@ -33,6 +33,9 @@ class Univention implements IApplicationInterface, IModuleInterface
         Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Api'),
             new Link\Name('UCS über API'), new Link\Icon(new Publicly())
         ));
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Api/WorkGroup'),
+            new Link\Name('UCS API Arbeitsgruppen'), new Link\Icon(new Publicly())
+        ));
 
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
