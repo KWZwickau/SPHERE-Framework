@@ -1871,9 +1871,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
             );
 
+            $DivisionSubjectId = $tblDivisionSubject ? $tblDivisionSubject->getId() : null;
+
             $Stage->addButton(
                 new Standard('Zur&uuml;ck', $BasicRoute . '/Selected', new ChevronLeft(),
-                    array('DivisionSubjectId' => $tblDivisionSubject->getId()))
+                    array('DivisionSubjectId' => $DivisionSubjectId))
             );
 
             if (!$Confirm) {
@@ -1914,7 +1916,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                                 . new Standard(
                                     'Nein', $BasicRoute . '/Selected', new Disable(),
-                                    array('DivisionSubjectId' => $tblDivisionSubject->getId())
+                                    array('DivisionSubjectId' => $DivisionSubjectId)
                                 )
                             )
                         )
@@ -1930,7 +1932,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new Danger(new Ban() . ' Der Test konnte nicht gelöscht werden')
                             ),
                             new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_SUCCESS,
-                                array('DivisionSubjectId' => $tblDivisionSubject->getId()))
+                                array('DivisionSubjectId' => $DivisionSubjectId))
                         )))
                     )))
                 );
