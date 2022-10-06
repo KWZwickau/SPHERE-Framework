@@ -44,6 +44,9 @@ class Univention implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Api', __NAMESPACE__.'/Frontend::frontendUnivAPI'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Api/WorkGroup', __NAMESPACE__.'/Frontend::frontendAPIWorkGroup'
+        ));
 
     }
 

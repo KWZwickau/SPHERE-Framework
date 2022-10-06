@@ -17,6 +17,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Share;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -42,6 +43,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -117,11 +119,13 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
             $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
             $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete')));
+            $Stage->addButton(new Standard('Arbeitsgruppen abgleichen', '/Setting/Univention/Api/WorkGroup', new Share()));
         } else {
 //            $Stage->addButton((new Standard('Benutzer komplett abgleichen', '', new Upload()))->setDisabled());
             $Stage->addButton((new Standard('Benutzer anlegen', '', new Plus()))->setDisabled());
             $Stage->addButton((new Standard('Benutzer anpassen', '', new Edit()))->setDisabled());
             $Stage->addButton((new Standard('Benutzer löschen', '', new Remove()))->setDisabled());
+            $Stage->addButton((new Standard('Arbeitsgruppen abgleichen', '', new Share()))->setDisabled());
         }
 
         $UserUniventionList = Univention::useService()->getApiUser();
@@ -643,6 +647,36 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             ),
         ))));
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendAPIWorkGroup()
+    {
+
+        $Stage = new Stage('API', 'Arbeitsgruppen Abgleich');
+        $ApiWorkGroupList = (new UniventionWorkGroup())->getWorkGroupListAll();
+//        Debugger::devDump($ApiWorkGroupList);
+
+        $PersonGroupArray = array();
+        if(($tblGroupList = Group::useService()->getGroupListByIsCoreGroup())){
+            foreach($tblGroupList as $tblGroup){
+                if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
+                    foreach($tblPersonList as $tblPerson){
+                        if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
+                            $PersonGroupArray[$tblPerson->getId()]['AccountId'] = $tblAccountList[0]->getId();
+                            $PersonGroupArray[$tblPerson->getId()]['Account'] = $tblAccountList[0]->getUsername();
+                            $PersonGroupArray[$tblPerson->getId()]['Group'][$tblGroup->getId()] = $tblGroup->getName();
+                        }
+
+                    }
+                }
+            }
+        }
+        Debugger::devDump($PersonGroupArray);
 
         return $Stage;
     }
