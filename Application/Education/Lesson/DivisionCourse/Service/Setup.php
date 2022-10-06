@@ -28,6 +28,8 @@ class Setup extends AbstractSetup
         $this->setTableTeacherLectureship($Schema, $tblDivisionCourse);
         $this->setTableStudentSubject($Schema);
         $this->setTableStudentEducation($Schema);
+        $tblSubjectTable = $this->setTableSubjectTable($Schema);
+        $this->setTableSubjectTableLink($Schema, $tblSubjectTable);
 
         /**
          * Migration & Protocol
@@ -189,5 +191,39 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'tblSubLessonDivisionCourse', self::FIELD_TYPE_BIGINT);
 
         $this->createForeignKey($table, $tblDivisionCourse);
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableSubjectTable(Schema &$Schema): Table
+    {
+        $table = $this->getConnection()->createTable($Schema, 'tblLessonSubjectTable');
+
+        $this->createColumn($table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Level', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($table, 'TypeName', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'StudentMetaIdentifier', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'HasGrading', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'HoursPerWeek', self::FIELD_TYPE_INTEGER, true);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblSubjectTableLink
+     */
+    private function setTableSubjectTableLink(Schema &$Schema, Table $tblSubjectTableLink)
+    {
+        $table = $this->getConnection()->createTable($Schema, 'tblLessonSubjectTableLink');
+
+        $this->createColumn($table, 'LinkId', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'MinCount', self::FIELD_TYPE_INTEGER);
+
+        $this->createForeignKey($table, $tblSubjectTableLink);
     }
 }

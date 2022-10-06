@@ -839,62 +839,9 @@ class Data extends AbstractData
         bool $IsEssential = true,
         TblTechnicalCourse $tblTechnicalCourse = null
     ) {
-
         // abweichende Fächer
-        if ($SubjectAcronym == 'DE' || $SubjectAcronym == 'D' || $SubjectAcronym == 'DEU') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('DE');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('D');
-            }
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('DEU');
-            }
-        } elseif ($SubjectAcronym == 'EN' || $SubjectAcronym == 'ENG') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('ENG');
-            }
-        } elseif ($SubjectAcronym == 'BI' || $SubjectAcronym == 'BIO') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('BIO');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('BI');
-            }
-        } elseif ($SubjectAcronym == 'REV' || $SubjectAcronym == 'RELI' || $SubjectAcronym == 'REE' || $SubjectAcronym == 'RE/e') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('RE/e');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('REV');
-            }
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('RELI');
-            }
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('REE');
-            }
-        } elseif ($SubjectAcronym == 'REK' || $SubjectAcronym == 'RE/k') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('RE/k');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('REK');
-            }
-        } elseif ($SubjectAcronym == 'IN' || $SubjectAcronym == 'INFO' || $SubjectAcronym == 'INF') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('INF');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('IN');
-            }
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('INFO');
-            }
-        } elseif ($SubjectAcronym == 'WK' || $SubjectAcronym == 'WE') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('WE');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('WK');
-            }
-        } else {
-            $tblSubject = Subject::useService()->getSubjectByAcronym($SubjectAcronym);
-        }
-
-        if ($tblSubject){
-            $this->createCertificateSubject($tblCertificate, $LaneIndex, $LaneRanking, $tblSubject,
-                $IsEssential, $tblTechnicalCourse);
+        if (($tblSubject = Subject::useService()->getSubjectByVariantAcronym($SubjectAcronym))) {
+            $this->createCertificateSubject($tblCertificate, $LaneIndex, $LaneRanking, $tblSubject, $IsEssential, $tblTechnicalCourse);
         }
     }
 

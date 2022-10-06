@@ -1084,4 +1084,67 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectAllByName($Name);
     }
+
+    /**
+     * @param string $acronym
+     *
+     * @return bool|TblSubject
+     */
+    public function getSubjectByVariantAcronym(string $acronym)
+    {
+        $tblSubject = false;
+        // abweichende Fächer
+        if ($acronym == 'DE' || $acronym == 'D' || $acronym == 'DEU') {
+            $tblSubject = $this->getSubjectByAcronym('DE');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('D');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('DEU');
+            }
+        } elseif ($acronym == 'EN' || $acronym == 'ENG') {
+            $tblSubject = $this->getSubjectByAcronym('EN');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('ENG');
+            }
+        } elseif ($acronym == 'BI' || $acronym == 'BIO') {
+            $tblSubject = $this->getSubjectByAcronym('BIO');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('BI');
+            }
+        } elseif ($acronym == 'REV' || $acronym == 'RELI' || $acronym == 'REE' || $acronym == 'RE/e') {
+            $tblSubject = $this->getSubjectByAcronym('RE/e');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('REV');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('RELI');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('REE');
+            }
+        } elseif ($acronym == 'REK' || $acronym == 'RE/k') {
+            $tblSubject = $this->getSubjectByAcronym('RE/k');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('REK');
+            }
+        } elseif ($acronym == 'IN' || $acronym == 'INFO' || $acronym == 'INF') {
+            $tblSubject = $this->getSubjectByAcronym('INF');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('IN');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('INFO');
+            }
+        } elseif ($acronym == 'WK' || $acronym == 'WE') {
+            $tblSubject = $this->getSubjectByAcronym('WE');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('WK');
+            }
+        } else {
+            $tblSubject = $this->getSubjectByAcronym($acronym);
+        }
+
+        return $tblSubject;
+    }
 }

@@ -17,7 +17,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
-abstract class ServiceTeacher extends AbstractService
+abstract class ServiceTeacher extends ServiceSubjectTable
 {
     /**
      * @param $Id

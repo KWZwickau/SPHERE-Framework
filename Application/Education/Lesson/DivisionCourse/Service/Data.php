@@ -34,6 +34,11 @@ class Data extends DataTeacher
          * Migration der alten Klassen-Daten in die neue DB-Struktur
          */
         $this->migrateAll();
+
+        /*
+         * Stundentafel
+         */
+        $this->setupDatabaseContentForSubjectTable();
     }
 
     /**
