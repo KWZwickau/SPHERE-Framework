@@ -944,7 +944,7 @@ class Service extends AbstractService
 
                 $studentTable[] = array(
                     'Number'        => ++$count,
-                    'Name'          => $tblPerson->getLastFirstName(),
+                    'Name'          => $tblPerson->getLastFirstNameWithCallNameUnderline(),
                     'Picture'       => $PersonPicture,
                     'Division'      => $displayDivision,
 //                    'Integration'   => $integration,

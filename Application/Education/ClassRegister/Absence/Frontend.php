@@ -102,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new Panel(
                                         'Schüler',
-                                        $tblPerson->getLastFirstName(),
+                                        $tblPerson->getLastFirstNameWithCallNameUnderline(),
                                         Panel::PANEL_TYPE_INFO
                                     )
                                 ), 6),
