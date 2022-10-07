@@ -4,10 +4,14 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
 use DateTime;
 use Exception;
+use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
+use SPHERE\Application\ParentStudentAccess\OnlineGradebook\OnlineGradebook;
 use SPHERE\Application\People\ContactDetails\ContactDetails;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLP;
@@ -57,12 +61,14 @@ use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
+use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success;
@@ -107,6 +113,8 @@ class Frontend extends Extension implements IFrontendInterface
         $contentHeadmasterWelcome = false;
         $contentSecretariatWelcome = false;
         $IsChangePassword = false;
+        $IsNavigationAssistance = false;
+        $IsStudentAccount = false;
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
@@ -131,8 +139,12 @@ class Frontend extends Extension implements IFrontendInterface
             if (($tblIdentification = $tblAccount->getServiceTblIdentification())
                 && ($tblIdentification->getName() == TblIdentification::NAME_USER_CREDENTIAL)
             ) {
+                // Alle TblUserAccounts erhalten direktlink Button
+                $IsNavigationAssistance = true;
+
                 // Eltern und Schüler funktionieren anders als die anderen Accounts
                 if (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))) {
+                    $IsStudentAccount = $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT;
                     $Password = $tblUserAccount->getAccountPassword();
                     if ($tblAccount->getPassword() == $Password) {
                         $IsChangePassword = true;
@@ -213,6 +225,10 @@ class Frontend extends Extension implements IFrontendInterface
                 ? $this->layoutPasswordChange()
                 : ''
             )
+            . ($IsNavigationAssistance
+                ? $this->layoutNavigationAssistance($IsStudentAccount)
+                : ''
+            )
             . ($contentHeadmasterWelcome ?: '')
             . ($contentTeacherWelcome ?: '')
             . ($contentSecretariatWelcome ?: '')
@@ -241,6 +257,35 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )
         );
+    }
+
+    /**
+     * @param bool $IsStudentAccount
+     * @return string
+     */
+    private function layoutNavigationAssistance(bool $IsStudentAccount): string
+    {
+        $columns = array();
+        if ($IsStudentAccount ? OnlineGradebook::useService()->getPersonListFromStudentLogin() : OnlineGradebook::useService()->getPersonListFromCustodyLogin()) {
+            $columns[] = new LayoutColumn(new Link(
+                (new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png'), 'Notenübersicht'))->setPictureHeight(),
+                '/ParentStudentAccess/OnlineGradebook'
+            ), 4);
+        }
+        if ($IsStudentAccount ? OnlineAbsence::useService()->getPersonListFromStudentLogin() : OnlineAbsence::useService()->getPersonListFromCustodyLogin()) {
+            $columns[] = new LayoutColumn(new Link(
+                (new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png'), 'Fehlzeiten'))->setPictureHeight(),
+                '/ParentStudentAccess/OnlineAbsence'
+            ), 4);
+        }
+        if ($IsStudentAccount ? OnlineContactDetails::useService()->getPersonListFromStudentLogin() : OnlineContactDetails::useService()->getPersonListFromCustodyLogin()) {
+            $columns[] = new LayoutColumn(new Link(
+                (new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Kontakt-Daten'))->setPictureHeight(),
+                '/ParentStudentAccess/OnlineContactDetails'
+            ), 4);
+        }
+
+        return empty($columns) ? '' : new Layout(new LayoutGroup(new LayoutRow($columns)));
     }
 
     /**
