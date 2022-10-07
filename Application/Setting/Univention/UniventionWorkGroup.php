@@ -108,39 +108,27 @@ class UniventionWorkGroup
         if($Json == 'Internal Server Error'){
             return $group.' '.new Bold('UCS: Internal Server Error');
         }
-        if($Json == 'Bad Gateway'){
+        if(false !== strpos($Json, 'Bad Gateway')){
             return $group.' '.new Bold('UCS: Bad Gateway');
+        }
+        if(false !== strpos($Json, 'Bad Request')){
+            return $group.' '.new Bold('UCS: Bad Request');
         }
 
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
-        if(isset($StdClassArray['detail'])){
-            if(is_string($StdClassArray['detail'])){
-                $Error = new Bold($group.': ').$StdClassArray['detail'];
-            }elseif(is_array($StdClassArray['detail'])){
-                $Error = '';
-                foreach($StdClassArray['detail'] as $Detail){
-                    if($Detail['msg']){
-                        $Error .= new Bold($group.': ').$Detail['msg'];
-                    }
-                }
-            }
+        if(isset($StdClassArray['message']) && $StdClassArray['message']){
+            $Error .= new Bold($group.': ').$StdClassArray['message'];
         }
 
         return $Error;
     }
 
     /**
-     * @param string $name
-     * @param string $email
-     * @param string $firstname
-     * @param string $lastname
-     * @param string $record_uid
-     * @param array  $roles
-     * @param array  $schools
-     * @param array  $school_classes
-     * @param string $recoveryMail
+     * @param $group
+     * @param $Acronym
+     * @param $UserList
      *
      * @return string|null
      */
@@ -149,10 +137,12 @@ class UniventionWorkGroup
 
         curl_reset($this->curlhandle);
 
+        $group = str_replace(' ', '%20', $group);
+
         foreach($UserList as &$Name){
             $Name = 'https://'.$this->server.'/v1/users/'.$Name;
         }
-//        $NameList = array(current($NameList));
+//        $UserList = array(current($UserList));
 
         $PostFields = array(
             'users' => $UserList
@@ -179,26 +169,29 @@ class UniventionWorkGroup
          * Group
          **/
         $Json = $this->execute($this->curlhandle);
+//        Debugger::devDump(
+//            'URL: '.'https://'.$this->server.'/v1/workgroups/'.$Acronym.'/'.$group.'</br>'.
+//            'Request: PATCH'.'</br>'.
+//            'header: '.'accept: application/json'.'</br>'.
+//            'header: '.'Content-Type: application/json'.'</br>'.
+//            'header: '.'Authorization: bearer '.$this->token.'</br>'.
+//            'postFields: '.print_r($PostFields, true)
+//        );
+//        Debugger::devDump($Json);
         if($Json == 'Internal Server Error'){
             return $group.' '.new Bold('UCS: Internal Server Error');
         }
-        if($Json == 'Bad Gateway'){
+        if(false !== strpos($Json, 'Bad Gateway')){
             return $group.' '.new Bold('UCS: Bad Gateway');
+        }
+        if(false !== strpos($Json, 'Bad Request')){
+            return $group.' '.new Bold('UCS: Bad Request');
         }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
-        if(isset($StdClassArray['detail'])){
-            if(is_string($StdClassArray['detail'])){
-                $Error = new Bold($group.': ').$StdClassArray['detail'];
-            }elseif(is_array($StdClassArray['detail'])){
-                $Error = '';
-                foreach($StdClassArray['detail'] as $Detail){
-                    if($Detail['msg']){
-                        $Error .= new Bold($group.'-> ').$Detail['loc'].':'.$Detail['msg'];
-                    }
-                }
-            }
+        if(isset($StdClassArray['message']) && $StdClassArray['message']){
+            $Error .= new Bold($group.': ').$StdClassArray['message'];
         }
 
         return $Error;

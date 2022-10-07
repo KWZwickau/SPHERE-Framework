@@ -12,7 +12,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -23,14 +23,19 @@ use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -42,6 +47,7 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Debugger;
@@ -509,7 +515,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(!empty($updateList)){
             foreach($updateList as $AccountArray) {
                 if(isset($AccountArray['UpdateLog'])){
-                    $ContentUpdate[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
+                    $ContentUpdate[] = (new ToolTip($AccountArray['name'].' '.new InfoIcon(), htmlspecialchars(
                         implode('<br/>', $AccountArray['UpdateLog'])
                     )))->enableHtml();
                 } else {
@@ -655,13 +661,20 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendAPIWorkGroup()
+    public function frontendAPIWorkGroup($isRedirect = false)
     {
 
         $Stage = new Stage('API', 'Arbeitsgruppen Abgleich');
+        if(!$isRedirect){
+            $Stage->setContent(new Info('Dieser Vorgang kann einige Zeit in Anspruch nehmen'
+                .new Container((new ProgressBar(0, 100, 0, 10))
+                    ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS))
+            ). new RedirectScript('/Setting/Univention/Api/WorkGroup', 0, array('isRedirect' => true)));
+            return $Stage;
+        }
+
         $Acronym = Account::useService()->getMandantAcronym();
         // dynamsiche Schulliste
-        $time_pre = microtime(true);
         $schoolList = (new UniventionSchool())->getAllSchools();
         // Fehlerausgabe
         if($this->errorScan($Stage, $schoolList)){
@@ -672,43 +685,36 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Warning('UCS liefert keine Informationen'));
             return $Stage;
         }
-        $time_post = microtime(true);
-        $exec_time = $time_post - $time_pre;
-        Debugger::devDump($exec_time);
-        $school = $schoolList[$Acronym];
         // Mandant ist nicht in der Schulliste
         if( !array_key_exists($Acronym, $schoolList)){
             $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht in UCS freigeschalten'));
             return $Stage;
         }
+        $school = $schoolList[$Acronym];
+        $UserUniventionList = Univention::useService()->getApiUser();
+        $ApiUserNameList = array();
+        if($UserUniventionList){
+            foreach($UserUniventionList as $UserUnivention){
+                $ApiUserNameList[] = $UserUnivention['name'];
+            }
+        }
 
         $ApiWorkGroupList = (new UniventionWorkGroup())->getWorkGroupListAll();
-        $time_post = microtime(true);
-        $exec_time = $time_post - $time_pre;
-        Debugger::devDump($exec_time);
         $ApiGroupArray = array();
-        foreach($ApiWorkGroupList as $ApiWorkGroup){
-            $group = $ApiWorkGroup['name'];
-            if(!empty($ApiWorkGroup['users'])){
-                foreach($ApiWorkGroup['users'] as &$User){
-                    $Position = strpos($User, $Acronym.'-');
-                    $TempUser = str_split($User, $Position);
-                    $User = $TempUser[1];
+        if($ApiWorkGroupList){
+            foreach($ApiWorkGroupList as $ApiWorkGroup){
+                $group = $ApiWorkGroup['name'];
+                if(!empty($ApiWorkGroup['users'])){
+                    foreach($ApiWorkGroup['users'] as &$User){
+                        $Position = strpos($User, $Acronym.'-');
+                        $TempUser = str_split($User, $Position);
+                        $User = $TempUser[1];
+                    }
                 }
+                sort($ApiWorkGroup['users']);
+                $ApiGroupArray[$group] = $ApiWorkGroup['users'];
             }
-            sort($ApiWorkGroup['users']);
-            $ApiGroupArray[$group] = $ApiWorkGroup['users'];
         }
-//        Debugger::devDump($ApiGroupArray);
-//        $UserUniventionList = Univention::useService()->getApiUser();
-//        $NameList = array();
-//        foreach($UserUniventionList as $UserUnivention){
-//            $NameList[] = $UserUnivention['name'];
-//        }
-//        Debugger::devDump($UserUniventionList);
-        $time_post = microtime(true);
-        $exec_time = $time_post - $time_pre;
-        Debugger::devDump($exec_time);
         $GroupArray = array();
         if(($tblGroupList = Group::useService()->getGroupListByIsCoreGroup())){
             $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
@@ -717,9 +723,12 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach($tblPersonList as $tblPerson){
                         // Nur bei Schülern
                         if(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStudent)){
-                            // Nur Schüler mit einem Account
-                            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
-                                $GroupArray[$tblGroup->getName()][] = $tblAccountList[0]->getUsername();
+                            // Nur Schüler mit einem Account und einer hinterlegten E-Mail
+                            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson)))
+                            {
+                                if(in_array($tblAccountList[0]->getUsername(), $ApiUserNameList)){
+                                    $GroupArray[$tblGroup->getName()][] = $tblAccountList[0]->getUsername();
+                                }
                             }
                         }
                     }
@@ -729,63 +738,72 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-        $time_post = microtime(true);
-        $exec_time = $time_post - $time_pre;
-        Debugger::devDump($exec_time);
         // ToDO Compare both lists (Api vs SSW)
         $EditList = array();
         $AddList = array();
-        $Content = '';
+        $ContentList = array();
+        ksort($GroupArray);
         foreach($GroupArray as $Group => $UserList){
             if((array_key_exists($Group, $ApiGroupArray))){
                 $ApiUserList = $ApiGroupArray[$Group];
-                if(($Diff = array_diff($ApiUserList, $UserList))){
+                if(count($ApiUserList) != count($UserList)
+                    || ($Diff = array_diff($ApiUserList, $UserList))){
                     $EditList[] = array($Group => $UserList);
-                    $Content .= new Container(new Bold('"'.$Group.'"').' ('.
-                        (new ToolTip(count($ApiUserList).' -> '.count($UserList), htmlspecialchars(implode('<br/>', $Diff))))->enableHtml()
-                        .') wurde angepasst');
+                    $ContentList[$Group] = new Info(new Bold('"'.$Group.'"').' ('. count($ApiUserList).' -> '.count($UserList)
+                        .') wurde angepasst', null, false, '3', '4');
                 } else {
                     // Sonnst keine Änderungen
-                    $Content .= new Container(new Bold('"'.$Group.'"').' ('.count($UserList).') unverändert');
+                    $ContentList[$Group] = '<div style="padding-bottom: 4px">'.new WellReadOnly(new Bold('"'.$Group.'"').' ('.count($UserList).') unverändert').'</div>';
                 }
             } else {
                 $AddList[] = array($Group => $UserList);
                 // neu erstellt
-                $Content .= new Container(new Bold('"'.$Group.'"').' ('.count($UserList).') wird angelegt');
+                $ContentList[$Group] = new Success(new Bold('"'.$Group.'"').' ('.count($UserList).') wird angelegt', null, false, '3', '4');
             }
         }
-        $time_post = microtime(true);
-        $exec_time = $time_post - $time_pre;
-        Debugger::devDump($exec_time);
 
         $ErrorList = array();
-        if(!empty($EditList)){
-            foreach($EditList as $GroupArray){
-                foreach($GroupArray as $Group => $UserList){
-                    $ErrorList[] = (new UniventionWorkGroup())->updateUserWorkgroup($Group, $Acronym, $UserList);
-                }
-            }
-        }
         if(!empty($AddList)){
             foreach($AddList as $GroupArray){
                 foreach($GroupArray as $Group => $UserList){
-                    $ErrorList[] = (new UniventionWorkGroup())->createUserWorkgroup($Group, $schoolList[$Acronym], $UserList);
+                    $ErrorList[$Group] = (new UniventionWorkGroup())->createUserWorkgroup($Group, $school, $UserList); // $UserList
+                }
+            }
+        }
+        if(!empty($EditList)){
+            foreach($EditList as $GroupArray){
+                foreach($GroupArray as $Group => $UserList){
+                    $ErrorList[$Group] = (new UniventionWorkGroup())->updateUserWorkgroup($Group, $Acronym, $UserList);
                 }
             }
         }
 
-        $time_post = microtime(true);
-        $exec_time = $time_post - $time_pre;
-        Debugger::devDump($exec_time);
-
         $ErrorList = array_filter($ErrorList);
         if(!empty($ErrorList)){
-            $ErrorList = new Listing($ErrorList);
-        } else {
-            $ErrorList = '';
+            foreach($ErrorList as $GroupString => $Content){
+                $ContentList[$GroupString] = new Danger($Content, null, false, '3', '4');
+            }
+        }
+        $LayoutColumnList = array();
+        if(!empty($ContentList)){
+            foreach($ContentList as $Content){
+                $LayoutColumnList[] = new LayoutColumn($Content, 3);
+            }
         }
 
-        $Stage->setContent($Content.$ErrorList);
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        foreach($LayoutColumnList as $LayoutColumn){
+            if ($LayoutRowCount % 4 == 0) {
+                $LayoutRow = new LayoutRow(array());
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn($LayoutColumn);
+            $LayoutRowCount++;
+        }
+        $Layout = new Layout(new LayoutGroup($LayoutRowList));
+
+        $Stage->setContent($Layout);
 
         return $Stage;
     }
@@ -924,13 +942,13 @@ class Frontend extends Extension implements IFrontendInterface
                             && (Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStaff)
                               || Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupTeacher)
                                 )){
-                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'<br />'.
                                     'Person mit sich ausschließenden Personengruppen:<br />'
                                     .new DangerText('Schüler, Mitarbeiter/Lehrer')
                                 )))->enableHtml();
                             } else {
-                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'<br />'.
                                     'Person in keiner der folgenen Personengruppen:<br />'
                                     .new DangerText('Schüler, Mitarbeiter/Lehrer')
@@ -939,7 +957,7 @@ class Frontend extends Extension implements IFrontendInterface
                         break;
                         case 'schools':
                             $KeyReplace = 'Schule:';
-                            $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                            $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
                                 'Schüler ist keiner Klasse zugewiesen <br />'
                                 .'oder Schule fehlt in UCS')))->enableHtml();
                         break;
@@ -948,7 +966,7 @@ class Frontend extends Extension implements IFrontendInterface
                     // Sonderregelung Schüler ohne Klasse ist ein Fehler Lehrer/Mitarbeiter nicht
                     if($tblMember && $Key == 'school_classes'){
                         $KeyReplace = 'Klassen:';
-                        $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                        $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                            new DangerText('Fehler:').'<br />'.
                             'Schüler ist keiner Klasse zugewiesen')))->enableHtml();
                     } elseif(!$tblMember && $Key == 'school_classes') {
@@ -963,14 +981,14 @@ class Frontend extends Extension implements IFrontendInterface
                         switch ($Key){
                             case 'name':
                                 $KeyReplace = 'Benutzername:';
-                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'</br>'.
                                     'Umlaute oder Sonderzeichen'
                                 )))->enableHtml();
                             break;
                             case 'email':
                                 $KeyReplace = 'E-Mail:';
-                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'<br />'.
                                     'keine E-Mail als UCS Benutzername verwendet'
                                 )))->enableHtml();
@@ -985,11 +1003,11 @@ class Frontend extends Extension implements IFrontendInterface
 //                            break;
                             case 'lastname':
                                 $KeyReplace = 'Person:';
-                                $MouseOver = new ToolTip(new Info(), 'keine Person am Account');
+                                $MouseOver = new ToolTip(new InfoIcon(), 'keine Person am Account');
                             break;
                             case 'school_classes':
                                 $KeyReplace = 'Klasse:';
-                                $MouseOver = new ToolTip(new Info(), 'Person muss mindestens einer Klasse zugewiesen sein');
+                                $MouseOver = new ToolTip(new InfoIcon(), 'Person muss mindestens einer Klasse zugewiesen sein');
                             break;
                         }
 
