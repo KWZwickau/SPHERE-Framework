@@ -194,7 +194,9 @@ class TimetableService
 
         if(TimetableClassRegister::useService()->updateTimetable($tblTimetable, $Data['Name'], $Data['Description'],
             new \DateTime($DateFrom), new \DateTime($DateTo))){
-            return new Success('Der Studenplan ist erfolgreich geändert worden'). new Redirect('/Transfer/Untis/Import/Timetable', Redirect::TIMEOUT_SUCCESS);
+            $Redirect = new Redirect('/Transfer/Untis/Import/Timetable', Redirect::TIMEOUT_SUCCESS);
+
+            return new Success('Der Studenplan ist erfolgreich geändert worden').$Redirect;
         }
         return new Danger('Der Stundenplan konnte nicht geändert werden.');
     }

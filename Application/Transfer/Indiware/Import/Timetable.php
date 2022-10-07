@@ -17,10 +17,13 @@ class Timetable implements IModuleInterface
             __NAMESPACE__.'/Timetable/Prepare', __NAMESPACE__.'/TimetableFrontend::frontendTimetableImport'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Timetable/Import', __NAMESPACE__.'\TimetableFrontend::frontendImportTimetable'
+            __NAMESPACE__.'/Timetable/Import', __NAMESPACE__.'/TimetableFrontend::frontendImportTimetable'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Timetable/Remove', __NAMESPACE__.'\TimetableFrontend::frontendRemoveTimetable'
+            __NAMESPACE__.'/Timetable/Edit', __NAMESPACE__.'/TimetableFrontend::frontendEditTimetable'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Timetable/Remove', __NAMESPACE__.'/TimetableFrontend::frontendRemoveTimetable'
         ));
     }
 

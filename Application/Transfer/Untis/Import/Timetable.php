@@ -17,6 +17,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -152,6 +153,9 @@ class Timetable extends Extension implements IModuleInterface
     }
 
     /**
+     * @param bool   $IsUploadField
+     * @param string $ButtonText
+     *
      * @return Form
      */
     private function formTimetable($IsUploadField = true, $ButtonText = 'Hochladen')
@@ -160,7 +164,7 @@ class Timetable extends Extension implements IModuleInterface
         $form = new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    (new TextField('Data[Name]', '', 'Name'))
+                    (new TextField('Data[Name]', '', 'Name'))->setRequired()
                     , 4),
                 new FormColumn(
                     new TextField('Data[Description]', '', 'Beschreibung')
@@ -183,7 +187,7 @@ class Timetable extends Extension implements IModuleInterface
             ))));
 
             $form->appendGridGroup(new FormGroup(new FormRow(
-                new FormColumn(new \SPHERE\Common\Frontend\Layout\Repository\Listing(
+                new FormColumn(new Listing(
                     array(
                         new RadioBox('Data[IsImport]', 'Test des Imports', '0'),
                         new RadioBox('Data[IsImport]', 'Importieren', '1')
@@ -290,7 +294,7 @@ class Timetable extends Extension implements IModuleInterface
      * @return Stage
      * @throws DocumentTypeException
      */
-    public function frontendEditTimetable(array $Data = array(), string $TimetableId)
+    public function frontendEditTimetable(array $Data = array(), string $TimetableId = '')
     {
 
         $Stage = new Stage('Stundenplan', 'Bearbeiten');
