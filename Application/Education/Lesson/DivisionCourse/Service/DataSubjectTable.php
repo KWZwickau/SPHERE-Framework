@@ -63,13 +63,20 @@ abstract class DataSubjectTable extends DataMigrate
         return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblSubjectTable', $Id);
     }
 
+    /**
+     * @param TblType $tblSchoolType
+     * @param int|null $level
+     *
+     * @return false|TblSubjectTable[]
+     */
     public function getSubjectTableListBy(TblType $tblSchoolType, ?int $level = null)
     {
         $parameters[TblSubjectTable::ATTR_SERVICE_TBL_SCHOOL_TYPE] = $tblSchoolType->getId();
         if ($level !== null) {
             $parameters[TblSubjectTable::ATTR_LEVEL] = $level;
         }
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSubjectTable', $parameters);
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSubjectTable', $parameters,
+            array(TblSubjectTable::ATTR_LEVEL => self::ORDER_ASC, TblSubjectTable::ATTR_RANKING => self::ORDER_ASC));
     }
 
     /**
@@ -100,18 +107,20 @@ abstract class DataSubjectTable extends DataMigrate
      * @param int $level
      * @param string|null $subjectAcronym
      * @param string $typeName
+     * @param int $ranking
      * @param int|null $hoursPerWeek
      * @param string $studentMetaIdentifier
      * @param bool $hasGrading
      *
      * @return false|TblSubjectTable
      */
-    public function setSubjectTable(TblType $tblSchoolType, int $level, ?string $subjectAcronym, string $typeName, ?int $hoursPerWeek,
+    public function setSubjectTable(TblType $tblSchoolType, int $level, ?string $subjectAcronym, string $typeName, int $ranking, ?int $hoursPerWeek,
         string $studentMetaIdentifier = '', bool $hasGrading = true)
     {
         $tblSubject = false;
         if ($subjectAcronym === null || ($tblSubject = Subject::useService()->getSubjectByVariantAcronym($subjectAcronym))) {
-            $tblSubjectTable = TblSubjectTable::withParameter($tblSchoolType, $level, $tblSubject ?: null, $typeName, $hoursPerWeek, $studentMetaIdentifier, $hasGrading);
+            $tblSubjectTable = TblSubjectTable::withParameter($tblSchoolType, $level, $tblSubject ?: null, $typeName, $ranking, $hoursPerWeek,
+                $studentMetaIdentifier, $hasGrading);
             $this->createSubjectTable($tblSubjectTable);
 
             return $tblSubjectTable;
@@ -172,132 +181,137 @@ abstract class DataSubjectTable extends DataMigrate
     private function setSachsenGsLevel1(TblType $tblSchoolTypePrimary)
     {
         $level = 1;
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', 7, '', false);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', 2, '', false);
-        // EN
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', 5, '', false);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', 3, '', false);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', $ranking++, 7, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', $ranking++, 2, '', false);
+        $ranking++; // EN
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', $ranking++, 5, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3, '', false);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/e', 'Wahlpflichtbereich', 1, 'RELIGION', false))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 1, 'RELIGION', false))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/k', 'Wahlpflichtbereich', 1, 'RELIGION', false))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 1, 'RELIGION', false))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'ETH', 'Wahlpflichtbereich', 1, 'RELIGION', false))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 1, 'RELIGION', false))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', 1, '', false);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', 1, '', false);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'WE', 'Pflichtbereich', 1, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', $ranking++, 1, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', $ranking++, 1, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'WE', 'Pflichtbereich', $ranking++, 1, '', false);
     }
 
     private function setSachsenGsLevel2(TblType $tblSchoolTypePrimary)
     {
         $level = 2;
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', 6);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', 3);
-        // EN
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', 5);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', 3, '', false);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', $ranking++, 6);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', $ranking++, 3);
+        $ranking++; // EN
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', $ranking++, 5);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3, '', false);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION', false))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION', false))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION', false))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION', false))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION', false))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION', false))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', 1, '', false);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', 1, '', false);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'WE', 'Pflichtbereich', 1, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', $ranking++, 1, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', $ranking++, 1, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'WE', 'Pflichtbereich', $ranking++, 1, '', false);
     }
 
     private function setSachsenGsLevel3(TblType $tblSchoolTypePrimary)
     {
         $level = 3;
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', 7);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'EN', 'Pflichtbereich', 2, '', false);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', 5);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', 3);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', $ranking++, 7);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'EN', 'Pflichtbereich', $ranking++, 2, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', $ranking++, 5);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'WE', 'Pflichtbereich', 1);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'WE', 'Pflichtbereich', $ranking++, 1);
     }
 
     private function setSachsenGsLevel4(TblType $tblSchoolTypePrimary)
     {
         $level = 4;
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', 6);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', 3);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'EN', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', 5);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', 2);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', $ranking++, 6);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'EN', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', $ranking++, 5);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', $ranking++, 2);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypePrimary, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'WE', 'Pflichtbereich', 1);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'WE', 'Pflichtbereich', $ranking++, 1);
     }
 
     private function setSachsenOsLevel5(TblType $tblSchoolTypeSecondary)
     {
         $level = 5;
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', 5);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', 5);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', 2);
-        // CH
-        // PH
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Pflichtbereich', 1);
-        // GK
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Pflichtbereich', 2);
-        // WTH
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', 3);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', $ranking++, 5);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', $ranking++, 5);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
+        $ranking++; // CH
+        $ranking++; // PH
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, 1);
+        $ranking++; // GK
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, 2);
+        $ranking++; // WTH
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'TC', 'Pflichtbereich', 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'TC', 'Pflichtbereich', $ranking++, 2);
         // INF
         // 2. FS
     }
@@ -305,212 +319,218 @@ abstract class DataSubjectTable extends DataMigrate
     private function setSachsenOsLevel6(TblType $tblSchoolTypeSecondary)
     {
         $level = 6;
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', 5);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', 5);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', 2);
-        // CH
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'PH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Pflichtbereich', 2);
-        // GK
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Pflichtbereich', 2);
-        // WTH
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', 3);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', $ranking++, 5);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', $ranking++, 5);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
+        $ranking++; // CH
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, 2);
+        $ranking++; // GK
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, 2);
+        $ranking++; // WTH
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'TC', 'Pflichtbereich', 1);
-        // INF
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', 2, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'TC', 'Pflichtbereich', $ranking++, 1);
+        $ranking++; // INF
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 2, 'FS_2');
     }
 
     private function setSachsenOsLevel7(TblType $tblSchoolTypeSecondary)
     {
         $level = 7;
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', 1);
-        // CH
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'PH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GK', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'WTH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', 2);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', $ranking++, 1);
+        $ranking++; // CH
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GK', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'WTH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', $ranking++, 2);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
         // TC
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FS_2');
     }
 
     private function setSachsenOsLevel8(TblType $tblSchoolTypeSecondary)
     {
         $level = 8;
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'CH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'PH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GK', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'WTH', 'Pflichtbereich', 3);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', 2);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'CH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GK', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'WTH', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', $ranking++, 2);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', 1);
-        // TC
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
+        $ranking++; // TC
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FS_2');
     }
 
     private function setSachsenOsLevel9(TblType $tblSchoolTypeSecondary)
     {
         $level = 9;
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', 3);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'CH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'PH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GK', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'WTH', 'Pflichtbereich', 3);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', 2);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'CH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GK', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'WTH', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', $ranking++, 2);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', 1);
-        // TC
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
+        $ranking++; // TC
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FS_2');
     }
 
     private function setSachsenOsLevel10(TblType $tblSchoolTypeSecondary)
     {
         $level = 10;
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', 3);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'CH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'PH', 'Pflichtbereich', 2);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'EN', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'CH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Wahlpflichtbereich', 2, 'ELECTIVE'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GE', 'Wahlpflichtbereich', $ranking++, 2, 'ELECTIVE'))) {
             $this->createSubjectTableLink($linkId, 2, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GK', 'Wahlpflichtbereich', 2, 'ELECTIVE'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GK', 'Wahlpflichtbereich', $ranking++, 2, 'ELECTIVE'))) {
             $this->createSubjectTableLink($linkId, 2, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Wahlpflichtbereich', 2, 'ELECTIVE'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'GEO', 'Wahlpflichtbereich', $ranking++, 2, 'ELECTIVE'))) {
             $this->createSubjectTableLink($linkId, 2, $tblSubjectTable);
         }
 
         // WTH
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', 2);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', $ranking++, 2);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Wahlpflichtbereich', 2, 'ELECTIVE'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Wahlpflichtbereich', $ranking++, 2, 'ELECTIVE'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Wahlpflichtbereich', 2, 'ELECTIVE'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Wahlpflichtbereich', $ranking++, 2, 'ELECTIVE'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
         // TC
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FS_2');
     }
 
     private function setSachsenGyLevel5(TblType $tblSchoolTypeGy)
     {
         $level = 5;
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', 5);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', 5);
-        // 2. FS
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', 2);
-        // CH
-        // PH
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', 1);
-        // G/R/W
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', 3);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 5);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', $ranking++, 5);
+        $ranking++; // 2. FS
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
+        $ranking++; // CH
+        $ranking++; // PH
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, 1);
+        $ranking++; // G/R/W
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'TC', 'Pflichtbereich', 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'TC', 'Pflichtbereich', $ranking++, 1);
         // INF
 
         // Profil
@@ -520,32 +540,33 @@ abstract class DataSubjectTable extends DataMigrate
     private function setSachsenGyLevel6(TblType $tblSchoolTypeGy)
     {
         $level = 6;
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', 3, 'FS_2');
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', 2);
-        // CH
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', 2);
-        // G/R/W
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', 3);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
+        $ranking++; // CH
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, 2);
+        $ranking++; // G/R/W
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'TC', 'Pflichtbereich', 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'TC', 'Pflichtbereich', $ranking++, 1);
         // INF
 
         // Profil
@@ -555,39 +576,40 @@ abstract class DataSubjectTable extends DataMigrate
     private function setSachsenGyLevel7(TblType $tblSchoolTypeGy)
     {
         $level = 7;
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', 4, 'FS_2');
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'G/R/W', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', 2);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 4, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'G/R/W', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', $ranking++, 2);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', 1);
-        // TC
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'INF', 'Pflichtbereich', 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
+        $ranking++; // TC
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', 2, 'PROFILE'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'PROFILE'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', 3, 'FS_3'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FS_3'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
     }
@@ -595,39 +617,40 @@ abstract class DataSubjectTable extends DataMigrate
     private function setSachsenGyLevel8(TblType $tblSchoolTypeGy)
     {
         $level = 8;
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', 3);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', 3, 'FS_2');
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'G/R/W', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', 2);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'G/R/W', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', $ranking++, 2);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', 1);
-        // TC
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'INF', 'Pflichtbereich', 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
+        $ranking++; // TC
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', 2, 'PROFILE'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'PROFILE'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', 3, 'FS_3'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FS_3'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
     }
@@ -635,39 +658,40 @@ abstract class DataSubjectTable extends DataMigrate
     private function setSachsenGyLevel9(TblType $tblSchoolTypeGy)
     {
         $level = 9;
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', 3);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', 3, 'FS_2');
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'G/R/W', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', 2);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'G/R/W', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', $ranking++, 2);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', 1);
-        // TC
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'INF', 'Pflichtbereich', 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
+        $ranking++; // TC
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', 2, 'PROFILE'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'PROFILE'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', 3, 'FS_3'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FS_3'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
     }
@@ -675,39 +699,40 @@ abstract class DataSubjectTable extends DataMigrate
     private function setSachsenGyLevel10(TblType $tblSchoolTypeGy)
     {
         $level = 10;
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', 3);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', 3, 'FS_2');
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'G/R/W', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', 2);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', 2);
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'G/R/W', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', $ranking++, 2);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/e', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'RE/k', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', 2, 'RELIGION'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Wahlpflichtbereich', $ranking++, 2, 'RELIGION'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', 1);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', 1);
-        // TC
-        $this->setSubjectTable($tblSchoolTypeGy, $level, 'INF', 'Pflichtbereich', 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', $ranking++, 1);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
+        $ranking++; // TC
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
 
         $linkId = $this->getNextLinkId();
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', 2, 'PROFILE'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'PROFILE'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', 3, 'FS_3'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FS_3'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
     }

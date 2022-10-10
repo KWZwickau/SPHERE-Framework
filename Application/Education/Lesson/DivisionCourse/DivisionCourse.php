@@ -20,6 +20,9 @@ class DivisionCourse implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route('SPHERE\Application\Education\Lesson\TeacherLectureship'), new Link\Name('Lehrauftrag'), new Link\Icon(new Education()))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route('SPHERE\Application\Education\Lesson\SubjectTable'), new Link\Name('Stundentafel'), new Link\Icon(new Education()))
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendDivisionCourse'
@@ -43,11 +46,21 @@ class DivisionCourse implements IModuleInterface
             __NAMESPACE__ . '/Member/Sort', __NAMESPACE__.'\Frontend::frontendMemberSort'
         ));
 
+        /*
+         * Lehrauftrag
+         */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             'SPHERE/Application/Education/Lesson/TeacherLectureship', __NAMESPACE__.'\Frontend::frontendTeacherLectureship'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             'SPHERE/Application/Education/Lesson/TeacherLectureship/Edit', __NAMESPACE__.'\Frontend::frontendEditTeacherLectureship'
+        ));
+
+        /*
+         * Stundentafel
+         */
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            'SPHERE/Application/Education/Lesson/SubjectTable', __NAMESPACE__.'\Frontend::frontendSubjectTable'
         ));
     }
 

@@ -21,7 +21,17 @@ class TblSubjectTable extends Element
 {
     const ATTR_SERVICE_TBL_SCHOOL_TYPE = 'serviceTblSchoolType';
     const ATTR_LEVEL = 'Level';
+    const ATTR_RANKING = 'Ranking';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+
+    const SUBJECT_FS_1_Id = -1;
+    const SUBJECT_FS_2_Id = -2;
+    const SUBJECT_FS_3_Id = -3;
+    const SUBJECT_FS_4_Id = -4;
+    const SUBJECT_RELIGION = -5;
+    const SUBJECT_PROFILE = -6;
+    const SUBJECT_ORIENTATION = -7;
+    const SUBJECT_ELECTIVE = -8;
 
     /**
      * @Column(type="bigint")
@@ -37,6 +47,11 @@ class TblSubjectTable extends Element
      * @Column(type="string")
      */
     protected string $TypeName;
+
+    /**
+     * @Column(type="integer")
+     */
+    protected int $Ranking;
 
     /**
      * @Column(type="bigint")
@@ -63,13 +78,14 @@ class TblSubjectTable extends Element
      * @param int $level
      * @param TblSubject|null $tblSubject
      * @param string $typeName
+     * @param int $ranking
      * @param int|null $hoursPerWeek
      * @param string $studentMetaIdentifier
      * @param bool $hasGrading
      *
      * @return TblSubjectTable
      */
-    public static function withParameter(TblType $tblSchoolType, int $level, ?TblSubject $tblSubject, string $typeName, ?int $hoursPerWeek,
+    public static function withParameter(TblType $tblSchoolType, int $level, ?TblSubject $tblSubject, string $typeName, int $ranking, ?int $hoursPerWeek,
         string $studentMetaIdentifier = '', bool $hasGrading = true): TblSubjectTable
     {
         $instance = new self();
@@ -78,6 +94,7 @@ class TblSubjectTable extends Element
         $instance->setLevel($level);
         $instance->setServiceTblSubject($tblSubject);
         $instance->setTypeName($typeName);
+        $instance->setRanking($ranking);
         $instance->setHoursPerWeek($hoursPerWeek);
         $instance->setStudentMetaIdentifier($studentMetaIdentifier);
         $instance->setHasGrading($hasGrading);
@@ -131,6 +148,22 @@ class TblSubjectTable extends Element
     public function setTypeName(string $TypeName): void
     {
         $this->TypeName = $TypeName;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRanking(): int
+    {
+        return $this->Ranking;
+    }
+
+    /**
+     * @param int $Ranking
+     */
+    public function setRanking(int $Ranking): void
+    {
+        $this->Ranking = $Ranking;
     }
 
     /**
@@ -195,5 +228,49 @@ class TblSubjectTable extends Element
     public function setHoursPerWeek(?int $HoursPerWeek): void
     {
         $this->HoursPerWeek = $HoursPerWeek;
+    }
+
+    /**
+     * @return int
+     */
+    public function getSubjectId(): int
+    {
+        if (($tblSubject = $this->getServiceTblSubject())) {
+            return $tblSubject->getId();
+        }
+
+        switch ($this->getStudentMetaIdentifier()) {
+            case 'FS_1': return self::SUBJECT_FS_1_Id;
+            case 'FS_2': return self::SUBJECT_FS_2_Id;
+            case 'FS_3': return self::SUBJECT_FS_3_Id;
+            case 'FS_4': return self::SUBJECT_FS_4_Id;
+            case 'RELIGION': return self::SUBJECT_RELIGION;
+            case 'PROFILE': return self::SUBJECT_PROFILE;
+            case 'ORIENTATION': return self::SUBJECT_ORIENTATION;
+            case 'ELECTIVE': return self::SUBJECT_ELECTIVE;
+            default: return 0;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubjectName(): string
+    {
+        if (($tblSubject = $this->getServiceTblSubject())) {
+            return $tblSubject->getName();
+        }
+
+        switch ($this->getStudentMetaIdentifier()) {
+            case 'FS_1': return '1. FS';
+            case 'FS_2': return '2. FS';
+            case 'FS_3': return '3. FS';
+            case 'FS_4': return '4. FS';
+            case 'RELIGION': return 'Religion';
+            case 'PROFILE': return 'Profil';
+            case 'ORIENTATION': return 'Wahlbereich';
+            case 'ELECTIVE': return 'Wahlfach';
+            default: return '';
+        }
     }
 }

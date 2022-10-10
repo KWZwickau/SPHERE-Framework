@@ -205,6 +205,7 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'Level', self::FIELD_TYPE_INTEGER);
         $this->createColumn($table, 'TypeName', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Ranking', self::FIELD_TYPE_INTEGER);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'StudentMetaIdentifier', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'HasGrading', self::FIELD_TYPE_BOOLEAN);

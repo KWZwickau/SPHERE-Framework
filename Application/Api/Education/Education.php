@@ -23,6 +23,7 @@ use SPHERE\Application\Api\Education\Division\ValidationFilter;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourse;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseMember;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
+use SPHERE\Application\Api\Education\DivisionCourse\ApiSubjectTable;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiTeacherLectureship;
 use SPHERE\Application\Api\Education\Graduation\Evaluation\ApiEvaluation;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
@@ -80,5 +81,6 @@ class Education implements IApplicationInterface
         ApiDivisionCourseMember::registerApi();
         ApiDivisionCourseStudent::registerApi();
         ApiTeacherLectureship::registerApi();
+        ApiSubjectTable::registerApi();
     }
 }

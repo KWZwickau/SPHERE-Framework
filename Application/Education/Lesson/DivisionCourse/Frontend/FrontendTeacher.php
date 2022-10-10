@@ -39,7 +39,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 
-class FrontendTeacher extends FrontendStudent
+class FrontendTeacher extends FrontendSubjectTable
 {
     /**
      * @param null $Filter
