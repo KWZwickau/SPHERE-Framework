@@ -379,7 +379,7 @@ abstract class DataSubjectTable extends DataMigrate
 
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'KU', 'Pflichtbereich', $ranking++, 1);
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
-        // TC
+        $ranking++;// TC
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FS_2');
     }
@@ -474,7 +474,7 @@ abstract class DataSubjectTable extends DataMigrate
             $this->createSubjectTableLink($linkId, 2, $tblSubjectTable);
         }
 
-        // WTH
+        $ranking++;// WTH
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'SPO', 'Pflichtbereich', $ranking++, 2);
 
         $linkId = $this->getNextLinkId();
@@ -496,7 +496,7 @@ abstract class DataSubjectTable extends DataMigrate
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
 
-        // TC
+        $ranking++;// TC
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FS_2');
     }

@@ -62,12 +62,11 @@ class FrontendSubjectTable extends FrontendStudent
             if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType))) {
                 $dataList = array();
                 $levelList = array();
-                // todo Sortierung bei Fach erst zu einer Späteren Klassenstufe
                 foreach ($tblSubjectTableList as $tblSubjectTable) {
                     $subjectId = $tblSubjectTable->getSubjectId();
                     $levelList[$tblSubjectTable->getLevel()] = $tblSubjectTable->getLevel();
-                    $dataList[$tblSubjectTable->getTypeName()][$subjectId]['Name'] = $tblSubjectTable->getSubjectName();
-                    $dataList[$tblSubjectTable->getTypeName()][$subjectId]['Levels'][$tblSubjectTable->getLevel()] = $tblSubjectTable->getHoursPerWeek();
+                    $dataList[$tblSubjectTable->getTypeName()][$tblSubjectTable->getRanking()][$subjectId]['Name'] = $tblSubjectTable->getSubjectName();
+                    $dataList[$tblSubjectTable->getTypeName()][$tblSubjectTable->getRanking()][$subjectId]['Levels'][$tblSubjectTable->getLevel()] = $tblSubjectTable->getHoursPerWeek();
                 }
 
                 if ($levelList) {
@@ -96,19 +95,31 @@ class FrontendSubjectTable extends FrontendStudent
         return '';
     }
 
+    /**
+     * @param $typeName
+     * @param $dataList
+     * @param $levelList
+     * @param $widthSubject
+     * @param $widthLevel
+     *
+     * @return string
+     */
     private function setContentByTypeName($typeName, $dataList, $levelList, $widthSubject, $widthLevel): string
     {
         $content = '';
         if (isset($dataList[$typeName])) {
             $content .= new Title(new Bold($typeName));
-            foreach ($dataList[$typeName] as $list) {
-                $columns = array();
-                $columns[] = new LayoutColumn($list['Name'], $widthSubject);
-                foreach ($levelList as $level) {
-                    $columns[] = new LayoutColumn(isset($list['Levels'][$level]) ? $list['Levels'][$level] : '-' , $widthLevel);
-                }
+            ksort($dataList[$typeName]);
+            foreach ($dataList[$typeName] as $rankingList) {
+                foreach ($rankingList as $list) {
+                    $columns = array();
+                    $columns[] = new LayoutColumn($list['Name'], $widthSubject);
+                    foreach ($levelList as $level) {
+                        $columns[] = new LayoutColumn(isset($list['Levels'][$level]) ? $list['Levels'][$level] : '-', $widthLevel);
+                    }
 
-                $content .= new Layout(new LayoutGroup(new LayoutRow($columns)));
+                    $content .= new Layout(new LayoutGroup(new LayoutRow($columns)));
+                }
             }
         }
 
