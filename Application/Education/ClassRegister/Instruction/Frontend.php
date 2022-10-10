@@ -298,8 +298,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $pretext = ($count == 0 ? 'Belehrung' : $count . '. Nachbelehrung')
                             . ' ' . $tblInstructionItem->getDate();
                         $sublist[$index] = $pretext
-                            . ($missingStudents ? ' - ' . new ToolTip(new Warning(count($missingStudents) . ' fehlende'
-                                    . (count($missingStudents) == 1 ? 'r' : '') . ' Schüler'), implode(' - ', $missingStudents)) : '')
+                            . ($missingStudents ? ' - ' . (new ToolTip(new Warning(count($missingStudents) . ' fehlende'
+                                    . (count($missingStudents) == 1 ? 'r' : '') . ' Schüler'), htmlspecialchars(implode(' - ', $missingStudents))))->enableHtml() : '')
                             . ' - '. $tblInstructionItem->getTeacherString()
                             . new PullRight((new Standard('', ApiInstructionItem::getEndpoint(), new Edit(), array(), $pretext .  ' bearbeiten'))
                                 ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenEditInstructionItemModal(
@@ -418,7 +418,7 @@ class Frontend extends Extension implements IFrontendInterface
                 // bei Nachbelehrung nur die fehlenden Schüler zur Auswahl anzeigen
                 if (!$missingPersonTotal || $InstructionItemId || isset($missingPersonTotal[$tblPerson->getId()])) {
                     $columns[$tblPerson->getId()] = new FormColumn(new CheckBox('Data[Students][' . $tblPerson->getId() . ']',
-                        $tblPerson->getLastFirstName(), 1), 4);
+                        $tblPerson->getLastFirstNameWithCallNameUnderline(), 1), 4);
                 }
             }
         }

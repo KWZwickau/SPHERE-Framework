@@ -59,8 +59,8 @@ class Indiware implements IApplicationInterface
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
                     new \SPHERE\Common\Frontend\Link\Repository\Link(
-                        new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png'),
-                            'Anleitung Indiware', 'Export der Lehraufträge aus Indiware')
+                        new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                        , 'Indiware Import', 'Leitfaden zur Informationsbeschaffung')
                         , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware'))
                 , 2),
             ))))

@@ -562,7 +562,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         if ($tblPersonList) {
             $count = 0;
             foreach ($tblPersonList as $tblPerson) {
-                $dataList[] = new PullLeft(++$count) . new PullRight($tblPerson->getLastFirstName());
+                $dataList[] = new PullLeft(++$count) . new PullRight($tblPerson->getLastFirstNameWithCallNameUnderline());
             }
         }
 
