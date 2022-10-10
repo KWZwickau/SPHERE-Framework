@@ -333,7 +333,7 @@ class Service extends AbstractService
         if (($missingList = $this->getMissingStudentsByInstructionItem($tblInstructionItem))) {
             foreach ($missingList as $tblInstructionItemStudent) {
                 if (($tblPerson = $tblInstructionItemStudent->getServiceTblPerson())) {
-                    $personList[$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                    $personList[$tblPerson->getId()] = $tblPerson->getLastFirstNameWithCallNameUnderline();
                 }
             }
         }

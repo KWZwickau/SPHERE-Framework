@@ -113,8 +113,8 @@ class StudentCardNew extends AbstractStudentCard
                             , '4%')
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                            {% if( Content.Person.Data.Name.First is not empty) %}
-                                                {{ Content.Person.Data.Name.First }}
+                                            {% if( Content.Person.Data.Name.Last is not empty) %}
+                                                {{ Content.Person.Data.Name.Last }}
                                             {% else %}
                                                 &nbsp;
                                             {% endif %}')
@@ -129,8 +129,8 @@ class StudentCardNew extends AbstractStudentCard
                             , '4%')
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                            {% if( Content.Person.Data.Name.Last is not empty) %}
-                                                {{ Content.Person.Data.Name.Last }}
+                                            {% if( Content.Person.Data.Name.First is not empty) %}
+                                                {{ Content.Person.Data.Name.First }}
                                             {% else %}
                                                 &nbsp;
                                             {% endif %}')
