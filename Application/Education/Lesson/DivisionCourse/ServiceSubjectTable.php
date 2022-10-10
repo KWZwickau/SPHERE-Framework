@@ -4,7 +4,9 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
 
 abstract class ServiceSubjectTable extends AbstractService
@@ -28,5 +30,107 @@ abstract class ServiceSubjectTable extends AbstractService
     public function getSubjectTableListBy(TblType $tblSchoolType, ?int $level = null)
     {
         return (new Data($this->getBinding()))->getSubjectTableListBy($tblSchoolType, $level);
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $Data
+     * @param TblSubjectTable|null $tblSubjectTable
+     *
+     * @return false|Form
+     */
+    public function checkFormSubjectTable($SchoolTypeId, $Data, TblSubjectTable $tblSubjectTable = null)
+    {
+        $error = false;
+        $form = DivisionCourse::useFrontend()->formSubjectTable($tblSubjectTable ? $tblSubjectTable->getId() : null, $SchoolTypeId);
+
+        if (!isset($Data['Level']) || empty($Data['Level'])) {
+            $form->setError('Data[Level]', 'Bitte geben Sie eine Klassenstufe ein');
+            $error = true;
+        } else {
+            $form->setSuccess('Data[Level]');
+        }
+
+        if (!isset($Data['Subject']) || (!($Data['Subject'] < 0) && !Subject::useService()->getSubjectById($Data['Subject']))) {
+            $form->setError('Data[Subject]', 'Bitte wählen Sie ein Fach aus');
+            $error = true;
+        } else {
+            $form->setSuccess('Data[Subject]');
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param array $Data
+     *
+     * @return false|TblSubjectTable
+     */
+    public function createSubjectTable(TblType $tblSchoolType, array $Data)
+    {
+        $studentMetaIdentifier = isset($Data['StudentMetaIdentifier']) ? $Data['StudentMetaIdentifier'] : '';
+        switch ($Data['Subject']) {
+            case TblSubjectTable::SUBJECT_FS_1_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_1'; break;
+            case TblSubjectTable::SUBJECT_FS_2_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_2'; break;
+            case TblSubjectTable::SUBJECT_FS_3_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_3'; break;
+            case TblSubjectTable::SUBJECT_FS_4_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_4'; break;
+            case TblSubjectTable::SUBJECT_RELIGION: $tblSubject = false; $studentMetaIdentifier = 'RELIGION'; break;
+            case TblSubjectTable::SUBJECT_PROFILE: $tblSubject = false; $studentMetaIdentifier = 'PROFILE'; break;
+            case TblSubjectTable::SUBJECT_ORIENTATION: $tblSubject = false; $studentMetaIdentifier = 'ORIENTATION'; break;
+            default: $tblSubject = Subject::useService()->getSubjectById($Data['Subject']);
+        }
+
+        return (new Data($this->getBinding()))->createSubjectTable(TblSubjectTable::withParameter(
+            $tblSchoolType,
+            $Data['Level'],
+            $tblSubject ?: null,
+            $Data['TypeName'],
+            (new Data($this->getBinding()))->getSubjectTableRankingForNewSubjectTable($tblSchoolType, $tblSubject ?: null, $studentMetaIdentifier),
+            $Data['HoursPerWeek'] !== '' ? $Data['HoursPerWeek'] : null,
+            $studentMetaIdentifier,
+            isset($Data['HasGrading'])
+        ));
+    }
+
+    /**
+     * @param TblSubjectTable $tblSubjectTable
+     * @param array $Data
+     *
+     * @return bool
+     */
+    public function updateSubjectTable(TblSubjectTable $tblSubjectTable, array $Data): bool
+    {
+        $studentMetaIdentifier = isset($Data['StudentMetaIdentifier']) ? $Data['StudentMetaIdentifier'] : '';
+        switch ($Data['Subject']) {
+            case TblSubjectTable::SUBJECT_FS_1_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_1'; break;
+            case TblSubjectTable::SUBJECT_FS_2_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_2'; break;
+            case TblSubjectTable::SUBJECT_FS_3_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_3'; break;
+            case TblSubjectTable::SUBJECT_FS_4_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_4'; break;
+            case TblSubjectTable::SUBJECT_RELIGION: $tblSubject = false; $studentMetaIdentifier = 'RELIGION'; break;
+            case TblSubjectTable::SUBJECT_PROFILE: $tblSubject = false; $studentMetaIdentifier = 'PROFILE'; break;
+            case TblSubjectTable::SUBJECT_ORIENTATION: $tblSubject = false; $studentMetaIdentifier = 'ORIENTATION'; break;
+            default: $tblSubject = Subject::useService()->getSubjectById($Data['Subject']);
+        }
+
+        return (new Data($this->getBinding()))->updateSubjectTable(
+            $tblSubjectTable,
+            $Data['Level'],
+            $Data['TypeName'],
+            $tblSubject ?: null,
+            $studentMetaIdentifier,
+            $Data['HoursPerWeek'] !== '' ? $Data['HoursPerWeek'] : null,
+            isset($Data['HasGrading'])
+        );
+    }
+
+    /**
+     * @param TblSubjectTable $tblSubjectTable
+     *
+     * @return bool
+     */
+    public function destroySubjectTable(TblSubjectTable $tblSubjectTable): bool
+    {
+        return (new Data($this->getBinding()))->destroySubjectTable($tblSubjectTable);
     }
 }

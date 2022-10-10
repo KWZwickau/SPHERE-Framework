@@ -22,6 +22,7 @@ class TblSubjectTable extends Element
     const ATTR_SERVICE_TBL_SCHOOL_TYPE = 'serviceTblSchoolType';
     const ATTR_LEVEL = 'Level';
     const ATTR_RANKING = 'Ranking';
+    const ATTR_STUDENT_META_IDENTIFIER = 'StudentMetaIdentifier';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
 
     const SUBJECT_FS_1_Id = -1;
@@ -201,7 +202,7 @@ class TblSubjectTable extends Element
     /**
      * @return bool
      */
-    public function isHasGrading(): bool
+    public function getHasGrading(): bool
     {
         return $this->HasGrading;
     }
@@ -262,10 +263,10 @@ class TblSubjectTable extends Element
         }
 
         switch ($this->getStudentMetaIdentifier()) {
-            case 'FS_1': return '1. FS';
-            case 'FS_2': return '2. FS';
-            case 'FS_3': return '3. FS';
-            case 'FS_4': return '4. FS';
+            case 'FS_1': return '1. Fremdsprache';
+            case 'FS_2': return '2. Fremdsprache';
+            case 'FS_3': return '3. Fremdsprache';
+            case 'FS_4': return '4. Fremdsprache';
             case 'RELIGION': return 'Religion';
             case 'PROFILE': return 'Profil';
             case 'ORIENTATION': return 'Wahlbereich';

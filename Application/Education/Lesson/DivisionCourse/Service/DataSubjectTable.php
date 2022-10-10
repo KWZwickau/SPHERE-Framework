@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTableLink;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
@@ -80,6 +81,40 @@ abstract class DataSubjectTable extends DataMigrate
     }
 
     /**
+     * @param TblType $tblSchoolType
+     * @param TblSubject|null $tblSubject
+     * @param $studentMetaIdentifier
+     *
+     * @return int
+     */
+    public function getSubjectTableRankingForNewSubjectTable(TblType $tblSchoolType, ?TblSubject $tblSubject, $studentMetaIdentifier): int
+    {
+        if ($tblSubject) {
+            /** @var TblSubjectTable $tblSubjectTable */
+            if (($tblSubjectTable = $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblSubjectTable', array(
+                TblSubjectTable::ATTR_SERVICE_TBL_SCHOOL_TYPE => $tblSchoolType->getId(),
+                TblSubjectTable::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+            )))) {
+                return $tblSubjectTable->getRanking();
+            }
+        } elseif ($studentMetaIdentifier) {
+            /** @var TblSubjectTable $tblSubjectTable */
+            if (($tblSubjectTable = $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblSubjectTable', array(
+                TblSubjectTable::ATTR_SERVICE_TBL_SCHOOL_TYPE => $tblSchoolType->getId(),
+                TblSubjectTable::ATTR_STUDENT_META_IDENTIFIER => $studentMetaIdentifier
+            )))) {
+                return $tblSubjectTable->getRanking();
+            }
+        }
+
+        if (($tblSubjectTableList = $this->getSubjectTableListBy($tblSchoolType))) {
+            return (end($tblSubjectTableList))->getRanking() + 1;
+        }
+
+        return 1;
+    }
+
+    /**
      * @param TblSubjectTable $tblSubjectTable
      *
      * @return TblSubjectTable
@@ -100,6 +135,61 @@ abstract class DataSubjectTable extends DataMigrate
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblSubjectTable $tblSubjectTable
+     * @param int $level
+     * @param string $typeName
+     * @param TblSubject|null $tblSubject
+     * @param string $studentMetaIdentifier
+     * @param int|null $hoursPerWeek
+     * @param bool $hasGrading
+     *
+     * @return bool
+     */
+    public function updateSubjectTable(TblSubjectTable $tblSubjectTable, int $level, string $typeName, ?TblSubject $tblSubject, string $studentMetaIdentifier,
+        ?int $hoursPerWeek, bool $hasGrading): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var TblSubjectTable $Entity */
+        $Entity = $Manager->getEntityById('TblSubjectTable', $tblSubjectTable->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setLevel($level);
+            $Entity->setTypeName($typeName);
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setStudentMetaIdentifier($studentMetaIdentifier);
+            $Entity->setHoursPerWeek($hoursPerWeek);
+            $Entity->setHasGrading($hasGrading);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblSubjectTable $tblSubjectTable
+     *
+     * @return bool
+     */
+    public function destroySubjectTable(TblSubjectTable $tblSubjectTable): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblSubjectTable $Entity */
+        $Entity = $Manager->getEntityById('TblSubjectTable', $tblSubjectTable->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
