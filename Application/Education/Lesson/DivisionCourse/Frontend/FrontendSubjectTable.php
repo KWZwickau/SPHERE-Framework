@@ -212,6 +212,7 @@ class FrontendSubjectTable extends FrontendStudent
         $typeNameList[] = new SelectBoxItem('Wahlpflichtbereich', 'Wahlpflichtbereich');
         $typeNameList[] = new SelectBoxItem('Wahlbereich', 'Wahlbereich');
 
+        $studentMetaList[] = new SelectBoxItem(0, '-[ Nicht ausgewählt ]-');
         $studentMetaList[] = new SelectBoxItem('RELIGION', 'Religion');
         $studentMetaList[] = new SelectBoxItem('PROFIL', 'Profil');
         $studentMetaList[] = new SelectBoxItem('ORIENTATION', 'Wahlbereich');

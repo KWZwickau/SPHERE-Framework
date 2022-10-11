@@ -69,17 +69,7 @@ abstract class ServiceSubjectTable extends AbstractService
      */
     public function createSubjectTable(TblType $tblSchoolType, array $Data)
     {
-        $studentMetaIdentifier = isset($Data['StudentMetaIdentifier']) ? $Data['StudentMetaIdentifier'] : '';
-        switch ($Data['Subject']) {
-            case TblSubjectTable::SUBJECT_FS_1_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_1'; break;
-            case TblSubjectTable::SUBJECT_FS_2_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_2'; break;
-            case TblSubjectTable::SUBJECT_FS_3_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_3'; break;
-            case TblSubjectTable::SUBJECT_FS_4_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_4'; break;
-            case TblSubjectTable::SUBJECT_RELIGION: $tblSubject = false; $studentMetaIdentifier = 'RELIGION'; break;
-            case TblSubjectTable::SUBJECT_PROFILE: $tblSubject = false; $studentMetaIdentifier = 'PROFILE'; break;
-            case TblSubjectTable::SUBJECT_ORIENTATION: $tblSubject = false; $studentMetaIdentifier = 'ORIENTATION'; break;
-            default: $tblSubject = Subject::useService()->getSubjectById($Data['Subject']);
-        }
+        list($tblSubject, $studentMetaIdentifier) = $this->getSubjectAndStudentMetaIdentifier($Data);
 
         return (new Data($this->getBinding()))->createSubjectTable(TblSubjectTable::withParameter(
             $tblSchoolType,
@@ -101,17 +91,7 @@ abstract class ServiceSubjectTable extends AbstractService
      */
     public function updateSubjectTable(TblSubjectTable $tblSubjectTable, array $Data): bool
     {
-        $studentMetaIdentifier = isset($Data['StudentMetaIdentifier']) ? $Data['StudentMetaIdentifier'] : '';
-        switch ($Data['Subject']) {
-            case TblSubjectTable::SUBJECT_FS_1_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_1'; break;
-            case TblSubjectTable::SUBJECT_FS_2_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_2'; break;
-            case TblSubjectTable::SUBJECT_FS_3_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_3'; break;
-            case TblSubjectTable::SUBJECT_FS_4_Id: $tblSubject = false; $studentMetaIdentifier = 'FS_4'; break;
-            case TblSubjectTable::SUBJECT_RELIGION: $tblSubject = false; $studentMetaIdentifier = 'RELIGION'; break;
-            case TblSubjectTable::SUBJECT_PROFILE: $tblSubject = false; $studentMetaIdentifier = 'PROFILE'; break;
-            case TblSubjectTable::SUBJECT_ORIENTATION: $tblSubject = false; $studentMetaIdentifier = 'ORIENTATION'; break;
-            default: $tblSubject = Subject::useService()->getSubjectById($Data['Subject']);
-        }
+        list($tblSubject, $studentMetaIdentifier) = $this->getSubjectAndStudentMetaIdentifier($Data);
 
         return (new Data($this->getBinding()))->updateSubjectTable(
             $tblSubjectTable,
@@ -132,5 +112,28 @@ abstract class ServiceSubjectTable extends AbstractService
     public function destroySubjectTable(TblSubjectTable $tblSubjectTable): bool
     {
         return (new Data($this->getBinding()))->destroySubjectTable($tblSubjectTable);
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return array
+     */
+    private function getSubjectAndStudentMetaIdentifier(array $Data): array
+    {
+        $studentMetaIdentifier = isset($Data['StudentMetaIdentifier']) && $Data['StudentMetaIdentifier'] !== 0 ? $Data['StudentMetaIdentifier'] : '';
+        $tblSubject = false;
+        switch ($Data['Subject']) {
+            case TblSubjectTable::SUBJECT_FS_1_Id: $studentMetaIdentifier = 'FS_1'; break;
+            case TblSubjectTable::SUBJECT_FS_2_Id: $studentMetaIdentifier = 'FS_2'; break;
+            case TblSubjectTable::SUBJECT_FS_3_Id: $studentMetaIdentifier = 'FS_3'; break;
+            case TblSubjectTable::SUBJECT_FS_4_Id: $studentMetaIdentifier = 'FS_4'; break;
+            case TblSubjectTable::SUBJECT_RELIGION: $studentMetaIdentifier = 'RELIGION'; break;
+            case TblSubjectTable::SUBJECT_PROFILE: $studentMetaIdentifier = 'PROFILE'; break;
+            case TblSubjectTable::SUBJECT_ORIENTATION: $studentMetaIdentifier = 'ORIENTATION'; break;
+            default: $tblSubject = Subject::useService()->getSubjectById($Data['Subject']);
+        }
+
+        return array($tblSubject, $studentMetaIdentifier);
     }
 }

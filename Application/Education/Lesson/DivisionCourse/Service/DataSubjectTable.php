@@ -107,11 +107,7 @@ abstract class DataSubjectTable extends DataMigrate
             }
         }
 
-        if (($tblSubjectTableList = $this->getSubjectTableListBy($tblSchoolType))) {
-            return (end($tblSubjectTableList))->getRanking() + 1;
-        }
-
-        return 1;
+        return $this->getNextRankingForNewSubjectTable($tblSchoolType);
     }
 
     /**
@@ -119,13 +115,15 @@ abstract class DataSubjectTable extends DataMigrate
      *
      * @return TblSubjectTable
      */
-    public function createSubjectTable(TblSubjectTable $tblSubjectTable): TblSubjectTable {
+    public function createSubjectTable(TblSubjectTable $tblSubjectTable): TblSubjectTable
+    {
         $Manager = $this->getEntityManager();
 
         $Entity = $Manager->getEntity('TblSubjectTable')->findOneBy(array(
-            TblSubjectTable::ATTR_SERVICE_TBL_SCHOOL_TYPE => $tblSubjectTable->getServiceTblSchoolType(),
+            TblSubjectTable::ATTR_SERVICE_TBL_SCHOOL_TYPE => $tblSubjectTable->getServiceTblSchoolType() ? $tblSubjectTable->getServiceTblSchoolType()->getId() : '',
             TblSubjectTable::ATTR_LEVEL => $tblSubjectTable->getLevel(),
-            TblSubjectTable::ATTR_SERVICE_TBL_SUBJECT => $tblSubjectTable->getServiceTblSubject()
+            TblSubjectTable::ATTR_SERVICE_TBL_SUBJECT => $tblSubjectTable->getServiceTblSubject() ? $tblSubjectTable->getServiceTblSubject()->getId() : '',
+            TblSubjectTable::ATTR_STUDENT_META_IDENTIFIER => $tblSubjectTable->getStudentMetaIdentifier()
         ));
 
         if (null === $Entity) {
@@ -236,6 +234,32 @@ abstract class DataSubjectTable extends DataMigrate
         if (is_array($result)) {
             $item = current($result);
             return intval($item['MaxLinkId']) + 1;
+        }
+
+        return 1;
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     *
+     * @return int
+     */
+    public function getNextRankingForNewSubjectTable(TblType $tblSchoolType): int
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('Max(t.Ranking) as MaxRanking')
+            ->from(__NAMESPACE__ . '\Entity\TblSubjectTable', 't')
+            ->where($queryBuilder->expr()->eq('t.serviceTblSchoolType', '?1'))
+            ->setParameter(1, $tblSchoolType->getId())
+            ->orderBy('t.Ranking', 'DESC')
+            ->getQuery();
+
+        $result = $query->getResult();
+        if (is_array($result)) {
+            $item = current($result);
+            return intval($item['MaxRanking']) + 1;
         }
 
         return 1;
