@@ -13,12 +13,15 @@ use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Link as LinkIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -66,6 +69,8 @@ class FrontendSubjectTable extends FrontendStudent
                 ? new Title($tblSchoolType->getName())
                     . (new Primary('Eintrag hinzufügen', ApiSubjectTable::getEndpoint(), new Plus()))
                         ->ajaxPipelineOnClick(ApiSubjectTable::pipelineOpenCreateSubjectTableModal($SchoolTypeId))
+                    . (new Primary('Verknüpfung hinzufügen', ApiSubjectTable::getEndpoint(), new Plus()))
+                        ->ajaxPipelineOnClick(ApiSubjectTable::pipelineOpenCreateSubjectTableLinkModal($SchoolTypeId))
                     . new Container('&nbsp;')
                 : '')
             . ApiSubjectTable::receiverBlock($this->loadSubjectTableContent($SchoolTypeId), 'SubjectTableContent')
@@ -90,13 +95,21 @@ class FrontendSubjectTable extends FrontendStudent
                 $dataList = array();
                 $levelList = array();
                 foreach ($tblSubjectTableList as $tblSubjectTable) {
+                    $linkEdit = '';
+                    if (($linkList = DivisionCourse::useService()->getSubjectTableLinkListBySubjectTable($tblSubjectTable))) {
+                        // todo ajax
+                        $linkEdit = new LinkIcon();
+                    }
+
                     $subjectId = $tblSubjectTable->getSubjectId();
                     $levelList[$tblSubjectTable->getLevel()] = $tblSubjectTable->getLevel();
                     $dataList[$tblSubjectTable->getTypeName()][$tblSubjectTable->getRanking()][$subjectId]['Name'] = $tblSubjectTable->getSubjectName();
                     $dataList[$tblSubjectTable->getTypeName()][$tblSubjectTable->getRanking()][$subjectId]['Levels'][$tblSubjectTable->getLevel()]
-                        = (new Link($tblSubjectTable->getHoursPerWeek() === null ? '*' : $tblSubjectTable->getHoursPerWeek(), ApiSubjectTable::getEndpoint()))
-                            ->ajaxPipelineOnClick(ApiSubjectTable::pipelineOpenEditSubjectTableModal($tblSubjectTable->getId(), $SchoolTypeId));
-                    // todo anzeige keine benotung
+                        = (new Link(($tblSubjectTable->getHoursPerWeek() === null ? '*' : $tblSubjectTable->getHoursPerWeek())
+                            . (!$tblSubjectTable->getHasGrading() ? ' ' . new Ban() : ''), ApiSubjectTable::getEndpoint(),
+                            null, array(), 'Eintrag bearbeiten'
+                        ))->ajaxPipelineOnClick(ApiSubjectTable::pipelineOpenEditSubjectTableModal($tblSubjectTable->getId(), $SchoolTypeId))
+                        . ($linkEdit ? '&nbsp;&nbsp;&nbsp;&nbsp;' . $linkEdit : '');
                 }
 
                 if ($levelList) {
@@ -105,7 +118,6 @@ class FrontendSubjectTable extends FrontendStudent
                     $widthSubject = 12 - $countLevel * $widthLevel;
 
                     $content = $this->setContentByTypeName('Pflichtbereich', $dataList, $levelList, $widthSubject, $widthLevel);
-                    // todo verknüpfung anzeigen
                     $content .= $this->setContentByTypeName('Wahlpflichtbereich', $dataList, $levelList, $widthSubject, $widthLevel);
                     $content .= $this->setContentByTypeName('Wahlbereich', $dataList, $levelList, $widthSubject, $widthLevel);
 
@@ -251,5 +263,77 @@ class FrontendSubjectTable extends FrontendStudent
                 )),
             ))
         ))->disableSubmitAction();
+    }
+
+    public function formSubjectTableLink($SubjectTableLinkId = null, $SchoolTypeId = null, $Data = null, bool $setPost = false): Form
+    {
+        // todo
+        // beim Checken der Input-Felder darf der Post nicht gesetzt werden
+        $tblSubjectTable = DivisionCourse::useService()->getSubjectTableById($SubjectTableLinkId);
+        if ($setPost && $tblSubjectTable) {
+            // todo
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['Level'] = $tblSubjectTable->getLevel();
+            $Global->POST['Data']['TypeName'] = $tblSubjectTable->getTypeName();
+            $Global->POST['Data']['Subject'] = $tblSubjectTable->getSubjectId();
+            $Global->POST['Data']['StudentMetaIdentifier'] = $tblSubjectTable->getStudentMetaIdentifier();
+            $Global->POST['Data']['HoursPerWeek'] = $tblSubjectTable->getHoursPerWeek();
+            $Global->POST['Data']['HasGrading'] = $tblSubjectTable->getHasGrading();
+            $Global->savePost();
+        }
+
+        return (new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        (new TextField('Data[Level]', '', 'Klassenstufe'))
+                            ->setRequired()
+                            ->ajaxPipelineOnKeyUp(ApiSubjectTable::pipelineLoadCheckSubjectTableContent($SchoolTypeId))
+                        , 6),
+                    new FormColumn(
+                        (new NumberField('Data[MinCount]', '', 'Mindestanzahl der verknüpften Fächer pro Schüler'))->setRequired()
+                        , 6),
+                )),
+                new FormRow(new FormColumn(array(
+                    ApiSubjectTable::receiverBlock($this->loadCheckSubjectTableContent($SchoolTypeId, $Data), 'CheckSubjectTableContent')
+                ))),
+            ))
+        ))->disableSubmitAction();
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $Data
+     *
+     * @return string
+     */
+    public function loadCheckSubjectTableContent($SchoolTypeId, $Data = null): string
+    {
+        if (($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))) {
+            if (isset($Data['Level']) && $Data['Level'] !== '') {
+                if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $Data['Level']))) {
+                    $dataList = array();
+                    foreach ($tblSubjectTableList as $tblSubjectTable) {
+                        $dataList[] = new CheckBox('Data[SubjectTables][' . $tblSubjectTable->getId() . ']', $tblSubjectTable->getSubjectName(), 1);
+                    }
+
+                    // todo edit
+//            $buttonList[] = (new Primary('Speichern', ApiSubjectTable::getEndpoint(), new Save()))
+//                ->ajaxPipelineOnClick(ApiSubjectTable::pipelineEditSubjectTableSave($SubjectTableLinkId, $SchoolTypeId));
+//            $buttonList[] = (new \SPHERE\Common\Frontend\Link\Repository\Danger('Löschen', ApiSubjectTable::getEndpoint(), new Remove()))
+//                ->ajaxPipelineOnClick(ApiSubjectTable::pipelineOpenDeleteSubjectTableModal($SubjectTableLinkId, $SchoolTypeId));
+
+                    return new Panel('Einträge verknüpfen', $dataList, Panel::PANEL_TYPE_INFO)
+                        . (new Primary('Speichern', ApiSubjectTable::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiSubjectTable::pipelineCreateSubjectTableLinkSave($SchoolTypeId));
+                } else {
+                    return new Warning('Für diese Klassenstufe gibt es noch keine Einträge in der Stundentafel.');
+                }
+            } else {
+                return new Warning('Bitte geben Sie zunächst ein Klassenstufe an.');
+            }
+        }
+
+        return new Danger('Schulart nicht gefunden', new Exclamation());
     }
 }

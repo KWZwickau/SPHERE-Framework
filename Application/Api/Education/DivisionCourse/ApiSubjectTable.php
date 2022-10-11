@@ -54,6 +54,10 @@ class ApiSubjectTable extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openDeleteSubjectTableModal');
         $Dispatcher->registerMethod('saveDeleteSubjectTableModal');
 
+        $Dispatcher->registerMethod('loadCheckSubjectTableContent');
+        $Dispatcher->registerMethod('openCreateSubjectTableLinkModal');
+        $Dispatcher->registerMethod('saveCreateSubjectTableLinkModal');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -409,6 +413,144 @@ class ApiSubjectTable extends Extension implements IApiInterface
                 . self::pipelineClose();
         } else {
             return new Danger('Der Eintrag konnte nicht gelöscht werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param null $SchoolTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadCheckSubjectTableContent($SchoolTypeId): Pipeline
+    {
+        // todo LinkId
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CheckSubjectTableContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadCheckSubjectTableContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $SchoolTypeId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadCheckSubjectTableContent($SchoolTypeId = null, $Data = null): string
+    {
+        return DivisionCourse::useFrontend()->loadCheckSubjectTableContent($SchoolTypeId, $Data);
+    }
+
+    /**
+     * @param $SchoolTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenCreateSubjectTableLinkModal($SchoolTypeId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openCreateSubjectTableLinkModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SchoolTypeId
+     *
+     * @return string
+     */
+    public function openCreateSubjectTableLinkModal($SchoolTypeId = null): string
+    {
+        return $this->getSubjectTableLinkModal(DivisionCourse::useFrontend()->formSubjectTableLink(null, $SchoolTypeId, null, false));
+    }
+
+    /**
+     * @param $form
+     * @param string|null $SubjectTableLinkId
+     *
+     * @return string
+     */
+    private function getSubjectTableLinkModal($form, string $SubjectTableLinkId = null): string
+    {
+        if ($SubjectTableLinkId) {
+            $title = new Title(new Edit() . ' Verknüpfung bearbeiten');
+        } else {
+            $title = new Title(new Plus() . ' Verknüpfung hinzufügen');
+        }
+
+        return $title
+            . new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Well(
+                                    $form
+                                )
+                            )
+                        )
+                    ))
+            );
+    }
+
+    /**
+     * @param null $SchoolTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCreateSubjectTableLinkSave($SchoolTypeId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreateSubjectTableLinkModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param array|null $Data
+     *
+     * @return string
+     */
+    public function saveCreateSubjectTableLinkModal($SchoolTypeId, array $Data = null): string
+    {
+        if (!($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))) {
+            return new Danger('Schulart nicht gefunden', new Exclamation()) . self::pipelineClose();
+        }
+
+        if (($form = DivisionCourse::useService()->checkFormSubjectTableLink($SchoolTypeId, $Data))) {
+            // display Errors on form
+            return $this->getSubjectTableLinkModal($form);
+        }
+
+        if (DivisionCourse::useService()->createSubjectTableLink($Data)) {
+            return new Success('Verknüpfung wurde erfolgreich gespeichert.')
+                . self::pipelineLoadSubjectTableContent($SchoolTypeId)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Verknüpfung konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 }

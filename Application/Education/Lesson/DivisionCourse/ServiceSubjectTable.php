@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTableLink;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -30,6 +31,26 @@ abstract class ServiceSubjectTable extends AbstractService
     public function getSubjectTableListBy(TblType $tblSchoolType, ?int $level = null)
     {
         return (new Data($this->getBinding()))->getSubjectTableListBy($tblSchoolType, $level);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     *
+     * @return false|TblSubjectTableLink
+     */
+    public function getSubjectTableLinkListBySchoolType(TblType $tblSchoolType)
+    {
+        return (new Data($this->getBinding()))->getSubjectTableLinkListBySchoolType($tblSchoolType);
+    }
+
+    /**
+     * @param TblSubjectTable $tblSubjectTable
+     *
+     * @return false|TblSubjectTableLink[]
+     */
+    public function getSubjectTableLinkListBySubjectTable(TblSubjectTable $tblSubjectTable)
+    {
+        return (new Data($this->getBinding()))->getSubjectTableLinkListBySubjectTable($tblSubjectTable);
     }
 
     /**
@@ -105,16 +126,6 @@ abstract class ServiceSubjectTable extends AbstractService
     }
 
     /**
-     * @param TblSubjectTable $tblSubjectTable
-     *
-     * @return bool
-     */
-    public function destroySubjectTable(TblSubjectTable $tblSubjectTable): bool
-    {
-        return (new Data($this->getBinding()))->destroySubjectTable($tblSubjectTable);
-    }
-
-    /**
      * @param array $Data
      *
      * @return array
@@ -135,5 +146,65 @@ abstract class ServiceSubjectTable extends AbstractService
         }
 
         return array($tblSubject, $studentMetaIdentifier);
+    }
+
+    /**
+     * @param TblSubjectTable $tblSubjectTable
+     *
+     * @return bool
+     */
+    public function destroySubjectTable(TblSubjectTable $tblSubjectTable): bool
+    {
+        return (new Data($this->getBinding()))->destroySubjectTable($tblSubjectTable);
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $Data
+     * @param TblSubjectTableLink|null $tblSubjectTableLink
+     *
+     * @return false|Form
+     */
+    public function checkFormSubjectTableLink($SchoolTypeId, $Data, TblSubjectTableLink $tblSubjectTableLink = null)
+    {
+        $error = false;
+        $form = DivisionCourse::useFrontend()->formSubjectTableLink($tblSubjectTableLink ? $tblSubjectTableLink->getId() : null, $SchoolTypeId, $Data);
+
+        if (!isset($Data['Level']) || empty($Data['Level'])) {
+            $form->setError('Data[Level]', 'Bitte geben Sie eine Klassenstufe ein');
+            $error = true;
+        } else {
+            $form->setSuccess('Data[Level]');
+        }
+
+        if (!isset($Data['MinCount']) || empty($Data['MinCount'])) {
+            $form->setError('Data[MinCount]', 'Bitte geben Sie eine Mindestanzahl ein');
+            $error = true;
+        } else {
+            $form->setSuccess('Data[MinCount]');
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return bool
+     */
+    public function createSubjectTableLink(array $Data): bool
+    {
+        if (isset($Data['SubjectTables']) && count($Data['SubjectTables']) > 1) {
+            $linkId = (new Data($this->getBinding()))->getNextLinkId();
+            foreach ($Data['SubjectTables'] as $subjectTableId => $value) {
+                if (($tblSubjectTable = $this->getSubjectTableById($subjectTableId))) {
+                    (new Data($this->getBinding()))->createSubjectTableLink($linkId, $Data['MinCount'], $tblSubjectTable);
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }

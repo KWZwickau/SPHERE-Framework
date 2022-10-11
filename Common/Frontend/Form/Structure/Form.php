@@ -139,7 +139,7 @@ class Form extends Extension implements IFormInterface
                         }
                         if ($GridElement instanceof BlockReceiver) {
                             if (($GridSubElement = $GridElement->getContent())) {
-                                if ($GridSubElement->getName() == $Name) {
+                                if ($GridSubElement instanceof AbstractField && $GridSubElement->getName() == $Name) {
                                     $GridSubElement->setError($Message, $Icon);
                                 }
                             }
@@ -205,7 +205,7 @@ class Form extends Extension implements IFormInterface
                         }
                         if ($GridElement instanceof BlockReceiver) {
                             if (($GridSubElement = $GridElement->getContent())) {
-                                if ($GridSubElement->getName() == $Name) {
+                                if ($GridSubElement instanceof AbstractField && $GridSubElement->getName() == $Name) {
                                     $GridSubElement->setSuccess($Message, $Icon);
                                 }
                             }

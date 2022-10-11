@@ -111,6 +111,43 @@ abstract class DataSubjectTable extends DataMigrate
     }
 
     /**
+     * @param TblType $tblSchoolType
+     *
+     * @return false|TblSubjectTableLink
+     */
+    public function getSubjectTableLinkListBySchoolType(TblType $tblSchoolType)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('l')
+            ->from(__NAMESPACE__ . '\Entity\TblSubjectTable', 's')
+            ->join(__NAMESPACE__ . '\Entity\TblSubjectTableLink', 'l')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('s.Id', 'l.tblLessonSubjectTable'),
+                    $queryBuilder->expr()->eq('s.serviceTblSchoolType', '?1')
+                ),
+            )
+            ->setParameter(1, $tblSchoolType->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblSubjectTable $tblSubjectTable
+     *
+     * @return false|TblSubjectTableLink[]
+     */
+    public function getSubjectTableLinkListBySubjectTable(TblSubjectTable $tblSubjectTable)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSubjectTableLink', array(TblSubjectTableLink::ATTR_TBL_SUBJECT_TABLE => $tblSubjectTable->getId()));
+    }
+
+    /**
      * @param TblSubjectTable $tblSubjectTable
      *
      * @return TblSubjectTable
