@@ -13,6 +13,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Person
@@ -562,5 +563,21 @@ class Person
         }
 
         return 'Keine Daten vorhanden!';
+    }
+
+    /**
+     * @return string|bool
+     */
+    public function downloadDivisionTeacherList()
+    {
+        list($TableContent, $headers) = ReportingPerson::useService()->createDivisionTeacherList();
+        if ($TableContent) {
+            $fileLocation = ReportingPerson::useService()->createDivisionTeacherExcelList($TableContent, $headers);
+
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Eltern- und Schuelersprecher ".date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return false;
     }
 }

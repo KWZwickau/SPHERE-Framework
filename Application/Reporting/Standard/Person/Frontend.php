@@ -1604,108 +1604,15 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClassTeacher(?string $YearId = null): Stage
     {
 
-        $Stage = new Stage('Auswertung', 'Klassenlehrer');
-        $TableContent = array();
+        $Stage = new Stage('Auswertung', 'Eltern- und Schülersprecher');
         $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         $Stage->addButton(
             new Primary('Herunterladen',
-                '/Api/Reporting/Standard/Person/InterestedPersonList/Download', new Download())
+                '/Api/Reporting/Standard/Person/DivisionTeacherList/Download', new Download())
         );
-        $maxCountTeacher = 0;
-        $maxCountCustody = 0;
-        $maxCountRepresentative = 0;
-        if (($tblYearList = Term::useService()->getYearByNow())) {
-            foreach ($tblYearList as $tblYear) {
-                if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
 
-                    foreach ($tblDivisionList as $tblDivision) {
-                        $item = array();
-                        $item['Division'] = $tblDivision->getDisplayName();
-
-
-                        $TeacherColumn = 1;
-                        if (($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))){
-                            foreach($tblDivisionTeacherList as $tblDivisionTeacher) {
-                                $item['DivisionTeacher'.$TeacherColumn.'FirstName'] = $tblDivisionTeacher->getServiceTblPerson()->getFirstName();
-                                $item['DivisionTeacher'.$TeacherColumn++.'Name'] = $tblDivisionTeacher->getServiceTblPerson()->getLastName();
-                            }
-                            if ($TeacherColumn -1 > $maxCountTeacher){
-                                $maxCountTeacher = $TeacherColumn -1;
-                            }
-                        }
-
-                        $CustodyColumn = 1;
-                        if (($tblDivisionCustodyList = Division::useService()->getDivisionCustodyAllByDivision($tblDivision))){
-                            foreach($tblDivisionCustodyList as $tblDivisionCustody) {
-                                $item['DivisionCustody'.$CustodyColumn.'FirstName'] = $tblDivisionCustody->getServiceTblPerson()->getFirstName();
-                                $item['DivisionCustody'.$CustodyColumn++.'Name'] = $tblDivisionCustody->getServiceTblPerson()->getLastName();
-                            }
-                            if ($CustodyColumn -1 > $maxCountCustody){
-                                $maxCountCustody = $CustodyColumn -1;
-                            }
-                        }
-
-                        $RepresentativeColumn = 1;
-                        if (($tblDivisionRepresentativeList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))){
-                            foreach($tblDivisionRepresentativeList as $tblDivisionRepresentative) {
-                                $item['DivisionRepresentative'.$RepresentativeColumn.'FirstName'] = $tblDivisionRepresentative->getServiceTblPerson()->getFirstName();
-                                $item['DivisionRepresentative'.$RepresentativeColumn++.'Name'] = $tblDivisionRepresentative->getServiceTblPerson()->getLastName();
-                            }
-                            if ($RepresentativeColumn -1 > $maxCountRepresentative){
-                                $maxCountRepresentative = $RepresentativeColumn -1;
-                            }
-                        }
-
-
-                        // Checkt ob Namensfeld Leer ist und setzt es falls ja auf "-"
-                        if (empty($item['DivisionTeacher'.$TeacherColumn.'FirstName'])){
-                            $item['DivisionTeacher'.$TeacherColumn.'FirstName'] = '-';
-                        }
-                        if (empty($item['DivisionTeacher'.$TeacherColumn.'Name'])){
-                            $item['DivisionTeacher'.$TeacherColumn.'Name'] = '-';
-                        }
-                        if (empty($item['DivisionCustody'.$CustodyColumn.'FirstName'])){
-                            $item['DivisionCustody'.$CustodyColumn.'FirstName'] = '-';
-                        }
-                        if (empty($item['DivisionCustody'.$CustodyColumn.'Name'])) {
-                            $item['DivisionCustody'.$CustodyColumn.'Name'] = '-';
-                        }
-                        if (empty($item['DivisionRepresentative'.$RepresentativeColumn.'FirstName'])){
-                            $item['DivisionRepresentative'.$RepresentativeColumn.'FirstName'] = '-';
-                        }
-                        if(empty($item['DivisionRepresentative'.$RepresentativeColumn.'Name'])){
-                            $item['DivisionRepresentative'.$RepresentativeColumn.'Name'] = '-';
-                        }
-
-                        /*
-                        if (($tblDivisionCustodyList = Division::useService()->getDivisionCustodyAllByDivision($tblDivision))){
-                            foreach($tblDivisionCustodyList as $tblDivisionCustody) {
-                                $item['DivisionCustody1FirstName'] = $tblDivisionCustody->getServiceTblPerson()->getFirstName();
-                                $item['DivisionCustody1Name'] = $tblDivisionCustody->getServiceTblPerson()->getLastName();
-                            }
-                        }
-                        */
-
-                        array_push($TableContent, $item);
-                    }
-                }
-            }
-        }
-
-        $headers['Division'] = 'Klasse';
-        for ($i = 1; $i <= $maxCountTeacher; $i++){
-            $headers['DivisionTeacher'.$i.'FirstName'] = 'Klassenlehrer'.$i.' - Vorname';
-            $headers['DivisionTeacher'.$i.'Name'] = 'Klassenlehrer'.$i.' - Nachname';
-        }
-        for ($j = 1; $j <= $maxCountCustody; $j++){
-            $headers['DivisionCustody'.$j.'FirstName'] = 'Elternvertreter'.$j.' - Vorname';
-            $headers['DivisionCustody'.$j.'Name'] = 'Elternvertreter'.$j.' - Nachname';
-        }
-        for ($l = 1; $l <= $maxCountRepresentative; $l++){
-            $headers['DivisionRepresentative'.$l.'FirstName'] = 'Schülersprecher'.$l.' - Vorname';
-            $headers['DivisionRepresentative'.$l.'Name'] = 'Schülersprecher'.$l.' Nachname';
-        }
+        list($TableContent, $headers) = Person::useService()->createDivisionTeacherList();
 
         $Stage->setContent(
             new Layout(
