@@ -96,9 +96,9 @@ class FrontendSubjectTable extends FrontendStudent
                 $levelList = array();
                 foreach ($tblSubjectTableList as $tblSubjectTable) {
                     $linkEdit = '';
-                    if (($linkList = DivisionCourse::useService()->getSubjectTableLinkListBySubjectTable($tblSubjectTable))) {
-                        // todo ajax
-                        $linkEdit = new LinkIcon();
+                    if (($tblSubjectTableLink = DivisionCourse::useService()->getSubjectTableLinkBySubjectTable($tblSubjectTable))) {
+                        $linkEdit = (new Link('', ApiSubjectTable::getEndpoint(), new LinkIcon(), array(), 'Verknüpfung bearbeiten'))
+                            ->ajaxPipelineOnClick(ApiSubjectTable::pipelineOpenEditSubjectTableLinkModal($tblSubjectTableLink->getId(), $SchoolTypeId));
                     }
 
                     $subjectId = $tblSubjectTable->getSubjectId();
@@ -109,7 +109,7 @@ class FrontendSubjectTable extends FrontendStudent
                             . (!$tblSubjectTable->getHasGrading() ? ' ' . new Ban() : ''), ApiSubjectTable::getEndpoint(),
                             null, array(), 'Eintrag bearbeiten'
                         ))->ajaxPipelineOnClick(ApiSubjectTable::pipelineOpenEditSubjectTableModal($tblSubjectTable->getId(), $SchoolTypeId))
-                        . ($linkEdit ? '&nbsp;&nbsp;&nbsp;&nbsp;' . $linkEdit : '');
+                        . ($linkEdit ? '&nbsp;&nbsp;|&nbsp;&nbsp;' . $linkEdit : '');
                 }
 
                 if ($levelList) {
@@ -265,20 +265,29 @@ class FrontendSubjectTable extends FrontendStudent
         ))->disableSubmitAction();
     }
 
+    /**
+     * @param $SubjectTableLinkId
+     * @param $SchoolTypeId
+     * @param $Data
+     * @param bool $setPost
+     *
+     * @return Form
+     */
     public function formSubjectTableLink($SubjectTableLinkId = null, $SchoolTypeId = null, $Data = null, bool $setPost = false): Form
     {
-        // todo
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
-        $tblSubjectTable = DivisionCourse::useService()->getSubjectTableById($SubjectTableLinkId);
-        if ($setPost && $tblSubjectTable) {
-            // todo
+        $tblSubjectTableLink = DivisionCourse::useService()->getSubjectTableLinkById($SubjectTableLinkId);
+        if ($setPost && $tblSubjectTableLink) {
             $Global = $this->getGlobal();
-            $Global->POST['Data']['Level'] = $tblSubjectTable->getLevel();
-            $Global->POST['Data']['TypeName'] = $tblSubjectTable->getTypeName();
-            $Global->POST['Data']['Subject'] = $tblSubjectTable->getSubjectId();
-            $Global->POST['Data']['StudentMetaIdentifier'] = $tblSubjectTable->getStudentMetaIdentifier();
-            $Global->POST['Data']['HoursPerWeek'] = $tblSubjectTable->getHoursPerWeek();
-            $Global->POST['Data']['HasGrading'] = $tblSubjectTable->getHasGrading();
+            $Global->POST['Data']['Level'] = $tblSubjectTableLink->getTblSubjectTable()->getLevel();
+            $Global->POST['Data']['MinCount'] = $tblSubjectTableLink->getMinCount();
+
+            if (($tblSubjectTableLinkList = DivisionCourse::useService()->getSubjectTableLinkListByLinkId($tblSubjectTableLink->getLinkId()))) {
+                foreach ($tblSubjectTableLinkList as $item) {
+                    $Global->POST['Data']['SubjectTables'][$item->getTblSubjectTable()->getId()] = 1;
+                }
+            }
+
             $Global->savePost();
         }
 
@@ -288,14 +297,14 @@ class FrontendSubjectTable extends FrontendStudent
                     new FormColumn(
                         (new TextField('Data[Level]', '', 'Klassenstufe'))
                             ->setRequired()
-                            ->ajaxPipelineOnKeyUp(ApiSubjectTable::pipelineLoadCheckSubjectTableContent($SchoolTypeId))
+                            ->ajaxPipelineOnKeyUp(ApiSubjectTable::pipelineLoadCheckSubjectTableContent($SchoolTypeId, $SubjectTableLinkId))
                         , 6),
                     new FormColumn(
                         (new NumberField('Data[MinCount]', '', 'Mindestanzahl der verknüpften Fächer pro Schüler'))->setRequired()
                         , 6),
                 )),
                 new FormRow(new FormColumn(array(
-                    ApiSubjectTable::receiverBlock($this->loadCheckSubjectTableContent($SchoolTypeId, $Data), 'CheckSubjectTableContent')
+                    ApiSubjectTable::receiverBlock($this->loadCheckSubjectTableContent($SchoolTypeId, $SubjectTableLinkId, $Data), 'CheckSubjectTableContent')
                 ))),
             ))
         ))->disableSubmitAction();
@@ -303,11 +312,12 @@ class FrontendSubjectTable extends FrontendStudent
 
     /**
      * @param $SchoolTypeId
-     * @param $Data
+     * @param $SubjectTableLinkId
+     * @param null $Data
      *
      * @return string
      */
-    public function loadCheckSubjectTableContent($SchoolTypeId, $Data = null): string
+    public function loadCheckSubjectTableContent($SchoolTypeId, $SubjectTableLinkId, $Data = null): string
     {
         if (($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))) {
             if (isset($Data['Level']) && $Data['Level'] !== '') {
@@ -317,15 +327,15 @@ class FrontendSubjectTable extends FrontendStudent
                         $dataList[] = new CheckBox('Data[SubjectTables][' . $tblSubjectTable->getId() . ']', $tblSubjectTable->getSubjectName(), 1);
                     }
 
-                    // todo edit
-//            $buttonList[] = (new Primary('Speichern', ApiSubjectTable::getEndpoint(), new Save()))
-//                ->ajaxPipelineOnClick(ApiSubjectTable::pipelineEditSubjectTableSave($SubjectTableLinkId, $SchoolTypeId));
-//            $buttonList[] = (new \SPHERE\Common\Frontend\Link\Repository\Danger('Löschen', ApiSubjectTable::getEndpoint(), new Remove()))
-//                ->ajaxPipelineOnClick(ApiSubjectTable::pipelineOpenDeleteSubjectTableModal($SubjectTableLinkId, $SchoolTypeId));
-
                     return new Panel('Einträge verknüpfen', $dataList, Panel::PANEL_TYPE_INFO)
-                        . (new Primary('Speichern', ApiSubjectTable::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiSubjectTable::pipelineCreateSubjectTableLinkSave($SchoolTypeId));
+                        . ($SubjectTableLinkId
+                            ? (new Primary('Speichern', ApiSubjectTable::getEndpoint(), new Save()))
+                                ->ajaxPipelineOnClick(ApiSubjectTable::pipelineEditSubjectTableLinkSave($SubjectTableLinkId, $SchoolTypeId))
+                            . (new \SPHERE\Common\Frontend\Link\Repository\Danger('Löschen', ApiSubjectTable::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(ApiSubjectTable::pipelineOpenDeleteSubjectTableLinkModal($SubjectTableLinkId, $SchoolTypeId))
+                            : (new Primary('Speichern', ApiSubjectTable::getEndpoint(), new Save()))
+                                ->ajaxPipelineOnClick(ApiSubjectTable::pipelineCreateSubjectTableLinkSave($SchoolTypeId))
+                        );
                 } else {
                     return new Warning('Für diese Klassenstufe gibt es noch keine Einträge in der Stundentafel.');
                 }

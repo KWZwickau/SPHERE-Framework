@@ -57,6 +57,10 @@ class ApiSubjectTable extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadCheckSubjectTableContent');
         $Dispatcher->registerMethod('openCreateSubjectTableLinkModal');
         $Dispatcher->registerMethod('saveCreateSubjectTableLinkModal');
+        $Dispatcher->registerMethod('openEditSubjectTableLinkModal');
+        $Dispatcher->registerMethod('saveEditSubjectTableLinkModal');
+        $Dispatcher->registerMethod('openDeleteSubjectTableLinkModal');
+        $Dispatcher->registerMethod('saveDeleteSubjectTableLinkModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -418,19 +422,20 @@ class ApiSubjectTable extends Extension implements IApiInterface
 
     /**
      * @param null $SchoolTypeId
+     * @param null $SubjectTableLinkId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadCheckSubjectTableContent($SchoolTypeId): Pipeline
+    public static function pipelineLoadCheckSubjectTableContent($SchoolTypeId, $SubjectTableLinkId): Pipeline
     {
-        // todo LinkId
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CheckSubjectTableContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadCheckSubjectTableContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'SchoolTypeId' => $SchoolTypeId
+            'SchoolTypeId' => $SchoolTypeId,
+            'SubjectTableLinkId' => $SubjectTableLinkId
         ));
         $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -440,13 +445,14 @@ class ApiSubjectTable extends Extension implements IApiInterface
 
     /**
      * @param null $SchoolTypeId
+     * @param null $SubjectTableLinkId
      * @param null $Data
      *
      * @return string
      */
-    public function loadCheckSubjectTableContent($SchoolTypeId = null, $Data = null): string
+    public function loadCheckSubjectTableContent($SchoolTypeId = null, $SubjectTableLinkId = null, $Data = null): string
     {
-        return DivisionCourse::useFrontend()->loadCheckSubjectTableContent($SchoolTypeId, $Data);
+        return DivisionCourse::useFrontend()->loadCheckSubjectTableContent($SchoolTypeId, $SubjectTableLinkId, $Data);
     }
 
     /**
@@ -551,6 +557,196 @@ class ApiSubjectTable extends Extension implements IApiInterface
                 . self::pipelineClose();
         } else {
             return new Danger('Verknüpfung konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $SubjectTableLinkId
+     * @param $SchoolTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditSubjectTableLinkModal($SubjectTableLinkId, $SchoolTypeId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openEditSubjectTableLinkModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SubjectTableLinkId' => $SubjectTableLinkId,
+            'SchoolTypeId' => $SchoolTypeId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SubjectTableLinkId
+     * @param $SchoolTypeId
+     *
+     * @return string
+     */
+    public function openEditSubjectTableLinkModal($SubjectTableLinkId, $SchoolTypeId)
+    {
+        if (!($tblSubjectTableLink = DivisionCourse::useService()->getSubjectTableLinkById($SubjectTableLinkId))) {
+            return new Danger('Die Verknüpfung wurde nicht gefunden', new Exclamation());
+        }
+
+        $Data['Level'] = $tblSubjectTableLink->getTblSubjectTable()->getLevel();
+        $Data['MinCount'] = $tblSubjectTableLink->getMinCount();
+
+        return $this->getSubjectTableLinkModal(DivisionCourse::useFrontend()->formSubjectTableLink($SubjectTableLinkId, $SchoolTypeId, $Data, true), $SubjectTableLinkId);
+    }
+
+    /**
+     * @param $SubjectTableLinkId
+     * @param $SchoolTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditSubjectTableLinkSave($SubjectTableLinkId, $SchoolTypeId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditSubjectTableLinkModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SubjectTableLinkId' => $SubjectTableLinkId,
+            'SchoolTypeId' => $SchoolTypeId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SubjectTableLinkId
+     * @param $SchoolTypeId
+     * @param $Data
+     *
+     * @return Danger|string
+     */
+    public function saveEditSubjectTableLinkModal($SubjectTableLinkId, $SchoolTypeId, $Data)
+    {
+        if (!($tblSubjectTableLink = DivisionCourse::useService()->getSubjectTableLinkById($SubjectTableLinkId))) {
+            return new Danger('Die Verknüpfung wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = DivisionCourse::useService()->checkFormSubjectTableLink($SchoolTypeId, $Data, $tblSubjectTableLink))) {
+            // display Errors on form
+            return $this->getSubjectTableLinkModal($form, $SubjectTableLinkId);
+        }
+
+        if (DivisionCourse::useService()->updateSubjectTableLink($tblSubjectTableLink, $Data)) {
+            return new Success('Die Verknüpfung wurde erfolgreich gespeichert.')
+                . self::pipelineLoadSubjectTableContent($SchoolTypeId)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Verknüpfung konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $SubjectTableLinkId
+     * @param $SchoolTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteSubjectTableLinkModal($SubjectTableLinkId, $SchoolTypeId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteSubjectTableLinkModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SubjectTableLinkId' => $SubjectTableLinkId,
+            'SchoolTypeId' => $SchoolTypeId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SubjectTableLinkId
+     * @param $SchoolTypeId
+     *
+     * @return string
+     */
+    public function openDeleteSubjectTableLinkModal($SubjectTableLinkId, $SchoolTypeId)
+    {
+        if (!($tblSubjectTableLink = DivisionCourse::useService()->getSubjectTableLinkById($SubjectTableLinkId))) {
+            return new Danger('Die Verknüpfung wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Remove() . ' Verknüpfung löschen')
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Diese Verknüpfung wirklich löschen?',
+                                array(
+                                    'Klassenstufe: ' . $tblSubjectTableLink->getTblSubjectTable()->getLevel()
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteSubjectTableLinkSave($SubjectTableLinkId, $SchoolTypeId))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                )
+            );
+    }
+
+    /**
+     * @param $SubjectTableLinkId
+     * @param $SchoolTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteSubjectTableLinkSave($SubjectTableLinkId, $SchoolTypeId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDeleteSubjectTableLinkModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SubjectTableLinkId' => $SubjectTableLinkId,
+            'SchoolTypeId' => $SchoolTypeId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SubjectTableLinkId
+     * @param $SchoolTypeId
+     *
+     * @return string
+     */
+    public function saveDeleteSubjectTableLinkModal($SubjectTableLinkId, $SchoolTypeId): string
+    {
+        if (!($tblSubjectTableLink = DivisionCourse::useService()->getSubjectTableLinkById($SubjectTableLinkId))) {
+            return new Danger('Die Verknüpfung wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->destroySubjectTableLink($tblSubjectTableLink)) {
+            return new Success('Die Verknüpfung wurde erfolgreich gelöscht.')
+                . self::pipelineLoadSubjectTableContent($SchoolTypeId)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Verknüpfung konnte nicht gelöscht werden.') . self::pipelineClose();
         }
     }
 }

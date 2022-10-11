@@ -46,11 +46,21 @@ abstract class ServiceSubjectTable extends AbstractService
     /**
      * @param TblSubjectTable $tblSubjectTable
      *
+     * @return false|TblSubjectTableLink
+     */
+    public function getSubjectTableLinkBySubjectTable(TblSubjectTable $tblSubjectTable)
+    {
+        return (new Data($this->getBinding()))->getSubjectTableLinkBySubjectTable($tblSubjectTable);
+    }
+
+    /**
+     * @param $LinkId
+     *
      * @return false|TblSubjectTableLink[]
      */
-    public function getSubjectTableLinkListBySubjectTable(TblSubjectTable $tblSubjectTable)
+    public function getSubjectTableLinkListByLinkId($LinkId)
     {
-        return (new Data($this->getBinding()))->getSubjectTableLinkListBySubjectTable($tblSubjectTable);
+        return (new Data($this->getBinding()))->getSubjectTableLinkListByLinkId($LinkId);
     }
 
     /**
@@ -155,7 +165,21 @@ abstract class ServiceSubjectTable extends AbstractService
      */
     public function destroySubjectTable(TblSubjectTable $tblSubjectTable): bool
     {
+        if (($tblSubjectTableLink = $this->getSubjectTableLinkBySubjectTable($tblSubjectTable))) {
+            (new Data($this->getBinding()))->destroySubjectTableLink($tblSubjectTableLink);
+        }
+
         return (new Data($this->getBinding()))->destroySubjectTable($tblSubjectTable);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblSubjectTableLink
+     */
+    public function getSubjectTableLinkById($Id)
+    {
+        return (new Data($this->getBinding()))->getSubjectTableLinkById($Id);
     }
 
     /**
@@ -206,5 +230,53 @@ abstract class ServiceSubjectTable extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblSubjectTableLink $tblSubjectTableLink
+     * @param array $Data
+     *
+     * @return bool
+     */
+    public function updateSubjectTableLink(TblSubjectTableLink $tblSubjectTableLink, array $Data): bool
+    {
+        if (($tblSubjectTableLinkList = DivisionCourse::useService()->getSubjectTableLinkListByLinkId($tblSubjectTableLink->getLinkId()))) {
+            foreach ($tblSubjectTableLinkList as $item) {
+                // löschen
+                if (!isset($Data['SubjectTables'][$item->getTblSubjectTable()->getId()])) {
+                    (new Data($this->getBinding()))->destroySubjectTableLink($item);
+                // update
+                } else {
+                    (new Data($this->getBinding()))->updateSubjectTableLink($item, $Data['MinCount']);
+                }
+            }
+        }
+
+        // neu
+        if (isset($Data['SubjectTables'])) {
+            foreach ($Data['SubjectTables'] as $subjectTableId => $value) {
+                if (($tblSubjectTable = $this->getSubjectTableById($subjectTableId))) {
+                    (new Data($this->getBinding()))->createSubjectTableLink($tblSubjectTableLink->getLinkId(), $Data['MinCount'], $tblSubjectTable);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param TblSubjectTableLink $tblSubjectTableLink
+     *
+     * @return bool
+     */
+    public function destroySubjectTableLink(TblSubjectTableLink $tblSubjectTableLink): bool
+    {
+        if (($tblSubjectTableLinkList = DivisionCourse::useService()->getSubjectTableLinkListByLinkId($tblSubjectTableLink->getLinkId()))) {
+            foreach ($tblSubjectTableLinkList as $item) {
+                (new Data($this->getBinding()))->destroySubjectTableLink($item);
+            }
+        }
+
+        return true;
     }
 }

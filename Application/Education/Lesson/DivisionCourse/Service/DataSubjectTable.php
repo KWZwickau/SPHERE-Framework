@@ -111,6 +111,16 @@ abstract class DataSubjectTable extends DataMigrate
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblSubjectTableLink
+     */
+    public function getSubjectTableLinkById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblSubjectTableLink', $Id);
+    }
+
+    /**
      * @param TblType $tblSchoolType
      *
      * @return false|TblSubjectTableLink
@@ -140,11 +150,21 @@ abstract class DataSubjectTable extends DataMigrate
     /**
      * @param TblSubjectTable $tblSubjectTable
      *
+     * @return false|TblSubjectTableLink
+     */
+    public function getSubjectTableLinkBySubjectTable(TblSubjectTable $tblSubjectTable)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblSubjectTableLink', array(TblSubjectTableLink::ATTR_TBL_SUBJECT_TABLE => $tblSubjectTable->getId()));
+    }
+
+    /**
+     * @param $LinkId
+     *
      * @return false|TblSubjectTableLink[]
      */
-    public function getSubjectTableLinkListBySubjectTable(TblSubjectTable $tblSubjectTable)
+    public function getSubjectTableLinkListByLinkId($LinkId)
     {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSubjectTableLink', array(TblSubjectTableLink::ATTR_TBL_SUBJECT_TABLE => $tblSubjectTable->getId()));
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSubjectTableLink', array(TblSubjectTableLink::ATTR_TBL_LINK_ID => $LinkId));
     }
 
     /**
@@ -327,6 +347,50 @@ abstract class DataSubjectTable extends DataMigrate
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblSubjectTableLink $tblSubjectTableLink
+     * @param $minCount
+     *
+     * @return bool
+     */
+    public function updateSubjectTableLink(TblSubjectTableLink $tblSubjectTableLink, $minCount): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var TblSubjectTableLink $Entity */
+        $Entity = $Manager->getEntityById('TblSubjectTableLink', $tblSubjectTableLink->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setMinCount($minCount);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblSubjectTableLink $tblSubjectTableLink
+     *
+     * @return bool
+     */
+    public function destroySubjectTableLink(TblSubjectTableLink $tblSubjectTableLink): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblSubjectTable $Entity */
+        $Entity = $Manager->getEntityById('TblSubjectTableLink', $tblSubjectTableLink->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 
     private function setSachsenGsLevel1(TblType $tblSchoolTypePrimary)
