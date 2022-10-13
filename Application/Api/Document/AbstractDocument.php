@@ -172,6 +172,7 @@ abstract class AbstractDocument
                 $Data['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
                     ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';
             }
+                $Data['Person']['Common']['isReligion'] = 'nein';
             if (( $tblCommon = Common::useService()->getCommonByPerson($this->getTblPerson()) )
                 && $tblCommonInformation = $tblCommon->getTblCommonInformation()
             ) {
@@ -187,6 +188,9 @@ abstract class AbstractDocument
                     $Denomination = substr($Denomination, 0, 14);
                 }
                 $Data['Person']['Common']['Denomination'] = $Denomination;
+                if (!empty($Denomination)) {
+                    $Data['Person']['Common']['isReligion'] = 'ja';
+                }
             }
         }
 
@@ -349,19 +353,6 @@ abstract class AbstractDocument
                         = isset($InsuranceStateArray[$tblMedicalRecord->getInsuranceState()])
                         ? $InsuranceStateArray[$tblMedicalRecord->getInsuranceState()] : '';
                     $Data['Student']['MedicalRecord']['Insurance'] = $tblMedicalRecord->getInsurance();
-                }
-            }
-        }
-
-        if(($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier(TblStudentSubjectType::TYPE_RELIGION))
-            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblSubjectType))){
-            $tblStudentSubject = current($tblStudentSubjectList);
-            /** @var TblStudentSubject $tblStudentSubject */
-            if(($tblSubject =  $tblStudentSubject->getServiceTblSubject())){
-                if($tblSubject->getAcronym() == 'ETH'){
-                    $Data['Student']['Subject']['IsReligion'] = 'nein';
-                } else {
-                    $Data['Student']['Subject']['IsReligion'] = 'ja';
                 }
             }
         }

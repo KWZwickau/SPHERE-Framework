@@ -229,8 +229,8 @@ class StudentCardNew extends AbstractStudentCard
                                 ->styleBorderBottom($OutLines)
                             , '22%')
                             ->addElementColumn((new Element())
-                                ->setContent('{% if(Content.Student.Subject.IsReligion is not empty) %}
-                                                        {{ Content.Student.Subject.IsReligion }}
+                                ->setContent('{% if(Content.Person.Common.isReligion is not empty) %}
+                                                        {{ Content.Person.Common.isReligion }}
                                                             {% else %}
                                                             nein / ja<sup style="font-size: 9px !important;">2</sup>
                                                             {% endif %}')
