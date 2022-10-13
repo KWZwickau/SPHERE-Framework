@@ -844,7 +844,7 @@ class FrontendStudent extends FrontendMember
                             $item['Number'] = $isInActive ? '' : ++$count;
                             $item['FullName'] = $isInActive ? new ToolTip(new Strikethrough($fullName), 'Deaktivierung: ' . $tblStudentMember->getLeaveDate()) : $fullName;
                             if ($hasSubDivisionCourse) {
-                                $item['DivisionCourse'] = $tblDivisionCourseItem->getName();
+                                $item['DivisionCourse'] = $isInActive ? new Strikethrough($tblDivisionCourseItem->getName()) : $tblDivisionCourseItem->getName();;
                             }
                             $item['Gender'] = $isInActive ? new Strikethrough($gender) : $gender;
                             $item['Birthday'] = $isInActive ? new Strikethrough($birthday) : $birthday;

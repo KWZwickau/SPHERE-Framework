@@ -8,9 +8,8 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubject
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\System\Database\Binding\AbstractService;
 
-abstract class ServiceSubjectTable extends AbstractService
+abstract class ServiceSubjectTable extends ServiceStudentSubject
 {
     /**
      * @param $Id

@@ -12,7 +12,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as Ga
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
-abstract class DataSubjectTable extends DataMigrate
+abstract class DataSubjectTable extends DataStudentSubject
 {
     protected function setupDatabaseContentForSubjectTable()
     {

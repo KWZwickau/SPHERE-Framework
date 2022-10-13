@@ -26,6 +26,7 @@ class TblStudentSubject extends Element
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const ATTR_HAS_GRADING = 'HasGrading';
 
     /**
      * @Column(type="bigint")

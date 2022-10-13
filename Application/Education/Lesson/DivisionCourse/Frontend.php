@@ -527,6 +527,13 @@ class Frontend extends FrontendTeacher
 
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(
+                            ApiDivisionCourseStudent::receiverBlock($this->loadStudentSubjectContent($DivisionCourseId), 'StudentSubjectContent')
+                        ))
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Education() . ' Fächer der Schüler in der ' . $text
+                    )),
+
+                    new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(
                             empty($divisionTeacherList)
                                 ? new Warning('Keine ' . $tblDivisionCourse->getDivisionTeacherName() . ' dem Kurs zugewiesen')
                                 : $this->getTableCustom($headerMemberColumnList, $divisionTeacherList)

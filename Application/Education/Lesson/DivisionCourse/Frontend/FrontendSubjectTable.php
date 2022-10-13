@@ -41,7 +41,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Stage;
 
-class FrontendSubjectTable extends FrontendStudent
+class FrontendSubjectTable extends FrontendStudentSubject
 {
     /**
      * @param $SchoolTypeId
