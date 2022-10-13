@@ -40,6 +40,7 @@ class ViewPersonContact extends AbstractView
     const TBL_CITY_DISTRICT = 'TblCity_District';
     const TBL_ADDRESS_COUNTY = 'TblAddress_County';
     const TBL_ADDRESS_STATE = 'TblState_Name';
+    const TBL_REGION_NAME = 'TblRegion_Name';
     const TBL_ADDRESS_NATION = 'TblAddress_Nation';
 
     const TBL_ADDRESS_STREET_NAME_2 = 'TblAddress_StreetName2';
@@ -49,6 +50,7 @@ class ViewPersonContact extends AbstractView
     const TBL_CITY_DISTRICT_2 = 'TblCity_District2';
     const TBL_ADDRESS_COUNTY_2 = 'TblAddress_County2';
     const TBL_ADDRESS_STATE_2 = 'TblState_Name2';
+    const TBL_REGION_NAME_2 = 'TblRegion_Name2';
     const TBL_ADDRESS_NATION_2 = 'TblAddress_Nation2';
 
     const TBL_PHONE_NUMBER = 'TblPhone_Number';
@@ -101,6 +103,10 @@ class ViewPersonContact extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblRegion_Name;
+    /**
+     * @Column(type="string")
+     */
     protected $TblAddress_County;
     /**
      * @Column(type="string")
@@ -131,6 +137,10 @@ class ViewPersonContact extends AbstractView
      * @Column(type="string")
      */
     protected $TblCity_District2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblRegion_Name2;
     /**
      * @Column(type="string")
      */
@@ -209,6 +219,7 @@ class ViewPersonContact extends AbstractView
         $this->setNameDefinition(self::TBL_CITY_CODE, 'Hauptadresse: Postleitzahl');
         $this->setNameDefinition(self::TBL_CITY_NAME, 'Hauptadresse: Ort');
         $this->setNameDefinition(self::TBL_CITY_DISTRICT, 'Hauptadresse: Ortsteil');
+        $this->setNameDefinition(self::TBL_REGION_NAME, 'Hauptadresse: Bezirk');
         $this->setNameDefinition(self::TBL_ADDRESS_COUNTY, 'Hauptadresse: Landkreis');
         $this->setNameDefinition(self::TBL_ADDRESS_STATE, 'Hauptadresse: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION, 'Hauptadresse: Land');
@@ -218,6 +229,7 @@ class ViewPersonContact extends AbstractView
         $this->setNameDefinition(self::TBL_CITY_CODE_2, 'Nebenadresse: Postleitzahl');
         $this->setNameDefinition(self::TBL_CITY_NAME_2, 'Nebenadresse: Ort');
         $this->setNameDefinition(self::TBL_CITY_DISTRICT_2, 'Nebenadresse: Ortsteil');
+        $this->setNameDefinition(self::TBL_REGION_NAME_2, 'Nebenadresse: Bezirk');
         $this->setNameDefinition(self::TBL_ADDRESS_COUNTY_2, 'Nebenadresse: Landkreis');
         $this->setNameDefinition(self::TBL_ADDRESS_STATE_2, 'Nebenadresse: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_2, 'Nebenadresse: Land');
@@ -242,6 +254,7 @@ class ViewPersonContact extends AbstractView
             self::TBL_CITY_CODE,
             self::TBL_CITY_NAME,
             self::TBL_CITY_DISTRICT,
+            self::TBL_REGION_NAME,
             self::TBL_ADDRESS_COUNTY,
             self::TBL_ADDRESS_STATE,
             self::TBL_ADDRESS_NATION,
@@ -253,6 +266,7 @@ class ViewPersonContact extends AbstractView
             self::TBL_CITY_CODE_2,
             self::TBL_CITY_NAME_2,
             self::TBL_CITY_DISTRICT_2,
+            self::TBL_REGION_NAME_2,
             self::TBL_ADDRESS_COUNTY_2,
             self::TBL_ADDRESS_STATE_2,
             self::TBL_ADDRESS_NATION_2,
