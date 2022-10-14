@@ -194,7 +194,7 @@ class TblStudentSubject extends Element
     /**
      * @return bool
      */
-    public function isHasGrading(): bool
+    public function getHasGrading(): bool
     {
         return $this->HasGrading;
     }

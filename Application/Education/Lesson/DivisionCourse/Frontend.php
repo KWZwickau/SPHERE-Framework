@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourse;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
+use SPHERE\Application\Api\Education\DivisionCourse\ApiStudentSubject;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Frontend\FrontendTeacher;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -530,6 +531,8 @@ class Frontend extends FrontendTeacher
                             ApiDivisionCourseStudent::receiverBlock($this->loadStudentSubjectContent($DivisionCourseId), 'StudentSubjectContent')
                         ))
                     ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Education() . ' Fächer der Schüler in der ' . $text
+                        . (new Link('Bearbeiten', ApiStudentSubject::getEndpoint(), new Pen()))
+                            ->ajaxPipelineOnClick(ApiStudentSubject::pipelineEditStudentSubjectContent($DivisionCourseId))
                     )),
 
                     new LayoutGroup(array(

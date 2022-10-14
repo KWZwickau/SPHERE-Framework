@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -273,5 +274,12 @@ class TblSubjectTable extends Element
             case 'ELECTIVE': return 'Wahlfach';
             default: return '';
         }
+    }
+
+    public function getIsFixed(): bool
+    {
+        return ($this->getServiceTblSubject()
+            && !$this->getStudentMetaIdentifier()
+            && !(DivisionCourse::useService()->getSubjectTableLinkBySubjectTable($this)));
     }
 }

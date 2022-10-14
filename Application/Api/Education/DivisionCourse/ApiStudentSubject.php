@@ -12,6 +12,9 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Extension\Extension;
 
 class ApiStudentSubject extends Extension implements IApiInterface
@@ -29,6 +32,8 @@ class ApiStudentSubject extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('loadStudentSubjectContent');
         $Dispatcher->registerMethod('editStudentSubjectContent');
+        $Dispatcher->registerMethod('loadCheckSubjectsContent');
+        $Dispatcher->registerMethod('saveStudentSubjectList');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -91,5 +96,110 @@ class ApiStudentSubject extends Extension implements IApiInterface
     public function loadStudentSubjectContent($DivisionCourseId): string
     {
         return DivisionCourse::useFrontend()->loadStudentSubjectContent($DivisionCourseId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $SubjectId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditStudentSubjectContent($DivisionCourseId, $SubjectId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentSubjectContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'editStudentSubjectContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     *
+     * @return string
+     */
+    public function editStudentSubjectContent($DivisionCourseId, $SubjectId): string
+    {
+        return DivisionCourse::useFrontend()->editStudentSubjectContent($DivisionCourseId, $SubjectId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadCheckSubjectsContent($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CheckSubjectsContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadCheckSubjectsContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadCheckSubjectsContent($DivisionCourseId, $Data = null): string
+    {
+        return DivisionCourse::useFrontend()->loadCheckSubjectsContent($DivisionCourseId, $Data);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveStudentSubjectList($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentSubjectContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveStudentSubjectList',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function saveStudentSubjectList($DivisionCourseId, $Data = null): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->createStudentSubjectList($tblDivisionCourse, $Data)) {
+            return new Success('Die Schüler-Fächer wurden erfolgreich gespeichert.')
+                . self::pipelineLoadStudentSubjectContent($DivisionCourseId);
+        } else {
+            return new Danger('Die Schüler-Fächer konnten nicht gespeichert werden.');
+        }
     }
 }

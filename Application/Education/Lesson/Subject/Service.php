@@ -1092,7 +1092,6 @@ class Service extends AbstractService
      */
     public function getSubjectByVariantAcronym(string $acronym)
     {
-        $tblSubject = false;
         // abweichende Fächer
         if ($acronym == 'DE' || $acronym == 'D' || $acronym == 'DEU') {
             $tblSubject = $this->getSubjectByAcronym('DE');
@@ -1140,6 +1139,11 @@ class Service extends AbstractService
             $tblSubject = $this->getSubjectByAcronym('WE');
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('WK');
+            }
+        } elseif ($acronym == 'PH' || $acronym == 'PHY') {
+            $tblSubject = $this->getSubjectByAcronym('PH');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('PHY');
             }
         } else {
             $tblSubject = $this->getSubjectByAcronym($acronym);

@@ -66,6 +66,22 @@ abstract class DataSubjectTable extends DataStudentSubject
 
     /**
      * @param TblType $tblSchoolType
+     * @param int $level
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblSubjectTable
+     */
+    public function getSubjectTableBy(TblType $tblSchoolType, int $level, TblSubject $tblSubject)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblSubjectTable', array(
+            TblSubjectTable::ATTR_SERVICE_TBL_SCHOOL_TYPE => $tblSchoolType->getId(),
+            TblSubjectTable::ATTR_LEVEL => $level,
+            TblSubjectTable::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+        ));
+    }
+
+    /**
+     * @param TblType $tblSchoolType
      * @param int|null $level
      *
      * @return false|TblSubjectTable[]

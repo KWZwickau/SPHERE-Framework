@@ -5,8 +5,11 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTableLink;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 
 abstract class ServiceSubjectTable extends ServiceStudentSubject
@@ -20,6 +23,38 @@ abstract class ServiceSubjectTable extends ServiceStudentSubject
     {
         return (new Data($this->getBinding()))->getSubjectTableById($Id);
     }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int $level
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblSubjectTable
+     */
+    public function getSubjectTableBy(TblType $tblSchoolType, int $level, TblSubject $tblSubject)
+    {
+        return (new Data($this->getBinding()))->getSubjectTableBy($tblSchoolType, $level, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblSubjectTable
+     */
+    public function getSubjectTableByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($level = $tblStudentEducation->getLevel())
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+        ) {
+            return (new Data($this->getBinding()))->getSubjectTableBy($tblSchoolType, $level, $tblSubject);
+        }
+
+        return false;
+    }
+
 
     /**
      * @param TblType $tblSchoolType
