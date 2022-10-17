@@ -10,7 +10,6 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -240,6 +239,10 @@ class Service extends AbstractService
             foreach($UniventionUserList as $User){
                 //  Ignore DllpServiceAccounts with value 1
                 if(isset($User['udm_properties']['DllpServiceAccount']) && $User['udm_properties']['DllpServiceAccount'] == '1'){
+                    continue;
+                }
+                if(strpos($User, 'error when reading')){
+                    echo '<pre> Antwort der API:<br/>'.print_r($User, true).'</pre>';
                     continue;
                 }
 
