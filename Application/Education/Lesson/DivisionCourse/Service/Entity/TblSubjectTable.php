@@ -298,6 +298,24 @@ class TblSubjectTable extends Element
         }
     }
 
+    /**
+     * @return string
+     */
+    public function getStudentMetaDisplayName(): string
+    {
+        switch ($this->getStudentMetaIdentifier()) {
+            case 'FOREIGN_LANGUAGE_1': return '1. Fremdsprache';
+            case 'FOREIGN_LANGUAGE_2': return '2. Fremdsprache';
+            case 'FOREIGN_LANGUAGE_3': return '3. Fremdsprache';
+            case 'FOREIGN_LANGUAGE_4': return '4. Fremdsprache';
+            case 'RELIGION': return 'Religion';
+            case 'PROFILE': return 'Profil';
+            case 'ORIENTATION': return 'Wahlbereich';
+            case 'ELECTIVE': return 'Wahlfach';
+            default: return '';
+        }
+    }
+
     public function getIsFixed(): bool
     {
         return ($this->getServiceTblSubject()

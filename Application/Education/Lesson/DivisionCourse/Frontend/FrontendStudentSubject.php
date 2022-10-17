@@ -101,7 +101,7 @@ class FrontendStudentSubject extends FrontendStudent
                                             $tblSubject = false;
                                             // Fach aus der Schülerakte
                                             if ($tblSubjectTable->getStudentMetaIdentifier()) {
-                                                // gespeichertes Fach am Schüler
+                                                // gespeichertes Fach am Schüler mit Verknüpfung zur Schülerakte
                                                 if (($tblStudentSubjectTemp = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubjectTable(
                                                         $tblPerson, $tblYear, $tblSubjectTable))
                                                     && ($tblSubject = $tblStudentSubjectTemp->getServiceTblSubject())
@@ -110,7 +110,6 @@ class FrontendStudentSubject extends FrontendStudent
                                                 // nicht gespeichertes Fach aus der Schülerakte
                                                 } elseif (($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))) {
                                                     $item[$tblSubject->getId()] = new ToolTip(new Muted('SA'), 'Schülerakte');
-                                                    // todo beim bearbeiten tblSubjectTable mit speichern + testen
                                                 }
                                             // Fach nicht aus der Schülerakte, aber individuell am Schüler
                                             } elseif (($tblSubjectFromSubjectTable = $tblSubjectTable->getServiceTblSubject())) {
@@ -122,6 +121,9 @@ class FrontendStudentSubject extends FrontendStudent
                                                 }
                                             }
 
+                                            $missingDisplayName = $tblSubjectTable->getStudentMetaIdentifier()
+                                                ? new ToolTip($tblSubjectTable->getSubjectAcronym(), 'Schülerakte - ' . $tblSubjectTable->getStudentMetaDisplayName())
+                                                : $tblSubjectTable->getSubjectAcronym();
                                             if (($tblSubjectTableLink = DivisionCourse::useService()->getSubjectTableLinkBySubjectTable($tblSubjectTable))) {
                                                 if (!isset($item['MissingLinkedSubjects'][$tblSubjectTableLink->getLinkId()])) {
                                                     $item['MissingLinkedSubjects'][$tblSubjectTableLink->getLinkId()]['MinCount'] = $tblSubjectTableLink->getMinCount();
@@ -129,7 +131,7 @@ class FrontendStudentSubject extends FrontendStudent
                                                 }
                                                 if (!$tblSubject) {
                                                     $item['MissingLinkedSubjects'][$tblSubjectTableLink->getLinkId()]['SubjectTableList'][$tblSubjectTable->getId()]
-                                                        = $tblSubjectTable->getSubjectAcronym();
+                                                        = $missingDisplayName;
                                                 } else {
                                                     $item['MissingLinkedSubjects'][$tblSubjectTableLink->getLinkId()]['Count']++;
                                                 }
@@ -137,7 +139,7 @@ class FrontendStudentSubject extends FrontendStudent
                                             } else {
                                                 if (!$tblSubject) {
                                                     $hasMissingSubjects = true;
-                                                    $item['Missing'][] = $tblSubjectTable->getSubjectAcronym();
+                                                    $item['Missing'][] = $missingDisplayName;
                                                 }
                                             }
 
@@ -204,7 +206,7 @@ class FrontendStudentSubject extends FrontendStudent
                 $headerColumnList[] = $this->getTableHeaderColumn('Kurs', $backgroundColor);
             }
             if ($hasMissingSubjects) {
-                $headerColumnList[] = $this->getTableHeaderColumn('Fehlende Fächer', $backgroundColor);
+                $headerColumnList[] = $this->getTableHeaderColumn('Fehlende Fächer / Schülerakte', $backgroundColor);
             }
             foreach ($subjectList as $acronym)
             {
@@ -310,6 +312,7 @@ class FrontendStudentSubject extends FrontendStudent
             $dataList = array();
             $toggleList = array();
             $subjectTableFixedList = array();
+            $subjectTableVariableList = array();
             $tblStudentList = DivisionCourse::useService()->getStudentListBy($tblDivisionCourse);
 
             if (isset($Data['Subject']) && ($tblSubject = Subject::useService()->getSubjectById($Data['Subject']))) {
@@ -320,19 +323,40 @@ class FrontendStudentSubject extends FrontendStudent
                 if (($tblStudentList)) {
                     foreach ($tblStudentList as $tblPerson) {
                         $isPost = false;
+                        // festes individuelles Fach am Schüler gespeichert
                         if (($tblStudentSubject = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
                             $isPost = true;
                             if ($hasGrading) {
                                 $hasGrading = $tblStudentSubject->getHasGrading();
                             }
-                        } elseif (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
-                            && ($tblSubjectTable->getIsFixed())
+                        // Stundentafel
+                        } elseif (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+                            if ($tblSubjectTable->getIsFixed()) {
+                                $isPost = true;
+                                if ($hasGrading) {
+                                    $hasGrading = $tblSubjectTable->getHasGrading();
+                                }
+                                $subjectTableFixedList[$tblPerson->getId()] = $tblSubjectTable;
+                            } elseif ($tblSubjectTable->getStudentMetaIdentifier()
+                                && ($tblSubjectTemp = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))
+                                && $tblSubjectTemp->getId() == $tblSubject->getId()
+                            ) {
+                                $isPost = true;
+                                if ($hasGrading) {
+                                    $hasGrading = $tblSubjectTable->getHasGrading();
+                                }
+                                $subjectTableVariableList[$tblPerson->getId()] = $tblSubjectTable;
+                            }
+                        // reines Schülerakten-Fach z.B. 2.FS
+                        } elseif (($virtualSubjectListFromStudentMeta = DivisionCourse::useService()->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndYear($tblPerson, $tblYear))
+                            && (isset($virtualSubjectListFromStudentMeta[$tblSubject->getId()]))
+                            && ($virtualSubject = $virtualSubjectListFromStudentMeta[$tblSubject->getId()])
                         ) {
                             $isPost = true;
                             if ($hasGrading) {
-                                $hasGrading = $tblSubjectTable->getHasGrading();
+                                $hasGrading = $virtualSubject->getHasGrading();
                             }
-                            $subjectTableFixedList[$tblPerson->getId()] = $tblSubjectTable;
+                            $subjectTableVariableList[$tblPerson->getId()] = $virtualSubject->getTblSubjectTable();
                         }
 
                         if ($isPost) {
@@ -351,7 +375,10 @@ class FrontendStudentSubject extends FrontendStudent
             if (($tblStudentList)) {
                 foreach ($tblStudentList as $tblPerson) {
                     $name = 'Data[StudentList][' . $tblPerson->getId() . ']';
-                    $checkBox = new CheckBox($name, $tblPerson->getLastFirstName() . (isset($subjectTableFixedList[$tblPerson->getId()]) ? ' (Stundentafel)' : ''), 1);
+                    $text = $tblPerson->getLastFirstName()
+                        . (isset($subjectTableFixedList[$tblPerson->getId()]) ? ' (Stundentafel)' : '')
+                        . (isset($subjectTableVariableList[$tblPerson->getId()]) ? ' (Schülerakte)' : '');
+                    $checkBox = new CheckBox($name, $text, 1);
                     if (isset($subjectTableFixedList[$tblPerson->getId()])) {
                         $checkBox->setDisabled();
                     } else {

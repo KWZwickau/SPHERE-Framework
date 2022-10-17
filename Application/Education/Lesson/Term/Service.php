@@ -1219,4 +1219,22 @@ class Service extends AbstractService
 
         return true;
     }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return bool
+     */
+    public function getIsCurrentYear(TblYear $tblYear): bool
+    {
+        if ($tblYearListByNow = $this->getYearByNow()) {
+            foreach ($tblYearListByNow as $tblYearNow) {
+                if ($tblYear->getId() == $tblYearNow->getId()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }

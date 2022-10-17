@@ -6,9 +6,11 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\VirtualSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -25,7 +27,7 @@ abstract class ServiceStudentSubject extends AbstractService
      */
     public function getStudentSubjectListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear, ?bool $hasGrading = null)
     {
-        return (new Data($this->getBinding()))->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear);
+        return (new Data($this->getBinding()))->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, $hasGrading);
     }
 
     /**
@@ -111,7 +113,16 @@ abstract class ServiceStudentSubject extends AbstractService
                         if (($tblStudentSubjectList && !isset($tblStudentSubjectList[$personId]))
                             || !$tblStudentSubjectList
                         ) {
-                            $createList[] = TblStudentSubject::withParameter($tblPerson, $tblYear, $tblSubject, $hasGrading);
+                            // Fach der Schülerakte beim Speichern berücksichtigen
+                            $tblSubjectTable = false;
+                            if (($virtualSubjectListFromStudentMeta = DivisionCourse::useService()->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndYear($tblPerson, $tblYear))
+                                && (isset($virtualSubjectListFromStudentMeta[$tblSubject->getId()]))
+                                && ($virtualSubject = $virtualSubjectListFromStudentMeta[$tblSubject->getId()])
+                            ) {
+                                $tblSubjectTable = $virtualSubject->getTblSubjectTable();
+                            }
+
+                            $createList[] = TblStudentSubject::withParameter($tblPerson, $tblYear, $tblSubject, $hasGrading, $tblSubjectTable ?: null);
                         }
                     }
                 }
@@ -142,26 +153,77 @@ abstract class ServiceStudentSubject extends AbstractService
     public function getSubjectFromStudentMetaIdentifier(TblSubjectTable $tblSubjectTable, TblPerson $tblPerson)
     {
         $tblSubject = $tblSubjectTable->getServiceTblSubject();
+        // Spezialfall: Fremdsprache
         if (strpos($tblSubjectTable->getStudentMetaIdentifier(), 'FOREIGN_LANGUAGE_') !== false) {
             $identifier = 'FOREIGN_LANGUAGE';
             $ranking = substr($tblSubjectTable->getStudentMetaIdentifier(), strlen('FOREIGN_LANGUAGE_'));
+            $maxRanking = $ranking;
+        // Spezialfall: Wahlfach (kann in 1 bis 5 stehen)
+        } elseif (strpos($tblSubjectTable->getStudentMetaIdentifier(), 'ELECTIVE') !== false) {
+            $identifier = $tblSubjectTable->getStudentMetaIdentifier();
+            $ranking = '1';
+            $maxRanking = '5';
         } else {
             $identifier = $tblSubjectTable->getStudentMetaIdentifier();
             $ranking = '1';
+            $maxRanking = $ranking;
         }
 
         if (($tblStudent = $tblPerson->getStudent())
             && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier($identifier))
-            && ($tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($ranking))
-            && ($tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking))
         ) {
-            if (($tblSubjectFromMeta = $tblStudentSubject->getServiceTblSubject())) {
-                if (!$tblSubject || ($tblSubject->getId() == $tblSubjectFromMeta->getId())) {
-                    return $tblSubjectFromMeta;
+            for ($i = intval($ranking); $i <= intval($maxRanking); $i++) {
+                if (($tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i))
+                    && ($tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
+                        $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking))
+                    && ($tblSubjectFromMeta = $tblStudentSubject->getServiceTblSubject())
+                ) {
+                    if (!$tblSubject || ($tblSubject->getId() == $tblSubjectFromMeta->getId())) {
+                        return $tblSubjectFromMeta;
+                    }
                 }
             }
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return VirtualSubject[]|false
+     */
+    public function getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($level = $tblStudentEducation->getLevel())
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+        ) {
+            return $this->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndSchoolTypeAndLevel($tblPerson, $tblSchoolType, $level);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblType $tblSchoolType
+     * @param int $level
+     *
+     * @return VirtualSubject[]|false
+     */
+    public function getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndSchoolTypeAndLevel(TblPerson $tblPerson, TblType $tblSchoolType, int $level)
+    {
+        $tblSubjectList = array();
+        if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
+            foreach ($tblSubjectTableList as $tblSubjectTable) {
+                if ($tblSubjectTable->getStudentMetaIdentifier() && ($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))) {
+                    $tblSubjectList[$tblSubject->getId()] = new VirtualSubject($tblSubject, $tblSubjectTable->getHasGrading(), $tblSubjectTable);
+                }
+            }
+        }
+
+        return empty($tblSubjectList) ? false : $tblSubjectList;
     }
 }

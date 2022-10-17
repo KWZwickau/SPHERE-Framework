@@ -118,12 +118,15 @@ abstract class DataMigrate extends AbstractData
                     && ($tblSchoolType = $tblLevel->getServiceTblType())
                     && ($tblDivisionCourse = $this->getDivisionCourseById($tblDivision->getId()))
                 ) {
+                    $isCurrentYear = Term::useService()->getIsCurrentYear($tblYear);
+
                     /**
                      * Schüler der Klasse - TblDivisionStudent
                      */
                     // Jahrgangsübergreifende Klasse
                     if ($tblLevel->getIsChecked()) {
                         // todo jahrgangsübergreifende klassen
+                        continue;
                     } else {
                         // feste Klasse
                         if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true))) {
@@ -207,18 +210,16 @@ abstract class DataMigrate extends AbstractData
                     if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false))) {
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                             if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
-                                // prüfen, ob Fach bereits über die Stundentafel kommt
-                                $addStudentSubject = true;
-                                if (!$isCourseSystem) {
+                                // prüfen, ob Fach bereits über die feste Stundentafel kommt
+                                // erstmal überhaupt nur Fächer von aktuellen Schuljahren mitnehmen
+//                                $addStudentSubject = true;
+                                $addStudentSubject = $isCurrentYear;
+                                if ($addStudentSubject && !$isCourseSystem) {
                                     if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableBy($tblSchoolType, intval($tblLevel->getName()), $tblSubject))) {
                                         if ($tblSubjectTable->getIsFixed()) {
                                             $addStudentSubject = false;
                                         }
-                                        // todo variablen Fächer
                                     }
-
-                                    // todo remove
-                                    $addStudentSubject = false;
                                 }
 
                                 if (($groupList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
@@ -245,15 +246,27 @@ abstract class DataMigrate extends AbstractData
                                                 $tblDivisionCourseSekII = false;
                                             }
 
-                                            // todo bei SekII-kursen SchülerFächer direkt mit neuen Kurs, prüfen doppelt Speicherung wahrscheinlich am besten wie bei TblStudentEducation
-                                            if ($addStudentSubject) {
-                                                foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                                    $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
-                                                        $tblSubjectStudent, $tblYear, $tblSubject, $groupItem->getHasGrading(),
-                                                        $tblSubjectGroup->isAdvancedCourse()
-                                                    ));
+
+                                            if ($isCourseSystem) {
+                                                // todo bei SekII-kursen SchülerFächer direkt mit neuen Kurs, prüfen doppelt Speicherung wahrscheinlich am besten wie bei TblStudentEducation
+                                            } else {
+                                                if ($addStudentSubject) {
+                                                    foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                                        if (($virtualSubjectList = DivisionCourse::useService()->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndSchoolTypeAndLevel(
+                                                                $tblSubjectStudent, $tblSchoolType, intval($tblLevel->getName())))
+                                                            && (isset($virtualSubjectList[$tblSubject->getId()]))
+                                                        ) {
+                                                            // nicht speichern, wenn es sich aus der Schülerakte ergibt
+                                                            continue;
+                                                        }
+
+                                                        $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
+                                                            $tblSubjectStudent, $tblYear, $tblSubject, $groupItem->getHasGrading()
+                                                        ));
+                                                    }
                                                 }
                                             }
+
 
                                             // Lehraufträge bei Gruppen
                                             if (($tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($groupItem))) {
@@ -273,8 +286,18 @@ abstract class DataMigrate extends AbstractData
                                     }
                                 } else {
                                     // gesamte Klasse
-                                    if ($addStudentSubject && $tblPersonList) {
+                                    if (!$isCourseSystem && $addStudentSubject && $tblPersonList) {
                                         foreach ($tblPersonList as $tblPersonItem) {
+                                            if (($virtualSubjectList = DivisionCourse::useService()->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndSchoolTypeAndLevel(
+                                                    $tblPersonItem, $tblSchoolType, intval($tblLevel->getName())))
+                                                && (isset($virtualSubjectList[$tblSubject->getId()]))
+                                            ) {
+                                                // nicht speichern, wenn es sich aus der Schülerakte ergibt
+                                                continue;
+                                            }
+
+                                            // todo Fach ist nicht in der Schülerakte hinterlegt sondern nur in Bildung
+
                                             $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
                                                 $tblPersonItem, $tblYear, $tblSubject, $tblDivisionSubject->getHasGrading()
                                             ));

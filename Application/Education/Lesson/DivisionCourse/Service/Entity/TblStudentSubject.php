@@ -74,11 +74,13 @@ class TblStudentSubject extends Element
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
      * @param bool $hasGrading
+     * @param TblSubjectTable|null $tblSubjectTable
      * @param bool $isAdvancedCourse
      *
      * @return TblStudentSubject
      */
-    public static function withParameter(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, bool $hasGrading, bool $isAdvancedCourse = false): TblStudentSubject
+    public static function withParameter(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, bool $hasGrading, ?TblSubjectTable $tblSubjectTable = null,
+        bool $isAdvancedCourse = false): TblStudentSubject
     {
         $instance = new self();
 
@@ -86,6 +88,7 @@ class TblStudentSubject extends Element
         $instance->serviceTblYear = $tblYear->getId();
         $instance->serviceTblSubject = $tblSubject->getId();
         $instance->HasGrading = $hasGrading;
+        $instance->serviceTblSubjectTable = $tblSubjectTable ? $tblSubjectTable->getId() : null;
         $instance->IsAdvancedCourse = $isAdvancedCourse;
 
         return  $instance;
