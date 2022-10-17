@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
@@ -206,6 +207,20 @@ abstract class DataMigrate extends AbstractData
                     if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false))) {
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                             if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
+                                // prüfen, ob Fach bereits über die Stundentafel kommt
+                                $addStudentSubject = true;
+                                if (!$isCourseSystem) {
+                                    if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableBy($tblSchoolType, intval($tblLevel->getName()), $tblSubject))) {
+                                        if ($tblSubjectTable->getIsFixed()) {
+                                            $addStudentSubject = false;
+                                        }
+                                        // todo variablen Fächer
+                                    }
+
+                                    // todo remove
+                                    $addStudentSubject = false;
+                                }
+
                                 if (($groupList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
                                     $tblDivisionSubject->getTblDivision(),
                                     $tblDivisionSubject->getServiceTblSubject()
@@ -231,10 +246,13 @@ abstract class DataMigrate extends AbstractData
                                             }
 
                                             // todo bei SekII-kursen SchülerFächer direkt mit neuen Kurs, prüfen doppelt Speicherung wahrscheinlich am besten wie bei TblStudentEducation
-                                            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                                $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
-                                                    $tblSubjectStudent, $tblYear, $tblSubject, $groupItem->getHasGrading(), $tblSubjectGroup->isAdvancedCourse()
-                                                ));
+                                            if ($addStudentSubject) {
+                                                foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                                    $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
+                                                        $tblSubjectStudent, $tblYear, $tblSubject, $groupItem->getHasGrading(),
+                                                        $tblSubjectGroup->isAdvancedCourse()
+                                                    ));
+                                                }
                                             }
 
                                             // Lehraufträge bei Gruppen
@@ -251,13 +269,11 @@ abstract class DataMigrate extends AbstractData
                                                     }
                                                 }
                                             }
-
-
                                         }
                                     }
                                 } else {
                                     // gesamte Klasse
-                                    if ($tblPersonList) {
+                                    if ($addStudentSubject && $tblPersonList) {
                                         foreach ($tblPersonList as $tblPersonItem) {
                                             $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
                                                 $tblPersonItem, $tblYear, $tblSubject, $tblDivisionSubject->getHasGrading()

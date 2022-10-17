@@ -151,10 +151,11 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
-        $this->createColumn($table, 'IsAdvancedCourse', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'HasGrading', self::FIELD_TYPE_BOOLEAN);
-        $this->createColumn($table, 'LeaveDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($table, 'serviceTblSubjectTable', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'serviceTblPeriod', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'IsAdvancedCourse', self::FIELD_TYPE_BOOLEAN);
+//        $this->createColumn($table, 'LeaveDate', self::FIELD_TYPE_DATETIME, true);
     }
 
     /**

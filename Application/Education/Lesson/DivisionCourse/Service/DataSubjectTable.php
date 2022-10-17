@@ -578,7 +578,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'TC', 'Pflichtbereich', $ranking++, 1);
         $ranking++; // INF
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 2, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 2, 'FOREIGN_LANGUAGE_2');
     }
 
     private function setSachsenOsLevel7(TblType $tblSchoolTypeSecondary)
@@ -612,7 +612,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
         $ranking++;// TC
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2');
     }
 
     private function setSachsenOsLevel8(TblType $tblSchoolTypeSecondary)
@@ -646,7 +646,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
         $ranking++; // TC
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2');
     }
 
     private function setSachsenOsLevel9(TblType $tblSchoolTypeSecondary)
@@ -680,7 +680,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, 1);
         $ranking++; // TC
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2');
     }
 
     private function setSachsenOsLevel10(TblType $tblSchoolTypeSecondary)
@@ -729,7 +729,7 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         $ranking++;// TC
         $this->setSubjectTable($tblSchoolTypeSecondary, $level, 'INF', 'Pflichtbereich', $ranking++, 1);
-        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2');
     }
 
     private function setSachsenGyLevel5(TblType $tblSchoolTypeGy)
@@ -774,7 +774,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         $ranking = 1;
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', $ranking++, 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2');
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
         $ranking++; // CH
@@ -801,7 +801,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         // INF
 
         // Profil
-        // 3. FS
+        // 3. FOREIGN_LANGUAGE
     }
 
     private function setSachsenGyLevel7(TblType $tblSchoolTypeGy)
@@ -810,7 +810,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         $ranking = 1;
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', $ranking++, 4);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 4, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 4, 'FOREIGN_LANGUAGE_2');
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 1);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, 1);
@@ -840,7 +840,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'PROFILE'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FS_3'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_3'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
     }
@@ -851,7 +851,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         $ranking = 1;
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', $ranking++, 3);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2');
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 1);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, 2);
@@ -881,7 +881,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'PROFILE'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FS_3'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_3'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
     }
@@ -892,7 +892,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         $ranking = 1;
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', $ranking++, 3);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2');
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, 2);
@@ -922,7 +922,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'PROFILE'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FS_3'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_3'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
     }
@@ -933,7 +933,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         $ranking = 1;
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'EN', 'Pflichtbereich', $ranking++, 3);
-        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FS_2');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2');
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, 2);
@@ -963,7 +963,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'PROFILE'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
-        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FS_3'))) {
+        if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_3'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
     }

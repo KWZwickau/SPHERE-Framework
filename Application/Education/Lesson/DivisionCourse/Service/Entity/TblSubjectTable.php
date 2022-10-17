@@ -26,10 +26,10 @@ class TblSubjectTable extends Element
     const ATTR_STUDENT_META_IDENTIFIER = 'StudentMetaIdentifier';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
 
-    const SUBJECT_FS_1_Id = -1;
-    const SUBJECT_FS_2_Id = -2;
-    const SUBJECT_FS_3_Id = -3;
-    const SUBJECT_FS_4_Id = -4;
+    const SUBJECT_FOREIGN_LANGUAGE_1_Id = -1;
+    const SUBJECT_FOREIGN_LANGUAGE_2_Id = -2;
+    const SUBJECT_FOREIGN_LANGUAGE_3_Id = -3;
+    const SUBJECT_FOREIGN_LANGUAGE_4_Id = -4;
     const SUBJECT_RELIGION = -5;
     const SUBJECT_PROFILE = -6;
     const SUBJECT_ORIENTATION = -7;
@@ -242,10 +242,10 @@ class TblSubjectTable extends Element
         }
 
         switch ($this->getStudentMetaIdentifier()) {
-            case 'FS_1': return self::SUBJECT_FS_1_Id;
-            case 'FS_2': return self::SUBJECT_FS_2_Id;
-            case 'FS_3': return self::SUBJECT_FS_3_Id;
-            case 'FS_4': return self::SUBJECT_FS_4_Id;
+            case 'FOREIGN_LANGUAGE_1': return self::SUBJECT_FOREIGN_LANGUAGE_1_Id;
+            case 'FOREIGN_LANGUAGE_2': return self::SUBJECT_FOREIGN_LANGUAGE_2_Id;
+            case 'FOREIGN_LANGUAGE_3': return self::SUBJECT_FOREIGN_LANGUAGE_3_Id;
+            case 'FOREIGN_LANGUAGE_4': return self::SUBJECT_FOREIGN_LANGUAGE_4_Id;
             case 'RELIGION': return self::SUBJECT_RELIGION;
             case 'PROFILE': return self::SUBJECT_PROFILE;
             case 'ORIENTATION': return self::SUBJECT_ORIENTATION;
@@ -264,12 +264,34 @@ class TblSubjectTable extends Element
         }
 
         switch ($this->getStudentMetaIdentifier()) {
-            case 'FS_1': return '1. Fremdsprache';
-            case 'FS_2': return '2. Fremdsprache';
-            case 'FS_3': return '3. Fremdsprache';
-            case 'FS_4': return '4. Fremdsprache';
+            case 'FOREIGN_LANGUAGE_1': return '1. Fremdsprache';
+            case 'FOREIGN_LANGUAGE_2': return '2. Fremdsprache';
+            case 'FOREIGN_LANGUAGE_3': return '3. Fremdsprache';
+            case 'FOREIGN_LANGUAGE_4': return '4. Fremdsprache';
             case 'RELIGION': return 'Religion';
             case 'PROFILE': return 'Profil';
+            case 'ORIENTATION': return 'Wahlbereich';
+            case 'ELECTIVE': return 'Wahlfach';
+            default: return '';
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubjectAcronym(): string
+    {
+        if (($tblSubject = $this->getServiceTblSubject())) {
+            return $tblSubject->getAcronym();
+        }
+
+        switch ($this->getStudentMetaIdentifier()) {
+            case 'FOREIGN_LANGUAGE_1': return '1. FS';
+            case 'FOREIGN_LANGUAGE_2': return '2. FS';
+            case 'FOREIGN_LANGUAGE_3': return '3. FS';
+            case 'FOREIGN_LANGUAGE_4': return '4. FS';
+            case 'RELIGION': return 'R';
+            case 'PROFILE': return 'P';
             case 'ORIENTATION': return 'Wahlbereich';
             case 'ELECTIVE': return 'Wahlfach';
             default: return '';

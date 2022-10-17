@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -42,6 +43,22 @@ abstract class DataStudentSubject extends DataMigrate
             TblStudentSubject::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
             TblStudentSubject::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
             TblStudentSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+        ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubjectTable $tblSubjectTable
+     *
+     * @return false|TblStudentSubject
+     */
+    public function getStudentSubjectByPersonAndYearAndSubjectTable(TblPerson $tblPerson, TblYear $tblYear, TblSubjectTable $tblSubjectTable)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentSubject', array(
+            TblStudentSubject::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblStudentSubject::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
+            TblStudentSubject::ATTR_SERVICE_TBL_SUBJECT_TABLE => $tblSubjectTable->getId(),
         ));
     }
 

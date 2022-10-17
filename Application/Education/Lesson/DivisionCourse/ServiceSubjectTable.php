@@ -179,10 +179,10 @@ abstract class ServiceSubjectTable extends ServiceStudentSubject
         $studentMetaIdentifier = isset($Data['StudentMetaIdentifier']) && $Data['StudentMetaIdentifier'] !== 0 ? $Data['StudentMetaIdentifier'] : '';
         $tblSubject = false;
         switch ($Data['Subject']) {
-            case TblSubjectTable::SUBJECT_FS_1_Id: $studentMetaIdentifier = 'FS_1'; break;
-            case TblSubjectTable::SUBJECT_FS_2_Id: $studentMetaIdentifier = 'FS_2'; break;
-            case TblSubjectTable::SUBJECT_FS_3_Id: $studentMetaIdentifier = 'FS_3'; break;
-            case TblSubjectTable::SUBJECT_FS_4_Id: $studentMetaIdentifier = 'FS_4'; break;
+            case TblSubjectTable::SUBJECT_FOREIGN_LANGUAGE_1_Id: $studentMetaIdentifier = 'FOREIGN_LANGUAGE_1'; break;
+            case TblSubjectTable::SUBJECT_FOREIGN_LANGUAGE_2_Id: $studentMetaIdentifier = 'FOREIGN_LANGUAGE_2'; break;
+            case TblSubjectTable::SUBJECT_FOREIGN_LANGUAGE_3_Id: $studentMetaIdentifier = 'FOREIGN_LANGUAGE_3'; break;
+            case TblSubjectTable::SUBJECT_FOREIGN_LANGUAGE_4_Id: $studentMetaIdentifier = 'FOREIGN_LANGUAGE_4'; break;
             case TblSubjectTable::SUBJECT_RELIGION: $studentMetaIdentifier = 'RELIGION'; break;
             case TblSubjectTable::SUBJECT_PROFILE: $studentMetaIdentifier = 'PROFILE'; break;
             case TblSubjectTable::SUBJECT_ORIENTATION: $studentMetaIdentifier = 'ORIENTATION'; break;

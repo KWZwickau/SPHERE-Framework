@@ -2,11 +2,11 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity;
 
-use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
@@ -26,6 +26,7 @@ class TblStudentSubject extends Element
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const ATTR_SERVICE_TBL_SUBJECT_TABLE = 'serviceTblSubjectTable';
     const ATTR_HAS_GRADING = 'HasGrading';
 
     /**
@@ -46,22 +47,27 @@ class TblStudentSubject extends Element
     /**
      * @Column(type="boolean")
      */
-    protected bool $IsAdvancedCourse;
-
-    /**
-     * @Column(type="boolean")
-     */
     protected bool $HasGrading;
 
     /**
-     * @Column(type="datetime")
+     * @Column(type="bigint")
      */
-    protected ?DateTime $LeaveDate = null;
+    protected ?int $serviceTblSubjectTable = null;
 
     /**
      * @Column(type="bigint")
      */
     protected ?int $serviceTblPeriod = null;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsAdvancedCourse;
+
+//    /**
+//     * @Column(type="datetime")
+//     */
+//    protected ?DateTime $LeaveDate = null;
 
     /**
      * @param TblPerson $tblPerson
@@ -136,27 +142,19 @@ class TblStudentSubject extends Element
     }
 
     /**
-     * @return string
+     * @return bool
      */
-    public function getLeaveDate(): string
+    public function getHasGrading(): bool
     {
-        return $this->LeaveDate instanceof DateTime ? $this->LeaveDate->format('d.m.Y') : '';
+        return $this->HasGrading;
     }
 
     /**
-     * @param null|DateTime $Date
+     * @param bool $HasGrading
      */
-    public function setLeaveDate(DateTime $Date = null)
+    public function setHasGrading(bool $HasGrading): void
     {
-        $this->LeaveDate = $Date;
-    }
-
-    /**
-     * @return ?DateTime
-     */
-    public function getLeaveDateTime(): ?DateTime
-    {
-        return $this->LeaveDate;
+        $this->HasGrading = $HasGrading;
     }
 
     /**
@@ -176,6 +174,22 @@ class TblStudentSubject extends Element
     }
 
     /**
+     * @return false|TblSubjectTable
+     */
+    public function getServiceTblSubjectTable()
+    {
+        return $this->serviceTblSubjectTable ? DivisionCourse::useService()->getSubjectTableById($this->serviceTblSubjectTable) : false;
+    }
+
+    /**
+     * @param TblSubjectTable|null $tblSubjectTable
+     */
+    public function setServiceTblSubjectTable(?TblSubjectTable $tblSubjectTable): void
+    {
+        $this->serviceTblSubjectTable = $tblSubjectTable ? $tblSubjectTable->getId() : null;
+    }
+
+    /**
      * @return false|TblPeriod
      */
     public function getServiceTblPeriod()
@@ -191,19 +205,27 @@ class TblStudentSubject extends Element
         $this->serviceTblPeriod = $tblPeriod ? $tblPeriod->getId() : null;
     }
 
-    /**
-     * @return bool
-     */
-    public function getHasGrading(): bool
-    {
-        return $this->HasGrading;
-    }
-
-    /**
-     * @param bool $HasGrading
-     */
-    public function setHasGrading(bool $HasGrading): void
-    {
-        $this->HasGrading = $HasGrading;
-    }
+    //    /**
+//     * @return string
+//     */
+//    public function getLeaveDate(): string
+//    {
+//        return $this->LeaveDate instanceof DateTime ? $this->LeaveDate->format('d.m.Y') : '';
+//    }
+//
+//    /**
+//     * @param null|DateTime $Date
+//     */
+//    public function setLeaveDate(DateTime $Date = null)
+//    {
+//        $this->LeaveDate = $Date;
+//    }
+//
+//    /**
+//     * @return ?DateTime
+//     */
+//    public function getLeaveDateTime(): ?DateTime
+//    {
+//        return $this->LeaveDate;
+//    }
 }

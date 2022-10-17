@@ -212,10 +212,10 @@ class FrontendSubjectTable extends FrontendStudentSubject
         if (!($tblSubjectList = Subject::useService()->getSubjectAll())) {
             $tblSubjectList = array();
         }
-        $tblSubjectList[] = TblSubject::withParameter(TblSubjectTable::SUBJECT_FS_1_Id, 'FS1', '1. Fremdsprache (Schülerakte)');
-        $tblSubjectList[] = TblSubject::withParameter(TblSubjectTable::SUBJECT_FS_2_Id, 'FS2', '2. Fremdsprache (Schülerakte)');
-        $tblSubjectList[] = TblSubject::withParameter(TblSubjectTable::SUBJECT_FS_3_Id, 'FS3', '3. Fremdsprache (Schülerakte)');
-        $tblSubjectList[] = TblSubject::withParameter(TblSubjectTable::SUBJECT_FS_4_Id, 'FS4', '4. Fremdsprache (Schülerakte)');
+        $tblSubjectList[] = TblSubject::withParameter(TblSubjectTable::SUBJECT_FOREIGN_LANGUAGE_1_Id, 'FS1', '1. Fremdsprache (Schülerakte)');
+        $tblSubjectList[] = TblSubject::withParameter(TblSubjectTable::SUBJECT_FOREIGN_LANGUAGE_2_Id, 'FS2', '2. Fremdsprache (Schülerakte)');
+        $tblSubjectList[] = TblSubject::withParameter(TblSubjectTable::SUBJECT_FOREIGN_LANGUAGE_3_Id, 'FS3', '3. Fremdsprache (Schülerakte)');
+        $tblSubjectList[] = TblSubject::withParameter(TblSubjectTable::SUBJECT_FOREIGN_LANGUAGE_4_Id, 'FS4', '4. Fremdsprache (Schülerakte)');
         $tblSubjectList[] = TblSubject::withParameter(TblSubjectTable::SUBJECT_RELIGION, 'R', 'Religion (Schülerakte)');
         $tblSubjectList[] = TblSubject::withParameter(TblSubjectTable::SUBJECT_PROFILE, 'P', 'Profil (Schülerakte)');
         $tblSubjectList[] = TblSubject::withParameter(TblSubjectTable::SUBJECT_ORIENTATION, 'W', 'Wahlbereich (Schülerakte)');
