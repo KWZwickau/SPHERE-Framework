@@ -85,6 +85,7 @@ class StudentCardNew extends AbstractStudentCard
                             ->addElementColumn((new Element())
                                 ->setContent('
                                             {% if( Content.Student.Company2 is not empty) %}
+                                                {{ Content.Student.Company }}
                                                 {{ Content.Student.Company2 }}
                                             {% else %}
                                                 {{ Content.Student.Company }}
