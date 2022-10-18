@@ -30,15 +30,15 @@ class Data extends DataTeacher
         $this->createDivisionCourseMemberType('Elternvertreter', TblDivisionCourseMemberType::TYPE_CUSTODY);
         $this->createDivisionCourseMemberType('Schülersprecher', TblDivisionCourseMemberType::TYPE_REPRESENTATIVE);
 
-        /**
-         * Migration der alten Klassen-Daten in die neue DB-Struktur
-         */
-        $this->migrateAll();
-
         /*
          * Stundentafel
          */
         $this->setupDatabaseContentForSubjectTable();
+
+        /**
+         * Migration der alten Klassen-Daten in die neue DB-Struktur
+         */
+        $this->migrateAll();
     }
 
     /**
