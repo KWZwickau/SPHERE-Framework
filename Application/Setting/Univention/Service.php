@@ -241,7 +241,7 @@ class Service extends AbstractService
                 if(isset($User['udm_properties']['DllpServiceAccount']) && $User['udm_properties']['DllpServiceAccount'] == '1'){
                     continue;
                 }
-                if(strpos($User, 'error when reading')){
+                if(is_string($User)){ // strpos($User, 'error when reading'
                     echo '<pre> Antwort der API:<br/>'.print_r($User, true).'</pre>';
                     continue;
                 }
