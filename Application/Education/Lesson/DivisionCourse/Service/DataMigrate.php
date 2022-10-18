@@ -239,10 +239,9 @@ abstract class DataMigrate extends AbstractData
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                             if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
                                 // prüfen, ob Fach bereits über die feste Stundentafel kommt
-                                // erstmal überhaupt nur Fächer von aktuellen Schuljahren mitnehmen
-//                                $addStudentSubject = true;
-                                $addStudentSubject = $isCurrentYear;
-                                if ($addStudentSubject && !$isCourseSystem) {
+                                // todo erstmal überhaupt nur Fächer von aktuellen Schuljahren mitnehmen -> erstmal doch speichern
+                                $addStudentSubject = true;
+                                if (!$isCourseSystem) {
                                     if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableBy($tblSchoolType, $level, $tblSubject))) {
                                         if ($tblSubjectTable->getIsFixed()) {
                                             $addStudentSubject = false;
@@ -282,7 +281,7 @@ abstract class DataMigrate extends AbstractData
                                                     foreach ($tblSubjectStudentList as $tblSubjectStudent) {
                                                         $tblSubjectTable = null;
                                                         if ($this->getAddStudentSubject($tblSubjectStudent, $tblSchoolType, $level, $tblSubject,
-                                                            $variableStudentTableList, $tblSubjectTable
+                                                            $variableStudentTableList, $tblSubjectTable, $isCurrentYear
                                                         )) {
                                                             $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
                                                                 $tblSubjectStudent, $tblYear, $tblSubject, $groupItem->getHasGrading(), $tblSubjectTable ?: null
@@ -315,7 +314,7 @@ abstract class DataMigrate extends AbstractData
                                         $tblSubjectTable = null;
                                         foreach ($tblPersonList as $tblPersonItem) {
                                             if ($this->getAddStudentSubject($tblPersonItem, $tblSchoolType, $level, $tblSubject,
-                                                $variableStudentTableList, $tblSubjectTable
+                                                $variableStudentTableList, $tblSubjectTable, $isCurrentYear
                                             )) {
                                                 $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
                                                     $tblPersonItem, $tblYear, $tblSubject, $tblDivisionSubject->getHasGrading(), $tblSubjectTable ?: null
@@ -350,14 +349,17 @@ abstract class DataMigrate extends AbstractData
      * @param TblSubject $tblSubject
      * @param $variableStudentTableList
      * @param TblSubjectTable|null $tblSubjectTable
+     * @param bool $isCurrentYear
      *
      * @return bool
      */
     private function getAddStudentSubject(TblPerson $tblPerson, TblType $tblSchoolType, int $level, TblSubject $tblSubject, $variableStudentTableList,
-        ?TblSubjectTable &$tblSubjectTable): bool
+        ?TblSubjectTable &$tblSubjectTable, bool $isCurrentYear): bool
     {
-        // Fach ist in der Schülerakte gepflegt
-        if (($virtualSubjectList = DivisionCourse::useService()->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndSchoolTypeAndLevel($tblPerson, $tblSchoolType, $level))
+        // Fach ist in der Schülerakte gepflegt, nur bei aktuellem Schuljahr
+        if ($isCurrentYear
+            && ($virtualSubjectList = DivisionCourse::useService()->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndSchoolTypeAndLevel(
+                $tblPerson, $tblSchoolType, $level))
             && (isset($virtualSubjectList[$tblSubject->getId()]))
         ) {
             // nicht speichern, wenn es sich aus der Schülerakte ergibt
