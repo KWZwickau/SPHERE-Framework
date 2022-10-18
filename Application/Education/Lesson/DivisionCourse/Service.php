@@ -22,6 +22,8 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
@@ -931,7 +933,8 @@ class Service extends ServiceTeacher
             if ($level < 1) {
                 $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
                 $error = true;
-            } else {
+            // in Berlin sind die Klassenstufen Zuordnungen zu den Schularten anders
+            } elseif (GatekeeperConsumer::useService()->getConsumerTypeFromServerHost() == TblConsumer::TYPE_SACHSEN) {
                 switch ($tblSchoolType->getShortName()) {
                     case 'GS':
                         if ($level > 4) {
