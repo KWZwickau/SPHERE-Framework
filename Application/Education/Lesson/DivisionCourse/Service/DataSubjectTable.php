@@ -47,11 +47,36 @@ abstract class DataSubjectTable extends DataStudentSubject
                 $this->setSachsenGyLevel9($tblSchoolTypeGy);
                 $this->setSachsenGyLevel10($tblSchoolTypeGy);
             }
+        } elseif (GatekeeperConsumer::useService()->getConsumerTypeFromServerHost() == TblConsumer::TYPE_BERLIN) {
+            if (($tblSchoolTypePrimary = Type::useService()->getTypeByShortName('GS'))
+                && !$this->getSubjectTableListBy($tblSchoolTypePrimary)
+            ) {
+                $this->setBerlinGsLevel1($tblSchoolTypePrimary);
+                $this->setBerlinGsLevel2($tblSchoolTypePrimary);
+                $this->setBerlinGsLevel3($tblSchoolTypePrimary);
+                $this->setBerlinGsLevel4($tblSchoolTypePrimary);
+                $this->setBerlinGsLevel5($tblSchoolTypePrimary);
+                $this->setBerlinGsLevel6($tblSchoolTypePrimary);
+            }
+
+            if (($tblSchoolTypeSecondary = Type::useService()->getTypeByShortName('ISS'))
+                && !$this->getSubjectTableListBy($tblSchoolTypeSecondary)
+            ) {
+                $this->setBerlinIssLevel7($tblSchoolTypeSecondary);
+                $this->setBerlinIssLevel8($tblSchoolTypeSecondary);
+                $this->setBerlinIssLevel9($tblSchoolTypeSecondary);
+                $this->setBerlinIssLevel10($tblSchoolTypeSecondary);
+            }
+
+            if (($tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy'))
+                && !$this->getSubjectTableListBy($tblSchoolTypeGy)
+            ) {
+                $this->setBerlinGyLevel7($tblSchoolTypeGy);
+                $this->setBerlinGyLevel8($tblSchoolTypeGy);
+                $this->setBerlinGyLevel9($tblSchoolTypeGy);
+                $this->setBerlinGyLevel10($tblSchoolTypeGy);
+            }
         }
-
-        // todo Berlin
-
-        // todo berufsbildende Schulen in Sachsen
     }
 
     /**
@@ -994,5 +1019,311 @@ abstract class DataSubjectTable extends DataStudentSubject
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_3'))) {
             $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
         }
+    }
+
+    private function setBerlinGsLevel1(TblType $tblSchoolTypePrimary)
+    {
+        $level = 1;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', $ranking++, 7, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', $ranking++, 5, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', $ranking++, 2, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', $ranking++, 2, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', $ranking++, 2, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3, '', false);
+        // 1. FS
+    }
+
+    private function setBerlinGsLevel2(TblType $tblSchoolTypePrimary)
+    {
+        $level = 2;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', $ranking++, 8, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', $ranking++, 5, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', $ranking++, 2, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', $ranking++, 2, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', $ranking++, 2, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3, '', false);
+        // 1. FS
+    }
+
+    private function setBerlinGsLevel3(TblType $tblSchoolTypePrimary)
+    {
+        $level = 3;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', $ranking++, 8, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', $ranking++, 5, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', $ranking++, 3, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', $ranking++, 2, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', $ranking++, 2, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'FOREIGN_LANGUAGE_1');
+    }
+
+    private function setBerlinGsLevel4(TblType $tblSchoolTypePrimary)
+    {
+        $level = 4;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', $ranking++, 8, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', $ranking++, 5, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', $ranking++, 5, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', $ranking++, 2, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', $ranking++, 2, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_1');
+    }
+
+    private function setBerlinGsLevel5(TblType $tblSchoolTypePrimary)
+    {
+        $level = 5;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', $ranking++, 5, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', $ranking++, 5, '');
+        $ranking++; // SU
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', $ranking++, 2, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', $ranking++, 2, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, null, 'Wahlpflichtbereich', $ranking++, 4, 'FOREIGN_LANGUAGE_1');
+    }
+
+    private function setBerlinGsLevel6(TblType $tblSchoolTypePrimary)
+    {
+        $level = 6;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', $ranking++, 5, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', $ranking++, 5, '');
+        $ranking++; // SU
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'KU', 'Pflichtbereich', $ranking++, 2, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MU', 'Pflichtbereich', $ranking++, 2, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3, '');
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, null, 'Wahlpflichtbereich', $ranking++, 5, 'FOREIGN_LANGUAGE_1');
+    }
+
+    private function setBerlinIssLevel7(TblType $tblSchoolSecondary)
+    {
+        $level = 7;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolSecondary, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_1');
+
+        // Gesamt 3 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'BIO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'PH', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'CH', 'Pflichtbereich', $ranking++, null);
+
+        // Gesamt 8 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, null);
+        $ranking++; // todo Politische Bildung
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
+
+        // Gesamt 2 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'KU', 'Pflichtbereich', $ranking++, null);
+
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'WAT', 'Pflichtbereich', $ranking++, 2);
+
+        $this->setSubjectTable($tblSchoolSecondary, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'PROFILE');
+    }
+
+    private function setBerlinIssLevel8(TblType $tblSchoolSecondary)
+    {
+        $level = 8;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolSecondary, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_1');
+
+        // Gesamt 3 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'BIO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'PH', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'CH', 'Pflichtbereich', $ranking++, null);
+
+        // Gesamt 8 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, null);
+        $ranking++; // todo Politische Bildung
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
+
+        // Gesamt 2 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'KU', 'Pflichtbereich', $ranking++, null);
+
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'WAT', 'Pflichtbereich', $ranking++, 2);
+
+        $this->setSubjectTable($tblSchoolSecondary, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'PROFILE');
+    }
+
+    private function setBerlinIssLevel9(TblType $tblSchoolSecondary)
+    {
+        $level = 9;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolSecondary, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_1');
+
+        // Gesamt 5 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'BIO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'PH', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'CH', 'Pflichtbereich', $ranking++, null);
+
+        // Gesamt 8 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, null);
+        $ranking++; // todo Politische Bildung
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
+
+        // Gesamt 2 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'KU', 'Pflichtbereich', $ranking++, null);
+
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'WAT', 'Pflichtbereich', $ranking++, 2);
+
+        $this->setSubjectTable($tblSchoolSecondary, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'PROFILE');
+    }
+
+    private function setBerlinIssLevel10(TblType $tblSchoolSecondary)
+    {
+        $level = 10;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolSecondary, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_1');
+
+        // Gesamt 5 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'BIO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'PH', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'CH', 'Pflichtbereich', $ranking++, null);
+
+        // Gesamt 8 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, null);
+        $ranking++; // todo Politische Bildung
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
+
+        // Gesamt 2 Wochenstunden
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'MU', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'KU', 'Pflichtbereich', $ranking++, null);
+
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
+        $this->setSubjectTable($tblSchoolSecondary, $level, 'WAT', 'Pflichtbereich', $ranking++, 2);
+
+        $this->setSubjectTable($tblSchoolSecondary, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'PROFILE');
+    }
+
+    private function setBerlinGyLevel7(TblType $tblSchoolTypeGy)
+    {
+        $level = 7;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_1');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 4, 'FOREIGN_LANGUAGE_2');
+
+        // Gesamt 4 Wochenstunden
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, null);
+
+        // Gesamt 10 Wochenstunden
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, null);
+        $ranking++; // todo Politische Bildung
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
+
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
+
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'PROFILE');
+    }
+
+    private function setBerlinGyLevel8(TblType $tblSchoolTypeGy)
+    {
+        $level = 8;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_1');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 4, 'FOREIGN_LANGUAGE_2');
+
+        // Gesamt 4 Wochenstunden
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, null);
+
+        // Gesamt 10 Wochenstunden
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, null);
+        $ranking++; // todo Politische Bildung
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
+
+        // Gesamt 3 Wochenstunden
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', $ranking++, null);
+
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
+
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 3, 'PROFILE');
+    }
+
+    private function setBerlinGyLevel9(TblType $tblSchoolTypeGy)
+    {
+        $level = 9;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_1');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2');
+
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, 2);
+
+        // Gesamt 10 Wochenstunden
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, null);
+        $ranking++; // todo Politische Bildung
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
+
+        // Gesamt 2 Wochenstunden
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', $ranking++, null);
+
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
+
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'PROFILE');
+    }
+
+    private function setBerlinGyLevel10(TblType $tblSchoolTypeGy)
+    {
+        $level = 10;
+        $ranking = 1;
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'DE', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MA', 'Pflichtbereich', $ranking++, 4);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_1');
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Pflichtbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2');
+
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'BIO', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'PH', 'Pflichtbereich', $ranking++, 2);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'CH', 'Pflichtbereich', $ranking++, 2);
+
+        // Gesamt 10 Wochenstunden
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, null);
+        $ranking++; // todo Politische Bildung
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
+
+        // Gesamt 2 Wochenstunden
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'MU', 'Pflichtbereich', $ranking++, null);
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'KU', 'Pflichtbereich', $ranking++, null);
+
+        $this->setSubjectTable($tblSchoolTypeGy, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
+
+        $this->setSubjectTable($tblSchoolTypeGy, $level, null, 'Wahlpflichtbereich', $ranking++, 2, 'PROFILE');
     }
 }

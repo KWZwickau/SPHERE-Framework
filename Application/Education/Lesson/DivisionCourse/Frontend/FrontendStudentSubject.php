@@ -183,7 +183,7 @@ class FrontendStudentSubject extends FrontendStudent
                                 /*
                                  * Prüfung fehlende Fächer
                                  */
-                                if ($item['MissingLinkedSubjects']) {
+                                if (isset($item['MissingLinkedSubjects'])) {
                                     foreach ($item['MissingLinkedSubjects'] as $missingItem) {
                                         if ($missingItem['Count'] < $missingItem['MinCount']) {
                                             $hasMissingSubjects = true;

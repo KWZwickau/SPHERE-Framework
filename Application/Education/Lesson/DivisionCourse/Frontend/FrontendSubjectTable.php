@@ -52,7 +52,7 @@ class FrontendSubjectTable extends FrontendStudentSubject
     {
         $stage = new Stage('Stundentafel', 'Übersicht');
         $buttonList = '';
-        if (($tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll())) {
+        if (($tblSchoolTypeList = School::useService()->getConsumerSchoolTypeCommonAll())) {
             foreach ($tblSchoolTypeList as $tblSchoolType) {
                 if ($tblSchoolType->getId() == $SchoolTypeId) {
                     $buttonList .= new Standard(new Info(new Bold($tblSchoolType->getName())), '/Education/Lesson/SubjectTable', new Edit(), array('SchoolTypeId' => $tblSchoolType->getId()));
@@ -87,7 +87,7 @@ class FrontendSubjectTable extends FrontendStudentSubject
     public function loadSubjectTableContent($SchoolTypeId): string
     {
         if ($SchoolTypeId === null) {
-            return new Container('&nbsp;') . new Warning('Bitte wählen Sie zunächst eine Schulart aus.');
+            return new Container('&nbsp;') . new Warning('Bitte wählen Sie zunächst eine allgemeinbildende Schulart aus.');
         }
 
         if (($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))) {

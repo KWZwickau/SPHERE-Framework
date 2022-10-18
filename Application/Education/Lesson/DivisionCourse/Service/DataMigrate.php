@@ -239,7 +239,6 @@ abstract class DataMigrate extends AbstractData
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                             if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
                                 // prüfen, ob Fach bereits über die feste Stundentafel kommt
-                                // todo erstmal überhaupt nur Fächer von aktuellen Schuljahren mitnehmen -> erstmal doch speichern
                                 $addStudentSubject = true;
                                 if (!$isCourseSystem) {
                                     if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableBy($tblSchoolType, $level, $tblSubject))) {
