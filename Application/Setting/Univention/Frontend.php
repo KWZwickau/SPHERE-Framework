@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Api\Setting\Univention\ApiUnivention;
+use SPHERE\Application\Api\Setting\Univention\ApiWorkGroup;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -20,22 +21,16 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Share;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
-use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Info;
-use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -47,10 +42,8 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
-use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -659,156 +652,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @return Stage
-     */
-    public function frontendAPIWorkGroup($isRedirect = false)
-    {
-
-        $Stage = new Stage('API', 'Arbeitsgruppen Abgleich');
-        if(!$isRedirect){
-            $Stage->setContent(new Info('Dieser Vorgang kann einige Zeit in Anspruch nehmen'
-                .new Container((new ProgressBar(0, 100, 0, 10))
-                    ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS))
-            ). new RedirectScript('/Setting/Univention/Api/WorkGroup', 0, array('isRedirect' => true)));
-            return $Stage;
-        }
-
-        $Acronym = Account::useService()->getMandantAcronym();
-        // dynamsiche Schulliste
-        $schoolList = (new UniventionSchool())->getAllSchools();
-        // Fehlerausgabe
-        if($this->errorScan($Stage, $schoolList)){
-            return $Stage;
-        }
-        // early break if no answer
-        if(!is_array($schoolList)){
-            $Stage->setContent(new Warning('UCS liefert keine Informationen'));
-            return $Stage;
-        }
-        // Mandant ist nicht in der Schulliste
-        if( !array_key_exists($Acronym, $schoolList)){
-            $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht in UCS freigeschalten'));
-            return $Stage;
-        }
-        $school = $schoolList[$Acronym];
-        $UserUniventionList = Univention::useService()->getApiUser();
-        $ApiUserNameList = array();
-        if($UserUniventionList){
-            foreach($UserUniventionList as $UserUnivention){
-                $ApiUserNameList[] = $UserUnivention['name'];
-            }
-        }
-
-        $ApiWorkGroupList = (new UniventionWorkGroup())->getWorkGroupListAll();
-        $ApiGroupArray = array();
-        if($ApiWorkGroupList){
-            foreach($ApiWorkGroupList as $ApiWorkGroup){
-                $group = $ApiWorkGroup['name'];
-                if(!empty($ApiWorkGroup['users'])){
-                    foreach($ApiWorkGroup['users'] as &$User){
-                        $Position = strpos($User, $Acronym.'-');
-                        $TempUser = str_split($User, $Position);
-                        $User = $TempUser[1];
-                    }
-                }
-                sort($ApiWorkGroup['users']);
-                $ApiGroupArray[$group] = $ApiWorkGroup['users'];
-            }
-        }
-        $GroupArray = array();
-        if(($tblGroupList = Group::useService()->getGroupListByIsCoreGroup())){
-            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-            foreach($tblGroupList as $tblGroup){
-                if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
-                    foreach($tblPersonList as $tblPerson){
-                        // Nur bei Schülern
-                        if(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStudent)){
-                            // Nur Schüler mit einem Account und einer hinterlegten E-Mail
-                            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson)))
-                            {
-                                if(in_array($tblAccountList[0]->getUsername(), $ApiUserNameList)){
-                                    $GroupArray[$tblGroup->getName()][] = $tblAccountList[0]->getUsername();
-                                }
-                            }
-                        }
-                    }
-                }
-                if(!empty($GroupArray[$tblGroup->getName()])){
-                    sort($GroupArray[$tblGroup->getName()]);
-                }
-            }
-        }
-        // ToDO Compare both lists (Api vs SSW)
-        $EditList = array();
-        $AddList = array();
-        $ContentList = array();
-        ksort($GroupArray);
-        foreach($GroupArray as $Group => $UserList){
-            if((array_key_exists($Group, $ApiGroupArray))){
-                $ApiUserList = $ApiGroupArray[$Group];
-                if(count($ApiUserList) != count($UserList)
-                    || ($Diff = array_diff($ApiUserList, $UserList))){
-                    $EditList[] = array($Group => $UserList);
-                    $ContentList[$Group] = new Info(new Bold('"'.$Group.'"').' ('. count($ApiUserList).' -> '.count($UserList)
-                        .') wurde angepasst', null, false, '3', '4');
-                } else {
-                    // Sonnst keine Änderungen
-                    $ContentList[$Group] = '<div style="padding-bottom: 4px">'.new WellReadOnly(new Bold('"'.$Group.'"').' ('.count($UserList).') unverändert').'</div>';
-                }
-            } else {
-                $AddList[] = array($Group => $UserList);
-                // neu erstellt
-                $ContentList[$Group] = new Success(new Bold('"'.$Group.'"').' ('.count($UserList).') wird angelegt', null, false, '3', '4');
-            }
-        }
-
-        $ErrorList = array();
-        if(!empty($AddList)){
-            foreach($AddList as $GroupArray){
-                foreach($GroupArray as $Group => $UserList){
-                    $ErrorList[$Group] = (new UniventionWorkGroup())->createUserWorkgroup($Group, $school, $UserList); // $UserList
-                }
-            }
-        }
-        if(!empty($EditList)){
-            foreach($EditList as $GroupArray){
-                foreach($GroupArray as $Group => $UserList){
-                    $ErrorList[$Group] = (new UniventionWorkGroup())->updateUserWorkgroup($Group, $Acronym, $UserList);
-                }
-            }
-        }
-
-        $ErrorList = array_filter($ErrorList);
-        if(!empty($ErrorList)){
-            foreach($ErrorList as $GroupString => $Content){
-                $ContentList[$GroupString] = new Danger($Content, null, false, '3', '4');
-            }
-        }
-        $LayoutColumnList = array();
-        if(!empty($ContentList)){
-            foreach($ContentList as $Content){
-                $LayoutColumnList[] = new LayoutColumn($Content, 3);
-            }
-        }
-
-        $LayoutRowList = array();
-        $LayoutRowCount = 0;
-        foreach($LayoutColumnList as $LayoutColumn){
-            if ($LayoutRowCount % 4 == 0) {
-                $LayoutRow = new LayoutRow(array());
-                $LayoutRowList[] = $LayoutRow;
-            }
-            $LayoutRow->addColumn($LayoutColumn);
-            $LayoutRowCount++;
-        }
-        $Layout = new Layout(new LayoutGroup($LayoutRowList));
-
-        $Stage->setContent($Layout);
-
-        return $Stage;
-    }
-
-    /**
      * @param        $UserList
      * @param string $ApiType
      *
@@ -846,6 +689,141 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Layout(new LayoutGroup(array(new LayoutRow(array(
                 new LayoutColumn(new Title($TypeFrontend)),
                 new LayoutColumn(ApiUnivention::receiverLoad(ApiUnivention::pipelineLoad(0, $CountMax))),
+                new LayoutColumn('<div style="height: 15px"> </div>'),
+            )),
+                $LayoutRowAPI
+            ))));
+        } else {
+            $Stage->setContent(
+                new Warning(new Center('Es sind keine Transaktionen verfügbar.'))
+            );
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendAPIWorkGroup() // $isRedirect = false
+    {
+
+        $Stage = new Stage('API', 'Arbeitsgruppen-Abgleich');
+        //        if(!$isRedirect){
+        //            $Stage->setContent(new Info('Dieser Vorgang kann einige Zeit in Anspruch nehmen'
+        //                .new Container((new ProgressBar(0, 100, 0, 10))
+        //                    ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS))
+        //            ). new RedirectScript('/Setting/Univention/Api/WorkGroup', 0, array('isRedirect' => true)));
+        //            return $Stage;
+        //        }
+
+        $Acronym = Account::useService()->getMandantAcronym();
+        // dynamsiche Schulliste
+        $schoolList = (new UniventionSchool())->getAllSchools();
+        // Fehlerausgabe
+        if($this->errorScan($Stage, $schoolList)){
+            return $Stage;
+        }
+        // early break if no answer
+        if(!is_array($schoolList)){
+            $Stage->setContent(new Warning('UCS liefert keine Informationen'));
+            return $Stage;
+        }
+        // Mandant ist nicht in der Schulliste
+        if( !array_key_exists($Acronym, $schoolList)){
+            $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht in UCS freigeschalten'));
+            return $Stage;
+        }
+        $school = $schoolList[$Acronym];
+        // Vorhandene Nutzer in Univention holen
+        $UserUniventionList = Univention::useService()->getApiUser();
+        $ApiUserNameList = array();
+        if($UserUniventionList){
+            foreach($UserUniventionList as $UserUnivention){
+                $ApiUserNameList[] = $UserUnivention['name'];
+            }
+        }
+
+        $ApiWorkGroupList = (new UniventionWorkGroup())->getWorkGroupListAll();
+        $ApiGroupArray = array();
+        if($ApiWorkGroupList){
+            // Workgroup mit Nutzernamen
+            foreach($ApiWorkGroupList as $ApiWorkGroup){
+                $group = $ApiWorkGroup['name'];
+                if(!empty($ApiWorkGroup['users'])){
+                    foreach($ApiWorkGroup['users'] as &$User){
+                        // Nutzernamen aus URL
+                        $Position = strpos($User, $Acronym.'-');
+                        $TempUser = str_split($User, $Position);
+                        $User = $TempUser[1];
+                    }
+                }
+                sort($ApiWorkGroup['users']);
+                $ApiGroupArray[$group] = $ApiWorkGroup['users'];
+            }
+        }
+        $ContentArray = array();
+        if(($tblGroupList = Group::useService()->getGroupListByIsCoreGroup())){
+            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            foreach($tblGroupList as $tblGroup){
+                $tblPersonAccountList = array();
+                if(($tblPersonGroupList = Group::useService()->getPersonAllByGroup($tblGroup))){
+                    foreach($tblPersonGroupList as $tblPersonGroup){
+                        // Nur bei Schülern
+                        if(Group::useService()->getMemberByPersonAndGroup($tblPersonGroup, $tblGroupStudent)){
+                            // Nur Schüler mit einem Account und einer hinterlegten E-Mail
+                            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPersonGroup)))
+                            {
+                                // Nutzer müssen in der API verfügbar sein
+                                if(in_array($tblAccountList[0]->getUsername(), $ApiUserNameList)){
+                                    $tblPersonAccountList[] = $tblAccountList[0]->getUsername();
+                                }
+                            }
+                        }
+                    }
+                }
+                if((array_key_exists($tblGroup->getName(), $ApiGroupArray))){
+                    $ApiUserList = $ApiGroupArray[$tblGroup->getName()];
+                    if(count($ApiUserList) != count($tblPersonAccountList)
+                        || ($Diff = array_diff($ApiUserList, $tblPersonAccountList))){
+                        // Gruppen SSW & Univention unterscheiden sich
+                        $Type = 'update';
+                    } else {
+                        // Sonnst keine Änderungen
+                        $Type = 'ok';
+                    }
+                } else {
+                    $Type = 'create';
+                }
+
+                $ContentArray[$tblGroup->getName()] = array(
+                    'Group' => $tblGroup->getName(),
+                    'UserList' => $tblPersonAccountList,
+                    'Type' => $Type,
+                    'School' => $school
+                );
+            }
+        }
+        if(!empty($ContentArray)){
+            ksort($ContentArray);
+        }
+
+        $CountMax = count($ContentArray);
+        if($CountMax > 0){
+
+            // avoid max_input_vars
+            $ContentJson = json_encode($ContentArray);
+            $PipelineServiceWorkgroup = ApiWorkGroup::pipelineServiceWorkgroup('0', $ContentJson, $CountMax);
+
+            // insert receiver into frontend
+            $LayoutRowAPI = new LayoutRow(new LayoutColumn(ApiWorkGroup::receiverWorkgroup($PipelineServiceWorkgroup), 4));
+            for($i = 1; $i <= $CountMax; $i++){
+                $LayoutRowAPI->addColumn(new LayoutColumn(ApiWorkGroup::receiverWorkgroup('', $i), 4));
+            }
+
+            $Stage->setContent(new Layout(new LayoutGroup(array(new LayoutRow(array(
+                //                new LayoutColumn(new Title($TypeFrontend)),
+                new LayoutColumn(ApiWorkGroup::receiverLoad(ApiWorkGroup::pipelineLoad(0, $CountMax))),
                 new LayoutColumn('<div style="height: 15px"> </div>'),
                 )),
                 $LayoutRowAPI

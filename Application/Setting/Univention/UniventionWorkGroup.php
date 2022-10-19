@@ -77,7 +77,8 @@ class UniventionWorkGroup
         foreach($UserList as &$Name){
             $Name = 'https://'.$this->server.'/v1/users/'.$Name;
         }
-
+        // URL Fähiger Gruppenname -> Create braucht den normal!
+//        $group = urlencode($group);
         $PersonContent = array(
             'name' => $group,
             'school' => $school,
@@ -137,7 +138,10 @@ class UniventionWorkGroup
 
         curl_reset($this->curlhandle);
 
-        $group = str_replace(' ', '%20', $group);
+        // URL Fähiger Gruppenname
+         $group = str_replace(' ', '%20', $group);
+         // urlencode macht aus ' ' -> '+'
+//         $group = urlencode($group);
 
         foreach($UserList as &$Name){
             $Name = 'https://'.$this->server.'/v1/users/'.$Name;
