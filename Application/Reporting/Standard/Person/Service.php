@@ -4027,7 +4027,7 @@ class Service extends Extension
 
                 $export->setValue($export->getCell($column++, $row), $absence['TypeExcel']);
                 $export->setValue($export->getCell($column++, $row), $isGroup ? $absence['Group'] : $absence['Division']);
-                $export->setValue($export->getCell($column++, $row), $absence['Person']);
+                $export->setValue($export->getCell($column++, $row), $absence['PersonExcel']);
                 $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
                 $export->setValue($export->getCell($column++, $row), $absence['PersonCreator']);
                 $export->setValue($export->getCell($column++, $row), $absence['Lessons']);
