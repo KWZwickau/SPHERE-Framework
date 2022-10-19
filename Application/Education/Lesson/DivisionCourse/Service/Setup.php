@@ -26,7 +26,7 @@ class Setup extends AbstractSetup
         $tblMemberType = $this->setTableDivisionCourseMemberType($Schema);
         $this->setTableDivisionCourseMember($Schema, $tblDivisionCourse, $tblMemberType);
         $this->setTableTeacherLectureship($Schema, $tblDivisionCourse);
-        $this->setTableStudentSubject($Schema);
+        $this->setTableStudentSubject($Schema, $tblDivisionCourse);
         $this->setTableStudentEducation($Schema);
         $tblSubjectTable = $this->setTableSubjectTable($Schema);
         $this->setTableSubjectTableLink($Schema, $tblSubjectTable);
@@ -76,6 +76,9 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'IsReporting', self::FIELD_TYPE_BOOLEAN);
 //        $this->createColumn($table, 'IsUcs', self::FIELD_TYPE_BOOLEAN);
 
+        // todo kann nach der vollständigen Migration der Alt-Daten gedropt werden
+        $this->createColumn($table, 'MigrateGroupId', self::FIELD_TYPE_BIGINT, true);
+
         $this->createForeignKey($table, $tblType);
 
         return $table;
@@ -116,9 +119,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param $tblDivisionCourse
+     * @param Table $tblDivisionCourse
      */
-    private function setTableTeacherLectureship(Schema &$Schema, $tblDivisionCourse)
+    private function setTableTeacherLectureship(Schema &$Schema, Table $tblDivisionCourse)
     {
         $table = $this->getConnection()->createTable($Schema, 'tblLessonTeacherLectureship');
 
@@ -143,8 +146,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     * @param Table $tblDivisionCourse
      */
-    private function setTableStudentSubject(Schema &$Schema)
+    private function setTableStudentSubject(Schema &$Schema, Table $tblDivisionCourse)
     {
         $table = $this->getConnection()->createTable($Schema, 'tblLessonStudentSubject');
 
@@ -154,8 +158,8 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'HasGrading', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'serviceTblSubjectTable', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'serviceTblPeriod', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($table, 'IsAdvancedCourse', self::FIELD_TYPE_BOOLEAN);
-//        $this->createColumn($table, 'LeaveDate', self::FIELD_TYPE_DATETIME, true);
+
+        $this->createForeignKey($table, $tblDivisionCourse, true);
     }
 
     /**

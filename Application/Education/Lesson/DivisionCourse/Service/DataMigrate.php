@@ -49,7 +49,6 @@ abstract class DataMigrate extends AbstractData
             $Manager = $this->getEntityManager();
             /** @var TblDivision $tblDivision */
             foreach ($tblDivisionList as $tblDivision) {
-                // todo jahrgangsübergreifende klassen
                 if (($tblYear = $tblDivision->getServiceTblYear())) {
                     $description = '';
                     if ($tblDivision->getDescription()) {
@@ -76,13 +75,12 @@ abstract class DataMigrate extends AbstractData
             && ($tblGroupTudor = Group::useService()->getGroupByMetaTable('TUDOR'))
             && ($tblTypeMemberTudor = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
         ) {
-            // todo prüfen ob es das richtige Schuljahr ist, eventuell über Schüler
             /** @var TblYear $tblYear */
             $tblYear = reset($tblYearList);
 
             $Manager = $this->getEntityManager();
             foreach ($tblGroupList as $tblGroup) {
-                $tblDivisionCourse = TblDivisionCourse::withParameter($tblType, $tblYear, $tblGroup->getName(), $tblGroup->getDescription(), true, true);
+                $tblDivisionCourse = TblDivisionCourse::withParameter($tblType, $tblYear, $tblGroup->getName(), $tblGroup->getDescription(), true, true, $tblGroup->getId());
                 // bulkSave nicht möglich, da ansonsten noch keine Id vorhanden ist
                 $Manager->saveEntity($tblDivisionCourse);
 
@@ -137,12 +135,15 @@ abstract class DataMigrate extends AbstractData
                 ) {
                     $isCurrentYear = Term::useService()->getIsCurrentYear($tblYear);
 
+                    // bei EKPO 2 schulen mit Level 'W' und WVSZ hat Level mit leeren Namen
+                    $level = intval($tblLevel->getName());
+
                     /**
                      * Schüler der Klasse - TblDivisionStudent
                      */
                     // Jahrgangsübergreifende Klasse
                     if ($tblLevel->getIsChecked()) {
-                        // todo jahrgangsübergreifende klassen
+                        // WVSZ Förderschule ist nicht als jahrgangübergreifende Klasse angelegt und bei EKPO werden auch keine verwendet
                         continue;
                     } else {
                         // feste Klasse
@@ -164,9 +165,13 @@ abstract class DataMigrate extends AbstractData
 
                                     $tblStudentEducation->setTblDivision($tblDivisionCourse);
                                     $tblStudentEducation->setServiceTblCompany($tblDivision->getServiceTblCompany() ?: null);
-                                    $tblStudentEducation->setLevel(intval($tblLevel->getName()));
+                                    $tblStudentEducation->setLevel($level ?: null);
                                     $tblStudentEducation->setServiceTblSchoolType($tblSchoolType);
                                     if (($tblStudent = $tblPerson->getStudent()) && ($tblCourse = $tblStudent->getCourse())) {
+                                        // Bildungsgang bei OS nicht vor Klasse 7 setzen
+                                        if ($tblSchoolType->getShortName() == 'OS' && $level < 7) {
+                                            $tblCourse = null;
+                                        }
                                         $tblStudentEducation->setServiceTblCourse($tblCourse);
                                     }
 
@@ -224,8 +229,8 @@ abstract class DataMigrate extends AbstractData
                      */
                     $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
                     $isCourseSystem = Division::useService()->getIsDivisionCourseSystem($tblDivision);
+                    $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision);
                     if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false))) {
-                        $level = intval($tblLevel->getName());
                         $variableStudentTableList = array();
                         if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
                             foreach ($tblSubjectTableList as $tblSubjectTableTemp) {
@@ -272,9 +277,20 @@ abstract class DataMigrate extends AbstractData
                                                 $tblDivisionCourseSekII = false;
                                             }
 
-
+                                            // SEKII-Kurse
                                             if ($isCourseSystem) {
-                                                // todo bei SekII-kursen SchülerFächer direkt mit neuen Kurs, prüfen doppelt Speicherung wahrscheinlich am besten wie bei TblStudentEducation
+                                                // bei SekII-kursen SchülerFächer direkt mit neuem Kurs verknüpfen
+                                                if (($tblPeriodList)) {
+                                                    foreach ($tblPeriodList as $tblPeriod) {
+                                                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                                            $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
+                                                                $tblSubjectStudent, $tblYear, $tblSubject, $groupItem->getHasGrading(), null,
+                                                                $tblDivisionCourseSekII ?: null, $tblPeriod
+                                                            ));
+                                                        }
+                                                    }
+                                                }
+                                            // normale Fächer, keine SEKII-Kurse
                                             } else {
                                                 if ($addStudentSubject) {
                                                     foreach ($tblSubjectStudentList as $tblSubjectStudent) {
@@ -289,7 +305,6 @@ abstract class DataMigrate extends AbstractData
                                                     }
                                                 }
                                             }
-
 
                                             // Lehraufträge bei Gruppen
                                             if (($tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($groupItem))) {

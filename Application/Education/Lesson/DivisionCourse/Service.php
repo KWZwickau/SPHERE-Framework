@@ -225,7 +225,7 @@ class Service extends ServiceTeacher
         $error = false;
         $form = DivisionCourse::useFrontend()->formDivisionCourse($tblDivisionCourse ? $tblDivisionCourse->getId() : null, $Filter);
 
-        $tblYear = false;
+        $tblYear = $tblDivisionCourse ? $tblDivisionCourse->getServiceTblYear() : false;
         $tblType = false;
         if (!$tblDivisionCourse) {
             if (!isset($Data['Year']) || !($tblYear = Term::useService()->getYearById($Data['Year']))) {

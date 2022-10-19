@@ -27,6 +27,7 @@ class TblStudentSubject extends Element
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_SUBJECT_TABLE = 'serviceTblSubjectTable';
+    const ATTR_TBL_DIVISION_COURSE = 'tblLessonDivisionCourse';
     const ATTR_HAS_GRADING = 'HasGrading';
 
     /**
@@ -57,17 +58,12 @@ class TblStudentSubject extends Element
     /**
      * @Column(type="bigint")
      */
-    protected ?int $serviceTblPeriod = null;
+    protected ?int $tblLessonDivisionCourse = null;
 
     /**
-     * @Column(type="boolean")
+     * @Column(type="bigint")
      */
-    protected bool $IsAdvancedCourse;
-
-//    /**
-//     * @Column(type="datetime")
-//     */
-//    protected ?DateTime $LeaveDate = null;
+    protected ?int $serviceTblPeriod = null;
 
     /**
      * @param TblPerson $tblPerson
@@ -75,21 +71,23 @@ class TblStudentSubject extends Element
      * @param TblSubject $tblSubject
      * @param bool $hasGrading
      * @param TblSubjectTable|null $tblSubjectTable
-     * @param bool $isAdvancedCourse
+     * @param TblDivisionCourse|null $tblDivisionCourse
+     * @param TblPeriod|null $tblPeriod
      *
      * @return TblStudentSubject
      */
     public static function withParameter(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, bool $hasGrading, ?TblSubjectTable $tblSubjectTable = null,
-        bool $isAdvancedCourse = false): TblStudentSubject
+        ?TblDivisionCourse $tblDivisionCourse = null, ?TblPeriod $tblPeriod = null): TblStudentSubject
     {
         $instance = new self();
 
-        $instance->serviceTblPerson = $tblPerson->getId();
-        $instance->serviceTblYear = $tblYear->getId();
-        $instance->serviceTblSubject = $tblSubject->getId();
-        $instance->HasGrading = $hasGrading;
-        $instance->serviceTblSubjectTable = $tblSubjectTable ? $tblSubjectTable->getId() : null;
-        $instance->IsAdvancedCourse = $isAdvancedCourse;
+        $instance->setServiceTblPerson($tblPerson);
+        $instance->setServiceTblYear($tblYear);
+        $instance->setServiceTblSubject($tblSubject);
+        $instance->setHasGrading($hasGrading);
+        $instance->setServiceTblSubjectTable($tblSubjectTable);
+        $instance->setTblDivisionCourse($tblDivisionCourse);
+        $instance->setServiceTblPeriod($tblPeriod);
 
         return  $instance;
     }
@@ -161,22 +159,6 @@ class TblStudentSubject extends Element
     }
 
     /**
-     * @return bool
-     */
-    public function getIsAdvancedCourse(): bool
-    {
-        return $this->IsAdvancedCourse;
-    }
-
-    /**
-     * @param bool $IsAdvancedCourse
-     */
-    public function setIsAdvancedCourse(bool $IsAdvancedCourse): void
-    {
-        $this->IsAdvancedCourse = $IsAdvancedCourse;
-    }
-
-    /**
      * @return false|TblSubjectTable
      */
     public function getServiceTblSubjectTable()
@@ -190,6 +172,22 @@ class TblStudentSubject extends Element
     public function setServiceTblSubjectTable(?TblSubjectTable $tblSubjectTable): void
     {
         $this->serviceTblSubjectTable = $tblSubjectTable ? $tblSubjectTable->getId() : null;
+    }
+
+    /**
+     * @return false|TblDivisionCourse
+     */
+    public function getTblDivisionCourse()
+    {
+        return $this->tblLessonDivisionCourse ? DivisionCourse::useService()->getDivisionCourseById($this->tblLessonDivisionCourse) : false;
+    }
+
+    /**
+     * @param ?TblDivisionCourse $tblDivisionCourse
+     */
+    public function setTblDivisionCourse(?TblDivisionCourse $tblDivisionCourse): void
+    {
+        $this->tblLessonDivisionCourse = $tblDivisionCourse ? $tblDivisionCourse->getId() : null;
     }
 
     /**
@@ -207,28 +205,4 @@ class TblStudentSubject extends Element
     {
         $this->serviceTblPeriod = $tblPeriod ? $tblPeriod->getId() : null;
     }
-
-    //    /**
-//     * @return string
-//     */
-//    public function getLeaveDate(): string
-//    {
-//        return $this->LeaveDate instanceof DateTime ? $this->LeaveDate->format('d.m.Y') : '';
-//    }
-//
-//    /**
-//     * @param null|DateTime $Date
-//     */
-//    public function setLeaveDate(DateTime $Date = null)
-//    {
-//        $this->LeaveDate = $Date;
-//    }
-//
-//    /**
-//     * @return ?DateTime
-//     */
-//    public function getLeaveDateTime(): ?DateTime
-//    {
-//        return $this->LeaveDate;
-//    }
 }

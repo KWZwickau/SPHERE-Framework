@@ -58,17 +58,23 @@ class TblDivisionCourse extends Element
 //    protected bool $IsUcs = false;
 
     /**
+     * @Column(type="bigint")
+     */
+    protected ?int $MigrateGroupId = null;
+
+    /**
      * @param TblDivisionCourseType $tblType
      * @param TblYear $tblYear
      * @param string $name
      * @param string $description
      * @param bool $isShownInPersonData
      * @param bool $isReporting
+     * @param int|null $migrateGroupId
      *
      * @return TblDivisionCourse
      */
     public static function withParameter(TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description,
-        bool $isShownInPersonData = false, bool $isReporting = false): TblDivisionCourse
+        bool $isShownInPersonData = false, bool $isReporting = false, ?int $migrateGroupId = null): TblDivisionCourse
     {
         // php erlaubt leider keine mehrfach Konstruktoren :(
         $instance = new self();
@@ -79,6 +85,7 @@ class TblDivisionCourse extends Element
         $instance->Description = $description;
         $instance->IsShownInPersonData = $isShownInPersonData;
         $instance->IsReporting = $isReporting;
+        $instance->MigrateGroupId = $migrateGroupId;
 //        $instance->IsUcs = $isUcs;
 
         return  $instance;
