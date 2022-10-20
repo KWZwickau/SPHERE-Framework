@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Link\Repository\Link;
@@ -88,12 +89,12 @@ class FrontendStudentSubject extends FrontendStudent
                                             && ($tblSubject = $tblSubjectTable->getServiceTblSubject())
                                         ) {
                                             if ($addHeader && !isset($subjectList[$tblSubject->getId()])) {
-                                                $subjectList[$tblSubject->getId()] = $tblSubject->getAcronym()
+                                                $subjectList[$tblSubject->getId()] = new PullClear($tblSubject->getAcronym()
                                                     . (new PullRight((new Link('', ApiStudentSubject::getEndpoint(), new Pen))
                                                         ->ajaxPipelineOnClick(ApiStudentSubject::pipelineEditStudentSubjectContent(
                                                             $tblDivisionCourse->getId(), $tblSubject->getId()
                                                         ))
-                                                    ));
+                                                    )));
                                             }
                                             $item[$tblSubject->getId()] = new ToolTip(new Muted('ST'), 'Stundentafel');
                                         // variable Fächer der Stundentafel und Schülerakte
@@ -146,12 +147,12 @@ class FrontendStudentSubject extends FrontendStudent
                                             // Tabellen-Kopf
                                             if ($tblSubject) {
                                                 if (!isset($subjectList[$tblSubject->getId()])) {
-                                                    $subjectList[$tblSubject->getId()] = $tblSubject->getAcronym()
+                                                    $subjectList[$tblSubject->getId()] = new PullClear($tblSubject->getAcronym()
                                                         . (new PullRight((new Link('', ApiStudentSubject::getEndpoint(), new Pen))
                                                             ->ajaxPipelineOnClick(ApiStudentSubject::pipelineEditStudentSubjectContent(
                                                                 $tblDivisionCourse->getId(), $tblSubject->getId()
                                                             ))
-                                                        ));
+                                                        )));
                                                 }
                                             }
                                         }
@@ -169,12 +170,12 @@ class FrontendStudentSubject extends FrontendStudent
                                             }
 
                                             if (!isset($subjectList[$tblSubjectItem->getId()])) {
-                                                $subjectList[$tblSubjectItem->getId()] = $tblSubjectItem->getAcronym()
+                                                $subjectList[$tblSubjectItem->getId()] = new PullClear($tblSubjectItem->getAcronym()
                                                     . (new PullRight((new Link('', ApiStudentSubject::getEndpoint(), new Pen))
                                                         ->ajaxPipelineOnClick(ApiStudentSubject::pipelineEditStudentSubjectContent(
                                                             $tblDivisionCourse->getId(), $tblSubjectItem->getId()
                                                         ))
-                                                    ));
+                                                    )));
                                             }
                                         }
                                     }

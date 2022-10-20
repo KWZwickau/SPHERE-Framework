@@ -80,7 +80,8 @@ abstract class DataMigrate extends AbstractData
 
             $Manager = $this->getEntityManager();
             foreach ($tblGroupList as $tblGroup) {
-                $tblDivisionCourse = TblDivisionCourse::withParameter($tblType, $tblYear, $tblGroup->getName(), $tblGroup->getDescription(), true, true, $tblGroup->getId());
+                $tblDivisionCourse = TblDivisionCourse::withParameter($tblType, $tblYear, $tblGroup->getName(), $tblGroup->getDescription(), true, true,
+                    null, $tblGroup->getId());
                 // bulkSave nicht möglich, da ansonsten noch keine Id vorhanden ist
                 $Manager->saveEntity($tblDivisionCourse);
 
@@ -269,7 +270,8 @@ abstract class DataMigrate extends AbstractData
                                                     $tblYear, $tblLevel->getName() . $tblSchoolType->getShortName() . ' ' . $tblSubjectGroup->getName(),
                                                     '',
                                                     $tblSubjectGroup->isAdvancedCourse(),
-                                                    $tblSubjectGroup->isAdvancedCourse()
+                                                    $tblSubjectGroup->isAdvancedCourse(),
+                                                    $tblSubject
                                                 );
                                                 // bulkSave nicht möglich, da ansonsten noch keine Id vorhanden ist
                                                 $Manager->saveEntity($tblDivisionCourseSekII);
@@ -284,7 +286,7 @@ abstract class DataMigrate extends AbstractData
                                                     foreach ($tblPeriodList as $tblPeriod) {
                                                         foreach ($tblSubjectStudentList as $tblSubjectStudent) {
                                                             $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
-                                                                $tblSubjectStudent, $tblYear, $tblSubject, $groupItem->getHasGrading(), null,
+                                                                $tblSubjectStudent, $tblYear, null, $groupItem->getHasGrading(), null,
                                                                 $tblDivisionCourseSekII ?: null, $tblPeriod
                                                             ));
                                                         }

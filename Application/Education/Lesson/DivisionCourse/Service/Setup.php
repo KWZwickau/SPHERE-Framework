@@ -72,6 +72,7 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'Description', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'IsShownInPersonData', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'IsReporting', self::FIELD_TYPE_BOOLEAN);
 //        $this->createColumn($table, 'IsUcs', self::FIELD_TYPE_BOOLEAN);
@@ -154,7 +155,7 @@ class Setup extends AbstractSetup
 
         $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
-        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'HasGrading', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'serviceTblSubjectTable', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'serviceTblPeriod', self::FIELD_TYPE_BIGINT, true);

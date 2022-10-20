@@ -120,12 +120,11 @@ class Data extends DataTeacher
      * @param string $description
      * @param bool $isShownInPersonData
      * @param bool $isReporting
-     * @param bool $isUcs
      *
      * @return bool
      */
     public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, string $name, string $description,
-        bool $isShownInPersonData, bool $isReporting, bool $isUcs): bool
+        bool $isShownInPersonData, bool $isReporting): bool
     {
         $Manager = $this->getEntityManager();
         /** @var TblDivisionCourse $Entity */

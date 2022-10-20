@@ -214,6 +214,36 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @param TblType $tblSchoolType
+     * @param int $level
+     *
+     * @return bool
+     */
+    public function getIsCourseSystemBySchoolTypeAndLevel(TblType $tblSchoolType, int $level): bool
+    {
+        return ($tblSchoolType->getShortName() == 'Gy' && preg_match('!(11|12)!is', $level))
+            || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(12|13)!is', $level));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return bool
+     */
+    public function getIsCourseSystemByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear): bool
+    {
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($level = $tblStudentEducation->getLevel())
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+        ) {
+            return $this->getIsCourseSystemBySchoolTypeAndLevel($tblSchoolType, $level);
+        }
+
+        return false;
+    }
+
+    /**
      * @param $Filter
      * @param $Data
      * @param TblDivisionCourse|null $tblDivisionCourse
@@ -294,7 +324,7 @@ class Service extends ServiceTeacher
     public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, array $Data): bool
     {
         return (new Data($this->getBinding()))->updateDivisionCourse($tblDivisionCourse, $Data['Name'], $Data['Description'],
-            isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), isset($Data['IsUcs']));
+            isset($Data['IsShownInPersonData']), isset($Data['IsReporting']));
     }
 
     /**

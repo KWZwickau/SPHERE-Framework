@@ -43,7 +43,7 @@ class TblStudentSubject extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $serviceTblSubject;
+    protected ?int $serviceTblSubject = null;
 
     /**
      * @Column(type="boolean")
@@ -68,7 +68,7 @@ class TblStudentSubject extends Element
     /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
-     * @param TblSubject $tblSubject
+     * @param TblSubject|null $tblSubject
      * @param bool $hasGrading
      * @param TblSubjectTable|null $tblSubjectTable
      * @param TblDivisionCourse|null $tblDivisionCourse
@@ -76,7 +76,7 @@ class TblStudentSubject extends Element
      *
      * @return TblStudentSubject
      */
-    public static function withParameter(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, bool $hasGrading, ?TblSubjectTable $tblSubjectTable = null,
+    public static function withParameter(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject, bool $hasGrading, ?TblSubjectTable $tblSubjectTable = null,
         ?TblDivisionCourse $tblDivisionCourse = null, ?TblPeriod $tblPeriod = null): TblStudentSubject
     {
         $instance = new self();
@@ -131,15 +131,15 @@ class TblStudentSubject extends Element
      */
     public function getServiceTblSubject()
     {
-        return Subject::useService()->getSubjectById($this->serviceTblSubject);
+        return $this->serviceTblSubject ? Subject::useService()->getSubjectById($this->serviceTblSubject) : false;
     }
 
     /**
-     * @param TblSubject $tblSubject
+     * @param TblSubject|null $tblSubject
      */
-    public function setServiceTblSubject(TblSubject $tblSubject)
+    public function setServiceTblSubject(?TblSubject $tblSubject)
     {
-        $this->serviceTblSubject = $tblSubject->getId();
+        $this->serviceTblSubject = $tblSubject ? $tblSubject->getId() : null;
     }
 
     /**

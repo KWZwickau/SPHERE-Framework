@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -43,6 +45,11 @@ class TblDivisionCourse extends Element
     protected string $Description = '';
 
     /**
+     * @Column(type="bigint")
+     */
+    protected ?int $serviceTblSubject = null;
+
+    /**
      * @Column(type="boolean")
      */
     protected bool $IsShownInPersonData = false;
@@ -69,12 +76,13 @@ class TblDivisionCourse extends Element
      * @param string $description
      * @param bool $isShownInPersonData
      * @param bool $isReporting
+     * @param TblSubject|null $tblSubject
      * @param int|null $migrateGroupId
      *
      * @return TblDivisionCourse
      */
     public static function withParameter(TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description,
-        bool $isShownInPersonData = false, bool $isReporting = false, ?int $migrateGroupId = null): TblDivisionCourse
+        bool $isShownInPersonData = false, bool $isReporting = false, ?TblSubject $tblSubject = null, ?int $migrateGroupId = null): TblDivisionCourse
     {
         // php erlaubt leider keine mehrfach Konstruktoren :(
         $instance = new self();
@@ -85,8 +93,9 @@ class TblDivisionCourse extends Element
         $instance->Description = $description;
         $instance->IsShownInPersonData = $isShownInPersonData;
         $instance->IsReporting = $isReporting;
+        //        $instance->IsUcs = $isUcs;
+        $instance->setServiceTblSubject($tblSubject);
         $instance->MigrateGroupId = $migrateGroupId;
-//        $instance->IsUcs = $isUcs;
 
         return  $instance;
     }
@@ -175,6 +184,22 @@ class TblDivisionCourse extends Element
     public function setDescription(string $Description): void
     {
         $this->Description = $Description;
+    }
+
+    /**
+     * @return false|TblSubject
+     */
+    public function getServiceTblSubject()
+    {
+        return $this->serviceTblSubject ? Subject::useService()->getSubjectById($this->serviceTblSubject) : false;
+    }
+
+    /**
+     * @param TblSubject|null $tblSubject
+     */
+    public function setServiceTblSubject(?TblSubject $tblSubject)
+    {
+        $this->serviceTblSubject = $tblSubject ? $tblSubject->getId() : null;
     }
 
     /**

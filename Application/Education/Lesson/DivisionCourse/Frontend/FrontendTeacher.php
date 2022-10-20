@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -178,8 +179,8 @@ class FrontendTeacher extends FrontendSubjectTable
                             if (($tblSubjectItem = Subject::useService()->getSubjectById($subjectId))) {
                                 $layoutColumns[] = new LayoutColumn(
                                     new Panel(
-                                        $tblSubjectItem->getDisplayName() . new PullRight(new Link('', '/Education/Lesson/TeacherLectureship/Edit', new Pen(),
-                                            array('PersonId' => $tblPerson->getId(), 'SubjectId' => $subjectId, 'Filter' => $Filter))),
+                                        new PullClear($tblSubjectItem->getDisplayName() . new PullRight(new Link('', '/Education/Lesson/TeacherLectureship/Edit', new Pen(),
+                                            array('PersonId' => $tblPerson->getId(), 'SubjectId' => $subjectId, 'Filter' => $Filter)))),
                                         implode(', ', $divisionCourseList), Panel::PANEL_TYPE_INFO)
                                     , 3);
                             }
@@ -363,7 +364,14 @@ class FrontendTeacher extends FrontendSubjectTable
                     foreach ($tblDivisionCourseList as $tblDivisionCourse) {
                         if (($tblType = $tblDivisionCourse->getType())) {
                             if ($tblType->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE) {
-                                $typeId = -1;
+                                // nur SEKII-Kurse mit dem entsprechenden Fach anzeigen
+                                if (($tblSubjectByDivisionCourse = $tblDivisionCourse->getServiceTblSubject())
+                                    && $tblSubject->getId() == $tblSubjectByDivisionCourse->getId()
+                                ) {
+                                    $typeId = -1;
+                                } else {
+                                    continue;
+                                }
                             } else {
                                 $typeId = $tblType->getId();
                             }
