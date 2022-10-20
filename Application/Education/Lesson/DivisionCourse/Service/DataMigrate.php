@@ -230,7 +230,6 @@ abstract class DataMigrate extends AbstractData
                      */
                     $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
                     $isCourseSystem = Division::useService()->getIsDivisionCourseSystem($tblDivision);
-                    $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblDivision);
                     if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false))) {
                         $variableStudentTableList = array();
                         if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
@@ -282,14 +281,12 @@ abstract class DataMigrate extends AbstractData
                                             // SEKII-Kurse
                                             if ($isCourseSystem) {
                                                 // bei SekII-kursen SchülerFächer direkt mit neuem Kurs verknüpfen
-                                                if (($tblPeriodList)) {
-                                                    foreach ($tblPeriodList as $tblPeriod) {
-                                                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                                            $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
-                                                                $tblSubjectStudent, $tblYear, null, $groupItem->getHasGrading(), null,
-                                                                $tblDivisionCourseSekII ?: null, $tblPeriod
-                                                            ));
-                                                        }
+                                                for ($i = 1; $i <= 2; $i++) {
+                                                    foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                                        $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
+                                                            $tblSubjectStudent, $tblYear, null, $groupItem->getHasGrading(), null,
+                                                            $tblDivisionCourseSekII ?: null, $level . '/' . $i
+                                                        ));
                                                     }
                                                 }
                                             // normale Fächer, keine SEKII-Kurse

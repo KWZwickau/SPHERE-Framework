@@ -530,9 +530,6 @@ class Frontend extends FrontendTeacher
                         new LayoutRow(new LayoutColumn(
                             ApiDivisionCourseStudent::receiverBlock($this->loadStudentSubjectContent($DivisionCourseId), 'StudentSubjectContent')
                         ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Education() . ' Fächer der Schüler in der ' . $text
-                        . (new Link('Bearbeiten', ApiStudentSubject::getEndpoint(), new Pen()))
-                            ->ajaxPipelineOnClick(ApiStudentSubject::pipelineEditStudentSubjectContent($DivisionCourseId))
                     )),
 
                     new LayoutGroup(array(

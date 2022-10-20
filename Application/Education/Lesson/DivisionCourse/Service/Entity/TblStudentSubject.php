@@ -9,7 +9,6 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
@@ -63,7 +62,7 @@ class TblStudentSubject extends Element
     /**
      * @Column(type="bigint")
      */
-    protected ?int $serviceTblPeriod = null;
+    protected ?string $PeriodIdentifier = null;
 
     /**
      * @param TblPerson $tblPerson
@@ -72,12 +71,12 @@ class TblStudentSubject extends Element
      * @param bool $hasGrading
      * @param TblSubjectTable|null $tblSubjectTable
      * @param TblDivisionCourse|null $tblDivisionCourse
-     * @param TblPeriod|null $tblPeriod
+     * @param string|null $periodIdentifier
      *
      * @return TblStudentSubject
      */
     public static function withParameter(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject, bool $hasGrading, ?TblSubjectTable $tblSubjectTable = null,
-        ?TblDivisionCourse $tblDivisionCourse = null, ?TblPeriod $tblPeriod = null): TblStudentSubject
+        ?TblDivisionCourse $tblDivisionCourse = null, ?string $periodIdentifier = null): TblStudentSubject
     {
         $instance = new self();
 
@@ -87,7 +86,7 @@ class TblStudentSubject extends Element
         $instance->setHasGrading($hasGrading);
         $instance->setServiceTblSubjectTable($tblSubjectTable);
         $instance->setTblDivisionCourse($tblDivisionCourse);
-        $instance->setServiceTblPeriod($tblPeriod);
+        $instance->setPeriodIdentifier($periodIdentifier);
 
         return  $instance;
     }
@@ -191,18 +190,18 @@ class TblStudentSubject extends Element
     }
 
     /**
-     * @return false|TblPeriod
+     * @return string|null
      */
-    public function getServiceTblPeriod()
+    public function getPeriodIdentifier(): ?string
     {
-        return $this->serviceTblPeriod ? Term::useService()->getPeriodById($this->serviceTblPeriod) : false;
+        return $this->PeriodIdentifier;
     }
 
     /**
-     * @param TblPeriod|null $tblPeriod
+     * @param string|null $PeriodIdentifier
      */
-    public function setServiceTblPeriod(?TblPeriod $tblPeriod): void
+    public function setPeriodIdentifier(?string $PeriodIdentifier): void
     {
-        $this->serviceTblPeriod = $tblPeriod ? $tblPeriod->getId() : null;
+        $this->PeriodIdentifier = $PeriodIdentifier;
     }
 }
