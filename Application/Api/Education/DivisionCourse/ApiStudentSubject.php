@@ -31,9 +31,16 @@ class ApiStudentSubject extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('loadStudentSubjectContent');
+
+        // SekI
         $Dispatcher->registerMethod('editStudentSubjectContent');
         $Dispatcher->registerMethod('loadCheckSubjectsContent');
         $Dispatcher->registerMethod('saveStudentSubjectList');
+
+        // SekII
+        $Dispatcher->registerMethod('editStudentSubjectDivisionCourseContent');
+        $Dispatcher->registerMethod('loadCheckSubjectDivisionCoursesContent');
+        $Dispatcher->registerMethod('saveStudentSubjectDivisionCourseList');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -200,6 +207,120 @@ class ApiStudentSubject extends Extension implements IApiInterface
                 . self::pipelineLoadStudentSubjectContent($DivisionCourseId);
         } else {
             return new Danger('Die Schüler-Fächer konnten nicht gespeichert werden.');
+        }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Period
+     * @param null $SubjectDivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditStudentSubjectDivisionCourseContent($DivisionCourseId, $Period, $SubjectDivisionCourseId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentSubjectContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'editStudentSubjectDivisionCourseContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Period' => $Period,
+            'SubjectDivisionCourseId' => $SubjectDivisionCourseId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Period
+     * @param $SubjectDivisionCourseId
+     *
+     * @return string
+     */
+    public function editStudentSubjectDivisionCourseContent($DivisionCourseId, $Period, $SubjectDivisionCourseId): string
+    {
+        return DivisionCourse::useFrontend()->editStudentSubjectDivisionCourseContent($DivisionCourseId, $Period, $SubjectDivisionCourseId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Period
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadCheckSubjectDivisionCoursesContent($DivisionCourseId, $Period): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CheckSubjectDivisionCoursesContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadCheckSubjectDivisionCoursesContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Period' => $Period,
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Period
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadCheckSubjectDivisionCoursesContent($DivisionCourseId, $Period, $Data = null): string
+    {
+        return DivisionCourse::useFrontend()->loadCheckSubjectDivisionCoursesContent($DivisionCourseId, $Period, $Data);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Period
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveStudentSubjectDivisionCourseList($DivisionCourseId, $Period): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentSubjectContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveStudentSubjectDivisionCourseList',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Period' => $Period,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Period
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function saveStudentSubjectDivisionCourseList($DivisionCourseId, $Period, $Data = null): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->createStudentSubjectDivisionCourseList($tblDivisionCourse, $Period, $Data)) {
+            return new Success('Die Schüler-SekII-Kurse wurden erfolgreich gespeichert.')
+                . self::pipelineLoadStudentSubjectContent($DivisionCourseId);
+        } else {
+            return new Danger('Die Schüler-SekII-Kurse konnten nicht gespeichert werden.');
         }
     }
 }

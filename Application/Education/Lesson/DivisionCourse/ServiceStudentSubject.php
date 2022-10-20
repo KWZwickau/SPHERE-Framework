@@ -55,6 +55,43 @@ abstract class ServiceStudentSubject extends AbstractService
     }
 
     /**
+     * SekII
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblDivisionCourse $tblSubjectDivisionCourse
+     *
+     * @return false|TblStudentSubject[]
+     */
+    private function getStudentSubjectListByPersonAndYearAndDivisionCourse(TblPerson $tblPerson, TblYear $tblYear, TblDivisionCourse $tblSubjectDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getStudentSubjectListByPersonAndYearAndDivisionCourse($tblPerson, $tblYear, $tblSubjectDivisionCourse);
+    }
+
+    /**
+     * SekII
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblDivisionCourse $tblSubjectDivisionCourse
+     * @param $Period
+     * @return TblStudentSubject|void
+     */
+    public function getStudentSubjectByPersonAndYearAndDivisionCourseAndPeriod(TblPerson $tblPerson, TblYear $tblYear, TblDivisionCourse $tblSubjectDivisionCourse, $Period)
+    {
+        if (($tblStudentSubjectList = $this->getStudentSubjectListByPersonAndYearAndDivisionCourse($tblPerson, $tblYear, $tblSubjectDivisionCourse))) {
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                if (($list = explode('/', $tblStudentSubject->getPeriodIdentifier()))
+                    && isset($list[1])
+                    && $Period  == $list[1]
+                ) {
+                    return $tblStudentSubject;
+                }
+            }
+        }
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblSubject $tblSubject
      *
@@ -77,6 +114,34 @@ abstract class ServiceStudentSubject extends AbstractService
     }
 
     /**
+     * SekII
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourse $tblSubjectDivisionCourse
+     * @param $Period
+     *
+     * @return array|false
+     */
+    private function getStudentSubjectListByDivisionCourseAndSubjectDivisionCourseAndPeriod(TblDivisionCourse $tblDivisionCourse,
+        TblDivisionCourse $tblSubjectDivisionCourse, $Period)
+    {
+        $tblStudentSubjectList = array();
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblStudentList = DivisionCourse::useService()->getStudentListBy($tblDivisionCourse))
+        ) {
+            foreach ($tblStudentList as $tblPerson) {
+                if (($tblStudentSubject = $this->getStudentSubjectByPersonAndYearAndDivisionCourseAndPeriod($tblPerson, $tblYear, $tblSubjectDivisionCourse, $Period))) {
+                    $tblStudentSubjectList[$tblPerson->getId()] = $tblStudentSubject;
+                }
+            }
+        }
+
+        return empty($tblStudentSubjectList) ? false : $tblStudentSubjectList;
+    }
+
+    /**
+     * SekI
+     *
      * @param TblDivisionCourse $tblDivisionCourse
      * @param $Data
      *
@@ -123,6 +188,72 @@ abstract class ServiceStudentSubject extends AbstractService
                             }
 
                             $createList[] = TblStudentSubject::withParameter($tblPerson, $tblYear, $tblSubject, $hasGrading, $tblSubjectTable ?: null);
+                        }
+                    }
+                }
+            }
+
+            if (!empty($createList)) {
+                (new Data($this->getBinding()))->createStudentSubjectBulkList($createList);
+            }
+            if (!empty($updateList)) {
+                (new Data($this->getBinding()))->updateStudentSubjectBulkList($updateList);
+            }
+            if (!empty($destroyList)) {
+                (new Data($this->getBinding()))->destroyStudentSubjectBulkList($destroyList);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * SekII
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $Period
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function createStudentSubjectDivisionCourseList(TblDivisionCourse $tblDivisionCourse, $Period, $Data): bool
+    {
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblSubjectDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Data['SubjectDivisionCourse']))
+        ) {
+            $hasGrading = true;
+
+            $createList = array();
+            $updateList = array();
+            $destroyList = array();
+
+            if (($tblStudentSubjectList = $this->getStudentSubjectListByDivisionCourseAndSubjectDivisionCourseAndPeriod($tblDivisionCourse, $tblSubjectDivisionCourse, $Period))) {
+                foreach ($tblStudentSubjectList as $personId => $tblStudentSubject) {
+                    // löschen
+                    if (!isset($Data['StudentList'][$personId])) {
+                        $destroyList[] = $tblStudentSubject;
+                        // update
+                    } elseif ($tblStudentSubject->getHasGrading() != $hasGrading) {
+                        $tblStudentSubject->setHasGrading($hasGrading);
+                        $updateList[] = $tblStudentSubject;
+                    }
+                }
+            }
+
+            // neu
+            if (isset($Data['StudentList'])) {
+                foreach ($Data['StudentList'] as $personId => $value) {
+                    if (($tblPerson = Person::useService()->getPersonById($personId))
+                        && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                        && ($level = $tblStudentEducation->getLevel())
+                    ) {
+                        if (($tblStudentSubjectList && !isset($tblStudentSubjectList[$personId]))
+                            || !$tblStudentSubjectList
+                        ) {
+                            $createList[] = TblStudentSubject::withParameter($tblPerson, $tblYear, null, $hasGrading, null, $tblSubjectDivisionCourse,
+                                $level . '/' . $Period);
                         }
                     }
                 }

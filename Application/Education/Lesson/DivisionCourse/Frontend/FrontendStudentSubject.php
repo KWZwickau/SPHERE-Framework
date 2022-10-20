@@ -102,7 +102,7 @@ class FrontendStudentSubject extends FrontendStudent
                 for ($i = 1; $i <= 2; $i++) {
                     $content .= new Title(new Education() . ' SekII-Kurse der Schüler im ' . new Bold($i . '. HJ') . ' in der ' . $text
                         . (new Link('Bearbeiten', ApiStudentSubject::getEndpoint(), new Pen()))
-                            ->ajaxPipelineOnClick(ApiStudentSubject::pipelineEditStudentSubjectContent($DivisionCourseId))
+                            ->ajaxPipelineOnClick(ApiStudentSubject::pipelineEditStudentSubjectDivisionCourseContent($DivisionCourseId, $i))
                     );
                     $content .= $this->getTableCustom($headerColumnList[$i], $contentList[$i]);
                 }
@@ -193,6 +193,11 @@ class FrontendStudentSubject extends FrontendStudent
                 $hasGrading = true;
                 if (($tblStudentList)) {
                     foreach ($tblStudentList as $tblPerson) {
+                        // SekII überspringen
+                        if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+                            continue;
+                        }
+
                         $isPost = false;
                         // festes individuelles Fach am Schüler gespeichert
                         if (($tblStudentSubject = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
@@ -245,6 +250,11 @@ class FrontendStudentSubject extends FrontendStudent
 
             if (($tblStudentList)) {
                 foreach ($tblStudentList as $tblPerson) {
+                    // SekII überspringen
+                    if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+                        continue;
+                    }
+
                     $name = 'Data[StudentList][' . $tblPerson->getId() . ']';
                     $text = $tblPerson->getLastFirstName()
                         . (isset($subjectTableFixedList[$tblPerson->getId()]) ? ' (Stundentafel)' : '')
@@ -574,16 +584,18 @@ class FrontendStudentSubject extends FrontendStudent
                         && isset($list[1])
                         && ($period = $list[1])
                     ) {
-                        $item[$period][$tblDivisionCourseSekII->getId()] = new Check();
+                        $item[$period][$tblDivisionCourseSekII->getId()] = ($tblSubject = $tblDivisionCourseSekII->getServiceTblSubject()) ? $tblSubject->getAcronym() : new Check();
                         $identifier = $tblDivisionCourseSekII->getTypeIdentifier();
                         if (!isset($divisionCourseSekIIList[$period][$identifier][$tblDivisionCourseSekII->getId()])) {
-                            $divisionCourseSekIIList[$period][$identifier][$tblDivisionCourseSekII->getId()] =  // $tblDivisionCourseSekII->getName();
-                                // todo link
-                                new PullClear($tblDivisionCourseSekII->getName()
-
-                                . (new PullRight((new Link('', ApiStudentSubject::getEndpoint(), new Pen))
-                                    ->ajaxPipelineOnClick(ApiStudentSubject::pipelineEditStudentSubjectContent($DivisionCourseId, $tblDivisionCourseSekII->getId()))
-                                )));
+                            $divisionCourseSekIIList[$period][$identifier][$tblDivisionCourseSekII->getId()] =
+                                new PullClear(
+                                    $tblDivisionCourseSekII->getName()
+                                    . (new PullRight((new Link('', ApiStudentSubject::getEndpoint(), new Pen))
+                                        ->ajaxPipelineOnClick(ApiStudentSubject::pipelineEditStudentSubjectDivisionCourseContent(
+                                            $DivisionCourseId, $period, $tblDivisionCourseSekII->getId()
+                                        ))
+                                    ))
+                                );
                         }
                     }
                 }
@@ -593,4 +605,133 @@ class FrontendStudentSubject extends FrontendStudent
 
         return $item;
     }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Period
+     * @param $SubjectDivisionCourseId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function editStudentSubjectDivisionCourseContent($DivisionCourseId, $Period, $SubjectDivisionCourseId, $Data = null): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            if ($SubjectDivisionCourseId) {
+                $global = $this->getGlobal();
+                $global->POST['Data']['SubjectDivisionCourse'] = $SubjectDivisionCourseId;
+                $Data['SubjectDivisionCourse'] = $SubjectDivisionCourseId;
+                $global->savePost();
+            }
+
+            $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
+            $divisionCourseSelectList = array();
+            if (($tblDivisionCourseAdvancedList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_ADVANCED_COURSE))) {
+                $divisionCourseSelectList = $tblDivisionCourseAdvancedList;
+            }
+            if (($tblDivisionCourseBasicList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_BASIC_COURSE))) {
+                $divisionCourseSelectList = array_merge($divisionCourseSelectList, $tblDivisionCourseBasicList);
+            }
+
+            return
+                new Title(new Education() . ' Fächer der Schüler in der ' . $text
+                    . (new Link('Anzeigen', ApiStudentSubject::getEndpoint(), new EyeOpen()))
+                        ->ajaxPipelineOnClick(ApiStudentSubject::pipelineLoadStudentSubjectContent($DivisionCourseId))
+                )
+                . new Well((new Form(array(
+                    new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(new Panel(
+                                'SekII-Kurs',
+                                (new SelectBox('Data[SubjectDivisionCourse]', '', array('{{ Name }}' => $divisionCourseSelectList)))
+                                    ->setRequired()
+                                    ->ajaxPipelineOnChange(ApiStudentSubject::pipelineLoadCheckSubjectDivisionCoursesContent($DivisionCourseId, $Period)),
+                                Panel::PANEL_TYPE_INFO
+                            ), 6),
+                            new FormColumn(new Panel(
+                                'Halbjahr',
+                                $Period . '. Halbjahr',
+                                Panel::PANEL_TYPE_INFO
+                            ), 6)
+                        )),
+                        new FormRow(new FormColumn(
+                            ApiStudentSubject::receiverBlock($SubjectDivisionCourseId
+                                ? $this->loadCheckSubjectDivisionCoursesContent($DivisionCourseId, $Period, $Data)
+                                : new Warning('Bitte wählen Sie zunächst ein Fach aus.'), 'CheckSubjectDivisionCoursesContent')
+                        ))
+                    )),
+                )))->disableSubmitAction());
+        }
+
+        return new Danger('Kurs oder Schuljahr nicht gefunden', new Exclamation());
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Period
+     * @param $Data
+     *
+     * @return string
+     */
+    public function loadCheckSubjectDivisionCoursesContent($DivisionCourseId, $Period, $Data): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            $dataList = array();
+            $toggleList = array();
+            $tblStudentList = DivisionCourse::useService()->getStudentListBy($tblDivisionCourse);
+
+            if (isset($Data['SubjectDivisionCourse']) && ($tblSubjectDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Data['SubjectDivisionCourse']))) {
+                $global = $this->getGlobal();
+                $global->POST['Data']['StudentList'] = null;
+                if (($tblStudentList)) {
+                    foreach ($tblStudentList as $tblPerson) {
+                        // SekI überspringen
+                        if (!DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+                            continue;
+                        }
+
+                        if (DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndDivisionCourseAndPeriod($tblPerson, $tblYear, $tblSubjectDivisionCourse, $Period)) {
+                            $global->POST['Data']['StudentList'][$tblPerson->getId()] = 1;
+                        }
+                    }
+                }
+                $global->savePost();
+            } else {
+                return new Warning('Bitte wählen Sie zunächst einen SekII-Kurs aus.');
+            }
+
+            if ($tblStudentList) {
+                foreach ($tblStudentList as $tblPerson) {
+                    // SekI überspringen
+                    if (!DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+                        continue;
+                    }
+
+                    $name = 'Data[StudentList][' . $tblPerson->getId() . ']';
+                    $toggleList[$tblPerson->getId()] = $name;
+                    $dataList[$tblPerson->getId()] = new CheckBox($name, $tblPerson->getLastFirstName(), 1);
+                }
+            }
+
+            if ($dataList) {
+                $panel = new Panel('Schüler', $dataList, Panel::PANEL_TYPE_INFO);
+                return new ToggleSelective( 'Alle wählen/abwählen', $toggleList)
+                    . new Container('&nbsp;')
+                    . $panel
+                    . (new Primary('Speichern', ApiStudentSubject::getEndpoint(), new Save()))
+                        ->ajaxPipelineOnClick(ApiStudentSubject::pipelineSaveStudentSubjectDivisionCourseList($DivisionCourseId, $Period))
+                    . (new Primary('Abbrechen', ApiStudentSubject::getEndpoint(), new Disable()))
+                        ->ajaxPipelineOnClick(ApiStudentSubject::pipelineLoadStudentSubjectContent($tblDivisionCourse->getId()));
+            } else {
+                return new Warning('Keine Schüler gefunden', new Exclamation());
+            }
+        }
+
+        return new Danger('Kurs oder Schuljahr nicht gefunden', new Exclamation());
+    }
+
 }
