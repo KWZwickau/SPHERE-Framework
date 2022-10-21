@@ -23,13 +23,17 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -37,6 +41,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
+use SPHERE\Common\Frontend\Text\Repository\Primary as PrimaryText;
 use SPHERE\Common\Frontend\Text\Repository\TextBackground;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -44,6 +49,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -71,7 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendUnivAPI($Upload = '')
+    public function frontendUnivAPI($Upload = '', $YearId = '')
     {
         set_time_limit(900);
         $Stage = new Stage('UCS', 'Schnittstelle API');
@@ -114,18 +120,41 @@ class Frontend extends Extension implements IFrontendInterface
                 $IsActiveAPI = true;
             }
         }
+
+        $YearString = 'Aktuelles SJ';
+        if($YearId == ''){
+            $YearString = new PrimaryText(new Bold($YearString));
+        }
+        $Stage->addButton(new Standard($YearString, '/Setting/Univention/Api', new Plus(), array('YearId' => '')));
+        if($nextYearList = Term::useService()->getYearAllFutureYears(1)){
+            foreach($nextYearList as $nextYear){
+                $YearString = $nextYear->getDisplayName();
+                if($YearId == $nextYear->getId()){
+                    $YearString = new PrimaryText(new Bold($YearString));
+                }
+                $Stage->addButton(new Standard($YearString, '/Setting/Univention/Api', new Plus(), array('YearId' => $nextYear->getId())));
+            }
+        }
+
         if($IsActiveAPI){
+            $ButtonCreate = new Primary('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create', 'YearId' => $YearId));
+            $ButtonUpdate = new Primary('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update', 'YearId' => $YearId));
+            $ButtonDelete = new Danger('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete', 'YearId' => $YearId));
+
 //            $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
-            $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
-            $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
-            $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete')));
-            $Stage->addButton(new Standard('Arbeitsgruppen abgleichen', '/Setting/Univention/Api/WorkGroup', new Share()));
+//            $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
+//            $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
+//            $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete')));
+//            $Stage->addButton(new Standard('Arbeitsgruppen abgleichen', '/Setting/Univention/Api/WorkGroup', new Share()));
         } else {
-//            $Stage->addButton((new Standard('Benutzer komplett abgleichen', '', new Upload()))->setDisabled());
-            $Stage->addButton((new Standard('Benutzer anlegen', '', new Plus()))->setDisabled());
-            $Stage->addButton((new Standard('Benutzer anpassen', '', new Edit()))->setDisabled());
-            $Stage->addButton((new Standard('Benutzer löschen', '', new Remove()))->setDisabled());
-            $Stage->addButton((new Standard('Arbeitsgruppen abgleichen', '', new Share()))->setDisabled());
+            $ButtonCreate = (new Standard('Benutzer anlegen', '', new Plus()))->setDisabled();
+            $ButtonUpdate = (new Standard('Benutzer anpassen', '', new Edit()))->setDisabled();
+            $ButtonDelete = (new Standard('Benutzer löschen', '', new Remove()))->setDisabled();
+
+//            $Stage->addButton((new Standard('Benutzer anlegen', '', new Plus()))->setDisabled());
+//            $Stage->addButton((new Standard('Benutzer anpassen', '', new Edit()))->setDisabled());
+//            $Stage->addButton((new Standard('Benutzer löschen', '', new Remove()))->setDisabled());
+//            $Stage->addButton((new Standard('Arbeitsgruppen abgleichen', '', new Share()))->setDisabled());
         }
 
         $UserUniventionList = Univention::useService()->getApiUser();
@@ -134,7 +163,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Vorraussetzung, es muss ein aktives Schuljahr geben.
         $tblYearList = Term::useService()->getYearByNow();
         if($tblYearList){
-            $UserSchulsoftwareList = Univention::useService()->getSchulsoftwareUser($roleList, $schoolList);
+            $UserSchulsoftwareList = Univention::useService()->getSchulsoftwareUser($roleList, $schoolList, $YearId);
         }
 
         // Zählung
@@ -489,11 +518,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Upload erst nach ausführlicher Bestätigung
         if($Upload == 'Create'){
-            return $this->frontendApiAction($createList, $Upload);
+            return $this->frontendApiAction($createList, $Upload, $YearId);
         } elseif($Upload == 'Update'){
-            return $this->frontendApiAction($updateList, $Upload);
+            return $this->frontendApiAction($updateList, $Upload, $YearId);
         } elseif($Upload == 'Delete'){
-            return $this->frontendApiAction($deleteList, $Upload);
+            return $this->frontendApiAction($deleteList, $Upload, $YearId);
         }
 
         // Frontend Anzeige
@@ -627,17 +656,17 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new LayoutRow(array(
                 new LayoutColumn(
-                    new Well(new Title(new SuccessText(new Plus().' Anlegen'))
+                    new Well(new Title(new PullClear(new SuccessText(new Plus().' Anlegen').new PullRight($ButtonCreate)))
                         .$AccordionCreate)
                 , 6),
                 new LayoutColumn(
-                    new Well(new Title(new DangerText(new Remove().' Löschen'))
+                    new Well(new Title(new PullClear(new DangerText(new Remove().' Löschen').new PullRight($ButtonDelete)))
                         .$AccordionDelete)
                 , 6)
             )),
             new LayoutRow(
                 new LayoutColumn(
-                    new Well(new Title(new InfoText(new Edit().' Anpassen'))
+                    new Well(new Title(new PullClear(new InfoText(new Edit().' Anpassen').new PullRight($ButtonUpdate)))
                         .$AccordionUpdate)
                 )
             ),
@@ -657,11 +686,11 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendApiAction($UserList, $ApiType = '')
+    public function frontendApiAction($UserList, $ApiType = '', $YearId = '')
     {
 
         $Stage = new Stage('API', 'Transfermeldung');
-        $Stage->addButton(new Standard('Zurück', '/Setting/Univention/Api', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Setting/Univention/Api', new ChevronLeft(), array('YearId' => $YearId)));
 
         $CountMax = count($UserList);
         $TypeFrontend = '';
