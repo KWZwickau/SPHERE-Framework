@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Group as GroupIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
@@ -121,18 +122,18 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $YearString = 'Aktuelles SJ';
+        $YearString = '&nbsp;Aktuelles SJ';
         if($YearId == ''){
             $YearString = new PrimaryText(new Bold($YearString));
         }
-        $Stage->addButton(new Standard($YearString, '/Setting/Univention/Api', new Plus(), array('YearId' => '')));
+        $Stage->addButton(new Standard($YearString, '/Setting/Univention/Api', new GroupIcon(), array('YearId' => '')));
         if($nextYearList = Term::useService()->getYearAllFutureYears(1)){
             foreach($nextYearList as $nextYear){
-                $YearString = $nextYear->getDisplayName();
+                $YearString = '&nbsp;'.$nextYear->getDisplayName();
                 if($YearId == $nextYear->getId()){
                     $YearString = new PrimaryText(new Bold($YearString));
                 }
-                $Stage->addButton(new Standard($YearString, '/Setting/Univention/Api', new Plus(), array('YearId' => $nextYear->getId())));
+                $Stage->addButton(new Standard($YearString, '/Setting/Univention/Api', new GroupIcon(), array('YearId' => $nextYear->getId())));
             }
         }
 
