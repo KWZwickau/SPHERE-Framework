@@ -85,11 +85,11 @@ class Setup extends AbstractSetup
         $tblStudentSubjectRanking = $this->setTableStudentSubjectRanking($Schema);
         $this->setTableStudentSubject($Schema, $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking);
 
-        $tblStudentDisorderType = $this->setTableStudentDisorderType($Schema);
-        $this->setTableStudentDisorder($Schema, $tblStudent, $tblStudentDisorderType);
+//        $tblStudentDisorderType = $this->setTableStudentDisorderType($Schema);
+//        $this->setTableStudentDisorder($Schema, $tblStudent, $tblStudentDisorderType);
 
-        $tblStudentFocusType = $this->setTableStudentFocusType($Schema);
-        $this->setTableStudentFocus($Schema, $tblStudent, $tblStudentFocusType);
+//        $tblStudentFocusType = $this->setTableStudentFocusType($Schema);
+//        $this->setTableStudentFocus($Schema, $tblStudent, $tblStudentFocusType);
 
         $tblSupportType = $this->setTableSupportType($Schema);
         $tblSupport = $this->setTableSupport($Schema, $tblSupportType);

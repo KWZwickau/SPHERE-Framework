@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\System\Database\Fitting\Element;
 
-/**
+/** @deprecated
  * @Entity
  * @Table(name="tblStudentFocusType")
  * @Cache(usage="READ_ONLY")

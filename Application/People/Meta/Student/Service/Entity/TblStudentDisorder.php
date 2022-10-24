@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Fitting\Element;
 
-/**
+/** @deprecated
  * @Entity
  * @Table(name="tblStudentDisorder")
  * @Cache(usage="READ_ONLY")

@@ -305,37 +305,41 @@ class Data extends Support
         $this->createStudentSubjectRanking('8', '8.');
         $this->createStudentSubjectRanking('9', '9.');
 
-        // old Table
-        $this->createStudentFocusType('Sprache');
-        $this->createStudentFocusType('Körperlich-motorische Entwicklung');
-        $this->createStudentFocusType('Sozial-emotionale Entwicklung');
-        $this->createStudentFocusType('Hören');
-        $this->createStudentFocusType('Sehen');
-        $this->createStudentFocusType('Geistige Entwicklung');
-        $this->createStudentFocusType('Lernen');
+//        // old Table (deprecated)
+//        $this->createStudentFocusType('Sprache');
+//        $this->createStudentFocusType('Körperlich-motorische Entwicklung');
+//        $this->createStudentFocusType('Sozial-emotionale Entwicklung');
+//        $this->createStudentFocusType('Hören');
+//        $this->createStudentFocusType('Sehen');
+//        $this->createStudentFocusType('Geistige Entwicklung');
+//        $this->createStudentFocusType('Lernen');
 
         // new Table
         $this->createSupportFocusType('Sprache');
         $this->createSupportFocusType('Körperlich-motorische Entwicklung');
-        $this->createSupportFocusType('Sozial-emotionale Entwicklung');
+        if(($tblSupportFocusType = $this->getSupportFocusTypeByName('Sozial-emotionale Entwicklung'))){
+            $this->updateSupportFocusType($tblSupportFocusType, 'Emotionale-soziale Entwicklung', '');
+        } else {
+            $this->createSupportFocusType('Emotionale-soziale Entwicklung');
+        }
         $this->createSupportFocusType('Hören');
         $this->createSupportFocusType('Sehen');
         $this->createSupportFocusType('Geistige Entwicklung');
         $this->createSupportFocusType('Lernen');
         $this->createSupportFocusType('Unterricht kranker Schüler');
 
-        // old Table
-        $this->createStudentDisorderType('LRS');
-        $this->createStudentDisorderType('Gehörschwierigkeiten');
-        $this->createStudentDisorderType('Augenleiden');
-        $this->createStudentDisorderType('Sprachfehler');
-        $this->createStudentDisorderType('Dyskalkulie');
-        $this->createStudentDisorderType('Autismus');
-        $this->createStudentDisorderType('ADS / ADHS');
-        $this->createStudentDisorderType('Rechenschwäche');
-        $this->createStudentDisorderType('Hochbegabung');
-        $this->createStudentDisorderType('Konzentrationsstörung');
-        $this->createStudentDisorderType('Körperliche Beeinträchtigung');
+//        // old Table (deprecated)
+//        $this->createStudentDisorderType('LRS');
+//        $this->createStudentDisorderType('Gehörschwierigkeiten');
+//        $this->createStudentDisorderType('Augenleiden');
+//        $this->createStudentDisorderType('Sprachfehler');
+//        $this->createStudentDisorderType('Dyskalkulie');
+//        $this->createStudentDisorderType('Autismus');
+//        $this->createStudentDisorderType('ADS / ADHS');
+//        $this->createStudentDisorderType('Rechenschwäche');
+//        $this->createStudentDisorderType('Hochbegabung');
+//        $this->createStudentDisorderType('Konzentrationsstörung');
+//        $this->createStudentDisorderType('Körperliche Beeinträchtigung');
 
         // new Table Disorder with new Translation
         $this->createSpecialDisorderType('ADS / ADHS');

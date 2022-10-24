@@ -120,7 +120,7 @@ class Service extends Extension
                                             }
                                             $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
                                         }
-                                        if ($tblSupportFocusType->getName() == 'Sozial-emotionale Entwicklung') {
+                                        if ($tblSupportFocusType->getName() == 'Emotionale-soziale Entwicklung') {
                                             if (isset($DataEducation[$DivisionTypeName][$tblLevel->getName()])) {
                                                 $DataEducation[$DivisionTypeName][$tblLevel->getName()] += 1;
                                             } else {
@@ -416,7 +416,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderVertical(2)
                 ->setBorderRight(2);
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für Blinde und Sehbehinderte");
+            $export->setValue($export->getCell(0, $Row), "FSP Sehen");
             // Blind Insert
             $SumBlind = 0;
             if (isset($DataBlind[$Type]) && !empty($DataBlind[$Type])) {
@@ -445,7 +445,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für Hörgeschädigte");
+            $export->setValue($export->getCell(0, $Row), "FSP Hören");
             // Hear Insert
             $SumHear = 0;
             if (isset($DataHear[$Type]) && !empty($DataHear[$Type])) {
@@ -474,7 +474,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für geistig Behinderte");
+            $export->setValue($export->getCell(0, $Row), "FSP geistige Entwicklung");
             // Mental Insert
             $SumMental = 0;
             if (isset($DataMental[$Type]) && !empty($DataMental[$Type])) {
@@ -503,7 +503,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für Körperbehinderte");
+            $export->setValue($export->getCell(0, $Row), "FSP körp. und mot. Entwicklung.");
             // Physical Insert
             $SumPhysical = 0;
             if (isset($DataPhysical[$Type]) && !empty($DataPhysical[$Type])) {
@@ -532,7 +532,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Sprachheilschule");
+            $export->setValue($export->getCell(0, $Row), "FSP Sprache");
             // Language Insert
             $SumLanguage = 0;
             if (isset($DataLanguage[$Type]) && !empty($DataLanguage[$Type])) {
@@ -561,7 +561,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für Lernförderung");
+            $export->setValue($export->getCell(0, $Row), "FSP Lernen");
             // Lern Insert
             $SumLern = 0;
             if (isset($DataLearn[$Type]) && !empty($DataLearn[$Type])) {
@@ -590,7 +590,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für Erziehungshilfe");
+            $export->setValue($export->getCell(0, $Row), "FSP emot. und soz. Entwicklung");
             // Education Insert
             $SumEducation = 0;
             if (isset($DataEducation[$Type]) && !empty($DataEducation[$Type])) {

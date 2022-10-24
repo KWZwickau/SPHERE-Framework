@@ -246,6 +246,29 @@ abstract class Support extends Integration
     }
 
     /**
+     * @param TblSupportFocusType $tblSupportFocusType
+     * @param string              $Name
+     * @param string              $Description
+     *
+     * @return TblSupportFocusType|null
+     */
+    public function updateSupportFocusType(TblSupportFocusType $tblSupportFocusType, string $Name, string $Description = ''): ?TblSupportFocusType
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblSupportFocusType $Entity */
+        $Entity = $Manager->getEntityById('TblSupportFocusType', $tblSupportFocusType->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
      * @param TblSupport     $tblSupport
      * @param TblSupportType $tblSupportType
      * @param \DateTime      $Date
