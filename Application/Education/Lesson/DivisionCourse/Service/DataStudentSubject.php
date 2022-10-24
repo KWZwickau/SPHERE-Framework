@@ -92,6 +92,34 @@ abstract class DataStudentSubject extends DataMigrate
     }
 
     /**
+     * @param TblDivisionCourse $tblSubjectDivisionCourse
+     * @param $Period
+     *
+     * @return false|TblStudentSubject[]
+     */
+    public function getStudentSubjectListBySubjectDivisionCourseAndPeriod(TblDivisionCourse $tblSubjectDivisionCourse, $Period)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblStudentSubject', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.tblLessonDivisionCourse', '?1'),
+                    $queryBuilder->expr()->like('t.PeriodIdentifier', '?2')
+                )
+            )
+            ->setParameter(1, $tblSubjectDivisionCourse->getId())
+            ->setParameter(2, '%/' . $Period)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param array $tblStudentSubjectList
      *
      * @return bool

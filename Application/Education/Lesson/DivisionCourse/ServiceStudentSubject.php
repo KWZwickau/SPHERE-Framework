@@ -150,6 +150,21 @@ abstract class ServiceStudentSubject extends AbstractService
     }
 
     /**
+     * @param TblDivisionCourse $tblSubjectDivisionCourse
+     * @param int $Period
+     *
+     * @return int
+     */
+    public function getCountStudentsBySubjectDivisionCourseAndPeriod(TblDivisionCourse $tblSubjectDivisionCourse, int $Period): int
+    {
+        if (($tblStudentSubjectList = (new Data($this->getBinding()))->getStudentSubjectListBySubjectDivisionCourseAndPeriod($tblSubjectDivisionCourse, $Period))) {
+            return count ($tblStudentSubjectList);
+        }
+
+        return 0;
+    }
+
+    /**
      * SekI
      *
      * @param TblDivisionCourse $tblDivisionCourse

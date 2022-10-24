@@ -790,6 +790,7 @@ class FrontendStudent extends FrontendMember
      */
     public function loadDivisionCourseStudentContent($DivisionCourseId): string
     {
+        $isCourseSystem = false;
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
@@ -798,86 +799,132 @@ class FrontendStudent extends FrontendMember
             $hasSubDivisionCourse = count($tblDivisionCourseList) > 1;
 
             $studentList = array();
+            $courseList = array();
             foreach ($tblDivisionCourseList as $tblDivisionCourseItem) {
-                if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourseItem,
-                    TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
-                ) {
+                // SekII-Kurs
+                if ($tblDivisionCourseItem->getType()->getIsCourseSystem()) {
+                    $isCourseSystem = true;
                     $count = 0;
-                    foreach ($tblStudentMemberList as $tblStudentMember) {
-                        if (($tblPerson = $tblStudentMember->getServiceTblPerson())) {
-                            $isInActive = $tblStudentMember->isInActive();
-                            $fullName = $tblPerson->getLastFirstName();
-
-//                            $address = ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt');
-
-                            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
-                                $company = ($tblCompany = $tblStudentEducation->getServiceTblCompany())
-                                    ? $tblCompany->getDisplayName() : new WarningText('Keine Schule hinterlegt');
-                                $level = $tblStudentEducation->getLevel() ?: new WarningText('Keine Klassenstufe hinterlegt');
-                                $schoolType = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
-                                    ? $tblSchoolType->getName() : new WarningText('Keine Schulart hinterlegt');
-
-                                $warningCourse = '';
-                                if ($tblSchoolType && $tblSchoolType->getShortName() == 'OS' && intval($level) > 6
+                    if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListBySubjectDivisionCourse($tblDivisionCourseItem))) {
+                        foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                            $item = array();
+                            if (($tblDivisionCourseSekII = $tblStudentSubject->getTblDivisionCourse())) {
+                                if (($list = explode('/', $tblStudentSubject->getPeriodIdentifier()))
+                                    && isset($list[1])
+                                    && ($period = $list[1])
+                                    && ($tblPerson = $tblStudentSubject->getServiceTblPerson())
                                 ) {
-                                    $warningCourse = new WarningText('Keine Bildungsgang hinterlegt');
+                                    if (!isset($courseList[$tblPerson->getId()])) {
+                                        $item['Number'] = ++$count;
+                                        $item['FullName'] = $tblPerson->getLastFirstName();
+                                        $courseList[$tblPerson->getId()] = $item;
+                                    }
+                                    $courseList[$tblPerson->getId()]['Period' . $period] = $tblDivisionCourseSekII->getServiceTblSubject() ? $tblDivisionCourseSekII->getServiceTblSubject()->getAcronym() : '';
                                 }
-                                $course = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : $warningCourse;
-                            } else {
-                                $company = new WarningText('Keine Schule hinterlegt');
-                                $level = new WarningText('Keine Klassenstufe hinterlegt');
-                                $schoolType = new WarningText('Keine Schulart hinterlegt');
-                                $course = '';
                             }
+                        }
+                    }
+                } else {
+                    if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourseItem,
+                        TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
+                    ) {
+                        $count = 0;
+                        foreach ($tblStudentMemberList as $tblStudentMember) {
+                            if (($tblPerson = $tblStudentMember->getServiceTblPerson())) {
+                                $isInActive = $tblStudentMember->isInActive();
+                                $fullName = $tblPerson->getLastFirstName();
 
-                            $birthday = '';
-                            $gender = '';
-                            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
-                                if ($tblCommon->getTblCommonBirthDates()) {
-                                    $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
-                                    if ($tblGender = $tblCommon->getTblCommonBirthDates()->getTblCommonGender()) {
-                                        $gender = $tblGender->getShortName();
+//                              $address = ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt');
+
+                                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                                    $company = ($tblCompany = $tblStudentEducation->getServiceTblCompany())
+                                        ? $tblCompany->getDisplayName() : new WarningText('Keine Schule hinterlegt');
+                                    $level = $tblStudentEducation->getLevel() ?: new WarningText('Keine Klassenstufe hinterlegt');
+                                    $schoolType = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                                        ? $tblSchoolType->getName() : new WarningText('Keine Schulart hinterlegt');
+
+                                    $warningCourse = '';
+                                    if ($tblSchoolType && $tblSchoolType->getShortName() == 'OS' && intval($level) > 6
+                                    ) {
+                                        $warningCourse = new WarningText('Keine Bildungsgang hinterlegt');
+                                    }
+                                    $course = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : $warningCourse;
+                                } else {
+                                    $company = new WarningText('Keine Schule hinterlegt');
+                                    $level = new WarningText('Keine Klassenstufe hinterlegt');
+                                    $schoolType = new WarningText('Keine Schulart hinterlegt');
+                                    $course = '';
+                                }
+
+                                $birthday = '';
+                                $gender = '';
+                                if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                                    if ($tblCommon->getTblCommonBirthDates()) {
+                                        $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+                                        if ($tblGender = $tblCommon->getTblCommonBirthDates()->getTblCommonGender()) {
+                                            $gender = $tblGender->getShortName();
+                                        }
                                     }
                                 }
-                            }
 
-                            $item['Number'] = $isInActive ? '' : ++$count;
-                            $item['FullName'] = $isInActive ? new ToolTip(new Strikethrough($fullName), 'Deaktivierung: ' . $tblStudentMember->getLeaveDate()) : $fullName;
-                            if ($hasSubDivisionCourse) {
-                                $item['DivisionCourse'] = $isInActive ? new Strikethrough($tblDivisionCourseItem->getName()) : $tblDivisionCourseItem->getName();;
-                            }
-                            $item['Gender'] = $isInActive ? new Strikethrough($gender) : $gender;
-                            $item['Birthday'] = $isInActive ? new Strikethrough($birthday) : $birthday;
+                                $item['Number'] = $isInActive ? '' : ++$count;
+                                $item['FullName'] = $isInActive ? new ToolTip(new Strikethrough($fullName),
+                                    'Deaktivierung: ' . $tblStudentMember->getLeaveDate()) : $fullName;
+                                if ($hasSubDivisionCourse) {
+                                    $item['DivisionCourse'] = $isInActive ? new Strikethrough($tblDivisionCourseItem->getName()) : $tblDivisionCourseItem->getName();;
+                                }
+                                $item['Gender'] = $isInActive ? new Strikethrough($gender) : $gender;
+                                $item['Birthday'] = $isInActive ? new Strikethrough($birthday) : $birthday;
 //                            $item['Address'] = $isInActive ? new Strikethrough($address) : $address;
-                            $item['SchoolType'] = $isInActive ? new Strikethrough($schoolType) : $schoolType;
-                            $item['Company'] = $isInActive ? new Strikethrough($company) : $company;
-                            $item['Level'] = $isInActive ? new Strikethrough($level) : $level;
-                            $item['Course'] = $isInActive ? new Strikethrough($course) : $course;
-                            $item['Option'] = $isInActive ? ''
-                                : (new Link('Bearbeiten', ApiDivisionCourseStudent::getEndpoint(), new Pen()))
-                                    ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineEditDivisionCourseStudentContent(
-                                        $tblStudentEducation->getId(), $tblPerson->getId(), $DivisionCourseId));
+                                $item['SchoolType'] = $isInActive ? new Strikethrough($schoolType) : $schoolType;
+                                $item['Company'] = $isInActive ? new Strikethrough($company) : $company;
+                                $item['Level'] = $isInActive ? new Strikethrough($level) : $level;
+                                $item['Course'] = $isInActive ? new Strikethrough($course) : $course;
+                                $item['Option'] = $isInActive ? ''
+                                    : (new Link('Bearbeiten', ApiDivisionCourseStudent::getEndpoint(), new Pen()))
+                                        ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineEditDivisionCourseStudentContent(
+                                            $tblStudentEducation->getId(), $tblPerson->getId(), $DivisionCourseId));
 
-                            $studentList[] = $item;
+                                $studentList[] = $item;
+                            }
                         }
                     }
                 }
             }
 
             $backgroundColor = '#E0F0FF';
-            $headerStudentColumnList[] = $this->getTableHeaderColumn('#', $backgroundColor);
-            $headerStudentColumnList[] = $this->getTableHeaderColumn('Schüler', $backgroundColor);
-            if ($hasSubDivisionCourse) {
-                $headerStudentColumnList[] = $this->getTableHeaderColumn('Kurs', $backgroundColor);
-            }
-            $headerStudentColumnList[] = $this->getTableHeaderColumn('Ge&shy;schlecht', $backgroundColor);
-            $headerStudentColumnList[] = $this->getTableHeaderColumn('Geburts&shy;datum', $backgroundColor);
+            if ($isCourseSystem) {
+                // leere Halbjahre bei Schülern
+                if (!empty($courseList)) {
+                    foreach ($courseList as $student) {
+                        $studentList[] = array(
+                            'Number' => $student['Number'],
+                            'FullName' => $student['FullName'],
+                            'Period1' => isset($student['Period1']) ? $student['Period1'] : '&nbsp;',
+                            'Period2' => isset($student['Period2']) ? $student['Period2'] : '&nbsp;',
+                        );
+                    }
+                }
+
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('#', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Schüler', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('1. Halbjahr', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('2. Halbjahr', $backgroundColor);
+            } else {
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('#', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Schüler', $backgroundColor);
+                if ($hasSubDivisionCourse) {
+                    $headerStudentColumnList[] = $this->getTableHeaderColumn('Kurs', $backgroundColor);
+                }
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Ge&shy;schlecht', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Geburts&shy;datum', $backgroundColor);
 //            $headerStudentColumnList[] = $this->getTableHeaderColumn('Adresse', $backgroundColor);
-            $headerStudentColumnList[] = $this->getTableHeaderColumn('Schul&shy;art', $backgroundColor);
-            $headerStudentColumnList[] = $this->getTableHeaderColumn('Schule', $backgroundColor);
-            $headerStudentColumnList[] = $this->getTableHeaderColumn('Klassen&shy;stufe', $backgroundColor);
-            $headerStudentColumnList[] = $this->getTableHeaderColumn('Bildungs&shy;gang', $backgroundColor);
-            $headerStudentColumnList[] = $this->getTableHeaderColumn('&nbsp; ', $backgroundColor, '95px');
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Schul&shy;art', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Schule', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Klassen&shy;stufe', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Bildungs&shy;gang', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('&nbsp; ', $backgroundColor, '95px');
+            }
 
             return empty($studentList)
                 ? new Warning('Keine Schüler dem Kurs zugewiesen')

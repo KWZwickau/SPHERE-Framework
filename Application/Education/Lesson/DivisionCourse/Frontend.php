@@ -172,8 +172,15 @@ class Frontend extends FrontendTeacher
                 if ($showExtraInfo) {
                     $tblSubCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
                     list($students, $genders) = DivisionCourse::useService()->getStudentInfoByDivisionCourseList($tblSubCourseList);
-                    $item['Students'] = $students;
-                    $item['Genders'] = $genders;
+                    if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                        $countStudentSubjectPeriod1 = DivisionCourse::useService()->getCountStudentsBySubjectDivisionCourseAndPeriod($tblDivisionCourse, 1);
+                        $countStudentSubjectPeriod2 = DivisionCourse::useService()->getCountStudentsBySubjectDivisionCourseAndPeriod($tblDivisionCourse, 2);
+                        $item['Students'] = '1. HJ: ' . $countStudentSubjectPeriod1 . ', 2. HJ: ' . $countStudentSubjectPeriod2;
+                        $item['Genders'] = '';
+                    } else {
+                        $item['Students'] = $students;
+                        $item['Genders'] = $genders;
+                    }
 
                     $item['Teachers'] = $tblDivisionCourse->getDivisionTeacherNameListString();
 
@@ -188,12 +195,19 @@ class Frontend extends FrontendTeacher
 //                        $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . 'UCS';
 //                    }
                 } else {
-                    $countActive += $tblDivisionCourse->getCountStudents();
-                    $countInActive += $tblDivisionCourse->getCountInActiveStudents();
-                    $toolTip = $countInActive . ($countInActive == 1 ? ' deaktivierter Schüler' : ' deaktivierte Schüler');
-                    $students = $countActive . ($countInActive > 0 ? ' + '
-                        . new ToolTip('(' . $countInActive . new \SPHERE\Common\Frontend\Icon\Repository\Info() . ')', $toolTip) : '');
-                    $item['Students'] = $students;
+                    if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                        $countStudentSubjectPeriod1 = DivisionCourse::useService()->getCountStudentsBySubjectDivisionCourseAndPeriod($tblDivisionCourse, 1);
+                        $countStudentSubjectPeriod2 = DivisionCourse::useService()->getCountStudentsBySubjectDivisionCourseAndPeriod($tblDivisionCourse, 2);
+                        $item['Students'] = '1. HJ: ' . $countStudentSubjectPeriod1 . ', 2. HJ: ' . $countStudentSubjectPeriod2;
+                    } else {
+                        $countActive += $tblDivisionCourse->getCountStudents();
+                        $countInActive += $tblDivisionCourse->getCountInActiveStudents();
+
+                        $toolTip = $countInActive . ($countInActive == 1 ? ' deaktivierter Schüler' : ' deaktivierte Schüler');
+                        $students = $countActive . ($countInActive > 0 ? ' + '
+                                . new ToolTip('(' . $countInActive . new \SPHERE\Common\Frontend\Icon\Repository\Info() . ')', $toolTip) : '');
+                        $item['Students'] = $students;
+                    }
                 }
 
                 $dataList[] = $item;
@@ -443,6 +457,11 @@ class Frontend extends FrontendTeacher
                 && ($tblDivisionCourseAvailableList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear))
             ) {
                 foreach ($tblDivisionCourseAvailableList as $tblDivisionCourseAvailable) {
+                    // SekII-Kurse können nicht verknüpft werden, da diese anders funktionieren (Halbjahre + Schüler-Fächer)
+                    if ($tblDivisionCourseAvailable->getType()->getIsCourseSystem()) {
+                        continue;
+                    }
+
                     if ($tblDivisionCourse->getId() != $tblDivisionCourseAvailable->getId() && !isset($selectedList[$tblDivisionCourseAvailable->getId()])) {
                         $availableList[$tblDivisionCourseAvailable->getId()] = array(
                             'Name' => $tblDivisionCourseAvailable->getName() . (($description = $tblDivisionCourseAvailable->getDescription()) ? ' (' . $description . ')' : ''),
@@ -564,11 +583,14 @@ class Frontend extends FrontendTeacher
                         new LayoutRow(new LayoutColumn(
                             ApiDivisionCourseStudent::receiverBlock($this->loadDivisionCourseStudentContent($DivisionCourseId), 'DivisionCourseStudentContent')
                         ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler in der ' . $text
-                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
-                        . ' | '
-                        . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
-                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_STUDENT, 'Filter' => $Filter))
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler in der ' . $text .
+                        ($tblDivisionCourse->getType()->getIsCourseSystem()
+                            ? ''
+                            : new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
+                                . ' | '
+                                . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
+                                    array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_STUDENT, 'Filter' => $Filter))
+                        )
                     )),
 
                     new LayoutGroup(array(
