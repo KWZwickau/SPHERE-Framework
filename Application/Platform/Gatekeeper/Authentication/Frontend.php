@@ -584,6 +584,8 @@ class Frontend extends Extension implements IFrontendInterface
             case 'demo.schulsoftware.schule':
             case 'demo.kreda.schule':
                 return new Danger(new Picture().' Demo-Umgebung');
+            case 'nightly.schulsoftware.schule':
+                return new Danger(new Picture().' Nightly-Umgebung');
             default:
                 return new WarningText( new Globe().' '.$this->getRequest()->getHost());
         }
