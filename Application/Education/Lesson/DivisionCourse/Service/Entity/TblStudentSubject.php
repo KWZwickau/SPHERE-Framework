@@ -204,4 +204,14 @@ class TblStudentSubject extends Element
     {
         $this->PeriodIdentifier = $PeriodIdentifier;
     }
+
+    /**
+     * Für die Sortierung der Fächer
+     *
+     * @return string
+     */
+    public function getSort(): string
+    {
+        return ($tblSubject = $this->getServiceTblSubject()) ? $tblSubject->getAcronym() : '';
+    }
 }

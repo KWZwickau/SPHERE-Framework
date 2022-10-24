@@ -80,6 +80,18 @@ abstract class DataStudentSubject extends DataMigrate
     }
 
     /**
+     * @param TblDivisionCourse $tblSubjectDivisionCourse
+     *
+     * @return false|TblStudentSubject[]
+     */
+    public function getStudentSubjectListBySubjectDivisionCourse(TblDivisionCourse $tblSubjectDivisionCourse)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblStudentSubject', array(
+            TblStudentSubject::ATTR_TBL_DIVISION_COURSE => $tblSubjectDivisionCourse->getId(),
+        ));
+    }
+
+    /**
      * @param array $tblStudentSubjectList
      *
      * @return bool

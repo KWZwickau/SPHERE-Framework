@@ -4,13 +4,12 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourse;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
-use SPHERE\Application\Api\Education\DivisionCourse\ApiStudentSubject;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Frontend\FrontendTeacher;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -176,19 +175,7 @@ class Frontend extends FrontendTeacher
                     $item['Students'] = $students;
                     $item['Genders'] = $genders;
 
-                    $item['Teachers'] = '';
-                    if (($tblTeacherList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))) {
-                        foreach ($tblTeacherList as $tblPersonTeacher) {
-                            if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonTeacher))
-                                && ($acronym = $tblTeacher->getAcronym())
-                            ) {
-                                $name = $tblPersonTeacher->getLastName() . ' (' . $acronym . ')';
-                            } else {
-                                $name = $tblPersonTeacher->getLastName();
-                            }
-                            $item['Teachers'] .= ($item['Teachers'] ? '<br/>' : '') . $name;
-                        }
-                    }
+                    $item['Teachers'] = $tblDivisionCourse->getDivisionTeacherNameListString();
 
                     $item['Visibility'] = '';
                     if ($tblDivisionCourse->getIsShownInPersonData()) {
@@ -214,7 +201,7 @@ class Frontend extends FrontendTeacher
 
             $columns = array(
                 'Year' => 'Schuljahr',
-                'Name' => 'Name',
+                'Name' => 'Kursname',
                 'Description' => 'Beschreibung',
                 'Type' => 'Typ',
                 'SubCourses' => 'Unter-Kurse',
@@ -294,21 +281,35 @@ class Frontend extends FrontendTeacher
      * @param null $DivisionCourseId
      * @param null $Filter
      * @param bool $setPost
+     * @param null $Data
      *
      * @return Form
      */
-    public function formDivisionCourse($DivisionCourseId = null,$Filter = null, bool $setPost = false): Form
+    public function formDivisionCourse($DivisionCourseId = null, $Filter = null, bool $setPost = false, $Data = null): Form
     {
+        $Error = '';
+
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
         $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
         if ($setPost && $tblDivisionCourse) {
             $Global = $this->getGlobal();
             $Global->POST['Data']['Name'] = $tblDivisionCourse->getName();
             $Global->POST['Data']['Description'] = $tblDivisionCourse->getDescription();
+            $Global->POST['Data']['Subject'] = $tblDivisionCourse->getServiceTblSubject() ? $tblDivisionCourse->getServiceTblSubject()->getId() : 0;
             $Global->POST['Data']['IsShownInPersonData'] = $tblDivisionCourse->getIsShownInPersonData();
             $Global->POST['Data']['IsReporting'] = $tblDivisionCourse->getIsReporting();
 //            $Global->POST['Data']['IsUcs'] = $tblDivisionCourse->getIsUcs();
             $Global->savePost();
+        } elseif (!$tblDivisionCourse) {
+            if ($setPost) {
+                $Global = $this->getGlobal();
+                $Global->POST['Data']['IsReporting'] = 1;
+                $Global->savePost();
+            } else {
+                if (isset($Data['Subject']) && !(Subject::useService()->getSubjectById($Data['Subject']))) {
+                    $Error = 'Bitte wählen Sie ein Fach aus';
+                }
+            }
         }
 
         if ($DivisionCourseId) {
@@ -332,44 +333,88 @@ class Frontend extends FrontendTeacher
         }
         $tblTypeAll = DivisionCourse::useService()->getDivisionCourseTypeAll();
 
-        return (new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn($tblDivisionCourse
-                        ? new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
-                        : (new SelectBox('Data[Year]', 'Schuljahr', array('{{ Name }} {{ Description }}' => $tblYearAll), new Education()))->setRequired()
-                    , 6),
-                    new FormColumn($tblDivisionCourse
-                        ? new Panel('Typ', $tblDivisionCourse->getTypeName(), Panel::PANEL_TYPE_INFO)
-                        : (new SelectBox('Data[Type]', 'Typ', array('{{ Name }}' => $tblTypeAll)))->setRequired()
-                    , 6)
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        (new AutoCompleter('Data[Name]', 'Name', 'z.B: 7a', $courseNameList, new Pen()))->setRequired()
-                    , 6),
-                    new FormColumn(
-                        new TextField('Data[Description]', 'zb: für Fortgeschrittene', 'Beschreibung', new Pen())
-                    , 6),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new CheckBox('Data[IsShownInPersonData]', 'Kurs bei den Personenstammdaten anzeigen', 1)
-                        , 6),
-                    new FormColumn(
-                        new CheckBox('Data[IsReporting]', 'Kurs wird bei festen Auswertungen angezeigt', 1)
-                        , 6),
+        $formRows[] = new FormRow(array(
+            new FormColumn($tblDivisionCourse
+                ? new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
+                : (new SelectBox('Data[Year]', 'Schuljahr', array('{{ Name }} {{ Description }}' => $tblYearAll), new Education()))->setRequired()
+                , 6),
+            new FormColumn($tblDivisionCourse
+                ? new Panel('Typ', $tblDivisionCourse->getTypeName(), Panel::PANEL_TYPE_INFO)
+                : (new SelectBox('Data[Type]', 'Typ', array('{{ Name }}' => $tblTypeAll)))
+                    ->setRequired()
+                    ->ajaxPipelineOnChange(ApiDivisionCourse::pipelineLoadSubjectSelectBox($Error, $Data))
+                , 6)
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                (new AutoCompleter('Data[Name]', 'Name', 'z.B: 7a', $courseNameList, new Pen()))->setRequired()
+                , 6),
+            new FormColumn(
+                new TextField('Data[Description]', 'zb: für Fortgeschrittene', 'Beschreibung', new Pen())
+                , 6),
+        ));
+        if ($tblDivisionCourse) {
+            if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                $formRows[] = new FormRow(array(
+                    new FormColumn(array(
+                        (new SelectBox('Data[Subject]', 'Fach', array('{{ Acronym }}-{{ Name }}' => Subject::useService()->getSubjectAll())))
+                            ->setRequired()
+                    ), 6),
+                ));
+            }
+        } else {
+            $formRows[] = new FormRow(array(
+                new FormColumn(array(
+                    ApiDivisionCourse::receiverBlock('', 'SubjectSelectBox')
+                ), 6),
+            ));
+        }
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                new CheckBox('Data[IsShownInPersonData]', 'Kurs bei den Personenstammdaten anzeigen', 1)
+                , 6),
+            new FormColumn(
+                new CheckBox('Data[IsReporting]', 'Kurs wird bei festen Auswertungen angezeigt', 1)
+                , 6),
 //                    new FormColumn(
 //                        new CheckBox('Data[IsUcs]', 'Kurs wird ins UCS übertragen', 1)
 //                        , 4),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        $buttonList
-                    )
-                )),
-            ))
-        ))->disableSubmitAction();
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                $buttonList
+            )
+        ));
+
+        return (new Form(new FormGroup($formRows)))->disableSubmitAction();
+    }
+
+    /**
+     * @param $Error
+     * @param $Data
+     *
+     * @return SelectBox|null
+     */
+    public function loadSubjectSelectBox($Error, $Data): ?SelectBox
+    {
+        if (isset($Data['Type']) && ($tblType = DivisionCourse::useService()->getDivisionCourseTypeById($Data['Type']))) {
+            if ($tblType->getIsCourseSystem()) {
+                if (isset($Data['Subject'])) {
+                    $global = $this->getGlobal();
+                    $global->POST['Data']['Subject'] = $Data['Subject'];
+                    $global->savePost();
+                }
+
+                $selectBox = (new SelectBox('Data[Subject]', 'Fach', array('{{ Acronym }}-{{ Name }}' => Subject::useService()->getSubjectAll())))
+                    ->setRequired();
+                if ($Error) {
+                    $selectBox->setError($Error);
+                }
+                return $selectBox;
+            }
+        }
+
+        return null;
     }
 
     /**

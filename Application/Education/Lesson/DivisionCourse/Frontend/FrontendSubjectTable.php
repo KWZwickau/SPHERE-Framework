@@ -57,7 +57,9 @@ class FrontendSubjectTable extends FrontendStudentSubject
                 if ($tblSchoolType->getId() == $SchoolTypeId) {
                     $buttonList .= new Standard(new Info(new Bold($tblSchoolType->getName())), '/Education/Lesson/SubjectTable', new Edit(), array('SchoolTypeId' => $tblSchoolType->getId()));
                 } else {
-                    $buttonList .= new Standard($tblSchoolType->getName(), '/Education/Lesson/SubjectTable', null, array('SchoolTypeId' => $tblSchoolType->getId()));
+                    $buttonList .= new Standard(
+                        $tblSchoolType->getName() . ($tblSchoolType->getShortName() == 'Gy' ? ' (SekI)' : '')
+                        , '/Education/Lesson/SubjectTable', null, array('SchoolTypeId' => $tblSchoolType->getId()));
                 }
             }
         }

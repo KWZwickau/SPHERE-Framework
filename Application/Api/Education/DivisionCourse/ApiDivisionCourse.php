@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Link;
@@ -47,6 +48,7 @@ class ApiDivisionCourse extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('loadDivisionCourseContent');
+        $Dispatcher->registerMethod('loadSubjectSelectBox');
         $Dispatcher->registerMethod('openCreateDivisionCourseModal');
         $Dispatcher->registerMethod('saveCreateDivisionCourseModal');
         $Dispatcher->registerMethod('openEditDivisionCourseModal');
@@ -124,6 +126,39 @@ class ApiDivisionCourse extends Extension implements IApiInterface
     }
 
     /**
+     * @param $Error
+     * @param $Data
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadSubjectSelectBox($Error, $Data): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SubjectSelectBox'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadSubjectSelectBox',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Error' => $Error,
+            'Data' => $Data
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $Error
+     * @param null $Data
+     *
+     * @return SelectBox|null
+     */
+    public function loadSubjectSelectBox($Error, $Data = null): ?SelectBox
+    {
+        return DivisionCourse::useFrontend()->loadSubjectSelectBox($Error, $Data);
+    }
+
+    /**
      * @param $Filter
      *
      * @return Pipeline
@@ -150,7 +185,7 @@ class ApiDivisionCourse extends Extension implements IApiInterface
      */
     public function openCreateDivisionCourseModal($Filter = null): string
     {
-        return $this->getDivisionCourseModal(DivisionCourse::useFrontend()->formDivisionCourse(null, $Filter, false));
+        return $this->getDivisionCourseModal(DivisionCourse::useFrontend()->formDivisionCourse(null, $Filter, true));
     }
 
     /**

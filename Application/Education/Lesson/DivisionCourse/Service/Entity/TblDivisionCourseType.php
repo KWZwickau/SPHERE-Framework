@@ -65,4 +65,12 @@ class TblDivisionCourseType extends Element
     {
         $this->Identifier = $Identifier;
     }
+
+    /**
+     * @return bool
+     */
+    public function getIsCourseSystem(): bool
+    {
+        return $this->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE || $this->getIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE;
+    }
 }

@@ -140,6 +140,16 @@ abstract class ServiceStudentSubject extends AbstractService
     }
 
     /**
+     * @param TblDivisionCourse $tblSubjectDivisionCourse
+     *
+     * @return false|TblStudentSubject[]
+     */
+    public function getStudentSubjectListBySubjectDivisionCourse(TblDivisionCourse $tblSubjectDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getStudentSubjectListBySubjectDivisionCourse($tblSubjectDivisionCourse);
+    }
+
+    /**
      * SekI
      *
      * @param TblDivisionCourse $tblDivisionCourse

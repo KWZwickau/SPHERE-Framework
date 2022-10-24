@@ -16,11 +16,13 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Setup;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group as PersonGroup;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -253,10 +255,10 @@ class Service extends ServiceTeacher
     public function checkFormDivisionCourse($Filter, $Data, TblDivisionCourse $tblDivisionCourse = null)
     {
         $error = false;
-        $form = DivisionCourse::useFrontend()->formDivisionCourse($tblDivisionCourse ? $tblDivisionCourse->getId() : null, $Filter);
+        $form = DivisionCourse::useFrontend()->formDivisionCourse($tblDivisionCourse ? $tblDivisionCourse->getId() : null, $Filter, false, $Data);
 
         $tblYear = $tblDivisionCourse ? $tblDivisionCourse->getServiceTblYear() : false;
-        $tblType = false;
+        $tblType = $tblDivisionCourse ? $tblDivisionCourse->getType() : false;
         if (!$tblDivisionCourse) {
             if (!isset($Data['Year']) || !($tblYear = Term::useService()->getYearById($Data['Year']))) {
                 $form->setError('Data[Year]', 'Bitte wählen Sie ein Schuljahr aus');
@@ -264,6 +266,13 @@ class Service extends ServiceTeacher
             }
             if (!isset($Data['Type']) || !($tblType = DivisionCourse::useService()->getDivisionCourseTypeById($Data['Type']))) {
                 $form->setError('Data[Type]', 'Bitte wählen Sie einen Typ aus');
+                $error = true;
+            }
+        }
+
+        if ($tblType && $tblType->getIsCourseSystem()) {
+            if (!isset($Data['Subject']) || !(Subject::useService()->getSubjectById($Data['Subject']))) {
+                $form->setError('Data[Subject]', 'Bitte wählen Sie ein Fach aus');
                 $error = true;
             }
         }
@@ -308,8 +317,9 @@ class Service extends ServiceTeacher
         if (($tblYear = Term::useService()->getYearById($Data['Year']))
             && ($tblType = DivisionCourse::useService()->getDivisionCourseTypeById($Data['Type']))
         ) {
+            $tblSubject = isset($Data['Subject']) ? Subject::useService()->getSubjectById($Data['Subject']) : null;
             return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $Data['Name'], $Data['Description'],
-                isset($Data['IsShownInPersonData']), isset($Data['IsReporting']));
+                isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject);
         } else {
             return false;
         }
@@ -323,8 +333,9 @@ class Service extends ServiceTeacher
      */
     public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, array $Data): bool
     {
+        $tblSubject = isset($Data['Subject']) ? Subject::useService()->getSubjectById($Data['Subject']) : null;
         return (new Data($this->getBinding()))->updateDivisionCourse($tblDivisionCourse, $Data['Name'], $Data['Description'],
-            isset($Data['IsShownInPersonData']), isset($Data['IsReporting']));
+            isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject);
     }
 
     /**
@@ -343,6 +354,18 @@ class Service extends ServiceTeacher
 
         // alle Mitglieder löschen
         (new Data($this->getBinding()))->removeDivisionCourseMemberAllFromDivisionCourse($tblDivisionCourse);
+
+        // alle Schüler-Fächer verknüpfungen löschen (SekII)
+        if (($tblStudentSubjectList = $this->getStudentSubjectListBySubjectDivisionCourse($tblDivisionCourse))) {
+            (new Data($this->getBinding()))->destroyStudentSubjectBulkList($tblStudentSubjectList);
+        }
+
+        // alle Lehraufträge löschen
+        if (($tblTeacherLectureshipList = $this->getTeacherLectureshipListBy(null, null, $tblDivisionCourse, null))) {
+            foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                (new Data($this->getBinding()))->destroyTeacherLectureship($tblTeacherLectureship);
+            }
+        }
 
         return (new Data($this->getBinding()))->destroyDivisionCourse($tblDivisionCourse);
     }
@@ -1176,5 +1199,30 @@ class Service extends ServiceTeacher
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param string $separator
+     *
+     * @return string
+     */
+    public function getDivisionTeacherNameListString(TblDivisionCourse $tblDivisionCourse, string $separator = '<br/>'): string
+    {
+        $resultList = array();
+        if (($tblTeacherList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))) {
+            foreach ($tblTeacherList as $tblPersonTeacher) {
+                if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonTeacher))
+                    && ($acronym = $tblTeacher->getAcronym())
+                ) {
+                    $name = $tblPersonTeacher->getLastName() . ' (' . $acronym . ')';
+                } else {
+                    $name = $tblPersonTeacher->getLastName();
+                }
+                $resultList[] = $name;
+            }
+        }
+
+        return empty($resultList) ? '' : implode($separator, $resultList);
     }
 }

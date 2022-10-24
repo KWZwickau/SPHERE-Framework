@@ -335,4 +335,14 @@ class TblDivisionCourse extends Element
     {
         return $this->getName() . (($description = $this->getDescription()) ? ' (' . $description . ')' : '');
     }
+
+    /**
+     * @param string $separator
+     *
+     * @return string
+     */
+    public function getDivisionTeacherNameListString(string $separator = '<br/>'): string
+    {
+        return DivisionCourse::useService()->getDivisionTeacherNameListString($this, $separator);
+    }
 }

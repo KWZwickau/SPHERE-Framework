@@ -11,6 +11,7 @@ namespace SPHERE\Application\People\Person\Frontend;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -54,6 +55,7 @@ class FrontendStudentProcess extends FrontendReadOnly
                 $levelList = array();
                 // Sortierung aufsteigend, notwendig wegen Schuljahrwiederholung
                 $tblStudentEducationList = (new Extension())->getSorter($tblStudentEducationList)->sortObjectBy('YearNameForSorter', null, Sorter::ORDER_ASC);
+                /** @var TblStudentEducation $tblStudentEducation */
                 foreach ($tblStudentEducationList as $tblStudentEducation) {
                     $isInActive = $tblStudentEducation->isInActive();
                     $year = ($tblYear = $tblStudentEducation->getServiceTblYear()) ? $tblYear->getDisplayName() : new WarningText('Kein Schuljahr hinterlegt');
@@ -76,7 +78,9 @@ class FrontendStudentProcess extends FrontendReadOnly
                     }
                     $course = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : $warningCourse;
                     $division = ($tblDivision = $tblStudentEducation->getTblDivision()) ? $tblDivision->getName() : '';
+                    $divisionTeachers = $tblDivision ? $tblDivision->getDivisionTeacherNameListString() : '';
                     $coreGroup = ($tblCoreGroup = $tblStudentEducation->getTblCoreGroup()) ? $tblCoreGroup->getName() : '';
+                    $tudors =  $tblCoreGroup ? $tblCoreGroup->getDivisionTeacherNameListString() : '';
 
                     $item['Year'] = $isInActive ? new Strikethrough($year) : $year;
                     $item['SchoolType'] = $isInActive ? new Strikethrough($schoolType) : $schoolType;
@@ -84,7 +88,9 @@ class FrontendStudentProcess extends FrontendReadOnly
                     $item['Level'] = $isInActive ? new Strikethrough($level) : $level;
                     $item['Course'] = $isInActive ? new Strikethrough($course) : $course;
                     $item['Division'] = $isInActive ? new Strikethrough($division) : $division;
+                    $item['DivisionTeachers'] = $isInActive ? new Strikethrough($divisionTeachers) : $divisionTeachers;
                     $item['CoreGroup'] = $isInActive ? new Strikethrough($coreGroup) : $coreGroup;
+                    $item['Tudors'] = $isInActive ? new Strikethrough($tudors) : $tudors;
                     if ($AllowEdit) {
                         $item['Option'] = (new Link('Bearbeiten', ApiPersonEdit::getEndpoint(), new Pen()))
                             ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentProcessContent($tblPerson->getId(), $tblStudentEducation->getId()));
@@ -108,7 +114,9 @@ class FrontendStudentProcess extends FrontendReadOnly
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Klassen&shy;stufe', $backgroundColor);
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Bildungs&shy;gang', $backgroundColor);
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Klasse', $backgroundColor);
+            $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Klasse&shy;lehrer', $backgroundColor);
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Stamm&shy;gruppe', $backgroundColor);
+            $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Tudor', $backgroundColor);
             if ($AllowEdit) {
                 $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('&nbsp; ', $backgroundColor, '95px');
             }

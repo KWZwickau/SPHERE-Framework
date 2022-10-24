@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -98,15 +99,16 @@ class Data extends DataTeacher
      * @param string $description
      * @param bool $isShownInPersonData
      * @param bool $isReporting
+     * @param TblSubject|null $tblSubject
      *
      * @return TblDivisionCourse
      */
     public function createDivisionCourse(TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description,
-        bool $isShownInPersonData, bool $isReporting): TblDivisionCourse
+        bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject): TblDivisionCourse
     {
         $Manager = $this->getEntityManager();
 
-        $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting);
+        $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -120,11 +122,12 @@ class Data extends DataTeacher
      * @param string $description
      * @param bool $isShownInPersonData
      * @param bool $isReporting
+     * @param TblSubject|null $tblSubject
      *
      * @return bool
      */
     public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, string $name, string $description,
-        bool $isShownInPersonData, bool $isReporting): bool
+        bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject): bool
     {
         $Manager = $this->getEntityManager();
         /** @var TblDivisionCourse $Entity */
@@ -135,6 +138,7 @@ class Data extends DataTeacher
             $Entity->setDescription($description);
             $Entity->setIsShownInPersonData($isShownInPersonData);
             $Entity->setIsReporting($isReporting);
+            $Entity->setServiceTblSubject($tblSubject);
 //            $Entity->setIsUcs($isUcs);
 
             $Manager->saveEntity($Entity);

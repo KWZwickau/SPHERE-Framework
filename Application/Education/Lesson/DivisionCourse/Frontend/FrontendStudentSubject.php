@@ -473,7 +473,7 @@ class FrontendStudentSubject extends FrontendStudent
                                 $item[$tblSubject->getId()] = new Check();
                                 // nicht gespeichertes Fach aus der Schülerakte
                             } elseif (($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))) {
-                                $item[$tblSubject->getId()] = new ToolTip(new Muted('SA'), 'Schülerakte');
+                                $item[$tblSubject->getId()] = new ToolTip(new Muted('ST-SA'), 'Stundentafel-Schülerakte');
                             }
                             // Fach nicht aus der Schülerakte, aber individuell am Schüler
                         } elseif (($tblSubjectFromSubjectTable = $tblSubjectTable->getServiceTblSubject())) {
@@ -524,6 +524,8 @@ class FrontendStudentSubject extends FrontendStudent
              * gespeicherte Fächer am Schüler
              */
             if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear))) {
+                // Sortierung der Fächer
+                $tblStudentSubjectList = $this->getSorter($tblStudentSubjectList)->sortObjectBy('Sort');
                 foreach ($tblStudentSubjectList as $tblStudentSubject) {
                     if (($tblSubjectItem = $tblStudentSubject->getServiceTblSubject())) {
                         if (!isset($item[$tblSubjectItem->getId()])) {
@@ -584,8 +586,9 @@ class FrontendStudentSubject extends FrontendStudent
                         && isset($list[1])
                         && ($period = $list[1])
                     ) {
-                        $item[$period][$tblDivisionCourseSekII->getId()] = ($tblSubject = $tblDivisionCourseSekII->getServiceTblSubject()) ? $tblSubject->getAcronym() : new Check();
                         $identifier = $tblDivisionCourseSekII->getTypeIdentifier();
+                        $content = ($tblSubject = $tblDivisionCourseSekII->getServiceTblSubject()) ? $tblSubject->getAcronym() : new Check();
+                        $item[$period][$tblDivisionCourseSekII->getId()] = $identifier == TblDivisionCourseType::TYPE_ADVANCED_COURSE ? new Bold($content) : $content;
                         if (!isset($divisionCourseSekIIList[$period][$identifier][$tblDivisionCourseSekII->getId()])) {
                             $divisionCourseSekIIList[$period][$identifier][$tblDivisionCourseSekII->getId()] =
                                 new PullClear(
