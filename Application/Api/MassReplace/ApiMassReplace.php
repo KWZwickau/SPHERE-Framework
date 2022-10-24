@@ -4,7 +4,10 @@ namespace SPHERE\Application\Api\MassReplace;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -14,9 +17,7 @@ use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
-use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Error;
@@ -44,9 +45,10 @@ class ApiMassReplace extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('openModal');
-//        $Dispatcher->registerMethod('showFilter');
         $Dispatcher->registerMethod('saveModal');
         $Dispatcher->registerMethod('closeModal');
+        $Dispatcher->registerMethod('loadDivisionsSelectBox');
+        $Dispatcher->registerMethod('loadCoreGroupsSelectBox');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -102,7 +104,8 @@ class ApiMassReplace extends Extension implements IApiInterface
             self::API_TARGET => 'openModal'
         ));
         $Emitter->setPostPayload(array(
-            'modalField' => base64_encode(serialize($Field))
+            'modalField' => base64_encode(serialize($Field)),
+            'Node' => $Node
         ));
         $Emitter->setLoadingMessage('Lädt');
         $Pipeline->appendEmitter($Emitter);
@@ -140,21 +143,42 @@ class ApiMassReplace extends Extension implements IApiInterface
     }
 
     /**
-     * @param AbstractField $modalField
-     * @param null          $useFilter
-     * @param null          $Year
-     * @param null          $Division
+     * @param $modalField
+     * @param $Node
+     * @param $Id
+     * @param string $useFilter
+     * @param null $StudentEducationId
+     * @param null $Data
      *
-     * @return Layout|string
+     * @return string
      */
-    public function openModal($modalField, $useFilter = null, $Year = null, $Division = null, $Node = null)
+    public function openModal($modalField, $Node, $Id, string $useFilter = StudentFilter::STUDENT_FILTER, $StudentEducationId = null, $Data = null): string
     {
-
-        if ($useFilter == null) {
-            return new Warning('Filter einstellen!');
-        }
         if ($useFilter == StudentFilter::STUDENT_FILTER) {
-            return (new StudentFilter())->getFrontendStudentFilter($modalField, $Year, $Division, $Node);
+            $tblStudentEducation = false;
+            if ($StudentEducationId && $Data === null) {
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationById($StudentEducationId);
+            } elseif ($Id && $Data === null) {
+                if (($tblYearList = Term::useService()->getYearByNow())
+                    && ($tblPerson = Person::useService()->getPersonById($Id))
+                ) {
+                    foreach ($tblYearList as $tblYear) {
+                        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if ($tblStudentEducation) {
+                $Data['Year'] = ($tblYear = $tblStudentEducation->getServiceTblYear()) ? $tblYear->getId() : 0;
+                $Data['SchoolType'] = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getId() : 0;
+                $Data['Level'] = ($tblStudentEducation->getLevel()) ?: '';
+                $Data['Division'] = ($tblDivision = $tblStudentEducation->getTblDivision()) ? $tblDivision->getId() : 0;
+                $Data['CoreGroup'] = ($tblCoreGroup = $tblStudentEducation->getTblCoreGroup()) ? $tblCoreGroup->getId() : 0;
+            }
+
+            return (new StudentFilter())->getFrontendStudentFilter($modalField, $Node, $Data);
         }
 
         // miss Filter match
@@ -276,5 +300,76 @@ class ApiMassReplace extends Extension implements IApiInterface
         $Globals->savePost();
         $ReplaceField = $this->cloneField($Field, $Field->getName());
         return $ReplaceField;
+    }
+
+    /**
+     * @param string $Content
+     * @param string $Identifier
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverBlock(string $Content = '', string $Identifier = ''): BlockReceiver
+    {
+        return (new BlockReceiver($Content))->setIdentifier($Identifier);
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadDivisionsSelectBox($Data): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DivisionsSelectBox'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDivisionsSelectBox',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Data' => $Data,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return SelectBox|null
+     */
+    public function loadDivisionsSelectBox($Data = null): ?SelectBox
+    {
+        return (new StudentFilter())->loadDivisionsSelectBox($Data);
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadCoreGroupsSelectBox($Data): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CoreGroupsSelectBox'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadCoreGroupsSelectBox',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Data' => $Data,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return SelectBox|null
+     */
+    public function loadCoreGroupsSelectBox($Data = null): ?SelectBox
+    {
+        return (new StudentFilter())->loadCoreGroupsSelectBox($Data);
     }
 }

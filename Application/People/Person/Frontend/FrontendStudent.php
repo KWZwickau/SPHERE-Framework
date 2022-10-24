@@ -11,13 +11,10 @@ namespace SPHERE\Application\People\Person\Frontend;
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
-use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Student\MassReplaceStudent;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -42,6 +39,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -58,6 +56,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
@@ -285,43 +284,12 @@ class FrontendStudent extends FrontendReadOnly
     }
 
     /**
-     * @param TblPerson $tblPerson
-     * @param $Year
-     * @param $Division
-     */
-    public static function setYearAndDivisionForMassReplace(TblPerson $tblPerson, &$Year, &$Division)
-    {
-        $Year[ViewYear::TBL_YEAR_ID] = '';
-        $Division[ViewDivisionStudent::TBL_LEVEL_ID] = '';
-        $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = '';
-        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
-        // #SSW-1598 Fehlerbehebung Massen-Änderung
-
-        // get information without tblStudent information
-        $tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
-        if ($tblPerson && $tblDivision) {
-            $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = $tblDivision->getName();
-            if (($tblLevel = $tblDivision->getTblLevel())) {
-                $Division[ViewDivisionStudent::TBL_LEVEL_ID] = $tblLevel->getId();
-            }
-            if (($tblType = $tblLevel->getServiceTblType())) {
-                $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblType->getId();
-            }
-            if (($tblYear = $tblDivision->getServiceTblYear())) {
-                $Year[ViewYear::TBL_YEAR_ID] = $tblYear->getId();
-            }
-        }
-    }
-
-    /**
      * @param null $PersonId
      *
      * @return string
      */
     public function getEditStudentBasicContent($PersonId = null)
     {
-
-        $tblPerson = false;
         if ($PersonId && ($tblPerson = Person::useService()->getPersonById($PersonId))) {
             $Global = $this->getGlobal();
             if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)) {
@@ -335,40 +303,38 @@ class FrontendStudent extends FrontendReadOnly
 
                 $Global->savePost();
             }
+
+            return $this->getEditStudentBasicTitle($tblPerson) . new Well($this->getEditStudentBasicForm($tblPerson));
         }
 
-        return $this->getEditStudentBasicTitle($tblPerson ? $tblPerson : null)
-            . new Well($this->getEditStudentBasicForm($tblPerson ? $tblPerson : null));
+        return new Warning('Person nicht gefunden!', new Exclamation());
     }
 
     /**
-     * @param TblPerson|null $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return string
      */
-    private function getEditStudentBasicTitle(TblPerson $tblPerson = null)
+    private function getEditStudentBasicTitle(TblPerson $tblPerson): string
     {
         return new Title(new Nameplate() . ' ' . self::TITLE . ' - Grunddaten', self::getEditTitleDescription($tblPerson))
             . self::getDataProtectionMessage();
     }
 
     /**
-     * @param TblPerson|null $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return Form
      */
-    private function getEditStudentBasicForm(TblPerson $tblPerson = null)
+    private function getEditStudentBasicForm(TblPerson $tblPerson): Form
     {
-
-        self::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
-
         $isIdentifierAuto = false;
         $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
         if($tblSetting && $tblSetting->getValue()){
             $isIdentifierAuto = true;
         }
 
-        $NodePrefix = 'Grunddaten - Prefix der Schülernummer';
+        $NodePrefix = 'Grunddaten - Schülernummer';
         $StartDatePrefix = 'Grunddaten - Schulpflicht';
 
         return (new Form(array(
@@ -380,49 +346,34 @@ class FrontendStudent extends FrontendReadOnly
                                 new LayoutGroup(
                                     new LayoutRow(array(
                                         new LayoutColumn(
-                                            ApiMassReplace::receiverField((
-                                            $Field = new TextField('Meta[Student][Prefix]',
-                                                'Prefix', 'Prefix')
-                                            ))
-                                            .ApiMassReplace::receiverModal($Field, $NodePrefix)
-
-                                            .new PullRight((new Link('Massen-Änderung',
+                                            ApiMassReplace::receiverField(($Field = new TextField('Meta[Student][Prefix]', 'Prefix', 'Prefix')))
+                                            . ApiMassReplace::receiverModal($Field, $NodePrefix)
+                                            . new PullRight((new Link('Massen-Änderung',
                                                 ApiMassReplace::getEndpoint(), null, array(
                                                     ApiMassReplace::SERVICE_CLASS                                   => MassReplaceStudent::CLASS_MASS_REPLACE_STUDENT,
                                                     ApiMassReplace::SERVICE_METHOD                                  => MassReplaceStudent::METHOD_REPLACE_PREFIX,
-                                                    ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                                                     'Id'                                                            => $tblPerson->getId(),
-                                                    'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                                                    'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                                    'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                                                    'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                                                    'Node'                                                          => $NodePrefix,
                                                 )))->ajaxPipelineOnClick(
                                                 ApiMassReplace::pipelineOpen($Field, $NodePrefix)
                                             ))
-                                            , 4)
-                                    ,
+                                            , 4),
                                         new LayoutColumn(
                                             ($isIdentifierAuto
-                                                ?
-                                                (new TextField('Meta[Student][Identifier]', 'Schülernummer',
+                                                ? (new TextField('Meta[Student][Identifier]', 'Schülernummer',
                                                     'Schülernummer'))->setDisabled()
                                                     ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
-                                                :
-                                                (new TextField('Meta[Student][Identifier]', 'Schülernummer',
+                                                : (new TextField('Meta[Student][Identifier]', 'Schülernummer',
                                                     'Schülernummer'))
                                                     ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
                                             )
                                             , 8)
                                     ))
                                 )
-                            )
-                        ,
+                            ),
                             ($isIdentifierAuto
                                 ? ''
                                 : ApiStudent::receiverControlIdentifier()
                             )
-
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
@@ -436,15 +387,9 @@ class FrontendStudent extends FrontendReadOnly
                                 ApiMassReplace::getEndpoint(), null, array(
                                     ApiMassReplace::SERVICE_CLASS                                   => MassReplaceStudent::CLASS_MASS_REPLACE_STUDENT,
                                     ApiMassReplace::SERVICE_METHOD                                  => MassReplaceStudent::METHOD_REPLACE_START_DATE,
-                                    ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
-                                    'Id'                                                            => $tblPerson->getId(),
-                                    'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                                    'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                    'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                                    'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                                    'Node'                                                          => $NodePrefix,
+                                    'Id'                                                      => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
-                                ApiMassReplace::pipelineOpen($Field, $NodePrefix)
+                                ApiMassReplace::pipelineOpen($Field, $StartDatePrefix)
                             ))
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
@@ -461,9 +406,9 @@ class FrontendStudent extends FrontendReadOnly
                 new FormRow(array(
                     new FormColumn(array(
                         (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveStudentBasicContent($tblPerson ? $tblPerson->getId() : 0)),
+                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveStudentBasicContent($tblPerson->getId())),
                         (new Primary('Abbrechen', ApiPersonEdit::getEndpoint(), new Disable()))
-                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelStudentBasicContent($tblPerson ? $tblPerson->getId() : 0))
+                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelStudentBasicContent($tblPerson->getId()))
                     ))
                 ))
             ))

@@ -6,6 +6,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -78,7 +79,7 @@ class Data extends AbstractData
     public function getSchoolAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool', array(Element::ENTITY_CREATE => self::ORDER_ASC));
     }
 
 

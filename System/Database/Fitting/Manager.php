@@ -223,6 +223,21 @@ class Manager extends Extension
     }
 
     /**
+     * @param Element $Entity
+     *
+     * @return Manager|EntityManager
+     */
+    final public function saveEntityWithSetId($Entity)
+    {
+        $this->EntityManager->persist($Entity);
+
+        $metadata = $this->EntityManager->getClassMetaData(get_class($Entity));
+        $metadata->setIdGeneratorType(\Doctrine\ORM\Mapping\ClassMetadata::GENERATOR_TYPE_NONE);
+
+        $this->EntityManager->flush();
+    }
+
+    /**
      * MUST use flushCache to commit bulk
      *
      * @param $Entity

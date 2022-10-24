@@ -36,6 +36,24 @@ class TblSubject extends Element
     protected $Description;
 
     /**
+     * @param int $id
+     * @param string $acronym
+     * @param string $name
+     *
+     * @return TblSubject
+     */
+    public static function withParameter(int $id, string $acronym, string $name): TblSubject
+    {
+        $instance = new self();
+
+        $instance->setId($id);
+        $instance->setAcronym($acronym);
+        $instance->setName($name);
+
+        return  $instance;
+    }
+
+    /**
      * @return string
      */
     public function getAcronym()

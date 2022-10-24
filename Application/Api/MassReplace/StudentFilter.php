@@ -2,20 +2,14 @@
 
 namespace SPHERE\Application\Api\MassReplace;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
-use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -41,7 +35,6 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
-use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
 
 class StudentFilter extends Extension
@@ -49,28 +42,33 @@ class StudentFilter extends Extension
     const STUDENT_FILTER = 'StudentFilter';
 
     /**
-     * @param string $modalField
+     * @param $modalField
+     * @param $Data
      *
-     * @return Form|string
+     * @return Form
      */
-    public function formStudentFilter($modalField)
+    public function formStudentFilter($modalField, $Data): Form
     {
-
         /** @var AbstractField $Field */
         $Field = unserialize(base64_decode($modalField));
 
-        $tblLevelShowList = array();
+        if ($Data) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Year'] = $Data['Year'];
+            $global->POST['Data']['SchoolType'] = $Data['SchoolType'];
+            $global->POST['Data']['Level'] = $Data['Level'];
+            $global->POST['Data']['Division'] = $Data['Division'];
+            $global->POST['Data']['CoreGroup'] = $Data['CoreGroup'];
 
-        $tblLevelList = Division::useService()->getLevelAll();
-        if ($tblLevelList) {
-            foreach ($tblLevelList as &$tblLevel) {
-                if (!$tblLevel->getName()) {
-                    $tblLevelClone = clone $tblLevel;
-                    $tblLevelClone->setName('Stufenübergreifende Klassen');
-                    $tblLevelShowList[] = $tblLevelClone;
-                } else {
-                    $tblLevelShowList[] = $tblLevel;
-                }
+            $global->savePost();
+        }
+
+        $tblYearList = Term::useService()->getYearAllSinceYears(1);
+        if (isset($Data['Year']) && ($tblYear = Term::useService()->getYearById($Data['Year']))) {
+            if ($tblYearList && !isset($tblYearList[$Data['Year']])) {
+                $tblYearList[$tblYear->getId()] = $tblYear;
+            } elseif (!$tblYearList) {
+                $tblYearList = array($tblYear->getId() => $tblYear);
             }
         }
 
@@ -78,67 +76,98 @@ class StudentFilter extends Extension
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Bildung: Schuljahr '.new DangerText('*'),
-                            array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1)))
+                        (new SelectBox('Data[Year]', 'Schuljahr '.new DangerText('*'), array('{{ Name }} {{ Description }}' => $tblYearList)))
+                            ->ajaxPipelineOnChange(array(ApiMassReplace::pipelineLoadDivisionsSelectBox($Data), ApiMassReplace::pipelineLoadCoreGroupsSelectBox($Data)))
                     ), 3),
                     new FormColumn(array(
-                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Bildung: Schulart',
-                            array('Name' => Type::useService()->getTypeAll()))
+                        new SelectBox('Data[SchoolType]', 'Schulart', array('Name' => Type::useService()->getTypeAll()))
+                    ), 3),
+                )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        new NumberField('Data[Level]', '', 'Klassenstufe')
                     ), 3),
                     new FormColumn(array(
-                        new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Klasse: Stufe',
-                            array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList))
+                        ApiMassReplace::receiverBlock('', 'DivisionsSelectBox')
                     ), 3),
                     new FormColumn(array(
-                        new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Klasse: Gruppe',
-                            'Klasse: Gruppe',
-                            array('Name' => Division::useService()->getDivisionAll()))
+                        ApiMassReplace::receiverBlock('', 'CoreGroupsSelectBox')
                     ), 3),
                 )),
                 new FormRow(
                     new FormColumn(
-                        (new Primary('Filter',
+                        (new Primary('Filtern',
                             ApiMassReplace::getEndpoint(),
                             null,
                             $this->getGlobal()->POST))->ajaxPipelineOnClick(ApiMassReplace::pipelineOpen($Field))
                     )
                 ),
-                new FormRow(
-                    new FormColumn(
-                        new DangerText('*'.new Small('Pflichtfeld'))
-                    )
-                )
+//                new FormRow(
+//                    new FormColumn(
+//                        new DangerText('*'.new Small('Pflichtfeld'))
+//                    )
+//                )
             ))
-//                , new Primary('Filtern'), '',
-//                $this->getGlobal()->POST))->ajaxPipelineOnSubmit(ApiMassReplace::pipelineOpen($Field))
         ))->disableSubmitAction();
     }
 
     /**
-     * @param string      $modalField
-     * @param null|string $Year
-     * @param null|string $Division
-     * @param null|string $Node
+     * @param $Data
      *
-     * @return Layout
-     * // Content for OpenModal -> ApiMassReplace
+     * @return SelectBox|null
      */
-    public function getFrontendStudentFilter($modalField, $Year = null, $Division = null, $Node = null)
+    public function loadDivisionsSelectBox($Data): ?SelectBox
+    {
+        if (isset($Data['Year']) && ($tblYear = Term::useService()->getYearById($Data['Year']))) {
+            if (($tblDivisionCourseDivisionList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                return new SelectBox('Data[Division]', 'Klasse', array('Name' => $tblDivisionCourseDivisionList));
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return SelectBox|null
+     */
+    public function loadCoreGroupsSelectBox($Data): ?SelectBox
+    {
+        if (isset($Data['Year']) && ($tblYear = Term::useService()->getYearById($Data['Year']))) {
+            if (($tblDivisionCourseCoreGroupList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                return new SelectBox('Data[CoreGroup]', 'Stammgruppe', array('Name' => $tblDivisionCourseCoreGroupList));
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * // Content for OpenModal -> ApiMassReplace
+     *
+     * @param $modalField
+     * @param $Node
+     * @param $Data
+     *
+     * @return string
+     */
+    public function getFrontendStudentFilter($modalField, $Node, $Data): string
     {
         /** @var SelectBox|TextField $Field */
         $Field = unserialize(base64_decode($modalField));
-        $CloneField = (new ApiMassReplace())->cloneField($Field, 'CloneField', 'Auswahl/Eingabe '
-            .new SuccessText($Node).' - '.$Field->getLabel());
+        $CloneField = (new ApiMassReplace())->cloneField($Field, 'CloneField', 'Auswahl/Eingabe ' . new SuccessText($Node).' - '.$Field->getLabel());
 
-        $TableContent = $this->getStudentFilterResult($Year, $Division, $Field);
+        $TableContent = $this->getStudentFilterResult($Field, $Data);
 
         $Table = (new TableData($TableContent, null,
             array(
                 'Check'         => 'Auswahl',
                 'Name'          => 'Name',
-                'StudentNumber' => 'Schülernummer',
+                'StudentNumber' => 'Schüler&shy;nummer',
                 'Level'         => 'Stufe',
                 'Division'      => 'Klasse',
+                'CoreGroup'     => 'Stammgruppe',
                 'Edit'          => $Field->getLabel(),
             ), array(
                 'columnDefs' => array(
@@ -155,14 +184,11 @@ class StudentFilter extends Extension
         return new Layout(
             new LayoutGroup(
                 new LayoutRow(array(
-//                    new LayoutColumn(
-//                        new Panel($Node, '', Panel::PANEL_TYPE_PRIMARY)
-//                    ),
                     new LayoutColumn(
                         new Danger('Achtung: Die Massenänderung kann nicht automatisch rückgängig gemacht werden!')
                     ),
                     new LayoutColumn(new Well(
-                        ApiMassReplace::receiverFilter('Filter', $this->formStudentFilter($modalField))
+                        ApiMassReplace::receiverFilter('Filter', $this->formStudentFilter($modalField, $Data))
                     )),
                     new LayoutColumn(new Well(
                         (new Form(
@@ -196,14 +222,12 @@ class StudentFilter extends Extension
     }
 
     /**
-     * @param null          $Year
-     * @param null          $Division
      * @param AbstractField $Field
+     * @param $Data
      *
-     * @return array $SearchResult
-     *
+     * @return array
      */
-    private function getStudentFilterResult($Year = null, $Division = null, AbstractField $Field)
+    private function getStudentFilterResult(AbstractField $Field, $Data): array
     {
         /** @var SelectBox|TextField $Field */
         $Label = $Field->getLabel();
@@ -216,355 +240,276 @@ class StudentFilter extends Extension
             }
         }
 
-
-        $Pile = new Pile(Pile::JOIN_TYPE_INNER);
-        $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(),
-            null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
-        );
-        $Pile->addPile((new ViewPerson())->getViewService(), new ViewPerson(),
-            ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
-        );
-        $Pile->addPile((new ViewDivisionStudent())->getViewService(), new ViewDivisionStudent(),
-            ViewDivisionStudent::TBL_DIVISION_STUDENT_SERVICE_TBL_PERSON, ViewDivisionStudent::TBL_DIVISION_TBL_YEAR
-        );
-        $Pile->addPile((new ViewYear())->getViewService(), new ViewYear(),
-            ViewYear::TBL_YEAR_ID, ViewYear::TBL_YEAR_ID
-        );
-
-        $Result = '';
-
-        if (isset($Year) && $Year['TblYear_Id'] != 0 && isset($Pile)) {
-            // Preparation Filter
-            array_walk($Year, function (&$Input) {
-
-                if (!empty($Input)) {
-                    $Input = explode(' ', $Input);
-                    $Input = array_filter($Input);
-                } else {
-                    $Input = false;
-                }
-            });
-            $Year = array_filter($Year);
-//            // Preparation FilterPerson
-//            $Filter['Person'] = array();
-
-            // Preparation $FilterType
-            if (isset($Division) && $Division) {
-                array_walk($Division, function (&$Input) {
-
-                    if (!empty($Input)) {
-                        $Input = explode(' ', $Input);
-                        $Input = array_filter($Input);
-                    } else {
-                        $Input = false;
-                    }
-                });
-                $Division = array_filter($Division);
-            } else {
-                $Division = array();
-            }
-
-            $StudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
-            $Result = $Pile->searchPile(array(
-                0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($StudentGroup->getId())),
-                1 => array(),   // empty Person search
-                2 => $Division,
-                3 => $Year
-            ));
-        }
-
         $SearchResult = array();
-        if ($Result != '') {
-            /**
-             * @var int                                $Index
-             * @var ViewPerson[]|ViewDivisionStudent[] $Row
-             */
-            foreach ($Result as $Index => $Row) {
+        if ($Data) {
+            if (($tblYear = Term::useService()->getYearById($Data['Year']))
+                && ($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy(
+                    $tblYear,
+                    Type::useService()->getTypeById($Data['SchoolType']) ?: null,
+                    $Data['Level'] ?: null,
+                    DivisionCourse::useService()->getDivisionCourseById($Data['Division']) ?: null,
+                    DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup']) ?: null,
+                ))
+            ) {
+                foreach ($tblStudentEducationList as $tblStudentEducation) {
+                    if (($tblPerson = $tblStudentEducation->getServiceTblPerson())) {
+                        $DataPerson = array();
+                        $DataPerson['Edit'] = ''; // get content by Field->getLabel()
 
-                /** @var ViewPerson $DataPerson */
-                $DataPerson = $Row[1]->__toArray();
-                /** @var ViewDivisionStudent $DivisionStudent */
-                $DivisionStudent = $Row[2]->__toArray();
-                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Name'] = false;
-                $DataPerson['Check'] = '';
-                $DataPerson['Edit'] = ''; // get content by Field->getLabel()
+                        $DataPerson['Check'] = (new CheckBox('PersonIdArray[' . $tblPerson->getId() . ']', ' ',
+                            $tblPerson->getId()
+                            , array($tblPerson->getId())))->setChecked();
+                        $DataPerson['Name'] = $tblPerson->getLastFirstName();
 
-                if ($tblPerson) {
-                    $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
-                        $tblPerson->getId()
-                        , array($tblPerson->getId())))->setChecked();
-                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
-//                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if ($tblStudent) {
-                        // Grunddaten
-                        if($Label == 'Prefix'){
-                            $DataPerson['Edit'] = $tblStudent->getPrefix();
-                        }
-                        if($Label == 'Beginnt am'){
-                            $DataPerson['Edit'] = $tblStudent->getSchoolAttendanceStartDate();
-                        }
-                        // Transfer
-                        if ($tblStudentTransferType) {
-//                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                $tblStudentTransferType);
-                            if ($tblStudentTransfer) {
-                                // Ersteinschulung
-                                if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Schule'
-                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
-                                ) {
-                                    $DataPerson['Edit'] = $tblCompany->getName();
-                                }
-                                if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Schulart'
-                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
-                                ) {
-                                    $DataPerson['Edit'] = $tblType->getName();
-                                }
-                                if (($tblStudentSchoolEnrollmentType = $tblStudentTransfer->getTblStudentSchoolEnrollmentType())
-                                    && $Label == 'Einschulungsart'
-                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
-                                ) {
-                                    $DataPerson['Edit'] = $tblStudentSchoolEnrollmentType->getName();
-                                }
-                                if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Bildungsgang'
-                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
-                                ) {
-                                    $DataPerson['Edit'] = $tblCourse->getName();
-                                }
-                                if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
-                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
-                                ) {
-                                    $DataPerson['Edit'] = $transferDate;
-                                }
+                        $DataPerson['Level'] = $tblStudentEducation->getLevel();
+                        $DataPerson['Division'] = ($tblDivision = $tblStudentEducation->getTblDivision()) ? $tblDivision->getName() : '';
+                        $DataPerson['CoreGroup'] = ($tblCoreGroup = $tblStudentEducation->getTblCoreGroup()) ? $tblCoreGroup->getName() : '';
 
-                                // Schüler - Aufnahme
-                                if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Abgebende Schule / Kita'
-                                    && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
-                                ) {
-                                    $DataPerson['Edit'] = $tblCompany->getName();
-                                }
-                                if (($tblStateCompany = $tblStudentTransfer->getServiceTblStateCompany()) && $Label == 'Staatliche Stammschule'
-                                    && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
-                                ) {
-                                    $DataPerson['Edit'] = $tblStateCompany->getName();
-                                }
-                                if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Letzte Schulart'
-                                    && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
-                                ) {
-                                    $DataPerson['Edit'] = $tblType->getName();
-                                }
-                                if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Letzter Bildungsgang'
-                                    && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
-                                ) {
-                                    $DataPerson['Edit'] = $tblCourse->getName();
-                                }
-                                if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
-                                    && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
-                                ) {
-                                    $DataPerson['Edit'] = $transferDate;
-                                }
-
-                                // Schüler - Abgabe
-                                if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aufnehmende Schule'
-                                    && $tblStudentTransferType->getIdentifier() == 'LEAVE'
-                                ) {
-                                    $DataPerson['Edit'] = $tblCompany->getName();
-                                }
-                                if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Letzte Schulart'
-                                    && $tblStudentTransferType->getIdentifier() == 'LEAVE'
-                                ) {
-                                    $DataPerson['Edit'] = $tblType->getName();
-                                }
-                                if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Letzter Bildungsgang'
-                                    && $tblStudentTransferType->getIdentifier() == 'LEAVE'
-                                ) {
-                                    $DataPerson['Edit'] = $tblCourse->getName();
-                                }
-                                if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
-                                    && $tblStudentTransferType->getIdentifier() == 'LEAVE'
-                                ) {
-                                    $DataPerson['Edit'] = $transferDate;
-                                }
-
-                                // Schulverlauf
-                                if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aktuelle Schule'
-                                    && $tblStudentTransferType->getIdentifier() == 'PROCESS'
-                                ) {
-                                    $DataPerson['Edit'] = $tblCompany->getName();
-                                }
-                                if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Aktueller Bildungsgang'
-                                    && $tblStudentTransferType->getIdentifier() == 'PROCESS'
-                                ) {
-                                    $DataPerson['Edit'] = $tblCourse->getName();
-                                }
-//                                if(( $tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Aktuelle Schulart'){
-//                                $DataPerson['Edit'] = $tblType->getName();
-//                                }
+                        if (strpos($Field->getName(), 'StudentEducationData') !== false) {
+                            switch ($Label) {
+                                case 'Klassenstufe': $DataPerson['Edit'] = $tblStudentEducation->getLevel(); break;
+                                case 'Schulart': $DataPerson['Edit'] = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getName() : ''; break;
+                                case 'Schule': $DataPerson['Edit'] = ($tblCompany = $tblStudentEducation->getServiceTblCompany()) ? $tblCompany->getName() : ''; break;
+                                case 'Bildungsgang': $DataPerson['Edit'] = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : ''; break;
                             }
                         }
-                        // Subject
-                        if ($Label == 'Religion') {
-                            $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION');
-                            $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
-                            $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
-                                $tblStudentSubjectType, $tblStudentSubjectRanking);
-                            if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                                $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+
+                        if (($tblStudent = $tblPerson->getStudent())) {
+                            $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
+
+                            // Grunddaten
+                            if ($Label == 'Prefix') {
+                                $DataPerson['Edit'] = $tblStudent->getPrefix();
                             }
-                        }
-                        if ($Label == 'Profil') {
-                            $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE');
-                            $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
-                            $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
-                                $tblStudentSubjectType, $tblStudentSubjectRanking);
-                            if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                                $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                            if ($Label == 'Beginnt am') {
+                                $DataPerson['Edit'] = $tblStudent->getSchoolAttendanceStartDate();
                             }
-                        }
-                        $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
-                        if ($Label == $tblStudentSubjectTypeOrientation->getName()) {
-                            $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
-                            $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
-                                $tblStudentSubjectTypeOrientation, $tblStudentSubjectRanking);
-                            if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                                $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                            // Transfer
+                            if ($tblStudentTransferType) {
+    //                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                    $tblStudentTransferType);
+                                if ($tblStudentTransfer) {
+                                    // Ersteinschulung
+                                    if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Schule'
+                                        && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                    ) {
+                                        $DataPerson['Edit'] = $tblCompany->getName();
+                                    }
+                                    if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Schulart'
+                                        && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                    ) {
+                                        $DataPerson['Edit'] = $tblType->getName();
+                                    }
+                                    if (($tblStudentSchoolEnrollmentType = $tblStudentTransfer->getTblStudentSchoolEnrollmentType())
+                                        && $Label == 'Einschulungsart'
+                                        && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                    ) {
+                                        $DataPerson['Edit'] = $tblStudentSchoolEnrollmentType->getName();
+                                    }
+                                    if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Bildungsgang'
+                                        && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                    ) {
+                                        $DataPerson['Edit'] = $tblCourse->getName();
+                                    }
+                                    if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
+                                        && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                    ) {
+                                        $DataPerson['Edit'] = $transferDate;
+                                    }
+
+                                    // Schüler - Aufnahme
+                                    if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Abgebende Schule / Kita'
+                                        && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
+                                    ) {
+                                        $DataPerson['Edit'] = $tblCompany->getName();
+                                    }
+                                    if (($tblStateCompany = $tblStudentTransfer->getServiceTblStateCompany()) && $Label == 'Staatliche Stammschule'
+                                        && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
+                                    ) {
+                                        $DataPerson['Edit'] = $tblStateCompany->getName();
+                                    }
+                                    if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Letzte Schulart'
+                                        && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
+                                    ) {
+                                        $DataPerson['Edit'] = $tblType->getName();
+                                    }
+                                    if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Letzter Bildungsgang'
+                                        && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
+                                    ) {
+                                        $DataPerson['Edit'] = $tblCourse->getName();
+                                    }
+                                    if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
+                                        && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
+                                    ) {
+                                        $DataPerson['Edit'] = $transferDate;
+                                    }
+
+                                    // Schüler - Abgabe
+                                    if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aufnehmende Schule'
+                                        && $tblStudentTransferType->getIdentifier() == 'LEAVE'
+                                    ) {
+                                        $DataPerson['Edit'] = $tblCompany->getName();
+                                    }
+                                    if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Letzte Schulart'
+                                        && $tblStudentTransferType->getIdentifier() == 'LEAVE'
+                                    ) {
+                                        $DataPerson['Edit'] = $tblType->getName();
+                                    }
+                                    if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Letzter Bildungsgang'
+                                        && $tblStudentTransferType->getIdentifier() == 'LEAVE'
+                                    ) {
+                                        $DataPerson['Edit'] = $tblCourse->getName();
+                                    }
+                                    if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
+                                        && $tblStudentTransferType->getIdentifier() == 'LEAVE'
+                                    ) {
+                                        $DataPerson['Edit'] = $transferDate;
+                                    }
+
+                                    // Schulverlauf
+//                                    if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Aktuelle Schule'
+//                                        && $tblStudentTransferType->getIdentifier() == 'PROCESS'
+//                                    ) {
+//                                        $DataPerson['Edit'] = $tblCompany->getName();
+//                                    }
+//                                    if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Aktueller Bildungsgang'
+//                                        && $tblStudentTransferType->getIdentifier() == 'PROCESS'
+//                                    ) {
+//                                        $DataPerson['Edit'] = $tblCourse->getName();
+//                                    }
+    //                                if(( $tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Aktuelle Schulart'){
+    //                                $DataPerson['Edit'] = $tblType->getName();
+    //                                }
+                                }
                             }
-                        }
-                        for ($i = 1; $i < 6; $i++){
-                            if ($Label == $i . '. Fremdsprache'){
-                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
-                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                            // Subject
+                            if ($Label == 'Religion') {
+                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION');
+                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
                                 $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
                                     $tblStudentSubjectType, $tblStudentSubjectRanking);
                                 if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                                    $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                                    $DataPerson['Edit'] = new Muted('(' . $tblSubject->getAcronym() . ') ') . $tblSubject->getName();
                                 }
                             }
-                            if ($Label == $i . '. Wahlfach'){
-                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE');
-                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                            if ($Label == 'Profil') {
+                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE');
+                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
                                 $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
                                     $tblStudentSubjectType, $tblStudentSubjectRanking);
                                 if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                                    $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                                    $DataPerson['Edit'] = new Muted('(' . $tblSubject->getAcronym() . ') ') . $tblSubject->getName();
                                 }
                             }
-                            if ($Label == $i . '. Arbeitsgemeinschaft'){
-                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM');
-                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                            $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
+                            if ($Label == $tblStudentSubjectTypeOrientation->getName()) {
+                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
                                 $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
-                                    $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                    $tblStudentSubjectTypeOrientation, $tblStudentSubjectRanking);
                                 if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                                    $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                                    $DataPerson['Edit'] = new Muted('(' . $tblSubject->getAcronym() . ') ') . $tblSubject->getName();
                                 }
                             }
-                            if ($Label == new Muted(new Small($i . '. Fremdsprache von Klasse'))){
-                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
-                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
-                                $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
-                                    $tblStudentSubjectType, $tblStudentSubjectRanking);
-                                if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                                    $DataPerson['Edit'] = ($tblStudentSubject->getServiceTblLevelFrom() ? $tblStudentSubject->getServiceTblLevelFrom()->getName() . ' ' : '')
-                                        . new Muted('('.$tblSubject->getAcronym().') ');
+                            for ($i = 1; $i < 6; $i++) {
+                                if ($Label == $i . '. Fremdsprache') {
+                                    $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+                                    $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                    $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                        $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                    if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                        $DataPerson['Edit'] = new Muted('(' . $tblSubject->getAcronym() . ') ') . $tblSubject->getName();
+                                    }
+                                }
+                                if ($Label == $i . '. Wahlfach') {
+                                    $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE');
+                                    $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                    $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                        $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                    if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                        $DataPerson['Edit'] = new Muted('(' . $tblSubject->getAcronym() . ') ') . $tblSubject->getName();
+                                    }
+                                }
+                                if ($Label == $i . '. Arbeitsgemeinschaft') {
+                                    $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM');
+                                    $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                    $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                        $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                    if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                        $DataPerson['Edit'] = new Muted('(' . $tblSubject->getAcronym() . ') ') . $tblSubject->getName();
+                                    }
+                                }
+                                if ($Label == new Muted(new Small($i . '. Fremdsprache von Klasse'))) {
+                                    $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+                                    $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                    $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                        $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                    if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                        $DataPerson['Edit'] = ($tblStudentSubject->getServiceTblLevelFrom() ? $tblStudentSubject->getServiceTblLevelFrom()->getName() . ' ' : '')
+                                            . new Muted('(' . $tblSubject->getAcronym() . ') ');
+                                    }
+                                }
+                                if ($Label == new Muted(new Small($i . '. Fremdsprache bis Klasse'))) {
+                                    $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+                                    $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                    $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                        $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                    if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                        $DataPerson['Edit'] = ($tblStudentSubject->getServiceTblLevelTill() ? $tblStudentSubject->getServiceTblLevelTill()->getName() . ' ' : '')
+                                            . new Muted('(' . $tblSubject->getAcronym() . ') ');
+                                    }
                                 }
                             }
-                            if ($Label == new Muted(new Small($i . '. Fremdsprache bis Klasse'))){
-                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
-                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
-                                $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
-                                    $tblStudentSubjectType, $tblStudentSubjectRanking);
-                                if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                                    $DataPerson['Edit'] = ($tblStudentSubject->getServiceTblLevelTill() ? $tblStudentSubject->getServiceTblLevelTill()->getName() . ' ' : '')
-                                        . new Muted('('.$tblSubject->getAcronym().') ');
+
+                            // MedicalRecord
+                            if (($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())) {
+                                if ($Label == 'Datum (vorgelegt am)') {
+                                    $DataPerson['Edit'] = $tblMedicalRecord->getMasernDate();
+                                }
+                                if ($Label == 'Art der Bescheinigung') {
+                                    if (($MasernInfo = $tblMedicalRecord->getMasernDocumentType())) {
+                                        $DataPerson['Edit'] = $MasernInfo->getTextShort();
+                                    } else {
+                                        $DataPerson['Edit'] = '';
+                                    }
+
+                                }
+                                if ($Label == 'Bescheinigung, dass der Nachweis bereits vorgelegt wurde, durch') {
+                                    if (($MasernInfo = $tblMedicalRecord->getMasernCreatorType())) {
+                                        $DataPerson['Edit'] = $MasernInfo->getTextShort();
+                                    } else {
+                                        $DataPerson['Edit'] = '';
+                                    }
                                 }
                             }
+
+                            // TechnicalSchool
+                            if (($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())) {
+                                if ($Label == 'Bildungsgang / Berufsbezeichnung / Ausbildung') {
+                                    if (($tblTechnicalCourse = $tblStudentTechnicalSchool->getServiceTblTechnicalCourse())) {
+                                        $DataPerson['Edit'] = $tblTechnicalCourse->getName();
+                                    }
+                                }
+                                if ($Label == 'Fachrichtung') {
+                                    if (($tblTechnicalSubjectArea = $tblStudentTechnicalSchool->getServiceTblTechnicalSubjectArea())) {
+                                        $DataPerson['Edit'] = $tblTechnicalSubjectArea->getName();
+                                    }
+                                }
+                                if ($Label == 'Zeitform des Unterrichts') {
+                                    if (($tblStudentTenseOfLesson = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())) {
+                                        $DataPerson['Edit'] = $tblStudentTenseOfLesson->getName();
+                                    }
+                                }
+                                if ($Label == 'Ausbildungsstatus') {
+                                    if (($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())) {
+                                        $DataPerson['Edit'] = $tblStudentTrainingStatus->getName();
+                                    }
+                                }
+                            }
+
                         }
 
-                        // MedicalRecord
-                        if (($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord()))
-                        {
-                            if($Label == 'Datum (vorgelegt am)'){
-                                $DataPerson['Edit'] = $tblMedicalRecord->getMasernDate();
-                            }
-                            if($Label == 'Art der Bescheinigung'){
-                                if(($MasernInfo = $tblMedicalRecord->getMasernDocumentType())){
-                                    $DataPerson['Edit'] = $MasernInfo->getTextShort();
-                                } else {
-                                    $DataPerson['Edit'] = '';
-                                }
-
-                            }
-                            if($Label == 'Bescheinigung, dass der Nachweis bereits vorgelegt wurde, durch'){
-                                if(($MasernInfo = $tblMedicalRecord->getMasernCreatorType())){
-                                    $DataPerson['Edit'] = $MasernInfo->getTextShort();
-                                } else {
-                                    $DataPerson['Edit'] = '';
-                                }
-                            }
-                        }
-
-                        // TechnicalSchool
-                        if (($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())) {
-                            if ($Label == 'Bildungsgang / Berufsbezeichnung / Ausbildung') {
-                                if (($tblTechnicalCourse = $tblStudentTechnicalSchool->getServiceTblTechnicalCourse())) {
-                                    $DataPerson['Edit'] = $tblTechnicalCourse->getName();
-                                }
-                            }
-                            if ($Label == 'Fachrichtung') {
-                                if (($tblTechnicalSubjectArea = $tblStudentTechnicalSchool->getServiceTblTechnicalSubjectArea())) {
-                                    $DataPerson['Edit'] = $tblTechnicalSubjectArea->getName();
-                                }
-                            }
-                            if ($Label == 'Zeitform des Unterrichts') {
-                                if (($tblStudentTenseOfLesson = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())) {
-                                    $DataPerson['Edit'] = $tblStudentTenseOfLesson->getName();
-                                }
-                            }
-                            if ($Label == 'Ausbildungsstatus') {
-                                if (($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())) {
-                                    $DataPerson['Edit'] = $tblStudentTrainingStatus->getName();
-                                }
-                            }
-                        }
-
-                    }
-                }
-                $DataPerson['Division'] = '';
-                $DataPerson['Level'] = '';
-
-                $tblDivision = Division::useService()->getDivisionById($DivisionStudent['TblDivision_Id']);
-                if ($tblDivision) {
-                    $DataPerson['Division'] = $tblDivision->getName();
-                    $tblLevel = $tblDivision->getTblLevel();
-                    if ($tblLevel) {
-                        $DataPerson['Level'] = $tblLevel->getName();
-                    }
-                }
-//                /** @noinspection PhpUndefinedFieldInspection */
-//                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-//                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
-//                    /** @noinspection PhpUndefinedFieldInspection */
-//                    $DataPerson['Address'] = $tblAddress->getGuiString();
-//                }
-                $DataPerson['StudentNumber'] = '';
-                if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
-                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
-                }
-
-                if (!isset($DataPerson['ProspectYear'])) {
-                    $DataPerson['ProspectYear'] = new Small(new Muted('-NA-'));
-                }
-                if (!isset($DataPerson['ProspectDivision'])) {
-                    $DataPerson['ProspectDivision'] = new Small(new Muted('-NA-'));
-                }
-
-                // ignore duplicated Person
-                if ($DataPerson['Name']) {
-                    if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
-                        $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
+                        $SearchResult[$tblPerson->getId()] = $DataPerson;
                     }
                 }
             }

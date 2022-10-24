@@ -251,4 +251,28 @@ class Service extends AbstractService
 
         return false;
     }
+
+    /**
+     * nur allgemeinbildende Schularten
+     *
+     * @return TblType[]|false
+     */
+    public function getConsumerSchoolTypeCommonAll()
+    {
+        if (($tblSchoolAll = $this->getSchoolAll())) {
+            $list = array();
+            foreach($tblSchoolAll as $tblSchool) {
+                if (($tblType = $tblSchool->getServiceTblType())
+                    && ($tblCategory = $tblType->getTblCategory())
+                    && $tblCategory->getIdentifier() == 'COMMON'
+                ) {
+                    $list[$tblType->getShortName()] = $tblType;
+                }
+            }
+
+            return $list;
+        }
+
+        return false;
+    }
 }
