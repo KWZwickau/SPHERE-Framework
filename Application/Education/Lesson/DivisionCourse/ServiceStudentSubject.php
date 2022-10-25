@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\VirtualSubject;
@@ -151,17 +152,62 @@ abstract class ServiceStudentSubject extends AbstractService
 
     /**
      * @param TblDivisionCourse $tblSubjectDivisionCourse
+     * @param $Period
+     *
+     * @return false|TblStudentSubject[]
+     */
+    public function getStudentSubjectListBySubjectDivisionCourseAndPeriod(TblDivisionCourse $tblSubjectDivisionCourse, $Period)
+    {
+        return (new Data($this->getBinding()))->getStudentSubjectListBySubjectDivisionCourseAndPeriod($tblSubjectDivisionCourse, $Period);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblSubjectDivisionCourse
      * @param int $Period
      *
      * @return int
      */
     public function getCountStudentsBySubjectDivisionCourseAndPeriod(TblDivisionCourse $tblSubjectDivisionCourse, int $Period): int
     {
-        if (($tblStudentSubjectList = (new Data($this->getBinding()))->getStudentSubjectListBySubjectDivisionCourseAndPeriod($tblSubjectDivisionCourse, $Period))) {
+        if (($tblStudentSubjectList = $this->getStudentSubjectListBySubjectDivisionCourseAndPeriod($tblSubjectDivisionCourse, $Period))) {
             return count ($tblStudentSubjectList);
         }
 
         return 0;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param int $Period
+     *
+     * @return TblStudentSubject[]|false
+     */
+    public function getStudentSubjectListByStudentDivisionCourseAndPeriod(TblDivisionCourse $tblDivisionCourse, int $Period)
+    {
+        $resultList = array();
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+            $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+            $this->getSubDivisionCourseRecursiveListByDivisionCourse($tblDivisionCourse, $tblDivisionCourseList);
+
+            foreach ($tblDivisionCourseList as $tblDivisionCourseItem) {
+                if (($tblStudentMemberList = $this->getDivisionCourseMemberListBy($tblDivisionCourseItem, TblDivisionCourseMemberType::TYPE_STUDENT))) {
+                    foreach ($tblStudentMemberList as $tblPerson) {
+                        if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear))) {
+                            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                                if (($list = explode('/', $tblStudentSubject->getPeriodIdentifier()))
+                                    && isset($list[1])
+                                    && $list[1] == $Period
+                                ) {
+                                    $resultList[] = $tblStudentSubject;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**
@@ -381,5 +427,42 @@ abstract class ServiceStudentSubject extends AbstractService
         }
 
         return empty($tblSubjectList) ? false : $tblSubjectList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return bool
+     */
+    public function copySubjectDivisionCourse(TblDivisionCourse $tblDivisionCourse): bool
+    {
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+            $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+            DivisionCourse::useService()->getSubDivisionCourseRecursiveListByDivisionCourse($tblDivisionCourse, $tblDivisionCourseList);
+
+            $createList = array();
+            foreach ($tblDivisionCourseList as $tblDivisionCourseItem) {
+                if (($tempList = $this->getStudentSubjectListByStudentDivisionCourseAndPeriod($tblDivisionCourseItem, 1))) {
+                    foreach ($tempList as $tblStudentSubject) {
+                        if (($tblPerson = $tblStudentSubject->getServiceTblPerson())
+                            && ($tblSubjectDivisionCourse = $tblStudentSubject->getTblDivisionCourse())
+                            && !$this->getStudentSubjectByPersonAndYearAndDivisionCourseAndPeriod($tblPerson, $tblYear, $tblSubjectDivisionCourse, 2)
+                            && ($list = explode('/', $tblStudentSubject->getPeriodIdentifier()))
+                            && isset($list[0])
+                        ) {
+                            $createList[] = TblStudentSubject::withParameter($tblPerson, $tblYear, null, $tblStudentSubject->getHasGrading(),
+                                null, $tblSubjectDivisionCourse, $list[0] . '/' . 2);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        if (!empty($createList)) {
+            return (new Data($this->getBinding()))->createStudentSubjectBulkList($createList);
+        }
+
+        return false;
     }
 }
