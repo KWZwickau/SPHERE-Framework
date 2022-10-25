@@ -26,7 +26,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementTyp
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentInsuranceState;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
@@ -40,16 +39,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTechnicalSch
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentBaptism;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentDisorder;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentFocus;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentIntegration;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Service\Support;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -64,105 +53,6 @@ use SPHERE\Application\Setting\Consumer\Consumer;
  */
 class Service extends Support
 {
-
-    /**
-     * @return false|ViewStudent[]
-     */
-    public function viewPerson()
-    {
-
-        return ( new Data($this->getBinding()) )->viewStudent();
-    }
-
-    /**
-     * @return false|ViewStudentAgreement[]
-     */
-    public function viewStudentAgreement()
-    {
-
-        return ( new Data($this->getBinding()) )->viewStudentAgreement();
-    }
-
-    /**
-     * @return false|ViewStudentBaptism[]
-     */
-    public function viewStudentBaptism()
-    {
-
-        return ( new Data($this->getBinding()) )->viewStudentBaptism();
-    }
-
-    /**
-     * @return false|ViewStudentDisorder[]
-     */
-    public function viewStudentDisorder()
-    {
-
-        return ( new Data($this->getBinding()) )->viewStudentDisorder();
-    }
-
-    /**
-     * @return false|ViewStudentFocus[]
-     */
-    public function viewStudentFocus()
-    {
-
-        return ( new Data($this->getBinding()) )->viewStudentFocus();
-    }
-
-    /**
-     * @return false|ViewStudentIntegration[]
-     */
-    public function viewStudentIntegration()
-    {
-
-        return ( new Data($this->getBinding()) )->viewStudentIntegration();
-    }
-
-    /**
-     * @return false|ViewStudentIntegration[]
-     */
-    public function viewStudentLiberation()
-    {
-
-        return ( new Data($this->getBinding()) )->viewStudentLiberation();
-    }
-
-    /**
-     * @return false|ViewStudentLocker[]
-     */
-    public function viewStudentLocker()
-    {
-
-        return ( new Data($this->getBinding()) )->viewStudentLocker();
-    }
-
-    /**
-     * @return false|ViewStudentMedicalRecord[]
-     */
-    public function viewStudentMedicalRecord()
-    {
-
-        return ( new Data($this->getBinding()) )->viewStudentMedicalRecord();
-    }
-
-    /**
-     * @return false|ViewStudentTransfer[]
-     */
-    public function viewStudentTransfer()
-    {
-
-        return ( new Data($this->getBinding()) )->viewStudentTransfer();
-    }
-
-    /**
-     * @return false|ViewStudentTransport[]
-     */
-    public function viewStudentTransport()
-    {
-
-        return ( new Data($this->getBinding()) )->viewStudentTransport();
-    }
 
     /**
      * @param bool $doSimulation
@@ -299,41 +189,6 @@ class Service extends Support
     }
 
     /**
-     * @param TblPerson|null  $IntegrationPerson
-     * @param TblCompany|null $IntegrationCompany
-     * @param                 $CoachingRequestDate
-     * @param                 $CoachingCounselDate
-     * @param                 $CoachingDecisionDate
-     * @param                 $CoachingRequired
-     * @param                 $CoachingTime
-     * @param string          $CoachingRemark
-     *
-     * @return Service\Entity\TblStudentIntegration
-     */
-    public function insertStudentIntegration(
-        TblPerson $IntegrationPerson = null,
-        TblCompany $IntegrationCompany = null,
-        $CoachingRequestDate,
-        $CoachingCounselDate,
-        $CoachingDecisionDate,
-        $CoachingRequired,
-        $CoachingTime = '',
-        $CoachingRemark = ''
-    ) {
-
-        return (new Data($this->getBinding()))->createStudentIntegration(
-            $IntegrationPerson ? $IntegrationPerson : null,
-            $IntegrationCompany ? $IntegrationCompany : null,
-            $CoachingRequestDate,
-            $CoachingCounselDate,
-            $CoachingDecisionDate,
-            $CoachingRequired,
-            $CoachingTime,
-            $CoachingRemark
-        );
-    }
-
-    /**
      * @param TblPerson $tblPerson
      * @param string $Prefix
      * @param string $Identifier
@@ -342,7 +197,6 @@ class Service extends Support
      * @param TblStudentBilling|null $tblStudentBilling
      * @param TblStudentLocker|null $tblStudentLocker
      * @param TblStudentBaptism|null $tblStudentBaptism
-     * @param TblStudentIntegration|null $tblStudentIntegration
      * @param TblStudentSpecialNeeds|null $tblStudentSpecialNeeds
      * @param string $SchoolAttendanceStartDate
      * @param TblStudentTechnicalSchool|null $tblStudentTechnicalSchool
@@ -358,7 +212,6 @@ class Service extends Support
         TblStudentBilling $tblStudentBilling = null,
         TblStudentLocker $tblStudentLocker = null,
         TblStudentBaptism $tblStudentBaptism = null,
-        TblStudentIntegration $tblStudentIntegration = null,
         TblStudentSpecialNeeds $tblStudentSpecialNeeds = null,
         TblStudentTechnicalSchool $tblStudentTechnicalSchool = null,
         $SchoolAttendanceStartDate = ''
@@ -372,7 +225,6 @@ class Service extends Support
             $tblStudentBilling,
             $tblStudentLocker,
             $tblStudentBaptism,
-            $tblStudentIntegration,
             $tblStudentSpecialNeeds,
             $tblStudentTechnicalSchool,
             $SchoolAttendanceStartDate
@@ -838,7 +690,6 @@ class Service extends Support
                         $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
                         $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
                         $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
-                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
                         $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
                         $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
                     );
@@ -937,7 +788,6 @@ class Service extends Support
                 $tblStudentBilling ? $tblStudentBilling : null,
                 $tblStudentLocker ? $tblStudentLocker : null,
                 $tblStudentBaptism ? $tblStudentBaptism : null,
-                $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
                 $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
                 $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
             );
@@ -1624,7 +1474,6 @@ class Service extends Support
                         $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
                         $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
                         $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
-                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
                         $tblStudentSpecialNeeds,
                         $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
                     );
@@ -1714,7 +1563,6 @@ class Service extends Support
                         $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
                         $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
                         $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
-                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
                         $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
                         $tblStudentTechnicalSchool
                     );
@@ -1838,7 +1686,6 @@ class Service extends Support
      * @param TblStudentBilling|null $tblStudentBilling
      * @param TblStudentLocker|null $tblStudentLocker
      * @param TblStudentBaptism|null $tblStudentBaptism
-     * @param TblStudentIntegration|null $tblStudentIntegration
      * @param TblStudentSpecialNeeds|null $tblStudentSpecialNeeds
      * @param TblStudentTechnicalSchool|null $tblStudentTechnicalSchool
      *
@@ -1851,7 +1698,6 @@ class Service extends Support
         TblStudentBilling $tblStudentBilling = null,
         TblStudentLocker $tblStudentLocker = null,
         TblStudentBaptism $tblStudentBaptism = null,
-        TblStudentIntegration $tblStudentIntegration = null,
         TblStudentSpecialNeeds $tblStudentSpecialNeeds = null,
         TblStudentTechnicalSchool $tblStudentTechnicalSchool = null
     ) : bool {
@@ -1862,7 +1708,6 @@ class Service extends Support
             $tblStudentBilling,
             $tblStudentLocker,
             $tblStudentBaptism,
-            $tblStudentIntegration,
             $tblStudentSpecialNeeds,
             $tblStudentTechnicalSchool
         );

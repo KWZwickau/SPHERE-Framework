@@ -74,7 +74,6 @@ abstract class Student extends AbstractService
      * @param null $tblStudentBilling
      * @param null $tblStudentLocker
      * @param null $tblStudentBaptism
-     * @param null $tblStudentIntegration
      * @param null $tblStudentSpecialNeeds
      * @param string $SchoolAttendanceStartDate
      * @param bool $HasMigrationBackground
@@ -91,7 +90,6 @@ abstract class Student extends AbstractService
         $tblStudentBilling = null,
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
-        $tblStudentIntegration = null,
         $tblStudentSpecialNeeds = null,
         $SchoolAttendanceStartDate = '',
         $HasMigrationBackground = false,
@@ -111,7 +109,6 @@ abstract class Student extends AbstractService
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration,
                 $tblStudentSpecialNeeds,
                 $tblStudentTechnicalSchool,
                 $SchoolAttendanceStartDate,
@@ -128,7 +125,6 @@ abstract class Student extends AbstractService
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration,
                 $tblStudentSpecialNeeds,
                 $tblStudentTechnicalSchool,
                 $SchoolAttendanceStartDate,

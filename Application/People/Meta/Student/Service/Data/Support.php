@@ -17,7 +17,7 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
  *
  * @package SPHERE\Application\People\Meta\Student\Service\Data
  */
-abstract class Support extends Integration
+abstract class Support extends Subject
 {
 
     /**

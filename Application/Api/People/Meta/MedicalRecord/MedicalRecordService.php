@@ -50,7 +50,6 @@ class MedicalRecordService
                             $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
                             $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
                             $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
-                            $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
                             $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
                             $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
                         );
@@ -118,7 +117,6 @@ class MedicalRecordService
                             $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
                             $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
                             $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
-                            $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
                             $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
                             $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
                         );
@@ -185,7 +183,6 @@ class MedicalRecordService
                             $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
                             $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
                             $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
-                            $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null,
                             $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
                             $tblStudent->getTblStudentTechnicalSchool() ? $tblStudent->getTblStudentTechnicalSchool() : null
                         );

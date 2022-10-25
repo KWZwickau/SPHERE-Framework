@@ -227,7 +227,7 @@ class Service extends Extension
                     ->setAlignmentCenter();
                 $Row++;
                 $export->setValue($export->getCell(0, $Row),
-                    " - Abgabe bei der Sächsischen Bildungsagentur spätestens:    24. Oktober - ");
+                    " - Abgabe beim Landesamt für Schule und Bildung spätestens:    24. Oktober - ");
                 $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
                     ->setRowHeight(23)
                     ->mergeCells()
@@ -248,7 +248,8 @@ class Service extends Extension
             $export->setStyle($export->getCell(0, $Row), $export->getCell(4, ($Row)))
                 ->mergeCells();
             $export->setValue($export->getCell(7, $Row), "Stichtag, Datum: ...........");
-            $export->setStyle($export->getCell(7, $Row))
+            $export->setStyle($export->getCell(7, $Row), $export->getCell(15, ($Row)))
+                ->mergeCells()
                 ->setFontSize(12)
                 ->setFontBold()
                 ->setFontColor('FFFF0000');
@@ -257,7 +258,7 @@ class Service extends Extension
             $export->setStyle($export->getCell(0, $Row), $export->getCell(4, ($Row)))
                 ->mergeCells();
             if ($isSaxony) {
-                $export->setValue($export->getCell(7, $Row), "(10. Oktober oder abweichender Stichtag  gem. § 8 Abs. 3 Satz6 ZuschussVO:
+                $export->setValue($export->getCell(7, $Row), "(10. Oktober oder abweichender Stichtag  gem. § 8 Abs. 3 Satz 6 ZuschussVO:
                     Fällt ein Stichtag auf einen unterrichtsfreien Tag, gilt der letzte vorhergehende
                     Unterrichtstag als Stichtag. Dieser ist anzugeben.)");
                 $export->setStyle($export->getCell(7, $Row), $export->getCell(15, ($Row + 2)))
@@ -658,12 +659,20 @@ Kostenerstattung durch andere öffentlichen Träger");
 //                ->setAlignmentBottom();
 //            $Row++;
 
-            $export->setValue($export->getCell(0, $Row), '                    Eine Namensliste unter Angabe des Förderschwerpunktes
- ist der Meldung zusätzlich beizufügen.');
+            $export->setValue($export->getCell(0, $Row), 'Hinweis:  Schüler, die inklusiv unterrichtet werden, sind dem
+Förderschultyp zuzuordnen, den sie ohne inklusive Beschulung besuchen würden.  ');
             $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
                 ->mergeCells()
                 ->setFontBold()
-                ->setRowHeight(21)
+                ->setRowHeight(15)
+                ->setAlignmentBottom();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), '                    Eine Namensliste unter Angabe des
+Förderschwerpunktes (FSP) ist der Meldung zusätzlich beizufügen.');
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                ->mergeCells()
+                ->setFontBold()
+                ->setRowHeight(17)
                 ->setAlignmentTop();
             $Row++;
             if ($isSaxony) {
@@ -728,7 +737,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 $PaperOrientation = new PaperOrientationParameter('LANDSCAPE');
                 $export->setPaperOrientationParameter($PaperOrientation);
                 //Header
-                $export->setValue($export->getCell(0, $Row), "Namensliste unter Angabe des Förderschwerpunktes");
+                $export->setValue($export->getCell(0, $Row), "Namentliche Auflistung der gemeldeten Inklusionsschüler");
                 $export->setStyle($export->getCell(0, $Row), $export->getCell(9, $Row))
                     ->mergeCells()
                     ->setFontBold()
@@ -773,7 +782,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                     ->setFontBold();
                 $Row++;
                 $RowStartAddress = $Row;
-                $export->setValue($export->getCell(0, $Row), 'Anschrift (Straße. Hausnummer, PLZ, Ort)');
+                $export->setValue($export->getCell(0, $Row), 'Anschrift (Straße, Hausnummer, PLZ, Ort)');
                 $export->setStyle($export->getCell(0, $Row))
                     ->setFontSize(10);
                 $Row++;
@@ -843,7 +852,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                     ->setAlignmentCenter()
                     ->setAlignmentMiddle()
                     ->setFontBold();
-                $export->setValue($export->getCell(4, $Row), 'Datum des Integrations- bescheids');
+                $export->setValue($export->getCell(4, $Row), 'Datum des Bescheids');
                 $export->setStyle($export->getCell(4, $Row))
                     ->setWrapText()
                     ->setAlignmentCenter()

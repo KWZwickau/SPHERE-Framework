@@ -2,43 +2,12 @@
 namespace SPHERE\Application\People\Meta\Masern\Service;
 
 use DateTime;
-use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
-use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
-use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalDiploma;
-use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalSubjectArea;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Masern\Service\Entity\TblPersonMasern;
-use SPHERE\Application\People\Meta\Student\Service\Data\Support;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentInsuranceState;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTechnicalSchool;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentBaptism;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentDisorder;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentFocus;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentIntegration;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLiberation;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data
