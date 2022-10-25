@@ -522,6 +522,7 @@ class Frontend extends FrontendTeacher
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
             $stage->setDescription('Übersicht ' . $text . ' Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
+            $text = $tblDivisionCourse->getType()->getIsCourseSystem() ? 'im ' . $text : 'in der ' . $text;
             if ($tblDivisionCourse->getDescription()) {
                 $stage->setMessage($tblDivisionCourse->getDescription());
             }
@@ -583,7 +584,7 @@ class Frontend extends FrontendTeacher
                         new LayoutRow(new LayoutColumn(
                             ApiDivisionCourseStudent::receiverBlock($this->loadDivisionCourseStudentContent($DivisionCourseId), 'DivisionCourseStudentContent')
                         ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler in der ' . $text .
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler ' . $text .
                         ($tblDivisionCourse->getType()->getIsCourseSystem()
                             ? ''
                             : new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
@@ -605,7 +606,7 @@ class Frontend extends FrontendTeacher
                                 ? new Warning('Keine ' . $tblDivisionCourse->getDivisionTeacherName() . ' dem Kurs zugewiesen')
                                 : $this->getTableCustom($headerMemberColumnList, $divisionTeacherList)
                         ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Person() . ' ' . $tblDivisionCourse->getDivisionTeacherName() . ' in der ' . $text
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Person() . ' ' . $tblDivisionCourse->getDivisionTeacherName() . ' ' . $text
                         . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/DivisionTeacher', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
                         . ' | '
                         . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
@@ -618,7 +619,7 @@ class Frontend extends FrontendTeacher
                                 ? new Warning('Keine Schülersprecher dem Kurs zugewiesen')
                                 : $this->getTableCustom($headerMemberColumnList, $representativeList)
                         ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schülersprecher in der ' . $text
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schülersprecher ' . $text
                         . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Representative', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
                         . ' | '
                         . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
@@ -631,7 +632,7 @@ class Frontend extends FrontendTeacher
                                 ? new Warning('Keine Elternvertreter dem Kurs zugewiesen')
                                 : $this->getTableCustom($headerMemberColumnList, $custodyList)
                         ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternvertreter in der ' . $text
+                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternvertreter ' . $text
                         . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Custody', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
                         . ' | '
                         . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),

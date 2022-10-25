@@ -21,7 +21,7 @@ class DivisionCourse implements IModuleInterface
             new Link(new Link\Route('SPHERE\Application\Education\Lesson\TeacherLectureship'), new Link\Name('Lehrauftrag'), new Link\Icon(new Education()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route('SPHERE\Application\Education\Lesson\SubjectTable'), new Link\Name('Stundentafel'), new Link\Icon(new Education()))
+            new Link(new Link\Route('SPHERE\Application\Education\Lesson\StudentSubjectTable'), new Link\Name('Stundentafel'), new Link\Icon(new Education()))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -60,7 +60,7 @@ class DivisionCourse implements IModuleInterface
          * Stundentafel
          */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            'SPHERE/Application/Education/Lesson/SubjectTable', __NAMESPACE__.'\Frontend::frontendSubjectTable'
+            'SPHERE/Application/Education/Lesson/StudentSubjectTable', __NAMESPACE__.'\Frontend::frontendSubjectTable'
         ));
     }
 
