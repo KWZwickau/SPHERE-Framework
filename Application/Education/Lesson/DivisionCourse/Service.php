@@ -296,7 +296,7 @@ class Service extends ServiceTeacher
                         continue;
                     }
 
-                    if ($Data['Name'] == $tblDivisionCourseItem->getName()) {
+                    if (strtolower($Data['Name']) == strtolower($tblDivisionCourseItem->getName())) {
                         $form->setError('Data[Name]', 'Ein Kurs mit diesem Name existiert bereits im Schuljahr');
                         $error = true;
                     }

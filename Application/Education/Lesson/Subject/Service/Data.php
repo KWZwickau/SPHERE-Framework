@@ -86,6 +86,7 @@ class Data extends AbstractData
             $this->addCategorySubject($tblCategory, $tblSubject);
             $tblSubject = $this->createSubject('GK', 'Gemeinschaftskunde/Rechtserziehung');
             $this->addCategorySubject($tblCategory, $tblSubject);
+            $this->addCategorySubject($tblCategoryElective, $tblSubject);
             $tblSubject = $this->createSubject('GEO', 'Geographie');
             $this->addCategorySubject($tblCategory, $tblSubject);
             $this->addCategorySubject($tblCategoryElective, $tblSubject);

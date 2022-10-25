@@ -42,6 +42,10 @@ class ApiStudentSubject extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadCheckSubjectDivisionCoursesContent');
         $Dispatcher->registerMethod('saveStudentSubjectDivisionCourseList');
 
+        // SekII kopieren vom 1. HJ zum 2. HJ
+        $Dispatcher->registerMethod('openCopySubjectDivisionCourseModal');
+        $Dispatcher->registerMethod('saveCopySubjectDivisionCourseModal');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -321,6 +325,76 @@ class ApiStudentSubject extends Extension implements IApiInterface
                 . self::pipelineLoadStudentSubjectContent($DivisionCourseId);
         } else {
             return new Danger('Die Schüler-SekII-Kurse konnten nicht gespeichert werden.');
+        }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenCopySubjectDivisionCourseModal($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openCopySubjectDivisionCourseModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function openCopySubjectDivisionCourseModal($DivisionCourseId): string
+    {
+        return DivisionCourse::useFrontend()->copySubjectDivisionCourse($DivisionCourseId);
+    }
+
+    /**
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCopySubjectDivisionCourseSave($DivisionCourseId = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCopySubjectDivisionCourseModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function saveCopySubjectDivisionCourseModal($DivisionCourseId): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && DivisionCourse::useService()->copySubjectDivisionCourse($tblDivisionCourse)
+        ) {
+            return new Success('Die SekII-Kurse wurde erfolgreich ins 2. Halbjahr kopiert.')
+                . self::pipelineLoadStudentSubjectContent($DivisionCourseId)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die SekII-Kurse konnten nicht ins 2. Halbjahr kopiert werden.', new Exclamation())
+                . self::pipelineClose();
         }
     }
 }

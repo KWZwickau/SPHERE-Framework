@@ -22,7 +22,10 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\MoreItems;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -32,8 +35,11 @@ use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\Success as SuccessLink;
 use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -103,6 +109,11 @@ class FrontendStudentSubject extends FrontendStudent
                     $content .= new Title(new Education() . ' SekII-Kurse der Schüler im ' . new Bold($i . '. HJ') . ' in der ' . $text
                         . (new Link('Bearbeiten', ApiStudentSubject::getEndpoint(), new Pen()))
                             ->ajaxPipelineOnClick(ApiStudentSubject::pipelineEditStudentSubjectDivisionCourseContent($DivisionCourseId, $i))
+                        . ($i == 2
+                            ? ' | ' . (new Link('Kurse des 1.HJ kopieren', ApiStudentSubject::getEndpoint(), new MoreItems()))
+                                ->ajaxPipelineOnClick(ApiStudentSubject::pipelineOpenCopySubjectDivisionCourseModal($DivisionCourseId))
+                            : ''
+                        )
                     );
                     $content .= $this->getTableCustom($headerColumnList[$i], $contentList[$i]);
                 }
@@ -605,7 +616,6 @@ class FrontendStudentSubject extends FrontendStudent
             }
         }
 
-
         return $item;
     }
 
@@ -737,4 +747,47 @@ class FrontendStudentSubject extends FrontendStudent
         return new Danger('Kurs oder Schuljahr nicht gefunden', new Exclamation());
     }
 
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function copySubjectDivisionCourse($DivisionCourseId): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
+            $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+            DivisionCourse::useService()->getSubDivisionCourseRecursiveListByDivisionCourse($tblDivisionCourse, $tblDivisionCourseList);
+
+            $tblStudentSubjectList = array();
+            foreach ($tblDivisionCourseList as $tblDivisionCourseItem) {
+                if (($tempList = DivisionCourse::useService()->getStudentSubjectListByStudentDivisionCourseAndPeriod($tblDivisionCourseItem, 1))) {
+                    foreach ($tempList as $tblStudentSubject) {
+                        if (($tblPerson = $tblStudentSubject->getServiceTblPerson())
+                            && ($tblSubjectDivisionCourse = $tblStudentSubject->getTblDivisionCourse())
+                            && !DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndDivisionCourseAndPeriod($tblPerson, $tblYear, $tblSubjectDivisionCourse, 2)
+                        ) {
+                            $tblStudentSubjectList[] = $tblStudentSubject;
+                        }
+                    }
+                }
+            }
+
+            $title = new Title(new MoreItems() . ' SekII-Kurse des 1.HJ der Schüler ins 2. HJ kopieren für ' . $text);
+
+            if (empty($tblStudentSubjectList)) {
+                return $title . new Warning('Es können keine weiteren SekII-Kurse ins 2. Halbjahr kopiert werden.', new Exclamation());
+            } else {
+                return $title . new Success('Es können ' . count($tblStudentSubjectList) . ' SekII-Kurse ins 2. Halbjahr kopiert werden.')
+                    . (new SuccessLink('Ja', ApiStudentSubject::getEndpoint(), new Ok()))
+                        ->ajaxPipelineOnClick(ApiStudentSubject::pipelineCopySubjectDivisionCourseSave($DivisionCourseId))
+                    . (new Standard('Nein', ApiStudentSubject::getEndpoint(), new Remove()))
+                        ->ajaxPipelineOnClick(ApiStudentSubject::pipelineClose());
+            }
+        }
+
+        return new Danger('Kurs oder Schuljahr nicht gefunden', new Exclamation());
+    }
 }

@@ -28,6 +28,7 @@ class TblStudentSubject extends Element
     const ATTR_SERVICE_TBL_SUBJECT_TABLE = 'serviceTblSubjectTable';
     const ATTR_TBL_DIVISION_COURSE = 'tblLessonDivisionCourse';
     const ATTR_HAS_GRADING = 'HasGrading';
+    const ATTR_PERIOD_IDENTIFIER = 'PeriodIdentifier';
 
     /**
      * @Column(type="bigint")
