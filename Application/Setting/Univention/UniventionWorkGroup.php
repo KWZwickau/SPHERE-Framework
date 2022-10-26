@@ -86,7 +86,6 @@ class UniventionWorkGroup
         );
         $PersonContent = json_encode($PersonContent);
 //        return $PersonContent;
-        //  ToDO Refactor to correct API
         curl_setopt_array($this->curlhandle, array(
             CURLOPT_URL => 'https://'.$this->server.'/v1/workgroups/',
             CURLOPT_POST => TRUE,
@@ -154,7 +153,6 @@ class UniventionWorkGroup
         $PostFields = json_encode($PostFields);
 
 //        return $PersonContent;
-        //  ToDO Refactor to correct API
         curl_setopt_array($this->curlhandle, array(
             CURLOPT_URL => 'https://'.$this->server.'/v1/workgroups/'.$Acronym.'/'.$group,
             CURLOPT_CUSTOMREQUEST => 'PATCH',
