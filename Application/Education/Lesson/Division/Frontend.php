@@ -402,15 +402,15 @@ class Frontend extends Extension implements IFrontendInterface
 
         $receiver = AddDivision::receiverFormSelect((new AddDivision())->reloadLevelNameInput());
 
-        $FormRow = new FormRow(new FormColumn(new SuccessText('')));
-        if($tblLevel == null && $tblDivision == null){
-            if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
-                $FormRow->addColumn(new FormColumn(
-                    (new CheckBox('Level[isChecked]', 'Jahrgangsübergreifende Klasse', 1))
-                        ->ajaxPipelineOnChange(array(AddDivision::pipelineCreateLevelNameInput($receiver)))
-                ));
-            }
-        }
+//        $FormRow = new FormRow(new FormColumn(new SuccessText('')));
+//        if($tblLevel == null && $tblDivision == null){
+//            if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
+//                $FormRow->addColumn(new FormColumn(
+//                    (new CheckBox('Level[isChecked]', 'Jahrgangsübergreifende Klasse', 1))
+//                        ->ajaxPipelineOnChange(array(AddDivision::pipelineCreateLevelNameInput($receiver)))
+//                ));
+//            }
+//        }
 
 
         return new Form(
@@ -452,7 +452,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ), Panel::PANEL_TYPE_INFO
                         ), 4),
                 )),
-                $FormRow
+//                $FormRow
             ))
         );
     }
