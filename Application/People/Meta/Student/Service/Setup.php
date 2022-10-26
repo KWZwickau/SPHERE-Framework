@@ -306,7 +306,16 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblStudentBaptism, true);
         if ($Table->hasColumn('tblStudentIntegration')){
             // Angabe exakter Index
-            $Table->removeForeignKey('FK_C0B1893DA033F97');
+            // if auf index funktioniert irgendwie nicht immer
+//            if($Table->hasIndex('FK_C0B1893DA033F97')){
+            // workaround damit es Online funktioniert
+            try {
+                $Table->removeForeignKey('FK_C0B1893DA033F97');
+            } catch (\Exception $e) {
+                // Kümmere dich um Ausnahmen (nicht notwendig, mach nur weiter)
+            }
+//            }
+
             $Table->dropColumn('tblStudentIntegration');
         }
         $this->getConnection()->addForeignKey($Table, $tblStudentSpecialNeeds, true);
