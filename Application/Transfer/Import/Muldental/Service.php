@@ -1164,7 +1164,7 @@ class Service
                                             $tblStudentFocusType = Student::useService()->getStudentFocusTypeByName('Sprache');
                                             Student::useService()->addStudentFocus($tblStudent, $tblStudentFocusType);
                                         } elseif ($focus === 'emot./soz. Entwicklung') {
-                                            $tblStudentFocusType = Student::useService()->getStudentFocusTypeByName('Sozial-emotionale Entwicklung');
+                                            $tblStudentFocusType = Student::useService()->getStudentFocusTypeByName('Emotionale-soziale Entwicklung');
                                             Student::useService()->addStudentFocus($tblStudent, $tblStudentFocusType);
                                         }
                                     }

@@ -52,6 +52,17 @@ class Structure
     }
 
     /**
+     * @param $Name
+     */
+    public function dropView($Name)
+    {
+
+        if ($this->Database->hasView($Name)) {
+            $this->getSchemaManager()->dropView($Name);
+        }
+    }
+
+    /**
      * @return DBALSchemaManager
      */
     public function getSchemaManager()
@@ -87,6 +98,16 @@ class Structure
             $Table->addColumn('EntityRemove', 'datetime', array('notnull' => false));
         }
         return $Table;
+    }
+
+    /**
+     * @param $Table
+     */
+    public function dropTable($Name)
+    {
+        if ($this->Database->hasTable($Name)){
+            $this->getSchemaManager()->dropTable($Name);
+        }
     }
 
     /**
