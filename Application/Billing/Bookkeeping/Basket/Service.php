@@ -403,10 +403,14 @@ class Service extends AbstractService
      * @param TblItem          $tblItem
      * @param TblDivision|null $tblDivision
      * @param TblType|null     $tblType
+     * @param TblYear|null     $tblYear
+     * @param string           $PeriodExtended
      *
-     * @return array|bool
+     * @return array
+     * @throws \Exception
      */
-    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, TblDivision $tblDivision = null, TblType $tblType = null, TblYear $tblYear = null)
+    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, TblDivision $tblDivision = null,
+        TblType $tblType = null, TblYear $tblYear = null, string $PeriodExtended = '')
     {
 
         $tblGroupList = $this->getGroupListByItem($tblItem);
@@ -467,14 +471,63 @@ class Service extends AbstractService
                         } else {
                             $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
                         }
+
                         // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
-                        if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblBasket, $tblPerson, $tblItem,
-                            $tblBasket->getYear(), $tblBasket->getMonth())){
-                            // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
-                            $PersonExclude[$tblPerson->getId()][] = ' Rechnung für '.$tblItem->getName().' diesen Monat
+                        if($PeriodExtended == ''){
+                            if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblBasket, $tblPerson, $tblItem,
+                                $tblBasket->getYear(), $tblBasket->getMonth())){
+                                // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
+                                $PersonExclude[$tblPerson->getId()][] = ' Rechnung für '.$tblItem->getName().' diesen Monat
                             ('.$tblBasket->getMonth(true).'.'.$tblBasket->getYear().') bereits erstellt';
-                            continue;
+                                continue;
+                            }
+                        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase (Kalenderjahr) Rechnungen gibt.
+                        } elseif($PeriodExtended == 'KJ'){
+                            if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYear($tblBasket, $tblPerson, $tblItem,
+                                $tblBasket->getYear())){
+                                // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
+                                $PersonExclude[$tblPerson->getId()][] = ' Rechnung für '.$tblItem->getName().' dieses Kalenderjahr
+                            ('.$tblBasket->getYear().') bereits erstellt';
+                                continue;
+                            }
+                        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase (Schuljahr) Rechnungen gibt.
+                        } elseif($PeriodExtended == 'SJ'){
+                            $Year = $tblBasket->getYear();
+                            $Month = $tblBasket->getMonth();
+                            $isInvoice = false;
+                            $SjString = $tblBasket->getYear();
+                            $YearSplit = str_split($SjString,2);
+                            if($Month > 8){
+                                $Year++;
+                                $YearString = $SjString.'/'.($YearSplit[1]+1);
+                            } else {
+                                $YearString = $YearSplit[0].($YearSplit[1]-1).'/'.$YearSplit[1];
+                            }
+
+                            for($i = 1; $i <= 12; $i++){
+                                if($i == 8){
+                                    $Year--;
+                                }
+                                if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblBasket,
+                                    $tblPerson, $tblItem, $Year, $i)){
+                                    $isInvoice = true;
+                                    break;
+                                }
+                            }
+
+                            if($isInvoice){
+                                // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
+                                $PersonExclude[$tblPerson->getId()][] = ' Rechnung für '.$tblItem->getName().' dieses Schuljahr
+                            ('.$YearString.') bereits erstellt';
+                                continue;
+                            }
+
+                            if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblBasket, $tblPerson, $tblItem,
+                                $tblBasket->getYear(), $tblBasket->getMonth())){
+                                continue;
+                            }
                         }
+
                         if(!$tblDebtorSelection->getServiceTblPersonDebtor()){
                             $Item['Debtor'] = '';
                         } else {
