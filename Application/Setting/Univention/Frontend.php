@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Share;
+use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -146,7 +147,6 @@ class Frontend extends Extension implements IFrontendInterface
 //            $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
 //            $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
 //            $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete')));
-//            $Stage->addButton(new Standard('Arbeitsgruppen abgleichen', '/Setting/Univention/Api/WorkGroup', new Share()));
         } else {
             $ButtonCreate = (new Standard('Benutzer anlegen', '', new Plus()))->setDisabled();
             $ButtonUpdate = (new Standard('Benutzer anpassen', '', new Edit()))->setDisabled();
@@ -155,7 +155,6 @@ class Frontend extends Extension implements IFrontendInterface
 //            $Stage->addButton((new Standard('Benutzer anlegen', '', new Plus()))->setDisabled());
 //            $Stage->addButton((new Standard('Benutzer anpassen', '', new Edit()))->setDisabled());
 //            $Stage->addButton((new Standard('Benutzer löschen', '', new Remove()))->setDisabled());
-//            $Stage->addButton((new Standard('Arbeitsgruppen abgleichen', '', new Share()))->setDisabled());
         }
 
         $UserUniventionList = Univention::useService()->getApiUser();
@@ -735,17 +734,14 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendAPIWorkGroup() // $isRedirect = false
+    public function frontendWorkGroupAPI($isStart = false) //
     {
 
         $Stage = new Stage('API', 'Arbeitsgruppen-Abgleich');
-        //        if(!$isRedirect){
-        //            $Stage->setContent(new Info('Dieser Vorgang kann einige Zeit in Anspruch nehmen'
-        //                .new Container((new ProgressBar(0, 100, 0, 10))
-        //                    ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS))
-        //            ). new RedirectScript('/Setting/Univention/Api/WorkGroup', 0, array('isRedirect' => true)));
-        //            return $Stage;
-        //        }
+        if(!$isStart){
+            $Stage->addButton(new Primary('Datenabgleich der Arbeitsgruppen starten', '/Setting/Univention/WorkGroupApi', new Upload(), array('isStart' => true)));
+            return $Stage;
+        }
 
         $Acronym = Account::useService()->getMandantAcronym();
         // dynamsiche Schulliste
