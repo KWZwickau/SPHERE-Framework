@@ -6,6 +6,7 @@ use SPHERE\Application\Api\Setting\ItsLearning\ApiItsLearning;
 use SPHERE\Application\Api\Setting\Univention\ApiUnivention;
 use SPHERE\Application\Api\Setting\Authorization\ApiAccount;
 use SPHERE\Application\Api\Setting\Authorization\ApiGroupRole;
+use SPHERE\Application\Api\Setting\Univention\ApiWorkGroup;
 use SPHERE\Application\Api\Setting\UserAccount\AccountUserExcel;
 use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
 use SPHERE\Application\Api\Setting\UserAccount\ApiUserDelete;
@@ -25,6 +26,7 @@ class Setting implements IApplicationInterface
         ApiUserAccount::registerApi();
         AccountUserExcel::registerModule();
         ApiUnivention::registerApi();
+        ApiWorkGroup::registerApi();
         ApiItsLearning::registerApi();
         ApiGroupRole::registerApi();
         ApiAccount::registerApi();
