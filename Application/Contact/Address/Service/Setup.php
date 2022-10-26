@@ -36,6 +36,7 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblCity = $this->setTableCity($Schema);
         $tblState = $this->setTableState($Schema);
+        $this->setTableRegion($Schema);
         $tblAddress = $this->setTableAddress($Schema, $tblCity, $tblState);
         $tblType = $this->setTableType($Schema);
         $this->setTableToPerson($Schema, $tblAddress, $tblType);
@@ -106,6 +107,21 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasIndex($Table, array('Name', Element::ENTITY_REMOVE))) {
             $Table->addUniqueIndex(array('Name', Element::ENTITY_REMOVE));
         }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableRegion(Schema &$Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblRegion');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Code', self::FIELD_TYPE_STRING);
+
         return $Table;
     }
 

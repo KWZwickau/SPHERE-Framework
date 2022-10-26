@@ -45,6 +45,8 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
@@ -413,7 +415,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 $hasOnlineContactsOptions = false;
                             }
 
-                            $content[] = $tblAddress->getGuiLayout();
+                            $RegionString = '';
+                            if(($tblCity = $tblAddress->getTblCity()) && ($Code = $tblCity->getCode())){
+                                $RegionString = Address::useService()->getRegionStringByCode($Code);
+                                if($RegionString){
+                                    $RegionString = 'Bezirk '.$RegionString;
+                                }
+                            }
+                            $content[] = $tblAddress->getGuiLayout().new Italic($RegionString);
                             /**
                              * @var TblToPerson $tblToPersonTemp
                              */

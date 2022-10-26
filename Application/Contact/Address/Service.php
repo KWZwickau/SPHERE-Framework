@@ -4,6 +4,7 @@ namespace SPHERE\Application\Contact\Address;
 use SPHERE\Application\Contact\Address\Service\Data;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
+use SPHERE\Application\Contact\Address\Service\Entity\TblRegion;
 use SPHERE\Application\Contact\Address\Service\Entity\TblState;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
@@ -94,6 +95,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblRegion[]
+     */
+    public function getRegionAll()
+    {
+
+        return (new Data($this->getBinding()))->getRegionAll();
+    }
+
+    /**
      * @return bool|TblState[]
      */
     public function getStateAll()
@@ -111,6 +121,52 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getStateByName($Name);
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblRegion
+     */
+    public function getRegionListByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getRegionListByName($Name);
+    }
+
+    /**
+     * @param string $Code
+     *
+     * @return bool|TblRegion
+     */
+    public function getRegionListByCode($Code)
+    {
+
+        return (new Data($this->getBinding()))->getRegionListByCode($Code);
+    }
+
+    /**
+     * @param $Code
+     *
+     * @return string
+     */
+    public function getRegionStringByCode($Code)
+    {
+
+        $tblRegionList = (new Data($this->getBinding()))->getRegionListByCode($Code);
+        if($tblRegionList){
+            if(count($tblRegionList) == 1){
+                return current($tblRegionList)->getName();
+            } else {
+                $NameList = array();
+                foreach($tblRegionList as $tblRegion){
+                    $NameList[] = $tblRegion->getName();
+                }
+                sort($NameList);
+                return implode(', ',$NameList);
+            }
+        }
+        return '';
     }
 
     /**
