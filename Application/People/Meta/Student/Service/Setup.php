@@ -84,11 +84,12 @@ class Setup extends AbstractSetup
         }
 
         // remove deprecated Table
-        $this->getConnection()->dropTable('tblStudentIntegration');
+
         $this->getConnection()->dropTable('tblStudentDisorder');
         $this->getConnection()->dropTable('tblStudentDisorderType');
         $this->getConnection()->dropTable('tblStudentFocus');
         $this->getConnection()->dropTable('tblStudentFocusType');
+        $this->getConnection()->dropTable('tblStudentIntegration');
 
         // remove deprecated Student Views
         $this->getConnection()->dropView('viewStudent');
@@ -102,6 +103,7 @@ class Setup extends AbstractSetup
         $this->getConnection()->dropView('viewStudentMedicalRecord');
         $this->getConnection()->dropView('viewStudentSubject');
         $this->getConnection()->dropView('viewStudentTransfer');
+        $this->getConnection()->dropView('viewStudentTransport');
 
         return $this->getConnection()->getProtocol($Simulate);
     }
@@ -303,6 +305,8 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblStudentLocker, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentBaptism, true);
         if ($Table->hasColumn('tblStudentIntegration')){
+            // Angabe exakter Index
+            $Table->removeForeignKey('FK_C0B1893DA033F97');
             $Table->dropColumn('tblStudentIntegration');
         }
         $this->getConnection()->addForeignKey($Table, $tblStudentSpecialNeeds, true);
