@@ -262,7 +262,6 @@ class Setup extends AbstractSetup
      * @param Table $tblStudentBilling
      * @param Table $tblStudentLocker
      * @param Table $tblStudentBaptism
-     * @param Table $tblStudentIntegration
      * @param Table $tblStudentSpecialNeeds
      * @param Table $tblStudentTechnicalSchool
      *

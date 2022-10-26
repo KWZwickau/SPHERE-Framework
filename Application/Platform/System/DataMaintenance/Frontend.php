@@ -569,7 +569,6 @@ class Frontend extends Extension implements IFrontendInterface
 UPDATE ".$Acronym."_PeopleMeta.tblSpecial SET Date = date_add(Date, interval 1 YEAR);
 UPDATE ".$Acronym."_PeopleMeta.tblStudent SET SchoolAttendanceStartDate = date_add(SchoolAttendanceStartDate, interval 1 YEAR);
 UPDATE ".$Acronym."_PeopleMeta.tblStudentBaptism SET BaptismDate = date_add(BaptismDate, interval 1 YEAR);
-UPDATE ".$Acronym."_PeopleMeta.tblStudentIntegration SET CoachingRequestDate = date_add(CoachingRequestDate, interval 1 YEAR),CoachingCounselDate = date_add(CoachingCounselDate, interval 1 YEAR),CoachingDecisionDate = date_add(CoachingDecisionDate, interval 1 YEAR);
 UPDATE ".$Acronym."_PeopleMeta.tblStudentTransfer SET TransferDate = date_add(TransferDate, interval 1 YEAR);
 UPDATE ".$Acronym."_PeopleMeta.tblSupport SET Date = date_add(Date, interval 1 YEAR);
 UPDATE ".$Acronym."_EducationClassRegister.tblAbsence SET FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
