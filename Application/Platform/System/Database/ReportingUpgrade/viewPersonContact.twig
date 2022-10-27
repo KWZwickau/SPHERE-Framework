@@ -98,6 +98,7 @@ SELECT
     (select vCA.TblRegion_Region from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
     ) TblRegion_Name2,
 
     (select vCA.TblAddress_Nation from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
