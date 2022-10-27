@@ -262,6 +262,20 @@ class Data extends DataTeacher
     }
 
     /**
+     * @param $name
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivisionCourse
+     */
+    public function getDivisionCourseByNameAndYear($name, TblYear $tblYear)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', array(
+            TblDivisionCourse::ATTR_NAME => $name,
+            TblDivisionCourse::SERVICE_TBL_YEAR => $tblYear->getId()
+        ));
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblDivisionCourse $tblSubDivisionCourse
      *
@@ -967,6 +981,39 @@ class Data extends DataTeacher
         $result = $query->getResult();
 
         return is_array($result) ? (current($result))['MaxSortOrder'] : null;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblDivisionCourseMemberType $tblMemberType
+     *
+     * @return false|TblDivisionCourseMember[]
+     */
+    public function getDivisionCourseMemberListByPersonAndYearAndMemberType(TblPerson $tblPerson, TblYear $tblYear, TblDivisionCourseMemberType $tblMemberType)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('m')
+            ->from(__NAMESPACE__ . '\Entity\TblDivisionCourseMember', 'm')
+            ->join(__NAMESPACE__ . '\Entity\TblDivisionCourse', 'c')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('m.tblLessonDivisionCourse', 'c.Id'),
+                    $queryBuilder->expr()->eq('m.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('m.tblLessonDivisionCourseMemberType', '?2'),
+                    $queryBuilder->expr()->eq('c.serviceTblYear', '?3'),
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblMemberType->getId())
+            ->setParameter(3, $tblYear->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**

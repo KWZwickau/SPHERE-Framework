@@ -22,6 +22,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblDivisionCourse extends Element
 {
     const ATTR_TBL_TYPE = 'tblLessonDivisionCourseType';
+    const ATTR_NAME = 'Name';
     const SERVICE_TBL_YEAR = 'serviceTblYear';
 
     /**
