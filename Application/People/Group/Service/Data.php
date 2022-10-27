@@ -207,11 +207,8 @@ class Data extends AbstractData
     public function getGroupListByIsCoreGroup($isCoreGroup = true)
     {
 
-        $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblGroup',
-            array(
-                TblGroup::ATTR_IS_CORE_GROUP => $isCoreGroup
-            ));
-        return (null === $Entity ? false : $Entity);
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblGroup',
+            array(TblGroup::ATTR_IS_CORE_GROUP => $isCoreGroup));
     }
 
     /**
@@ -329,7 +326,6 @@ class Data extends AbstractData
     }
 
     /**
-     *
      * @param TblPerson $tblPerson
      * @param bool $isForced
      *

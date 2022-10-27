@@ -147,7 +147,7 @@ class F01
                     $text = 'Geistige Entwicklung';
                     break;
                 case 6:
-                    $text = 'Sozial-emotionale Entwicklung';
+                    $text = 'Emotionale-soziale Entwicklung';
                     $paddingTop = '64px';
                     $paddingBottom = '64px';
                     break;

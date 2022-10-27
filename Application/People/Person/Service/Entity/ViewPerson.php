@@ -16,7 +16,6 @@ use SPHERE\Application\People\Meta\Club\Service\Entity\ViewPeopleMetaClub;
 use SPHERE\Application\People\Meta\Common\Service\Entity\ViewPeopleMetaCommon;
 use SPHERE\Application\People\Meta\Custody\Service\Entity\ViewPeopleMetaCustody;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspect;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\ViewPeopleMetaTeacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipFromPerson;
@@ -129,7 +128,7 @@ class ViewPerson extends AbstractView
         $this->addForeignView(self::TBL_PERSON_ID, new ViewMailToPerson(), ViewMailToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewPhoneToPerson(), ViewPhoneToPerson::TBL_TO_PERSON_SERVICE_TBL_PERSON);
 
-        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudent(), ViewStudent::TBL_STUDENT_SERVICE_TBL_PERSON);
+//        $this->addForeignView(self::TBL_PERSON_ID, new ViewStudent(), ViewStudent::TBL_STUDENT_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaClub(), ViewPeopleMetaClub::TBL_CLUB_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaCommon(), ViewPeopleMetaCommon::TBL_COMMON_SERVICE_TBL_PERSON);
         $this->addForeignView(self::TBL_PERSON_ID, new ViewPeopleMetaCustody(), ViewPeopleMetaCustody::TBL_CUSTODY_SERVICE_TBL_PERSON);

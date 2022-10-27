@@ -1189,14 +1189,14 @@ class Service extends Extension
                     ? $mother->getFirstSecondName() : $mother->getFirstSecondName() . ' ' . $mother->getLastName()) : '';
 
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                if ($tblStudent) {
-                    $tblIntegration = Student::useService()->getStudentIntegrationById($tblStudent->getTblStudentIntegration());
-                    if ($tblIntegration) {
-                        if ($tblIntegration->getCoachingRequired()) {
-                            $Item['Integration'] = '1';
-                        }
-                    }
-                }
+//                if ($tblStudent) {
+//                    $tblIntegration = Student::useService()->getStudentIntegrationById($tblStudent->getTblStudentIntegration());
+//                    if ($tblIntegration) {
+//                        if ($tblIntegration->getCoachingRequired()) {
+//                            $Item['Integration'] = '1';
+//                        }
+//                    }
+//                }
 
                 $Item['DisplayName'] = ( $Item['Integration'] === '1'
                         ? new Bold($tblPerson->getLastFirstName())

@@ -3,6 +3,7 @@ namespace SPHERE\Application\Contact\Address\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
+use SPHERE\Application\Contact\Address\Service\Entity\TblRegion;
 use SPHERE\Application\Contact\Address\Service\Entity\TblState;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
@@ -53,27 +54,85 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createType('Hauptadresse');
-        $this->createType('Zweit-/Nebenadresse');
-        $this->createType('Rechnungsadresse');
-        $this->createType('Lieferadresse');
+        if(!$this->getTypeByName('Hauptadresse')){
+            $this->createType('Hauptadresse');
+            $this->createType('Zweit-/Nebenadresse');
+            $this->createType('Rechnungsadresse');
+            $this->createType('Lieferadresse');
+        }
 
-        $this->createState('Baden-Württemberg');
-        $this->createState('Bremen');
-        $this->createState('Niedersachsen');
-        $this->createState('Sachsen');
-        $this->createState('Bayern');
-        $this->createState('Hamburg');
-        $this->createState('Nordrhein-Westfalen');
-        $this->createState('Sachsen-Anhalt');
-        $this->createState('Berlin');
-        $this->createState('Hessen');
-        $this->createState('Rheinland-Pfalz');
-        $this->createState('Schleswig-Holstein');
-        $this->createState('Brandenburg');
-        $this->createState('Mecklenburg-Vorpommern');
-        $this->createState('Saarland');
-        $this->createState('Thüringen');
+        // StateByName faster than StateAll
+        if(!$this->getStateByName('Sachsen')){
+            $this->createState('Baden-Württemberg');
+            $this->createState('Bremen');
+            $this->createState('Niedersachsen');
+            $this->createState('Sachsen');
+            $this->createState('Bayern');
+            $this->createState('Hamburg');
+            $this->createState('Nordrhein-Westfalen');
+            $this->createState('Sachsen-Anhalt');
+            $this->createState('Berlin');
+            $this->createState('Hessen');
+            $this->createState('Rheinland-Pfalz');
+            $this->createState('Schleswig-Holstein');
+            $this->createState('Brandenburg');
+            $this->createState('Mecklenburg-Vorpommern');
+            $this->createState('Saarland');
+            $this->createState('Thüringen');
+        }
+
+        // new Region? set if to new Region to install by already installed Regions
+        if(!$this->getRegionListByName('Mitte')){
+            $this->createRegion('Mitte', array(
+                '10115', '10117', '10119', '10178', '10179', '10435', '10551', '10553', '10555', '10557', '10559', '10623',
+                '10785', '10787', '10963', '10969', '13347', '13349', '13351', '13353', '13355', '13357', '13359', '13405',
+                '13407', '13409'
+            ));
+            $this->createRegion('Friedrichshain-Kreuzberg', array(
+                '10179', '10243', '10245', '10247', '10249', '10367', '10785', '10961', '10963', '10965', '10967', '10969',
+                '10997', '10999', '12045', '10178'
+            ));
+            $this->createRegion('Pankow', array(
+                '10119', '10247', '10249', '10405', '10407', '10409', '10435', '10437', '10439', '13051', '13053', '13086',
+                '13088', '13089', '13125', '13127', '13129', '13156', '13158', '13159', '13187', '13189'
+            ));
+            $this->createRegion('Charlottenburg-Wilmersdorf', array(
+                '10553', '10585', '10587', '10589', '10623', '10625', '10627', '10629', '10707', '10709', '10711', '10713',
+                '10715', '10717', '10719', '10777', '10779', '10787', '10789', '10825', '13353', '13597', '13627', '13629',
+                '14050', '14052', '14053', '14055', '14057', '14059', '14193', '14195', '14197', '14199'
+            ));
+            $this->createRegion('Spandau', array(
+                '13581', '13583', '13585', '13587', '13589', '13591', '13593', '13595', '13597', '13599', '13627', '13629',
+                '14052', '14089'
+            ));
+            $this->createRegion('Steglitz-Zehlendorf', array(
+                '12157', '12161', '12163', '12165', '12167', '12169', '12203', '12205', '12207', '12209', '12247', '12249',
+                '12277', '12279', '14109', '14129', '14163', '14165', '14167', '14169', '14193', '14195', '14197', '14199'
+            ));
+            $this->createRegion('Tempelhof-Schöneberg', array(
+                '10777', '10779', '10781', '10783', '10785', '10787', '10789', '10823', '10825', '10827', '10829', '10965',
+                '12099', '12101', '12103', '12105', '12107', '12109', '12157', '12159', '12161', '12163', '12169', '12249',
+                '12277', '12279', '12305', '12307', '12309', '12347', '14197'
+            ));
+            $this->createRegion('Neukölln', array(
+                '10965', '10967', '12043', '12045', '12047', '12049', '12051', '12053', '12055', '12057', '12059', '12099',
+                '12107', '12305', '12347', '12349', '12351', '12353', '12355', '12357', '12359'
+            ));
+            $this->createRegion('Treptow-Köpenick', array(
+                '12435', '12437', '12439', '12459', '12487', '12489', '12524', '12526', '12527', '12555', '12557', '12559',
+                '12587', '12589', '12623'
+            ));
+            $this->createRegion('Marzahn-Hellersdorf', array(
+                '12555', '12619', '12621', '12623', '12627', '12629', '12679', '12681', '12683', '12685', '12687', '12689'
+            ));
+            $this->createRegion('Lichtenberg', array(
+                '10315', '10317', '10318', '10319', '10365', '10367', '10369', '13051', '13053', '13055', '13057', '13059'
+            ));
+            $this->createRegion('Reinickendorf', array(
+                '13403', '13405', '13407', '13409', '13435', '13437', '13439', '13465', '13467', '13469', '13503', '13505',
+                '13507', '13509', '13599', '13629'
+            ));
+        }
     }
 
     /**
@@ -121,6 +180,51 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string       $Name
+     * @param string|array $Code
+     *
+     * return void
+     */
+    public function createRegion(string $Name, $Code): void
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(is_array($Code)){
+            foreach($Code as $Plz){
+                $Entity = $Manager->getEntity('TblRegion')->findOneBy(array(
+                    TblRegion::ATTR_NAME => $Name,
+                    TblRegion::ATTR_CODE => $Plz,
+                ));
+
+                if (null === $Entity) {
+                    $Entity = new TblRegion();
+                    $Entity->setName($Name);
+                    $Entity->setCode($Plz);
+
+                    $Manager->bulkSaveEntity($Entity);
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+        } else {
+            $Entity = $Manager->getEntity('TblRegion')->findOneBy(array(
+                TblRegion::ATTR_NAME => $Name,
+                TblRegion::ATTR_CODE => $Code,
+            ));
+
+            if (null === $Entity) {
+                $Entity = new TblRegion();
+                $Entity->setName($Name);
+                $Entity->setCode($Code);
+                $Manager->saveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+            }
+//            return $Entity;
+        }
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblState
@@ -141,6 +245,31 @@ class Data extends AbstractData
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblState', array(
             TblType::ATTR_NAME => $Name,
+        ));
+    }
+
+    /**
+     * @param string $Region
+     *
+     * @return bool|TblRegion[]
+     */
+    public function getRegionListByName($Name)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblRegion', array(
+            TblRegion::ATTR_NAME => $Name,
+        ));
+    }
+    /**
+     * @param string $Region
+     *
+     * @return bool|TblRegion[]
+     */
+    public function getRegionListByCode($Code)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblRegion', array(
+            TblRegion::ATTR_CODE => $Code,
         ));
     }
 
@@ -182,6 +311,15 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblState');
+    }
+
+    /**
+     * @return bool|TblRegion[]
+     */
+    public function getRegionAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblRegion');
     }
 
     /**

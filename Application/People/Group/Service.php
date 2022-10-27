@@ -11,6 +11,8 @@ use SPHERE\Application\People\Group\Service\Setup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
@@ -213,6 +215,20 @@ class Service extends AbstractService
                 $Form->setError('Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an');
                 $Error = true;
             }
+            // ist ein UCS Mandant?
+            $IsUCSMandant = false;
+            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
+                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                    $IsUCSMandant = true;
+                }
+            }
+            // Gruppen Zeicheneingrenzung nur für UCS Mandanten
+            if (isset($Group['Name']) && $Group['Name'] != '' && $IsUCSMandant) {
+                if(!preg_match('!^[\w]+[\w\-. _]?[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
+                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 .-_]');
+                    $Error = true;
+                }
+            }
         }
 
         if (!$Error) {
@@ -307,6 +323,20 @@ class Service extends AbstractService
             if ($tblGroupTwin && $tblGroupTwin->getId() != $tblGroup->getId()) {
                 $Form->setError('Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an');
                 $Error = true;
+            }
+            // ist ein UCS Mandant?
+            $IsUCSMandant = false;
+            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
+                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                    $IsUCSMandant = true;
+                }
+            }
+            // Gruppen Zeicheneingrenzung nur für UCS Mandanten
+            if (isset($Group['Name']) && $Group['Name'] != '' && $IsUCSMandant) {
+                if(!preg_match('!^[\w]+[\w\-. _]?[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
+                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 .-_]');
+                    $Error = true;
+                }
             }
         }
 
