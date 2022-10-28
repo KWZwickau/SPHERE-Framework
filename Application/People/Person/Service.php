@@ -287,7 +287,7 @@ class Service extends AbstractService
                 $SecondName = $NameList[1];
             } elseif($count > 2) {
                 $FirstName = $NameList[0];
-                for($i = 1; $i <= $count; $i++){
+                for($i = 1; $i < $count; $i++){
                     $SecondName .= $NameList[$i];
                 }
             }
