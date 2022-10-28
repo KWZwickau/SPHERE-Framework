@@ -195,7 +195,7 @@ class F01
                 case 5: $text = 'Geistige Entwicklung';
 //                    $hasBorderTop = $name == 'F01_1';
                     break;
-                case 6: $text = 'Sozial-emotionale Entwicklung';
+                case 6: $text = 'Emotionale-soziale Entwicklung';
                     if ($maxLevel == 4) {
 //                        $hasBorderTop = true;
                         $paddingTop = '27.8px';

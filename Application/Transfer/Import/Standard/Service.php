@@ -2136,7 +2136,7 @@ class Service
         }
 
         // Student
-        $tblStudent = Student::useService()->insertStudent($tblPerson, $Identification, $tblStudentMedicalRecord, null, null, null, null, null, null, $schoolAttendanceStartDate);
+        $tblStudent = Student::useService()->insertStudent($tblPerson, $Identification, $tblStudentMedicalRecord, null, null, null, null, null, $schoolAttendanceStartDate);
 
         if($religion){
             $tblSubject = Subject::useService()->getSubjectByAcronym($religion);

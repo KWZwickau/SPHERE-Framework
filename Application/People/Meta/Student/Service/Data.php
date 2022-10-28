@@ -21,17 +21,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTechnicalSch
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentBaptism;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentDisorder;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentFocus;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentIntegration;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLiberation;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Element;
@@ -43,149 +32,6 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class Data extends Support
 {
-
-    /**
-     * @return false|ViewStudent[]
-     */
-    public function viewStudent()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudent'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentAgreement[]
-     */
-    public function viewStudentAgreement()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentAgreement'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentBaptism[]
-     */
-    public function viewStudentBaptism()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentBaptism'
-        );
-    }
-
-//    /**
-//     * @return false|ViewStudentBilling[]
-//     */
-//    public function viewStudentBilling()
-//    {
-//
-//        return $this->getCachedEntityList(
-//            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentBilling'
-//        );
-//    }
-
-    /**
-     * @return false|ViewStudentDisorder[]
-     */
-    public function viewStudentDisorder()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentDisorder'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentFocus[]
-     */
-    public function viewStudentFocus()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentFocus'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentIntegration[]
-     */
-    public function viewStudentIntegration()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentIntegration'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentLiberation[]
-     */
-    public function viewStudentLiberation()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentLiberation'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentLocker[]
-     */
-    public function viewStudentLocker()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentLocker'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentMedicalRecord[]
-     */
-    public function viewStudentMedicalRecord()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentMedicalRecord'
-        );
-    }
-
-//    /**
-//     * @return false|ViewStudentSubject[]
-//     */
-//    public function viewStudentSubject()
-//    {
-//
-//        return $this->getCachedEntityList(
-//            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentSubject'
-//        );
-//    }
-
-    /**
-     * @return false|ViewStudentTransfer[]
-     */
-    public function viewStudentTransfer()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentTransfer'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentTransport[]
-     */
-    public function viewStudentTransport()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentTransport'
-        );
-    }
 
     public function setupDatabaseContent()
     {
@@ -305,37 +151,41 @@ class Data extends Support
         $this->createStudentSubjectRanking('8', '8.');
         $this->createStudentSubjectRanking('9', '9.');
 
-        // old Table
-        $this->createStudentFocusType('Sprache');
-        $this->createStudentFocusType('Körperlich-motorische Entwicklung');
-        $this->createStudentFocusType('Sozial-emotionale Entwicklung');
-        $this->createStudentFocusType('Hören');
-        $this->createStudentFocusType('Sehen');
-        $this->createStudentFocusType('Geistige Entwicklung');
-        $this->createStudentFocusType('Lernen');
+//        // old Table (deprecated)
+//        $this->createStudentFocusType('Sprache');
+//        $this->createStudentFocusType('Körperlich-motorische Entwicklung');
+//        $this->createStudentFocusType('Sozial-emotionale Entwicklung');
+//        $this->createStudentFocusType('Hören');
+//        $this->createStudentFocusType('Sehen');
+//        $this->createStudentFocusType('Geistige Entwicklung');
+//        $this->createStudentFocusType('Lernen');
 
         // new Table
         $this->createSupportFocusType('Sprache');
         $this->createSupportFocusType('Körperlich-motorische Entwicklung');
-        $this->createSupportFocusType('Sozial-emotionale Entwicklung');
+        if(($tblSupportFocusType = $this->getSupportFocusTypeByName('Sozial-emotionale Entwicklung'))){
+            $this->updateSupportFocusType($tblSupportFocusType, 'Emotionale-soziale Entwicklung', '');
+        } else {
+            $this->createSupportFocusType('Emotionale-soziale Entwicklung');
+        }
         $this->createSupportFocusType('Hören');
         $this->createSupportFocusType('Sehen');
         $this->createSupportFocusType('Geistige Entwicklung');
         $this->createSupportFocusType('Lernen');
         $this->createSupportFocusType('Unterricht kranker Schüler');
 
-        // old Table
-        $this->createStudentDisorderType('LRS');
-        $this->createStudentDisorderType('Gehörschwierigkeiten');
-        $this->createStudentDisorderType('Augenleiden');
-        $this->createStudentDisorderType('Sprachfehler');
-        $this->createStudentDisorderType('Dyskalkulie');
-        $this->createStudentDisorderType('Autismus');
-        $this->createStudentDisorderType('ADS / ADHS');
-        $this->createStudentDisorderType('Rechenschwäche');
-        $this->createStudentDisorderType('Hochbegabung');
-        $this->createStudentDisorderType('Konzentrationsstörung');
-        $this->createStudentDisorderType('Körperliche Beeinträchtigung');
+//        // old Table (deprecated)
+//        $this->createStudentDisorderType('LRS');
+//        $this->createStudentDisorderType('Gehörschwierigkeiten');
+//        $this->createStudentDisorderType('Augenleiden');
+//        $this->createStudentDisorderType('Sprachfehler');
+//        $this->createStudentDisorderType('Dyskalkulie');
+//        $this->createStudentDisorderType('Autismus');
+//        $this->createStudentDisorderType('ADS / ADHS');
+//        $this->createStudentDisorderType('Rechenschwäche');
+//        $this->createStudentDisorderType('Hochbegabung');
+//        $this->createStudentDisorderType('Konzentrationsstörung');
+//        $this->createStudentDisorderType('Körperliche Beeinträchtigung');
 
         // new Table Disorder with new Translation
         $this->createSpecialDisorderType('ADS / ADHS');

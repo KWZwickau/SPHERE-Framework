@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\People\Meta\Student\Service\Entity;
+namespace SPHERE\Application\Contact\Address\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
@@ -9,56 +9,54 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblStudentFocusType")
+ * @Table(name="tblRegion")
  * @Cache(usage="READ_ONLY")
  */
-class TblStudentFocusType extends Element
+class TblRegion extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_CODE = 'Code';
 
     /**
-     * @Column(type="text")
+     * @Column(type="string")
      */
     protected $Name;
+
     /**
-     * @Column(type="text")
+     * @Column(type="string")
      */
-    protected $Description;
+    protected $Code;
 
     /**
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
-
         return $this->Name;
     }
 
     /**
      * @param string $Name
      */
-    public function setName($Name)
+    public function setName($Name): void
     {
-
         $this->Name = $Name;
     }
 
     /**
      * @return string
      */
-    public function getDescription()
+    public function getCode(): string
     {
-
-        return $this->Description;
+        return $this->Code;
     }
 
     /**
-     * @param string $Description
+     * @param string $Code
      */
-    public function setDescription($Description)
+    public function setCode(string $Code): void
     {
-
-        $this->Description = $Description;
+        $this->Code = $Code;
     }
 }

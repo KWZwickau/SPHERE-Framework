@@ -3,30 +3,8 @@ namespace SPHERE\Application\People\Meta\Student\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreement;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementCategory;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentDisorder;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentDisorderType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocus;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocusType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberation;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectRanking;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\System\Database\Binding\AbstractSetup;
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\System\Database\Fitting\View;
 
 /**
  * Class Setup
@@ -56,7 +34,6 @@ class Setup extends AbstractSetup
         $tblStudentBilling = $this->setTableStudentBilling($Schema);
         $tblStudentLocker = $this->setTableStudentLocker($Schema);
         $tblStudentBaptism = $this->setTableStudentBaptism($Schema);
-        $tblStudentIntegration = $this->setTableStudentIntegration($Schema);
         $tblStudentSpecialNeedsLevel = $this->setTableStudentSpecialNeedsLevel($Schema);
         $tblStudentSpecialNeeds = $this->setTableStudentSpecialNeeds($Schema, $tblStudentSpecialNeedsLevel);
         $tblStudentTenseOfLesson = $this->setTableStudentTenseOfLesson($Schema);
@@ -65,7 +42,7 @@ class Setup extends AbstractSetup
 
         $tblStudent = $this->setTableStudent(
             $Schema, $tblStudentMedicalRecord, $tblStudentTransport,
-            $tblStudentBilling, $tblStudentLocker, $tblStudentBaptism, $tblStudentIntegration,
+            $tblStudentBilling, $tblStudentLocker, $tblStudentBaptism,
             $tblStudentSpecialNeeds, $tblStudentTechnicalSchool
         );
 
@@ -84,12 +61,6 @@ class Setup extends AbstractSetup
         $tblStudentSubjectType = $this->setTableStudentSubjectType($Schema);
         $tblStudentSubjectRanking = $this->setTableStudentSubjectRanking($Schema);
         $this->setTableStudentSubject($Schema, $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking);
-
-        $tblStudentDisorderType = $this->setTableStudentDisorderType($Schema);
-        $this->setTableStudentDisorder($Schema, $tblStudent, $tblStudentDisorderType);
-
-        $tblStudentFocusType = $this->setTableStudentFocusType($Schema);
-        $this->setTableStudentFocus($Schema, $tblStudent, $tblStudentFocusType);
 
         $tblSupportType = $this->setTableSupportType($Schema);
         $tblSupport = $this->setTableSupport($Schema, $tblSupportType);
@@ -112,68 +83,27 @@ class Setup extends AbstractSetup
             $this->getConnection()->setUTF8();
         }
 
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudent') )
-                ->addLink(new TblStudent(), 'Id')
-        );
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudentAgreement') )
-                ->addLink(new TblStudentAgreement(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
-                ->addLink(new TblStudentAgreement(), 'tblStudentAgreementType', new TblStudentAgreementType(), 'Id', View::JOIN)
-                ->addLink(new TblStudentAgreementType(), 'tblStudentAgreementCategory', new TblStudentAgreementCategory(), 'Id', View::JOIN)
-        );
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudentBaptism') )
-                ->addLink(new TblStudent(), 'tblStudentBaptism', new TblStudentBaptism(), 'Id', View::JOIN)
-        );
-//        $this->getConnection()->createView(
-//            (new View($this->getConnection(), 'viewStudentBilling'))
-//                ->addLink(new TblStudent(), 'tblStudentBilling', new TblStudentBilling(), 'Id')
-//                ->addLink(new TblStudentBilling(), 'serviceTblSiblingRank', new TblSiblingRank(), 'Id')
-//        );
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudentDisorder') )
-                ->addLink(new TblStudentDisorder(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
-                ->addLink(new TblStudentDisorder(), 'tblStudentDisorderType', new TblStudentDisorderType(), 'Id', View::JOIN)
-        );
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudentFocus') )
-                ->addLink(new TblStudentFocus(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
-                ->addLink(new TblStudentFocus(), 'tblStudentFocusType', new TblStudentFocusType(), 'Id', View::JOIN)
-        );
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudentIntegration') )
-                ->addLink(new TblStudent(), 'tblStudentIntegration', new TblStudentIntegration(), 'Id', View::JOIN)
-        );
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudentLiberation') )
-                ->addLink(new TblStudentLiberation(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
-                ->addLink(new TblStudentLiberation(), 'tblStudentLiberationType', new TblStudentLiberationType(), 'Id', View::JOIN)
-                ->addLink(new TblStudentLiberationType(), 'tblStudentLiberationCategory', new TblStudentLiberationCategory(), 'Id', View::JOIN)
-        );
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudentLocker') )
-                ->addLink(new TblStudent(), 'tblStudentLocker', new TblStudentLocker(), 'Id', View::JOIN)
-        );
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudentMedicalRecord') )
-                ->addLink(new TblStudent(), 'tblStudentMedicalRecord', new TblStudentMedicalRecord(), 'Id', View::JOIN)
-        );
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudentSubject') )
-                ->addLink(new TblStudentSubject(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
-                ->addLink(new TblStudentSubject(), 'tblStudentSubjectRanking', new TblStudentSubjectRanking(), 'Id', View::JOIN)
-                ->addLink(new TblStudentSubject(), 'tblStudentSubjectType', new TblStudentSubjectType(), 'Id', View::JOIN)
-        );
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudentTransfer') )
-                ->addLink(new TblStudentTransfer(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
-                ->addLink(new TblStudentTransfer(), 'tblStudentTransferType', new TblStudentTransferType(), 'Id', View::JOIN)
-        );
-        $this->getConnection()->createView(
-            ( new View($this->getConnection(), 'viewStudentTransport') )
-                ->addLink(new TblStudent(), 'tblStudentTransport', new TblStudentTransport(), 'Id', View::JOIN)
-        );
+        // remove deprecated Table
+
+        $this->getConnection()->dropTable('tblStudentDisorder');
+        $this->getConnection()->dropTable('tblStudentDisorderType');
+        $this->getConnection()->dropTable('tblStudentFocus');
+        $this->getConnection()->dropTable('tblStudentFocusType');
+        $this->getConnection()->dropTable('tblStudentIntegration');
+
+        // remove deprecated Student Views
+        $this->getConnection()->dropView('viewStudent');
+        $this->getConnection()->dropView('viewStudentAgreement');
+        $this->getConnection()->dropView('viewStudentBaptism');
+        $this->getConnection()->dropView('viewStudentLiberation');
+        $this->getConnection()->dropView('viewStudentLocker');
+        $this->getConnection()->dropView('viewStudentDisorder');
+        $this->getConnection()->dropView('viewStudentFocus');
+        $this->getConnection()->dropView('viewStudentIntegration');
+        $this->getConnection()->dropView('viewStudentMedicalRecord');
+        $this->getConnection()->dropView('viewStudentSubject');
+        $this->getConnection()->dropView('viewStudentTransfer');
+        $this->getConnection()->dropView('viewStudentTransport');
 
         return $this->getConnection()->getProtocol($Simulate);
     }
@@ -329,53 +259,11 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     *
-     * @return Table
-     */
-    private function setTableStudentIntegration(
-        Schema &$Schema
-    ) {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblStudentIntegration');
-        if (!$this->getConnection()->hasColumn('tblStudentIntegration', 'serviceTblPerson')) {
-            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
-        }
-        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
-        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
-            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentIntegration', 'serviceTblCompany')) {
-            $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentIntegration', 'CoachingRequestDate')) {
-            $Table->addColumn('CoachingRequestDate', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentIntegration', 'CoachingCounselDate')) {
-            $Table->addColumn('CoachingCounselDate', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentIntegration', 'CoachingDecisionDate')) {
-            $Table->addColumn('CoachingDecisionDate', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentIntegration', 'CoachingRequired')) {
-            $Table->addColumn('CoachingRequired', 'boolean', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentIntegration', 'CoachingTime')) {
-            $Table->addColumn('CoachingTime', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentIntegration', 'CoachingRemark')) {
-            $Table->addColumn('CoachingRemark', 'text');
-        }
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
      * @param Table $tblStudentMedicalRecord
      * @param Table $tblStudentTransport
      * @param Table $tblStudentBilling
      * @param Table $tblStudentLocker
      * @param Table $tblStudentBaptism
-     * @param Table $tblStudentIntegration
      * @param Table $tblStudentSpecialNeeds
      * @param Table $tblStudentTechnicalSchool
      *
@@ -388,7 +276,6 @@ class Setup extends AbstractSetup
         Table $tblStudentBilling,
         Table $tblStudentLocker,
         Table $tblStudentBaptism,
-        Table $tblStudentIntegration,
         Table $tblStudentSpecialNeeds,
         Table $tblStudentTechnicalSchool
     ) {
@@ -417,7 +304,20 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblStudentBilling, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentLocker, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentBaptism, true);
-        $this->getConnection()->addForeignKey($Table, $tblStudentIntegration, true);
+        if ($Table->hasColumn('tblStudentIntegration')){
+            // Angabe exakter Index
+            // if auf index funktioniert irgendwie nicht immer
+//            if($Table->hasIndex('FK_C0B1893DA033F97')){
+            // workaround damit es Online funktioniert
+            try {
+                $Table->removeForeignKey('FK_C0B1893DA033F97');
+            } catch (\Exception $e) {
+                // Kümmere dich um Ausnahmen (nicht notwendig, mach nur weiter)
+            }
+//            }
+
+            $Table->dropColumn('tblStudentIntegration');
+        }
         $this->getConnection()->addForeignKey($Table, $tblStudentSpecialNeeds, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentTechnicalSchool, true);
 
@@ -661,84 +561,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentSubject', 'serviceTblLevelTill')) {
             $Table->addColumn('serviceTblLevelTill', 'bigint', array('notnull' => false));
         }
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     *
-     * @return Table
-     */
-    private function setTableStudentDisorderType(Schema &$Schema)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblStudentDisorderType');
-        if (!$this->getConnection()->hasColumn('tblStudentDisorderType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentDisorderType', 'Description')) {
-            $Table->addColumn('Description', 'string');
-        }
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblStudent
-     * @param Table  $tblStudentDisorderType
-     *
-     * @return Table
-     */
-    private function setTableStudentDisorder(
-        Schema &$Schema,
-        Table $tblStudent,
-        Table $tblStudentDisorderType
-    ) {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblStudentDisorder');
-        $this->getConnection()->addForeignKey($Table, $tblStudent);
-        $this->getConnection()->addForeignKey($Table, $tblStudentDisorderType);
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     *
-     * @return Table
-     */
-    private function setTableStudentFocusType(Schema &$Schema)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblStudentFocusType');
-        if (!$this->getConnection()->hasColumn('tblStudentFocusType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentFocusType', 'Description')) {
-            $Table->addColumn('Description', 'string');
-        }
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblStudent
-     * @param Table  $tblStudentFocusType
-     *
-     * @return Table
-     */
-    private function setTableStudentFocus(
-        Schema &$Schema,
-        Table $tblStudent,
-        Table $tblStudentFocusType
-    ) {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblStudentFocus');
-        $this->createColumn($Table, 'IsPrimary', self::FIELD_TYPE_BOOLEAN, false, false);
-
-        $this->getConnection()->addForeignKey($Table, $tblStudent);
-        $this->getConnection()->addForeignKey($Table, $tblStudentFocusType);
-
         return $Table;
     }
 

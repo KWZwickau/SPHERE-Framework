@@ -6,6 +6,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
@@ -42,7 +43,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -51,10 +54,12 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Window\RedirectScript;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -160,7 +165,7 @@ class ApiBasket extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineSaveAddBasket($Identifier = '', $Type = '')
+    public static function pipelineSaveAddBasket(string $Identifier = '', string $Type = '', $Basket = array(), $isLoad = 'true')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -170,10 +175,21 @@ class ApiBasket extends Extension implements IApiInterface
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'saveAddBasket'
         ));
-        $Emitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'Type'       => $Type,
-        ));
+//        if(!empty($Basket)){
+            $Emitter->setPostPayload(array(
+                'Identifier' => $Identifier,
+                'Type'       => $Type,
+                'Basket'     => $Basket,
+                'isLoad'     => $isLoad,
+            ));
+//        } else {
+//            $Emitter->setPostPayload(array(
+//                'Identifier' => $Identifier,
+//                'Type'       => $Type,
+//                'isLoad'     => $isLoad,
+//            ));
+//        }
+
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
@@ -519,7 +535,12 @@ class ApiBasket extends Extension implements IApiInterface
             $PeriodRadioBox = array();
             if(($tblDebtorPeriodTypeAll = Debtor::useService()->getDebtorPeriodTypeAll())){
                 foreach($tblDebtorPeriodTypeAll as $tblDebtorPeriodType){
-                    $PeriodRadioBox[] = new RadioBox('Basket[DebtorPeriodType]', $tblDebtorPeriodType->getName(), $tblDebtorPeriodType->getId());
+                    if($tblDebtorPeriodType->getName() == TblDebtorPeriodType::ATTR_YEAR){
+                        $PeriodRadioBox[] = new RadioBox('Basket[DebtorPeriodType]', $tblDebtorPeriodType->getName().' (Schuljahr)', $tblDebtorPeriodType->getId().';SJ');
+                        $PeriodRadioBox[] = new RadioBox('Basket[DebtorPeriodType]', $tblDebtorPeriodType->getName().' (Kalenderjahr)', $tblDebtorPeriodType->getId().';KJ');
+                    } else {
+                        $PeriodRadioBox[] = new RadioBox('Basket[DebtorPeriodType]', $tblDebtorPeriodType->getName(), $tblDebtorPeriodType->getId());
+                    }
                 }
             }
 
@@ -656,10 +677,11 @@ class ApiBasket extends Extension implements IApiInterface
      * @param string $Identifier
      * @param string $Type
      * @param array  $Basket
+     * @param string $isLoad
      *
      * @return string
      */
-    public function saveAddBasket($Identifier = '', $Type = '', $Basket = array())
+    public function saveAddBasket($Identifier = '', $Type = '', $Basket = array(), $isLoad = 'true')
     {
 
         // Handle error's
@@ -687,9 +709,14 @@ class ApiBasket extends Extension implements IApiInterface
             return $form;
         }
 
+        if($isLoad == 'true'){
+            return new Info('Dieser Vorgang kann einige Zeit in Anspruch nehmen'
+                .new Container((new ProgressBar(0, 100, 0, 10))
+                    ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS))
+            ).self::pipelineSaveAddBasket($Identifier, $Type, $Basket, 'false');
+        }
+
         $tblBasketType = Basket::useService()->getBasketTypeByName($Type);
-
-
         if(!isset($Basket['Division'])
             || !$Basket['Division']
             || !($tblDivision = Division::useService()->getDivisionById($Basket['Division']))){
@@ -704,13 +731,19 @@ class ApiBasket extends Extension implements IApiInterface
         if(isset($Basket['SchoolYear']) && $Basket['SchoolYear']){
             $tblYear = Term::useService()->getYearById($Basket['SchoolYear']);
         }
-        if(!($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($Basket['DebtorPeriodType']))){
+
+        $DebtorPeriodType = explode(';', $Basket['DebtorPeriodType']);
+        if(!($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($DebtorPeriodType[0]))){
             $tblDebtorPeriodType = null;
         }
+        $PeriodExtended = '';
+        if($tblDebtorPeriodType->getName() == TblDebtorPeriodType::ATTR_YEAR){
+            $PeriodExtended = $DebtorPeriodType[1];
+        }
+
         $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
             , $Basket['Month'], $Basket['TargetTime'], $Basket['BillTime'], $tblBasketType, $Basket['Creditor'], $tblDivision, $tblType,
             $tblDebtorPeriodType);
-
 
         foreach($Basket['Item'] as $ItemId) {
             if(($tblItem = Item::useService()->getItemById($ItemId))){
@@ -764,7 +797,8 @@ class ApiBasket extends Extension implements IApiInterface
 
             /** @var TblItem $tblItem */
             foreach($tblItemList as $tblItem) {
-                $VerificationResult = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivision, $tblType, $tblYear);
+                $VerificationResult = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivision,
+                    $tblType, $tblYear, $PeriodExtended);
                 if($isCreate == false){
                     $isCreate = $VerificationResult['IsCreate'];
                 }

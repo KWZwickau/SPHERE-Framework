@@ -68,10 +68,6 @@ class TblStudent extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblStudentIntegration;
-    /**
-     * @Column(type="bigint")
-     */
     protected $tblStudentSpecialNeeds;
     /**
      * @Column(type="bigint")
@@ -218,28 +214,6 @@ class TblStudent extends Element
     {
 
         $this->tblStudentLocker = ( null === $tblStudentLocker ? null : $tblStudentLocker->getId() );
-    }
-
-    /**
-     * @return bool|TblStudentIntegration
-     */
-    public function getTblStudentIntegration()
-    {
-
-        if (null === $this->tblStudentIntegration) {
-            return false;
-        } else {
-            return Student::useService()->getStudentIntegrationById($this->tblStudentIntegration);
-        }
-    }
-
-    /**
-     * @param null|TblStudentIntegration $tblStudentIntegration
-     */
-    public function setTblStudentIntegration(TblStudentIntegration $tblStudentIntegration = null)
-    {
-
-        $this->tblStudentIntegration = ( null === $tblStudentIntegration ? null : $tblStudentIntegration->getId() );
     }
 
     /**

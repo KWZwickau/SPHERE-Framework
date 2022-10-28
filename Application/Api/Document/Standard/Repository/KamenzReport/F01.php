@@ -131,7 +131,7 @@ class F01
                 case 3: $text = 'Sprache'; break;
                 case 4: $text = 'Körperlich-motorische Entwicklung'; $paddingTop = '46px'; $paddingBottom = '46px'; break;
                 case 5: $text = 'Geistige Entwicklung'; break;
-                case 6: $text = 'Sozial-emotionale Entwicklung'; $paddingTop = '54.7px'; $paddingBottom = '54.6px';break;
+                case 6: $text = 'Emotionale-soziale Entwicklung'; $paddingTop = '54.7px'; $paddingBottom = '54.6px';break;
                 case 7: $text = 'Insgesamt'; $isBold = true; break;
                 default: $text = '';
             }

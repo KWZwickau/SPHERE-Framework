@@ -369,7 +369,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $elementList = array();
         $tblSettingList = Setting::useService()->getSettingAllByCategory($Category);
-        foreach($tblSettingList as &$tblSetting){
+        foreach($tblSettingList as $tblSetting){
 
             switch($tblSetting->getIdentifier()){
                     // Regular Option's
@@ -427,7 +427,19 @@ class Frontend extends Extension implements IFrontendInterface
                     // Datev Option's
                 case TblSetting::IDENT_IS_DATEV:
                     $_POST['Setting'][TblSetting::IDENT_IS_DATEV] = $tblSetting->getValue();
-                    $elementList[0] = new CheckBox('Setting['.TblSetting::IDENT_IS_DATEV.']', ' Download einer DATEV-CSV-Datei für externe Programme aktivieren', true);
+
+                    $DatevWell = new WellReadOnly(
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                new CheckBox('Setting['.TblSetting::IDENT_IS_DATEV.']', ' Eingabepflicht relevanter Eingaben für Datev aktivieren', true)
+                            ),
+                            new LayoutColumn(
+                                $this->showDatevInfo()
+                            ),
+                        ))))
+                    );
+                    $elementList[0] = $DatevWell;
+//                    $elementList[0] = new CheckBox('Setting['.TblSetting::IDENT_IS_DATEV.']', ' Download einer DATEV-CSV-Datei für externe Programme aktivieren', true);
                 break;
                 case TblSetting::IDENT_DEBTOR_NUMBER_COUNT:
                     $_POST['Setting'][TblSetting::IDENT_DEBTOR_NUMBER_COUNT] = $tblSetting->getValue();
@@ -547,6 +559,18 @@ class Frontend extends Extension implements IFrontendInterface
         $Content = new Warning(new Container('- Bei der Bezahlart "SEPA-Lastschrift" werden folgende Felder zu
                     Pflichtangaben: Kontodaten, Mandatsreferenznummer')
                     .new Container('- Ermöglicht den Download einer SEPA-XML-Datei für externe Banking-Programme')
+            , null, false, 5, 0);
+        return $Content;
+    }
+
+    /**
+     * @return Warning
+     */
+    private function showDatevInfo()
+    {
+
+        $Content = new Warning(new Container('- Debitornummer wird in Abrechnungen zum Pflichtfeld')
+                    .new Container('- Ermöglicht den Download einer DATEV-CSV-Datei für externe Banking-Programme')
             , null, false, 5, 0);
         return $Content;
     }

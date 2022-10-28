@@ -601,7 +601,6 @@ class Service
                                 $tblStudentBilling,
                                 $tblStudentLocker,
                                 $tblStudentBaptism,
-                                $tblStudentIntegration,
                                 null,
                                 '',
                                 false,
