@@ -308,4 +308,14 @@ class TblStudentEducation extends Element
     {
         return $this->getLeaveDateTime() !== null && $dateTime > $this->getLeaveDateTime();
     }
+
+    /**
+     * für die Sortierung in Listen
+     *
+     * @return string
+     */
+    public function getSort(): string
+    {
+        return ($tblPerson = $this->getServiceTblPerson()) ? $tblPerson->getLastFirstName() : '';
+    }
 }

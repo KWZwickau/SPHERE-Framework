@@ -105,6 +105,17 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @param $name
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivisionCourse
+     */
+    public function getDivisionCourseByNameAndYear($name, TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseByNameAndYear($name, $tblYear);
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblDivisionCourse $tblSubDivisionCourse
      *
@@ -629,6 +640,18 @@ class Service extends ServiceTeacher
         } else {
             return (new Data($this->getBinding()))->getDivisionCourseMemberMaxSortOrder($tblDivisionCourse, $tblMemberType);
         }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblDivisionCourseMemberType $tblMemberType
+     *
+     * @return false|TblDivisionCourseMember[]
+     */
+    public function getDivisionCourseMemberListByPersonAndYearAndMemberType(TblPerson $tblPerson, TblYear $tblYear, TblDivisionCourseMemberType $tblMemberType)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseMemberListByPersonAndYearAndMemberType($tblPerson, $tblYear, $tblMemberType);
     }
 
     /**

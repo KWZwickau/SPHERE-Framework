@@ -157,4 +157,12 @@ class TblType extends Element
     {
         $this->tblCategory = ( null === $tblCategory ? null : $tblCategory->getId() );
     }
+
+    /**
+     * @return false|int
+     */
+    public function getMaxLevel()
+    {
+        return Type::useService()->getMaxLevelByType($this);
+    }
 }

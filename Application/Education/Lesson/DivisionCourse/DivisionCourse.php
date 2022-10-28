@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Blackboard;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -19,6 +20,9 @@ class DivisionCourse implements IModuleInterface
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route('SPHERE\Application\Education\Lesson\TeacherLectureship'), new Link\Name('Lehrauftrag'), new Link\Icon(new Education()))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route('SPHERE\Application\Education\Lesson\YearChange'), new Link\Name('Schuljahreswechsel'), new Link\Icon(new Calendar()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route('SPHERE\Application\Education\Lesson\StudentSubjectTable'), new Link\Name('Stundentafel'), new Link\Icon(new Education()))
@@ -54,6 +58,13 @@ class DivisionCourse implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             'SPHERE/Application/Education/Lesson/TeacherLectureship/Edit', __NAMESPACE__.'\Frontend::frontendEditTeacherLectureship'
+        ));
+
+        /*
+         * Schuljahreswechsel
+         */
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            'SPHERE/Application/Education/Lesson/YearChange', __NAMESPACE__.'\Frontend::frontendYearChange'
         ));
 
         /*
