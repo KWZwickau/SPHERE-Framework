@@ -47,29 +47,24 @@ class ImportStandard implements IModuleInterface
     {
         $ColumnList = array();
         $ColumnList[] = new LayoutColumn(
-            new Panel(new Center(new Link(new Upload().'&nbsp;&nbsp;&nbsp;'.new Group().'&nbsp;&nbsp;&nbsp;Schüler',
-                    __NAMESPACE__.'/Student', null, array(), false, null, Link::TYPE_WHITE_LINK))
-                , '', Panel::PANEL_TYPE_PRIMARY)
+            new Center(new Link(new Panel(new Upload().'&nbsp;&nbsp;&nbsp;'.new Group().'&nbsp;&nbsp;&nbsp;Schüler',
+                '', Panel::PANEL_TYPE_PRIMARY), __NAMESPACE__.'/Student', null, array(), false, null, Link::TYPE_WHITE_LINK))
             , 2);
         $ColumnList[] = new LayoutColumn(
-            new Panel(new Center(new Link(new Upload().'&nbsp;'.new Child().'&nbsp;&nbsp;Interessenten',
-                    __NAMESPACE__.'/Interested', null, array(), false, null, Link::TYPE_WHITE_LINK))
-                , '', Panel::PANEL_TYPE_PRIMARY)
+            new Center(new Link(new Panel(new Upload().'&nbsp;'.new Child().'&nbsp;&nbsp;Interessenten', '',
+                Panel::PANEL_TYPE_PRIMARY), __NAMESPACE__.'/Interested', null, array(), false, null, Link::TYPE_WHITE_LINK))
             , 2);
         $ColumnList[] = new LayoutColumn(
-            new Panel(new Center(new Link(new Upload().'&nbsp;&nbsp;'.new Nameplate().'&nbsp;&nbsp;&nbsp;Mitarbeiter/Lehrer',
-                    __NAMESPACE__.'/Stuff', null, array(), false, null, Link::TYPE_WHITE_LINK))
-                , '', Panel::PANEL_TYPE_PRIMARY)
+            new Center(new Link(new Panel(new Upload().'&nbsp;&nbsp;'.new Nameplate().'&nbsp;&nbsp;&nbsp;Mitarbeiter/Lehrer',
+                '', Panel::PANEL_TYPE_PRIMARY), __NAMESPACE__.'/Stuff', null, array(), false, null, Link::TYPE_WHITE_LINK))
             , 2);
         $ColumnList[] = new LayoutColumn(
-            new Panel(new Center(new Link(new Upload().'&nbsp;&nbsp;'.new Envelope().'&nbsp;&nbsp;&nbsp;Emailadressen',
-                    __NAMESPACE__.'/Mail/Address', null, array(), false, null, Link::TYPE_WHITE_LINK))
-                , '', Panel::PANEL_TYPE_PRIMARY)
+            new Center(new Link(new Panel(new Upload().'&nbsp;&nbsp;'.new Envelope().'&nbsp;&nbsp;&nbsp;Emailadressen',
+                '', Panel::PANEL_TYPE_PRIMARY), __NAMESPACE__.'/Mail/Address', null, array(), false, null, Link::TYPE_WHITE_LINK))
             , 2);
         $ColumnList[] = new LayoutColumn(
-            new Panel(new Center(new Link(new Upload().'&nbsp;&nbsp;'.new Building().'&nbsp;&nbsp;&nbsp;Institutionen',
-                    __NAMESPACE__.'/Company', null, array(), false, null, Link::TYPE_WHITE_LINK))
-                , '', Panel::PANEL_TYPE_PRIMARY)
+            new Center(new Link(new Panel(new Upload().'&nbsp;&nbsp;'.new Building().'&nbsp;&nbsp;&nbsp;Institutionen',
+                '', Panel::PANEL_TYPE_PRIMARY), __NAMESPACE__.'/Company', null, array(), false, null, Link::TYPE_WHITE_LINK))
             , 2);
 
         return new LayoutGroup(
