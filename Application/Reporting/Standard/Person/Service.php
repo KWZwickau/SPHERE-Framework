@@ -4802,70 +4802,39 @@ class Service extends Extension
                     foreach ($tblDivisionList as $tblDivision) {
                         $item = array();
                         $item['Division'] = $tblDivision->getDisplayName();
-
-
-                        $TeacherColumn = 1;
+                        $TeacherColumn = 0;
                         if (($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))){
                             foreach($tblDivisionTeacherList as $tblDivisionTeacher) {
+                                $TeacherColumn++;
                                 $item['DivisionTeacher'.$TeacherColumn.'FirstName'] = $tblDivisionTeacher->getServiceTblPerson()->getFirstName();
-                                $item['DivisionTeacher'.$TeacherColumn++.'Name'] = $tblDivisionTeacher->getServiceTblPerson()->getLastName();
+                                $item['DivisionTeacher'.$TeacherColumn.'Name'] = $tblDivisionTeacher->getServiceTblPerson()->getLastName();
                             }
-                            if ($TeacherColumn -1 > $maxCountTeacher){
-                                $maxCountTeacher = $TeacherColumn -1;
+                            if ($TeacherColumn > $maxCountTeacher){
+                                $maxCountTeacher = $TeacherColumn;
                             }
                         }
-
-                        $CustodyColumn = 1;
+                        $CustodyColumn = 0;
                         if (($tblDivisionCustodyList = Division::useService()->getDivisionCustodyAllByDivision($tblDivision))){
                             foreach($tblDivisionCustodyList as $tblDivisionCustody) {
+                                $CustodyColumn++;
                                 $item['DivisionCustody'.$CustodyColumn.'FirstName'] = $tblDivisionCustody->getServiceTblPerson()->getFirstName();
-                                $item['DivisionCustody'.$CustodyColumn++.'Name'] = $tblDivisionCustody->getServiceTblPerson()->getLastName();
+                                $item['DivisionCustody'.$CustodyColumn.'Name'] = $tblDivisionCustody->getServiceTblPerson()->getLastName();
                             }
-                            if ($CustodyColumn -1 > $maxCountCustody){
-                                $maxCountCustody = $CustodyColumn -1;
+                            if ($CustodyColumn > $maxCountCustody){
+                                $maxCountCustody = $CustodyColumn;
                             }
                         }
-
-                        $RepresentativeColumn = 1;
+                        $RepresentativeColumn = 0;
                         if (($tblDivisionRepresentativeList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))){
                             foreach($tblDivisionRepresentativeList as $tblDivisionRepresentative) {
+                                $RepresentativeColumn++;
                                 $item['DivisionRepresentative'.$RepresentativeColumn.'FirstName'] = $tblDivisionRepresentative->getServiceTblPerson()->getFirstName();
-                                $item['DivisionRepresentative'.$RepresentativeColumn++.'Name'] = $tblDivisionRepresentative->getServiceTblPerson()->getLastName();
+                                $item['DivisionRepresentative'.$RepresentativeColumn.'Name'] = $tblDivisionRepresentative->getServiceTblPerson()->getLastName();
                             }
-                            if ($RepresentativeColumn -1 > $maxCountRepresentative){
-                                $maxCountRepresentative = $RepresentativeColumn -1;
-                            }
-                        }
-
-
-//                        // Checkt ob Namensfeld Leer ist und setzt es falls ja auf "-"
-//                        if (empty($item['DivisionTeacher'.$TeacherColumn.'FirstName'])){
-//                            $item['DivisionTeacher'.$TeacherColumn.'FirstName'] = '-';
-//                        }
-//                        if (empty($item['DivisionTeacher'.$TeacherColumn.'Name'])){
-//                            $item['DivisionTeacher'.$TeacherColumn.'Name'] = '-';
-//                        }
-//                        if (empty($item['DivisionCustody'.$CustodyColumn.'FirstName'])){
-//                            $item['DivisionCustody'.$CustodyColumn.'FirstName'] = '-';
-//                        }
-//                        if (empty($item['DivisionCustody'.$CustodyColumn.'Name'])) {
-//                            $item['DivisionCustody'.$CustodyColumn.'Name'] = '-';
-//                        }
-//                        if (empty($item['DivisionRepresentative'.$RepresentativeColumn.'FirstName'])){
-//                            $item['DivisionRepresentative'.$RepresentativeColumn.'FirstName'] = '-';
-//                        }
-//                        if(empty($item['DivisionRepresentative'.$RepresentativeColumn.'Name'])){
-//                            $item['DivisionRepresentative'.$RepresentativeColumn.'Name'] = '-';
-//                        }
-
-                        /*
-                        if (($tblDivisionCustodyList = Division::useService()->getDivisionCustodyAllByDivision($tblDivision))){
-                            foreach($tblDivisionCustodyList as $tblDivisionCustody) {
-                                $item['DivisionCustody1FirstName'] = $tblDivisionCustody->getServiceTblPerson()->getFirstName();
-                                $item['DivisionCustody1Name'] = $tblDivisionCustody->getServiceTblPerson()->getLastName();
+                            if ($RepresentativeColumn > $maxCountRepresentative){
+                                $maxCountRepresentative = $RepresentativeColumn;
                             }
                         }
-                        */
 
                         array_push($TableContent, $item);
                     }
@@ -4875,16 +4844,16 @@ class Service extends Extension
 
         $headers['Division'] = 'Klasse';
         for ($i = 1; $i <= $maxCountTeacher; $i++){
-            $headers['DivisionTeacher'.$i.'FirstName'] = 'Klassenlehrer'.$i.' - Vorname';
-            $headers['DivisionTeacher'.$i.'Name'] = 'Klassenlehrer'.$i.' - Nachname';
+            $headers['DivisionTeacher'.$i.'FirstName'] = 'Klassenlehrer&nbsp;'.$i.' - Vorname';
+            $headers['DivisionTeacher'.$i.'Name'] = 'Klassenlehrer&nbsp;'.$i.' - Nachname';
         }
         for ($j = 1; $j <= $maxCountCustody; $j++){
-            $headers['DivisionCustody'.$j.'FirstName'] = 'Elternvertreter'.$j.' - Vorname';
-            $headers['DivisionCustody'.$j.'Name'] = 'Elternvertreter'.$j.' - Nachname';
+            $headers['DivisionCustody'.$j.'FirstName'] = 'Elternvertreter&nbsp;'.$j.' - Vorname';
+            $headers['DivisionCustody'.$j.'Name'] = 'Elternvertreter&nbsp;'.$j.' - Nachname';
         }
         for ($l = 1; $l <= $maxCountRepresentative; $l++){
-            $headers['DivisionRepresentative'.$l.'FirstName'] = 'Schülersprecher'.$l.' - Vorname';
-            $headers['DivisionRepresentative'.$l.'Name'] = 'Schülersprecher'.$l.' Nachname';
+            $headers['DivisionRepresentative'.$l.'FirstName'] = 'Schülersprecher&nbsp;'.$l.' - Vorname';
+            $headers['DivisionRepresentative'.$l.'Name'] = 'Schülersprecher&nbsp;'.$l.' Nachname';
         }
 
         foreach($TableContent as &$contentItem) {
@@ -4914,7 +4883,7 @@ class Service extends Extension
             $row = 0;
             $column = 0;
             foreach ($headers as $header) {
-                $export->setValue($export->getCell($column++, $row), $header);
+                $export->setValue($export->getCell($column++, $row), str_replace('&nbsp;', ' ', $header));
             }
             $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
 
