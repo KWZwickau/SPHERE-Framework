@@ -218,6 +218,25 @@ class Data extends DataTeacher
     }
 
     /**
+     * @param TblYear|null $tblYear
+     * @param string|null $TypeIdentifier
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourseListByIsShownInPersonData(TblYear $tblYear = null, ?string $TypeIdentifier = '')
+    {
+        $parameterList[TblDivisionCourse::ATTR_IS_SHOWN_IN_PERSON_DATA] = 1;
+        if ($TypeIdentifier && ($tblType = $this->getDivisionCourseTypeByIdentifier($TypeIdentifier))) {
+            $parameterList[TblDivisionCourse::ATTR_TBL_TYPE] = $tblType->getId();
+        }
+        if ($tblYear) {
+            $parameterList[TblDivisionCourse::SERVICE_TBL_YEAR] = $tblYear->getId();
+        }
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', $parameterList, array(TblDivisionCourse::ATTR_NAME => self::ORDER_ASC));
+    }
+
+    /**
      * @param string $name
      * @param array|null $tblYearList
      *

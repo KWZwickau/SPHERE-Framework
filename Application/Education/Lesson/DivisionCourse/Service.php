@@ -21,6 +21,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Group\Group as GroupPerson;
 use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -28,15 +29,20 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as Ga
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
@@ -91,6 +97,17 @@ class Service extends ServiceTeacher
     public function getDivisionCourseListBy(TblYear $tblYear = null, ?string $TypeIdentifier = '')
     {
         return (new Data($this->getBinding()))->getDivisionCourseListBy($tblYear, $TypeIdentifier);
+    }
+
+    /**
+     * @param TblYear|null $tblYear
+     * @param string|null $TypeIdentifier
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourseListByIsShownInPersonData(TblYear $tblYear = null, ?string $TypeIdentifier = '')
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseListByIsShownInPersonData($tblYear, $TypeIdentifier);
     }
 
     /**
@@ -897,6 +914,52 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param string $date
+     *
+     * @return false|TblStudentEducation
+     */
+    public function getStudentEducationByPersonAndDate(TblPerson $tblPerson, string $date = 'now')
+    {
+        $dateTime = new DateTime($date);
+        if (($tblYearList = Term::useService()->getYearAllByDate($dateTime))) {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblStudentEducation = $this->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                    return $tblStudentEducation;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $date
+     *
+     * @return string
+     */
+    public function getCurrentMainCoursesByPerson(TblPerson $tblPerson, string $date = 'now'): string
+    {
+        $result = '';
+        if (($tblStudentEducation = $this->getStudentEducationByPersonAndDate($tblPerson, $date)))
+        {
+            if (($tblDivision = $tblStudentEducation->getTblDivision())
+                && ($displayDivision = $tblDivision->getName())
+            ) {
+                $result = 'Klasse: ' . $displayDivision;
+            }
+            if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                && ($displayCoreGroup = $tblCoreGroup->getName())
+            ) {
+                $result .= ($result ? ', ': '') . 'Stammgruppe: ' . $displayCoreGroup;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * @param $Id
      *
      * @return TblStudentEducation|false
@@ -1247,5 +1310,88 @@ class Service extends ServiceTeacher
         }
 
         return empty($resultList) ? '' : implode($separator, $resultList);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return int
+     */
+    public function getCountStudentsByYear(TblYear $tblYear): int
+    {
+        if (($tblStudentEducationList = $this->getStudentEducationListBy($tblYear))) {
+            return count($tblStudentEducationList);
+        }
+
+        return 0;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return string
+     */
+    public function getCountStudentsDetailsByYear(TblYear $tblYear): string
+    {
+        $countSchoolTypeList = array();
+        $countTotal = 0;
+        $missingStudentGroup = array();
+        $tblGroupStudent = GroupPerson::useService()->getGroupByMetaTable('STUDENT');
+        if (($tblStudentEducationList = $this->getStudentEducationListBy($tblYear))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (($tblPerson = $tblStudentEducation->getServiceTblPerson())) {
+                    $countTotal++;
+                    $schoolTypeId = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getId() : 0;
+                    $companyId = ($tblCompany = $tblStudentEducation->getServiceTblCompany()) ? $tblCompany->getId() : 0;
+                    if (isset($countSchoolTypeList[$schoolTypeId][$companyId])) {
+                        $countSchoolTypeList[$schoolTypeId][$companyId]++;
+                    } else {
+                        $countSchoolTypeList[$schoolTypeId][$companyId] = 1;
+                    }
+
+                    if (!GroupPerson::useService()->existsGroupPerson($tblGroupStudent, $tblPerson)) {
+                        $missingStudentGroup[$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                    }
+                }
+            }
+        }
+
+        $panelList = array();
+        foreach ($countSchoolTypeList as $schoolTypeId => $companyList) {
+            if (($tblSchoolType = Type::useService()->getTypeById($schoolTypeId))) {
+                $nameSchoolType = $tblSchoolType->getName();
+            } else {
+                $nameSchoolType = 'Keine Schulart';
+            }
+
+            $countSchoolType = 0;
+            $content = array();
+            foreach ($companyList as $companyId => $value) {
+                $countSchoolType += $value;
+                if (($tblCompany = Company::useService()->getCompanyById($companyId))) {
+                    $nameCompany = $tblCompany->getDisplayName();
+                } else {
+                    $nameCompany = new Warning('Keine Schule');
+                }
+                $content[] = $nameCompany . new PullRight(new Muted($value . ' Schüler'));
+            }
+
+            $panelList[$schoolTypeId] = new Panel(
+                $nameSchoolType . new PullRight(new Muted($countSchoolType . ' Schüler')),
+                $content,
+                $nameSchoolType == 'Keine Schulart' ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_INFO
+            );
+        }
+
+        asort($panelList);
+        asort($missingStudentGroup);
+
+        return new Title(new Calendar() . ' Schuljahresübersicht für: ' . new Bold($tblYear->getDisplayName()) . new PullRight(new Muted($countTotal . ' Schüler')))
+            . implode('<br/>', $panelList)
+            . (empty($missingStudentGroup) ? '' : new Panel(
+                'Personen, welche nicht mehr in der Personengruppe Schüler sind:',
+                $missingStudentGroup,
+                Panel::PANEL_TYPE_WARNING
+            ));
     }
 }

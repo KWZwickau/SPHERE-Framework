@@ -9,9 +9,9 @@ use SPHERE\Application\Api\Contact\ApiPhoneToPerson;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson as TblAddressToPerson;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblMailToPerson;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblPhoneToPerson;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -92,9 +92,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 ->ajaxPipelineOnClick(ApiMailToPerson::pipelineOpenCreateMailToPersonModal($tblPerson->getId(), $tblOnlineContact->getId()));
                         break;
                 }
-                $DivisionString = '';
-                if(($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))){
-                    $DivisionString = $tblDivision->getDisplayName().' '.$tblDivision->getTypeName();
+
+                $schoolType = '';
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
+                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                ) {
+                    $schoolType = $tblSchoolType->getShortName() ?: $tblSchoolType->getName();
                 }
 
                 $dataList[] = array(
@@ -102,7 +105,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Creator' => ($tblPersonCreator = $tblOnlineContact->getServiceTblPersonCreator()) ? $tblPersonCreator->getFullName() : '',
                     'Category' => $tblOnlineContact->getContactTypeIcon() . ' ' . $tblOnlineContact->getContactTypeName(),
                     'Person' => $tblOnlineContact->getServiceTblPerson() ? $tblOnlineContact->getServiceTblPerson()->getLastFirstName() : '',
-                    'Division' => $DivisionString,
+                    'SchoolType' => $schoolType,
                     'Original' => $tblOnlineContact->getOriginalContent(),
                     'Content' => $tblOnlineContact->getContactContent(),
                     'Remark' => $tblOnlineContact->getRemark(),
@@ -117,7 +120,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Creator' => 'Ersteller',
                 'Category' => 'Kategorie',
                 'Person' => 'Person',
-                'Division' => 'Klasse/Schulart',
+                'SchoolType' => 'Schul&shy;art',
                 'Original' => 'Alter Kontakt',
                 'Content' => 'Neuer Kontakt',
                 'Remark' => 'Änderungsbemerkung',
