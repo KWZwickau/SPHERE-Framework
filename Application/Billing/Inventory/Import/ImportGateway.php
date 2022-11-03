@@ -137,7 +137,7 @@ class ImportGateway extends AbstractConverter
         $this->setSanitizer(new FieldSanitizer($ColumnList['IBAN'], 'IBAN', array($this, 'sanitizeTrimSpace')));
         $this->setPointer(new FieldPointer($ColumnList['BIC'], 'BIC'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['BIC'], 'BIC', array($this, 'sanitizeTrimSpace')));
-        if(isset($ColumnList['Debitorennummer'])){
+        if(isset($ColumnList['Bank Name'])){
             $this->setPointer(new FieldPointer($ColumnList['Bank Name'], 'Bank'));
         }
         if(isset($ColumnList['Zahlung Jährlich'])){
