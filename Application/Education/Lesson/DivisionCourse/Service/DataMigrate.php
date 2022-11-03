@@ -33,6 +33,7 @@ abstract class DataMigrate extends AbstractData
     protected function migrateAll()
     {
         if (!($this->getDivisionCourseAll())) {
+            ini_set('memory_limit', '2G');
             $this->migrateTblDivisionToTblDivisionCourse();
             $this->migrateDivisionContent();
 

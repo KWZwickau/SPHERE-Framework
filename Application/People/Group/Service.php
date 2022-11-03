@@ -232,12 +232,12 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            $isCoreGroup = false;
-            if(isset($Group['IsCoreGroup'])){
-                $isCoreGroup = true;
-            }
+//            $isCoreGroup = false;
+//            if(isset($Group['IsCoreGroup'])){
+//                $isCoreGroup = true;
+//            }
             if ((new Data($this->getBinding()))
-                ->createGroup($Group['Name'], $Group['Description'], $Group['Remark'], false, '', $isCoreGroup)) {
+                ->createGroup($Group['Name'], $Group['Description'], $Group['Remark'], false, '')) {
                 return new Success(new SuccessIcon().' Die Gruppe wurde erfolgreich erstellt').new Redirect('/People/Group',
                     Redirect::TIMEOUT_SUCCESS);
             } else {
@@ -341,12 +341,12 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            $isCoreGroup = false;
-            if(isset($Group['IsCoreGroup'])){
-                $isCoreGroup = true;
-            }
+//            $isCoreGroup = false;
+//            if(isset($Group['IsCoreGroup'])){
+//                $isCoreGroup = true;
+//            }
             if ((new Data($this->getBinding()))->updateGroup(
-                $tblGroup, $Group['Name'], $Group['Description'], $Group['Remark'], $isCoreGroup
+                $tblGroup, $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
                 return new Success(new SuccessIcon().' Die Änderungen wurden erfolgreich gespeichert')
@@ -580,11 +580,11 @@ class Service extends AbstractService
      *
      * @return TblGroup
      */
-    public function insertGroup($Name, $Description = '', $Remark = '', $isCoreGroup = false)
+    public function insertGroup($Name, $Description = '', $Remark = '')
     {
 
         return (new Data($this->getBinding()))->createGroup(
-            $Name, $Description, $Remark, false, '', $isCoreGroup
+            $Name, $Description, $Remark
         );
     }
 

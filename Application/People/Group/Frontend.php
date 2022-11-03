@@ -178,7 +178,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Gruppe', array(
                             new TextField('Group[Name]', 'Name', 'Name'),
                             new TextField('Group[Description]', 'Beschreibung', 'Beschreibung'),
-                            new CheckBox('Group[IsCoreGroup]', 'Stammgruppe', 1)
+//                            new CheckBox('Group[IsCoreGroup]', 'Stammgruppe', 1)
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(

@@ -44,7 +44,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Person', 'Löschen');
         if ($Id) {
             if ($Group) {
-                $Stage->addButton(new Standard('Zurück', '/People/Search/Group', new ChevronLeft(), array('Id' => $Group)));
+                $Stage->addButton(new Standard('Zurück', '/People', new ChevronLeft(), array('Id' => $Group)));
             }
             $tblPerson = Person::useService()->getPersonById($Id);
             if (!$tblPerson){
@@ -52,7 +52,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             new Danger('Die Person konnte nicht gefunden werden.', new Ban()),
-                            new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Id' => $Group))
+                            new Redirect('/People', Redirect::TIMEOUT_ERROR, array('PseudoId' => $Group))
                         )))
                     )))
                 );
@@ -84,12 +84,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
                             )
                             . new Standard(
-                                'Nein', '/People/Search/Group', new Disable(), array('Id' => $Group)
+                                'Nein', '/People', new Disable(), array('PseudoId' => $Group)
                             );
                     } else {
                         $buttonList =
                             new Standard(
-                                'Nein', '/People/Search/Group', new Disable(), array('Id' => $Group)
+                                'Nein', '/People', new Disable(), array('PseudoId' => $Group)
                             );
                     }
 
@@ -119,7 +119,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Person wurde gelöscht.')
                                     : new Danger(new Ban() . ' Die Person konnte nicht gelöscht werden.')
                                 ),
-                                new Redirect('/People/Search/Group', Redirect::TIMEOUT_SUCCESS, array('Id' => $Group))
+                                new Redirect('/People', Redirect::TIMEOUT_SUCCESS, array('PseudoId' => $Group))
                             )))
                         )))
                     );
@@ -130,7 +130,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Daten nicht abrufbar.', new Ban()),
-                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Id' => $Group))
+                        new Redirect('/People', Redirect::TIMEOUT_ERROR, array('PseudoId' => $Group))
                     )))
                 )))
             );

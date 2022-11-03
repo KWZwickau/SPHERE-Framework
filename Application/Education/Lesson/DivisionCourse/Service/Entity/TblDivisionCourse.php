@@ -24,6 +24,8 @@ class TblDivisionCourse extends Element
     const ATTR_TBL_TYPE = 'tblLessonDivisionCourseType';
     const ATTR_NAME = 'Name';
     const SERVICE_TBL_YEAR = 'serviceTblYear';
+    const ATTR_IS_SHOWN_IN_PERSON_DATA = 'IsShownInPersonData';
+    const ATTR_IS_REPORTING = 'IsReporting';
 
     /**
      * @Column(type="bigint")

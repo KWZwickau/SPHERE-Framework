@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\People\Person;
 
-use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
 use SPHERE\Application\Api\Contact\ApiContactDetails;
 use SPHERE\Application\Api\Contact\ApiMailToPerson;
@@ -16,9 +15,9 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
 use SPHERE\Application\People\Person\Frontend\FrontendChild;
 use SPHERE\Application\People\Person\Frontend\FrontendClub;
@@ -51,7 +50,6 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -98,7 +96,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
         $stage = new Stage('Person', 'Datenblatt ' . ($Id ? 'bearbeiten' : 'anlegen'));
         $stage->addButton(
-            new Standard('Zurück', '/People/Search/Group', new ChevronLeft(), array('Id' => $Group))
+            new Standard('Zurück', '/People', new ChevronLeft(), array('PseudoId' => $Group))
         );
 
         // Person bearbeiten
@@ -263,11 +261,11 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
      */
     public static function getDivisionString(TblPerson $tblPerson = null): string
     {
-        $DivisionString = '';
-        if($tblPerson && ($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))){
-            $DivisionString = ' Klasse '.$tblDivision->getDisplayName();
+        if($tblPerson) {
+            return ' ' . DivisionCourse::useService()->getCurrentMainCoursesByPerson($tblPerson);
         }
-        return $DivisionString;
+
+        return '';
     }
 
     /**
