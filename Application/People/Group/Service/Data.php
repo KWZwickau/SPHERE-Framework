@@ -52,11 +52,10 @@ class Data extends AbstractData
      * @param string $Remark
      * @param bool   $IsLocked
      * @param string $MetaTable
-     * @param bool   $IsCoreGroup
      *
      * @return TblGroup
      */
-    public function createGroup($Name, $Description, $Remark, $IsLocked = false, $MetaTable = '', $IsCoreGroup = false)
+    public function createGroup($Name, $Description, $Remark, $IsLocked = false, $MetaTable = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -78,7 +77,7 @@ class Data extends AbstractData
             $Entity->setRemark($Remark);
             $Entity->setLocked($IsLocked);
             $Entity->setMetaTable($MetaTable);
-            $Entity->setCoreGroup($IsCoreGroup);
+            $Entity->setCoreGroup(false);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -91,11 +90,10 @@ class Data extends AbstractData
      * @param string   $Name
      * @param string   $Description
      * @param string   $Remark
-     * @param bool     $isCoreGroup
      *
      * @return bool
      */
-    public function updateGroup(TblGroup $tblGroup, $Name, $Description, $Remark, $isCoreGroup = false)
+    public function updateGroup(TblGroup $tblGroup, $Name, $Description, $Remark)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -106,7 +104,7 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Entity->setRemark($Remark);
-            $Entity->setCoreGroup($isCoreGroup);
+//            $Entity->setCoreGroup($isCoreGroup);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

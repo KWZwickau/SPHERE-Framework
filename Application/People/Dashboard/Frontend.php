@@ -9,7 +9,6 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Group as GroupIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -34,8 +33,12 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGroupLockedList = array();
         $tblGroupCustomList = array();
         if (($tblGroupAll = Group::useService()->getGroupAllSorted())) {
-            /** @var TblGroup $tblGroup */
-            foreach ((array)$tblGroupAll as $Index => $tblGroup) {
+            foreach ($tblGroupAll as $tblGroup) {
+                // alte Personengruppen - Stammgruppen überspringen
+                if ($tblGroup->isCoreGroup()) {
+                    continue;
+                }
+
                 $content = new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn($tblGroup->getName() . new Muted(new Small('<br/>' . $tblGroup->getDescription(true))), 6),
                     new LayoutColumn(new Muted(new Small(Group::useService()->countMemberByGroup($tblGroup) . '&nbsp;Mitglieder')), 5),

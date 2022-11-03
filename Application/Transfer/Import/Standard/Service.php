@@ -17,7 +17,6 @@ use SPHERE\Application\Contact\Web\Web;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
-use SPHERE\Application\Corporation\Group\Group as GroupCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as TblGroupCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -62,7 +61,6 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
-use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -348,16 +346,15 @@ class Service
 
             // ESBZ "Name" vor Stammgruppen
 //            if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
-                $isCoreGroup = true;
                 $kl = $this->getValue('KL');
                 if($kl){
                     $kl = 'Klasse '.$kl;
-                    $this->setPersonGroup($tblPerson, $kl, $isCoreGroup);
+                    $this->setPersonGroup($tblPerson, $kl);
                 }
                 $team = $this->getValue('Team');
                 if($team){
                     $team = 'Team '.$team;
-                    $this->setPersonGroup($tblPerson, $team, $isCoreGroup);
+                    $this->setPersonGroup($tblPerson, $team);
                 }
                 $group = $this->getValue('Gruppe');
                 if($group){
@@ -1683,14 +1680,13 @@ class Service
     /**
      * @param TblPerson $tblPerson
      * @param string    $Group
-     * @param bool      $isCoreGroup
      *
      * @return void
      */
-    private function setPersonGroup(TblPerson $tblPerson, string $Group, $isCoreGroup = false)
+    private function setPersonGroup(TblPerson $tblPerson, string $Group)
     {
 
-        $tblGroup = Group::useService()->insertGroup($Group, '', '', $isCoreGroup);
+        $tblGroup = Group::useService()->insertGroup($Group);
         Group::useService()->addGroupPerson($tblGroup, $tblPerson);
     }
 
