@@ -4,7 +4,6 @@ namespace SPHERE\Application\People;
 
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\People\ContactDetails\ContactDetails;
-use SPHERE\Application\People\Dashboard\Dashboard;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Meta;
 use SPHERE\Application\People\Person\Person;
@@ -25,7 +24,6 @@ class People implements IClusterInterface
     public static function registerCluster()
     {
         Search::registerApplication();
-        Dashboard::registerApplication();
         Person::registerApplication();
         Group::registerApplication();
         Meta::registerApplication();

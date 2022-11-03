@@ -32,6 +32,8 @@ class ApiPersonSearch  extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('searchPerson');
         $Dispatcher->registerMethod('selectGroup');
+        $Dispatcher->registerMethod('loadDashboard');
+        $Dispatcher->registerMethod('loadGroupSelectBox');
 
         $Dispatcher->registerMethod('openYearStudentCountModal');
 
@@ -67,7 +69,7 @@ class ApiPersonSearch  extends Extension implements IApiInterface
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'searchPerson',
         ));
-
+        $ModalEmitter->setLoadingMessage('Daten werden geladen.');
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
@@ -93,7 +95,6 @@ class ApiPersonSearch  extends Extension implements IApiInterface
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'selectGroup',
         ));
-
         $ModalEmitter->setLoadingMessage('Daten werden geladen.');
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -108,6 +109,30 @@ class ApiPersonSearch  extends Extension implements IApiInterface
     public function selectGroup($Data = null): string
     {
         return Search::useFrontend()->loadGroup($Data['Id']);
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadDashboard(): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SearchContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDashboard',
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen.');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return string
+     */
+    public function loadDashboard(): string
+    {
+        return Search::useFrontend()->loadDashboard();
     }
 
     /**
@@ -143,5 +168,35 @@ class ApiPersonSearch  extends Extension implements IApiInterface
         }
 
         return DivisionCourse::useService()->getCountStudentsDetailsByYear($tblYear);
+    }
+
+    /**
+     * @param $SelectId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadGroupSelectBox($SelectId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'GroupSelectBox'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadGroupSelectBox',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SelectId' => $SelectId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SelectId
+     *
+     * @return string
+     */
+    public function loadGroupSelectBox($SelectId): string
+    {
+        return Search::useFrontend()->getPanelSelectGroupOrDivisionCourse($SelectId);
     }
 }
