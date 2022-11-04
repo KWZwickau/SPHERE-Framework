@@ -895,12 +895,6 @@ class Frontend extends Extension implements IFrontendInterface
         $TableData = new TableData($Table, null, array(),
             array(
                 'responsive' => false,
-                'ExtensionColVisibility' => array(
-                    'Enabled' => true
-                ),
-                'ExtensionDownloadExcel' => array(
-                    'Enabled' => true
-                )
             )
         );
 

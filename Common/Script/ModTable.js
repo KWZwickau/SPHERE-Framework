@@ -272,12 +272,23 @@
             );
         }
         if( settings.ExtensionDownloadExcel.Enabled ) {
+            // default name
+            var FileName = 'Download '+new Date().toLocaleDateString().split('T')[0];
+            // name from table
+            if(settings.ExtensionDownloadExcel.FileName){
+                FileName = settings.ExtensionDownloadExcel.FileName
+            }
+            var columns = ':visible';
+            if(settings.ExtensionDownloadExcel.Columns){
+                columns = settings.ExtensionDownloadExcel.Columns;
+            }
             settings.buttons.push(
                 {
                     'extend': 'excel',
                     'text': 'Download',
+                    'filename': FileName,
                     'exportOptions': {
-                        'columns': ':visible',
+                        'columns': columns,
                         'rows': function (idx, data, node) {
                             if ($(node).find('td:not(:empty)').length > 0) return true;
                         }
