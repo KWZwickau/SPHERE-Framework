@@ -77,7 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($type == 'G' || $type == 'C') {
 //                $stage->addButton(new Standard('Zurück', '/People/Dashboard', new ChevronLeft()));
                 $selectedId = $PseudoId;
-                $content = $this->loadGroup($PseudoId);
+                $content = ApiPersonSearch::pipelineLoadGroupSelectBox($PseudoId);
             } elseif ($type == 'S') {
                 $search = $id;
                 $content = $this->loadPersonSearch($search);
@@ -159,7 +159,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new Panel(
-            'oder Gruppen/Kurs-Auswahl',
+            new Bold('oder') . ' Gruppen/Kurs-Auswahl',
             (new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
                     (new SelectBox('Data[Id]', '', array('{{ Name }}' => $dataList)))
@@ -177,7 +177,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function getPanelDashboard(): string
     {
         return new Panel(
-            'oder Übersicht',
+            new Bold('oder') . ' Übersicht',
             (new Standard('Dashboard anzeigen', ApiPersonSearch::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonSearch::pipelineLoadDashboard()),
             Panel::PANEL_TYPE_INFO

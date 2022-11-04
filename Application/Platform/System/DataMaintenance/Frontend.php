@@ -3,9 +3,11 @@
 namespace SPHERE\Application\Platform\System\DataMaintenance;
 
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradeMaintenance;
+use SPHERE\Application\Api\Platform\DataMaintenance\ApiMigrateDivision;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
@@ -133,6 +135,11 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     ),
 //                    $IntegrationColumn,
+                    new LayoutColumn(array(
+                            new TitleLayout('Migration Klassen zu Kursen'),
+                            new Standard('Migration Klassen', __NAMESPACE__.'/DivisionCourse')
+                        )
+                    ),
                 ))
             )
         ));
@@ -589,5 +596,37 @@ UPDATE ".$Acronym."_SettingConsumer.tblPrepareInformation SET Value = CONCAT(SUB
         ));
 
         return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendDivisionCourse()
+    {
+        $stage = new Stage('Migration Klassen zu Kursen');
+        $stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        ini_set('memory_limit', '2G');
+
+        if ((DivisionCourse::useService()->getDivisionCourseAll())) {
+            $stage->setContent(new Success('Die Daten wurden bereits migriert.'));
+        } else {
+            $content = ApiMigrateDivision::receiverBlock('', 'MigrateDivisions')
+                . ApiMigrateDivision::receiverBlock('', 'MigrateGroups');
+            if (($tblYearList = Term::useService()->getYearAll())) {
+                $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('Id');
+                /** @var TblYear $tblYear */
+                foreach ($tblYearList as $tblYear) {
+                    $content .= ApiMigrateDivision::receiverBlock('', 'MigrateYear_' . $tblYear->getId());
+                }
+            }
+
+            $stage->setContent(
+                ApiMigrateDivision::receiverBlock(ApiMigrateDivision::pipelineStatus(ApiMigrateDivision::STATUS_BUTTON), 'Status')
+                . $content
+            );
+        }
+
+        return $stage;
     }
 }
