@@ -40,19 +40,11 @@ class GymAbgSekI extends Certificate
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        if (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESBD')) {
-            $Header = MsAbsRs::getHeadForDiploma($this->isSample(), true);
-        } else {
-            $Header = $this->getHead($this->isSample());
-        }
-
         // leere Seite
         $pageList[] = new Page();
 
         $pageList[] = (new Page())
-            ->addSlice(
-                $Header
-            )
+            ->addSlice($this->getHeadForLeave($this->isSample()))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('ABGANGSZEUGNIS')
