@@ -415,14 +415,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 $hasOnlineContactsOptions = false;
                             }
 
-                            $RegionString = '';
-                            if(($tblCity = $tblAddress->getTblCity()) && ($Code = $tblCity->getCode())){
-                                $RegionString = Address::useService()->getRegionStringByCode($Code);
-                                if($RegionString){
-                                    $RegionString = 'Bezirk '.$RegionString;
-                                }
+                            $Address = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber().' '.$tblAddress->getPostOfficeBox();
+                            if(($tblCity = $tblAddress->getTblCity())){
+                                $Address .= new Container($tblCity->getCode().' '.$tblCity->getDisplayName().' '.new Italic($tblCity->getRegionString()));
+                                $Address .= new Container($tblAddress->getLocation());
                             }
-                            $content[] = $tblAddress->getGuiLayout().new Italic($RegionString);
+                            $content[] = $Address;
                             /**
                              * @var TblToPerson $tblToPersonTemp
                              */
