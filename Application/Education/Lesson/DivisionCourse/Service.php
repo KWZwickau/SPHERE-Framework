@@ -69,6 +69,32 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @return int
+     */
+    public function migrateTblDivisionToTblDivisionCourse(): int
+    {
+        return (new Data($this->getBinding()))->migrateTblDivisionToTblDivisionCourse();
+    }
+
+    /**
+     * @return int
+     */
+    public function migrateTblGroupToTblDivisionCourse(): int
+    {
+        return (new Data($this->getBinding()))->migrateTblGroupToTblDivisionCourse();
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return float
+     */
+    public function migrateYear(TblYear $tblYear): float
+    {
+        return (new Data($this->getBinding()))->migrateDivisionContent($tblYear);
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDivisionCourse

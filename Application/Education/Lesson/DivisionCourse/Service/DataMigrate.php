@@ -30,19 +30,23 @@ abstract class DataMigrate extends AbstractData
     private $tblSubjectOrientationList;
     private $tblSubjectElectiveList;
 
-    protected function migrateAll()
-    {
-        if (!($this->getDivisionCourseAll())) {
-            ini_set('memory_limit', '2G');
-            $this->migrateTblDivisionToTblDivisionCourse();
-            $this->migrateDivisionContent();
+//    protected function migrateAll()
+//    {
+//        if (!($this->getDivisionCourseAll())) {
+//            ini_set('memory_limit', '2G');
+//            $this->migrateTblDivisionToTblDivisionCourse();
+//            $this->migrateDivisionContent();
+//
+//            $this->migrateTblGroupToTblDivisionCourse();
+//        }
+//    }
 
-            $this->migrateTblGroupToTblDivisionCourse();
-        }
-    }
-
-    private function migrateTblDivisionToTblDivisionCourse()
+    /**
+     * @return int
+     */
+    public function migrateTblDivisionToTblDivisionCourse(): int
     {
+        $count = 0;
         if (($tblDivisionList = Division::useService()->getDivisionAll())
             && ($tblType = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_DIVISION))
         ) {
@@ -62,13 +66,20 @@ abstract class DataMigrate extends AbstractData
 
                     // beim Speichern mit vorgegebener Id ist kein bulkSave möglich
                     $Manager->saveEntityWithSetId($tblDivisionCourse);
+                    $count++;
                 }
             }
         }
+
+        return $count;
     }
 
-    private function migrateTblGroupToTblDivisionCourse()
+    /**
+     * @return int
+     */
+    public function migrateTblGroupToTblDivisionCourse(): int
     {
+        $count = 0;
         if (($tblGroupList = Group::useService()->getGroupListByIsCoreGroup())
             && ($tblType = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_CORE_GROUP))
             && ($tblYearList = Term::useService()->getYearByNow())
@@ -85,6 +96,7 @@ abstract class DataMigrate extends AbstractData
                     null, $tblGroup->getId());
                 // bulkSave nicht möglich, da ansonsten noch keine Id vorhanden ist
                 $Manager->saveEntity($tblDivisionCourse);
+                $count++;
 
                 if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                     foreach ($tblPersonList as $tblPerson) {
@@ -113,25 +125,32 @@ abstract class DataMigrate extends AbstractData
 
             $Manager->flushCache();
         }
+
+        return $count;
     }
 
-    private function migrateDivisionContent()
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return float
+     */
+    public function migrateDivisionContent(TblYear $tblYear): float
     {
+        $start = hrtime(true);
         $this->tblSubjectForeignLanguageList = Subject::useService()->getSubjectForeignLanguageAll();
         $this->tblSubjectReligionList = Subject::useService()->getSubjectReligionAll();
         $this->tblSubjectProfileList = Subject::useService()->getSubjectProfileAll();
         $this->tblSubjectOrientationList = Subject::useService()->getSubjectOrientationAll();
         $this->tblSubjectElectiveList = Subject::useService()->getSubjectElectiveAll();
 
-        if (($tblDivisionList = Division::useService()->getDivisionAll())) {
+        if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
             $tblTypeAdvancedCourse = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_ADVANCED_COURSE);
             $tblTypeBasicCourse = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_BASIC_COURSE);
             $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('Id');
             $Manager = $this->getEntityManager();
             /** @var TblDivision $tblDivision */
             foreach ($tblDivisionList as $tblDivision) {
-                if (($tblYear = $tblDivision->getServiceTblYear())
-                    && ($tblLevel = $tblDivision->getTblLevel())
+                if (($tblLevel = $tblDivision->getTblLevel())
                     && ($tblSchoolType = $tblLevel->getServiceTblType())
                     && ($tblDivisionCourse = $this->getDivisionCourseById($tblDivision->getId()))
                 ) {
@@ -354,6 +373,10 @@ abstract class DataMigrate extends AbstractData
 
             $Manager->flushCache();
         }
+
+        $end = hrtime(true);
+
+        return round(($end - $start) / 1000000000, 2);
     }
 
     /**

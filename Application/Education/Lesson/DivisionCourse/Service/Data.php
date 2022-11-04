@@ -39,7 +39,7 @@ class Data extends DataTeacher
         /**
          * Migration der alten Klassen-Daten in die neue DB-Struktur
          */
-        $this->migrateAll();
+//        $this->migrateAll();
     }
 
     /**
