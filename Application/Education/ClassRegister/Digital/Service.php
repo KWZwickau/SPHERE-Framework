@@ -318,13 +318,13 @@ class Service extends AbstractService
         }
 
         // Klassentagebuch Kontrolle: nur für Klassenlehrer, Tudor oder Schulleitung
-        if (($tblPerson = Account::useService()->getPersonByLogin())
+        if ((($tblPerson = Account::useService()->getPersonByLogin())
             && (($tblDivision && Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson))
                 || ($tblGroup && ($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
                     && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson))
-                || Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting')
-            )
+            ))
+            || Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting')
         ) {
             // Klassentagebuch Kontrolle: nicht bei Kurssystemen
             if (!$isCourseSystem) {

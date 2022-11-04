@@ -171,13 +171,13 @@ class FrontendTabs extends FrontendCourseContent
                 && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
             ) {
                 $name = 'Kursliste';
-                $printLink = new Link((new Thumbnail(
+                $printLink = (new Link((new Thumbnail(
                     FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'), 'Kursheft'))->setPictureHeight(),
                     '/Api/Document/Standard/CourseContent/Create', null, array(
                         'DivisionId' => $DivisionId,
                         'SubjectId' => $tblSubject->getId(),
                         'SubjectGroupId' => $tblSubjectGroup->getId()
-                    ));
+                    )))->setExternal();
             } else {
                 if ($tblGroup) {
                     $name = 'Stammgruppenliste';
@@ -191,14 +191,14 @@ class FrontendTabs extends FrontendCourseContent
                 if ($isCourseSystem) {
                     $printLink = null;
                 } else {
-                    $printLink = new Link((new Thumbnail(
+                    $printLink = (new Link((new Thumbnail(
                         FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
                         $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'))->setPictureHeight(),
                         '/Api/Document/Standard/ClassRegister/Create', null, array(
                             'DivisionId' => $DivisionId,
                             'GroupId' => $GroupId,
                             'YearId' => $tblYear ? $tblYear->getId() : null
-                        ));
+                        )))->setExternal();
                 }
             }
 
