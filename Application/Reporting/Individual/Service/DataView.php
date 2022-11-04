@@ -64,7 +64,7 @@ class DataView extends AbstractData
         return (!empty($result) ? $result : false);
     }
 
-    /**
+    /** @deprecated -> alte Personengruppensuche
      * @param TblGroup $tblGroup
      * @return array|bool
      * array_keys:
@@ -144,6 +144,92 @@ class DataView extends AbstractData
                 $item['Year'] = (isset($resultSingle['TblProspectReservation_ReservationYear']) ? $resultSingle['TblProspectReservation_ReservationYear'] : '');
                 $item['Level'] = (isset($resultSingle['TblProspectReservation_ReservationDivision']) ? $resultSingle['TblProspectReservation_ReservationDivision'] : '');
                     // SchoolType to one string
+                $item['SchoolOption'] = '';
+                if(isset($resultSingle['TblType_NameA'])
+                    && $resultSingle['TblType_NameA']
+                    && isset($resultSingle['TblType_NameB'])
+                    && $resultSingle['TblType_NameB']) {
+                    $item['SchoolOption'] = $resultSingle['TblType_NameA'].', '.$resultSingle['TblType_NameB'];
+                } elseif(isset($resultSingle['TblType_NameA'])
+                    && $resultSingle['TblType_NameA']) {
+                    $item['SchoolOption'] = $resultSingle['TblType_NameA'];
+                } elseif(isset($resultSingle['TblType_NameB'])
+                    && $resultSingle['TblType_NameB']) {
+                    $item['SchoolOption'] = $resultSingle['TblType_NameB'];
+                }
+                $item['School'] = (isset($resultSingle['TblCompany_Name']) ? $resultSingle['TblCompany_Name'] : '');;
+
+                array_push($tblContent, $item);
+            });
+        }
+
+        return (!empty($tblContent) ? $tblContent : false);
+    }
+
+
+
+    /**
+     * @param TblGroup $tblGroup
+     * @return array|bool
+     * array_keys:
+     * <br/>TblPerson_Id
+     * <br/>TblPerson_LastFirstName
+     * <br/>TblCommon_Remark
+     * <br/>Address
+     * <br/>Identifier
+     * <br/>Year
+     * <br/>Level
+     * <br/>SchoolOption
+     * <br/>School
+     */
+    public function getPersonSearchListByGroup(TblGroup $tblGroup)
+    {
+
+        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+
+        $SelectString = 'vGPS.TblPerson_Id, vGPS.TblPerson_LastFirstName, vGPS.TblCommon_Remark, vGPS.TblCity_Name,
+         vGPS.TblCity_Code, vGPS.TblCity_District, vGPS.TblAddress_StreetName, vGPS.TblAddress_StreetNumber';
+
+        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT){
+            $SelectString .= ', vGPS.TblStudent_Identifier';
+        }
+        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_PROSPECT){
+            $SelectString .= ', vGPS.TblProspectReservation_ReservationYear, vGPS.TblType_NameA, vGPS.TblType_NameB,
+            vGPS.TblProspectReservation_ReservationDivision, vGPS.TblCompany_Name';
+        }
+
+        $queryBuilder->select($SelectString)->from(__NAMESPACE__ . '\Entity\ViewPersonSearch', 'vGPS');
+        $queryBuilder->leftJoin(__NAMESPACE__ . '\Entity\ViewGroup', 'vG', Join::WITH, 'vG.TblPerson_Id = vGPS.TblPerson_Id');
+
+        $queryBuilder->Where($queryBuilder->expr()->eq('vG.TblGroup_Id', '?1'))
+            ->setParameter(1, $tblGroup->getId());
+
+        $query = $queryBuilder->getQuery();
+        $resultList = $query->getResult();
+        $tblContent = array();
+
+        if(!empty($resultList)){
+            array_walk($resultList, function($resultSingle) use (&$tblContent, $tblGroup){
+                $item['TblPerson_Id'] = $resultSingle['TblPerson_Id'];
+                $item['TblPerson_LastFirstName'] = $resultSingle['TblPerson_LastFirstName'];
+                // ESZC special
+                $item['TblCommon_Remark'] = $resultSingle['TblCommon_Remark'];
+                //                // address
+                //                $item['TblCity_Code'] = $resultSingle['TblCity_Code'];
+                //                $item['TblCity_Name'] = $resultSingle['TblCity_Name'];
+                //                $item['TblCity_District'] = $resultSingle['TblCity_District'];
+                //                $item['TblAddress_StreetName'] = $resultSingle['TblAddress_StreetName'];
+                //                $item['TblAddress_StreetNumber'] = $resultSingle['TblAddress_StreetNumber'];
+                // address in one column
+                $item['Address'] = $resultSingle['TblCity_Code'].' '.$resultSingle['TblCity_Name'].' '.
+                    ($resultSingle['TblCity_District'] ? $resultSingle['TblCity_District'].' ' : '').
+                    $resultSingle['TblAddress_StreetName'].' '.$resultSingle['TblAddress_StreetNumber'];
+                // Student
+                $item['Identifier'] = (isset($resultSingle['TblStudent_Identifier']) ? $resultSingle['TblStudent_Identifier'] : '');
+                // Prospect
+                $item['Year'] = (isset($resultSingle['TblProspectReservation_ReservationYear']) ? $resultSingle['TblProspectReservation_ReservationYear'] : '');
+                $item['Level'] = (isset($resultSingle['TblProspectReservation_ReservationDivision']) ? $resultSingle['TblProspectReservation_ReservationDivision'] : '');
+                // SchoolType to one string
                 $item['SchoolOption'] = '';
                 if(isset($resultSingle['TblType_NameA'])
                     && $resultSingle['TblType_NameA']

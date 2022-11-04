@@ -1,0 +1,44 @@
+SELECT
+
+-- PersonId to match with all View's // TblPerson
+    tP.Id AS TblPerson_Id,
+    concat(
+        tP.LastName, ' ', tP.FirstName,
+        IF(tP.SecondName = '', '', ' '), tP.SecondName
+    ) AS TblPerson_LastFirstName,
+--     tG.Id AS TblGroup_Id,
+    tS.Identifier AS TblStudent_Identifier,
+    tPR.ReservationYear AS TblProspectReservation_ReservationYear,
+    tPR.ReservationDivision AS TblProspectReservation_ReservationDivision,
+    tCO.Name AS TblCompany_Name,
+    concat(tCO.Name, " ", tCO.ExtendedName) AS TblCompany_Name_ExtendedName,
+    tTA.Name AS TblType_NameA,
+    tTB.Name AS TblType_NameB,
+    -- tblType
+    tT.Name AS TblType_Name,
+    tT.Description AS TblType_Description,
+    -- tblAddress
+    tA.StreetName AS TblAddress_StreetName,
+    tA.StreetNumber AS TblAddress_StreetNumber,
+    -- tblCity
+    tCI.Code AS TblCity_Code,
+    tCI.Name AS TblCity_Name,
+    tCI.District AS TblCity_District,
+    tC.Remark AS TblCommon_Remark
+
+FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
+--     LEFT JOIN {{ ConsumerAcronym }}_PeopleGroup.tblMember tM ON tM.serviceTblPerson = tP.Id
+--     LEFT JOIN {{ ConsumerAcronym }}_PeopleGroup.tblGroup tG ON tG.Id = tM.tblGroup
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommon tC ON tC.serviceTblPerson = tP.Id
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS ON tS.serviceTblPerson = tP.Id
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblProspect tPROS ON tPROS.serviceTblPerson = tP.Id
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblProspectReservation tPR ON tPR.Id = tPROS.tblProspectReservation
+    LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolType.tblType tTA ON tTA.Id = tPR.serviceTblTypeOptionA
+    LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolType.tblType tTB ON tTB.Id = tPR.serviceTblTypeOptionB
+    LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tCO ON tCO.Id = tPR.serviceTblCompany AND tCO.EntityRemove IS NULL
+    LEFT JOIN {{ ConsumerAcronym }}_ContactAddress.tblToPerson tTP ON tTP.serviceTblPerson = tP.Id AND tTP.tblType not in (2,3,4) -- Zweit-/Nebenadresse / Rechnungsadresse / Lieferadresse
+    LEFT JOIN {{ ConsumerAcronym }}_ContactAddress.tblAddress tA ON tA.Id = tTP.tblAddress
+    LEFT JOIN {{ ConsumerAcronym }}_ContactAddress.tblType tT ON tT.Id = tTP.tblType
+    LEFT JOIN {{ ConsumerAcronym }}_ContactAddress.tblCity tCI ON tCI.Id = tA.tblCity
+
+WHERE tP.EntityRemove IS NULL
