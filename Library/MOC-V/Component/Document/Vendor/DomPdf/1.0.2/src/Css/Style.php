@@ -1108,6 +1108,9 @@ class Style
         $subtype = $this->getFontMetrics()->getType($weight . ' ' . $font_style);
 
         $families = preg_split("/\s*,\s*/", $this->_props_computed["font_family"]);
+        if(current($families) == 'helvetica'){
+            $this->_props_computed["line_height"] = 0.96;
+        }
 
         $font = null;
         foreach ($families as $family) {
