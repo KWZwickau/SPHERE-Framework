@@ -59,7 +59,9 @@ class ReportingUpgrade
         'viewStudent' => 'viewStudent.twig',
         'viewStudentCustody' => 'viewStudentCustody.twig',
         'viewStudentAuthorized' => 'viewStudentAuthorized.twig',
-        'viewProspectCustody' => 'viewProspectCustody.twig'
+        'viewProspectCustody' => 'viewProspectCustody.twig',
+        // View speziell für Personengruppen unter Navigation Personen
+        'viewPersonSearch' => 'viewPersonSearch.twig'
     );
 
     /**
