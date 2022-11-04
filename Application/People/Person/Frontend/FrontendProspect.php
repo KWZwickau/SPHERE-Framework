@@ -11,7 +11,6 @@ namespace SPHERE\Application\People\Person\Frontend;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
@@ -52,7 +51,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
  */
 class FrontendProspect  extends FrontendReadOnly
 {
-    const TITLE = 'Interessent-Daten';
+    const TITLE = 'Interessent - Daten';
 
     /**
      * @param null $PersonId
@@ -61,96 +60,95 @@ class FrontendProspect  extends FrontendReadOnly
      */
     public static function getProspectContent($PersonId = null)
     {
-        if (($tblPerson = Person::useService()->getPersonById($PersonId))
-            && ($tblGroup = Group::useService()->getGroupByMetaTable('PROSPECT'))
-            && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
-        ) {
-            if (($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))
-                && ($tblProspectAppointment = $tblProspect->getTblProspectAppointment())
-                && ($tblProspectReservation = $tblProspect->getTblProspectReservation())
-            ) {
-                $reservationDate = $tblProspectAppointment->getReservationDate();
-                $interviewDate = $tblProspectAppointment->getInterviewDate();
-                $trialDate = $tblProspectAppointment->getTrialDate();
-
-                $reservationYear = $tblProspectReservation->getReservationYear();
-                $reservationDivision = $tblProspectReservation->getReservationDivision();
-                $serviceTblTypeOptionA = $tblProspectReservation->getServiceTblTypeOptionA()
-                    ? $tblProspectReservation->getServiceTblTypeOptionA()->getName() : '';
-                $serviceTblTypeOptionB = $tblProspectReservation->getServiceTblTypeOptionB()
-                    ? $tblProspectReservation->getServiceTblTypeOptionB()->getName() : '';
-                $serviceTblCompany = $tblProspectReservation->getServiceTblCompany()
-                    ? $tblProspectReservation->getServiceTblCompany()->getName() : '';
-
-                $remark = $tblProspect->getRemark();
-            } else {
-                $reservationDate = '';
-                $interviewDate = '';
-                $trialDate = '';
-
-                $reservationYear = '';
-                $reservationDivision = '';
-                $serviceTblTypeOptionA = '';
-                $serviceTblTypeOptionB = '';
-                $serviceTblCompany = '';
-
-                $remark = '';
-            }
-
-            $content = new Layout(new LayoutGroup(array(
-                new LayoutRow(array(
-                    self::getLayoutColumnLabel('Eingangsdatum'),
-                    self::getLayoutColumnValue($reservationDate),
-                    self::getLayoutColumnLabel('Schuljahr'),
-                    self::getLayoutColumnValue($reservationYear),
-                    self::getLayoutColumnEmpty(4),
-                )),
-                new LayoutRow(array(
-                    self::getLayoutColumnLabel('Aufnahmegespräch'),
-                    self::getLayoutColumnValue($interviewDate),
-                    self::getLayoutColumnLabel('Klassenstufe'),
-                    self::getLayoutColumnValue($reservationDivision),
-                    self::getLayoutColumnEmpty(4),
-                )),
-                new LayoutRow(array(
-                    self::getLayoutColumnLabel('Schnuppertag'),
-                    self::getLayoutColumnValue($trialDate),
-                    self::getLayoutColumnLabel('Schulart: Option 1'),
-                    self::getLayoutColumnValue($serviceTblTypeOptionA),
-                    self::getLayoutColumnEmpty(4),
-                )),
-                new LayoutRow(array(
-                    self::getLayoutColumnEmpty(4),
-                    self::getLayoutColumnLabel('Schulart: Option 2'),
-                    self::getLayoutColumnValue($serviceTblTypeOptionB),
-                    self::getLayoutColumnEmpty(4),
-                )),
-                new LayoutRow(array(
-                    self::getLayoutColumnEmpty(4),
-                    self::getLayoutColumnLabel('Schule'),
-                    self::getLayoutColumnValue($serviceTblCompany),
-                    self::getLayoutColumnEmpty(4),
-                )),
-                new LayoutRow(array(
-                    self::getLayoutColumnLabel('Bemerkungen'),
-                    self::getLayoutColumnValue($remark, 10),
-                )),
-            )));
-
-            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditProspectContent($PersonId));
-            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
-
-            return TemplateReadOnly::getContent(
-                self::TITLE,
-                self::getSubContent(self::TITLE, $content),
-                array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
-                new Tag()
-            );
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return '';
         }
 
-        return '';
+        $reservationDate = '';
+        $interviewDate = '';
+        $trialDate = '';
+
+        $reservationYear = '';
+        $reservationDivision = '';
+        $serviceTblTypeOptionA = '';
+        $serviceTblTypeOptionB = '';
+        $serviceTblCompany = '';
+
+        $remark = '';
+
+        if (($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))
+            && ($tblProspectAppointment = $tblProspect->getTblProspectAppointment())
+            && ($tblProspectReservation = $tblProspect->getTblProspectReservation())
+        ) {
+            $reservationDate = $tblProspectAppointment->getReservationDate();
+            $interviewDate = $tblProspectAppointment->getInterviewDate();
+            $trialDate = $tblProspectAppointment->getTrialDate();
+
+            $reservationYear = $tblProspectReservation->getReservationYear();
+            $reservationDivision = $tblProspectReservation->getReservationDivision();
+            if(($TypeOptionA = $tblProspectReservation->getServiceTblTypeOptionA())){
+                $serviceTblTypeOptionA = $TypeOptionA->getName();
+            }
+            if(($TypeOptionB = $tblProspectReservation->getServiceTblTypeOptionB())){
+                $serviceTblTypeOptionB = $TypeOptionB->getName();
+            }
+            if(($TblCompany = $tblProspectReservation->getServiceTblCompany())){
+                $serviceTblCompany = $TblCompany->getName();
+            }
+            $remark = $tblProspect->getRemark();
+        }
+
+        $content = new Layout(new LayoutGroup(array(
+            new LayoutRow(array(
+                self::getLayoutColumnLabel('Eingangsdatum'),
+                self::getLayoutColumnValue($reservationDate),
+                self::getLayoutColumnLabel('Schuljahr'),
+                self::getLayoutColumnValue($reservationYear),
+                self::getLayoutColumnEmpty(4),
+            )),
+            new LayoutRow(array(
+                self::getLayoutColumnLabel('Aufnahmegespräch'),
+                self::getLayoutColumnValue($interviewDate),
+                self::getLayoutColumnLabel('Klassenstufe'),
+                self::getLayoutColumnValue($reservationDivision),
+                self::getLayoutColumnEmpty(4),
+            )),
+            new LayoutRow(array(
+                self::getLayoutColumnLabel('Schnuppertag'),
+                self::getLayoutColumnValue($trialDate),
+                self::getLayoutColumnLabel('Schulart: Option 1'),
+                self::getLayoutColumnValue($serviceTblTypeOptionA),
+                self::getLayoutColumnEmpty(4),
+            )),
+            new LayoutRow(array(
+                self::getLayoutColumnEmpty(4),
+                self::getLayoutColumnLabel('Schulart: Option 2'),
+                self::getLayoutColumnValue($serviceTblTypeOptionB),
+                self::getLayoutColumnEmpty(4),
+            )),
+            new LayoutRow(array(
+                self::getLayoutColumnEmpty(4),
+                self::getLayoutColumnLabel('Schule'),
+                self::getLayoutColumnValue($serviceTblCompany),
+                self::getLayoutColumnEmpty(4),
+            )),
+            new LayoutRow(array(
+                self::getLayoutColumnLabel('Bemerkungen'),
+                self::getLayoutColumnValue($remark, 10),
+            )),
+        )));
+
+        $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditProspectContent($PersonId));
+        $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
+
+        return TemplateReadOnly::getContent(
+            self::TITLE,
+            self::getSubContent(self::TITLE, $content),
+            array($editLink),
+            'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
+            new Tag()
+        );
     }
 
     /**

@@ -47,7 +47,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
  */
 class FrontendClub  extends FrontendReadOnly
 {
-    const TITLE = 'Vereinsmitglied-Daten';
+    const TITLE = 'Vereinsmitglied - Daten';
 
     /**
      * @param null $PersonId

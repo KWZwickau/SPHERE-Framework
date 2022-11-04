@@ -3,7 +3,6 @@ namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Corporation\Group\Group;
-use SPHERE\Application\People\Group\Group as GroupPerson;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Type;
@@ -57,39 +56,32 @@ class FrontendProspectTransfer extends FrontendReadOnly
     public static function getProspectTransferContent($PersonId = null, $AllowEdit = 1)
     {
 
-        if (($tblPerson = Person::useService()->getPersonById($PersonId))
-            && ($tblGroup = GroupPerson::useService()->getGroupByMetaTable('PROSPECT'))
-            && GroupPerson::useService()->existsGroupPerson($tblGroup, $tblPerson)
-        ) {
-            $tblStudent = $tblPerson->getStudent();
-
-            $arrivePanel = self::getProspectTransferArrivePanel($tblStudent ? $tblStudent : null);
-
-            $content = new Layout(new LayoutGroup(array(
-                new LayoutRow(array(
-//                    new LayoutColumn($enrollmentPanel, 4),
-                    new LayoutColumn($arrivePanel, 4),
-//                    new LayoutColumn($leavePanel, 4),
-                )),
-            )));
-
-            $editLink = '';
-            if($AllowEdit == 1){
-                $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditProspectTransferContent($PersonId));
-            }
-            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
-
-            return TemplateReadOnly::getContent(
-                self::TITLE,
-                $content,
-                array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
-                new SizeHorizontal()
-            );
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return '';
         }
+        $tblStudent = $tblPerson->getStudent();
+        $arrivePanel = self::getProspectTransferArrivePanel($tblStudent ? $tblStudent : null);
 
-        return '';
+        $content = new Layout(new LayoutGroup(array(new LayoutRow(array(
+//                new LayoutColumn($enrollmentPanel, 4),
+                new LayoutColumn($arrivePanel, 4),
+//                new LayoutColumn($leavePanel, 4),
+        )))));
+
+        $editLink = '';
+        if($AllowEdit == 1){
+            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditProspectTransferContent($PersonId));
+        }
+        $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
+
+        return TemplateReadOnly::getContent(
+            self::TITLE,
+            $content,
+            array($editLink),
+            'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
+            new SizeHorizontal()
+        );
     }
 
     /**
@@ -228,7 +220,7 @@ class FrontendProspectTransfer extends FrontendReadOnly
     private function getEditProspectTransferForm(TblPerson $tblPerson = null)
     {
 
-        FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
+        FrontendStudentBasic::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
 
         $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
             Group::useService()->getGroupByMetaTable('SCHOOL')
