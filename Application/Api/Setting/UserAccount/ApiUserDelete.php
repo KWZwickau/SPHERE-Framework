@@ -180,23 +180,24 @@ class ApiUserDelete extends Extension implements IApiInterface
         }
 
         $Danger = new Danger('Löschen', '#', new Remove(), $Data, 'Löschen ist unwiderruflich');
-        $DangerText = new DangerMessage('Hiermit werden die ausgewählten Accounts dauerhaft gelöscht');
+        $DangerText = 'Hiermit werden die ausgewählten Accounts dauerhaft gelöscht';
         if($Type == 'STUDENT'){
-            $DangerText = new DangerMessage('Hiermit werden die ausgewählten Schüler-Accounts dauerhaft gelöscht');
-        } elseif($Type == 'CUSTODY'){
-            $DangerText = new DangerMessage('Hiermit werden die ausgewählten Sorgeberechtigten-Accounts dauerhaft gelöscht');
-        }
-        // ist ein UCS Mandant?
-        $IsUCSMandant = false;
-        if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
-            if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
-                $IsUCSMandant = true;
+            $DangerText = 'Hiermit werden die ausgewählten Schüler-Accounts dauerhaft gelöscht';
+            // nur bei Schülern
+            $IsUCSMandant = false;
+            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
+                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                    $IsUCSMandant = true;
+                }
             }
+            if($IsUCSMandant){
+                $DangerText .= new Container('Nach dem Löschen der Accounts in der Schulsoftware werden diese auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
+            }
+        } elseif($Type == 'CUSTODY'){
+            $DangerText = 'Hiermit werden die ausgewählten Sorgeberechtigten-Accounts dauerhaft gelöscht';
         }
-        $UcsRemark = new Success('');
-        if($IsUCSMandant){
-            $UcsRemark = new Well('Nach dem Löschen der Accounts in der Schulsoftware werden diese auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
-        }
+
+        $DangerText = new DangerMessage($DangerText);
 
         $form = new Form(new FormGroup(new FormRow(array(
             new FormColumn(
@@ -204,9 +205,6 @@ class ApiUserDelete extends Extension implements IApiInterface
             ),
             new FormColumn(
                 $DangerText
-            ),
-            new FormColumn(
-                $UcsRemark
             ),
             new FormColumn(
                 $Danger->ajaxPipelineOnClick(ApiUserDelete::pipelineLoadingScreen($Type))

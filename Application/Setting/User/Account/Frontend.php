@@ -1786,10 +1786,10 @@ class Frontend extends Extension implements IFrontendInterface
                 new Standard('Zurück', $Route, new ChevronLeft())
             );
             if (!$Confirm) {
-                // ist ein UCS Mandant?
                 $IsUCSMandant = false;
-                if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
-                    if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                if ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
+                && ($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())) {
+                    if (ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)) {
                         $IsUCSMandant = true;
                     }
                 }
