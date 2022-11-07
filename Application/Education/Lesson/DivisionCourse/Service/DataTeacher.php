@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -101,5 +102,46 @@ abstract class DataTeacher extends DataSubjectTable
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblSubject[]
+     */
+    public function getSubjectListByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t.serviceTblSubject')
+            ->from(__NAMESPACE__ . '\Entity\TblTeacherLectureship', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblYear', '?2')
+                )
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId())
+            ->distinct()
+            ->groupBy('t.serviceTblSubject')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        if (empty($resultList)) {
+            return false;
+        } else {
+            $subjectList = array();
+            foreach ($resultList as $item) {
+                if (($tblSubject = Subject::useService()->getSubjectById($item['serviceTblSubject']))) {
+                    $subjectList[$tblSubject->getId()] = $tblSubject;
+                }
+            }
+
+            return $subjectList;
+        }
     }
 }

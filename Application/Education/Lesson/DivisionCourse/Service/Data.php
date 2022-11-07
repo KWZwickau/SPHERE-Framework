@@ -25,6 +25,7 @@ class Data extends DataTeacher
         $this->createDivisionCourseType('Unterrichtsgruppe', TblDivisionCourseType::TYPE_TEACHING_GROUP);
         $this->createDivisionCourseType('SekII-Leistungskurs', TblDivisionCourseType::TYPE_ADVANCED_COURSE);
         $this->createDivisionCourseType('SekII-Grundkurs', TblDivisionCourseType::TYPE_BASIC_COURSE);
+        $this->createDivisionCourseType('Lerngruppe', TblDivisionCourseType::TYPE_TEACHER_GROUP);
 
         $this->createDivisionCourseMemberType('Schüler', TblDivisionCourseMemberType::TYPE_STUDENT);
         $this->createDivisionCourseMemberType('Gruppenleiter', TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
@@ -956,6 +957,26 @@ class Data extends DataTeacher
      *
      * @return bool
      */
+    public function createDivisionCourseMemberBulk(array $tblDivisionCourseMemberList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+            $Manager->bulkSaveEntity($tblDivisionCourseMember);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblDivisionCourseMember, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblDivisionCourseMemberList
+     *
+     * @return bool
+     */
     public function updateDivisionCourseMemberBulk(array $tblDivisionCourseMemberList): bool
     {
         $Manager = $this->getConnection()->getEntityManager();
@@ -965,6 +986,26 @@ class Data extends DataTeacher
             /** @var TblDivisionCourseMember $Entity */
             $Entity = $Manager->getEntityById('TblDivisionCourseMember', $tblDivisionCourseMember->getId());
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblDivisionCourseMember, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblDivisionCourseMemberList
+     *
+     * @return bool
+     */
+    public function removeDivisionCourseMemberBulk(array $tblDivisionCourseMemberList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($tblDivisionCourseMemberList as $Entity) {
+            $Manager->bulkKillEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
         }
 
         $Manager->flushCache();

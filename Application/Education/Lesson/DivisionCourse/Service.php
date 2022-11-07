@@ -799,6 +799,36 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @param array $tblDivisionCourseMemberList
+     *
+     * @return bool
+     */
+    public function createDivisionCourseMemberBulk(array $tblDivisionCourseMemberList): bool
+    {
+        return (new Data($this->getBinding()))->createDivisionCourseMemberBulk($tblDivisionCourseMemberList);
+    }
+
+    /**
+     * @param array $tblDivisionCourseMemberList
+     *
+     * @return bool
+     */
+    public function updateDivisionCourseMemberBulk(array $tblDivisionCourseMemberList): bool
+    {
+        return (new Data($this->getBinding()))->updateDivisionCourseMemberBulk($tblDivisionCourseMemberList);
+    }
+
+    /**
+     * @param array $tblDivisionCourseMemberList
+     *
+     * @return bool
+     */
+    public function removeDivisionCourseMemberBulk(array $tblDivisionCourseMemberList): bool
+    {
+        return (new Data($this->getBinding()))->removeDivisionCourseMemberBulk($tblDivisionCourseMemberList);
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return string

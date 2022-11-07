@@ -348,4 +348,12 @@ class TblDivisionCourse extends Element
     {
         return DivisionCourse::useService()->getDivisionTeacherNameListString($this, $separator);
     }
+
+    /**
+     * @return string
+     */
+    public function getSubjectName(): string
+    {
+        return ($tblSubject = $this->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '';
+    }
 }

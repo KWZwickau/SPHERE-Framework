@@ -34,6 +34,7 @@ class ApiPersonSearch  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('selectGroup');
         $Dispatcher->registerMethod('loadDashboard');
         $Dispatcher->registerMethod('loadGroupSelectBox');
+        $Dispatcher->registerMethod('loadSearchTextInput');
 
         $Dispatcher->registerMethod('openYearStudentCountModal');
 
@@ -108,7 +109,8 @@ class ApiPersonSearch  extends Extension implements IApiInterface
      */
     public function selectGroup($Data = null): string
     {
-        return Search::useFrontend()->loadGroup($Data['Id']);
+        return self::pipelineLoadSearchTextInput('')
+            . Search::useFrontend()->loadGroup($Data['Id']);
     }
 
     /**
@@ -198,5 +200,35 @@ class ApiPersonSearch  extends Extension implements IApiInterface
     public function loadGroupSelectBox($SelectId): string
     {
         return Search::useFrontend()->getPanelSelectGroupOrDivisionCourse($SelectId);
+    }
+
+    /**
+     * @param $Search
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadSearchTextInput($Search): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SearchTextInput'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadSearchTextInput',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Search' => $Search,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $Search
+     *
+     * @return string
+     */
+    public function loadSearchTextInput($Search): string
+    {
+        return Search::useFrontend()->getPanelSearchPerson($Search);
     }
 }

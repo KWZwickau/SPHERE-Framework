@@ -86,10 +86,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($this->getPanelSearchPerson($search), 4),
+                new LayoutColumn(
+                    ApiPersonSearch::receiverBlock($this->getPanelSearchPerson($search), 'SearchTextInput')
+                , 4),
                 new LayoutColumn(
                     ApiPersonSearch::receiverBlock($this->getPanelSelectGroupOrDivisionCourse($selectedId), 'GroupSelectBox')
-                    , 4),
+                , 4),
                 new LayoutColumn($this->getPanelDashboard(), 4),
             ))))
             . ApiPersonSearch::receiverBlock($content, 'SearchContent')
@@ -669,7 +671,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(new PullRight(
 //                        new Standard('', '/People', new GroupIcon(), array('PseudoId' => 'G' . $tblGroup->getId()))
                         (new Standard('', ApiPersonSearch::getEndpoint(), new GroupIcon()))
-                            ->ajaxPipelineOnClick(ApiPersonSearch::pipelineLoadGroupSelectBox('G' . $tblGroup->getId()))
+                            ->ajaxPipelineOnClick(array(
+                                ApiPersonSearch::pipelineLoadSearchTextInput(''),
+                                ApiPersonSearch::pipelineLoadGroupSelectBox('G' . $tblGroup->getId())
+                            ))
                     ), 1)
                 ))));
 
@@ -741,7 +746,10 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(new PullRight(
 //                                new Standard('', '/People', new GroupIcon(), array('PseudoId' => 'C' . $tblDivisionCourse->getId()))
                                 (new Standard('', ApiPersonSearch::getEndpoint(), new GroupIcon()))
-                                    ->ajaxPipelineOnClick(ApiPersonSearch::pipelineLoadGroupSelectBox('C' . $tblDivisionCourse->getId()))
+                                    ->ajaxPipelineOnClick(array(
+                                        ApiPersonSearch::pipelineLoadSearchTextInput(''),
+                                        ApiPersonSearch::pipelineLoadGroupSelectBox('C' . $tblDivisionCourse->getId())
+                                    ))
                             ), 1)
                         ))));
                     }
