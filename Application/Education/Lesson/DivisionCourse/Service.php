@@ -698,6 +698,19 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * Lerngruppen eines Lehrers
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getTeacherGroupListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getTeacherGroupListByPersonAndYear($tblPerson, $tblYear);
+    }
+
+    /**
      * @param TblDivisionCourseMember $tblDivisionCourseMember
      *
      * @return bool

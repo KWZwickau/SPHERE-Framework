@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -29,8 +30,10 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -59,12 +62,49 @@ class Frontend extends Extension implements IFrontendInterface
     public function loadViewTeacherGroups(): string
     {
         $tblType = DivisionCourse::useService()->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_TEACHER_GROUP);
-        if (($tblPerson = Account::useService()->getPersonByLogin())) {
-           return
-               (new Primary("{$tblType->getName()} hinzufügen", ApiTeacherGroup::getEndpoint(), new Plus()))
-                   ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupEdit())
-               // todo tabelle
-               . "hallo {$tblPerson->getFullName()}";
+        if (($tblPerson = Account::useService()->getPersonByLogin())
+            && ($tblYear = Grade::useService()->getYear())
+        ) {
+            $dataList = array();
+            if (($tblDivisionCourseList = DivisionCourse::useService()->getTeacherGroupListByPersonAndYear($tblPerson, $tblYear))) {
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    $dataList[] = array(
+                        'Name' => $tblDivisionCourse->getName(),
+                        'Description' => $tblDivisionCourse->getDescription(),
+                        'Subject' => $tblDivisionCourse->getSubjectName(),
+                        'Students' => $tblDivisionCourse->getCountStudents(),
+                        'Option' =>
+                            (new Standard('', ApiTeacherGroup::getEndpoint(), new Pen(), array(), 'Bearbeiten'))
+                                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupEdit($tblDivisionCourse->getId()))
+                            . (new Standard('', ApiTeacherGroup::getEndpoint(), new Remove(), array(), 'Löschen'))
+                        // todo
+//                                ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenDeleteDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
+                    );
+                }
+            }
+
+            return
+                (new Primary("{$tblType->getName()} hinzufügen", ApiTeacherGroup::getEndpoint(), new Plus()))
+                    ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupEdit())
+                . new TableData(
+                    $dataList,
+                    null,
+                    array(
+                        'Name' => 'Kursname',
+                        'Description' => 'Beschreibung',
+                        'Subject' => 'Fach',
+                        'Students' => 'Schüler',
+                        'Option' => '',
+                    ),
+                    array(
+                        'columnDefs' => array(
+                            array('type' => 'natural', 'targets' => 0),
+                            array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                        ),
+                        'order'      => array(array(0, 'asc'), array(1, 'asc')),
+                        'responsive' => false
+                    )
+                );
         } else {
             return new Danger("Keine Person zum Benutzerkonto gefunden", new Exclamation());
         }
@@ -80,6 +120,12 @@ class Frontend extends Extension implements IFrontendInterface
         return $this->getTeacherGroupEdit($this->formTeacherGroup($DivisionCourseId, true), $DivisionCourseId);
     }
 
+    /**
+     * @param $form
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
     public function getTeacherGroupEdit($form, $DivisionCourseId = null): string
     {
         $tblType = DivisionCourse::useService()->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_TEACHER_GROUP);
@@ -105,22 +151,29 @@ class Frontend extends Extension implements IFrontendInterface
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
         $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
         if ($setPost && $tblDivisionCourse) {
-            // todo
             $Global = $this->getGlobal();
             $Global->POST['Data']['Name'] = $tblDivisionCourse->getName();
             $Global->POST['Data']['Description'] = $tblDivisionCourse->getDescription();
-            $Global->POST['Data']['Subject'] = $tblDivisionCourse->getServiceTblSubject() ? $tblDivisionCourse->getServiceTblSubject()->getId() : 0;
+            if (($tblStudentList = $tblDivisionCourse->getStudents())) {
+                foreach ($tblStudentList as $tblStudent) {
+                    $Global->POST['Data']['Students'][$tblStudent->getId()] = 1;
+                }
+            }
+
             $Global->savePost();
         }
 
         $tblSubjectList = array();
+        $subjectId = '';
         if ($tblDivisionCourse) {
             $tblYear = $tblDivisionCourse->getServiceTblYear();
-
+            if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
+                $subjectId = $tblSubject->getId();
+            }
         } else {
             $tblYear = Grade::useService()->getYear();
         }
-        if ($tblYear && ($tblPerson = Account::useService()->getPersonByLogin())) {
+        if (!$tblDivisionCourse && $tblYear && ($tblPerson = Account::useService()->getPersonByLogin())) {
             $tblSubjectList = DivisionCourse::useService()->getSubjectListByTeacherAndYear($tblPerson, $tblYear);
         }
 
@@ -143,7 +196,7 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
-                    ApiTeacherGroup::receiverBlock($this->loadTeacherGroupStudentSelect(''), 'TeacherGroupStudentSelect')
+                    ApiTeacherGroup::receiverBlock($this->loadTeacherGroupStudentSelect($subjectId), 'TeacherGroupStudentSelect')
                 )
             )),
             new FormRow(array(
@@ -182,13 +235,16 @@ class Frontend extends Extension implements IFrontendInterface
                         if (($tblStudentList = $tblDivisionCourse->getStudents())) {
                             foreach ($tblStudentList as $tblStudent) {
                                 // todo anzeige wenn Person bereits in einer anderen Fachgruppe zu dieser Person ist
-                                $contentPanel[] = new CheckBox("Data[Students][{$tblStudent->getId()}]", $tblStudent->getLastFirstNameWithCallNameUnderline(), 1);
+                                if (DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblStudent, $tblYear, $tblSubject)) {
+                                    $contentPanel[] = new CheckBox("Data[Students][{$tblStudent->getId()}]", $tblStudent->getLastFirstNameWithCallNameUnderline(), 1);
+                                }
                             }
                         }
 
                         $columnList[] = new LayoutColumn(new Panel($tblDivisionCourse->getDisplayName(), $contentPanel, Panel::PANEL_TYPE_INFO), $size);
                     }
                 }
+
                 return new Layout(new LayoutGroup(
                     Grade::useService()->getLayoutRowsByLayoutColumnList($columnList, $size),
                     new Title('Verfügbare Schüler')
@@ -197,5 +253,7 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             return new Warning("Bitte wählen Sie zunächst ein Fach aus.", new Exclamation());
         }
+
+        return '';
     }
 }

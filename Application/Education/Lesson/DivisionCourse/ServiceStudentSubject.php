@@ -44,6 +44,35 @@ abstract class ServiceStudentSubject extends AbstractService
     }
 
     /**
+     * prüft ob der Schüler das Fach hat oder ob er es virtuell über Stundentafel-Schülerakte hat
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return false|VirtualSubject
+     */
+    public function getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        // gespeichertes Fach - StudentSubject
+        if (($tblStudentSubject = (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+            return new VirtualSubject($tblSubject, $tblStudentSubject->getHasGrading(), null);
+        }
+
+        // Stundentafel
+        if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+            return new VirtualSubject($tblSubject, $tblSubjectTable->getHasGrading(), $tblSubjectTable);
+        }
+
+        // Stundentafel - Schülerakte
+        if (($tblVirtualSubjectList = $this->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndYear($tblPerson, $tblYear))) {
+            return isset($tblVirtualSubjectList[$tblSubject->getId()]) ? $tblVirtualSubjectList[$tblSubject->getId()] : false;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubjectTable $tblSubjectTable

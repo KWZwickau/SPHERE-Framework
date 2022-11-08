@@ -185,8 +185,40 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
         $tblMemberTypeStudent = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT);
         $tblMemberTypeDivisionTeacher = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
         if ($tblDivisionCourse) {
-            // todo update
-            // removeDivisionCourseMemberAllFromDivisionCourse
+            $Data['Subject'] = ($tblSubject = $tblDivisionCourse->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+            DivisionCourse::useService()->updateDivisionCourse($tblDivisionCourse, $Data);
+
+            $tempList = array();
+            $createList = array();
+            $removeList = array();
+            if (($tblDivisionCourseMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT, false, false))) {
+                foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                    // löschen
+                    if (($tblStudent = $tblDivisionCourseMember->getServiceTblPerson()))  {
+                        if (!isset($Data['Students'][$tblStudent->getId()])) {
+                            $removeList[] = $tblDivisionCourseMember;
+                        } else {
+                            $tempList[$tblStudent->getId()] = $tblDivisionCourseMember;
+                        }
+                    }
+                }
+            }
+
+            // neu
+            if (isset($Data['Students'])) {
+                foreach ($Data['Students'] as $personId => $value) {
+                    if (($tblStudent = Person::useService()->getPersonById($personId)) && !isset($tempList[$personId])) {
+                        $createList[] = TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblMemberTypeStudent, $tblStudent);
+                    }
+                }
+            }
+
+            if (!empty($createList)) {
+                DivisionCourse::useService()->createDivisionCourseMemberBulk($createList);
+            }
+            if (!empty($removeList)) {
+                DivisionCourse::useService()->removeDivisionCourseMemberBulk($removeList);
+            }
         } else {
             $Data['Type'] = $tblType->getId();
             $Data['Year'] = ($tblYear = Grade::useService()->getYear()) ? $tblYear->getId() : null;
