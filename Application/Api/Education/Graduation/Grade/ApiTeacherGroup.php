@@ -106,11 +106,12 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
     }
 
     /**
-     * @param $SubjectId
+     * @param null $SubjectId
+     * @param null $DivisionCourseId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadTeacherGroupStudentSelect($SubjectId = null): Pipeline
+    public static function pipelineLoadTeacherGroupStudentSelect($SubjectId = null, $DivisionCourseId = null, $Data = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'TeacherGroupStudentSelect'), self::getEndpoint());
@@ -118,7 +119,9 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
             self::API_TARGET => 'loadTeacherGroupStudentSelect',
         ));
         $ModalEmitter->setPostPayload(array(
-            'SubjectId' => $SubjectId
+            'SubjectId' => $SubjectId,
+            'DivisionCourseId' => $DivisionCourseId,
+            'Data' => $Data
         ));
         $ModalEmitter->setLoadingMessage("Daten werden geladen");
         $Pipeline->appendEmitter($ModalEmitter);
@@ -128,17 +131,18 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
 
     /**
      * @param $SubjectId
-     * @param null $Data
+     * @param $DivisionCourseId
+     * @param $Data
      *
      * @return string
      */
-    public function loadTeacherGroupStudentSelect($SubjectId, $Data = null): string
+    public function loadTeacherGroupStudentSelect($SubjectId, $DivisionCourseId, $Data): string
     {
         if (isset($Data['Subject'])) {
             $SubjectId = $Data['Subject'];
         }
 
-        return Grade::useFrontend()->loadTeacherGroupStudentSelect($SubjectId);
+        return Grade::useFrontend()->loadTeacherGroupStudentSelect($SubjectId, $DivisionCourseId, $Data);
     }
 
     /**

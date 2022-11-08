@@ -23,7 +23,10 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -34,6 +37,8 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -66,7 +71,7 @@ class Frontend extends Extension implements IFrontendInterface
             && ($tblYear = Grade::useService()->getYear())
         ) {
             $dataList = array();
-            if (($tblDivisionCourseList = DivisionCourse::useService()->getTeacherGroupListByPersonAndYear($tblPerson, $tblYear))) {
+            if (($tblDivisionCourseList = DivisionCourse::useService()->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear))) {
                 foreach ($tblDivisionCourseList as $tblDivisionCourse) {
                     $dataList[] = array(
                         'Name' => $tblDivisionCourse->getName(),
@@ -183,7 +188,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ? new Panel('Fach', $tblDivisionCourse->getSubjectName(), Panel::PANEL_TYPE_INFO)
                     : (new SelectBox('Data[Subject]', 'Fach', array('{{ DisplayName }}' => $tblSubjectList)))
                         ->setRequired()
-                        ->ajaxPipelineOnChange(ApiTeacherGroup::pipelineLoadTeacherGroupStudentSelect())
+                        ->ajaxPipelineOnChange(ApiTeacherGroup::pipelineLoadTeacherGroupStudentSelect(null, null, $Data))
                 )
             )),
             new FormRow(array(
@@ -196,7 +201,7 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
-                    ApiTeacherGroup::receiverBlock($this->loadTeacherGroupStudentSelect($subjectId), 'TeacherGroupStudentSelect')
+                    ApiTeacherGroup::receiverBlock($this->loadTeacherGroupStudentSelect($subjectId, $DivisionCourseId, $Data), 'TeacherGroupStudentSelect')
                 )
             )),
             new FormRow(array(
@@ -210,11 +215,21 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param $SubjectId
+     * @param $DivisionCourseId
+     * @param $Data
      *
      * @return Warning|string
      */
-    public function loadTeacherGroupStudentSelect($SubjectId)
+    public function loadTeacherGroupStudentSelect($SubjectId, $DivisionCourseId, $Data)
     {
+        if (isset($Data['Students'])) {
+            foreach ($Data['Students'] as $personId => $value) {
+                $global = $this->getGlobal();
+                $global->POST['Data']['Students'][$personId] = $value;
+                $global->savePost();
+            }
+        }
+
         if (($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             if (($tblPerson = Account::useService()->getPersonByLogin())
                 && ($tblYear = Grade::useService()->getYear())
@@ -234,9 +249,25 @@ class Frontend extends Extension implements IFrontendInterface
                         $contentPanel = array();
                         if (($tblStudentList = $tblDivisionCourse->getStudents())) {
                             foreach ($tblStudentList as $tblStudent) {
-                                // todo anzeige wenn Person bereits in einer anderen Fachgruppe zu dieser Person ist
+                                // prüfen ob der Schüler das Fach hat
                                 if (DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblStudent, $tblYear, $tblSubject)) {
-                                    $contentPanel[] = new CheckBox("Data[Students][{$tblStudent->getId()}]", $tblStudent->getLastFirstNameWithCallNameUnderline(), 1);
+                                    $groupList = array();
+                                    // prüfen ob der Schüler in weiteren Lerngruppen für das Fach ist
+                                    if (($tblTeacherGroupList = DivisionCourse::useService()->getTeacherGroupListByStudentAndYearAndSubject(
+                                        $tblStudent, $tblYear, $tblSubject
+                                    ))) {
+                                        foreach ($tblTeacherGroupList as $tblDivisionCourseStudent) {
+                                            if (!$DivisionCourseId || $tblDivisionCourseStudent->getId() != $DivisionCourseId) {
+                                                $groupList[] = new ToolTip($tblDivisionCourseStudent->getDisplayName(), $tblDivisionCourseStudent->getDivisionTeacherNameListString(', '));
+                                            }
+                                        }
+                                    }
+                                    $contentPanel[] = new PullClear(
+                                        (new Container(
+                                            new CheckBox("Data[Students][{$tblStudent->getId()}]", $tblStudent->getLastFirstNameWithCallNameUnderline(), 1
+                                        )))->setStyle(array("float: left;"))
+                                        . (empty($groupList) ? '' : ' ' . new PullRight(new Muted(implode(' | ', $groupList))))
+                                    );
                                 }
                             }
                         }
@@ -247,7 +278,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 return new Layout(new LayoutGroup(
                     Grade::useService()->getLayoutRowsByLayoutColumnList($columnList, $size),
-                    new Title('Verfügbare Schüler')
+                    new Title("Verfügbare Schüler")
                 ));
             }
         } else {

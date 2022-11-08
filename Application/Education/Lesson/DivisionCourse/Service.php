@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Setup;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -705,9 +706,23 @@ class Service extends ServiceTeacher
      *
      * @return false|TblDivisionCourse[]
      */
-    public function getTeacherGroupListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    public function getTeacherGroupListByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear)
     {
-        return (new Data($this->getBinding()))->getTeacherGroupListByPersonAndYear($tblPerson, $tblYear);
+        return (new Data($this->getBinding()))->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear);
+    }
+
+    /**
+     * Lerngruppen eines Schülers für ein Fach
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getTeacherGroupListByStudentAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        return (new Data($this->getBinding()))->getTeacherGroupListByStudentAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
     }
 
     /**
