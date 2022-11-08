@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Graduation\Grade;
 
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -18,8 +19,10 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -32,11 +35,14 @@ use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
@@ -82,8 +88,7 @@ class Frontend extends Extension implements IFrontendInterface
                             (new Standard('', ApiTeacherGroup::getEndpoint(), new Pen(), array(), 'Bearbeiten'))
                                 ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupEdit($tblDivisionCourse->getId()))
                             . (new Standard('', ApiTeacherGroup::getEndpoint(), new Remove(), array(), 'Löschen'))
-                        // todo
-//                                ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenDeleteDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
+                                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupDelete($tblDivisionCourse->getId()))
                     );
                 }
             }
@@ -286,5 +291,53 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return '';
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadViewTeacherGroupDelete($DivisionCourseId): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        $countStudents = 0;
+        $countDivisionTeachers = 0;
+        if (($students = $tblDivisionCourse->getStudents())) {
+            $countStudents = count($students);
+        }
+        if (($divisionTeachers = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))) {
+            $countDivisionTeachers = count($divisionTeachers);
+        }
+
+        return new Title(new Remove() . ' Kurs löschen')
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Diesen Kurs wirklich löschen?',
+                                array(
+                                    'Schuljahr: ' . new Bold($tblDivisionCourse->getYearName()),
+                                    'Typ: ' . $tblDivisionCourse->getTypeName(),
+                                    'Fach: ' . $tblDivisionCourse->getDisplayName(),
+                                    'Name: ' . new Bold($tblDivisionCourse->getName()),
+                                    'Schüler: ' . ($countStudents ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countStudents) : '0'),
+                                    $tblDivisionCourse->getDivisionTeacherName()  .  ': '
+                                    . ($countDivisionTeachers ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countDivisionTeachers) : '0'),
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', ApiTeacherGroup::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineSaveTeacherGroupDelete($DivisionCourseId))
+                            . (new Standard('Nein', ApiTeacherGroup::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroups())
+                        )
+                    )
+                )
+            );
     }
 }

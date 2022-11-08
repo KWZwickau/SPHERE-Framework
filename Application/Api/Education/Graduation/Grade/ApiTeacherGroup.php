@@ -36,6 +36,8 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewTeacherGroupEdit');
         $Dispatcher->registerMethod('loadTeacherGroupStudentSelect');
         $Dispatcher->registerMethod('saveTeacherGroupEdit');
+        $Dispatcher->registerMethod('loadViewTeacherGroupDelete');
+        $Dispatcher->registerMethod('saveTeacherGroupDelete');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -246,5 +248,75 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
 
         return new Success("{$tblType->getName()} wurde erfolgreich gespeichert.")
             . self::pipelineLoadViewTeacherGroups();
+    }
+
+    /**
+     * @param $DivisionCourseId
+
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewTeacherGroupDelete($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewTeacherGroupDelete',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadViewTeacherGroupDelete($DivisionCourseId): string
+    {
+        return Grade::useFrontend()->loadViewTeacherGroupDelete($DivisionCourseId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveTeacherGroupDelete($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveTeacherGroupDelete'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function saveTeacherGroupDelete($DivisionCourseId): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (DivisionCourse::useService()->destroyDivisionCourse($tblDivisionCourse)) {
+            return new Success('Der Kurs wurde erfolgreich gelöscht.')
+                . self::pipelineLoadViewTeacherGroups();
+        } else {
+            return new Danger('Der Kurs konnte nicht gelöscht werden.');
+        }
     }
 }
