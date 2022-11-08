@@ -176,7 +176,7 @@ class FrontendStudent extends FrontendReadOnly
                 FrontendStudentAgreement::getStudentAgreementContent($PersonId, $AllowEdit), 'StudentAgreementContent'
             );
 
-            if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'WVSZ')) {
+            if (School::useService()->getIsConsumerSpecialNeedSchool()) {
                 $listingContent[] = ApiPersonReadOnly::receiverBlock(
                     FrontendStudentSpecialNeeds::getStudentSpecialNeedsContent($PersonId, $AllowEdit), 'StudentSpecialNeedsContent'
                 );
