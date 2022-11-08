@@ -95,6 +95,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
@@ -2991,10 +2992,12 @@ class Frontend extends FrontendScoreRule
                                         } elseif (is_string($average) && strpos($average, '(')) {
                                             $average = substr($average, 0, strpos($average, '('));
 
-                                            $sumSubjectAverage[$tblSubject->getId() . 'Id'] += $average;
+                                            $sumSubjectAverage[$tblSubject->getId() . 'Id'] += intval($average);
+                                            $countSubjectAverage[$tblSubject->getId() . 'Id']++;
+                                        } elseif ($average || $average === (float) 0) {
+                                            $sumSubjectAverage[$tblSubject->getId() . 'Id'] += intval($average);
                                             $countSubjectAverage[$tblSubject->getId() . 'Id']++;
                                         }
-
 
                                         // Anzeige Notendurchschnitt genau 0
                                         if ($average === (float) 0) {
