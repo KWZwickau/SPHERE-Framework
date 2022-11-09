@@ -42,6 +42,7 @@ class TblCertificate extends Element
     const CERTIFICATE_TYPE_GYM = 'Gym';
     const CERTIFICATE_TYPE_BERUFSFACHSCHULE = 'Berufsfachschule';
     const CERTIFICATE_TYPE_FACHSCHULE = 'Fachschule';
+    const CERTIFICATE_TYPE_FOERDERSCHULE = 'Förderschule';
 
     /**
      * @Column(type="string")

@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\I
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataLWSZ;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataBerufsfachschule;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataFachschule;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataFoerderschule;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataGym;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataPrimary;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataSecondary;
@@ -64,6 +65,7 @@ class Data extends AbstractData
     private $tblSchoolTypePrimary;
     private $tblSchoolTypeSecondary;
     private $tblSchoolTypeGym;
+    private $tblSchoolTypeFoerderSchule;
     private $tblSchoolTypeBerufsfachschule;
     private $tblSchoolTypeFachschule;
     private $tblSchoolTypeFachoberschule;
@@ -156,6 +158,14 @@ class Data extends AbstractData
     /**
      * @return TblType
      */
+    public function getTblSchoolTypeFoerderSchule()
+    {
+        return $this->tblSchoolTypeFoerderSchule;
+    }
+
+    /**
+     * @return TblType
+     */
     public function getTblSchoolTypeBerufsfachschule()
     {
         return $this->tblSchoolTypeBerufsfachschule;
@@ -234,6 +244,7 @@ class Data extends AbstractData
             $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
             $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
             $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
+            $this->tblSchoolTypeFoerderSchule = Type::useService()->getTypeByName('Förderschule');
             $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
             $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
             $this->tblSchoolTypeFachoberschule = Type::useService()->getTypeByName('Fachoberschule');
@@ -318,6 +329,7 @@ class Data extends AbstractData
             $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
             $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
             $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
+            $this->tblSchoolTypeFoerderSchule = Type::useService()->getTypeByName('Förderschule');
             $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
             $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
             $this->tblSchoolTypeFachoberschule = Type::useService()->getTypeByName('Fachoberschule');
@@ -339,6 +351,9 @@ class Data extends AbstractData
                     return true;
                 case TblCertificate::CERTIFICATE_TYPE_FACHSCHULE :
                     SDataFachschule::setCertificateStandard($this);
+                    return true;
+                case TblCertificate::CERTIFICATE_TYPE_FOERDERSCHULE :
+                    SDataFoerderschule::setCertificateStandard($this);
                     return true;
             }
         }
