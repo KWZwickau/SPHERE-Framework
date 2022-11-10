@@ -5,165 +5,221 @@ namespace SPHERE\Application\Education\Graduation\Grade\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
-use SPHERE\System\Database\Fitting\Element;
 
 class Setup  extends AbstractSetup
 {
-
     /**
      * @param bool $Simulate
      * @param bool $UTF8
      *
      * @return string
      */
-    public function setupDatabaseSchema($Simulate = true, $UTF8 = false)
+    public function setupDatabaseSchema($Simulate = true, $UTF8 = false): string
     {
-
         /**
          * Table
          */
-        $Schema = clone $this->getConnection()->getSchema();
+        $schema = clone $this->getConnection()->getSchema();
+        // todo indexe
+        $tblGradeType = $this->setTableGradeType($schema);
+        $tblTest = $this->setTableTest($schema, $tblGradeType);
+        $this->setTableTestGrade($schema, $tblTest);
+        $this->setTableTestCourseLink($schema, $tblTest);
+        $this->setTableTestStudentLink($schema, $tblTest);
 
-        // todo
-//        $tblGradeType = $this->setTableGradeType($Schema);
-//        $tblGradeText = $this->setTableGradeText($Schema);
-//        $this->setTableGrade($Schema, $tblGradeType, $tblGradeText);
+        $tblScoreType = $this->setTableScoreType($schema);
+        $tblGradeText = $this->setTableGradeText($schema);
+        $tblTask = $this->setTableTask($schema, $tblScoreType);
+        $this->setTableTaskGrade($schema, $tblTask, $tblGradeText);
+        $this->setTableTaskCourseLink($schema, $tblTask);
 
         /**
          * Migration & Protocol
          */
         $this->getConnection()->addProtocol(__CLASS__);
         if(!$UTF8){
-            $this->getConnection()->setMigration($Schema, $Simulate);
+            $this->getConnection()->setMigration($schema, $Simulate);
         } else {
             $this->getConnection()->setUTF8();
         }
         return $this->getConnection()->getProtocol($Simulate);
     }
 
-
     /**
-     * @param Schema $Schema
+     * @param Schema $schema
      *
      * @return Table
      */
-    private function setTableGradeType(Schema &$Schema)
+    private function setTableGradeType(Schema &$schema): Table
     {
-        // todo
-        $Table = $this->getConnection()->createTable($Schema, 'tblGradeType');
-        if (!$this->getConnection()->hasColumn('tblGradeType', 'Code')) {
-            $Table->addColumn('Code', 'string');
-        }
-        $this->getConnection()->removeIndex($Table, array('Code'));
-        if (!$this->getConnection()->hasIndex($Table, array('Code', Element::ENTITY_REMOVE))) {
-            $Table->addUniqueIndex(array('Code', Element::ENTITY_REMOVE));
-        }
-        if (!$this->getConnection()->hasColumn('tblGradeType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblGradeType', 'Description')) {
-            $Table->addColumn('Description', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblGradeType', 'IsHighlighted')) {
-            $Table->addColumn('IsHighlighted', 'boolean');
-        }
-        if (!$this->getConnection()->hasColumn('tblGradeType', 'serviceTblTestType')) {
-            $Table->addColumn('serviceTblTestType', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblGradeType', 'IsActive')) {
-            $Table->addColumn('IsActive', 'boolean', array('default' => true));
-        }
-        $this->createColumn($Table, 'IsPartGrade', self::FIELD_TYPE_BOOLEAN, false, '0');
+        $table = $this->createTable($schema, 'tblGraduationGradeType');
+        $this->createColumn($table, 'Code');
+        $this->createColumn($table, 'Name');
+        $this->createColumn($table, 'Description');
+        $this->createColumn($table, 'IsTypeBehavior', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'IsHighlighted', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'IsPartGrade', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'IsActive', self::FIELD_TYPE_BOOLEAN);
 
-        return $Table;
+        return $table;
     }
 
     /**
-     * @param Schema $Schema
+     * @param Schema $schema
      * @param Table $tblGradeType
-     * @param Table $tblGradeText
      *
      * @return Table
      */
-    private function setTableGrade(Schema &$Schema, Table $tblGradeType, Table $tblGradeText)
+    private function setTableTest(Schema &$schema, Table $tblGradeType): Table
     {
-        // todo
-        $Table = $this->getConnection()->createTable($Schema, 'tblGrade');
-        if (!$this->getConnection()->hasColumn('tblGrade', 'Grade')) {
-            $Table->addColumn('Grade', 'string', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblGrade', 'Comment')) {
-            $Table->addColumn('Comment', 'string', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblGrade', 'Trend')) {
-            $Table->addColumn('Trend', 'smallint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblPerson')) {
-            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
-        }
-        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
-        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
-            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
-        }
-        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblSubject')) {
-            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblSubjectGroup')) {
-            $Table->addColumn('serviceTblSubjectGroup', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblPeriod')) {
-            $Table->addColumn('serviceTblPeriod', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblDivision')) {
-            $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblTest')) {
-            $Table->addColumn('serviceTblTest', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblTestType')) {
-            $Table->addColumn('serviceTblTestType', 'bigint', array('notnull' => false));
-        }
-        if (!$Table->hasColumn('Date')) {
-            $Table->addColumn('Date', 'datetime', array('notnull' => false));
-        }
-        $this->createColumn($Table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($Table, 'PublicComment', self::FIELD_TYPE_STRING);
+        $table = $this->createTable($schema, 'tblGraduationTest');
 
-        $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
-        $this->createForeignKey($Table, $tblGradeText, true);
+        $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
+        // Halbjahr wir über das Datum ermittelt
+//        $this->createColumn($table, 'Period', self::FIELD_TYPE_SMALLINT);
+        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createForeignKey($table, $tblGradeType);
 
-//        $this->createIndex($Table, array('serviceTblPerson', 'serviceTblTest'), false);
-        $this->createIndex($Table, array('serviceTblPerson', 'serviceTblTest'), true);
+        $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($table, 'FinishDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($table, 'CorrectionDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($table, 'ReturnDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($table, 'IsContinues', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'Description');
 
-//        // alten nicht unique index entfernen
-//        if (($indexList = $Table->getIndexes())) {
-//            foreach ($indexList as $index) {
-//                if (!$index->isUnique()) {
-//                    $hasPersonColumn = false;
-//                    $hasTestColumn = false;
-//                    if (($columns = $index->getColumns())) {
-//                        foreach ($columns as $column) {
-//                            if ($column == 'serviceTblPerson') {
-//                                $hasPersonColumn = true;
-//                            }
-//                            if ($column == 'serviceTblTest') {
-//                                $hasTestColumn = true;
-//                            }
-//                        }
-//
-//                        if ($hasPersonColumn && $hasTestColumn) {
-//                            $Table->dropIndex($index->getName());
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        $Table->addUniqueIndex(array('serviceTblPerson', 'serviceTblTest'), 'UNIQ_TblGradeServiceTblPersonServiceTblTest');
+        return $table;
+    }
 
+    /**
+     * @param Schema $schema
+     * @param Table $tblTest
+     */
+    private function setTableTestGrade(Schema &$schema, Table $tblTest)
+    {
+        $table = $this->createTable($schema, 'tblGraduationTestGrade');
 
-        $this->createIndex($Table, array('serviceTblDivision', 'serviceTblSubject'), false);
-        $this->createIndex($Table, array(TblGrade::ATTR_SERVICE_TBL_TEST, TblGrade::ENTITY_REMOVE), false);
+        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createForeignKey($table, $tblTest);
 
-        return $Table;
+        $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME, true);
+
+        $this->createColumn($table, 'Grade', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($table, 'Comment', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($table, 'PublicComment', self::FIELD_TYPE_STRING, true);
+
+        $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblTest
+     */
+    private function setTableTestCourseLink(Schema &$schema, Table $tblTest)
+    {
+        $table = $this->createTable($schema, 'tblGraduationTestCourseLink');
+        $this->createForeignKey($table, $tblTest);
+        $this->createColumn($table, 'serviceTblDivisionCourse', self::FIELD_TYPE_BIGINT);
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblTest
+     */
+    private function setTableTestStudentLink(Schema &$schema, Table $tblTest)
+    {
+        $table = $this->createTable($schema, 'tblGraduationTestStudentLink');
+        $this->createForeignKey($table, $tblTest);
+        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblScoreType
+     *
+     * @return Table
+     */
+    private function setTableTask(Schema &$schema, Table $tblScoreType): Table
+    {
+        $table = $this->createTable($schema, 'tblGraduationTask');
+
+        $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'IsTypeBehavior', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'Name');
+
+        $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($table, 'FromDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($table, 'ToDate', self::FIELD_TYPE_DATETIME, true);
+
+        // Halbjahr wir über das Datum ermittelt, und ob es Kurssystem ist
+//        $this->createColumn($table, 'Period', self::FIELD_TYPE_SMALLINT);
+        $this->createColumn($table, 'IsAllYears', self::FIELD_TYPE_BOOLEAN);
+
+        $this->createForeignKey($table, $tblScoreType, true);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblTask
+     * @param Table $tblGradeText
+     */
+    private function setTableTaskGrade(Schema &$schema, Table $tblTask, Table $tblGradeText)
+    {
+        $table = $this->createTable($schema, 'tblGraduationTaskGrade');
+
+        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createForeignKey($table, $tblTask);
+
+        $this->createColumn($table, 'Grade', self::FIELD_TYPE_STRING, true);
+        $this->createForeignKey($table, $tblGradeText, true);
+        $this->createColumn($table, 'Comment', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblTask
+     */
+    private function setTableTaskCourseLink(Schema &$schema, Table $tblTask)
+    {
+        $table = $this->createTable($schema, 'tblGraduationTaskCourseLink');
+        $this->createForeignKey($table, $tblTask);
+        $this->createColumn($table, 'serviceTblDivisionCourse', self::FIELD_TYPE_BIGINT);
+        // todo Stichtagsnotenauftrag für HS in Klasse 9, 2 Aufträge für Klasse 9 OS wären schlecht für Zeugnisauftrag
+    }
+
+    /**
+     * @param Schema $schema
+     *
+     * @return Table
+     */
+    private function setTableScoreType(Schema &$schema): Table
+    {
+        $table = $this->createTable($schema, 'tblGraduationScoreType');
+
+        $this->createColumn($table, 'Name');
+        $this->createColumn($table, 'Identifier');
+        $this->createColumn($table, 'Pattern');
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $schema
+     *
+     * @return Table
+     */
+    private function setTableGradeText(Schema &$schema): Table
+    {
+        $table = $this->createTable($schema, 'tblGraduationGradeText');
+
+        $this->createColumn($table, 'Name');
+        $this->createColumn($table, 'Identifier');
+
+        $this->createIndex($table, array('Identifier'));
+
+        return $table;
     }
 }

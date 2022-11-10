@@ -3,6 +3,11 @@
 namespace SPHERE\Application\Education\Graduation\Grade;
 
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Grade\Service\Setup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -32,6 +37,56 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblGradeType
+     */
+    public function getGradeTypeById($id)
+    {
+        return (new Data($this->getBinding()))-$this->getGradeTypeById($id);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblGradeText
+     */
+    public function getGradeTextById($id)
+    {
+        return (new Data($this->getBinding()))-$this->getGradeTextById($id);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblTest
+     */
+    public function getTestById($id)
+    {
+        return (new Data($this->getBinding()))-$this->getTestById($id);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblScoreType
+     */
+    public function getScoreTypeById($id)
+    {
+        return (new Data($this->getBinding()))-$this->getScoreTypeById($id);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblTask
+     */
+    public function getTaskById($id)
+    {
+        return (new Data($this->getBinding()))-$this->getTaskById($id);
     }
 
     /**
