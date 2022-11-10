@@ -38,7 +38,7 @@ use SPHERE\System\Extension\Extension;
  *
  * @package SPHERE\Application\Api\Education\Graduation\Gradebook
  */
-class ApiGradebook extends Extension implements IApiInterface
+class ApiGradebookOld extends Extension implements IApiInterface
 {
 
     use ApiTrait;

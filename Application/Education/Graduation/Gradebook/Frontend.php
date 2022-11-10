@@ -4,7 +4,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use DateTime;
 use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
-use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
+use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebookOld;
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Document\Storage\Storage;
@@ -1271,8 +1271,8 @@ class Frontend extends FrontendScoreRule
                             if ($gradeListFromAnotherDivision && isset($gradeListFromAnotherDivision[$periodId][$tblPerson->getId()])) {
                                 $data[$column] = implode(', ', $gradeListFromAnotherDivision[$periodId][$tblPerson->getId()])
                                     . '&nbsp;'
-                                    . ApiGradebook::receiverModal()
-                                    . (new Standard('', '#', new EyeOpen()))->ajaxPipelineOnClick(ApiGradebook::pipelineOpenExtraGradesModal(
+                                    . ApiGradebookOld::receiverModal()
+                                    . (new Standard('', '#', new EyeOpen()))->ajaxPipelineOnClick(ApiGradebookOld::pipelineOpenExtraGradesModal(
                                         $tblDivision->getId(), $tblSubject->getId(), $periodId, $tblPerson->getId()
                                     ));
                             }

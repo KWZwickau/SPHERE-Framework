@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
@@ -67,6 +68,26 @@ class Frontend extends Extension implements IFrontendInterface
         return $stage;
     }
 
+    public function getHeader(): string
+    {
+        // todo $title
+
+        // todo is selected
+        return
+            (new Standard('Leistungsüberprüfung', ApiTeacherGroup::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroups())
+            . (new Standard('Notenbuch', ApiGradeBook::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookSelect())
+            . (new Standard('Schülerübersicht', ApiGradeBook::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookSelect())
+            . (new Standard('Lerngruppen', ApiTeacherGroup::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroups())
+            . (new Standard('Schuljahr', ApiTeacherGroup::getEndpoint()))
+
+            . new Container('&nbsp;')
+        ;
+    }
+
     /**
      * @return string
      */
@@ -93,8 +114,8 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            return
-                (new Primary("{$tblType->getName()} hinzufügen", ApiTeacherGroup::getEndpoint(), new Plus()))
+            return $this->getHeader()
+                . (new Primary("{$tblType->getName()} hinzufügen", ApiTeacherGroup::getEndpoint(), new Plus()))
                     ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupEdit())
                 . new TableData(
                     $dataList,
@@ -339,5 +360,14 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             );
+    }
+
+    /**
+     * @return string
+     */
+    public function loadViewGradeBookSelect(): string
+    {
+        return $this->getHeader()
+            . "Hallo Notenbuch";
     }
 }

@@ -28,8 +28,9 @@ use SPHERE\Application\Api\Education\DivisionCourse\ApiSubjectTable;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiTeacherLectureship;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiYearChange;
 use SPHERE\Application\Api\Education\Graduation\Evaluation\ApiEvaluation;
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
-use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
+use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebookOld;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradesAllYears;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradeMaintenance;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiMinimumGradeCount;
@@ -62,7 +63,7 @@ class Education implements IApplicationInterface
         ValidationFilter::registerApi();
         ApiGenerate::registerApi();
         StudentStatus::registerApi();
-        ApiGradebook::registerApi();
+        ApiGradebookOld::registerApi();
         ApiEvaluation::registerApi();
         ApiMinimumGradeCount::registerApi();
         SubjectTeacher::registerApi();
@@ -89,5 +90,6 @@ class Education implements IApplicationInterface
         ApiStudentSubject::registerApi();
         ApiYearChange::registerApi();
         ApiTeacherGroup::registerApi();
+        ApiGradeBook::registerApi();
     }
 }
