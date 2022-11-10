@@ -103,6 +103,11 @@ class TblCertificate extends Element
     protected $IsGradeVerbal;
 
     /**
+     * @Column(type="string")
+     */
+    protected $CertificateNumber;
+
+    /**
      * @return bool|TblConsumer
      */
     public function getServiceTblConsumer()
@@ -350,4 +355,21 @@ class TblCertificate extends Element
     {
         $this->IsGradeVerbal = $IsGradeVerbal;
     }
+
+    /**
+     * @return string
+     */
+    public function getCertificateNumber(): string
+    {
+        return $this->CertificateNumber;
+    }
+
+    /**
+     * @param string $Anlage
+     */
+    public function setCertificateNumber($CertificateNumber): void
+    {
+        $this->CertificateNumber = $CertificateNumber;
+    }
+
 }

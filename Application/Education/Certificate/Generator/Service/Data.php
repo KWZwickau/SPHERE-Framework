@@ -1052,6 +1052,31 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificate $tblCertificate
+     * @param string $CertificateNumber
+     *
+     * @return bool
+     */
+    public function updateCertificateNumber(
+        TblCertificate $tblCertificate,
+        $CertificateNumber = ''
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblCertificate', $tblCertificate->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setCertificateNumber($CertificateNumber);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
      * @param $Name
      * @param $Description
      *

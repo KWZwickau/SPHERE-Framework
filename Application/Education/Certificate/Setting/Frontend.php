@@ -768,6 +768,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     : new Document().'<br/>'.new Small(new Muted('Standard'))
                                 ).'</div>',
                             'Category' => $tblCertificate->getDisplayCategory(),
+                            'CertificateNumber' => $tblCertificate->getCertificateNumber(),
                             'Option' => new Standard(
                                 '', '/Education/Certificate/Setting/Configuration', new Select(),
                                 array(
@@ -778,11 +779,12 @@ class Frontend extends Extension implements IFrontendInterface
                 });
 
             $Content = new TableData($TemplateTable, null, array(
-                'Typ'         => 'Typ',
-                'Category'    => 'Kategorie',
-                'Name'        => 'Name',
-                'Description' => 'Beschreibung',
-                'Option'      => ''
+                'Typ'               => 'Typ',
+                'Category'          => 'Kategorie',
+                'Name'              => 'Name',
+                'CertificateNumber' => 'Anlage',
+                'Description'       => 'Beschreibung',
+                'Option'            => ''
             ), array(
                 'order'      => array(array(0, 'asc'), array(1, 'asc'), array(2, 'asc'), array(3, 'asc')),
                 'columnDefs' => array(
@@ -970,7 +972,8 @@ class Frontend extends Extension implements IFrontendInterface
             'Förderschule Halbjahresinformation' => 'FoesHjInfoGeistigeEntwicklung',
             'Förderschule Halbjahreszeugnis' => 'FoesHjGeistigeEntwicklung',
             'Förderschule Jahreszeugnis' => 'FoesJGeistigeEntwicklung',
-            'Förderschule Abgangszeugnis' => 'FoesAbgGeistigeEntwicklung'
+            'Förderschule Abgangszeugnis' => 'FoesAbgGeistigeEntwicklung',
+            'Förderschule Abschlusszeugnis' => 'FoesAbsGeistigeEntwicklung'
         );
 
         $LayoutRow = new LayoutRow(array(new LayoutColumn('', 3)));
@@ -1031,9 +1034,9 @@ class Frontend extends Extension implements IFrontendInterface
                 continue;
             }
             if(Generator::useService()->getCertificateByCertificateClassName($Class)){
-                $ContentArray[] = new Success(new SuccessIcon()." $Name vorhanden ");
+                $ContentArray[] = new Success(new SuccessIcon()." $Name installiert ");
             } else {
-                $ContentArray[] = new DangerText(new Disable()." $Name nicht vorhanden ");
+                $ContentArray[] = new DangerText(new Disable()." $Name nicht installiert ");
             }
         }
         return $ContentArray;

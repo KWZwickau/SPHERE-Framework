@@ -897,6 +897,13 @@ class Service extends AbstractService
             }
         }
 
+        // Förderschule
+        if($tblStudent && $tblStudentSpecialNeeds = $tblStudent->getTblStudentSpecialNeeds()){
+            if(($tblStudentSpecialNeedsLevel = $tblStudentSpecialNeeds->getTblStudentSpecialNeedsLevel())){
+                $Content['P' . $personId]['Student']['StudentSpecialNeeds']['LevelName'] = $tblStudentSpecialNeedsLevel->getName();
+            }
+        }
+
         // Berufsfachschulen / Fachschulen
         if($tblStudent && ($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())){
             if(($tblStudentTenseOfLesson = $tblTechnicalSchool->getTblStudentTenseOfLesson())){

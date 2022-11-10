@@ -2120,6 +2120,12 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['GTA'] = $textGTA;
                         }
 
+                        // Vorsetzen des Schulbesuchsjahrs
+                        if (($tblStudent = $tblPerson->getStudent())
+                        && !isset($Global->POST['Data'][$tblPrepareStudent->getId()]['SchoolVisitYear'])) {
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['SchoolVisitYear'] = $tblStudent->getSchoolAttendanceYear(false);
+                        }
+
                         $isSupportForPrimarySchool = false;
                         // Seelitz Förderbedarf-Satz in die Bemerkung vorsetzen
                         if (!$hasRemarkText

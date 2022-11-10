@@ -120,21 +120,20 @@ class FoesAbgGeistigeEntwicklung extends Certificate
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent(
-                        new Container('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß')
-                        . new Container('§ 28 Absatz 1 Nummer 1 des Sächsischen Schulgesetzes und')
-                        . new Container('§ 64 der Schulordnung Ober- und Abendoberschulen')
-                        . new Container('die Oberschule.')
+                        new Container('und verlässt nach Erfüllung der Vollzeit- und Berufsschulpflicht gemäß')
+                        . new Container('§ 28 Absatz 1 des Sächsischen Schulgesetzes die Schule.')
                     )
                     ->styleMarginTop('8px')
                     ->styleAlignCenter()
                 )->styleMarginTop('60px')
             )
-            ->addSlice($this->getSupportContent($personId, '200px', '55px', 'Inklusive Unterrichtung¹: '))
+            ->addSlice($this->getDescriptionWithoutTeamContent($personId, '200px', '55px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, true, '30px'))
-            ->addSlice($this->getInfo('187px',
-                '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
-            ));
+//            ->addSlice($this->getInfo('187px',
+//                '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
+//            ))
+        ;
 
         return $pageList;
     }
