@@ -28,6 +28,16 @@ class TblTaskCourseLink extends Element
     protected int $serviceTblDivisionCourse;
 
     /**
+     * @param TblTask $tblTask
+     * @param TblDivisionCourse $tblDivisionCourse
+     */
+    public function __construct(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse)
+    {
+        $this->tblGraduationTask = $tblTask->getId();
+        $this->serviceTblDivisionCourse = $tblDivisionCourse->getId();
+    }
+
+    /**
      * @return TblTask
      */
     public function getTblTask(): TblTask

@@ -27,6 +27,9 @@ class TblDivisionCourse extends Element
     const ATTR_IS_SHOWN_IN_PERSON_DATA = 'IsShownInPersonData';
     const ATTR_IS_REPORTING = 'IsReporting';
 
+    const ATTR_MIGRATE_GROUP_ID = 'MigrateGroupId';
+    const ATTR_MIGRATE_SEK_COURSE = 'MigrateSekCourse';
+
     /**
      * @Column(type="bigint")
      */
@@ -73,6 +76,11 @@ class TblDivisionCourse extends Element
     protected ?int $MigrateGroupId = null;
 
     /**
+     * @Column(type="string")
+     */
+    protected ?string $MigrateSekCourse = null;
+
+    /**
      * @param TblDivisionCourseType $tblType
      * @param TblYear $tblYear
      * @param string $name
@@ -81,11 +89,15 @@ class TblDivisionCourse extends Element
      * @param bool $isReporting
      * @param TblSubject|null $tblSubject
      * @param int|null $migrateGroupId
+     * @param string|null $migrateSekCourse
      *
      * @return TblDivisionCourse
      */
-    public static function withParameter(TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description,
-        bool $isShownInPersonData = false, bool $isReporting = false, ?TblSubject $tblSubject = null, ?int $migrateGroupId = null): TblDivisionCourse
+    public static function withParameter(
+        TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description,
+        bool $isShownInPersonData = false, bool $isReporting = false, ?TblSubject $tblSubject = null,
+        ?int $migrateGroupId = null, ?string $migrateSekCourse = null
+    ): TblDivisionCourse
     {
         // php erlaubt leider keine mehrfach Konstruktoren :(
         $instance = new self();
@@ -99,6 +111,7 @@ class TblDivisionCourse extends Element
         //        $instance->IsUcs = $isUcs;
         $instance->setServiceTblSubject($tblSubject);
         $instance->MigrateGroupId = $migrateGroupId;
+        $instance->MigrateSekCourse = $migrateSekCourse;
 
         return  $instance;
     }

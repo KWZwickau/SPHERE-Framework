@@ -290,7 +290,9 @@ abstract class DataMigrate extends AbstractData
                                                     '',
                                                     $tblSubjectGroup->isAdvancedCourse(),
                                                     $tblSubjectGroup->isAdvancedCourse(),
-                                                    $tblSubject
+                                                    $tblSubject,
+                                                    null,
+                                                    Division::useService()->getMigrateSekCourseString($tblDivision, $tblSubject, $tblSubjectGroup)
                                                 );
                                                 // bulkSave nicht möglich, da ansonsten noch keine Id vorhanden ist
                                                 $Manager->saveEntity($tblDivisionCourseSekII);

@@ -399,6 +399,11 @@ class TblGrade extends Element
         }
     }
 
+    public function getDateTime()
+    {
+        return $this->Date;
+    }
+
     /**
      * @param null|\DateTime $Date
      */

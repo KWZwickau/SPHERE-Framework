@@ -15,6 +15,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblGradeText extends Element
 {
+    const ATTR_IDENTIFIER = 'Identifier';
+
     /**
      * @Column(type="string")
      */

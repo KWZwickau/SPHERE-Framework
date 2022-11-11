@@ -49,6 +49,26 @@ class TblTestGrade extends Element
     protected ?int $serviceTblPersonTeacher = null;
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblTest $tblTest
+     * @param DateTime|null $Date
+     * @param string|null $Grade
+     * @param string|null $Comment
+     * @param string|null $PublicComment
+     * @param TblPerson|null $tblTeacher
+     */
+    public function __construct(TblPerson $tblPerson, TblTest $tblTest, ?DateTime $Date, ?string $Grade, ?string $Comment, ?string $PublicComment, ?TblPerson $tblTeacher)
+    {
+        $this->serviceTblPerson = $tblPerson->getId();
+        $this->tblGraduationTest = $tblTest->getId();
+        $this->Date = $Date;
+        $this->Grade = $Grade;
+        $this->Comment = $Comment;
+        $this->PublicComment = $PublicComment;
+        $this->serviceTblPersonTeacher = $tblTeacher ? $tblTeacher->getId() : null;
+    }
+
+    /**
      * @param bool $IsForce
      *
      * @return false|TblPerson

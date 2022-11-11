@@ -120,6 +120,11 @@ class TblTest extends Element
         }
     }
 
+    public function getDateTime()
+    {
+        return $this->Date;
+    }
+
     /**
      * @param null|\DateTime $Date
      */
@@ -147,6 +152,11 @@ class TblTest extends Element
         }
     }
 
+    public function getCorrectionDateTime()
+    {
+        return $this->CorrectionDate;
+    }
+
     /**
      * @param null|\DateTime $CorrectionDate
      */
@@ -172,6 +182,11 @@ class TblTest extends Element
         } else {
             return (string)$ReturnDate;
         }
+    }
+
+    public function getReturnDateTime()
+    {
+        return $this->ReturnDate;
     }
 
     /**
@@ -422,6 +437,11 @@ class TblTest extends Element
         } else {
             return (string)$FinishDate;
         }
+    }
+
+    public function getFinishDateTime()
+    {
+        return $this->FinishDate;
     }
 
     /**

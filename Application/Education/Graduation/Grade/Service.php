@@ -40,13 +40,43 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblYear $tblYear
+     *
+     * @return float
+     */
+    public function migrateTests(TblYear $tblYear): float
+    {
+        return (new Data($this->getBinding()))->migrateTests($tblYear);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return float
+     */
+    public function migrateTasks(TblYear $tblYear): float
+    {
+        return (new Data($this->getBinding()))->migrateTasks($tblYear);
+    }
+
+    /**
      * @param $id
      *
      * @return false|TblGradeType
      */
     public function getGradeTypeById($id)
     {
-        return (new Data($this->getBinding()))-$this->getGradeTypeById($id);
+        return (new Data($this->getBinding()))->getGradeTypeById($id);
+    }
+
+    /**
+     * @param bool $withInActive
+     *
+     * @return false|TblGradeType[]
+     */
+    public function getGradeTypeAll(bool $withInActive = false)
+    {
+        return (new Data($this->getBinding()))->getGradeTypeAll($withInActive);
     }
 
     /**
@@ -56,7 +86,15 @@ class Service extends AbstractService
      */
     public function getGradeTextById($id)
     {
-        return (new Data($this->getBinding()))-$this->getGradeTextById($id);
+        return (new Data($this->getBinding()))->getGradeTextById($id);
+    }
+
+    /**
+     * @return false|TblGradeText[]
+     */
+    public function getGradeTextAll()
+    {
+        return (new Data($this->getBinding()))->getGradeTextAll();
     }
 
     /**
@@ -66,7 +104,7 @@ class Service extends AbstractService
      */
     public function getTestById($id)
     {
-        return (new Data($this->getBinding()))-$this->getTestById($id);
+        return (new Data($this->getBinding()))->getTestById($id);
     }
 
     /**
@@ -76,7 +114,15 @@ class Service extends AbstractService
      */
     public function getScoreTypeById($id)
     {
-        return (new Data($this->getBinding()))-$this->getScoreTypeById($id);
+        return (new Data($this->getBinding()))->getScoreTypeById($id);
+    }
+
+    /**
+     * @return false|TblScoreType[]
+     */
+    public function getScoreTypeAll()
+    {
+        return (new Data($this->getBinding()))->getScoreTypeAll();
     }
 
     /**
@@ -86,7 +132,7 @@ class Service extends AbstractService
      */
     public function getTaskById($id)
     {
-        return (new Data($this->getBinding()))-$this->getTaskById($id);
+        return (new Data($this->getBinding()))->getTaskById($id);
     }
 
     /**

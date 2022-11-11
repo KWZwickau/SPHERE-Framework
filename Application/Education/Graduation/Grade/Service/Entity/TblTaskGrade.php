@@ -39,7 +39,7 @@ class TblTaskGrade extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $tblGraduationGradeText;
+    protected ?int $tblGraduationGradeText = null;
     /**
      * @Column(type="string")
      */
@@ -49,6 +49,27 @@ class TblTaskGrade extends Element
      */
     protected ?int $serviceTblPersonTeacher = null;
 
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblTask $tblTask
+     * @param string|null $Grade
+     * @param TblGradeText|null $tblGradeText
+     * @param string|null $Comment
+     * @param TblPerson|null $tblTeacher
+     */
+    public function __construct(
+        TblPerson $tblPerson, TblSubject $tblSubject, TblTask $tblTask, ?string $Grade, ?TblGradeText $tblGradeText, ?string $Comment, ?TblPerson $tblTeacher
+    ) {
+        $this->serviceTblPerson = $tblPerson->getId();
+        $this->serviceTblSubject = $tblSubject->getId();
+        $this->tblGraduationTask = $tblTask->getId();
+        $this->Grade = $Grade;
+        $this->tblGraduationGradeText = $tblGradeText ? $tblGradeText->getId() : null;
+        $this->Comment = $Comment;
+        $this->serviceTblPersonTeacher = $tblTeacher ? $tblTeacher->getId() : null;
+    }
+    
     /**
      * @param bool $IsForce
      *

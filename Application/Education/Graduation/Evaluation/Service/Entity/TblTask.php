@@ -122,10 +122,6 @@ class TblTask extends Element
      */
     public function getDateTime()
     {
-        if (null === $this->Date) {
-            return false;
-        }
-
         return $this->Date;
     }
 
@@ -307,6 +303,11 @@ class TblTask extends Element
         }
     }
 
+    public function getFromDateTime()
+    {
+        return $this->FromDate;
+    }
+
     /**
      * @param null|DateTime $Date
      */
@@ -332,6 +333,11 @@ class TblTask extends Element
         } else {
             return (string)$Date;
         }
+    }
+
+    public function getToDateTime()
+    {
+        return $this->ToDate;
     }
 
     /**

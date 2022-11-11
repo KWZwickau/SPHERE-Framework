@@ -26,7 +26,7 @@ class TblTask extends Element
     /**
      * @Column(type="boolean")
      */
-    protected bool $IsTypeBehavior;
+    protected bool $IsTypeBehavior = false;
     /**
      * @Column(type="string")
      */
@@ -46,12 +46,40 @@ class TblTask extends Element
     /**
      * @Column(type="boolean")
      */
-    protected bool $IsAllYears;
+    protected bool $IsAllYears = false;
     /**
      * @Column(type="bigint")
      */
-    protected int $tblGraduationScoreType;
-    
+    protected ?int $tblGraduationScoreType = null;
+
+    /**
+     * @param TblYear $tblYear
+     * @param bool $IsTypeBehavior
+     * @param string $Name
+     * @param DateTime|null $Date
+     * @param DateTime|null $FromDate
+     * @param DateTime|null $ToDate
+     * @param bool $IsAllYears
+     * @param TblScoreType|null $tblScoreType
+     * @param int|null $Id
+     */
+    public function __construct(
+        TblYear $tblYear, bool $IsTypeBehavior, string $Name, ?DateTime $Date, ?DateTime $FromDate, ?DateTime $ToDate, bool $IsAllYears,
+        ?TblScoreType $tblScoreType, ?int $Id = null
+    ) {
+        $this->serviceTblYear = $tblYear->getId();
+        $this->IsTypeBehavior = $IsTypeBehavior;
+        $this->Name = $Name;
+        $this->Date = $Date;
+        $this->FromDate = $FromDate;
+        $this->ToDate = $ToDate;
+        $this->IsAllYears = $IsAllYears;
+        $this->tblGraduationScoreType = $tblScoreType ? $tblScoreType->getId() : null;
+        if ($Id) {
+            $this->Id = $Id;
+        }
+    }
+
     /**
      * @return false|TblYear
      */

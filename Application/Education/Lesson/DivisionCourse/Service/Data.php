@@ -182,6 +182,26 @@ class Data extends DataTeacher
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblDivisionCourse
+     */
+    public function getDivisionCourseByMigrateGroupId($Id)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', array(TblDivisionCourse::ATTR_MIGRATE_GROUP_ID => $Id));
+    }
+
+    /**
+     * @param $string
+     *
+     * @return false|TblDivisionCourse
+     */
+    public function getDivisionCourseByMigrateSekCourse($string)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', array(TblDivisionCourse::ATTR_MIGRATE_SEK_COURSE => $string));
+    }
+
+    /**
      * @param string|null $TypeIdentifier
      *
      * @return false|TblDivisionCourse[]

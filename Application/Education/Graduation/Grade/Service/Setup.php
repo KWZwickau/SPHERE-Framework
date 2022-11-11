@@ -203,6 +203,8 @@ class Setup  extends AbstractSetup
         $this->createColumn($table, 'Identifier');
         $this->createColumn($table, 'Pattern');
 
+        $this->createIndex($table, array('Identifier'));
+
         return $table;
     }
 

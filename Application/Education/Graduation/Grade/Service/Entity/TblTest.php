@@ -52,11 +52,41 @@ class TblTest extends Element
     /**
      * @Column(type="boolean")
      */
-    protected bool $IsContinues;
+    protected bool $IsContinues = false;
     /**
      * @Column(type="string")
      */
     protected string $Description;
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param TblGradeType $tblGradeType
+     * @param DateTime|null $Date
+     * @param DateTime|null $FinishDate
+     * @param DateTime|null $CorrectionDate
+     * @param DateTime|null $ReturnDate
+     * @param bool $IsContinues
+     * @param string $Description
+     * @param int|null $Id
+     */
+    public function __construct(
+        TblYear $tblYear, TblSubject $tblSubject, TblGradeType $tblGradeType,
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description, ?int $Id = null
+    ) {
+        $this->serviceTblYear = $tblYear->getId();
+        $this->serviceTblSubject = $tblSubject->getId();
+        $this->tblGraduationGradeType = $tblGradeType->getId();
+        $this->Date = $Date;
+        $this->FinishDate = $FinishDate;
+        $this->CorrectionDate = $CorrectionDate;
+        $this->ReturnDate = $ReturnDate;
+        $this->IsContinues = $IsContinues;
+        $this->Description = $Description;
+        if ($Id) {
+            $this->Id = $Id;
+        }
+    }
 
     /**
      * @return false|TblYear

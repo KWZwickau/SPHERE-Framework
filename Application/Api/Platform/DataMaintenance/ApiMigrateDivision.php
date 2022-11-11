@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Platform\DataMaintenance;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -174,8 +175,13 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
      */
     public function migrateYear($YearId): string
     {
+        ini_set('memory_limit', '2G');
+
         if (($tblYear = Term::useService()->getYearById($YearId))) {
+            // todo doch in einzelne Piplelines Auslagern
             $time = DivisionCourse::useService()->migrateYear($tblYear);
+            $time += Grade::useService()->migrateTests($tblYear);
+            $time += Grade::useService()->migrateTasks($tblYear);
             return new Success(new Bold($tblYear->getDisplayName()) . ' erfolgreich migriert. ' . new PullRight($time . ' Sekunden'))
                 . (($tblNextYear = $this->getNextYear($tblYear))
                     ? self::pipelineMigrateYear($tblNextYear->getId())

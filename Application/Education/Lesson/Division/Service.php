@@ -3325,4 +3325,16 @@ class Service extends AbstractService
 
         return false;
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return string
+     */
+    public function getMigrateSekCourseString(TblDivision $tblDivision, TblSubject $tblSubject, TblSubjectGroup $tblSubjectGroup): string
+    {
+        return "DivisionId:{$tblDivision->getId()}_SubjectId:{$tblSubject->getId()}_SubjectGroupId:{$tblSubjectGroup->getId()}";
+    }
 }

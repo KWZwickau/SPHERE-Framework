@@ -106,6 +106,26 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblDivisionCourse
+     */
+    public function getDivisionCourseByMigrateGroupId($Id)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseByMigrateGroupId($Id);
+    }
+
+    /**
+     * @param $string
+     *
+     * @return false|TblDivisionCourse
+     */
+    public function getDivisionCourseByMigrateSekCourse($string)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseByMigrateSekCourse($string);
+    }
+
+    /**
      * @param string|null $TypeIdentifier
      *
      * @return false|TblDivisionCourse[]
