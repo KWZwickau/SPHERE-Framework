@@ -42,11 +42,12 @@ abstract class DataMigrate extends AbstractData
 //    }
 
     /**
-     * @return int
+     * @return array
      */
-    public function migrateTblDivisionToTblDivisionCourse(): int
+    public function migrateTblDivisionToTblDivisionCourse(): array
     {
         $count = 0;
+        $start = hrtime(true);
         if (($tblDivisionList = Division::useService()->getDivisionAll())
             && ($tblType = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_DIVISION))
         ) {
@@ -71,15 +72,18 @@ abstract class DataMigrate extends AbstractData
             }
         }
 
-        return $count;
+        $end = hrtime(true);
+
+        return array($count, round(($end - $start) / 1000000000, 2));
     }
 
     /**
-     * @return int
+     * @return array
      */
-    public function migrateTblGroupToTblDivisionCourse(): int
+    public function migrateTblGroupToTblDivisionCourse(): array
     {
         $count = 0;
+        $start = hrtime(true);
         if (($tblGroupList = Group::useService()->getGroupListByIsCoreGroup())
             && ($tblType = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_CORE_GROUP))
             && ($tblYearList = Term::useService()->getYearByNow())
@@ -126,7 +130,9 @@ abstract class DataMigrate extends AbstractData
             $Manager->flushCache();
         }
 
-        return $count;
+        $end = hrtime(true);
+
+        return array($count, round(($end - $start) / 1000000000, 2));
     }
 
     /**

@@ -70,17 +70,17 @@ class Service extends ServiceTeacher
     }
 
     /**
-     * @return int
+     * @return array
      */
-    public function migrateTblDivisionToTblDivisionCourse(): int
+    public function migrateTblDivisionToTblDivisionCourse(): array
     {
         return (new Data($this->getBinding()))->migrateTblDivisionToTblDivisionCourse();
     }
 
     /**
-     * @return int
+     * @return array
      */
-    public function migrateTblGroupToTblDivisionCourse(): int
+    public function migrateTblGroupToTblDivisionCourse(): array
     {
         return (new Data($this->getBinding()))->migrateTblGroupToTblDivisionCourse();
     }

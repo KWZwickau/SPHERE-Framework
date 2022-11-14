@@ -51,15 +51,16 @@ abstract class DataMigrate extends AbstractData
 
     /**
      * @param TblYear $tblYear
+     * @param array $tblDivisionList
      *
      * @return float
      */
-    public function migrateTests(TblYear $tblYear): float
+    public function migrateTests(TblYear $tblYear, array $tblDivisionList): float
     {
         ini_set('memory_limit', '2G');
         $start = hrtime(true);
 
-        if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
+        if ($tblDivisionList) {
             $tblGradeTypeList = array();
             if (($tblTempList = Grade::useService()->getGradeTypeAll(true))) {
                 foreach ($tblTempList as $temp) {
@@ -68,8 +69,6 @@ abstract class DataMigrate extends AbstractData
             }
 
             $Manager = $this->getEntityManager();
-
-            $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('Id');
             /** @var TblDivision $tblDivisionTemp */
             foreach ($tblDivisionList as $tblDivision) {
                 $isCourseSystem = Division::useService()->getIsDivisionCourseSystem($tblDivision);

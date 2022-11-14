@@ -617,7 +617,11 @@ UPDATE ".$Acronym."_SettingConsumer.tblPrepareInformation SET Value = CONCAT(SUB
                 $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('Id');
                 /** @var TblYear $tblYear */
                 foreach ($tblYearList as $tblYear) {
-                    $content .= ApiMigrateDivision::receiverBlock('', 'MigrateYear_' . $tblYear->getId());
+                    $content .= new Panel(
+                        $tblYear->getDisplayName(),
+                        ApiMigrateDivision::receiverBlock('', 'MigrateYear_' . $tblYear->getId()),
+                        Panel::PANEL_TYPE_INFO
+                    );
                 }
             }
 

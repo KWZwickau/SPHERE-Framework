@@ -3337,4 +3337,18 @@ class Service extends AbstractService
     {
         return "DivisionId:{$tblDivision->getId()}_SubjectId:{$tblSubject->getId()}_SubjectGroupId:{$tblSubjectGroup->getId()}";
     }
+
+    /**
+     * für Migration der Zensuren
+     *
+     * @param TblYear $tblYear
+     * @param $StartId
+     * @param $MaxCount
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionListByStartIdAndMaxCount(TblYear $tblYear, $StartId, $MaxCount)
+    {
+        return (new Data($this->getBinding()))->getDivisionListByStartIdAndMaxCount($tblYear, $StartId, $MaxCount);
+    }
 }
