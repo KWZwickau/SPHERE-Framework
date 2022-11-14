@@ -17,14 +17,14 @@ class Grade  implements IModuleInterface
          * Navigation
          */
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\Gradebook'), new Link\Name('Notenbuch'), new Link\Icon(new Book()))
+            new Link(new Link\Route(__NAMESPACE__.'\GradeBook'), new Link\Name('Notenbuch'), new Link\Icon(new Book()))
         );
 
         /**
          * Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Gradebook', __NAMESPACE__.'\Frontend::frontendGradebook')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeBook', __NAMESPACE__.'\Frontend::frontendGradeBook')
         );
     }
 

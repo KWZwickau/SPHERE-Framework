@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -277,11 +278,62 @@ class TblTeacherLectureship extends Element
     public function getTeacherName(): string
     {
         if (($tblPerson = $this->getServiceTblPerson())) {
-            return $tblPerson->getFullName();
+            $acronym = (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson)) ? ' (' . $tblTeacher->getAcronym() . ')' : '');
+
+            return $acronym ? $tblPerson->getLastName() . $acronym : $tblPerson->getLastName();
         }
 
         return '';
     }
+
+    /**
+     * @return string
+     */
+    public function getCourseName(): string
+    {
+        if (($tblDivisionCourse = $this->getTblDivisionCourse())) {
+            return $tblDivisionCourse->getDisplayName();
+        }
+
+        return "";
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubjectName(): string
+    {
+        if (($tblSubject = $this->getServiceTblSubject())) {
+            return $tblSubject->getDisplayName();
+        }
+
+        return "";
+    }
+
+    /**
+     * @param bool $isString
+     * @return false|string|TblPerson[]
+     */
+    public function getSubjectTeachers(bool $isString = true)
+    {
+        $tblPersonList = array();
+        if (($tblDivisionCourse = $this->getTblDivisionCourse())
+            && ($tblSubject = $this->getServiceTblSubject())
+        ) {
+            if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(null, null, $tblDivisionCourse, $tblSubject))) {
+                foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                    if (($tblPerson = $tblTeacherLectureship->getServiceTblPerson())) {
+                        $tblPersonList[$tblPerson->getId()] = $isString ? $tblTeacherLectureship->getTeacherName() : $tblPerson;
+                    }
+                }
+            }
+        }
+
+        return empty($tblPersonList)
+            ? false
+            : ($isString ? implode(", ", $tblPersonList) : $tblPersonList);
+    }
+
 
     /**
      * für Sortierung

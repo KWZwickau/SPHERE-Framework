@@ -24,6 +24,7 @@ class ApiGradeBook extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('loadViewGradeBookSelect');
+        $Dispatcher->registerMethod('loadViewGradeBookContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -61,5 +62,42 @@ class ApiGradeBook extends Extension implements IApiInterface
     public function loadViewGradeBookSelect(): string
     {
         return Grade::useFrontend()->loadViewGradeBookSelect();
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewGradeBookContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     *
+     * @return string
+     */
+    public function loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter): string
+    {
+        return Grade::useFrontend()->loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
     }
 }

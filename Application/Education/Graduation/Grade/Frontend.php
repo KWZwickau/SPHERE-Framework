@@ -9,7 +9,6 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -18,6 +17,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -51,23 +51,25 @@ use SPHERE\System\Extension\Extension;
 
 class Frontend extends Extension implements IFrontendInterface
 {
-    public function frontendGradebook($YearId = null)
+    /**
+     * @param $YearId
+     *
+     * @return Stage
+     */
+    public function frontendGradeBook($YearId = null): Stage
     {
-        $stage = new Stage('Notenbuch');
-
-        // todo auswahl schuljahr -> dann eventuell über $_GET
-        $tblYear = false;
-        if (($tblYearList = Term::useService()->getYearByNow())) {
-            $tblYear = current($tblYearList);
-        }
+        $stage = new Stage();
 
         $stage->setContent(
-            ApiTeacherGroup::receiverBlock($this->loadViewTeacherGroups(), 'Content')
+            ApiTeacherGroup::receiverBlock($this->loadViewGradeBookSelect(), 'Content')
         );
 
         return $stage;
     }
 
+    /**
+     * @return string
+     */
     public function getHeader(): string
     {
         // todo $title
@@ -367,7 +369,109 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function loadViewGradeBookSelect(): string
     {
+        $isTeacher = true;
+        $tblPersonLogin = Account::useService()->getPersonByLogin();
+        $content = '';
+        if (($tblYearSelected = Grade::useService()->getYear())) {
+            if ($isTeacher) {
+                if ($tblPersonLogin && ($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYearSelected, $tblPersonLogin))) {
+                    $dataList = array();
+                    // Lehraufträge
+                    foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                        if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
+                            && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
+                        ) {
+                            $dataList[] = array(
+                                'Year' => $tblTeacherLectureship->getYearName(),
+                                // todo Pseudo Schulart -> aus Schülern ermitteln?
+                                'DivisionCourse' => $tblTeacherLectureship->getCourseName(),
+                                'Subject' => $tblTeacherLectureship->getSubjectName(),
+                                'SubjectTeachers' => $tblTeacherLectureship->getSubjectTeachers(),
+                                'Option' => (new Standard("", ApiGradeBook::getEndpoint(), new Check(), array(), "Auswählen"))
+                                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($tblDivisionCourse->getId(), $tblSubject->getId()))
+                            );
+                        }
+                    }
+
+                    // eigne Lerngruppen
+                    if (($tblDivisionCourseList = DivisionCourse::useService()->getTeacherGroupListByTeacherAndYear($tblPersonLogin, $tblYearSelected))) {
+                        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                            if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
+                                $dataList[] = array(
+                                    'Year' => $tblDivisionCourse->getYearName(),
+                                    'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                                    'Subject' => $tblSubject->getDisplayName(),
+                                    'SubjectTeachers' => $tblDivisionCourse->getDivisionTeacherNameListString(', '),
+                                    'Option' => (new Standard("", ApiGradeBook::getEndpoint(), new Check(), array(), "Auswählen"))
+                                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($tblDivisionCourse->getId(), $tblSubject->getId()))
+                                );
+                            }
+                        }
+                    }
+
+                    $content = new TableData(
+                        $dataList,
+                        null,
+                        array(
+                            'Year' => 'Schuljahr',
+                            'DivisionCourse' => 'Kurs',
+                            'Subject' => 'Fach',
+                            'SubjectTeachers' => 'Fachlehrer',
+                            'Option' => ''
+                        ),
+                        array(
+                            'order' => array(
+                                array('0', 'desc'),
+                                array('1', 'asc'),
+                                array('2', 'asc'),
+                            ),
+                            'columnDefs' => array(
+                                array('type' => 'natural', 'targets' => 1),
+                                array('orderable' => false, 'width' => '30px', 'targets' => -1),
+                            )
+                        )
+                    );
+
+                } else {
+                    $content = new Warning("Keine Lehraufträge vorhanden", new Exclamation());
+                }
+            } else {
+                // todo Integrationsbeauftragte und Schulleitung
+
+                // todo filter fach und Schulart
+
+                // todo Klassenlehrer
+            }
+        } else {
+            $content = new Danger("Schuljahr nicht gefunden", new Exclamation());
+        }
+
         return $this->getHeader()
-            . "Hallo Notenbuch";
+            . $content;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param null $Filtern
+     *
+     * @return string
+     */
+    public function loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filtern = null): string
+    {
+        $isReadonly = false;
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
+        ) {
+            $content = $tblDivisionCourse->getDisplayName() . ' ' . $tblSubject->getDisplayName();
+            // todo
+
+            // todo prüfen bei Lehrer ob er auch die Lehraufträge für alle schüler noch hat
+        } else {
+            $content = new Danger("Kurse oder Fach nicht gefunden.", new Exclamation());
+        }
+
+        return $this->getHeader()
+            . $content;
     }
 }
