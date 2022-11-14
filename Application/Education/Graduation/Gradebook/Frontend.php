@@ -3051,7 +3051,7 @@ class Frontend extends FrontendScoreRule
 
             $Stage->addButton(new External(
                 'Alle Schülerübersichten dieser Klasse herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
-                array('DivisionId' => $DivisionId), false
+                array('DivisionId' => $DivisionId, 'GroupId' => $GroupId), false
             ));
 
             $Stage->setContent(
