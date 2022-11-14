@@ -38,6 +38,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
@@ -133,15 +134,14 @@ class Creator extends Extension
     }
 
     /**
-     * @param null|int $DivisionId
-     * @param string $paperOrientation
+     * @param $DivisionId
+     * @param $GroupId
+     * @param $paperOrientation
+     * @param $Redirect
      *
-     * @param bool   $Redirect
-     *
-     * @return Stage|string
+     * @return Display|Stage|string
      */
-    public static function createMultiGradebookOverviewPdf($DivisionId, $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE
-        , $Redirect = true)
+    public static function createMultiGradebookOverviewPdf($DivisionId, $GroupId, $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE, $Redirect = true)
     {
 
         // Warteseite
@@ -150,47 +150,39 @@ class Creator extends Extension
                 '/Api/Document/Standard/MultiGradebookOverview/Create',
                 array(
                     'DivisionId' => $DivisionId,
+                    'GroupId' => $GroupId,
                     'paperOrientation' => $paperOrientation,
                     'Redirect' => 0
                 )
             );
         }
 
-        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
-        ) {
-//            // Fieldpointer auf dem der Merge durchgeführt wird, (download)
-//            $MergeFile = Storage::createFilePointer('pdf');
+        $tblPersonList = false;
+        $text ='';
+        $tblGroup = false;
+        $tblDivisionStudent = false;
+        if ($DivisionId && ($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            $text = ' Klasse ' . $tblDivision->getDisplayName();
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+            $tblDivisionStudent = $tblDivision;
+        } elseif ($GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId))) {
+            $text = ' Stammgruppe ' . $tblGroup->getName();
+            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+        }
 
+        if ($tblPersonList) {
             $pageList = array();
             $documentName = '';
-//            $PdfMerger = new PdfMerge();
-            if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
-//                $FileList = array();
-                foreach($tblPersonList as $tblPerson){
-                    $Document = new GradebookOverview\GradebookOverview();
-                    $documentName = $Document->getName();
-                    // Test eine Person für schnelleres Testen
-//                    if(empty($pageList)){
-//                        $pageList[] = $Document->buildPage($tblPerson, $tblDivision);
-//                    }
-                    $pageList[] = $Document->buildPage($tblPerson, $tblDivision);
-
-                    // Tmp welches nicht sofort gelöscht werden soll (braucht man noch zum mergen)
-
-//                    // hinzufügen für das mergen
-//                    $PdfMerger->addPdf($File);
-//                    // speichern der Files zum nachträglichem bereinigen
-//                    $FileList[] = $File;
+            foreach($tblPersonList as $tblPerson){
+                $Document = new GradebookOverview\GradebookOverview();
+                $documentName = $Document->getName();
+                if ($tblGroup) {
+                    $tblDivisionStudent = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
                 }
-//                // mergen aller hinzugefügten PDF-Datein
-//                $PdfMerger->mergePdf($MergeFile);
-//                if(!empty($FileList)){
-//                    // aufräumen der Temp-Files
-//                    /** @var FilePointer $File */
-//                    foreach($FileList as $File){
-//                        $File->setDestruct();
-//                    }
-//                }
+
+                if ($tblDivisionStudent) {
+                    $pageList[] = $Document->buildPage($tblPerson, $tblDivisionStudent);
+                }
             }
 
             if(!empty($pageList)){
@@ -198,7 +190,7 @@ class Creator extends Extension
                 $File = self::buildDummyFile($template, array(), $pageList, $paperOrientation);
             }
 
-            $FileName = $documentName . ' Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
+            $FileName = $documentName . $text . ' ' . date("Y-m-d") . ".pdf";
 
             if(isset($File)){
                 return self::buildDownloadFile($File, $FileName);
