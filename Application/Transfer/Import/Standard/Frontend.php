@@ -168,7 +168,7 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
         $Stage->addButton(
-            new External('Importvorlage', '/Api/Billing/Inventory/DownloadTemplateTeacher',
+            new External('Importvorlage', '/Api/Transfer/Standard/DownloadTemplateTeacher',
                 new Download(), array(), false)
         );
         $Stage->setContent(
@@ -214,7 +214,7 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
         $Stage->addButton(
-            new External('Importvorlage', '/Api/Billing/Inventory/DownloadTemplateSchool',
+            new External('Importvorlage', '/Api/Transfer/Standard/DownloadTemplateSchool',
             new Download(), array(), false)
         );
 
