@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -141,7 +142,12 @@ class Service extends AbstractService
      */
     public function getYear()
     {
-        // todo $_GET Url
+        if (($tblAccountSetting = Consumer::useService()->getAccountSettingValue("GradeBookSelectedYearId"))
+            && ($tblYear = Term::useService()->getYearById($tblAccountSetting))
+        ) {
+            return $tblYear;
+        }
+
         if (($tblYearList = Term::useService()->getYearByNow())) {
             return current($tblYearList);
         }
