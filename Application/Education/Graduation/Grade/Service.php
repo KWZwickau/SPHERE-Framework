@@ -30,8 +30,8 @@ class Service extends AbstractService
      */
     public function setupService($doSimulation, $withData, $UTF8): string
     {
-        $Protocol= '';
-        if(!$withData){
+        $Protocol = '';
+        if (!$withData) {
             $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
         }
         if (!$doSimulation && $withData) {
@@ -153,6 +153,18 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRole(): string
+    {
+        if (($tblAccountSetting = Consumer::useService()->getAccountSettingValue("GradeBookRole"))) {
+            return $tblAccountSetting;
+        } else {
+            return "Teacher";
+        }
     }
 
     /**

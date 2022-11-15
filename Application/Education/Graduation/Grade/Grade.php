@@ -26,6 +26,18 @@ class Grade  implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeBook', __NAMESPACE__.'\Frontend::frontendGradeBook')
         );
+        // nur für Route
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeBook\Teacher', __NAMESPACE__.'\Frontend::frontendGradeBook')
+        );
+        // nur für Route
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeBook\Headmaster', __NAMESPACE__.'\Frontend::frontendGradeBook')
+        );
+        // nur für Route
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeBook\AllReadOnly', __NAMESPACE__.'\Frontend::frontendGradeBook')
+        );
     }
 
     /**

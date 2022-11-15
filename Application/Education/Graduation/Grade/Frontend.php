@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
-use SPHERE\Application\Api\Education\DivisionCourse\ApiStudentSubject;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -11,6 +10,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -67,6 +67,38 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $stage = new Stage();
 
+        $hasHeadmasterRole = Access::useService()->hasAuthorization('/Education/Graduation/Grade/GradeBook/Headmaster');
+        $hasTeacherRole = Access::useService()->hasAuthorization('/Education/Graduation/Grade/GradeBook/Teacher');
+        $hasAllReadonlyRole = Access::useService()->hasAuthorization('/Education/Graduation/Grade/GradeBook/AllReadOnly');
+
+        if (($roleValue = Grade::useService()->getRole())) {
+            if ($roleValue == "Headmaster") {
+                $global = $this->getGlobal();
+                $global->POST["Data"]["IsHeadmaster"] = 1;
+                $global->savePost();
+            }
+            if ($roleValue == "AllReadonly") {
+                $global = $this->getGlobal();
+                $global->POST["Data"]["IsAllReadonly"] = 1;
+                $global->savePost();
+            }
+        }
+
+        $roleChange = "";
+        if ($hasHeadmasterRole && $hasTeacherRole) {
+            $roleChange =
+                (new Form(new FormGroup(new FormRow(new FormColumn(
+                    (new CheckBox('Data[IsHeadmaster]', new Bold('Schulleitung'), 1))
+                        ->ajaxPipelineOnChange(array(ApiGradeBook::pipelineChangeRole()))
+                )))))->disableSubmitAction();
+        } elseif ($hasAllReadonlyRole && $hasTeacherRole) {
+            $roleChange =
+                (new Form(new FormGroup(new FormRow(new FormColumn(
+                    (new CheckBox('Data[IsAllReadonly]', new Bold('Integrationsbeauftragter'), 1))
+                        ->ajaxPipelineOnChange(array(ApiGradeBook::pipelineChangeRole()))
+                )))))->disableSubmitAction();
+        }
+
         if (($tblYear =Grade::useService()->getYear())) {
             $global = $this->getGlobal();
             $global->POST["Data"]["Year"] = $tblYear->getId();
@@ -79,9 +111,10 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutRow(array(
                     new LayoutColumn(
                         ApiGradeBook::receiverBlock($this->getHeader(self::VIEW_GRADE_BOOK_SELECT), 'Header')
-                        // todo schulleitung switch
-//                        (new CheckBox("Data[IsHeadmaster]", "Schulleitung", 1))
-                    , 10),
+                    , 8),
+                    new LayoutColumn(
+                        new PullRight(ApiGradeBook::receiverBlock("", "ChangeRole") . $roleChange)
+                    , 2),
                     new LayoutColumn(array(
                         ApiGradeBook::receiverBlock("", "ChangeYear"),
                         (new Form(new FormGroup(new FormRow(new FormColumn(

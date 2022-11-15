@@ -27,6 +27,7 @@ class ApiGradeBook extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('changeYear');
+        $Dispatcher->registerMethod('changeRole');
         $Dispatcher->registerMethod('loadHeader');
 
         $Dispatcher->registerMethod('loadViewGradeBookSelect');
@@ -77,6 +78,48 @@ class ApiGradeBook extends Extension implements IApiInterface
                     . self::pipelineLoadHeader(Frontend::VIEW_GRADE_BOOK_SELECT)
                     . self::pipelineLoadViewGradeBookSelect();
             }
+        }
+
+        return "";
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineChangeRole(): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ChangeRole'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'changeRole',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function changeRole($Data = null): string
+    {
+        if (isset($Data["IsHeadmaster"])) {
+            $role = "Headmaster";
+        } elseif (isset($Data["IsAllReadonly"])) {
+            $role = "AllReadonly";
+        } else {
+            $role = "Teacher";
+        }
+
+        $gradeBookRole = Consumer::useService()->getAccountSettingValue("GradeBookRole");
+        if (!$gradeBookRole || $gradeBookRole != $role) {
+            Consumer::useService()->createAccountSetting("GradeBookRole", $role);
+
+            return ""
+                . self::pipelineLoadHeader(Frontend::VIEW_GRADE_BOOK_SELECT)
+                . self::pipelineLoadViewGradeBookSelect();
         }
 
         return "";
