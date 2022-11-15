@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use SPHERE\Application\Api\Education\DivisionCourse\ApiStudentSubject;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -19,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -47,6 +49,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -70,14 +73,13 @@ class Frontend extends Extension implements IFrontendInterface
             $global->savePost();
         }
 
-        // todo schulleitung switch
-
         $stage->setContent(
-            new Layout(new LayoutGroup(array(
+            new Container("&nbsp;")
+            . new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(
-                        // todo header
-                        ""
+                        ApiGradeBook::receiverBlock($this->getHeader(self::VIEW_GRADE_BOOK_SELECT), 'Header')
+                        // todo schulleitung switch
 //                        (new CheckBox("Data[IsHeadmaster]", "Schulleitung", 1))
                     , 10),
                     new LayoutColumn(array(
@@ -116,11 +118,16 @@ class Frontend extends Extension implements IFrontendInterface
 
         return
             (new Standard($textGradeBook, ApiGradeBook::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookSelect())
+                ->ajaxPipelineOnClick(array(
+                    ApiGradeBook::pipelineLoadHeader(self::VIEW_GRADE_BOOK_SELECT),
+                    ApiGradeBook::pipelineLoadViewGradeBookSelect()
+                ))
             . (new Standard($textTeacherGroup, ApiTeacherGroup::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroups())
-
-            . new Container('&nbsp;');
+                ->ajaxPipelineOnClick(array(
+                    ApiGradeBook::pipelineLoadHeader(self::VIEW_TEACHER_GROUP),
+                    ApiTeacherGroup::pipelineLoadViewTeacherGroups()
+                ))
+            ;
     }
 
     /**
@@ -141,6 +148,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function loadViewTeacherGroups(): string
     {
+        $content = "";
         $tblType = DivisionCourse::useService()->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_TEACHER_GROUP);
         if (($tblPerson = Account::useService()->getPersonByLogin())
             && ($tblYear = Grade::useService()->getYear())
@@ -162,8 +170,8 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            return $this->getHeader(self::VIEW_TEACHER_GROUP)
-                . (new Primary("{$tblType->getName()} hinzufügen", ApiTeacherGroup::getEndpoint(), new Plus()))
+            $content =
+                (new Primary("{$tblType->getName()} hinzufügen", ApiTeacherGroup::getEndpoint(), new Plus()))
                     ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupEdit())
                 . new TableData(
                     $dataList,
@@ -185,8 +193,10 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 );
         } else {
-            return new Danger("Keine Person zum Benutzerkonto gefunden", new Exclamation());
+            $content = new Danger("Keine Person zum Benutzerkonto gefunden", new Exclamation());
         }
+
+        return new Title("Lerngruppen", "Verwalten") . $content;
     }
 
     /**
@@ -279,10 +289,12 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             )),
             new FormRow(array(
-                new FormColumn(
+                new FormColumn(array(
                     (new Primary('Speichern', ApiTeacherGroup::getEndpoint(), new Save()))
-                        ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineSaveTeacherGroupEdit($DivisionCourseId))
-                )
+                        ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineSaveTeacherGroupEdit($DivisionCourseId)),
+                    (new Standard('Abbrechen', ApiTeacherGroup::getEndpoint(), new Disable()))
+                        ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroups())
+                ))
             ))
         ))))->disableSubmitAction();
     }
@@ -383,7 +395,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new Title(new Remove() . ' Kurs löschen')
-            . new Layout(
+            . new Well(new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
@@ -407,7 +419,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                 )
-            );
+            ));
     }
 
     /**
@@ -495,7 +507,7 @@ class Frontend extends Extension implements IFrontendInterface
             $content = new Danger("Schuljahr nicht gefunden", new Exclamation());
         }
 
-        return $this->getHeader(self::VIEW_GRADE_BOOK_SELECT) . $content;
+        return new Title("Notenbuch", "Auswählen") . $content;
     }
 
     /**
@@ -508,10 +520,14 @@ class Frontend extends Extension implements IFrontendInterface
     public function loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filtern = null): string
     {
         $isReadonly = false;
+        $textKurs = "";
+        $textSubject = "";
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
         ) {
-            $content = $tblDivisionCourse->getDisplayName() . ' ' . $tblSubject->getDisplayName();
+            $textKurs = new Bold($tblDivisionCourse->getDisplayName());
+            $textSubject = new Bold($tblSubject->getDisplayName());
+            $content = "";
             // todo
 
             // todo prüfen bei Lehrer ob er auch die Lehraufträge für alle schüler noch hat
@@ -519,6 +535,6 @@ class Frontend extends Extension implements IFrontendInterface
             $content = new Danger("Kurse oder Fach nicht gefunden.", new Exclamation());
         }
 
-        return $this->getHeader(self::VIEW_GRADE_BOOK_CONTENT) . $content;
+        return new Title("Notenbuch" . new Muted(new Small(" für Kurs: ")) . $textKurs . new Muted(new Small(" im Fach: ")) . $textSubject) . $content;
     }
 }

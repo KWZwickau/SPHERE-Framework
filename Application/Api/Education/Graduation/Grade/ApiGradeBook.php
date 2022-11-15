@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Education\Graduation\Grade;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\Graduation\Grade\Frontend;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
@@ -26,6 +27,7 @@ class ApiGradeBook extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('changeYear');
+        $Dispatcher->registerMethod('loadHeader');
 
         $Dispatcher->registerMethod('loadViewGradeBookSelect');
         $Dispatcher->registerMethod('loadViewGradeBookContent');
@@ -71,7 +73,9 @@ class ApiGradeBook extends Extension implements IApiInterface
             if (!$gradeBookSelectedYearId || $gradeBookSelectedYearId != $tblYear->getId()) {
                 Consumer::useService()->createAccountSetting("GradeBookSelectedYearId", $tblYear->getId());
 
-                return "" . self::pipelineLoadViewGradeBookSelect();
+                return ""
+                    . self::pipelineLoadHeader(Frontend::VIEW_GRADE_BOOK_SELECT)
+                    . self::pipelineLoadViewGradeBookSelect();
             }
         }
 
@@ -79,11 +83,41 @@ class ApiGradeBook extends Extension implements IApiInterface
     }
 
     /**
+     * @param $View
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadHeader($View): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Header'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadHeader',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'View' => $View
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $View
+     *
+     * @return string
+     */
+    public function loadHeader($View): string
+    {
+        return Grade::useFrontend()->getHeader($View);
+    }
+
+    /**
      * @return Pipeline
      */
     public static function pipelineLoadViewGradeBookSelect(): Pipeline
     {
-        $Pipeline = new Pipeline(true);
+        $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadViewGradeBookSelect',
@@ -111,7 +145,7 @@ class ApiGradeBook extends Extension implements IApiInterface
      */
     public static function pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter = null): Pipeline
     {
-        $Pipeline = new Pipeline(true);
+        $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadViewGradeBookContent',
