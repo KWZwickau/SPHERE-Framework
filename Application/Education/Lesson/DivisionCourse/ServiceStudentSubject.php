@@ -323,6 +323,7 @@ abstract class ServiceStudentSubject extends AbstractService
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())
             && ($tblSubjectDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Data['SubjectDivisionCourse']))
         ) {
+            // SekII-Kurse habe immer eine Benotung
             $hasGrading = true;
 
             $createList = array();
@@ -493,5 +494,71 @@ abstract class ServiceStudentSubject extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @deprecated  es fehlen noch die virtuellen Fächer der Schülerakte
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param bool $hasGrading
+     *
+     * @return array|false
+     */
+    public function getSubjectListByDivisionCourse(TblDivisionCourse $tblDivisionCourse, bool $hasGrading = true)
+    {
+        $tblSubjectList = array();
+        // Fach hängt direkt am Kurs (SekII-Kurse, Lerngruppen)
+        if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
+            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+        } elseif (($tblPersonList = $tblDivisionCourse->getStudents())
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            $schoolTypeLevelList = array();
+            $tblSubjectTableListNotFixed = array();
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                    && ($level = $tblStudentEducation->getLevel())
+                ) {
+                    // Stundentafel
+                    if (!isset($schoolTypeLevelList[$tblSchoolType->getId()][$level])) {
+                        $schoolTypeLevelList[$tblSchoolType->getId()][$level] = 1;
+                        if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
+                            foreach ($tblSubjectTableList as $tblSubjectTable) {
+                                // Benotung
+                                if ($hasGrading && !$tblSubjectTable->getHasGrading()) {
+                                    continue;
+                                }
+
+                                // feste Fächer der Stundentafel
+                                if ($tblSubjectTable->getIsFixed()) {
+                                    if (($tblSubject = $tblSubjectTable->getServiceTblSubject()) && !isset($tblSubjectTable[$tblSubject->getId()])) {
+                                        $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                                    }
+                                // Virtuelle Fächer der Schülerakte
+                                } else {
+                                    if (!isset($tblSubjectTableListNotFixed[$tblSubjectTable->getId()])) {
+                                        $tblSubjectTableListNotFixed[$tblSubjectTable->getId()] = $tblSubjectTable;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // feste Fächer am Schüler
+                    if (($tblSubjectStudentList = $this->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, $hasGrading ?: null))) {
+                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                            if (($tblSubject = $tblSubjectStudent->getServiceTblSubject()) && !isset($tblSubjectTable[$tblSubject->getId()])) {
+                                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                            }
+                        }
+                    }
+
+                    // todo virtuelle Fächer am Schüler $tblSubjectTableListNotFixed
+                }
+            }
+        }
+
+        return empty($tblSubjectList) ? false : $tblSubjectList;
     }
 }

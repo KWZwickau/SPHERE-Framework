@@ -1242,4 +1242,95 @@ class Data extends DataTeacher
 
         return true;
     }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return array|false
+     */
+    public function getSchoolTypeIdListByTypeDivision(TblDivisionCourse $tblDivisionCourse)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('e.serviceTblSchoolType as SchoolTypeId')
+            ->from(__NAMESPACE__ . '\Entity\TblStudentEducation', 'e')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('e.tblDivision', '?1'),
+                    $queryBuilder->expr()->isNull('e.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->distinct()
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return array|false
+     */
+    public function getSchoolTypeIdListByTypeCoreGroup(TblDivisionCourse $tblDivisionCourse)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('e.serviceTblSchoolType as SchoolTypeId')
+            ->from(__NAMESPACE__ . '\Entity\TblStudentEducation', 'e')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('e.tblCoreGroup', '?1'),
+                    $queryBuilder->expr()->isNull('e.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->distinct()
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return array|false
+     */
+    public function getSchoolTypeIdListByDivisionCourseWithMember(TblDivisionCourse $tblDivisionCourse)
+    {
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+            $Manager = $this->getEntityManager();
+            $queryBuilder = $Manager->getQueryBuilder();
+
+            $query = $queryBuilder->select('e.serviceTblSchoolType as SchoolTypeId')
+                ->from(__NAMESPACE__ . '\Entity\TblStudentEducation', 'e')
+                ->join(__NAMESPACE__ . '\Entity\TblDivisionCourseMember', 'm')
+                ->where(
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->eq('m.tblLessonDivisionCourse', '?1'),
+                        $queryBuilder->expr()->eq('m.tblLessonDivisionCourseMemberType', '?2'),
+                        $queryBuilder->expr()->isNull('e.EntityRemove'),
+                        $queryBuilder->expr()->eq('e.serviceTblYear', '?3'),
+                        $queryBuilder->expr()->eq('e.serviceTblPerson', 'm.serviceTblPerson'),
+                    ),
+                )
+                ->setParameter(1, $tblDivisionCourse->getId())
+                ->setParameter(2, ($this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT))->getId())
+                ->setParameter(3, $tblYear->getId())
+                ->distinct()
+                ->getQuery();
+
+            $resultList = $query->getResult();
+
+            return empty($resultList) ? false : $resultList;
+        }
+
+        return false;
+    }
 }

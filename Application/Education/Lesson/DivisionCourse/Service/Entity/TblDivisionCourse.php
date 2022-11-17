@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -368,5 +369,14 @@ class TblDivisionCourse extends Element
     public function getSubjectName(): string
     {
         return ($tblSubject = $this->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '';
+    }
+
+    /**
+     * @param bool $isString
+     * @return false|Type[]|string
+     */
+    public function getSchoolTypeListFromStudents(bool $isString = false)
+    {
+        return DivisionCourse::useService()->getSchoolTypeListByDivisionCourse($this, $isString);
     }
 }

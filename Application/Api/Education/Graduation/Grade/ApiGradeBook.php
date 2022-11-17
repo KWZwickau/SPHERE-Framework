@@ -31,6 +31,7 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadHeader');
 
         $Dispatcher->registerMethod('loadViewGradeBookSelect');
+        $Dispatcher->registerMethod('loadGradeBookSelectFilterContent');
         $Dispatcher->registerMethod('loadViewGradeBookContent');
 
         return $Dispatcher->callMethod($Method);
@@ -156,14 +157,19 @@ class ApiGradeBook extends Extension implements IApiInterface
     }
 
     /**
+     * @param null $Filter
+     *
      * @return Pipeline
      */
-    public static function pipelineLoadViewGradeBookSelect(): Pipeline
+    public static function pipelineLoadViewGradeBookSelect($Filter = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadViewGradeBookSelect',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Filter' => $Filter
         ));
         $ModalEmitter->setLoadingMessage("Daten werden geladen");
         $Pipeline->appendEmitter($ModalEmitter);
@@ -172,11 +178,44 @@ class ApiGradeBook extends Extension implements IApiInterface
     }
 
     /**
+     * @param $Filter
+     *
      * @return string
      */
-    public function loadViewGradeBookSelect(): string
+    public function loadViewGradeBookSelect($Filter): string
     {
-        return Grade::useFrontend()->loadViewGradeBookSelect();
+        return Grade::useFrontend()->loadViewGradeBookSelect($Filter);
+    }
+
+    /**
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadGradeBookSelectFilterContent($Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'GradeBookSelectFilterContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadGradeBookSelectFilterContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $Filter
+     *
+     * @return string
+     */
+    public function loadGradeBookSelectFilterContent($Filter): string
+    {
+        return Grade::useFrontend()->loadGradeBookSelectFilterContent($Filter);
     }
 
     /**

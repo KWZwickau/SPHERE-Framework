@@ -719,6 +719,30 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getDivisionCourseListByDivisionTeacher(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        $resultList = array();
+        if (($tblMemberType = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+            && ($tblDivisionCourseMemberList = DivisionCourse::useService()->getDivisionCourseMemberListByPersonAndYearAndMemberType(
+                $tblPerson, $tblYear, $tblMemberType
+            ))
+        ) {
+            foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                if (($tblDivisionCourse = $tblDivisionCourseMember->getTblDivisionCourse())) {
+                    $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * Lerngruppen eines Lehrers
      *
      * @param TblPerson $tblPerson
@@ -1497,5 +1521,38 @@ class Service extends ServiceTeacher
                 $missingStudentGroup,
                 Panel::PANEL_TYPE_WARNING
             ));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param bool $isString
+     *
+     * @return Type[]|string|false
+     */
+    public function getSchoolTypeListByDivisionCourse(TblDivisionCourse $tblDivisionCourse, bool $isString = false)
+    {
+        switch ($tblDivisionCourse->getTypeIdentifier()) {
+            case TblDivisionCourseType::TYPE_DIVISION:
+                $schoolTypeIdList = (new Data($this->getBinding()))->getSchoolTypeIdListByTypeDivision($tblDivisionCourse);
+                break;
+            case TblDivisionCourseType::TYPE_CORE_GROUP:
+                $schoolTypeIdList = (new Data($this->getBinding()))->getSchoolTypeIdListByTypeCoreGroup($tblDivisionCourse);
+                break;
+            default:
+                $schoolTypeIdList = (new Data($this->getBinding()))->getSchoolTypeIdListByDivisionCourseWithMember($tblDivisionCourse);
+        }
+
+        $resultList = array();
+        if ($schoolTypeIdList) {
+            foreach ($schoolTypeIdList as $item) {
+                if (isset($item['SchoolTypeId']) && ($tblSchoolType = Type::useService()->getTypeById($item['SchoolTypeId']))) {
+                    $resultList[$tblSchoolType->getId()] = $tblSchoolType;
+                }
+            }
+        }
+
+        return empty($resultList)
+            ? false
+            : ($isString ? implode(", ", $resultList) : $resultList);
     }
 }

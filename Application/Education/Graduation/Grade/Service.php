@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
@@ -160,11 +161,18 @@ class Service extends AbstractService
      */
     public function getRole(): string
     {
-        if (($tblAccountSetting = Consumer::useService()->getAccountSettingValue("GradeBookRole"))) {
-            return $tblAccountSetting;
-        } else {
-            return "Teacher";
+        if (($role = Consumer::useService()->getAccountSettingValue("GradeBookRole"))) {
+            // zur Sicherheit prüfen, ob das erforderliche Recht noch vorhanden ist
+            if ($role == "Headmaster" && Access::useService()->hasAuthorization('/Education/Graduation/Grade/GradeBook/Headmaster')) {
+                return $role;
+            }
+            // zur Sicherheit prüfen, ob das erforderliche Recht noch vorhanden ist
+            if ($role == "AllReadonly" && Access::useService()->hasAuthorization('/Education/Graduation/Grade/GradeBook/AllReadOnly')) {
+                return $role;
+            }
         }
+
+        return "Teacher";
     }
 
     /**
