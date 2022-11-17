@@ -1266,15 +1266,38 @@ class Service extends AbstractService
 
         $subjectList = array();
         if ($tblDivision) {
-            $this->setSubjectListByDivision($tblDivision, $subjectList);
+            // Falls es bereits Einträge im Klassenbuch gibt, werden diese Fächer in der Wochenübersicht angezeigt
+            if (($tempList = $this->getSubjectListFromLessonContent($tblDivision))) {
+                $subjectList = $tempList;
+            // ansonsten die Fächer der Klasse
+            } else {
+                $this->setSubjectListByDivision($tblDivision, $subjectList);
+            }
         } elseif ($tblGroup) {
-            if (($tblDivisionList = $tblGroup->getCurrentDivisionList())) {
-                foreach ($tblDivisionList as $tblDivisionItem) {
-                    $this->setSubjectListByDivision($tblDivisionItem, $subjectList);
+            // Falls es bereits Einträge im Klassenbuch gibt, werden diese Fächer in der Wochenübersicht angezeigt
+            if (($tempList = $this->getSubjectListFromLessonContent(null, $tblGroup))) {
+                $subjectList = $tempList;
+            // ansonsten die Fächer der Stammgruppe
+            } else {
+                if (($tblDivisionList = $tblGroup->getCurrentDivisionList())) {
+                    foreach ($tblDivisionList as $tblDivisionItem) {
+                        $this->setSubjectListByDivision($tblDivisionItem, $subjectList);
+                    }
                 }
             }
         }
         return array($fromDate, $toDate, $canceledSubjectList, $additionalSubjectList, $subjectList);
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return TblSubject[]|false
+     */
+    public function getSubjectListFromLessonContent(TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    {
+        return (new Data($this->getBinding()))->getSubjectListFromLessonContent($tblDivision, $tblGroup);
     }
 
     /**
