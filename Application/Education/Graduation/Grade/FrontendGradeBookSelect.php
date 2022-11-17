@@ -120,35 +120,45 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
                 }
             }
 
-            $content = new TableData(
-                $dataList,
-                null,
-                array(
-                    'Year' => 'Schuljahr',
-                    'DivisionCourse' => 'Kurs',
-                    'CourseType' => 'Kurs-Typ',
-                    'Subject' => 'Fach',
-                    'SubjectTeachers' => 'Fachlehrer',
-                    'Option' => ''
-                ),
-                array(
-                    'order' => array(
-                        array('0', 'desc'),
-                        array('1', 'asc'),
-                        array('3', 'asc'),
-                    ),
-                    'columnDefs' => array(
-                        array('type' => 'natural', 'targets' => 1),
-                        array('orderable' => false, 'width' => '30px', 'targets' => -1),
-                    )
-                )
-            );
+            $content = $this->getTable($dataList);
 
         } else {
             $content = new Warning("Bitte filtern Sie nach einer Schulart.", new Exclamation());
         }
 
         return $content;
+    }
+
+    /**
+     * @param array $dataList
+     *
+     * @return TableData
+     */
+    private function getTable(array $dataList): TableData
+    {
+        return new TableData(
+            $dataList,
+            null,
+            array(
+                'Year' => 'Schuljahr',
+                'DivisionCourse' => 'Kurs',
+                'CourseType' => 'Kurs-Typ',
+                'Subject' => 'Fach',
+                'SubjectTeachers' => 'Fachlehrer',
+                'Option' => ''
+            ),
+            array(
+                'order' => array(
+                    array('0', 'desc'),
+                    array('1', 'asc'),
+                    array('3', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 1),
+                    array('orderable' => false, 'width' => '30px', 'targets' => -1),
+                )
+            )
+        );
     }
 
     /**
@@ -176,29 +186,7 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
                 }
             }
 
-            $content = new TableData(
-                $dataList,
-                null,
-                array(
-                    'Year' => 'Schuljahr',
-                    'DivisionCourse' => 'Kurs',
-                    'CourseType' => 'Kurs-Typ',
-                    'Subject' => 'Fach',
-                    'SubjectTeachers' => 'Fachlehrer',
-                    'Option' => ''
-                ),
-                array(
-                    'order' => array(
-                        array('0', 'desc'),
-                        array('1', 'asc'),
-                        array('3', 'asc'),
-                    ),
-                    'columnDefs' => array(
-                        array('type' => 'natural', 'targets' => 1),
-                        array('orderable' => false, 'width' => '30px', 'targets' => -1),
-                    )
-                )
-            );
+            $content = $this->getTable($dataList);
 
         } else {
             $content = new Warning("Keine Lehraufträge vorhanden", new Exclamation());
