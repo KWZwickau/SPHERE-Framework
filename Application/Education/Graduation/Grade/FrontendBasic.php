@@ -60,12 +60,13 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
     /**
      * @param string $content
      * @param bool $isBold
+     * @param int $size
      *
      * @return TableColumn
      */
-    public function getTableColumnHead(string $content, bool $isBold = true): TableColumn
+    public function getTableColumnHead(string $content, bool $isBold = true, int $size = 1): TableColumn
     {
-        return (new TableColumn(new Center($isBold ? new Bold($content) : $content)))
+        return (new TableColumn(new Center($isBold ? new Bold($content) : $content), $size))
             ->setBackgroundColor(self::BACKGROUND_COLOR)
             ->setMinHeight(self::MIN_HEIGHT_HEADER)
             ->setVerticalAlign('middle')

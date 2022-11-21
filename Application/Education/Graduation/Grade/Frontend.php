@@ -2,13 +2,17 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
+use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -18,6 +22,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -25,6 +31,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\Table;
@@ -33,6 +40,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -139,12 +147,21 @@ class Frontend extends FrontendTeacherGroup
             $headerList = array();
             $bodyList = array();
 
-            $headerList['Number'] = $this->getTableColumnHead('#');
-            $headerList['Person'] = $this->getTableColumnHead('Schüler');
-
-            list($gradeList, $tblTestList) = $this->getTestGradeListAndTestListByPersonListAndSubject($tblPersonList, $tblYear, $tblSubject);
+            list($gradeList, $tblTestList, $integrationList, $pictureList, $courseList) = $this->getTestGradeListAndTestListByPersonListAndSubject($tblPersonList, $tblYear, $tblSubject);
             if (($tblTempList = Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject))) {
                 $tblTestList = array_merge($tblTestList, $tblTempList);
+            }
+
+            $headerList['Number'] = $this->getTableColumnHead('#');
+            $headerList['Person'] = $this->getTableColumnHead('Schüler');
+            if (($hasPicture = !empty($pictureList))) {
+                $headerList['Picture'] = $this->getTableColumnHead('Fo&shy;to');
+            }
+            if (($hasIntegration = !empty($integrationList))) {
+                $headerList['Integration'] = $this->getTableColumnHead('Inte&shy;gra&shy;tion');
+            }
+            if (($hasCourse = !empty($courseList))) {
+                $headerList['Course'] = $this->getTableColumnHead(new ToolTip('BG', 'Bildungsgang'));
             }
 
             $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('SortDate', new DateTimeSorter());
@@ -161,6 +178,21 @@ class Frontend extends FrontendTeacherGroup
 //                        $bodyList[$tblPerson->getId()]['Number'] = ($this->getTableColumnBody(++$count))->setClass("tableFixFirstColumn");
                         $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
                         $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
+                        if ($hasPicture) {
+                            $bodyList[$tblPerson->getId()]['Picture'] = $this->getTableColumnBody(
+                                isset($pictureList[$tblPerson->getId()]) ? $pictureList[$tblPerson->getId()] : '&nbsp;'
+                            );
+                        }
+                        if ($hasIntegration) {
+                            $bodyList[$tblPerson->getId()]['Integration'] = $this->getTableColumnBody(
+                                isset($integrationList[$tblPerson->getId()]) ? $integrationList[$tblPerson->getId()] : '&nbsp;'
+                            );
+                        }
+                        if ($hasCourse) {
+                            $bodyList[$tblPerson->getId()]['Course'] = $this->getTableColumnBody(
+                                isset($courseList[$tblPerson->getId()]) ? $courseList[$tblPerson->getId()] : '&nbsp;'
+                            );
+                        }
 
                         foreach ($headerList as $key => $value) {
                             if (strpos($key, 'Test') !== false) {
@@ -197,6 +229,8 @@ class Frontend extends FrontendTeacherGroup
             (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
                 ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookSelect($Filter))
                 . "&nbsp;&nbsp;&nbsp;&nbsp;Notenbuch" . new Muted(new Small(" für Kurs: ")) . $textKurs . new Muted(new Small(" im Fach: ")) . $textSubject)
+            . ApiSupportReadOnly::receiverOverViewModal()
+            . ApiPersonPicture::receiverModal()
             . $content;
     }
 
@@ -211,22 +245,51 @@ class Frontend extends FrontendTeacherGroup
     {
         $gradeList = array();
         $testList = array();
+        $integrationList = array();
+        $pictureList = array();
+        $courseList = array();
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
+                // Zensuren
                 if (($tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
                     foreach ($tblTestGradeList as $tblTestGrade) {
                         if ($tblTestGrade->getGrade() !== null) {
                             $tblTest = $tblTestGrade->getTblTest();
-                            $gradeList[$tblPerson->getId()][$tblTest->getId()] = $tblTest->getTblGradeType()->getIsHighlighted()
-                                ? new Bold($tblTestGrade->getGrade()) : $tblTestGrade->getGrade();
+                            $gradeList[$tblPerson->getId()][$tblTest->getId()] =
+                                ($tblTest->getTblGradeType()->getIsHighlighted() ? new Bold($tblTestGrade->getGrade()) : $tblTestGrade->getGrade())
+                                // öffentlicher Kommentar
+                                . (($tblTestGrade->getPublicComment() != '') ? new ToolTip(' ' . new Info(), $tblTestGrade->getPublicComment()) : '');
                             $testList[$tblTest->getId()] = $tblTest;
                         }
+                    }
+                }
+
+                // Integration
+                if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                    $integrationList[$tblPerson->getId()] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                        ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                }
+
+                // Picture
+                if(($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))){
+                    $pictureList[$tblPerson->getId()] = new Center((new Link($tblPersonPicture->getPicture(), $tblPerson->getId()))
+                        ->ajaxPipelineOnClick(ApiPersonPicture::pipelineShowPersonPicture($tblPerson->getId())));
+                }
+
+                // Course
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                    && ($tblCourse = $tblStudentEducation->getServiceTblCourse())
+                ) {
+                    if ($tblCourse->getName() == 'Realschule') {
+                        $courseList[$tblPerson->getId()] = 'RS';
+                    } elseif ($tblCourse->getName() == 'Hauptschule') {
+                        $courseList[$tblPerson->getId()] = 'HS';
                     }
                 }
             }
         }
 
-        return array($gradeList, $testList);
+        return array($gradeList, $testList, $integrationList, $pictureList, $courseList);
     }
 
     /**

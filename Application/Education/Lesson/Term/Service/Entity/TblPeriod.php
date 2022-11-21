@@ -82,6 +82,14 @@ class TblPeriod extends Element
     }
 
     /**
+     * @return \DateTime|null
+     */
+    public function getFromDateTime(): ?\DateTime
+    {
+        return $this->FromDate;
+    }
+
+    /**
      * @param null|\DateTime $FromDate
      */
     public function setFromDate(\DateTime $FromDate = null)
