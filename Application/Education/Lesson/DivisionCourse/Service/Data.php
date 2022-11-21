@@ -1101,31 +1101,54 @@ class Data extends DataTeacher
      *
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
      *
      * @return false|TblDivisionCourse[]
      */
-    public function getTeacherGroupListByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    public function getTeacherGroupListByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject = null)
     {
         $Manager = $this->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
 
-        $query = $queryBuilder->select('c')
-            ->from(__NAMESPACE__ . '\Entity\TblDivisionCourseMember', 'm')
-            ->join(__NAMESPACE__ . '\Entity\TblDivisionCourse', 'c')
-            ->where(
-                $queryBuilder->expr()->andX(
-                    $queryBuilder->expr()->eq('m.tblLessonDivisionCourse', 'c.Id'),
-                    $queryBuilder->expr()->eq('m.serviceTblPerson', '?1'),
-                    $queryBuilder->expr()->eq('c.serviceTblYear', '?2'),
-                    $queryBuilder->expr()->eq('c.tblLessonDivisionCourseType', '?3'),
-                    $queryBuilder->expr()->eq('m.tblLessonDivisionCourseMemberType', '?4'),
-                ),
-            )
-            ->setParameter(1, $tblPerson->getId())
-            ->setParameter(2, $tblYear->getId())
-            ->setParameter(3, ($this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_TEACHER_GROUP))->getId())
-            ->setParameter(4, ($this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))->getId())
-            ->getQuery();
+        if ($tblSubject) {
+            $query = $queryBuilder->select('c')
+                ->from(__NAMESPACE__ . '\Entity\TblDivisionCourseMember', 'm')
+                ->join(__NAMESPACE__ . '\Entity\TblDivisionCourse', 'c')
+                ->where(
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->eq('m.tblLessonDivisionCourse', 'c.Id'),
+                        $queryBuilder->expr()->eq('m.serviceTblPerson', '?1'),
+                        $queryBuilder->expr()->eq('c.serviceTblYear', '?2'),
+                        $queryBuilder->expr()->eq('c.tblLessonDivisionCourseType', '?3'),
+                        $queryBuilder->expr()->eq('m.tblLessonDivisionCourseMemberType', '?4'),
+                        $queryBuilder->expr()->eq('c.serviceTblSubject', '?5')
+                    ),
+                )
+                ->setParameter(1, $tblPerson->getId())
+                ->setParameter(2, $tblYear->getId())
+                ->setParameter(3, ($this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_TEACHER_GROUP))->getId())
+                ->setParameter(4, ($this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))->getId())
+                ->setParameter(5, $tblSubject->getId())
+                ->getQuery();
+        } else {
+            $query = $queryBuilder->select('c')
+                ->from(__NAMESPACE__ . '\Entity\TblDivisionCourseMember', 'm')
+                ->join(__NAMESPACE__ . '\Entity\TblDivisionCourse', 'c')
+                ->where(
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->eq('m.tblLessonDivisionCourse', 'c.Id'),
+                        $queryBuilder->expr()->eq('m.serviceTblPerson', '?1'),
+                        $queryBuilder->expr()->eq('c.serviceTblYear', '?2'),
+                        $queryBuilder->expr()->eq('c.tblLessonDivisionCourseType', '?3'),
+                        $queryBuilder->expr()->eq('m.tblLessonDivisionCourseMemberType', '?4'),
+                    ),
+                )
+                ->setParameter(1, $tblPerson->getId())
+                ->setParameter(2, $tblYear->getId())
+                ->setParameter(3, ($this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_TEACHER_GROUP))->getId())
+                ->setParameter(4, ($this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))->getId())
+                ->getQuery();
+        }
 
         $resultList = $query->getResult();
 

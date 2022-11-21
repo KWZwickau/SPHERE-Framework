@@ -34,6 +34,9 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadGradeBookSelectFilterContent');
         $Dispatcher->registerMethod('loadViewGradeBookContent');
 
+        $Dispatcher->registerMethod('loadViewTestEditContent');
+        $Dispatcher->registerMethod('loadTestPlanning');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -253,5 +256,80 @@ class ApiGradeBook extends Extension implements IApiInterface
     public function loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter): string
     {
         return Grade::useFrontend()->loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
+    }
+
+    /**
+     * @param $TestId
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewTestEditContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter,
+            'TestId' => $TestId
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return string
+     */
+    public function loadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId): string
+    {
+        return Grade::useFrontend()->loadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId);
+    }
+
+    /**
+     * @param $SubjectId
+     * @param $TestId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadTestPlanning($SubjectId, $TestId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'TestPlanningContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadTestPlanning',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SubjectId' => $SubjectId,
+            'TestId' => $TestId
+        ));
+//        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SubjectId
+     * @param $TestId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadTestPlanning($SubjectId, $TestId, $Data = null): string
+    {
+        return Grade::useFrontend()->loadTestPlanning($SubjectId, $TestId, $Data);
     }
 }

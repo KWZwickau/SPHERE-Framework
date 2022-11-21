@@ -17,15 +17,16 @@ class TblGradeType extends Element
 {
     const ATTR_CODE = 'Code';
     const ATTR_IS_ACTIVE = 'IsActive';
+    const ATTR_IS_TYPE_BEHAVIOR = 'IsTypeBehavior';
 
     /**
      * @Column(type="string")
      */
-    protected string $Code;
+    protected string $Code = '';
     /**
      * @Column(type="string")
      */
-    protected string $Name;
+    protected string $Name = '';
     /**
      * @Column(type="string")
      */
@@ -150,5 +151,13 @@ class TblGradeType extends Element
     public function setIsPartGrade(bool $IsPartGrade): void
     {
         $this->IsPartGrade = $IsPartGrade;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayName(): string
+    {
+        return "{$this->Code} - {$this->Name}";
     }
 }

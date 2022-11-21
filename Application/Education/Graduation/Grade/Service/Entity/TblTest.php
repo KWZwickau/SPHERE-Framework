@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -272,5 +273,13 @@ class TblTest extends Element
         return $this->getIsContinues()
             ? $this->getFinishDate()
             : $this->getDate();
+    }
+
+    /**
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourses()
+    {
+        return Grade::useService()->getDivisionCourseListByTest($this);
     }
 }

@@ -86,6 +86,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $isTypeBehavior
+     *
+     * @return false|TblGradeType[]
+     */
+    public function getGradeTypeList(bool $isTypeBehavior = false)
+    {
+        return (new Data($this->getBinding()))->getGradeTypeList($isTypeBehavior);
+    }
+
+    /**
      * @param $id
      *
      * @return false|TblGradeText
@@ -111,6 +121,16 @@ class Service extends AbstractService
     public function getTestById($id)
     {
         return (new Data($this->getBinding()))->getTestById($id);
+    }
+
+    /**
+     * @param TblTest $tblTest
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourseListByTest(TblTest $tblTest)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseListByTest($tblTest);
     }
 
     /**

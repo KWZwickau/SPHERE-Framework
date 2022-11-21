@@ -747,12 +747,13 @@ class Service extends ServiceTeacher
      *
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
      *
      * @return false|TblDivisionCourse[]
      */
-    public function getTeacherGroupListByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    public function getTeacherGroupListByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject = null)
     {
-        return (new Data($this->getBinding()))->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear);
+        return (new Data($this->getBinding()))->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear, $tblSubject);
     }
 
     /**

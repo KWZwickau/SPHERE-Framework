@@ -24,6 +24,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -32,6 +33,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\Table;
@@ -47,7 +49,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
-class Frontend extends FrontendTeacherGroup
+class Frontend extends FrontendTest
 {
     /**
      * @return Stage
@@ -226,9 +228,17 @@ class Frontend extends FrontendTeacherGroup
         }
 
         return new Title(
-            (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
-                ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookSelect($Filter))
-                . "&nbsp;&nbsp;&nbsp;&nbsp;Notenbuch" . new Muted(new Small(" für Kurs: ")) . $textKurs . new Muted(new Small(" im Fach: ")) . $textSubject)
+                (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
+                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookSelect($Filter))
+                    . "&nbsp;&nbsp;&nbsp;&nbsp;Notenbuch"
+                    . new Muted(new Small(" für Kurs: ")) . $textKurs
+                    . new Muted(new Small(" im Fach: ")) . $textSubject
+                    . (!$isReadonly
+                        ? new PullRight((new Primary('Leistungsüberprüfung anlegen', ApiGradeBook::getEndpoint(), new Plus()))
+                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter)))
+                        : ''
+                    )
+            )
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
             . $content;

@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -68,6 +69,19 @@ class Data extends DataMigrate
     }
 
     /**
+     * @param bool $isTypeBehavior
+     *
+     * @return false|TblGradeType[]
+     */
+    public function getGradeTypeList(bool $isTypeBehavior = false)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblGradeType', array(
+            TblGradeType::ATTR_IS_TYPE_BEHAVIOR => $isTypeBehavior,
+            TblGradeType::ATTR_IS_ACTIVE => true
+        ));
+    }
+
+    /**
      * @param $id
      *
      * @return false|TblGradeText
@@ -93,6 +107,28 @@ class Data extends DataMigrate
     public function getTestById($id)
     {
         return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblTest', $id);
+    }
+
+    /**
+     * @param TblTest $tblTest
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourseListByTest(TblTest $tblTest)
+    {
+        $resultList = array();
+        if (($tempList = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTestCourseLink',
+            array(TblTestCourseLink::ATTR_TBL_TEST => $tblTest->getId())))
+        ) {
+            /** @var TblTestCourseLink $tblTestCourseLink */
+            foreach ($tempList as $tblTestCourseLink) {
+                if (($tblDivisionCourse = $tblTestCourseLink->getServiceTblDivisionCourse())) {
+                    $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**
