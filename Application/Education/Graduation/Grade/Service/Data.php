@@ -7,7 +7,12 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
 class Data extends DataMigrate
@@ -192,5 +197,72 @@ class Data extends DataMigrate
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return TblTest[]|false
+     */
+    public function getTestListByDivisionCourseAndSubject(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblTest', 't')
+            ->join(__NAMESPACE__ . '\Entity\TblTestCourseLink', 'l')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.Id', 'l.tblGraduationTest'),
+                    $queryBuilder->expr()->eq('l.serviceTblDivisionCourse', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblSubject', '?2'),
+                    $queryBuilder->expr()->isNull('t.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->setParameter(2, $tblSubject->getId())
+            ->orderBy('t.Date', 'ASC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return TblTestGrade[]|false
+     */
+    public function getTestGradeListByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('g')
+            ->from(__NAMESPACE__ . '\Entity\TblTestGrade', 'g')
+            ->join(__NAMESPACE__ . '\Entity\TblTest', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('g.tblGraduationTest', 't.Id'),
+                    $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblYear', '?2'),
+                    $queryBuilder->expr()->eq('t.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->isNull('g.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId())
+            ->setParameter(3, $tblSubject->getId())
+            ->orderBy('t.Date', 'ASC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 }

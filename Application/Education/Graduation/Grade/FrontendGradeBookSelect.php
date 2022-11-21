@@ -66,7 +66,7 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
                 $this->formFilter($Filter),
                 Panel::PANEL_TYPE_INFO
             )
-            . ApiGradeBook::receiverBlock($this->loadGradeBookSelectFilterContent($Filter), "GradeBookSelectFilterContent");
+            . ApiGradeBook::receiverBlock($Filter == null ? $this->loadGradeBookSelectFilterContent($Filter) : "", "GradeBookSelectFilterContent");
     }
 
     /**
@@ -116,7 +116,7 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
                         continue;
                     }
 
-                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear);
+                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, null, $Filter);
                 }
             }
 
@@ -197,10 +197,11 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
 
     /**
      * @param TblTeacherLectureship $tblTeacherLectureship
+     * @param null $Filter
      *
      * @return array|false
      */
-    private function getTeacherLectureshipSelectData(TblTeacherLectureship $tblTeacherLectureship)
+    private function getTeacherLectureshipSelectData(TblTeacherLectureship $tblTeacherLectureship, $Filter = null)
     {
         if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
             && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
@@ -212,7 +213,7 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
                 'Subject' => $tblTeacherLectureship->getSubjectName(),
                 'SubjectTeachers' => $tblTeacherLectureship->getSubjectTeachers(),
                 'Option' => (new Standard("", ApiGradeBook::getEndpoint(), new Check(), array(), "Auswählen"))
-                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($tblDivisionCourse->getId(), $tblSubject->getId()))
+                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($tblDivisionCourse->getId(), $tblSubject->getId(), $Filter))
             );
         }
 
@@ -243,10 +244,12 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblYear $tblYear
      * @param TblPerson|null $tblPerson
+     * @param null $Filter
      *
      * @return void
      */
-    private function setDivisionCourseSelectDataList(array &$dataList, TblDivisionCourse $tblDivisionCourse, TblYear $tblYear, ?TblPerson $tblPerson = null)
+    private function setDivisionCourseSelectDataList(array &$dataList, TblDivisionCourse $tblDivisionCourse, TblYear $tblYear, ?TblPerson $tblPerson = null,
+        $Filter = null)
     {
         // Lerngruppe oder SekII-Kurs
         if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
@@ -261,7 +264,7 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
                     continue;
                 }
 
-                if (($dataItem = $this->getTeacherLectureshipSelectData($tblTeacherLectureship))) {
+                if (($dataItem = $this->getTeacherLectureshipSelectData($tblTeacherLectureship, $Filter))) {
                     $dataList[] = $dataItem;
                 }
             }

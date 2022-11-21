@@ -328,6 +328,18 @@ class TblDivisionCourse extends Element
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param bool $withInActive
+     * @param bool $isResultPersonList
+     *
+     * @return false|TblDivisionCourseMember[]|TblPerson[]
+     */
+    public function getStudentsWithSubCourses(TblDivisionCourse $tblDivisionCourse, bool $withInActive = false, bool $isResultPersonList = true)
+    {
+        return DivisionCourse::useService()->getStudentListBy($tblDivisionCourse, $withInActive, $isResultPersonList);
+    }
+
+    /**
      * @return int
      */
     public function getCountStudents(): int

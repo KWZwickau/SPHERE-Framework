@@ -235,7 +235,7 @@ class TblTest extends Element
     /**
      * @return bool
      */
-    public function isIsContinues(): bool
+    public function getIsContinues(): bool
     {
         return $this->IsContinues;
     }
@@ -262,5 +262,15 @@ class TblTest extends Element
     public function setDescription(string $Description)
     {
         $this->Description = $Description;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getSortDate(): ?DateTime
+    {
+        return $this->getIsContinues()
+            ? $this->getFinishDate()
+            : $this->getDate();
     }
 }
