@@ -19,6 +19,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblTestCourseLink extends Element
 {
     const ATTR_TBL_TEST = 'tblGraduationTest';
+    const ATTR_SERVICE_TBL_DIVISION_COURSE = 'serviceTblDivisionCourse';
 
     /**
      * @Column(type="bigint")

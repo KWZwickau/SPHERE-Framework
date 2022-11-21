@@ -57,7 +57,7 @@ class TblTest extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Description;
+    protected string $Description = '';
 
     /**
      * @param TblYear $tblYear

@@ -18,22 +18,19 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\History;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -54,44 +51,68 @@ abstract class FrontendTest extends FrontendTeacherGroup
      */
     public function loadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId): string
     {
+        return $this->getTestEdit(
+            $this->formTest($DivisionCourseId, $SubjectId, $Filter, $TestId, true),
+            $DivisionCourseId, $SubjectId, $Filter, $TestId
+        );
+    }
+
+    /**
+     * @param $form
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return string
+     */
+    public function getTestEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TestId = null): string
+    {
         $textSubject = '';
         if (($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             $textSubject = new Bold($tblSubject->getDisplayName());
         }
+        $title = $TestId ? new Edit() . " Leistungsüberprüfung bearbeiten" : new Plus() . " Leistungsüberprüfung hinzufügen";
 
         return new Title(
                 (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter))
-                . "&nbsp;&nbsp;&nbsp;&nbsp; " . new Plus() . " Leistungsüberprüfung anlegen" . new Muted(new Small(" im Fach: ")) . $textSubject
+                . "&nbsp;&nbsp;&nbsp;&nbsp; $title" . new Muted(new Small(" im Fach: ")) . $textSubject
             )
-            . new Well($this->formTest($SubjectId, $TestId));
+            . new Well($form);
     }
 
     /**
+     * @param $DivisionCourseId
      * @param $SubjectId
-     * @param $TestId
+     * @param $Filter
+     * @param null $TestId
      * @param bool $setPost
-     * @param $Data
+     * @param null $Data
      *
      * @return Form
      */
-    public function formTest($SubjectId, $TestId = null, bool $setPost = false, $Data = null): Form
+    public function formTest($DivisionCourseId, $SubjectId, $Filter, $TestId = null, bool $setPost = false, $Data = null): Form
     {
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
         $tblTest = Grade::useService()->getTestById($TestId);
-        if ($setPost && $tblTest) {
+        if ($setPost) {
             $Global = $this->getGlobal();
-            $Global->POST['Data']['GradeType'] = ($tblGradeType = $tblTest->getTblGradeType()) ? $tblGradeType->getId() : 0;
-            $Global->POST['Data']['Description'] = $tblTest->getDescription();
-            $Global->POST['Data']['IsContinues'] = $tblTest->getIsContinues();
-            $Global->POST['Data']['FinishDate'] = $tblTest->getFinishDateString();
-            $Global->POST['Data']['Date'] = $tblTest->getDateString();
-            $Global->POST['Data']['CorrectionDate'] = $tblTest->getCorrectionDateString();
-            $Global->POST['Data']['ReturnDate'] = $tblTest->getReturnDateString();
-            if (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    $Global->POST['Data']['DivisionCourses'][$tblDivisionCourse->getId()] = 1;
+            if ($tblTest) {
+                $Global->POST['Data']['GradeType'] = ($tblGradeType = $tblTest->getTblGradeType()) ? $tblGradeType->getId() : 0;
+                $Global->POST['Data']['Description'] = $tblTest->getDescription();
+                $Global->POST['Data']['IsContinues'] = $tblTest->getIsContinues();
+                $Global->POST['Data']['FinishDate'] = $tblTest->getFinishDateString();
+                $Global->POST['Data']['Date'] = $tblTest->getDateString();
+                $Global->POST['Data']['CorrectionDate'] = $tblTest->getCorrectionDateString();
+                $Global->POST['Data']['ReturnDate'] = $tblTest->getReturnDateString();
+                if (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
+                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                        $Global->POST['Data']['DivisionCourses'][$tblDivisionCourse->getId()] = 1;
+                    }
                 }
+            } else {
+                $Global->POST['Data']['DivisionCourses'][$DivisionCourseId] = 1;
             }
 
             $Global->savePost();
@@ -147,14 +168,14 @@ abstract class FrontendTest extends FrontendTeacherGroup
                     ApiGradeBook::receiverBlock($this->loadTestPlanning($SubjectId, $TestId, $Data), 'TestPlanningContent')
                 )
             )),
-//            new FormRow(array(
-//                new FormColumn(array(
-//                    (new Primary('Speichern', ApiTeacherGroup::getEndpoint(), new Save()))
-//                        ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineSaveTeacherGroupEdit($TestId)),
-//                    (new Standard('Abbrechen', ApiTeacherGroup::getEndpoint(), new Disable()))
-//                        ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroups())
-//                ))
-//            ))
+            new FormRow(array(
+                new FormColumn(array(
+                    (new Primary('Speichern', ApiGradeBook::getEndpoint(), new Save()))
+                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineSaveTestEdit($DivisionCourseId, $SubjectId, $Filter, $TestId)),
+                    (new Standard('Abbrechen', ApiGradeBook::getEndpoint(), new Disable()))
+                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter))
+                ))
+            ))
         ))))->disableSubmitAction();
     }
 

@@ -168,7 +168,7 @@ class Frontend extends FrontendTest
 
             $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('SortDate', new DateTimeSorter());
             foreach ($tblTestList as $tblTest) {
-                $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest);
+                $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest, $DivisionCourseId, $SubjectId, $Filter);
             }
 
             $count = 0;
@@ -304,9 +304,13 @@ class Frontend extends FrontendTest
 
     /**
      * @param TblTest $tblTest
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     *
      * @return TableColumn
      */
-    private function getTableColumnHeadByTest(TblTest $tblTest): TableColumn
+    private function getTableColumnHeadByTest(TblTest $tblTest, $DivisionCourseId, $SubjectId, $Filter): TableColumn
     {
         $date = $tblTest->getDateString();
         if (strlen($date) > 6) {
@@ -316,6 +320,12 @@ class Frontend extends FrontendTest
         $tblGradeType = $tblTest->getTblGradeType();
         $text = new Small(new Muted($date)) . '<br>' . ($tblGradeType->getIsHighlighted() ? $tblGradeType->getCode() : new Muted($tblGradeType->getCode()));
 
-        return $this->getTableColumnHead($tblTest->getDescription() ? (new ToolTip($text, htmlspecialchars($tblTest->getDescription())))->enableHtml() : $text, false);
+        return $this->getTableColumnHead(
+            (new Link(
+                $tblTest->getDescription() ? (new ToolTip($text, htmlspecialchars($tblTest->getDescription())))->enableHtml() : $text,
+                ApiGradeBook::getEndpoint()
+            ))->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter, $tblTest->getId())),
+            false
+        );
     }
 }

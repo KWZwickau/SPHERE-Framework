@@ -2,16 +2,24 @@
 
 namespace SPHERE\Application\Api\Education\Graduation\Grade;
 
+use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Graduation\Grade\Frontend;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Extension\Extension;
 
 class ApiGradeBook extends Extension implements IApiInterface
@@ -35,6 +43,8 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewGradeBookContent');
 
         $Dispatcher->registerMethod('loadViewTestEditContent');
+        $Dispatcher->registerMethod('saveTestEdit');
+
         $Dispatcher->registerMethod('loadTestPlanning');
 
         return $Dispatcher->callMethod($Method);
@@ -296,6 +306,137 @@ class ApiGradeBook extends Extension implements IApiInterface
     public function loadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId): string
     {
         return Grade::useFrontend()->loadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveTestEdit($DivisionCourseId, $SubjectId, $Filter, $TestId = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveTestEdit'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter,
+            'TestId' => $TestId
+        ));
+        $ModalEmitter->setLoadingMessage("Wird bearbeitet");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     * @param $Data
+     *
+     * @return string
+     */
+    public function saveTestEdit($DivisionCourseId, $SubjectId, $Filter, $TestId, $Data): string
+    {
+        if (!($tblPerson = Account::useService()->getPersonByLogin())) {
+            return (new Danger("Person wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
+            return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblYear = Grade::useService()->getYear())) {
+            return (new Danger("Schuljahr wurde nicht gefunden!", new Exclamation()));
+        }
+
+        if (($form = Grade::useService()->checkFormTest($Data, $DivisionCourseId, $SubjectId, $Filter, $TestId))) {
+            // display Errors on form
+            return Grade::useFrontend()->getTestEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TestId);
+        }
+
+        $tblGradeType = Grade::useService()->getGradeTypeById($Data['GradeType']);
+        $date = $this->getDateTime('Date', $Data);
+        $finishDate = $this->getDateTime('FinishDate', $Data);
+        $correctionDate = $this->getDateTime('CorrectionDate', $Data);
+        $returnDate = $this->getDateTime('ReturnDate', $Data);
+        $isContinues = isset($Data['IsContinues']);
+        $description = $Data['Description'];
+
+        if (($tblTest = Grade::useService()->getTestById($TestId))) {
+            Grade::useService()->updateTest($tblTest, $tblGradeType, $date, $finishDate, $correctionDate, $returnDate, $isContinues, $description);
+
+            $createList = array();
+            $removeList = array();
+            if (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    // löschen
+                    if (!isset($Data['DivisionCourses'][$tblDivisionCourse->getId()])) {
+                        $removeList[] = Grade::useService()->getTestCourseLinkBy($tblTest, $tblDivisionCourse);
+                    }
+                }
+            } else {
+                $tblDivisionCourseList = array();
+            }
+
+            // neu
+            if (isset($Data['DivisionCourses'])) {
+                foreach ($Data['DivisionCourses'] as $divisionCourseId => $value) {
+                    if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))
+                        && !isset($tblDivisionCourseList[$divisionCourseId])
+                    ) {
+                        $createList[] = new TblTestCourseLink($tblTest, $tblDivisionCourse);
+                    }
+                }
+            }
+
+            if (!empty($createList)) {
+                Grade::useService()->createTestCourseLinkBulk($createList);
+            }
+            if (!empty($removeList)) {
+                Grade::useService()->removeTestCourseLinkBulk($removeList);
+            }
+        } else {
+            if (($tblTestNew = Grade::useService()->createTest(
+                $tblYear, $tblSubject, $tblGradeType, $date, $finishDate, $correctionDate, $returnDate, $isContinues, $description
+            ))) {
+                // Kurse hinzufügen
+                if (isset($Data['DivisionCourses'])) {
+                    $createList = array();
+                    foreach ($Data['DivisionCourses'] as $divisionCourseId => $value) {
+                        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))) {
+                            $createList[] = new TblTestCourseLink($tblTestNew, $tblDivisionCourse);
+                        }
+                    }
+
+                    Grade::useService()->createTestCourseLinkBulk($createList);
+                }
+            }
+        }
+
+        return new Success("Leistungsüberprüfung wurde erfolgreich gespeichert.")
+            . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
+    }
+
+    /**
+     * @param string $Identifier
+     * @param $Data
+     *
+     * @return DateTime|null
+     */
+    private function getDateTime(string $Identifier, $Data): ?DateTime
+    {
+        if (isset($Data[$Identifier]) && $Data[$Identifier]) {
+            return new DateTime($Data[$Identifier]);
+        }
+
+        return  null;
     }
 
     /**

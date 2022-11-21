@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade\Service;
 
+use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
@@ -132,6 +133,20 @@ class Data extends DataMigrate
     }
 
     /**
+     * @param TblTest $tblTest
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return false|TblTestCourseLink
+     */
+    public function getTestCourseLinkBy(TblTest $tblTest, TblDivisionCourse $tblDivisionCourse)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblTestCourseLink', array(
+            TblTestCourseLink::ATTR_TBL_TEST => $tblTest->getId(),
+            TblTestCourseLink::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+        ));
+    }
+
+    /**
      * @param $id
      *
      * @return false|TblScoreType
@@ -233,6 +248,109 @@ class Data extends DataMigrate
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param TblGradeType $tblGradeType
+     * @param DateTime|null $Date
+     * @param DateTime|null $FinishDate
+     * @param DateTime|null $CorrectionDate
+     * @param DateTime|null $ReturnDate
+     * @param bool $IsContinues
+     * @param string $Description
+     *
+     * @return TblTest
+     */
+    public function createTest(TblYear $tblYear, TblSubject $tblSubject, TblGradeType $tblGradeType,
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description): TblTest
+    {
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblTest($tblYear, $tblSubject, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues, $Description);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblGradeType $tblGradeType
+     * @param DateTime|null $Date
+     * @param DateTime|null $FinishDate
+     * @param DateTime|null $CorrectionDate
+     * @param DateTime|null $ReturnDate
+     * @param bool $IsContinues
+     * @param string $Description
+     *
+     * @return bool
+     */
+    public function updateTest(TblTest $tblTest, TblGradeType $tblGradeType,
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var TblTest $Entity */
+        $Entity = $Manager->getEntityById('TblTest', $tblTest->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setTblGradeType($tblGradeType);
+            $Entity->setDate($Date);
+            $Entity->setFinishDate($FinishDate);
+            $Entity->setCorrectionDate($CorrectionDate);
+            $Entity->setReturnDate($ReturnDate);
+            $Entity->setIsContinues($IsContinues);
+            $Entity->setDescription($Description);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $tblTestCourseLinkList
+     *
+     * @return bool
+     */
+    public function createTestCourseLinkBulk(array $tblTestCourseLinkList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($tblTestCourseLinkList as $tblTestCourseLink) {
+            $Manager->bulkSaveEntity($tblTestCourseLink);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblTestCourseLink, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblTestCourseLinkList
+     *
+     * @return bool
+     */
+    public function removeTestCourseLinkBulk(array $tblTestCourseLinkList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($tblTestCourseLinkList as $Entity) {
+            $Manager->bulkKillEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
     }
 
     /**

@@ -2,12 +2,14 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Setup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -131,6 +133,17 @@ class Service extends AbstractService
     public function getDivisionCourseListByTest(TblTest $tblTest)
     {
         return (new Data($this->getBinding()))->getDivisionCourseListByTest($tblTest);
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return false|TblTestCourseLink
+     */
+    public function getTestCourseLinkBy(TblTest $tblTest, TblDivisionCourse $tblDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getTestCourseLinkBy($tblTest, $tblDivisionCourse);
     }
 
     /**
@@ -262,6 +275,90 @@ class Service extends AbstractService
         }
 
         return $error ? $form : false;
+    }
+
+    /**
+     * @param $Data
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return false|Form
+     */
+    public function checkFormTest($Data, $DivisionCourseId, $SubjectId, $Filter, $TestId)
+    {
+        $error = false;
+        $form = Grade::useFrontend()->formTest($DivisionCourseId, $SubjectId, $Filter, $TestId, false, $Data);
+
+        if (!isset($Data['GradeType']) || !(Grade::useService()->getGradeTypeById($Data['GradeType']))) {
+            $form->setError('Data[GradeType]', 'Bitte wählen Sie einen Zensuren-Typ aus');
+            $error = true;
+        }
+        if (isset($Data['Date']) && empty($Data['Date'])) {
+            $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
+            $error = true;
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param TblGradeType $tblGradeType
+     * @param DateTime|null $Date
+     * @param DateTime|null $FinishDate
+     * @param DateTime|null $CorrectionDate
+     * @param DateTime|null $ReturnDate
+     * @param bool $IsContinues
+     * @param string $Description
+     *
+     * @return TblTest
+     */
+    public function createTest(TblYear $tblYear, TblSubject $tblSubject, TblGradeType $tblGradeType,
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description): TblTest
+    {
+        return (new Data($this->getBinding()))->createTest($tblYear, $tblSubject, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues,
+            $Description);
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblGradeType $tblGradeType
+     * @param DateTime|null $Date
+     * @param DateTime|null $FinishDate
+     * @param DateTime|null $CorrectionDate
+     * @param DateTime|null $ReturnDate
+     * @param bool $IsContinues
+     * @param string $Description
+     *
+     * @return bool
+     */
+    public function updateTest(TblTest $tblTest, TblGradeType $tblGradeType,
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description): bool
+    {
+        return (new Data($this->getBinding()))->updateTest($tblTest, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues, $Description);
+    }
+
+    /**
+     * @param array $tblTestCourseLinkList
+     *
+     * @return bool
+     */
+    public function createTestCourseLinkBulk(array $tblTestCourseLinkList): bool
+    {
+        return (new Data($this->getBinding()))->createTestCourseLinkBulk($tblTestCourseLinkList);
+    }
+
+    /**
+     * @param array $tblTestCourseLinkList
+     *
+     * @return bool
+     */
+    public function removeTestCourseLinkBulk(array $tblTestCourseLinkList): bool
+    {
+        return (new Data($this->getBinding()))->removeTestCourseLinkBulk($tblTestCourseLinkList);
     }
 
     /**
