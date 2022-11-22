@@ -933,7 +933,7 @@ class Service extends AbstractService
             if ($tblCity) {
                 $Data['AddressPLZ'] = $tblCity->getCode();
                 $Data['AddressCity'] = $tblCity->getName();
-                $Data['AddressDistrict'] = $tblCity->getDistrict();
+                $Data['AddressDistrict'] = $tblCity->getDisplayDistrict();
             }
         }
 
