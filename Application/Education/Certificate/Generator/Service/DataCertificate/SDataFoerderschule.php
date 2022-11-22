@@ -33,41 +33,6 @@ class SDataFoerderschule
             if($tblCertificate->getCertificateNumber() != $CertificateNumber){
                 $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
             }
-            if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '1'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '2'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '3'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '4'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '5'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '6'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '7'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '8'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '9'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '10'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '11'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-            }
         }
         // auf dem Zeugnis befinden sich keine Fächer
     }
@@ -87,15 +52,6 @@ class SDataFoerderschule
             if($tblCertificate->getCertificateNumber() != $CertificateNumber){
                 $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
             }
-            if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '12'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '13'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-            }
         }
         // auf dem Zeugnis befinden sich keine Fächer
     }
@@ -114,41 +70,6 @@ class SDataFoerderschule
             }
             if($tblCertificate->getCertificateNumber() != $CertificateNumber){
                 $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
-            }
-            if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '1'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '2'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '3'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '4'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '5'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '6'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '7'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '8'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '9'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '10'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeFoerderSchule(), '11'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
             }
         }
         // auf dem Zeugnis befinden sich keine Fächer
