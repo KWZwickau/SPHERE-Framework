@@ -564,7 +564,9 @@ class Service extends AbstractService
             'Content.Input.Success'             => 'SelectBox',
             'Content.Input.IndustrialPlacement' => 'TextField',
             'Content.Input.IndustrialPlacementDuration' => 'TextField',
-            'Content.Input.EducationDateFrom' => 'DatePicker'
+            'Content.Input.EducationDateFrom' => 'DatePicker',
+            // Förderschule
+//            'Content.Input.FoesAbsText'         => 'SelectBox', // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
         );
 
         if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVAB')){
@@ -683,7 +685,9 @@ class Service extends AbstractService
             'Content.Input.Success'             => 'Abschluss erfolgreich',
             'Content.Input.IndustrialPlacement' => 'Betriebspraktikum',
             'Content.Input.IndustrialPlacementDuration' => 'Betriebspraktikum (Dauer in Wochen)',
-            'Content.Input.EducationDateFrom' => 'Ausbildung Datum vom'
+            'Content.Input.EducationDateFrom' => 'Ausbildung Datum vom',
+            // Förderschule
+//            'Content.Input.FoesAbsText' => 'Auswahltext für das Zeugnis', // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
         );
     }
 

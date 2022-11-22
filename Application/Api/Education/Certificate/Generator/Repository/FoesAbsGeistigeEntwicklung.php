@@ -17,6 +17,17 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 class FoesAbsGeistigeEntwicklung extends Certificate
 {
 
+//    /**
+//     * @return array
+//     */
+//    public function selectValuesFoesAbsText()
+//    {
+//        return array(
+//            1 => "die Schule mit dem Förderschwer-punkt geistige Entwicklung",
+//            2 => "die Förderschule in der Klasse mit Förderbedarf im Förderschwerpunkt geistige Entwicklung"
+//        );
+//    }
+
     /**
      * @param TblPerson|null $tblPerson
      *
@@ -36,8 +47,8 @@ class FoesAbsGeistigeEntwicklung extends Certificate
 
         $Header = $this->getHead($this->isSample());
 
-        // leere Seite
-        $pageList[] = new Page();
+//        // leere Seite
+//        $pageList[] = new Page();
 
         $pageList[] = (new Page())
             ->addSlice($Header)
@@ -48,12 +59,6 @@ class FoesAbsGeistigeEntwicklung extends Certificate
                     ->styleAlignCenter()
                     ->styleMarginTop('20%')
                     ->styleTextBold()
-                )
-                ->addElement((new Element())
-                    ->setContent('der Oberschule')
-                    ->styleTextSize('22px')
-                    ->styleAlignCenter()
-                    ->styleMarginTop('15px')
                 )
             );
 
@@ -118,79 +123,35 @@ class FoesAbsGeistigeEntwicklung extends Certificate
 //                        )
                 )->styleMarginTop('10px')
             )
-            ->addSliceArray(MsAbsRs::getSchoolPart($personId))
+            ->addSliceArray(MsAbsRs::getSchoolPart($personId, false))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('und hat gemäß § 63 Absatz 1 Satz 1 der Schulordnung Ober- und Abendoberschulen den')
+                    ->setContent('Name, Förderschultyp gemäß § 13 Absatz 2 Satz 1 in Verbindung mit § 4c Absatz 2 Nummer 1 bis 4 des 
+                                  Sächsischen Schulgesetzes und Anschrift der Schule')
+                )
+                ->styleTextSize('11.5px')
+                ->stylePaddingRight('60px')
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                    erfüllt am Ende der Werkstufe die Anforderungen des Förderplans gemäß § 17 Absatz 1 der Schulordnung Förderschulen und hat
+                    die Förderschule in der Klasse mit Förderbedarf im Förderschwerpunkt geistige Entwicklung mit Erfolg abgeschlossen.')
                     ->styleMarginTop('8px')
                     ->styleAlignLeft()
-                )
-                ->addElement((new Element())
-                    ->setContent('Abschluss im Förderschwerpunkt Lernen gemäß <br> § 34a Absatz 1 der Schulordnung Förderschulen')
-                    ->styleMarginTop('18px')
-                    ->styleTextSize('20px')
-                    ->styleTextBold()
-                )
-                ->addElement((new Element())
-                    ->setContent('erworben.')
-                    ->styleMarginTop('20px')
-                    ->styleAlignLeft()
+                // {% if(Content.P' . $personId . '.Input.FoesAbsText) %}  // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
+                //     {{ Content.P' . $personId . '.Input.FoesAbsText }}
+                // {% else %}
+                //       ---
+                // {% endif %}
                 )
                 ->styleAlignCenter()
-                ->styleMarginTop('22%')
+                ->styleMarginTop('80px')
             )
             ->addSlice(MsAbsRs::getPictureForDiploma($showPictureOnSecondPage))
-        ;
-
-        $pageList[] = (new Page())
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Vorname und Name:')
-                        , '25%')
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                                {{ Content.P' . $personId . '.Person.Data.Name.First }}
-                                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
-                            ')
-                        ->styleBorderBottom()
-                        , '45%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Klasse:')
-                        ->styleAlignCenter()
-                        , '10%')
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                                {{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}
-                            ')
-                        ->styleBorderBottom()
-                        ->styleAlignCenter()
-                    )
-                )->styleMarginTop('60px')
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Leistungen in den einzelnen Fächern:')
-                    ->styleMarginTop('15px')
-                    ->styleTextBold()
-                )
-            )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
-            ->addSlice($this->getDescriptionWithoutTeamContent($personId, 'auto', '15px', 'Bemerkungen: '))
-            ->addSlice($this->getSupportSubjectContent($personId, '180px', '0px',
-                'Thema der lebenspraktisch orientierten Komplexen Leistung:'
-            ))
+            ->addSlice($this->getDescriptionWithoutTeamContent($personId, '150', '15px'))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice((new MsAbsRs(
-                $this->getTblDivision() ? $this->getTblDivision() : null,
-                $this->getTblPrepareCertificate() ? $this->getTblPrepareCertificate() : null
-            ))->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfo('170px',
-                'Notenerläuterung:',
-                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
-                '&nbsp;',
-                '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
-            ));
+            ->addSlice($this->getSignPart($personId, true, '30px'));
 
         return $pageList;
     }

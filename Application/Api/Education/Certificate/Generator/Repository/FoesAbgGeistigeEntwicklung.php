@@ -29,13 +29,7 @@ class FoesAbgGeistigeEntwicklung extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        if (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
-            $Header = $this->getHead($this->isSample(), true, false);
-        } elseif (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESBD')) {
-            $Header = MsAbsRs::getHeadForDiploma($this->isSample(), true);
-        } else {
-            $Header = $this->getHead($this->isSample());
-        }
+        $Header = $this->getHead($this->isSample());
 
         $pageList[] = (new Page())
             ->addSlice($Header)
@@ -69,7 +63,7 @@ class FoesAbgGeistigeEntwicklung extends Certificate
                             ')
                         ->styleBorderBottom()
                     )
-                )->styleMarginTop('50px')
+                )->styleMarginTop('60px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -116,7 +110,15 @@ class FoesAbgGeistigeEntwicklung extends Certificate
                     )
                 )->styleMarginTop('10px')
             )
-            ->addSliceArray(MsAbsRs::getSchoolPart($personId))
+            ->addSliceArray(MsAbsRs::getSchoolPart($personId, false))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Name, Förderschultyp gemäß § 13 Absatz 2 Satz 1 in Verbindung mit § 4c Absatz 2 Nummer 1 bis 4 des 
+                                  Sächsischen Schulgesetzes und Anschrift der Schule')
+                )
+                ->styleTextSize('11.5px')
+                ->stylePaddingRight('60px')
+            )
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent(

@@ -10,8 +10,11 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
@@ -863,13 +866,51 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Einstellungen', 'Zeugnisvorlagen installieren');
         $Stage = self::setSettingMenue($Stage, '');
+        $LayoutRowList = array();
 
-        $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_PRIMARY, 'Zeugnisse Grundschule', 'GsJa');
-        $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_SECONDARY, 'Zeugnisse Oberschule', 'MsJ');
-        $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_GYM, 'Zeugnisse Gymnasium', 'GymJ');
-        $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_FOERDERSCHULE, 'Zeugnisse Förderschule', 'FoesJGeistigeEntwicklung');
-        $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE, 'Zeugnisse Berufsfachschule', 'BfsJ');
-        $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_FACHSCHULE, 'Zeugnisse Fachschule', 'FsJ');
+        $isRef = false;
+        if(($tblCOnsumer = Consumer::useService()->getConsumerBySession())){
+            if($tblCOnsumer->getAcronym() == 'REF'){
+                $isRef = true;
+            }
+        }
+
+
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_GRUND_SCHULE))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_PRIMARY,
+                'Zeugnisse Grundschule', 'GsJa');
+        }
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_SECONDARY,
+                'Zeugnisse Oberschule', 'MsJ');
+        }
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_GYM,
+                'Zeugnisse Gymnasium', 'GymJ');
+        }
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_FOERDERSCHULE,
+                'Zeugnisse Förderschule', 'FoesJGeistigeEntwicklung');
+        }
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_BERUFS_FACH_SCHULE))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE,
+                'Zeugnisse Berufsfachschule', 'BfsJ');
+        }
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_FACH_SCHULE))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_FACHSCHULE,
+                'Zeugnisse Fachschule', 'FsJ');
+        }
+        if(empty($LayoutRowList)){
+            $LayoutRowList[] = new LayoutRow(new LayoutColumn(
+                new Warning('Der Mandant hat keine Schulen(Schulart) hinterlegt. [Einstellungen -> Mandant -> Schulen]')
+            ));
+        }
 
         $Stage->setContent(
             new Layout(array(

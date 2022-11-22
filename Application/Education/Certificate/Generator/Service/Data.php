@@ -438,6 +438,7 @@ class Data extends AbstractData
             $Entity->setServiceTblSchoolType($tblSchoolType);
             $Entity->setServiceTblCourse($tblCourse);
             $Entity->setIsIgnoredForAutoSelect($IsIgnoredForAutoSelect);
+            $Entity->setCertificateNumber('');
             // Standard, kann wenn benötigt als Variable in die Funktion, noch kein bedarf dazu
             $Entity->setIsGradeVerbal(false);
 

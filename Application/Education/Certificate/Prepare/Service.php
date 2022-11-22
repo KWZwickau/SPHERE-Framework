@@ -667,6 +667,10 @@ class Service extends AbstractService
                                 && method_exists($Certificate, 'selectValuesJobGradeText')
                             ) {
                                 $value = $Certificate->selectValuesJobGradeText()[$value];
+//                            } elseif ($field == 'FoesAbsText' // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
+//                                && method_exists($Certificate, 'selectValuesFoesAbsText')
+//                            ) {
+//                                $value = $Certificate->selectValuesFoesAbsText()[$value];
                             }
 
                             // Zeugnistext umwandeln
@@ -2194,6 +2198,10 @@ class Service extends AbstractService
                     && method_exists($Certificate, 'selectValuesJobGradeText')
                 ) {
                     $value = $Certificate->selectValuesJobGradeText()[$value];
+//                } elseif ($field == 'FoesAbsText' // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
+//                    && method_exists($Certificate, 'selectValuesFoesAbsText')
+//                ) {
+//                    $value = $Certificate->selectValuesFoesAbsText()[$value];
                 }
 
                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $field))) {
@@ -5371,6 +5379,10 @@ class Service extends AbstractService
                             && method_exists($Certificate, 'selectValuesJobGradeText')
                         ) {
                             $value = $Certificate->selectValuesJobGradeText()[$value];
+//                        } elseif ($field == 'FoesAbsText' // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
+//                            && method_exists($Certificate, 'selectValuesFoesAbsText')
+//                        ) {
+//                            $value = $Certificate->selectValuesFoesAbsText()[$value];
                         } elseif ($field == 'AdditionalRemarkFhr') {
                             $value = 'hat erfolglos an der Prüfung zum Erwerb der Fachhochschulreife teilgenommen.';
                             $issetAdditionalRemarkFhr = true;

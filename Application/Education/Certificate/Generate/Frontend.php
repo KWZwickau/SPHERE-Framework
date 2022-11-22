@@ -446,6 +446,11 @@ class Frontend extends Extension
                                         && ($tblLevel->getName() == '9' || $tblLevel->getName() == '10')
                                     ) {
                                         $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    }  elseif ($type->getName() == 'Förderschule'
+                                        && (($tblLevel = $tblDivision->getTblLevel()))
+                                        && ($tblLevel->getName() == '12' || $tblLevel->getName() == '13')
+                                    ) {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
                                     } elseif ($type->getName() == 'Berufsfachschule') {
                                         $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
                                     } elseif ($type->getName() == 'Fachschule') {

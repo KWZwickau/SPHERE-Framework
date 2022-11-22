@@ -638,8 +638,7 @@ abstract class Certificate extends Extension
                     {{ Content.P' . $personId . '.Student.StudentSpecialNeeds.LevelName }}
                 {% else %}
                     ________ Stufe
-                {% endif %}
-                {{ Content.P' . $personId . '.Student.StudentSpecialNeeds.LevelName }}')
+                {% endif %}')
 //                ->styleBorderBottom()
                 , '33%')
             ->addElementColumn((new Element())
