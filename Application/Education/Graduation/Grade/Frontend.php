@@ -134,8 +134,8 @@ class Frontend extends FrontendTest
      */
     public function loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter): string
     {
-        $role = Grade::useService()->getRole();
-        $isReadonly = false;
+        $isEdit = Grade::useService()->getIsEdit($DivisionCourseId, $SubjectId);
+
         $textKurs = "";
         $textSubject = "";
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
@@ -168,7 +168,7 @@ class Frontend extends FrontendTest
 
             $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('SortDate', new DateTimeSorter());
             foreach ($tblTestList as $tblTest) {
-                $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest, $DivisionCourseId, $SubjectId, $Filter);
+                $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest, $DivisionCourseId, $SubjectId, $Filter, $isEdit);
             }
 
             $count = 0;
@@ -233,7 +233,7 @@ class Frontend extends FrontendTest
                     . "&nbsp;&nbsp;&nbsp;&nbsp;Notenbuch"
                     . new Muted(new Small(" für Kurs: ")) . $textKurs
                     . new Muted(new Small(" im Fach: ")) . $textSubject
-                    . (!$isReadonly
+                    . ($isEdit
                         ? new PullRight((new Primary('Leistungsüberprüfung anlegen', ApiGradeBook::getEndpoint(), new Plus()))
                             ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter)))
                         : ''
@@ -307,10 +307,11 @@ class Frontend extends FrontendTest
      * @param $DivisionCourseId
      * @param $SubjectId
      * @param $Filter
+     * @param bool $isEdit
      *
      * @return TableColumn
      */
-    private function getTableColumnHeadByTest(TblTest $tblTest, $DivisionCourseId, $SubjectId, $Filter): TableColumn
+    private function getTableColumnHeadByTest(TblTest $tblTest, $DivisionCourseId, $SubjectId, $Filter, bool $isEdit): TableColumn
     {
         $date = $tblTest->getDateString();
         if (strlen($date) > 6) {
@@ -318,14 +319,29 @@ class Frontend extends FrontendTest
         }
 
         $tblGradeType = $tblTest->getTblGradeType();
-        $text = new Small(new Muted($date)) . '<br>' . ($tblGradeType->getIsHighlighted() ? $tblGradeType->getCode() : new Muted($tblGradeType->getCode()));
+        $text = new Small($date) . '<br>' . $tblGradeType->getCode();
+
+        if ($isEdit) {
+            $content = new Container(
+                (new Link(
+                    $text,
+                    ApiGradeBook::getEndpoint(),
+                    null,
+                    array(),
+                    $tblTest->getDescription() ? htmlspecialchars($tblTest->getDescription()) : ''
+                ))->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter, $tblTest->getId()))
+            );
+        } else {
+            $content = new Container($text);
+        }
+
+        if (!$tblGradeType->getIsHighlighted()) {
+            // Browser macht Tabellen Header automatisch bold
+            $content->setStyle(array("font-weight: lighter;"));
+        }
 
         return $this->getTableColumnHead(
-            (new Link(
-                $tblTest->getDescription() ? (new ToolTip($text, htmlspecialchars($tblTest->getDescription())))->enableHtml() : $text,
-                ApiGradeBook::getEndpoint()
-            ))->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter, $tblTest->getId())),
-            false
+            $content, $tblGradeType->getIsHighlighted()
         );
     }
 }

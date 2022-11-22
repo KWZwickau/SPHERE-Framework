@@ -14,12 +14,15 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Setup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
@@ -209,6 +212,50 @@ class Service extends AbstractService
         }
 
         return "Teacher";
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     *
+     * @return bool
+     */
+    public function getIsEdit($DivisionCourseId, $SubjectId): bool
+    {
+        $role = $this->getRole();
+        switch ($role) {
+            case "Headmaster": return true;
+            case "Teacher":
+                // der Lehrer darf nur aktuelles Schuljahr bearbeiten und benötigt Lehrauftrag oder eigene Lerngruppe
+                if (($tblYearSelected = $this->getYear())
+                    && ($tblYearList = Term::useService()->getYearByNow())
+                    && ($tblPerson = Account::useService()->getPersonByLogin())
+                    && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+                    && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
+                ) {
+                    foreach ($tblYearList as $tblYear) {
+                        if ($tblYear->getId() == $tblYearSelected->getId()) {
+                            // Lehrauftrag
+                            if (DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPerson, $tblDivisionCourse, $tblSubject)) {
+                                return true;
+                            }
+                            // eigne Lerngruppe
+                            if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP
+                                && ($tblTeacherList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+                            ) {
+                                foreach ($tblTeacherList as $tblTeacher) {
+                                    if ($tblTeacher->getId() == $tblPerson->getId()) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return false;
+            case "AllReadonly":
+            default: return false;
+        }
     }
 
     /**
