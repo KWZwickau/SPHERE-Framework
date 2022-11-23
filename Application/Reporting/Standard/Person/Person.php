@@ -58,7 +58,7 @@ class Person extends AbstractModule implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__.'/PersonAgreement'), new Link\Name('Mitarbeiter Einverständniserklärung'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/ClassTeacher'), new Link\Name('Eltern- und Schülersprecher'))
+            new Link(new Link\Route(__NAMESPACE__.'/ClassTeacher'), new Link\Name('Klassenlehrer'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

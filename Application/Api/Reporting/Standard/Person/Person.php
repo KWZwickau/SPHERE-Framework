@@ -575,7 +575,7 @@ class Person
             $fileLocation = ReportingPerson::useService()->createDivisionTeacherExcelList($TableContent, $headers);
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Eltern- und Schuelersprecher ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                "Klassenlehrer".date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;

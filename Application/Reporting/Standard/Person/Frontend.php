@@ -1604,7 +1604,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClassTeacher(?string $YearId = null): Stage
     {
 
-        $Stage = new Stage('Auswertung', 'Eltern- und Schülersprecher');
+        $Stage = new Stage('Auswertung', 'Klassenlehrer');
         $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         $Stage->addButton(
@@ -1619,25 +1619,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($TableContent, null, $headers
-                              /*  array(
-
-
-                                    'Division' => 'Klasse',
-                                    'DivisionTeacher1FirstName' => 'Klassenlehrer 1 - Vorname',
-                                    'DivisionTeacher1Name' => 'Klassenlehrer 1 - Nachname',
-                                    'DivisionTeacher2FirstName' => 'Klassenlehrer 2 - Vorname',
-                                    'DivisionTeacher2Name' => 'Klassenlehrer 2 - Nachname',
-                                    'DivisionCustody1FirstName' => 'Elternvertretung 1 - Vorname',
-                                    'DivisionCustody1Name' => 'Elternvertretung 1 - Nachname',
-                                    'DivisionCustody2FirstName' => 'Elternvertretung 2 - Vorname',
-                                    'DivisionCustody2Name' => 'Elternvertretung 2 - Nachname',
-                                    'DivisionRepresentative1FirstName' => 'Schülersprecher 1 - Vorname',
-                                    'DivisionRepresentative1Name' => 'Schülersprecher 1 - Nachname',
-                                    'DivisionRepresentative2FirstName' => 'Schülersprecher 2 - Vorname',
-                                    'DivisionRepresentative2Name' => 'Schülersprecher 2 - Name'
-
-                                ) */,
+                            new TableData($TableContent, null, $headers,
 
 
                                 array(

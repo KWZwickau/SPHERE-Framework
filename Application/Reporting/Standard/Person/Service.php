@@ -4847,19 +4847,19 @@ class Service extends Extension
             $headers['DivisionTeacher'.$i.'FirstName'] = 'Klassenlehrer&nbsp;'.$i.' - Vorname';
             $headers['DivisionTeacher'.$i.'Name'] = 'Klassenlehrer&nbsp;'.$i.' - Nachname';
         }
+        for ($l = 1; $l <= $maxCountRepresentative; $l++){
+            $headers['DivisionRepresentative'.$l.'FirstName'] = 'Klassensprecher&nbsp;'.$l.' - Vorname';
+            $headers['DivisionRepresentative'.$l.'Name'] = 'Klassensprecher&nbsp;'.$l.' Nachname';
+        }
         for ($j = 1; $j <= $maxCountCustody; $j++){
             $headers['DivisionCustody'.$j.'FirstName'] = 'Elternvertreter&nbsp;'.$j.' - Vorname';
             $headers['DivisionCustody'.$j.'Name'] = 'Elternvertreter&nbsp;'.$j.' - Nachname';
-        }
-        for ($l = 1; $l <= $maxCountRepresentative; $l++){
-            $headers['DivisionRepresentative'.$l.'FirstName'] = 'Schülersprecher&nbsp;'.$l.' - Vorname';
-            $headers['DivisionRepresentative'.$l.'Name'] = 'Schülersprecher&nbsp;'.$l.' Nachname';
         }
 
         foreach($TableContent as &$contentItem) {
             foreach ($headers as $key => $header) {
                 if (!isset($contentItem[$key])) {
-                    $contentItem[$key] = '-';
+                    $contentItem[$key] = ' ';
                 }
             }
         }
