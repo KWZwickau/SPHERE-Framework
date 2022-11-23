@@ -1187,7 +1187,7 @@ class Creator extends Extension
         } elseif($Select == 'DigitalClassBook') {
             $file = "Common/Style/Resource/Document/Manual/SSWDigitalClassBook.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Digitales_Klassenbuch_22.08.2022.pdf");
+            header("Content-Disposition: attachment; filename=Digitales_Klassenbuch_09.11.2022.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'Billing') {
             $file = "Common/Style/Resource/Document/Manual/AnleitungFakturierung.pdf";
@@ -1217,7 +1217,7 @@ class Creator extends Extension
         } elseif($Select == 'SSW_UCS_DLLP') {
             $file = "Common/Style/Resource/Document/Manual/SSW_UCS_DLLP.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Kurzleidfaden_UCS_DLLP_05.09.2022.pdf");
+            header("Content-Disposition: attachment; filename=Kurzleidfaden_UCS_DLLP_10.11.2022.pdf");
             header("Content-Length: ".filesize($file));
         }
 
