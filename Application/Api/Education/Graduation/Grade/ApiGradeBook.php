@@ -440,37 +440,28 @@ class ApiGradeBook extends Extension implements IApiInterface
     }
 
     /**
-     * @param $SubjectId
-     * @param $TestId
-     *
      * @return Pipeline
      */
-    public static function pipelineLoadTestPlanning($SubjectId, $TestId = null): Pipeline
+    public static function pipelineLoadTestPlanning(): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'TestPlanningContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadTestPlanning',
         ));
-        $ModalEmitter->setPostPayload(array(
-            'SubjectId' => $SubjectId,
-            'TestId' => $TestId
-        ));
-//        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $ModalEmitter->setLoadingMessage("Planung wird aktualisiert.");
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
     }
 
     /**
-     * @param $SubjectId
-     * @param $TestId
      * @param null $Data
      *
      * @return string
      */
-    public function loadTestPlanning($SubjectId, $TestId, $Data = null): string
+    public function loadTestPlanning($Data = null): string
     {
-        return Grade::useFrontend()->loadTestPlanning($SubjectId, $TestId, $Data);
+        return Grade::useFrontend()->loadTestPlanning($Data);
     }
 }

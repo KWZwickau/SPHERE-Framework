@@ -144,7 +144,7 @@ class Frontend extends FrontendTest
         ) {
             $textKurs = new Bold($tblDivisionCourse->getDisplayName());
             $textSubject = new Bold($tblSubject->getDisplayName());
-            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses($tblDivisionCourse);
+            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
 
             $headerList = array();
             $bodyList = array();

@@ -386,6 +386,42 @@ class Data extends DataMigrate
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param DateTime $FromDate
+     * @param DateTime $ToDate
+     *
+     * @return TblTest[]|false
+     */
+    public function getTestListBetween(TblDivisionCourse $tblDivisionCourse, DateTime $FromDate, DateTime $ToDate)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(TblTest::class, 't')
+            ->join(TblTestCourseLink::class, 'l')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.Id', 'l.tblGraduationTest'),
+                    $queryBuilder->expr()->eq('l.serviceTblDivisionCourse', '?1'),
+                    $queryBuilder->expr()->gte('t.Date', '?2'),
+                    $queryBuilder->expr()->lte('t.Date', '?3'),
+
+                    $queryBuilder->expr()->isNull('t.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->setParameter(2, $FromDate)
+            ->setParameter(3, $ToDate)
+            ->orderBy('t.Date', 'ASC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject

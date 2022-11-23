@@ -2,10 +2,20 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use DateInterval;
+use DateTime;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
+use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -38,6 +48,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 abstract class FrontendTest extends FrontendTeacherGroup
 {
@@ -148,7 +159,9 @@ abstract class FrontendTest extends FrontendTeacherGroup
                     (new DatePicker('Data[FinishDate]', '', 'Enddatum (optional für Notendatum)', new Calendar()))->setDisabled(), 3
                 ),
                 new FormColumn(
-                    new DatePicker('Data[Date]', '', 'Datum', new Calendar()), 3
+                    (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))
+                        ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning())
+                    , 3
                 ),
                 new FormColumn(
                     new DatePicker('Data[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 3
@@ -165,7 +178,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
             )),
             new FormRow(array(
                 new FormColumn(
-                    ApiGradeBook::receiverBlock($this->loadTestPlanning($SubjectId, $TestId, $Data), 'TestPlanningContent')
+                    ApiGradeBook::receiverBlock($this->loadTestPlanning($Data), 'TestPlanningContent')
                 )
             )),
             new FormRow(array(
@@ -201,7 +214,8 @@ abstract class FrontendTest extends FrontendTeacherGroup
             foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
                 if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())) {
                     $contentPanelList[$tblDivisionCourse->getType()->getId()][]
-                        = new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1);
+                        = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1))
+                            ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
                 }
             }
 
@@ -209,7 +223,8 @@ abstract class FrontendTest extends FrontendTeacherGroup
             if (($teacherGroupList = DivisionCourse::useService()->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear, $tblSubject))) {
                 foreach ($teacherGroupList as $tblDivisionCourse) {
                     $contentPanelList[$tblDivisionCourse->getType()->getId()][]
-                        = new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1);
+                        = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1))
+                            ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
                 }
             }
 
@@ -230,14 +245,165 @@ abstract class FrontendTest extends FrontendTeacherGroup
     }
 
     /**
-     * @param $SubjectId
-     * @param $TestId
      * @param $Data
      *
      * @return string
      */
-    public function loadTestPlanning($SubjectId, $TestId, $Data = null): string
+    public function loadTestPlanning($Data = null): string
     {
-        return new Title(new History() . ' Planung');
+        if (isset($Data['Date']) && $Data['Date']
+            && isset($Data['DivisionCourses'])
+        ) {
+            $selectDate = new DateTime($Data['Date']);
+            $fromDate = Timetable::useService()->getStartDateOfWeek((new DateTime($selectDate->format('d.m.Y')))->sub(new DateInterval('P7D')));
+            $toDate = new DateTime($fromDate->format('d.m.Y'));
+            $toDate = $toDate->add(new DateInterval('P20D'));
+
+            $tblDivisionCourseList = array();
+            foreach ($Data['DivisionCourses'] as $divisionCourseId => $value) {
+                if (($temp = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))) {
+                    $tblDivisionCourseList[$temp->getId()] = $temp;
+                    // weitere Kurse der Schüler im Kurs
+                    if (($tempList = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($temp))) {
+                        foreach ($tempList as $item) {
+                            if (!isset($tblDivisionCourseList[$item->getId()])) {
+                                $tblDivisionCourseList[$item->getId()] = $item;
+                            }
+                        }
+                    }
+                }
+            }
+
+            $tblTestList = array();
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (($tempTestList = Grade::useService()->getTestListBetween($tblDivisionCourse, $fromDate, $toDate))) {
+                    $tblTestList = array_merge($tblTestList, $tempTestList);
+                }
+            }
+
+            $panelContentList = array();
+            if (!empty($tblTestList)) {
+                // doppelte bei mehreren Kursen am Test entfernen
+                $tblTestList = array_unique($tblTestList);
+                $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date', new DateTimeSorter());
+                /** @var TblTest $tblTest */
+                foreach ($tblTestList as $tblTest) {
+                    if (($date = $tblTest->getDate())
+                        && ($tblSubject = $tblTest->getServiceTblSubject())
+                        && ($tblGradeType = $tblTest->getTblGradeType())
+                    ) {
+                        $week = $date->format('W');
+                        if (!isset($panelContentList[$week])) {
+                            $panelContentList[$week]['Header'] = $this->getTestPlaningHeader($date, $week);
+                        }
+                        $panelContentList[$week]['Content'][] = $this->getTestPlaningContent($tblTest, $tblSubject, $tblGradeType);
+                    }
+                }
+            }
+
+            if (!empty($panelContentList)) {
+                $columnList = array();
+                $size = 4;
+                foreach ($panelContentList as $data) {
+                    $columnList[] = new LayoutColumn(new Panel(
+                        $data['Header'],
+                        $data ['Content'],
+                        Panel::PANEL_TYPE_DEFAULT
+                    ), $size);
+                }
+
+                return new Layout(new LayoutGroup(
+                    Grade::useService()->getLayoutRowsByLayoutColumnList($columnList, $size),
+                    new Title(new History() . ' Planung')
+                ));
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @param DateTime $date
+     * @param $week
+     *
+     * @return string
+     */
+    private function getTestPlaningHeader(DateTime $date, $week): string
+    {
+        $year = $date->format('Y');
+        $monday = date('d.m.y', strtotime("$year-W{$week}"));
+        $friday = date('d.m.y', strtotime("$year-W{$week}-5"));
+
+        return new Bold('KW: ' . $week) . new Muted(' &nbsp;&nbsp;&nbsp;(' . $monday . ' - ' . $friday . ')');
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblSubject $tblSubject
+     * @param TblGradeType $tblGradeType
+     *
+     * @return string
+     */
+    private function getTestPlaningContent(TblTest $tblTest, TblSubject $tblSubject, TblGradeType $tblGradeType): string
+    {
+        $trans = array(
+            'Mon' => 'Mo',
+            'Tue' => 'Di',
+            'Wed' => 'Mi',
+            'Thu' => 'Do',
+            'Fri' => 'Fr',
+            'Sat' => 'Sa',
+            'Sun' => 'So',
+        );
+
+        $divisionCourseNameList = array();
+        $teachers = array();
+        if (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                $divisionCourseNameList[] = $tblDivisionCourse->getName();
+                // Lerngruppe
+                if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
+                    if (($tblTeacherList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
+                        $tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER
+                    ))) {
+                        foreach ($tblTeacherList as $tblPerson) {
+                            $teachers[] = $this->getTeacherName($tblPerson);
+                        }
+                    }
+                // Lehraufträge
+                } else {
+                    if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(null, null, $tblDivisionCourse, $tblSubject))) {
+                        foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                            if (($tblPerson = $tblTeacherLectureship->getServiceTblPerson())) {
+                                $teachers[] = $this->getTeacherName($tblPerson);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $content = implode(', ', $divisionCourseNameList) . ' ' . $tblSubject->getAcronym() . ' ' . $tblGradeType->getCode() . ' ' . $tblTest->getDescription()
+            . '<br>' . strtr(date('D', strtotime($tblTest->getDateString())), $trans) . ' ' . $tblTest->getDateString() . ' - ' . implode(', ', $teachers);
+
+        return new ToolTip($tblGradeType->getIsHighlighted()
+            ? new Bold($content)
+            : $content, 'Erstellt am: ' . $tblTest->getEntityCreate()->format('d.m.Y H:i'));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private function getTeacherName(TblPerson $tblPerson): string
+    {
+        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
+            && ($acronym = $tblTeacher->getAcronym())
+        ) {
+            return $acronym;
+        } else {
+            return $tblPerson->getLastName();
+        }
     }
 }

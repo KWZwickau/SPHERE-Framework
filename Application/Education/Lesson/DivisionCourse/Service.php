@@ -1556,4 +1556,59 @@ class Service extends ServiceTeacher
             ? false
             : ($isString ? implode(", ", $resultList) : $resultList);
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getDivisionCourseListByStudentAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        $tblDivisionCourseList = array();
+        if (($tblStudentEducation = $this->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+            if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                $tblDivisionCourseList[$tblDivision->getId()] = $tblDivision;
+            }
+            if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                $tblDivisionCourseList[$tblCoreGroup->getId()] = $tblCoreGroup;
+            }
+        }
+        if (($tblDivisionCourseMemberList = $this->getDivisionCourseMemberListByPersonAndYearAndMemberType(
+            $tblPerson, $tblYear, $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT)
+        ))) {
+            foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                if (($tblDivisionCourse = $tblDivisionCourseMember->getTblDivisionCourse())) {
+                    $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                }
+            }
+        }
+
+        return empty($tblDivisionCourseList) ? false : $tblDivisionCourseList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getDivisionCourseListByStudentsInDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        $tblDivisionCourseList = array();
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tempList = $this->getDivisionCourseListByStudentAndYear($tblPerson, $tblYear))) {
+                    foreach ($tempList as $item) {
+                        if (!isset($tblDivisionCourseList[$item->getId()])) {
+                            $tblDivisionCourseList[$item->getId()] = $item;
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($tblDivisionCourseList) ? false : $tblDivisionCourseList;
+    }
 }

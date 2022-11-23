@@ -420,6 +420,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param DateTime $FromDate
+     * @param DateTime $ToDate
+     *
+     * @return TblTest[]|false
+     */
+    public function getTestListBetween(TblDivisionCourse $tblDivisionCourse, DateTime $FromDate, DateTime $ToDate)
+    {
+        return (new Data($this->getBinding()))->getTestListBetween($tblDivisionCourse, $FromDate, $ToDate);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
