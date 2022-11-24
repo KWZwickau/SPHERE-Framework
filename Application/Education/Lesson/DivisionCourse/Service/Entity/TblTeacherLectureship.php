@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity;
 
-use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -347,6 +346,20 @@ class TblTeacherLectureship extends Element
             && ($tblDivisionCourse = $this->getTblDivisionCourse())
         ) {
             return $tblPerson->getLastFirstName() . '_' . $tblSubject->getName() . '_' . $tblDivisionCourse->getName();
+        }
+
+        return '';
+    }
+
+    /**
+     * für Sortierung
+     *
+     * @return string
+     */
+    public function getSortCourseName(): string
+    {
+        if (($tblDivisionCourse = $this->getTblDivisionCourse())) {
+            return $tblDivisionCourse->getName();
         }
 
         return '';

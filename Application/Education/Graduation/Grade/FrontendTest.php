@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacher
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -184,7 +185,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
             )),
             new FormRow(array(
                 new FormColumn(
-                    $this->getDivisionCoursesSelectContent($SubjectId)
+                    $this->getDivisionCoursesSelectContent($SubjectId, $Filter)
                 )
             )),
             new FormRow(array(
@@ -205,40 +206,76 @@ abstract class FrontendTest extends FrontendTeacherGroup
 
     /**
      * @param $SubjectId
+     * @param $Filter
      *
      * @return Layout|Warning
      */
-    public function getDivisionCoursesSelectContent($SubjectId)
+    public function getDivisionCoursesSelectContent($SubjectId, $Filter)
     {
-        if (($tblSubject = Subject::useService()->getSubjectById($SubjectId))
-            && ($tblPerson = Account::useService()->getPersonByLogin())
-            && ($tblYear = Grade::useService()->getYear())
-            && ($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPerson, null, $tblSubject))
-        ) {
-            $size = 3;
-            $columnList = array();
-            $contentPanelList = array();
+        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
+            return new Warning('Fach wurde nicht gefunden.', new Exclamation());
+        }
+        if (!($tblYear = Grade::useService()->getYear())) {
+            return new Warning('Schuljahr wurde nicht gefunden.', new Exclamation());
+        }
 
-            // Lehraufträge
-            $tblTeacherLectureshipList = $this->getSorter($tblTeacherLectureshipList)->sortObjectBy('Sort');
-            /** @var TblTeacherLectureship $tblTeacherLectureship */
-            foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
-                if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())) {
-                    $contentPanelList[$tblDivisionCourse->getType()->getId()][]
-                        = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1))
-                        ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
+        $size = 3;
+        $columnList = array();
+        $contentPanelList = array();
+
+        // Schulleitung
+        if (($role = Grade::useService()->getRole()) && $role == 'Headmaster') {
+            $tblSchoolType = isset($Filter["SchoolType"]) ? Type::useService()->getTypeById($Filter["SchoolType"]) : false;
+            if ($tblSchoolType
+                && ($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, null, null, $tblSubject))
+            ) {
+                // Lehraufträge
+                $tblTeacherLectureshipList = $this->getSorter($tblTeacherLectureshipList)->sortObjectBy('SortCourseName');
+                /** @var TblTeacherLectureship $tblTeacherLectureship */
+                foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                    if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
+                        && (!isset($contentPanelList[$tblDivisionCourse->getType()->getId()][$tblDivisionCourse->getId()]))
+                    ) {
+                        if (!($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                            || !isset($tblSchoolTypeList[$tblSchoolType->getId()])
+                        ) {
+                            continue;
+                        }
+
+                        $contentPanelList[$tblDivisionCourse->getType()->getId()][$tblDivisionCourse->getId()]
+                            = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1))
+                                ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
+                    }
                 }
             }
+        // Lehrer
+        } else {
+            if (($tblPerson = Account::useService()->getPersonByLogin())
+                && ($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPerson, null, $tblSubject))
+            ) {
+                // Lehraufträge
+                $tblTeacherLectureshipList = $this->getSorter($tblTeacherLectureshipList)->sortObjectBy('Sort');
+                /** @var TblTeacherLectureship $tblTeacherLectureship */
+                foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                    if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())) {
+                        $contentPanelList[$tblDivisionCourse->getType()->getId()][]
+                            = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1))
+                                ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
+                    }
+                }
 
-            // eigene Lerngruppen
-            if (($teacherGroupList = DivisionCourse::useService()->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear, $tblSubject))) {
-                foreach ($teacherGroupList as $tblDivisionCourse) {
-                    $contentPanelList[$tblDivisionCourse->getType()->getId()][]
-                        = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1))
-                        ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
+                // eigene Lerngruppen
+                if (($teacherGroupList = DivisionCourse::useService()->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear, $tblSubject))) {
+                    foreach ($teacherGroupList as $tblDivisionCourse) {
+                        $contentPanelList[$tblDivisionCourse->getType()->getId()][]
+                            = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1))
+                                ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
+                    }
                 }
             }
+        }
 
+        if (!empty($contentPanelList)) {
             ksort($contentPanelList);
             foreach ($contentPanelList as $typeId => $content) {
                 if (($tblDivisionCourseType = DivisionCourse::useService()->getDivisionCourseTypeById($typeId))) {
@@ -250,9 +287,9 @@ abstract class FrontendTest extends FrontendTeacherGroup
                 Grade::useService()->getLayoutRowsByLayoutColumnList($columnList, $size),
                 new Title("Kurs-Auswahl")
             ));
+        } else {
+            return new Warning('Keine entsprechenden Lehraufträge gefunden.', new Exclamation());
         }
-
-        return new Warning('Keine entsprechenden Lehraufträge gefunden', new Exclamation());
     }
 
     /**

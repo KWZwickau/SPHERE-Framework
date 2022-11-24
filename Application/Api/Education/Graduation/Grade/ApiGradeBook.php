@@ -369,6 +369,7 @@ class ApiGradeBook extends Extension implements IApiInterface
         $returnDate = $this->getDateTime('ReturnDate', $Data);
         $isContinues = isset($Data['IsContinues']);
         $description = $Data['Description'];
+        $newTestId = null;
 
         if (($tblTest = Grade::useService()->getTestById($TestId))) {
             Grade::useService()->updateTest($tblTest, $tblGradeType, $date, $finishDate, $correctionDate, $returnDate, $isContinues, $description);
@@ -418,11 +419,17 @@ class ApiGradeBook extends Extension implements IApiInterface
 
                     Grade::useService()->createEntityListBulk($createList);
                 }
+
+                $newTestId = $tblTestNew->getId();
             }
         }
 
+        $now = new DateTime('now');
+
         return new Success("Leistungsüberprüfung wurde erfolgreich gespeichert.")
-            . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
+            . ($newTestId && $date && $date <= $now
+                ? self::pipelineLoadViewTestGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $newTestId)
+                : self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter));
     }
 
     /**
