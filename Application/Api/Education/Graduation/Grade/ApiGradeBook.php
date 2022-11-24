@@ -547,13 +547,17 @@ class ApiGradeBook extends Extension implements IApiInterface
         if (!($tblTest = Grade::useService()->getTestById($TestId))) {
             return (new Danger("Leistungsüberprüfung wurde nicht gefunden!", new Exclamation()));
         }
+        if (!($tblYear = $tblTest->getServiceTblYear())) {
+            return (new Danger("Schuljahr wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
+            return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
+        }
 
-        // todo
-//        if (($form = Grade::useService()->checkFormTestGrades($Data, $DivisionCourseId, $SubjectId, $Filter, $TestId))) {
-//            // display Errors on form
-//            // todo
-//            return Grade::useFrontend()->getTestEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TestId);
-//        }
+        if (($form = Grade::useService()->checkFormTestGrades($Data, $tblTest, $tblYear, $tblSubject, $DivisionCourseId, $Filter))) {
+            // display Errors on form
+            return Grade::useFrontend()->getTestGradesEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TestId);
+        }
 
         $createList = array();
         $updateList = array();

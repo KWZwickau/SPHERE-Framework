@@ -24,6 +24,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -515,26 +516,49 @@ class Service extends AbstractService
         }
     }
 
-    public function checkFormTestGrades($Data, $DivisionCourseId, $SubjectId, $Filter, $TestId)
+    /**
+     * @param $Data
+     * @param TblTest $tblTest
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param $DivisionCourseId
+     * @param $Filter
+     *
+     * @return false|Form
+     */
+    public function checkFormTestGrades($Data, TblTest $tblTest, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId, $Filter)
     {
-        // todo
-        $error = false;
-//        $form = Grade::useFrontend()->formTest($DivisionCourseId, $SubjectId, $Filter, $TestId, false, $Data);
-
-        if($Data) {
+        $errorList = array();
+        if ($Data) {
             foreach ($Data as $personId => $item) {
+                if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                    // todo pattern abhängig vom Bewertungssystem prüfen
 
+                    $comment = trim($item['Comment']);
+                    $grade = str_replace(',', '.', trim($item['Grade']));
+                    $isNotAttendance = isset($item['Attendance']);
+                    $date = !empty($item['Date']) ? new DateTime($item['Date']) : null;
+
+                    $hasGradeValue = (!empty($grade) && $grade != -1) || $isNotAttendance;
+                    $gradeValue = $isNotAttendance ? null : $grade;
+
+                    // Grund bei Noten-Änderung angeben
+                    if ($hasGradeValue
+                        && empty($comment)
+                        && ($tblTestGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson))
+                        && $gradeValue != $tblTestGrade->getGrade()
+                    ) {
+                        $errorList[$personId]['Comment'] = true;
+                    }
+
+                    // Datum ist Pflicht, bei fortlaufendem Test ohne Datum
+                    if ($hasGradeValue && !$isNotAttendance && $tblTest->getIsContinues() && !$tblTest->getFinishDate() && !$date) {
+                        $errorList[$personId]['Date'] = true;
+                    }
+                }
             }
         }
-//        if (!isset($Data['GradeType']) || !(Grade::useService()->getGradeTypeById($Data['GradeType']))) {
-//            $form->setError('Data[GradeType]', 'Bitte wählen Sie einen Zensuren-Typ aus');
-//            $error = true;
-//        }
-//        if (isset($Data['Date']) && empty($Data['Date'])) {
-//            $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
-//            $error = true;
-//        }
 
-        return $error ? $form : false;
+        return empty($errorList) ? false : Grade::useFrontend()->formTestGrades($tblTest, $tblYear, $tblSubject, $DivisionCourseId, $Filter, false, $errorList);
     }
 }

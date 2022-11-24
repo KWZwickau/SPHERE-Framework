@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -427,41 +428,105 @@ abstract class FrontendTest extends FrontendTeacherGroup
      */
     public function loadViewTestGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId): string
     {
+        if (!($tblTest = Grade::useService()->getTestById($TestId))) {
+            return (new Danger("Leistungsüberprüfung wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblYear = $tblTest->getServiceTblYear())) {
+            return (new Danger("Schuljahr wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
+            return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
+        }
+
+        $form = $this->formTestGrades($tblTest, $tblYear, $tblSubject, $DivisionCourseId, $Filter, true);
+
+        return $this->getTestGradesEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TestId);
+    }
+
+    /**
+     * @param $form
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return string
+     */
+    public function getTestGradesEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TestId): string
+    {
         $textSubject = '';
         if (($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             $textSubject = new Bold($tblSubject->getDisplayName());
         }
 
         if (($tblTest = Grade::useService()->getTestById($TestId))
-            && ($tblYear = $tblTest->getServiceTblYear())
-            && ($tblSubject)
+            && $tblSubject
         ) {
-            $headerList = array();
-            $bodyList = array();
+            $content = new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Zensuren-Typ', $tblTest->getGradeTypeDisplayName(), Panel::PANEL_TYPE_INFO)
+                            , 3),
+                        new LayoutColumn(
+                            new Panel('Beschreibung', $tblTest->getDescription(), Panel::PANEL_TYPE_INFO)
+                            , 9),
+                    ))
+                )))
+                . $form;
+        } else {
+            $content = new Danger("Leistungsüberprüfung nicht gefunden.", new Exclamation());
+        }
 
-            $tblPersonList = array();
-            $integrationList = array();
-            $pictureList = array();
-            $courseList = array();
-            if (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    if (($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses())) {
-                        foreach ($tempPersons as $tblPersonTemp) {
-                            if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(
-                                    $tblPersonTemp, $tblYear, $tblSubject
-                                ))
-                                && $tblVirtualSubject->getHasGrading()
-                                && !isset($tblPersonList[$tblPersonTemp->getId()])
-                            ) {
-                                Grade::useService()->setStudentInfo($tblPersonTemp, $tblYear, $integrationList, $pictureList, $courseList);
-                                $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
-                            }
+        return new Title(
+                (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
+                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter))
+                . "&nbsp;&nbsp;&nbsp;&nbsp; Leistungsüberprüfung" . new Muted(new Small(" Zensuren eintragen im Fach: ")) . $textSubject
+            )
+            . ApiSupportReadOnly::receiverOverViewModal()
+            . ApiPersonPicture::receiverModal()
+            . $content;
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param $DivisionCourseId
+     * @param $Filter
+     * @param bool $setPost
+     * @param null $Errors
+     *
+     * @return Form
+     */
+    public function formTestGrades(TblTest $tblTest, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId, $Filter, bool $setPost = false, $Errors = null): Form
+    {
+        $headerList = array();
+        $bodyList = array();
+
+        $tblPersonList = array();
+        $integrationList = array();
+        $pictureList = array();
+        $courseList = array();
+        if (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                    foreach ($tempPersons as $tblPersonTemp) {
+                        if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(
+                                $tblPersonTemp, $tblYear, $tblSubject
+                            ))
+                            && $tblVirtualSubject->getHasGrading()
+                            && !isset($tblPersonList[$tblPersonTemp->getId()])
+                        ) {
+                            Grade::useService()->setStudentInfo($tblPersonTemp, $tblYear, $integrationList, $pictureList, $courseList);
+                            $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
                         }
                     }
                 }
             }
+        }
 
-            $tblGradeList = array();
+        $tblGradeList = array();
+        if ($setPost) {
             if (($tempGrades = $tblTest->getGrades())) {
                 $global = $this->getGlobal();
                 foreach ($tempGrades as $tblTestGrade) {
@@ -475,7 +540,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
                         $global->POST['Data'][$tblPersonGrade->getId()]['Comment'] = $tblTestGrade->getComment();
                         $global->POST['Data'][$tblPersonGrade->getId()]['PublicComment'] = $tblTestGrade->getPublicComment();
                         if ($tblTest->getIsContinues()) {
-                            $global->POST['Data'][$tblPersonGrade->getId()]['Date'] = $tblTestGrade->getDate();
+                            $global->POST['Data'][$tblPersonGrade->getId()]['Date'] = $tblTestGrade->getDateString();
                         }
 
                         // weitere Zensuren von Schüler welche nicht mehr im Kurs sind
@@ -490,122 +555,112 @@ abstract class FrontendTest extends FrontendTeacherGroup
                 }
                 $global->savePost();
             }
-
-            $headerList['Number'] = '#';
-            $headerList['Person'] = 'Schüler';
-            if (($hasPicture = !empty($pictureList))) {
-                $headerList['Picture'] = 'Fo&shy;to';
-            }
-            if (($hasIntegration = !empty($integrationList))) {
-                $headerList['Integration'] = 'Inte&shy;gra&shy;tion';
-            }
-            if (($hasCourse = !empty($courseList))) {
-                $headerList['Course'] = new ToolTip('BG', 'Bildungsgang');
-            }
-            $headerList['Grade'] = 'Zensur';
-            if ($tblTest->getIsContinues()) {
-                $headerList['Date'] = 'Datum' . ($tblTest->getFinishDateString() ? ' (' . $tblTest->getFinishDateString() . ')' : '');
-            }
-            $headerList['Comment'] = 'Vermerk Noten&shy;änderung';
-            $headerList['Attendance'] = 'Nicht teil&shy;genommen';
-            $headerList['PublicComment'] = 'Kommentar für Eltern-/Schülerzugang';
-
-            if ($tblPersonList) {
-                $count = 0;
-                $tabIndex = 1;
-
-                // todo bewertungssystem abhängig vom Schüler
-                $selectList[-1] = '';
-                for ($i = 1; $i < 6; $i++) {
-                    $selectList[$i . '+'] = (string)($i . '+');
-                    $selectList[$i] = (string)($i);
-                    $selectList[$i . '-'] = (string)($i . '-');
-                }
-                $selectList[6] = 6;
-
-                foreach ($tblPersonList as $tblPerson) {
-                    /** @var TblTestGrade $tblGrade */
-                    $tblGrade = $tblGradeList[$tblPerson->getId()] ?? false;
-
-                    $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
-                    $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
-
-                    if ($hasPicture) {
-                        $bodyList[$tblPerson->getId()]['Picture'] = $this->getTableColumnBody($pictureList[$tblPerson->getId()] ?? '&nbsp;');
-                    }
-                    if ($hasIntegration) {
-                        $bodyList[$tblPerson->getId()]['Integration'] = $this->getTableColumnBody($integrationList[$tblPerson->getId()] ?? '&nbsp;');
-                    }
-                    if ($hasCourse) {
-                        $bodyList[$tblPerson->getId()]['Course'] = $this->getTableColumnBody($courseList[$tblPerson->getId()] ?? '&nbsp;');
-                    }
-
-                    // todo verschiedene Bewertungssysteme
-                    $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
-                        ->setTabIndex($tabIndex++);
-                    $bodyList[$tblPerson->getId()]['Grade'] = $selectComplete;
-
-                    if ($tblTest->getIsContinues()) {
-                        $bodyList[$tblPerson->getId()]['Date']
-                            = (new DatePicker('Data[' . $tblPerson->getId() . '][Date]', '', '', null, array('widgetPositioning' => array('vertical' => 'bottom'))))
-                                ->setTabIndex($tabIndex++);
-                    }
-                    $bodyList[$tblPerson->getId()]['Comment']
-                        = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '',
-                            new Comment()))->setTabIndex(1000 + $tabIndex)->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
-                    $bodyList[$tblPerson->getId()]['Attendance'] =
-                        (new CheckBox('Data[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(2000 + $tabIndex);
-                    $bodyList[$tblPerson->getId()]['PublicComment'] = (new TextField('Data[' . $tblPerson->getId() . '][PublicComment]',
-                        'z.B.: für Betrugsversuch', '', new Comment()))->setTabIndex(1000 + $tabIndex);
-                }
-            }
-
-            $content = new Layout(new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Zensuren-Typ', $tblTest->getGradeTypeDisplayName(), Panel::PANEL_TYPE_INFO)
-                            , 3),
-                        new LayoutColumn(
-                            new Panel('Beschreibung', $tblTest->getDescription(), Panel::PANEL_TYPE_INFO)
-                            , 9),
-                    ))
-                )))
-                . (new Form(new FormGroup(array(
-                    new FormRow(new FormColumn(
-                        new TableData($bodyList, null, $headerList,
-                            array(
-                                "paging"         => false, // Deaktivieren Blättern
-                                "iDisplayLength" => -1,    // Alle Einträge zeigen
-                                "searching"      => false, // Deaktivieren Suchen
-                                "info"           => false,  // Deaktivieren Such-Info
-                                "responsive"   => false,
-                                'order'      => array(
-                                    array('0', 'asc'),
-                                ),
-                                'columnDefs' => array(
-                                    array('orderable' => false, 'targets' => '_all'),
-                                ),
-                            )
-                        )
-                    )),
-                    new FormRow(new FormColumn(array(
-                        (new Primary('Speichern', ApiGradeBook::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineSaveTestGradeEdit($DivisionCourseId, $SubjectId, $Filter, $TestId)),
-                        (new Standard('Abbrechen', ApiGradeBook::getEndpoint(), new Disable()))
-                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter)
-                    )))
-                )))))->disableSubmitAction();
-        } else {
-            $content = new Danger("Leistungsüberprüfung nicht gefunden.", new Exclamation());
         }
 
-        return new Title(
-                (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
-                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter))
-                . "&nbsp;&nbsp;&nbsp;&nbsp; Leistungsüberprüfung" . new Muted(new Small(" Zensuren eintragen im Fach: ")) . $textSubject
+        $headerList['Number'] = '#';
+        $headerList['Person'] = 'Schüler';
+        if (($hasPicture = !empty($pictureList))) {
+            $headerList['Picture'] = 'Fo&shy;to';
+        }
+        if (($hasIntegration = !empty($integrationList))) {
+            $headerList['Integration'] = 'Inte&shy;gra&shy;tion';
+        }
+        if (($hasCourse = !empty($courseList))) {
+            $headerList['Course'] = new ToolTip('BG', 'Bildungsgang');
+        }
+        $headerList['Grade'] = 'Zensur';
+        if ($tblTest->getIsContinues()) {
+            $headerList['Date'] = 'Datum' . ($tblTest->getFinishDateString() ? ' (' . $tblTest->getFinishDateString() . ')' : '');
+        }
+        $headerList['Comment'] = 'Vermerk Noten&shy;änderung';
+        $headerList['Attendance'] = 'Nicht teil&shy;genommen';
+        $headerList['PublicComment'] = 'Kommentar für Eltern-/Schülerzugang';
+
+        if ($tblPersonList) {
+            $count = 0;
+            $tabIndex = 1;
+
+            // todo bewertungssystem abhängig vom Schüler
+            $selectList[-1] = '';
+            for ($i = 1; $i < 6; $i++) {
+                $selectList[$i . '+'] = (string)($i . '+');
+                $selectList[$i] = (string)($i);
+                $selectList[$i . '-'] = (string)($i . '-');
+            }
+            $selectList[6] = 6;
+
+            foreach ($tblPersonList as $tblPerson) {
+                /** @var TblTestGrade $tblGrade */
+                $tblGrade = $tblGradeList[$tblPerson->getId()] ?? false;
+
+                $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
+                $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
+
+                if ($hasPicture) {
+                    $bodyList[$tblPerson->getId()]['Picture'] = $this->getTableColumnBody($pictureList[$tblPerson->getId()] ?? '&nbsp;');
+                }
+                if ($hasIntegration) {
+                    $bodyList[$tblPerson->getId()]['Integration'] = $this->getTableColumnBody($integrationList[$tblPerson->getId()] ?? '&nbsp;');
+                }
+                if ($hasCourse) {
+                    $bodyList[$tblPerson->getId()]['Course'] = $this->getTableColumnBody($courseList[$tblPerson->getId()] ?? '&nbsp;');
+                }
+
+                // todo verschiedene Bewertungssysteme
+                $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
+                    ->setTabIndex($tabIndex++);
+                $bodyList[$tblPerson->getId()]['Grade'] = $selectComplete;
+
+                if ($tblTest->getIsContinues()) {
+                    $datePicker = (new DatePicker('Data[' . $tblPerson->getId() . '][Date]', '', '', null, array('widgetPositioning' => array('vertical' => 'bottom'))))
+                        ->setTabIndex($tabIndex++);
+                    if (isset($Errors[$tblPerson->getId()]['Date'])) {
+                        $datePicker->setError('Bitte geben Sie ein Datum an');
+                    }
+                    $bodyList[$tblPerson->getId()]['Date'] = $datePicker;
+                }
+                $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))
+                    ->setTabIndex(1000 + $tabIndex)
+                    ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
+                if (isset($Errors[$tblPerson->getId()]['Comment'])) {
+                    $textFieldComment->setError('Bitte geben Sie einen Änderungsgrund an');
+                }
+                $bodyList[$tblPerson->getId()]['Comment'] = $textFieldComment;
+                $bodyList[$tblPerson->getId()]['Attendance'] = (new CheckBox('Data[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(2000 + $tabIndex);
+                $bodyList[$tblPerson->getId()]['PublicComment'] =
+                    (new TextField('Data[' . $tblPerson->getId() . '][PublicComment]', 'z.B.: für Betrugsversuch', '', new Comment()))->setTabIndex(1000 + $tabIndex);
+            }
+        }
+
+        $formRows[] = new FormRow(new FormColumn(
+            new TableData($bodyList, null, $headerList,
+                array(
+                    "paging"         => false, // Deaktivieren Blättern
+                    "iDisplayLength" => -1,    // Alle Einträge zeigen
+                    "searching"      => false, // Deaktivieren Suchen
+                    "info"           => false,  // Deaktivieren Such-Info
+                    "responsive"   => false,
+                    'order'      => array(
+                        array('0', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('orderable' => false, 'targets' => '_all'),
+                    ),
+                )
             )
-            . ApiSupportReadOnly::receiverOverViewModal()
-            . ApiPersonPicture::receiverModal()
-            . $content;
+        ));
+        if ($Errors) {
+            $formRows[] = new FormRow(new FormColumn(
+                new Danger("Die Zensuren wurden nicht gespeichert. Bitte überprüfen Sie die Fehlermeldungen oben.", new Exclamation())
+            ));
+        }
+        $formRows[] = new FormRow(new FormColumn(array(
+            (new Primary('Speichern', ApiGradeBook::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiGradeBook::pipelineSaveTestGradeEdit($DivisionCourseId, $tblSubject->getId(), $Filter, $tblTest->getId())),
+            (new Standard('Abbrechen', ApiGradeBook::getEndpoint(), new Disable()))
+                ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $tblSubject->getId(), $Filter))
+        )));
+
+        return (new Form(new FormGroup($formRows)))->disableSubmitAction();
     }
 }
