@@ -245,19 +245,25 @@ class Service
             'Krankenkasse'         => null,
             'Hort'                 => null,
             'Abholberechtigte'     => null,
+            // additional
+            'Eintritt_Kind'          => null,
+            'Staatliche_Stammschule' => null,
+            'Einschulungsart'        => null,   //
+            'Kind_Bemerkung'         => null,   // Personenbemerkung nach Import vielleicht nochmal in Schüler_Bemerkung umbenennen
+            'Kindergarten'           => null,   // ToDO was wird mit Wahr/Falsch?
 
             // Zusatz EKBO -> ESBZ
-            'CUST_UserName' => null,
-            'ImpUserName' => null,
-            'BC_Kontakt_Nr' => null,
+            'CUST_UserName'    => null,
+            'ImpUserName'      => null,
+            'BC_Kontakt_Nr'    => null,
             'S1_BC_Kontakt_Nr' => null,
             'S1_E_Mail_privat' => null,
             'S2_BC_Kontakt_Nr' => null,
             'S2_E_Mail_privat' => null,
-            'KL' => null,
-            'Team' => null,
-            'Gruppe' => null,
-            'Hort_Modul' => null,
+//            'KL'               => null,
+//            'Team'             => null,
+//            'Gruppe'           => null,
+//            'Hort_Modul'       => null,
         );
 
         $unKnownColumns = array();
@@ -317,22 +323,6 @@ class Service
             $cityCode = $this->getValue('PLZ');
             $tblPerson = Person::useService()->existsPerson($firstName, $lastName, $cityCode);
             if($tblPerson){
-
-                // Schulverlauf aus zweiter Datei KWS
-                if(($tblAccount =  Account::useService()->getAccountBySession())
-                    && ($tblConsumer = $tblAccount->getServiceTblConsumer())
-                    && ($tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'KWS') || $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA'))
-                ){
-                    // division
-                    $divisionString = $this->getValue('Klasse/Kurs');
-                    $schoolType = $this->getValue('Schulart');
-                    $school = $this->getValue('Schule');
-                    $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $school, $this->RunY, $Nr, $error);
-                    $error[] = new WarningText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($this->RunY + 1))).' Schüler '.$tblPerson->getLastFirstName()
-                        .' wurde im Schuljahr '.$YearString.' in Klasse '.$divisionString.' gesetzt';
-                    continue;
-                }
-
                 $error[] = new DangerText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($this->RunY + 1))).' Schüler '.$tblPerson->getLastFirstName()
                     .' wurde nicht hinzugefügt. "bereits vorhanden"';
                 continue;
@@ -347,35 +337,34 @@ class Service
                 false, $this->RunY + 1);
 
             // ESBZ "Name" vor Stammgruppen
-//            if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
-                $isCoreGroup = true;
-                $kl = $this->getValue('KL');
-                if($kl){
-                    $kl = 'Klasse '.$kl;
-                    $this->setPersonGroup($tblPerson, $kl, $isCoreGroup);
-                }
-                $team = $this->getValue('Team');
-                if($team){
-                    $team = 'Team '.$team;
-                    $this->setPersonGroup($tblPerson, $team, $isCoreGroup);
-                }
-                $group = $this->getValue('Gruppe');
-                if($group){
-                    $group = 'Gruppe '.$group;
-                    $this->setPersonGroup($tblPerson, $group);
-                }
-                $HortModule = $this->getValue('Hort_Modul');
-                if($HortModule){
-                    $HortModule = 'Hort '.$HortModule.'h';
-                    $this->setPersonGroup($tblPerson, $HortModule);
-                }
+////            if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
+//                $isCoreGroup = true;
+//                $kl = $this->getValue('KL');
+//                if($kl){
+//                    $kl = 'Klasse '.$kl;
+//                    $this->setPersonGroup($tblPerson, $kl, $isCoreGroup);
+//                }
+//                $team = $this->getValue('Team');
+//                if($team){
+//                    $team = 'Team '.$team;
+//                    $this->setPersonGroup($tblPerson, $team, $isCoreGroup);
+//                }
+//                $group = $this->getValue('Gruppe');
+//                if($group){
+//                    $group = 'Gruppe '.$group;
+//                    $this->setPersonGroup($tblPerson, $group);
+//                }
+//                $HortModule = $this->getValue('Hort_Modul');
+//                if($HortModule){
+//                    $HortModule = 'Hort '.$HortModule.'h';
+//                    $this->setPersonGroup($tblPerson, $HortModule);
+//                }
+////            }
+//            $Group = $this->getValue('Gruppe');
+//            if($Group !== ''){
+//                $Group = 'Gruppe '.$Group;
+//                $this->setPersonGroup($tblPerson, $Group);
 //            }
-
-            $Group = $this->getValue('Gruppe');
-            if($Group !== ''){
-                $Group = 'Gruppe '.$Group;
-                $this->setPersonGroup($tblPerson, $Group);
-            }
 
             $countStudent++;
 
@@ -385,18 +374,31 @@ class Service
             $birthPlace = $this->getValue('Geburtsort');
             $nationality = $this->getValue('Staatsangehörigkeit');
             $denomination = $this->getValue('Konfession');
+            $remarkString = $this->getValue('Kind_Bemerkung');
             $remark = $this->getValue('Abholberechtigte');
             if ($remark != '') {
-                $remark = 'Abholberechtigte: ' . $remark;
+                $remarkString .= 'Abholberechtigte: ' . $remark;
             }
             $contactNumber = $this->getValue('BC_Kontakt_Nr');
 
-            $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remark, $contactNumber, $this->RunY, $Nr, $error);
+            $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remarkString, $contactNumber, $this->RunY, $Nr, $error);
 
             // student
             $Identification = $this->getValue('Schüler_Nr');
             $schoolAttendanceStartDate = $this->getValue('Schulpflichtbeginn');
             $enrollmentDate = $this->getValue('Ersteinschulung_Datum');
+            // Schule anlegen
+            $arriveSchool = $this->getValue('Staatliche_Stammschule');
+            $tblCompanyStammschule = false;
+            if($arriveSchool){
+                $tblCompanyStammschule = $this->setInsertCompany($arriveSchool, '', '', '', '', 'X');
+            }
+            $arriveDate = $this->getValue('Eintritt_Kind');
+            $schoolEnrollmentType = $this->getValue('Einschulungsart');
+            $tblStudentSchoolEnrollmentType = false;
+            if($schoolEnrollmentType){
+                $tblStudentSchoolEnrollmentType = Student::useService()->getStudentSchoolEnrollmentTypeByName($schoolEnrollmentType);
+            }
             $school = $this->getValue('Schule');
             // medicine
             $tblStudentMedicalRecord = null;
@@ -405,22 +407,21 @@ class Service
             $insurance = $this->getValue('Krankenkasse');
             $religion = $this->getValue('Fach_Religion');
             $course = $this->getValue('Bildungsgang');
-            $this->setPersonTblStudent($tblPerson, $Identification, $schoolAttendanceStartDate, $disease, $medication,
-                $insurance, $religion, $course, $enrollmentDate, $school, $this->RunY, $Nr, $error);
+            $this->setPersonTblStudent($tblPerson, $Identification, $schoolAttendanceStartDate, $arriveDate, $disease, $medication,
+                $insurance, $religion, $course, $enrollmentDate, $school, $tblCompanyStammschule, $tblStudentSchoolEnrollmentType,
+                $this->RunY, $Nr, $error);
 
             // division
             $divisionString = $this->getValue('Klasse/Kurs');
             $schoolType = $this->getValue('Schulart');
             $school = $this->getValue('Schule');
-            $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $school, $this->RunY, $Nr, $error);
+            if(strtolower($schoolType) == strtolower(TblType::IDENT_KINDER_TAGES_EINRICHTUNG)
+            || strtolower($schoolType) == 'kinderhaus'){ // ToDO Kinderhaus nach Import wieder entfernen
+                $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $school, $this->RunY, $Nr, $error, true);
+            } else {
+                $this->setPersonDivision($tblPerson, $YearString, $divisionString, $schoolType, $school, $this->RunY, $Nr, $error);
+            }
 
-//            $DivisionChecked = $this->getValue('KL');
-//            if($DivisionChecked != ''){
-//                if(strlen($DivisionChecked) < 2){
-//                    $DivisionChecked = '0'.$DivisionChecked;
-//                }
-//                $this->setPersonDivision($tblPerson, $YearString, $DivisionChecked, $schoolType, $school, $this->RunY, $Nr, $error, true);
-//            }
 
             // address
             $streetName = $this->getValue('Straße');
@@ -1898,13 +1899,13 @@ class Service
                         $division = '';
                     }
                 }
-                // Klassen erhalten den Zusatz JG
-                if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_BERLIN, 'ESBZ')){
-                    $division .= 'JG';
-                }
 
                 $schoolType = strtolower($schoolType);
                 switch($schoolType){
+                    case 'kinderhaus':
+                    case 'kindertageseinrichtung':
+                        $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_KINDER_TAGES_EINRICHTUNG);
+                    break;
                     case 'gs':
                     case 'grundschule':
                         $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_GRUND_SCHULE);
@@ -1960,7 +1961,7 @@ class Service
                 }
 
                 if($tblSchoolType && $level !== false){
-                    $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level, '', $isChecked);
+                    $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level,);
                     if ($tblLevel) {
                         $tblDivision = Division::useService()->insertDivision(
                             $tblYear,
@@ -2124,8 +2125,9 @@ class Service
      * @param string $Nr
      * @param array $error
      */
-    private function setPersonTblStudent(TblPerson $tblPerson, $Identification, $schoolAttendanceStartDate, $disease,
-        $medication, $insurance, $religion, $course, $enrollmentDate, $school, $RunY, $Nr, &$error)
+    private function setPersonTblStudent(TblPerson $tblPerson, $Identification, $schoolAttendanceStartDate, $arriveDate,
+        $disease, $medication, $insurance, $religion, $course, $enrollmentDate, $school, $tblCompanyStammschule,
+        $tblStudentSchoolEnrollmentType, $RunY, $Nr, &$error)
     {
         // controll conform DateTime string
         $schoolAttendanceStartDate = $this->checkDate($schoolAttendanceStartDate, 'Ungültiges Schulpflichtbeginn-Datum:', $RunY, $Nr, $error);
@@ -2136,7 +2138,7 @@ class Service
         }
 
         // Student
-        $tblStudent = Student::useService()->insertStudent($tblPerson, $Identification, $tblStudentMedicalRecord, null, null, null, null, null, $schoolAttendanceStartDate);
+        $tblStudent = Student::useService()->insertStudent($tblPerson, $Identification, $tblStudentMedicalRecord, null, null, null, null, null, $schoolAttendanceStartDate, false, false, null);
 
         if($religion){
             $tblSubject = Subject::useService()->getSubjectByAcronym($religion);
@@ -2169,6 +2171,20 @@ class Service
                 Student::useService()->insertStudentTransfer($tblStudent, $tblStudentTransferType, null, null, null,
                     $enrollmentDate ? $enrollmentDate : '');
             }
+        }
+
+        if ($enrollmentDate) {
+            if(($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::ARRIVE))){
+                $arriveDate = $this->checkDate($arriveDate, 'Ungültiges Aufnahme-Datum:', $RunY, $Nr, $error);
+            }
+            if(!$tblStudentSchoolEnrollmentType){
+                $tblStudentSchoolEnrollmentType = null;
+            }
+            if(!$tblCompanyStammschule){
+                $tblCompanyStammschule = null;
+            }
+            Student::useService()->insertStudentTransfer($tblStudent, $tblStudentTransferType, null,
+                null, null, $arriveDate ? $arriveDate : '', '', $tblCompanyStammschule, $tblStudentSchoolEnrollmentType);
         }
     }
 
