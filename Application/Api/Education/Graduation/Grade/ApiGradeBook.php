@@ -8,10 +8,12 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Graduation\Grade\Frontend;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -47,6 +49,7 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadTestPlanning');
 
         $Dispatcher->registerMethod('loadViewTestGradeEditContent');
+        $Dispatcher->registerMethod('saveTestGradeEdit');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -347,9 +350,6 @@ class ApiGradeBook extends Extension implements IApiInterface
      */
     public function saveTestEdit($DivisionCourseId, $SubjectId, $Filter, $TestId, $Data): string
     {
-        if (!($tblPerson = Account::useService()->getPersonByLogin())) {
-            return (new Danger("Person wurde nicht gefunden!", new Exclamation()));
-        }
         if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
         }
@@ -398,10 +398,10 @@ class ApiGradeBook extends Extension implements IApiInterface
             }
 
             if (!empty($createList)) {
-                Grade::useService()->createTestCourseLinkBulk($createList);
+                Grade::useService()->createEntityListBulk($createList);
             }
             if (!empty($removeList)) {
-                Grade::useService()->removeTestCourseLinkBulk($removeList);
+                Grade::useService()->deleteEntityListBulk($removeList);
             }
         } else {
             if (($tblTestNew = Grade::useService()->createTest(
@@ -416,7 +416,7 @@ class ApiGradeBook extends Extension implements IApiInterface
                         }
                     }
 
-                    Grade::useService()->createTestCourseLinkBulk($createList);
+                    Grade::useService()->createEntityListBulk($createList);
                 }
             }
         }
@@ -504,5 +504,104 @@ class ApiGradeBook extends Extension implements IApiInterface
     public function loadViewTestGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId): string
     {
         return Grade::useFrontend()->loadViewTestGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveTestGradeEdit($DivisionCourseId, $SubjectId, $Filter, $TestId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveTestGradeEdit'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter,
+            'TestId' => $TestId
+        ));
+        $ModalEmitter->setLoadingMessage("Wird bearbeitet");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     * @param $Data
+     *
+     * @return string
+     */
+    public function saveTestGradeEdit($DivisionCourseId, $SubjectId, $Filter, $TestId, $Data): string
+    {
+        if (!($tblTest = Grade::useService()->getTestById($TestId))) {
+            return (new Danger("Leistungsüberprüfung wurde nicht gefunden!", new Exclamation()));
+        }
+
+        // todo
+//        if (($form = Grade::useService()->checkFormTestGrades($Data, $DivisionCourseId, $SubjectId, $Filter, $TestId))) {
+//            // display Errors on form
+//            // todo
+//            return Grade::useFrontend()->getTestEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TestId);
+//        }
+
+        $createList = array();
+        $updateList = array();
+        $deleteList = array();
+        if($Data) {
+            $tblTeacher = Account::useService()->getPersonByLogin();
+            foreach ($Data as $personId => $item) {
+                if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                    $comment = trim($item['Comment']);
+                    $publicComment = trim($item['PublicComment']);
+                    $grade = str_replace(',', '.', trim($item['Grade']));
+                    $isNotAttendance = isset($item['Attendance']);
+                    $date = !empty($item['Date']) ? new DateTime($item['Date']) : null;
+
+                    $hasGradeValue = (!empty($grade) && $grade != -1) || $isNotAttendance;
+                    $gradeValue = $isNotAttendance ? null : $grade;
+
+                    if (($tblTestGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson))) {
+                        if ($hasGradeValue) {
+                            $tblTestGrade->setDate($date);
+                            $tblTestGrade->setGrade($gradeValue);
+                            $tblTestGrade->setComment($comment);
+                            $tblTestGrade->setPublicComment($publicComment);
+                            $tblTestGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
+                            $updateList[] = $tblTestGrade;
+                        } else {
+                            $deleteList[] = $tblTestGrade;
+                        }
+                    } else {
+                        if ($hasGradeValue) {
+                            $createList[] = new TblTestGrade($tblPerson, $tblTest, $date, $gradeValue, $comment, $publicComment, $tblTeacher ?: null);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($createList)) {
+            Grade::useService()->createEntityListBulk($createList);
+        }
+        if (!empty($updateList)) {
+            Grade::useService()->updateEntityListBulk($updateList);
+        }
+        if (!empty($deleteList)) {
+            Grade::useService()->deleteEntityListBulk($deleteList);
+        }
+
+        return new Success("Zensuren wurde erfolgreich gespeichert.")
+            . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
     }
 }

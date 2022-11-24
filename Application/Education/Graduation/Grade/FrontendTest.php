@@ -467,15 +467,15 @@ abstract class FrontendTest extends FrontendTeacherGroup
                 foreach ($tempGrades as $tblTestGrade) {
                     if (($tblPersonGrade = $tblTestGrade->getServiceTblPerson())) {
                         if ($tblTestGrade->getGrade() === null) {
-                            $global->POST['Grade'][$tblPersonGrade->getId()]['Attendance'] = 1;
+                            $global->POST['Data'][$tblPersonGrade->getId()]['Attendance'] = 1;
                         } else {
                             $gradeValue = str_replace('.', ',', $tblTestGrade->getGrade());
-                            $global->POST['Grade'][$tblPersonGrade->getId()]['Grade'] = $gradeValue;
+                            $global->POST['Data'][$tblPersonGrade->getId()]['Grade'] = $gradeValue;
                         }
-                        $global->POST['Grade'][$tblPersonGrade->getId()]['Comment'] = $tblTestGrade->getComment();
-                        $global->POST['Grade'][$tblPersonGrade->getId()]['PublicComment'] = $tblTestGrade->getPublicComment();
+                        $global->POST['Data'][$tblPersonGrade->getId()]['Comment'] = $tblTestGrade->getComment();
+                        $global->POST['Data'][$tblPersonGrade->getId()]['PublicComment'] = $tblTestGrade->getPublicComment();
                         if ($tblTest->getIsContinues()) {
-                            $global->POST['Grade'][$tblPersonGrade->getId()]['Date'] = $tblTestGrade->getDate();
+                            $global->POST['Data'][$tblPersonGrade->getId()]['Date'] = $tblTestGrade->getDate();
                         }
 
                         // weitere Zensuren von Schüler welche nicht mehr im Kurs sind
@@ -541,21 +541,21 @@ abstract class FrontendTest extends FrontendTeacherGroup
                     }
 
                     // todo verschiedene Bewertungssysteme
-                    $selectComplete = (new SelectCompleter('Grade[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
+                    $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
                         ->setTabIndex($tabIndex++);
                     $bodyList[$tblPerson->getId()]['Grade'] = $selectComplete;
 
                     if ($tblTest->getIsContinues()) {
                         $bodyList[$tblPerson->getId()]['Date']
-                            = (new DatePicker('Grade[' . $tblPerson->getId() . '][Date]', '', '', null, array('widgetPositioning' => array('vertical' => 'bottom'))))
+                            = (new DatePicker('Data[' . $tblPerson->getId() . '][Date]', '', '', null, array('widgetPositioning' => array('vertical' => 'bottom'))))
                                 ->setTabIndex($tabIndex++);
                     }
                     $bodyList[$tblPerson->getId()]['Comment']
-                        = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', '',
+                        = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '',
                             new Comment()))->setTabIndex(1000 + $tabIndex)->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
                     $bodyList[$tblPerson->getId()]['Attendance'] =
-                        (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(2000 + $tabIndex);
-                    $bodyList[$tblPerson->getId()]['PublicComment'] = (new TextField('Grade[' . $tblPerson->getId() . '][PublicComment]',
+                        (new CheckBox('Data[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(2000 + $tabIndex);
+                    $bodyList[$tblPerson->getId()]['PublicComment'] = (new TextField('Data[' . $tblPerson->getId() . '][PublicComment]',
                         'z.B.: für Betrugsversuch', '', new Comment()))->setTabIndex(1000 + $tabIndex);
                 }
             }
@@ -567,25 +567,33 @@ abstract class FrontendTest extends FrontendTeacherGroup
                             , 3),
                         new LayoutColumn(
                             new Panel('Beschreibung', $tblTest->getDescription(), Panel::PANEL_TYPE_INFO)
-                            , 9)
+                            , 9),
                     ))
                 )))
-                . (new Form(new FormGroup(new FormRow(new FormColumn(
-                    new TableData($bodyList, null, $headerList,
-                        array(
-                            "paging"         => false, // Deaktivieren Blättern
-                            "iDisplayLength" => -1,    // Alle Einträge zeigen
-                            "searching"      => false, // Deaktivieren Suchen
-                            "info"           => false,  // Deaktivieren Such-Info
-                            "responsive"   => false,
-                            'order'      => array(
-                                array('0', 'asc'),
-                            ),
-                            'columnDefs' => array(
-                                array('orderable' => false, 'targets' => '_all'),
-                            ),
+                . (new Form(new FormGroup(array(
+                    new FormRow(new FormColumn(
+                        new TableData($bodyList, null, $headerList,
+                            array(
+                                "paging"         => false, // Deaktivieren Blättern
+                                "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                "searching"      => false, // Deaktivieren Suchen
+                                "info"           => false,  // Deaktivieren Such-Info
+                                "responsive"   => false,
+                                'order'      => array(
+                                    array('0', 'asc'),
+                                ),
+                                'columnDefs' => array(
+                                    array('orderable' => false, 'targets' => '_all'),
+                                ),
+                            )
                         )
-                    )
+                    )),
+                    new FormRow(new FormColumn(array(
+                        (new Primary('Speichern', ApiGradeBook::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineSaveTestGradeEdit($DivisionCourseId, $SubjectId, $Filter, $TestId)),
+                        (new Standard('Abbrechen', ApiGradeBook::getEndpoint(), new Disable()))
+                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter)
+                    )))
                 )))))->disableSubmitAction();
         } else {
             $content = new Danger("Leistungsüberprüfung nicht gefunden.", new Exclamation());

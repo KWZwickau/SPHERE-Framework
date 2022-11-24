@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Database\Fitting\Element;
 
 class Data extends DataMigrate
 {
@@ -314,17 +315,17 @@ class Data extends DataMigrate
     }
 
     /**
-     * @param array $tblTestCourseLinkList
+     * @param array $tblEntityList
      *
      * @return bool
      */
-    public function createTestCourseLinkBulk(array $tblTestCourseLinkList): bool
+    public function createEntityListBulk(array $tblEntityList): bool
     {
         $Manager = $this->getConnection()->getEntityManager();
 
-        foreach ($tblTestCourseLinkList as $tblTestCourseLink) {
-            $Manager->bulkSaveEntity($tblTestCourseLink);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblTestCourseLink, true);
+        foreach ($tblEntityList as $tblEntity) {
+            $Manager->bulkSaveEntity($tblEntity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblEntity, true);
         }
 
         $Manager->flushCache();
@@ -334,15 +335,38 @@ class Data extends DataMigrate
     }
 
     /**
-     * @param array $tblTestCourseLinkList
+     * @param array $tblEntityList
      *
      * @return bool
      */
-    public function removeTestCourseLinkBulk(array $tblTestCourseLinkList): bool
+    public function updateEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+            $Manager->bulkSaveEntity($tblElement);
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function deleteEntityListBulk(array $tblEntityList): bool
     {
         $Manager = $this->getConnection()->getEntityManager();
 
-        foreach ($tblTestCourseLinkList as $Entity) {
+        foreach ($tblEntityList as $Entity) {
             $Manager->bulkKillEntity($Entity);
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
         }
@@ -465,6 +489,20 @@ class Data extends DataMigrate
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTestGrade', array(
             TblTestGrade::ATTR_TBL_TEST => $tblTest->getId()
+        ));
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblTestGrade
+     */
+    public function getTestGradeByTestAndPerson(TblTest $tblTest, TblPerson $tblPerson)
+    {
+        return $this->getForceEntityBy(__METHOD__, $this->getEntityManager(), 'TblTestGrade', array(
+            TblTestGrade::ATTR_TBL_TEST => $tblTest->getId(),
+            TblTestGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
     }
 }

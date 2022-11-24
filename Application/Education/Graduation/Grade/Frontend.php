@@ -279,16 +279,17 @@ class Frontend extends FrontendTest
                     // Zensuren
                     if (($tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
                         foreach ($tblTestGradeList as $tblTestGrade) {
+                            $tblTest = $tblTestGrade->getTblTest();
+                            $gradeValue = $tblTestGrade->getGrade() !== null ? $tblTestGrade->getGrade() : '&ndash;';
+                            $contentGrade = ($tblTest->getTblGradeType()->getIsHighlighted() ? new Bold($gradeValue) : $gradeValue)
+                                // öffentlicher Kommentar
+                                . (($tblTestGrade->getPublicComment() != '') ? new ToolTip(' ' . new Info(), $tblTestGrade->getPublicComment()) : '');
+                            $gradeList[$tblPerson->getId()][$tblTest->getId()] = $isEdit
+                                ? (new Link($this->getGradeContainer($contentGrade), ApiGradeBook::getEndpoint()))
+                                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestGradeEditContent(
+                                        $DivisionCourseId, $tblSubject->getId(), $Filter, $tblTest->getId()))
+                                : $contentGrade;
                             if ($tblTestGrade->getGrade() !== null) {
-                                $tblTest = $tblTestGrade->getTblTest();
-                                $contentGrade = ($tblTest->getTblGradeType()->getIsHighlighted() ? new Bold($tblTestGrade->getGrade()) : $tblTestGrade->getGrade())
-                                    // öffentlicher Kommentar
-                                    . (($tblTestGrade->getPublicComment() != '') ? new ToolTip(' ' . new Info(), $tblTestGrade->getPublicComment()) : '');
-                                $gradeList[$tblPerson->getId()][$tblTest->getId()] = $isEdit
-                                    ? (new Link($this->getGradeContainer($contentGrade), ApiGradeBook::getEndpoint()))
-                                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestGradeEditContent(
-                                            $DivisionCourseId, $tblSubject->getId(), $Filter, $tblTest->getId()))
-                                    : $contentGrade;
                                 $testList[$tblTest->getId()] = $tblTest;
                             }
                         }

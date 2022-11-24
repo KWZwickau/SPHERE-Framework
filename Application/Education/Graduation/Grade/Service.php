@@ -397,23 +397,33 @@ class Service extends AbstractService
     }
 
     /**
-     * @param array $tblTestCourseLinkList
+     * @param array $tblEntityList
      *
      * @return bool
      */
-    public function createTestCourseLinkBulk(array $tblTestCourseLinkList): bool
+    public function createEntityListBulk(array $tblEntityList): bool
     {
-        return (new Data($this->getBinding()))->createTestCourseLinkBulk($tblTestCourseLinkList);
+        return (new Data($this->getBinding()))->createEntityListBulk($tblEntityList);
     }
 
     /**
-     * @param array $tblTestCourseLinkList
+     * @param array $tblEntityList
      *
      * @return bool
      */
-    public function removeTestCourseLinkBulk(array $tblTestCourseLinkList): bool
+    public function updateEntityListBulk(array $tblEntityList): bool
     {
-        return (new Data($this->getBinding()))->removeTestCourseLinkBulk($tblTestCourseLinkList);
+        return (new Data($this->getBinding()))->updateEntityListBulk($tblEntityList);
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function deleteEntityListBulk(array $tblEntityList): bool
+    {
+        return (new Data($this->getBinding()))->deleteEntityListBulk($tblEntityList);
     }
 
     /**
@@ -462,6 +472,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTest $tblTest
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblTestGrade
+     */
+    public function getTestGradeByTestAndPerson(TblTest $tblTest, TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getTestGradeByTestAndPerson($tblTest, $tblPerson);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param array $integrationList
@@ -492,5 +513,28 @@ class Service extends AbstractService
                 $courseList[$tblPerson->getId()] = 'HS';
             }
         }
+    }
+
+    public function checkFormTestGrades($Data, $DivisionCourseId, $SubjectId, $Filter, $TestId)
+    {
+        // todo
+        $error = false;
+//        $form = Grade::useFrontend()->formTest($DivisionCourseId, $SubjectId, $Filter, $TestId, false, $Data);
+
+        if($Data) {
+            foreach ($Data as $personId => $item) {
+
+            }
+        }
+//        if (!isset($Data['GradeType']) || !(Grade::useService()->getGradeTypeById($Data['GradeType']))) {
+//            $form->setError('Data[GradeType]', 'Bitte wählen Sie einen Zensuren-Typ aus');
+//            $error = true;
+//        }
+//        if (isset($Data['Date']) && empty($Data['Date'])) {
+//            $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
+//            $error = true;
+//        }
+
+        return $error ? $form : false;
     }
 }
