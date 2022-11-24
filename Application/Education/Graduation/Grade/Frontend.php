@@ -5,14 +5,12 @@ namespace SPHERE\Application\Education\Graduation\Grade;
 use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
-use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -22,7 +20,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -42,7 +39,6 @@ use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -149,7 +145,8 @@ class Frontend extends FrontendTest
             $headerList = array();
             $bodyList = array();
 
-            list($gradeList, $tblTestList, $integrationList, $pictureList, $courseList) = $this->getTestGradeListAndTestListByPersonListAndSubject($tblPersonList, $tblYear, $tblSubject);
+            list($gradeList, $tblTestList, $integrationList, $pictureList, $courseList) = $this->getTestGradeListAndTestListByPersonListAndSubject(
+                $tblPersonList, $tblYear, $tblSubject, $DivisionCourseId, $Filter, $isEdit);
             if (($tblTempList = Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject))) {
                 $tblTestList = array_merge($tblTestList, $tblTempList);
             }
@@ -181,27 +178,29 @@ class Frontend extends FrontendTest
                         $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
                         $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
                         if ($hasPicture) {
-                            $bodyList[$tblPerson->getId()]['Picture'] = $this->getTableColumnBody(
-                                isset($pictureList[$tblPerson->getId()]) ? $pictureList[$tblPerson->getId()] : '&nbsp;'
-                            );
+                            $bodyList[$tblPerson->getId()]['Picture'] = $this->getTableColumnBody($pictureList[$tblPerson->getId()] ?? '&nbsp;');
                         }
                         if ($hasIntegration) {
-                            $bodyList[$tblPerson->getId()]['Integration'] = $this->getTableColumnBody(
-                                isset($integrationList[$tblPerson->getId()]) ? $integrationList[$tblPerson->getId()] : '&nbsp;'
-                            );
+                            $bodyList[$tblPerson->getId()]['Integration'] = $this->getTableColumnBody($integrationList[$tblPerson->getId()] ?? '&nbsp;');
                         }
                         if ($hasCourse) {
-                            $bodyList[$tblPerson->getId()]['Course'] = $this->getTableColumnBody(
-                                isset($courseList[$tblPerson->getId()]) ? $courseList[$tblPerson->getId()] : '&nbsp;'
-                            );
+                            $bodyList[$tblPerson->getId()]['Course'] = $this->getTableColumnBody($courseList[$tblPerson->getId()] ?? '&nbsp;');
                         }
 
                         foreach ($headerList as $key => $value) {
                             if (strpos($key, 'Test') !== false) {
                                 $testId = str_replace('Test', '', $key);
-                                $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody(
-                                    isset($gradeList[$tblPerson->getId()][$testId]) ? $gradeList[$tblPerson->getId()][$testId] : '&nbsp;'
-                                );
+
+                                if (isset($gradeList[$tblPerson->getId()][$testId])) {
+                                    $contentGrade = $gradeList[$tblPerson->getId()][$testId];
+                                } elseif ($isEdit) {
+                                    $contentGrade = (new Link($this->getGradeContainer(), ApiGradeBook::getEndpoint()))
+                                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestGradeEditContent($DivisionCourseId, $tblSubject->getId(), $Filter, $testId));
+                                } else {
+                                    $contentGrade = '&nbsp;';
+                                }
+
+                                $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody($contentGrade);
                             }
                         }
                     }
@@ -245,13 +244,27 @@ class Frontend extends FrontendTest
     }
 
     /**
+     * @param string $content
+     *
+     * @return Container
+     */
+    private function getGradeContainer(string $content = '&nbsp;'): Container
+    {
+        return (new Container($content))->setStyle(array("height: 22px;"));
+    }
+
+    /**
      * @param $tblPersonList
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
+     * @param $DivisionCourseId
+     * @param $Filter
+     * @param $isEdit
      *
      * @return array[]
      */
-    private function getTestGradeListAndTestListByPersonListAndSubject($tblPersonList, TblYear $tblYear, TblSubject $tblSubject): array
+    private function getTestGradeListAndTestListByPersonListAndSubject($tblPersonList, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId,
+        $Filter, $isEdit): array
     {
         $gradeList = array();
         $testList = array();
@@ -260,41 +273,28 @@ class Frontend extends FrontendTest
         $courseList = array();
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
-                // Zensuren
-                if (($tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
-                    foreach ($tblTestGradeList as $tblTestGrade) {
-                        if ($tblTestGrade->getGrade() !== null) {
-                            $tblTest = $tblTestGrade->getTblTest();
-                            $gradeList[$tblPerson->getId()][$tblTest->getId()] =
-                                ($tblTest->getTblGradeType()->getIsHighlighted() ? new Bold($tblTestGrade->getGrade()) : $tblTestGrade->getGrade())
-                                // öffentlicher Kommentar
-                                . (($tblTestGrade->getPublicComment() != '') ? new ToolTip(' ' . new Info(), $tblTestGrade->getPublicComment()) : '');
-                            $testList[$tblTest->getId()] = $tblTest;
+                if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                    && $tblVirtualSubject->getHasGrading()
+                ) {
+                    // Zensuren
+                    if (($tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+                        foreach ($tblTestGradeList as $tblTestGrade) {
+                            if ($tblTestGrade->getGrade() !== null) {
+                                $tblTest = $tblTestGrade->getTblTest();
+                                $contentGrade = ($tblTest->getTblGradeType()->getIsHighlighted() ? new Bold($tblTestGrade->getGrade()) : $tblTestGrade->getGrade())
+                                    // öffentlicher Kommentar
+                                    . (($tblTestGrade->getPublicComment() != '') ? new ToolTip(' ' . new Info(), $tblTestGrade->getPublicComment()) : '');
+                                $gradeList[$tblPerson->getId()][$tblTest->getId()] = $isEdit
+                                    ? (new Link($this->getGradeContainer($contentGrade), ApiGradeBook::getEndpoint()))
+                                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestGradeEditContent(
+                                            $DivisionCourseId, $tblSubject->getId(), $Filter, $tblTest->getId()))
+                                    : $contentGrade;
+                                $testList[$tblTest->getId()] = $tblTest;
+                            }
                         }
                     }
-                }
 
-                // Integration
-                if(Student::useService()->getIsSupportByPerson($tblPerson)) {
-                    $integrationList[$tblPerson->getId()] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
-                        ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
-                }
-
-                // Picture
-                if(($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))){
-                    $pictureList[$tblPerson->getId()] = new Center((new Link($tblPersonPicture->getPicture(), $tblPerson->getId()))
-                        ->ajaxPipelineOnClick(ApiPersonPicture::pipelineShowPersonPicture($tblPerson->getId())));
-                }
-
-                // Course
-                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
-                    && ($tblCourse = $tblStudentEducation->getServiceTblCourse())
-                ) {
-                    if ($tblCourse->getName() == 'Realschule') {
-                        $courseList[$tblPerson->getId()] = 'RS';
-                    } elseif ($tblCourse->getName() == 'Hauptschule') {
-                        $courseList[$tblPerson->getId()] = 'HS';
-                    }
+                    Grade::useService()->setStudentInfo($tblPerson, $tblYear, $integrationList, $pictureList, $courseList);
                 }
             }
         }
@@ -313,7 +313,7 @@ class Frontend extends FrontendTest
      */
     private function getTableColumnHeadByTest(TblTest $tblTest, $DivisionCourseId, $SubjectId, $Filter, bool $isEdit): TableColumn
     {
-        $date = $tblTest->getDateString();
+        $date = $tblTest->getFinishDateString() ?: $tblTest->getDateString();
         if (strlen($date) > 6) {
             $date = substr($date, 0, 6);
         }

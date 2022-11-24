@@ -44,8 +44,9 @@ class ApiGradeBook extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('loadViewTestEditContent');
         $Dispatcher->registerMethod('saveTestEdit');
-
         $Dispatcher->registerMethod('loadTestPlanning');
+
+        $Dispatcher->registerMethod('loadViewTestGradeEditContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -463,5 +464,45 @@ class ApiGradeBook extends Extension implements IApiInterface
     public function loadTestPlanning($Data = null): string
     {
         return Grade::useFrontend()->loadTestPlanning($Data);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewTestGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewTestGradeEditContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter,
+            'TestId' => $TestId
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return string
+     */
+    public function loadViewTestGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId): string
+    {
+        return Grade::useFrontend()->loadViewTestGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TestId);
     }
 }

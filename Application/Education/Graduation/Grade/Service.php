@@ -3,6 +3,9 @@
 namespace SPHERE\Application\Education\Graduation\Grade;
 
 use DateTime;
+use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
+use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
@@ -20,12 +23,17 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\System\Database\Binding\AbstractService;
 
 class Service extends AbstractService
@@ -441,5 +449,48 @@ class Service extends AbstractService
     public function getTestGradeListByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
     {
         return (new Data($this->getBinding()))->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+    }
+
+    /**
+     * @param TblTest $tblTest
+     *
+     * @return false|TblTestGrade[]
+     */
+    public function getTestGradeListByTest(TblTest $tblTest)
+    {
+        return (new Data($this->getBinding()))->getTestGradeListByTest($tblTest);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param array $integrationList
+     * @param array $pictureList
+     * @param array $courseList
+     */
+    public function setStudentInfo(TblPerson $tblPerson, TblYear $tblYear, array &$integrationList, array &$pictureList, array &$courseList)
+    {
+        // Integration
+        if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+            $integrationList[$tblPerson->getId()] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+        }
+
+        // Picture
+        if(($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))){
+            $pictureList[$tblPerson->getId()] = new Center((new Link($tblPersonPicture->getPicture(), $tblPerson->getId()))
+                ->ajaxPipelineOnClick(ApiPersonPicture::pipelineShowPersonPicture($tblPerson->getId())));
+        }
+
+        // Course
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblCourse = $tblStudentEducation->getServiceTblCourse())
+        ) {
+            if ($tblCourse->getName() == 'Realschule') {
+                $courseList[$tblPerson->getId()] = 'RS';
+            } elseif ($tblCourse->getName() == 'Hauptschule') {
+                $courseList[$tblPerson->getId()] = 'HS';
+            }
+        }
     }
 }

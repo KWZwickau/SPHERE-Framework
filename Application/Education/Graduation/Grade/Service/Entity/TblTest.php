@@ -282,4 +282,25 @@ class TblTest extends Element
     {
         return Grade::useService()->getDivisionCourseListByTest($this);
     }
+
+    /**
+     * @return false|TblTestGrade[]
+     */
+    public function getGrades()
+    {
+        return Grade::useService()->getTestGradeListByTest($this);
+    }
+
+    /**
+     * @return string
+     */
+    public function getGradeTypeDisplayName(): string
+    {
+        if (($tblGradeType = $this->getTblGradeType())) {
+            return $tblGradeType->getDisplayName();
+        }
+
+        return '';
+    }
+
 }

@@ -455,4 +455,16 @@ class Data extends DataMigrate
 
         return empty($resultList) ? false : $resultList;
     }
+
+    /**
+     * @param TblTest $tblTest
+     *
+     * @return false|TblTestGrade[]
+     */
+    public function getTestGradeListByTest(TblTest $tblTest)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTestGrade', array(
+            TblTestGrade::ATTR_TBL_TEST => $tblTest->getId()
+        ));
+    }
 }
