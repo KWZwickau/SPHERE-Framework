@@ -67,7 +67,7 @@ class Data extends DataMigrate
     {
         return $withInActive
             ? $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblGradeType')
-            : $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblGradeType', array(TblGradeType::ATTR_IS_ACTIVE => false));
+            : $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblGradeType', array(TblGradeType::ATTR_IS_ACTIVE => true));
     }
 
     /**
@@ -249,6 +249,85 @@ class Data extends DataMigrate
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     * @param string $code
+     * @param string $name
+     * @param string $description
+     * @param bool $isTypeBehavior
+     * @param bool $isHighlighted
+     * @param bool $isPartGrade
+     * @param bool $isActive
+     *
+     * @return bool
+     */
+    public function updateGradeType(TblGradeType $tblGradeType, string $code, string $name, string $description,
+        bool $isTypeBehavior, bool $isHighlighted, bool $isPartGrade, bool $isActive): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var TblGradeType $Entity */
+        $Entity = $Manager->getEntityById('TblGradeType', $tblGradeType->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setCode($code);
+            $Entity->setName($name);
+            $Entity->setDescription($description);
+            $Entity->setIsTypeBehavior($isTypeBehavior);
+            $Entity->setIsHighlighted($isHighlighted);
+            $Entity->setIsPartGrade($isPartGrade);
+            $Entity->setIsActive($isActive);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function deleteGradeType(TblGradeType $tblGradeType): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var TblGradeType $Entity */
+        $Entity = $Manager->getEntityById('TblGradeType', $tblGradeType->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function getIsGradeTypeUsedInGradeBook(TblGradeType $tblGradeType): bool
+    {
+        if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest', array(TblTest::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()))
+        ) {
+            return true;
+        }
+
+        // todo 'TblScoreConditionGradeTypeList'
+
+        // todo 'TblScoreGroupGradeTypeList'
+
+        // todo 'TblMinimumGradeCount'
+
+        return false;
     }
 
     /**

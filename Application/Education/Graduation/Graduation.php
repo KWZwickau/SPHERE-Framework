@@ -51,7 +51,7 @@ class Graduation implements IApplicationInterface
         $Stage->setContent(Main::getDispatcher()->fetchDashboard('Grade'));
         $TableContent = array();
         $Item = array();
-        if (Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/GradeType')) {
+        if (Access::useService()->hasAuthorization('/Education/Graduation/Grade/GradeType')) {
             $Item['Modul'] = new Bold('Zensuren-Typ');
             $Item['Description'] = 'Verwaltung der Zensuren-Typen (Kopfnoten, Leistungsüberprüfung).';
             array_push($TableContent, $Item);

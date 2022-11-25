@@ -35,9 +35,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Center;
-use SPHERE\System\Database\Binding\AbstractService;
 
-class Service extends AbstractService
+class Service extends ServiceGradeType
 {
     /**
      * @param $doSimulation
@@ -77,36 +76,6 @@ class Service extends AbstractService
     public function migrateTasks(TblYear $tblYear): float
     {
         return (new Data($this->getBinding()))->migrateTasks($tblYear);
-    }
-
-    /**
-     * @param $id
-     *
-     * @return false|TblGradeType
-     */
-    public function getGradeTypeById($id)
-    {
-        return (new Data($this->getBinding()))->getGradeTypeById($id);
-    }
-
-    /**
-     * @param bool $withInActive
-     *
-     * @return false|TblGradeType[]
-     */
-    public function getGradeTypeAll(bool $withInActive = false)
-    {
-        return (new Data($this->getBinding()))->getGradeTypeAll($withInActive);
-    }
-
-    /**
-     * @param bool $isTypeBehavior
-     *
-     * @return false|TblGradeType[]
-     */
-    public function getGradeTypeList(bool $isTypeBehavior = false)
-    {
-        return (new Data($this->getBinding()))->getGradeTypeList($isTypeBehavior);
     }
 
     /**

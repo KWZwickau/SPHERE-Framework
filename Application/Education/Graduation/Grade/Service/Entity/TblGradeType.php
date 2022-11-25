@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -106,6 +107,22 @@ class TblGradeType extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getDescription(): string
+    {
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription(string $Description): void
+    {
+        $this->Description = $Description;
+    }
+
+    /**
      * @return bool
      */
     public function getIsTypeBehavior(): bool
@@ -154,10 +171,34 @@ class TblGradeType extends Element
     }
 
     /**
+     * @return bool
+     */
+    public function getIsActive(): bool
+    {
+        return $this->IsActive;
+    }
+
+    /**
+     * @param bool $IsActive
+     */
+    public function setIsActive(bool $IsActive): void
+    {
+        $this->IsActive = $IsActive;
+    }
+
+    /**
      * @return string
      */
     public function getDisplayName(): string
     {
         return "{$this->Code} - {$this->Name}";
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsUsed(): bool
+    {
+        return Grade::useService()->getIsGradeTypeUsed($this);
     }
 }
