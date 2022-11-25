@@ -265,9 +265,18 @@ class Service extends ServiceTeacher
     /**
      * @return false|TblDivisionCourseType[]
      */
-    public function getDivisionCourseTypeAll()
+    public function getDivisionCourseTypeListWithoutTeacherGroup()
     {
-        return (new Data($this->getBinding()))->getDivisionCourseTypeAll();
+        $resultList = array();
+        if (($tempList = (new Data($this->getBinding()))->getDivisionCourseTypeAll())) {
+            foreach ($tempList as $tblDivisionCourseType) {
+                if ($tblDivisionCourseType->getIdentifier() != TblDivisionCourseType::TYPE_TEACHER_GROUP) {
+                    $resultList[$tblDivisionCourseType->getId()] = $tblDivisionCourseType;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**
