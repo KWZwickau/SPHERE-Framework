@@ -36,7 +36,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 
-class Service extends ServiceGradeType
+class Service extends ServiceTask
 {
     /**
      * @param $doSimulation
@@ -66,16 +66,6 @@ class Service extends ServiceGradeType
     public function migrateTests(TblYear $tblYear, array $tblDivisionList): float
     {
         return (new Data($this->getBinding()))->migrateTests($tblYear, $tblDivisionList);
-    }
-
-    /**
-     * @param TblYear $tblYear
-     *
-     * @return float
-     */
-    public function migrateTasks(TblYear $tblYear): float
-    {
-        return (new Data($this->getBinding()))->migrateTasks($tblYear);
     }
 
     /**

@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Graduation\Grade;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
+use SPHERE\Common\Frontend\Icon\Repository\ClipBoard;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -24,10 +25,14 @@ class Grade  implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\GradeBook'), new Link\Name('Notenbuch'), new Link\Icon(new Book()))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'\Task'), new Link\Name('Notenaufträge'), new Link\Icon(new ClipBoard()))
+        );
 
         /**
          * Route
          */
+        // Zensuren-Typ
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType', __NAMESPACE__.'\Frontend::frontendGradeType')
         );
@@ -41,6 +46,7 @@ class Grade  implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Activate', __NAMESPACE__.'\Frontend::frontendActivateGradeType')
         );
 
+        // Notenbuch
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeBook', __NAMESPACE__.'\Frontend::frontendGradeBook')
         );
@@ -55,6 +61,11 @@ class Grade  implements IModuleInterface
         // nur für Route
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeBook\AllReadOnly', __NAMESPACE__.'\Frontend::frontendGradeBook')
+        );
+
+        // Notenauftrag
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Task', __NAMESPACE__.'\Frontend::frontendTask')
         );
     }
 

@@ -6,7 +6,6 @@ use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
-use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
@@ -18,7 +17,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Element;
 
-class Data extends DataMigrate
+class Data extends DataTask
 {
     public function setupDatabaseContent()
     {
@@ -80,7 +79,7 @@ class Data extends DataMigrate
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblGradeType', array(
             TblGradeType::ATTR_IS_TYPE_BEHAVIOR => $isTypeBehavior,
             TblGradeType::ATTR_IS_ACTIVE => true
-        ));
+        ), array(TblGradeType::ATTR_NAME => self::ORDER_ASC));
     }
 
     /**
@@ -163,16 +162,6 @@ class Data extends DataMigrate
     public function getScoreTypeAll()
     {
         return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblScoreType');
-    }
-
-    /**
-     * @param $id
-     *
-     * @return false|TblTask
-     */
-    public function getTaskById($id)
-    {
-        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblTask', $id);
     }
 
     /**

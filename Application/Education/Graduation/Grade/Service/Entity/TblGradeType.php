@@ -17,6 +17,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblGradeType extends Element
 {
     const ATTR_CODE = 'Code';
+    const ATTR_NAME = 'Name';
     const ATTR_IS_ACTIVE = 'IsActive';
     const ATTR_IS_TYPE_BEHAVIOR = 'IsTypeBehavior';
 

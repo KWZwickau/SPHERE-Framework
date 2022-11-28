@@ -45,7 +45,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 
-abstract class FrontendTeacherGroup extends FrontendGradeType
+abstract class FrontendTeacherGroup extends FrontendTask
 {
     /**
      * @return string

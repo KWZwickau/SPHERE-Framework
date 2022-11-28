@@ -19,6 +19,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblTask extends Element
 {
+    const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
+
     /**
      * @Column(type="bigint")
      */
@@ -225,10 +227,18 @@ class TblTask extends Element
     }
 
     /**
-     * @param TblScoreType $tblScoreType
+     * @param ?TblScoreType $tblScoreType
      */
-    public function setTblScoreType(TblScoreType $tblScoreType)
+    public function setTblScoreType(?TblScoreType $tblScoreType)
     {
-        $this->tblGraduationScoreType = $tblScoreType->getId();
+        $this->tblGraduationScoreType = $tblScoreType ? $tblScoreType->getId() : null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTypeName(): string
+    {
+        return $this->IsTypeBehavior ? 'Kopfnotenauftrag' : 'Stichtagsnotenauftrag';
     }
 }

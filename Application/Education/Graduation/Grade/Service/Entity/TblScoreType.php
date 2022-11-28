@@ -20,15 +20,15 @@ class TblScoreType extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Name;
+    protected string $Name = '';
     /**
      * @Column(type="string")
      */
-    protected string $Identifier;
+    protected string $Identifier = '';
     /**
      * @Column(type="string")
      */
-    protected string $Pattern;
+    protected string $Pattern = '';
 
     /**
      * @return string
