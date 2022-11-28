@@ -171,54 +171,24 @@ class ApiTask extends Extension implements IApiInterface
         if (($tblTask = Grade::useService()->getTaskById($TaskId))) {
             Grade::useService()->updateTask($tblTask, $name, $date, $fromDate, $toDate, $isAllYears, $tblScoreType);
 
-            $createList = array();
-            $removeList = array();
-            // todo kurse
-//            if (($tblDivisionCourseList = $tblTask->getDivisionCourses())) {
-//                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-//                    // löschen
-//                    if (!isset($Data['DivisionCourses'][$tblDivisionCourse->getId()])) {
-//                        $removeList[] = Grade::useService()->getTestCourseLinkBy($tblTask, $tblDivisionCourse);
-//                    }
-//                }
-//            } else {
-//                $tblDivisionCourseList = array();
-//            }
-//
-//            // neu
-//            if (isset($Data['DivisionCourses'])) {
-//                foreach ($Data['DivisionCourses'] as $divisionCourseId => $value) {
-//                    if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))
-//                        && !isset($tblDivisionCourseList[$divisionCourseId])
-//                    ) {
-//                        $createList[] = new TblTestCourseLink($tblTask, $tblDivisionCourse);
-//                    }
-//                }
-//            }
-//
-//            if (!empty($createList)) {
-//                Grade::useService()->createEntityListBulk($createList);
-//            }
-//            if (!empty($removeList)) {
-//                Grade::useService()->deleteEntityListBulk($removeList);
-//            }
+            // Kurse updaten
+            Grade::useService()->updateTaskCourseLinks($tblTask, $Data);
+
+            // Zensuren-Typen hinzufügen bei Kopfnotenauftrag
+            if ($tblTask->getIsTypeBehavior()) {
+                Grade::useService()->updateTaskGradeTypeLinks($tblTask, $Data);
+            }
         } else {
             if (($tblTaskNew = Grade::useService()->createTask(
                 $tblYear, $isBehaviorType, $name, $date, $fromDate, $toDate, $isAllYears, $tblScoreType
             ))) {
-                // todo Kurse hinzufügen
-//                if (isset($Data['DivisionCourses'])) {
-//                    $createList = array();
-//                    foreach ($Data['DivisionCourses'] as $divisionCourseId => $value) {
-//                        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))) {
-//                            $createList[] = new TblTestCourseLink($tblTestNew, $tblDivisionCourse);
-//                        }
-//                    }
-//
-//                    Grade::useService()->createEntityListBulk($createList);
-//                }
+                // Kurse hinzufügen
+                Grade::useService()->createTaskCourseLinks($tblTaskNew, $Data);
 
-                // todo Zensuren-Typ bei Kopfnotenauftrag
+                // Zensuren-Typen hinzufügen bei Kopfnotenauftrag
+                if ($tblTaskNew->getIsTypeBehavior()) {
+                    Grade::useService()->createTaskGradeTypeLinks($tblTaskNew, $Data);
+                }
             }
         }
 

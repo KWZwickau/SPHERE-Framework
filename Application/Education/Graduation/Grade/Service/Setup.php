@@ -32,6 +32,7 @@ class Setup  extends AbstractSetup
         $tblTask = $this->setTableTask($schema, $tblScoreType);
         $this->setTableTaskGrade($schema, $tblTask, $tblGradeText);
         $this->setTableTaskCourseLink($schema, $tblTask);
+        $this->setTableTaskGradeTypeLink($schema, $tblTask, $tblGradeType);
 
         /**
          * Migration & Protocol
@@ -188,6 +189,18 @@ class Setup  extends AbstractSetup
         $this->createForeignKey($table, $tblTask);
         $this->createColumn($table, 'serviceTblDivisionCourse', self::FIELD_TYPE_BIGINT);
         // todo Stichtagsnotenauftrag für HS in Klasse 9, 2 Aufträge für Klasse 9 OS wären schlecht für Zeugnisauftrag
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblTask
+     * @param Table $tblGradeType
+     */
+    private function setTableTaskGradeTypeLink(Schema &$schema, Table $tblTask, Table $tblGradeType)
+    {
+        $table = $this->createTable($schema, 'tblGraduationTaskGradeTypeLink');
+        $this->createForeignKey($table, $tblTask);
+        $this->createForeignKey($table, $tblGradeType);
     }
 
     /**

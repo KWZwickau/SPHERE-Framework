@@ -7,19 +7,17 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
-use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblGraduationTaskCourseLink")
+ * @Table(name="tblGraduationTaskGradeTypeLink")
  * @Cache(usage="READ_ONLY")
  */
-class TblTaskCourseLink extends Element
+class TblTaskGradeTypeLink extends Element
 {
     const ATTR_TBL_TASK = 'tblGraduationTask';
-    const ATTR_SERVICE_TBL_DIVISION_COURSE = 'serviceTblDivisionCourse';
+    const ATTR_TBL_GRADE_TYPE = 'tblGraduationGradeType';
 
     /**
      * @Column(type="bigint")
@@ -28,16 +26,16 @@ class TblTaskCourseLink extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $serviceTblDivisionCourse;
+    protected int $tblGraduationGradeType;
 
     /**
      * @param TblTask $tblTask
-     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblGradeType $tblGradeType
      */
-    public function __construct(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse)
+    public function __construct(TblTask $tblTask, TblGradeType $tblGradeType)
     {
         $this->tblGraduationTask = $tblTask->getId();
-        $this->serviceTblDivisionCourse = $tblDivisionCourse->getId();
+        $this->tblGraduationGradeType = $tblGradeType->getId();
     }
 
     /**
@@ -57,18 +55,18 @@ class TblTaskCourseLink extends Element
     }
 
     /**
-     * @return false|TblDivisionCourse
+     * @return false|TblGradeType
      */
-    public function getServiceTblDivisionCourse()
+    public function getTblGradeType()
     {
-        return DivisionCourse::useService()->getDivisionCourseById($this->serviceTblDivisionCourse);
+        return Grade::useService()->getGradeTypeById($this->tblGraduationGradeType);
     }
 
     /**
-     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblGradeType $tblGraduationGradeType
      */
-    public function setServiceTblDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    public function setTblGradeType(TblGradeType $tblGraduationGradeType)
     {
-        $this->serviceTblDivisionCourse = $tblDivisionCourse->getId();
+        $this->tblGraduationGradeType = $tblGraduationGradeType->getId();
     }
 }

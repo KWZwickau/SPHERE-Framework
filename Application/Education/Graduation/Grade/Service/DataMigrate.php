@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTypeLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
@@ -171,6 +172,13 @@ abstract class DataMigrate extends AbstractData
             }
         }
 
+        $tblGradeTypeList = array();
+        if (($tblTemp3List = Grade::useService()->getGradeTypeList(true))) {
+            foreach ($tblTemp3List as $tblTemp3) {
+                $tblGradeTypeList[$tblTemp3->getCode()] = $tblTemp3;
+            }
+        }
+
         $tblTaskOldList = array();
         if (($tblAppointedTaskList = Evaluation::useService()->getTaskAllByTestType(
             Evaluation::useService()->getTestTypeByIdentifier(TblTestType::APPOINTED_DATE_TASK),
@@ -207,6 +215,7 @@ abstract class DataMigrate extends AbstractData
             $Manager->saveEntityWithSetId($tblTask);
 
             $divisionCourseList = array();
+            $gradeTypeListByTask = array();
             if (($tblTestOldList = Evaluation::useService()->getTestAllByTask($tblTaskOld))) {
                 foreach ($tblTestOldList as $item) {
                     // Kurse linken aber nur einmal
@@ -239,6 +248,17 @@ abstract class DataMigrate extends AbstractData
                                 $Manager->bulkSaveEntity($tblTaskGrade);
                             }
                         }
+                    }
+
+                    // Zensuren-Typen bei Kopfnotenauftrag
+                    if (($tblGradeTypeOld = $item->getServiceTblGradeType())
+                        && (!isset($gradeTypeListByTask[$tblGradeTypeOld->getCode()]))
+                        && isset($tblGradeTypeList[$tblGradeTypeOld->getCode()])
+                    ) {
+                        $tblGradeTypeNew = $tblGradeTypeList[$tblGradeTypeOld->getCode()];
+                        $gradeTypeListByTask[$tblGradeTypeNew->getCode()] = $tblGradeTypeNew;
+                        $tblTestGradeTypeLink = new TblTaskGradeTypeLink($tblTask, $tblGradeTypeNew);
+                        $Manager->bulkSaveEntity($tblTestGradeTypeLink);
                     }
                 }
             }

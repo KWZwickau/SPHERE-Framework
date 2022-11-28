@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\System\Database\Fitting\Element;
@@ -219,9 +220,9 @@ class TblTask extends Element
     }
 
     /**
-     * @return TblScoreType
+     * @return false|TblScoreType
      */
-    public function getTblScoreType(): TblScoreType
+    public function getTblScoreType()
     {
         return Grade::useService()->getScoreTypeById($this->tblGraduationScoreType);
     }
@@ -240,5 +241,21 @@ class TblTask extends Element
     public function getTypeName(): string
     {
         return $this->IsTypeBehavior ? 'Kopfnotenauftrag' : 'Stichtagsnotenauftrag';
+    }
+
+    /**
+     * @return false|TblGradeType[]
+     */
+    public function getGradeTypes()
+    {
+        return Grade::useService()->getGradeTypeListByTask($this);
+    }
+
+    /**
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourses()
+    {
+        return Grade::useService()->getDivisionCourseListByTask($this);
     }
 }

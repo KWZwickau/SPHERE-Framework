@@ -4,12 +4,14 @@ namespace SPHERE\Application\Education\Graduation\Grade;
 
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -34,6 +36,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
@@ -167,13 +170,23 @@ abstract class FrontendTask extends FrontendGradeType
         $tblTask = Grade::useService()->getTaskById($TaskId);
         if ($setPost && $tblTask) {
             $global = $this->getGlobal();
-            $global->POST['GradeType']['Type'] = $tblTask->getIsTypeBehavior() ? 2 : 1;
-            $global->POST['Task']['Name'] = $tblTask->getName();
-            $global->POST['Task']['Date'] = $tblTask->getDate();
-            $global->POST['Task']['FromDate'] = $tblTask->getFromDate();
-            $global->POST['Task']['ToDate'] = $tblTask->getToDate();
-            $global->POST['Task']['ScoreType'] = $tblTask->getTblScoreType() ? $tblTask->getTblScoreType()->getId() : 0;
-            // todo post setzen für kurse und zensuren-typen
+            $global->POST['Data']['Name'] = $tblTask->getName();
+            $global->POST['Data']['Date'] = $tblTask->getDateString();
+            $global->POST['Data']['FromDate'] = $tblTask->getFromDateString();
+            $global->POST['Data']['ToDate'] = $tblTask->getToDateString();
+            $global->POST['Data']['ScoreType'] = $tblTask->getTblScoreType() ? $tblTask->getTblScoreType()->getId() : 0;
+
+            if (($tblGradeTypeList = $tblTask->getGradeTypes())) {
+                foreach ($tblGradeTypeList as $tblGradeType) {
+                    $global->POST['Data']['GradeTypes'][$tblGradeType->getId()] = 1;
+                }
+            }
+
+            if (($tblDivisionCourseList = $tblTask->getDivisionCourses())) {
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    $global->POST['Data']['DivisionCourses'][$tblDivisionCourse->getId()] = 1;
+                }
+            }
 
             $global->savePost();
         }
@@ -184,7 +197,6 @@ abstract class FrontendTask extends FrontendGradeType
         $tblScoreTypeList = Grade::useService()->getScoreTypeAll();
 
         $columnsTop = array();
-        // todo Kopfnoten bei Kopfnotenauftrag
         if (!$TaskId) {
             $columnsTop[] =  new FormColumn(
                 (new SelectBox('Data[Type]', 'Kategorie', array('Name' => $typeList)))
@@ -196,8 +208,6 @@ abstract class FrontendTask extends FrontendGradeType
         $columnsTop[] = new FormColumn(
             (new TextField('Data[Name]', '', 'Name'))->setRequired()
         , $TaskId ? 12 : 8);
-
-        // todo auch direkt die Kurse laden, Schularten?
 
         $columnsBotton[] = new FormColumn(new SelectBox('Data[ScoreType]', 'Bewertungssystem überschreiben', array('Name' => $tblScoreTypeList)), 4);
         if (School::useService()->hasConsumerTechnicalSchool()) {
@@ -219,8 +229,7 @@ abstract class FrontendTask extends FrontendGradeType
             )),
             new FormRow($columnsBotton),
             new FormRow(new FormColumn(
-                // todo edit
-                ApiTask::receiverBlock('', 'TaskGradeTypesContent')
+                ApiTask::receiverBlock($this->loadTaskGradeTypes($Data, $tblTask ?: null), 'TaskGradeTypesContent')
             )),
             new FormRow(new FormColumn($this->getDivisionCoursesSelectForTaskContent($YearId))),
             new FormRow(new FormColumn(array(
@@ -233,17 +242,25 @@ abstract class FrontendTask extends FrontendGradeType
     }
 
     /**
-     * @param $Data
+     * @param null $Data
+     * @param TblTask|null $tblTask
      *
      * @return string
      */
-    public function loadTaskGradeTypes($Data = null): string
+    public function loadTaskGradeTypes($Data = null, TblTask $tblTask = null): string
     {
-        // todo bei neu alle setzen
-
-        if (isset($Data['Type']) && $Data['Type'] == 2
+        if ((($tblTask && $tblTask->getIsTypeBehavior()) || (isset($Data['Type']) && $Data['Type'] == 2))
             && ($tblGradeTypeList = Grade::useService()->getGradeTypeList(true))
         ) {
+            // bei neuen Kopfnotenaufträgen alle Kopfnoten-Zensuren-Typen auswählen
+            if (!$tblTask) {
+                $global = $this->getGlobal();
+                foreach ($tblGradeTypeList as $tblGradeType) {
+                    $global->POST['Data']['GradeTypes'][$tblGradeType->getId()] = 1;
+                }
+                $global->savePost();
+            }
+
             $size = 3;
             $columnList = array();
             foreach ($tblGradeTypeList as $tblGradeType) {
@@ -259,49 +276,93 @@ abstract class FrontendTask extends FrontendGradeType
         return '';
     }
 
+    /**
+     * @param $YearId
+     *
+     * @return Layout|Warning
+     */
     public function getDivisionCoursesSelectForTaskContent($YearId)
     {
         if (!($tblYear = Term::useService()->getYearById($YearId))) {
             return new Warning('Schuljahr wurde nicht gefunden.', new Exclamation());
         }
 
-        $size = 3;
-        $columnList = array();
-        $contentPanelList = array();
+        $layoutGroups = array();
+        if (($temp = $this->getLayoutGroupForDivisionCoursesSelectByTypeIdentifier($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+            $layoutGroups[] = $temp;
+        }
+        if (($temp = $this->getLayoutGroupForDivisionCoursesSelectByTypeIdentifier($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+            $layoutGroups[] = $temp;
+        }
+        if (($temp = $this->getLayoutGroupForDivisionCoursesSelectByTypeIdentifier($tblYear, TblDivisionCourseType::TYPE_TEACHING_GROUP))) {
+            $layoutGroups[] = $temp;
+        }
 
-        $this->setContentPanelListForDivisionCourseType($contentPanelList, $tblYear, TblDivisionCourseType::TYPE_DIVISION);
-        $this->setContentPanelListForDivisionCourseType($contentPanelList, $tblYear, TblDivisionCourseType::TYPE_CORE_GROUP);
-        $this->setContentPanelListForDivisionCourseType($contentPanelList, $tblYear, TblDivisionCourseType::TYPE_TEACHING_GROUP);
-
-        if (!empty($contentPanelList)) {
-            ksort($contentPanelList);
-            foreach ($contentPanelList as $typeId => $content) {
-                if (($tblDivisionCourseType = DivisionCourse::useService()->getDivisionCourseTypeById($typeId))) {
-                    $columnList[] = new LayoutColumn(new Panel($tblDivisionCourseType->getName(), $content, Panel::PANEL_TYPE_INFO), $size);
-                }
-            }
-
-            return new Layout(new LayoutGroup(
-                Grade::useService()->getLayoutRowsByLayoutColumnList($columnList, $size),
-                new Title("Kurs-Auswahl")
-            ));
+        if (empty($layoutGroups)) {
+            return new Warning('Keine entsprechenden Kurse gefunden.', new Exclamation());
         } else {
-            return new Warning('Keine entsprechenden Lehraufträge gefunden.', new Exclamation());
+            return new Layout($layoutGroups);
         }
     }
 
-    private function setContentPanelListForDivisionCourseType(array &$contentPanelList, TblYear $tblYear, string $TypeIdentifier)
+    /**
+     * @param TblYear $tblYear
+     * @param string $TypeIdentifier
+     *
+     * @return false|LayoutGroup
+     */
+    private function getLayoutGroupForDivisionCoursesSelectByTypeIdentifier(TblYear $tblYear, string $TypeIdentifier)
     {
-        // todo nur edit wenn es noch keine Zensuren gibt für den Kurs, wobei brauchen wir wahrscheinlich nicht da die Zensuren nicht gelöscht werden
+        $size = 3;
+        $columnList = array();
+        $contentPanelList = array();
+        $toggleList = array();
+
+        $tblDivisionCourseType = DivisionCourse::useService()->getDivisionCourseTypeByIdentifier($TypeIdentifier);
+        $this->setContentPanelListForDivisionCourseType($contentPanelList, $toggleList, $tblYear, $TypeIdentifier);
+        if (!empty($contentPanelList)) {
+            ksort($contentPanelList);
+            foreach ($contentPanelList as $schoolTypeId => $content) {
+                if (($tblSchoolType = Type::useService()->getTypeById($schoolTypeId))) {
+                    if (isset($toggleList[$tblSchoolType->getId()])) {
+                        array_unshift($content, new ToggleSelective('Alle wählen/abwählen', $toggleList[$tblSchoolType->getId()]));
+                    }
+                    $columnList[] = new LayoutColumn(new Panel($tblSchoolType->getName(), $content, Panel::PANEL_TYPE_INFO), $size);
+                }
+            }
+
+            return new LayoutGroup(
+                Grade::useService()->getLayoutRowsByLayoutColumnList($columnList, $size),
+                new Title($tblDivisionCourseType->getName() . 'n')
+            );
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $contentPanelList
+     * @param array $toggleList
+     * @param TblYear $tblYear
+     * @param string $TypeIdentifier
+     *
+     * @return void
+     */
+    private function setContentPanelListForDivisionCourseType(array &$contentPanelList, array &$toggleList, TblYear $tblYear, string $TypeIdentifier)
+    {
         if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, $TypeIdentifier))) {
             $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('Name', new StringNaturalOrderSorter());
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                // todo alle verfügbaren über die eine Toggle Checkbox
-                // todo Trennung nach Schularte
-
-                $contentPanelList[$tblDivisionCourse->getType()->getId()][$tblDivisionCourse->getId()]
-                    = new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1);
+                if (($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())) {
+                    foreach ($tblSchoolTypeList as $tblSchoolType) {
+                        $name = "Data[DivisionCourses][{$tblDivisionCourse->getId()}]";
+                        $toggleList[$tblSchoolType->getId()][$tblDivisionCourse->getId()] = $name;
+                        $contentPanelList[$tblSchoolType->getId()][$tblDivisionCourse->getId()] = new CheckBox($name, $tblDivisionCourse->getDisplayName(), 1);
+                        // erstmal die Kurse bei mehreren Schularten nur einmal anzeigen
+                        break;
+                    }
+                }
             }
         }
     }

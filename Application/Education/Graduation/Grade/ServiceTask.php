@@ -4,8 +4,13 @@ namespace SPHERE\Application\Education\Graduation\Grade;
 
 use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskCourseLink;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTypeLink;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 
@@ -32,6 +37,48 @@ abstract class ServiceTask extends ServiceGradeType
     }
 
     /**
+     * @param TblTask $tblTask
+     *
+     * @return TblGradeType[]|false
+     */
+    public function getGradeTypeListByTask(TblTask $tblTask)
+    {
+        return (new Data($this->getBinding()))->getGradeTypeListByTask($tblTask);
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblTaskGradeTypeLink
+     */
+    public function getTaskGradeTypeLinkBy(TblTask $tblTask, TblGradeType $tblGradeType)
+    {
+        return (new Data($this->getBinding()))->getTaskGradeTypeLinkBy($tblTask, $tblGradeType);
+    }
+
+    /**
+     * @param TblTask $tblTask
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getDivisionCourseListByTask(TblTask $tblTask)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseListByTask($tblTask);
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return false|TblTaskCourseLink
+     */
+    public function getTaskCourseLinkBy(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getTaskCourseLinkBy($tblTask, $tblDivisionCourse);
+    }
+
+    /**
      * @param $Data
      * @param $YearId
      * @param $TaskId
@@ -43,7 +90,7 @@ abstract class ServiceTask extends ServiceGradeType
         $error = false;
         $form = Grade::useFrontend()->formTask($YearId, $TaskId, false, $Data);
 
-        if (!isset($Data['Type'])) {
+        if (!$TaskId && !isset($Data['Type'])) {
             $form->setError('Data[Type]', 'Bitte wählen Sie eine Kategorie aus');
             $error = true;
         }
@@ -110,5 +157,119 @@ abstract class ServiceTask extends ServiceGradeType
         bool  $IsAllYears, ?TblScoreType $tblScoreType): bool
     {
         return (new Data($this->getBinding()))->updateTask($tblTask, $Name, $Date, $FromDate, $ToDate, $IsAllYears, $tblScoreType);
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param array $Data
+     */
+    public function createTaskCourseLinks(TblTask $tblTask, array $Data)
+    {
+        if (isset($Data['DivisionCourses'])) {
+            $createList = array();
+            foreach ($Data['DivisionCourses'] as $divisionCourseId => $value) {
+                if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))) {
+                    $createList[] = new TblTaskCourseLink($tblTask, $tblDivisionCourse);
+                }
+            }
+
+            Grade::useService()->createEntityListBulk($createList);
+        }
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param array $Data
+     */
+    public function updateTaskCourseLinks(TblTask $tblTask, array $Data)
+    {
+        $createList = array();
+        $removeList = array();
+
+        if (($tblDivisionCourseList = $tblTask->getDivisionCourses())) {
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                // löschen
+                if (!isset($Data['DivisionCourses'][$tblDivisionCourse->getId()])) {
+                    $removeList[] = $this->getTaskCourseLinkBy($tblTask, $tblDivisionCourse);
+                }
+            }
+        } else {
+            $tblDivisionCourseList = array();
+        }
+
+        // neu
+        if (isset($Data['DivisionCourses'])) {
+            foreach ($Data['DivisionCourses'] as $divisionCourseId => $value) {
+                if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))
+                    && !isset($tblDivisionCourseList[$divisionCourseId])
+                ) {
+                    $createList[] = new TblTaskCourseLink($tblTask, $tblDivisionCourse);
+                }
+            }
+        }
+
+        if (!empty($createList)) {
+            Grade::useService()->createEntityListBulk($createList);
+        }
+        if (!empty($removeList)) {
+            Grade::useService()->deleteEntityListBulk($removeList);
+        }
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param array $Data
+     */
+    public function createTaskGradeTypeLinks(TblTask $tblTask, array $Data)
+    {
+        if (isset($Data['GradeTypes'])) {
+            $createList = array();
+            foreach ($Data['GradeTypes'] as $gradeTypeId => $value) {
+                if (($tblGradeType = Grade::useService()->getGradeTypeById($gradeTypeId))) {
+                    $createList[] = new TblTaskGradeTypeLink($tblTask, $tblGradeType);
+                }
+            }
+
+            Grade::useService()->createEntityListBulk($createList);
+        }
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param array $Data
+     */
+    public function updateTaskGradeTypeLinks(TblTask $tblTask, array $Data)
+    {
+        $createList = array();
+        $removeList = array();
+
+        if (($tblGradeTypeList = $tblTask->getGradeTypes())) {
+            foreach ($tblGradeTypeList as $tblGradeType) {
+                // löschen
+                if (!isset($Data['GradeTypes'][$tblGradeType->getId()])) {
+                    $removeList[] = $this->getTaskGradeTypeLinkBy($tblTask, $tblGradeType);
+                }
+            }
+        } else {
+            $tblGradeTypeList = array();
+        }
+
+        // neu
+        if (isset($Data['GradeTypes'])) {
+            foreach ($Data['GradeTypes'] as $gradeTypeId => $value) {
+                if (($tblGradeType = Grade::useService()->getGradeTypeById($gradeTypeId))
+                    && !isset($tblGradeTypeList[$gradeTypeId])
+                ) {
+                    $createList[] = new TblTaskGradeTypeLink($tblTask, $tblGradeType);
+                }
+            }
+        }
+
+        if (!empty($createList)) {
+            Grade::useService()->createEntityListBulk($createList);
+        }
+        if (!empty($removeList)) {
+            Grade::useService()->deleteEntityListBulk($removeList);
+        }
     }
 }

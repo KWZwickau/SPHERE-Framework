@@ -3,8 +3,12 @@
 namespace SPHERE\Application\Education\Graduation\Grade\Service;
 
 use DateTime;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskCourseLink;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTypeLink;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
@@ -28,6 +32,78 @@ abstract class DataTask extends DataMigrate
     public function getTaskListByYear(TblYear $tblYear)
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTask', array(TblTask::ATTR_SERVICE_TBL_YEAR => $tblYear->getId()));
+    }
+
+    /**
+     * @param TblTask $tblTask
+     *
+     * @return TblGradeType[]|false
+     */
+    public function getGradeTypeListByTask(TblTask $tblTask)
+    {
+        $resultList = array();
+        if (($list = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTaskGradeTypeLink',
+            array(TblTaskGradeTypeLink::ATTR_TBL_TASK => $tblTask->getId()))
+        )) {
+            /** @var TblTaskGradeTypeLink $item */
+            foreach ($list as $item) {
+                if (($tblGradeType = $item->getTblGradeType())) {
+                    $resultList[$tblGradeType->getId()] = $tblGradeType;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblTaskGradeTypeLink
+     */
+    public function getTaskGradeTypeLinkBy(TblTask $tblTask, TblGradeType $tblGradeType)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblTaskGradeTypeLink', array(
+            TblTaskGradeTypeLink::ATTR_TBL_TASK => $tblTask->getId(),
+            TblTaskGradeTypeLink::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId(),
+        ));
+    }
+
+    /**
+     * @param TblTask $tblTask
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getDivisionCourseListByTask(TblTask $tblTask)
+    {
+        $resultList = array();
+        if (($list = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTaskCourseLink',
+            array(TblTaskCourseLink::ATTR_TBL_TASK => $tblTask->getId()))
+        )) {
+            /** @var TblTaskCourseLink $item */
+            foreach ($list as $item) {
+                if (($tblDivisionCourse = $item->getServiceTblDivisionCourse())) {
+                    $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return false|TblTaskCourseLink
+     */
+    public function getTaskCourseLinkBy(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblTaskCourseLink', array(
+            TblTaskCourseLink::ATTR_TBL_TASK => $tblTask->getId(),
+            TblTaskCourseLink::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+        ));
     }
 
     /**
