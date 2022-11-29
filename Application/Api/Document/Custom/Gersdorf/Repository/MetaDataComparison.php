@@ -70,12 +70,10 @@ class MetaDataComparison extends AbstractDocument
         if ($Data['Person']['Id']) {
             if (($tblPerson = Person::useService()->getPersonById($Data['Person']['Id']))) {
                 $this->setPersonContent($tblPerson);
-                if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                    if(($tblDivision = $tblStudent->getCurrentMainDivision())){
-                        $this->FieldValue['Division'] = $tblDivision->getDisplayName();
-                        if(($tblYear = $tblDivision->getServiceTblYear())){
-                            $this->FieldValue['Year'] = $tblYear->getYear();
-                        }
+                if(($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))){
+                    $this->FieldValue['Division'] = $tblDivision->getDisplayName();
+                    if(($tblYear = $tblDivision->getServiceTblYear())){
+                        $this->FieldValue['Year'] = $tblYear->getYear();
                     }
                 }
                 if(($tblCommon = Common::useService()->getCommonByPerson($tblPerson))){

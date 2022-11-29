@@ -1,13 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Person\Frontend;
 
-use SPHERE\Application\Api\People\Meta\Agreement\ApiPersonAgreementStructure;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
-use SPHERE\Application\People\Meta\Agreement\Agreement;
-use SPHERE\Application\People\Meta\Agreement\Service\Entity\TblPersonAgreementCategory;
-use SPHERE\Application\People\Meta\Agreement\Service\Entity\TblPersonAgreementType;
 use SPHERE\Application\People\Meta\Masern\Masern;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -15,7 +9,6 @@ use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
-use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -24,25 +17,18 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
-use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
-use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Repository\Title as TitleLayout;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
@@ -68,21 +54,6 @@ class FrontendPersonMasern extends FrontendReadOnly
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))){
             return '';
         }
-
-        $AuthorizedToCollectGroups[] = TblGroup::META_TABLE_STAFF;
-        $hasBlock = false;
-        foreach ($AuthorizedToCollectGroups as $group) {
-            if (($tblGroup = Group::useService()->getGroupByMetaTable($group))
-                && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
-            ) {
-                $hasBlock = true;
-                break;
-            }
-        }
-        if(!$hasBlock){
-            return '';
-        }
-
         $MasernDate = '';
         $DocumentType = '';
         $CreatorType = '';

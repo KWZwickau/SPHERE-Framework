@@ -70,14 +70,10 @@ class GymAbgSekII extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample());
-
         $pageList[] = (new Page());
 
         $pageList[] = (new Page())
-            ->addSlice(
-                $Header
-            )
+            ->addSlice($this->getHeadForLeave($this->isSample()))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('ABGANGSZEUGNIS')

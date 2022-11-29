@@ -27,8 +27,8 @@ use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
 use SPHERE\Application\People\Person\Frontend\FrontendPersonMasern;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Application\People\Person\Frontend\FrontendProspectTransfer;
-use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentAgreement;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentBasic;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentGeneral;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentMedicalRecord;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentProcess;
@@ -1817,7 +1817,7 @@ class ApiPersonEdit extends Extension implements IApiInterface
     public function editStudentBasicContent($PersonId = null)
     {
 
-        return (new FrontendStudent())->getEditStudentBasicContent($PersonId);
+        return (new FrontendStudentBasic())->getEditStudentBasicContent($PersonId);
     }
 
     /**

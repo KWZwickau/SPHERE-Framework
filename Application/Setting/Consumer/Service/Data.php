@@ -146,6 +146,12 @@ class Data extends AbstractData
         $this->createSetting('Education', 'Certificate', 'Generate', 'PictureDisplayLocationForDiplomaCertificate',
             TblSetting::TYPE_BOOLEAN, '1', 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse wird das Logo auf der 2.
              Seite unter dem Abschluss angezeigt (ansonsten auf dem Cover oben links): [Ja]');
+        $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddressForLeaveCertificate',
+            TblSetting::TYPE_STRING, '', 'Zeugnisse', 'Für die Standard-Abgangs-Zeugnisse kann ein Bild (Logo)
+             hinterlegt werden. Adresse des Bildes: []');
+        $this->createSetting('Education', 'Certificate', 'Generate', 'PictureHeightForLeaveCertificate',
+            TblSetting::TYPE_STRING, '', 'Zeugnisse', 'Für die Standard-Abgangs-Zeugnisse kann ein Bild (Logo)
+             hinterlegt werden. Höhe des Bildes: []');
         $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym', TblSetting::TYPE_STRING, '',
             'Zeugnisse','Werden die Neigungskurse in der Bildung nicht einzeln gepflegt, sondern nur ein einzelner
              Standard-Neigungskurs, kann hier das Kürzel des Standard-Neigungskurses (z.B. NK) hinterlegt werden. Für

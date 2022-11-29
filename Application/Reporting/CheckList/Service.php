@@ -1430,8 +1430,8 @@ class Service extends AbstractService
 
         return new Redirect('/Reporting/CheckList/Object/Element/Show', Redirect::TIMEOUT_SUCCESS, array(
             'Id'              => $ListId,
-            'YearPersonId'    => $Filter['Year'],
-            'LevelPersonId'   => $Filter['Level'],
+            'YearPersonId'    => (isset($Filter['Year']) ? $Filter['Year'] : 0),
+            'LevelPersonId'    => (isset($Filter['Level']) ? $Filter['Level'] : 0),
             'SchoolOption1Id' => $Filter['SchoolOption1'],
             'SchoolOption2Id' => $Filter['SchoolOption2']
         ));

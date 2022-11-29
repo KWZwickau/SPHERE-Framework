@@ -164,10 +164,10 @@ class Standard extends Extension implements IModuleInterface
      *
      * @return Stage|string
      */
-    public static function createMultiGradebookOverviewPdf($DivisionId = null, $Redirect = true)
+    public static function createMultiGradebookOverviewPdf($DivisionId = null, $GroupId = null, $Redirect = true)
     {
 
-        return Creator::createMultiGradebookOverviewPdf($DivisionId, Creator::PAPERORIENTATION_LANDSCAPE, $Redirect);
+        return Creator::createMultiGradebookOverviewPdf($DivisionId, $GroupId, Creator::PAPERORIENTATION_LANDSCAPE, $Redirect);
     }
 
     /**

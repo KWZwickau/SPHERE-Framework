@@ -1580,17 +1580,30 @@ class KamenzReportService
                     && ($tblTempLevel = $tblDivisionTemp->getTblLevel())
                     && $tblLevel->getId() == $tblTempLevel->getId()
                 ) {
+                    $course = 'WithoutCourse';
+                    if (!($tblLevel->getName() == '5' || $tblLevel->getName() == '6')) {
+                        if (($tblStudent = $tblPerson->getStudent())
+                            && ($tblCourse = $tblStudent->getCourse())
+                        ) {
+                            if ($tblCourse->getName() == 'Hauptschule') {
+                                $course = 'HS';
+                            } elseif ($tblCourse->getName() == 'Realschule') {
+                                $course = 'RS';
+                            }
+                        }
+                    }
+
                     if ($gender) {
-                        if (isset($Content['E08']['WithoutCourse']['L' . $tblLevel->getName()][$gender])) {
-                            $Content['E08']['WithoutCourse']['L' . $tblLevel->getName()][$gender]++;
+                        if (isset($Content['E08'][$course]['L' . $tblLevel->getName()][$gender])) {
+                            $Content['E08'][$course]['L' . $tblLevel->getName()][$gender]++;
                         } else {
-                            $Content['E08']['WithoutCourse']['L' . $tblLevel->getName()][$gender] = 1;
+                            $Content['E08'][$course]['L' . $tblLevel->getName()][$gender] = 1;
                         }
 
-                        if (isset($Content['E08']['WithoutCourse']['TotalCount'][$gender])) {
-                            $Content['E08']['WithoutCourse']['TotalCount'][$gender]++;
+                        if (isset($Content['E08'][$course]['TotalCount'][$gender])) {
+                            $Content['E08'][$course]['TotalCount'][$gender]++;
                         } else {
-                            $Content['E08']['WithoutCourse']['TotalCount'][$gender] = 1;
+                            $Content['E08'][$course]['TotalCount'][$gender] = 1;
                         }
                     }
 

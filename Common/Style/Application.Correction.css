@@ -608,7 +608,8 @@ a.type-orange-link:focus {
     overflow: auto;
     height: 100px;
 }
-.tableFixHead thead th {
+.tableFixHead thead {
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 1;

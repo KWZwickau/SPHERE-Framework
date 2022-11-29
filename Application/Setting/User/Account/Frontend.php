@@ -181,8 +181,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'order'      => array(array(5, 'asc')),
                 'columnDefs' => array(
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-//                    array('width' => '1%', 'targets' => 0), //ToDO handle changing with
-//                    array('width' => '1%', 'targets' => -1),
+                    array('width' => '1%', 'targets' => 0),
+                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
                 'paging'     => false,
@@ -577,8 +577,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'order'      => array(array(2, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'german-string', 'targets' => 1),
-//                    array('width' => '1%', 'targets' => 0), //ToDO handle changing with
-//                    array('width' => '1%', 'targets' => -1),
+                    array('width' => '1%', 'targets' => 0),
+                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
                 'paging'     => false,
@@ -805,8 +805,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 $DataPerson['Option'] = $this->apiChangeMainAddressButton($tblPerson);
 
                                 if ($tblPerson){
+                                    // Gibt Person und Schüler als Id zurück (12_13)
                                     $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
-                                        $tblPerson->getId()
+                                        $tblPerson->getId().'_'.$tblPersonStudent->getId()
                                         , array($tblPerson->getId())))->setChecked();
                                     $DataPerson['Name'] = $tblPerson->getLastFirstName();
                                 }
@@ -1296,18 +1297,18 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Success Entry if linked
                     if ($Time && $Time == $GroupByTime) {
-                        $item['GroupByTime'] = new SuccessMessage(new Bold($GroupByTime).' Aktuell erstellte Benutzer');
-                        $item['UserAccountCount'] = new SuccessMessage(count($tblUserAccountList));
-                        $item['ExportInfo'] = new SuccessMessage('&nbsp;');
+                        $item['GroupByTime'] = new SuccessMessage(new Bold($GroupByTime).' Aktuell erstellte Benutzer', null, false, '5', '3');
+                        $item['UserAccountCount'] = new SuccessMessage(count($tblUserAccountList), null, false, '5', '3');
+                        $item['ExportInfo'] = new SuccessMessage('&nbsp;', null, false, '5', '3');
                         if ($tblUserAccountTarget->getExportDate()) {
                             $item['ExportInfo'] = new SuccessMessage($tblUserAccountTarget->getLastDownloadAccount()
-                                .' ('.$tblUserAccountTarget->getExportDate().')');
+                                .' ('.$tblUserAccountTarget->getExportDate().')', null, false, '5', '3');
                         }
 
                         if ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
-                            $item['AccountType'] = new SuccessMessage('Schüler-Accounts');
+                            $item['AccountType'] = new SuccessMessage('Schüler-Accounts', null, false, '5', '3');
                         } elseif ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
-                            $item['AccountType'] = new SuccessMessage('Sorgeberechtigten-Accounts');
+                            $item['AccountType'] = new SuccessMessage('Sorgeberechtigten-Accounts', null, false, '5', '3');
                         }
                     } else {
                         $item['GroupByTime'] = $GroupByTime;

@@ -70,7 +70,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'Digitales Klassenbuch', 'Stand:&nbsp;22.08.2022'))->setPictureHeight()
+                                , 'Digitales Klassenbuch', 'Stand:&nbsp;09.11.2022'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'DigitalClassBook')
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
@@ -105,7 +105,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $isUcsApiActive
                             ? new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'Schnittstelle Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;05.09.2022'))->setPictureHeight()
+                                , 'Schnittstelle Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;10.11.2022'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_UCS_DLLP')
                             ), 2)
                             : null

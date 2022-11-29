@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 12.12.2018
- * Time: 15:57
- */
-
 namespace SPHERE\Application\People\Person\Frontend;
 
 use DateInterval;
@@ -14,19 +7,12 @@ use SPHERE\Application\Api\MassReplace\ApiMassReplace;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Student\MassReplaceStudent;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
-use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -37,15 +23,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
-use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
-use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -53,10 +33,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Message\Repository\Info;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
@@ -66,150 +43,9 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
  *
  * @package SPHERE\Application\People\Person\Frontend
  */
-class FrontendStudent extends FrontendReadOnly
+class FrontendStudentBasic extends FrontendReadOnly
 {
-    const TITLE = 'Schülerakte';
-
-    /**
-     * @param null $PersonId
-     *
-     * @return string
-     */
-    public static function getStudentTitle($PersonId = null)
-    {
-        if (($tblPerson = Person::useService()->getPersonById($PersonId))
-            && ($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
-            && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
-        ) {
-            $AllowEdit = 1;
-            $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentContent($PersonId, $AllowEdit));
-            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
-
-            return TemplateReadOnly::getContent(
-                self::TITLE,
-                new Info('Die Schülerakte ist ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
-                array($showLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
-                new Tag(),
-                true
-            );
-        } // ReadOnly Archive
-         elseif (($tblPerson = Person::useService()->getPersonById($PersonId))
-            && ($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_ARCHIVE))
-            && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
-        ) {
-            $AllowEdit = 0;
-            $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentContent($PersonId, $AllowEdit));
-
-            return TemplateReadOnly::getContent(
-                self::TITLE,
-                new Info('Die Schülerakte ist ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
-                array($showLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
-                new Tag(),
-                true
-            );
-        }
-
-        return '';
-    }
-
-    /**
-     * @param null $PersonId
-     * @param int  $AllowEdit
-     *
-     * @return string
-     */
-    public static function getStudentContent($PersonId = null, $AllowEdit = 1)
-    {
-
-        if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
-                $routeEnrollmentDocument = '/Document/Custom/Hoga/EnrollmentDocument/Fill';
-            } else {
-                $routeEnrollmentDocument = '/Document/Standard/EnrollmentDocument/Fill';
-            }
-
-            $hasApiRight = Access::useService()->hasAuthorization('/Api/Document/Standard/StudentCard/Create');
-            if ($hasApiRight && $tblPerson != null) {
-                $listingContent[] =
-                    new External(
-                        'Herunterladen der Schülerkartei', '/Api/Document/Standard/StudentCardNew/Create',
-                        new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen')
-                    .new External(
-                        'Schülerkartei (alt)', '/Api/Document/Standard/StudentCard/Create',
-                        new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen')
-                    .new External(
-                        'Erstellen der Schulbescheinigung', $routeEnrollmentDocument,
-                        new Download(), array('PersonId' => $tblPerson->getId()),
-                        'Erstellen und Herunterladen einer Schulbescheinigung')
-                    .new External(
-                        'Erstellen der Schülerüberweisung', '/Document/Standard/StudentTransfer/Fill',
-                        new Download(), array('Id' => $tblPerson->getId()),
-                        'Erstellen und Herunterladen einer Schülerüberweisung ');
-            }
-
-            $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                 self::getStudentBasicContent($PersonId, $AllowEdit), 'StudentBasicContent'
-            );
-
-            $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentTransfer::getStudentTransferContent($PersonId, $AllowEdit), 'StudentTransferContent'
-            );
-
-            $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentProcess::getStudentProcessContent($PersonId, $AllowEdit), 'StudentProcessContent'
-            );
-
-            $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentMedicalRecord::getStudentMedicalRecordContent($PersonId, $AllowEdit), 'StudentMedicalRecordContent'
-            );
-
-            $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentGeneral::getStudentGeneralContent($PersonId, $AllowEdit), 'StudentGeneralContent'
-            );
-
-            $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentAgreement::getStudentAgreementContent($PersonId, $AllowEdit), 'StudentAgreementContent'
-            );
-
-            if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'WVSZ')) {
-                $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                    FrontendStudentSpecialNeeds::getStudentSpecialNeedsContent($PersonId, $AllowEdit), 'StudentSpecialNeedsContent'
-                );
-            }
-
-            if (School::useService()->hasConsumerTechnicalSchool()) {
-                $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                    FrontendStudentTechnicalSchool::getStudentTechnicalSchoolContent($PersonId, $AllowEdit),
-                    'StudentTechnicalSchoolContent'
-                );
-            }
-
-            $listingContent[] = ApiPersonReadOnly::receiverBlock(
-                FrontendStudentSubject::getStudentSubjectContent($PersonId, $AllowEdit), 'StudentSubjectContent'
-            );
-
-            $content = new Listing($listingContent);
-
-            $hideLink = (new Link(new EyeMinus() . ' Ausblenden', ApiPersonReadOnly::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStudentTitle($PersonId));
-            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
-
-            return TemplateReadOnly::getContent(
-                self::TITLE,
-                $content,
-                array($hideLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
-                new Tag()
-                , true
-            );
-        }
-
-        return '';
-    }
+    const TITLE = 'Schülerakte - Grunddaten';
 
     /**
      * @param null $PersonId
@@ -290,6 +126,8 @@ class FrontendStudent extends FrontendReadOnly
      */
     public function getEditStudentBasicContent($PersonId = null)
     {
+
+        $tblPerson = false;
         if ($PersonId && ($tblPerson = Person::useService()->getPersonById($PersonId))) {
             $Global = $this->getGlobal();
             if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)) {
@@ -303,30 +141,29 @@ class FrontendStudent extends FrontendReadOnly
 
                 $Global->savePost();
             }
-
-            return $this->getEditStudentBasicTitle($tblPerson) . new Well($this->getEditStudentBasicForm($tblPerson));
         }
 
-        return new Warning('Person nicht gefunden!', new Exclamation());
+        return $this->getEditStudentBasicTitle($tblPerson ? $tblPerson : null)
+            . new Well($this->getEditStudentBasicForm($tblPerson ? $tblPerson : null));
     }
 
     /**
-     * @param TblPerson $tblPerson
+     * @param TblPerson|null $tblPerson
      *
      * @return string
      */
-    private function getEditStudentBasicTitle(TblPerson $tblPerson): string
+    private function getEditStudentBasicTitle(TblPerson $tblPerson = null)
     {
         return new Title(new Nameplate() . ' ' . self::TITLE . ' - Grunddaten', self::getEditTitleDescription($tblPerson))
             . self::getDataProtectionMessage();
     }
 
     /**
-     * @param TblPerson $tblPerson
+     * @param TblPerson|null $tblPerson
      *
      * @return Form
      */
-    private function getEditStudentBasicForm(TblPerson $tblPerson): Form
+    private function getEditStudentBasicForm(TblPerson $tblPerson = null)
     {
         $isIdentifierAuto = false;
         $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
@@ -334,7 +171,7 @@ class FrontendStudent extends FrontendReadOnly
             $isIdentifierAuto = true;
         }
 
-        $NodePrefix = 'Grunddaten - Schülernummer';
+        $NodePrefix = 'Grunddaten - Prefix der Schülernummer';
         $StartDatePrefix = 'Grunddaten - Schulpflicht';
 
         return (new Form(array(

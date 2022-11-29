@@ -493,12 +493,18 @@ class ApiUserAccount extends Extension implements IApiInterface
 
     /**
      * @param array  $PersonIdArray
-     * @param string $Type
+     * @param string $Type (S = Student; C = Custody)
      *
      * @return Pipeline
      */
     public function serviceAccount($PersonIdArray = array(), $Type = 'S')
     {
+
+        if($Type == 'S'){
+            $PersonIdArray = Account::useService()->sortPersonIdListByDivisionAndName($PersonIdArray);
+        } else {
+            $PersonIdArray = Account::useService()->sortGuardianPersonIdListByDivisionAndName($PersonIdArray);
+        }
 
         $result = Account::useService()->createAccount($PersonIdArray, $Type);
         return self::pipelineSaveAccountResult($result, $Type);
@@ -508,7 +514,7 @@ class ApiUserAccount extends Extension implements IApiInterface
      *
      * @var array    $result
      *
-     * @param string $Type
+     * @param string $Type (S = Student; C = Custody)
      *
      * @return Pipeline
      */
@@ -530,7 +536,7 @@ class ApiUserAccount extends Extension implements IApiInterface
 
     /**
      * @param array  $result
-     * @param string $Type
+     * @param string $Type (S = Student; C = Custody)
      *
      * @return string
      */
