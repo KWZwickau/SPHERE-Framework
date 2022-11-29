@@ -38,6 +38,8 @@ SELECT
     tCI.Denomination AS TblCommonInformation_Denomination,
     tCI.AssistanceActivity AS TblCommonInformation_AssistanceActivity,
     IF (tCI.IsAssistance = 1, 'Ja', 'Nein') AS TblCommonInformation_IsAssistance,
+-- tblChild
+    tCH.AuthorizedToCollect as TblChild_AuthorizedToCollect,
 -- tblGroup
     (select
         group_concat(
@@ -56,5 +58,6 @@ FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
     LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonBirthDates tCBD ON tCBD.Id = tC.tblCommonBirthDates
     LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonGender tCG ON tCG.Id = tCBD.tblCommonGender
     LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonInformation tCI ON tCI.Id = tC.tblCommonInformation
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblChild tCH ON tCH.serviceTblPerson = tP.Id
 
 WHERE tP.EntityRemove IS NULL

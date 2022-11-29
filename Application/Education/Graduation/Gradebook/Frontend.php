@@ -95,6 +95,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
@@ -1312,10 +1313,11 @@ class Frontend extends FrontendScoreRule
             $dataList, null, $columnDefinition,
             array(
                 "columnDefs" => array(
-                    array(
-                        "orderable" => false,
-                        "targets"   => '_all',
-                    ),
+                    // nicht alle Filter Icons verschwinden
+//                    array(
+//                        "orderable" => false,
+//                        "targets"   => '_all',
+//                    ),
                     array('width' => '1%', 'targets' => 0),
                     array('width' => '1%', 'targets' => 2),
                     array('width' => '2%', 'targets' => 3),
@@ -1323,7 +1325,8 @@ class Frontend extends FrontendScoreRule
                 'pageLength' => -1,
                 'paging' => false,
                 'info' => false,
-                'responsive' => false
+                'responsive' => false,
+                'ordering' => false
             )
         );
 
@@ -2176,25 +2179,29 @@ class Frontend extends FrontendScoreRule
 
                 return new Panel(
                     'Mindesnotenanzahl',
+                    '<div style="margin-top: -18px;">'.
                     new TableData(
                         $minimumGradeCountContent,
                         null,
                         $columns,
                         array(
-                            "columnDefs" => array(
-                                array(
-                                    "orderable" => false,
-                                    "targets" => '_all'
-                                ),
-                            ),
+                            // nicht alle Filter Icons verschwinden
+//                            "columnDefs" => array(
+//                                array(
+//                                    "orderable" => false,
+//                                    "targets" => '_all'
+//                                ),
+//                            ),
                             'pageLength' => -1,
                             'paging' => false,
                             'info' => false,
                             'searching' => false,
-                            'responsive' => false
+                            'responsive' => false,
+                            'ordering' => false
                         )
-                    ),
+                    ).'</div>',
                     Panel::PANEL_TYPE_INFO
+
                 );
             }
         }
@@ -2991,10 +2998,12 @@ class Frontend extends FrontendScoreRule
                                         } elseif (is_string($average) && strpos($average, '(')) {
                                             $average = substr($average, 0, strpos($average, '('));
 
-                                            $sumSubjectAverage[$tblSubject->getId() . 'Id'] += $average;
+                                            $sumSubjectAverage[$tblSubject->getId() . 'Id'] += intval($average);
+                                            $countSubjectAverage[$tblSubject->getId() . 'Id']++;
+                                        } elseif ($average || $average === (float) 0) {
+                                            $sumSubjectAverage[$tblSubject->getId() . 'Id'] += intval($average);
                                             $countSubjectAverage[$tblSubject->getId() . 'Id']++;
                                         }
-
 
                                         // Anzeige Notendurchschnitt genau 0
                                         if ($average === (float) 0) {
@@ -3042,7 +3051,7 @@ class Frontend extends FrontendScoreRule
 
             $Stage->addButton(new External(
                 'Alle Schülerübersichten dieser Klasse herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
-                array('DivisionId' => $DivisionId), false
+                array('DivisionId' => $DivisionId, 'GroupId' => $GroupId), false
             ));
 
             $Stage->setContent(

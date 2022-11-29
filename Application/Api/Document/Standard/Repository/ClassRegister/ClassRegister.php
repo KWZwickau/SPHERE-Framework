@@ -769,6 +769,8 @@ class ClassRegister extends AbstractDocument
     {
         if ($this->tblYear) {
             list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($this->tblYear);
+//            $startDate = new DateTime('10.11.2022');
+//            $endDate = new DateTime('20.11.2022');
             if ($startDate && $endDate) {
                 $dayOfWeek = $startDate->format('w');
 

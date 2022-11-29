@@ -5,7 +5,6 @@
  * Date: 12.12.2018
  * Time: 10:43
  */
-
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
@@ -40,7 +39,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
  */
 class FrontendStudentIntegration extends FrontendReadOnly
 {
-    const TITLE = 'Integration-Daten';
+    const TITLE = 'Integration - Daten';
 
     /**
      * @param null $PersonId

@@ -19,6 +19,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -585,6 +586,120 @@ abstract class Certificate extends Extension
             $Head->styleHeight('100px');
         }
         return $Head->addSection($Section);
+    }
+
+    /**
+     * @param bool $IsSample
+     * @param bool $showPicture
+     *
+     * @return Slice
+     */
+    public function getHeadForLeave(bool $IsSample, bool $showPicture = true): Slice
+    {
+        if (!ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
+            $elementSaxonyLogo = (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '214px', '66px'))->styleAlignRight();
+        } else {
+            $elementSaxonyLogo = (new Element())->setContent('&nbsp;');
+        }
+
+        $pictureAddress = '';
+        $pictureHeight = '66px';
+        if ($showPicture) {
+            if (($tblSettingAddress = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Generate', 'PictureAddressForLeaveCertificate'))
+            ) {
+                $pictureAddress = trim($tblSettingAddress->getValue());
+            }
+            if (($tblSettingHeight = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                    'Education', 'Certificate', 'Generate', 'PictureHeightForLeaveCertificate'))
+                && ($value = trim($tblSettingHeight->getValue()))
+            ) {
+                $pictureHeight = $value;
+            }
+        }
+        if ($pictureAddress) {
+            $elementSchoolLogo = new Element\Image($pictureAddress, 'auto', $pictureHeight);
+        } else {
+            $elementSchoolLogo = (new Element())->setContent('&nbsp;');
+        }
+
+        $Header = (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn($elementSchoolLogo, '61%')
+                ->addElementColumn($elementSaxonyLogo, '39%')
+            );
+        if ($IsSample) {
+            $Header->addSection((new Section())
+                ->addElementColumn((new Element\Sample())
+                    ->styleMarginTop('80px')
+                    ->styleTextSize('30px')
+                    ->styleAlignCenter()
+                    ->styleHeight('0px')
+                )
+            );
+        }
+
+        $Header->stylePaddingTop('24px');
+        $Header->styleHeight('100px');
+
+        return $Header;
+    }
+
+    /**
+     * @param bool $IsSample
+     * @param bool $showPicture
+     *
+     * @return Slice
+     */
+    public function getHeadForDiploma(bool $IsSample, bool $showPicture = true): Slice
+    {
+        if (!ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
+            $elementSaxonyLogo = (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '214px', '66px'))->styleAlignRight();
+        } else {
+            $elementSaxonyLogo = (new Element())->setContent('&nbsp;');
+        }
+
+        $pictureAddress = '';
+        $pictureHeight = '66px';
+        if ($showPicture) {
+            if (($tblSettingAddress = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Generate', 'PictureAddressForDiplomaCertificate'))
+            ) {
+                $pictureAddress = trim($tblSettingAddress->getValue());
+            }
+            if (($tblSettingHeight = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                    'Education', 'Certificate', 'Generate', 'PictureHeightForDiplomaCertificate'))
+                && ($value = trim($tblSettingHeight->getValue()))
+            ) {
+                $pictureHeight = $value;
+            }
+        }
+        if ($pictureAddress) {
+            $elementSchoolLogo = new Element\Image($pictureAddress, 'auto', $pictureHeight);
+        } else {
+            $elementSchoolLogo = (new Element())->setContent('&nbsp;');
+        }
+
+        $Header = (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn($elementSchoolLogo, '61%')
+                ->addElementColumn($elementSaxonyLogo, '39%')
+            );
+        if ($IsSample) {
+            $Header->addSection((new Section())
+                ->addElementColumn((new Element\Sample())
+                    ->styleMarginTop('80px')
+                    ->styleTextSize('30px')
+                    ->styleAlignCenter()
+                    ->styleHeight('0px')
+                )
+            );
+        }
+
+        $Header->stylePaddingTop('24px');
+        $Header->styleHeight('100px');
+
+        return $Header;
     }
 
     /**

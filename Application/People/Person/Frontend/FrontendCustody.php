@@ -46,7 +46,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
  */
 class FrontendCustody  extends FrontendReadOnly
 {
-    const TITLE = 'Sorgerecht-Daten';
+    const TITLE = 'Sorgerecht - Daten';
 
     /**
      * @param null $PersonId

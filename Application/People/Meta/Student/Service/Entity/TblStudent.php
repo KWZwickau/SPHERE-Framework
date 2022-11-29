@@ -321,56 +321,6 @@ class TblStudent extends Element
     }
 
     /**
-     * @deprecated
-     * @return false|TblDivision[]
-     */
-    public function getCurrentDivisionList()
-    {
-
-        if (($tblPerson = $this->getServiceTblPerson())) {
-            return Student::useService()->getCurrentDivisionListByPerson($tblPerson);
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @deprecated
-     * @param string $Prefix
-     *
-     * @return bool|string
-     */
-    public function getDisplayCurrentDivisionList($Prefix = 'Klasse')
-    {
-
-        if (($tblPerson = $this->getServiceTblPerson())) {
-            return Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, $Prefix);
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @deprecated
-     * @return bool|TblDivision
-     */
-    public function getCurrentMainDivision()
-    {
-
-        if (($list = $this->getCurrentDivisionList())) {
-            foreach ($list as $tblDivision){
-                if (($tblLevel = $tblDivision->getTblLevel())
-                    && !$tblLevel->getIsChecked()
-                ) {
-                    return $tblDivision;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * @return bool|TblCourse
      */
     public function getCourse()
