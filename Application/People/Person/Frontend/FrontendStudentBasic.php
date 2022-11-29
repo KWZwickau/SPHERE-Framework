@@ -4,12 +4,9 @@ namespace SPHERE\Application\People\Person\Frontend;
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
-use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Student\MassReplaceStudent;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
@@ -123,35 +120,6 @@ class FrontendStudentBasic extends FrontendReadOnly
     }
 
     /**
-     * @param TblPerson $tblPerson
-     * @param $Year
-     * @param $Division
-     */
-    public static function setYearAndDivisionForMassReplace(TblPerson $tblPerson, &$Year, &$Division)
-    {
-        $Year[ViewYear::TBL_YEAR_ID] = '';
-        $Division[ViewDivisionStudent::TBL_LEVEL_ID] = '';
-        $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = '';
-        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
-        // #SSW-1598 Fehlerbehebung Massen-Änderung
-
-        // get information without tblStudent information
-        $tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
-        if ($tblPerson && $tblDivision) {
-            $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = $tblDivision->getName();
-            if (($tblLevel = $tblDivision->getTblLevel())) {
-                $Division[ViewDivisionStudent::TBL_LEVEL_ID] = $tblLevel->getId();
-            }
-            if (($tblType = $tblLevel->getServiceTblType())) {
-                $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblType->getId();
-            }
-            if (($tblYear = $tblDivision->getServiceTblYear())) {
-                $Year[ViewYear::TBL_YEAR_ID] = $tblYear->getId();
-            }
-        }
-    }
-
-    /**
      * @param null $PersonId
      *
      * @return string
@@ -197,9 +165,6 @@ class FrontendStudentBasic extends FrontendReadOnly
      */
     private function getEditStudentBasicForm(TblPerson $tblPerson = null)
     {
-
-        self::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
-
         $isIdentifierAuto = false;
         $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
         if($tblSetting && $tblSetting->getValue()){
@@ -209,89 +174,81 @@ class FrontendStudentBasic extends FrontendReadOnly
         $NodePrefix = 'Grunddaten - Prefix der Schülernummer';
         $StartDatePrefix = 'Grunddaten - Schulpflicht';
 
-        return (new Form(array(new FormGroup(array(new FormRow(array(
-            new FormColumn(
-                new Panel('Schülernummer', array(
-                    new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
+        return (new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Schülernummer', array(
+                            new Layout(
+                                new LayoutGroup(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(
+                                            ApiMassReplace::receiverField(($Field = new TextField('Meta[Student][Prefix]', 'Prefix', 'Prefix')))
+                                            . ApiMassReplace::receiverModal($Field, $NodePrefix)
+                                            . new PullRight((new Link('Massen-Änderung',
+                                                ApiMassReplace::getEndpoint(), null, array(
+                                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceStudent::CLASS_MASS_REPLACE_STUDENT,
+                                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceStudent::METHOD_REPLACE_PREFIX,
+                                                    'Id'                                                            => $tblPerson->getId(),
+                                                )))->ajaxPipelineOnClick(
+                                                ApiMassReplace::pipelineOpen($Field, $NodePrefix)
+                                            ))
+                                            , 4),
+                                        new LayoutColumn(
+                                            ($isIdentifierAuto
+                                                ? (new TextField('Meta[Student][Identifier]', 'Schülernummer',
+                                                    'Schülernummer'))->setDisabled()
+                                                    ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
+                                                : (new TextField('Meta[Student][Identifier]', 'Schülernummer',
+                                                    'Schülernummer'))
+                                                    ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
+                                            )
+                                            , 8)
+                                    ))
+                                )
+                            ),
+                            ($isIdentifierAuto
+                                ? ''
+                                : ApiStudent::receiverControlIdentifier()
+                            )
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Schulpflicht', array(
                             ApiMassReplace::receiverField((
-                            $Field = new TextField('Meta[Student][Prefix]',
-                                'Prefix', 'Prefix')
+                            $Field = new DatePicker('Meta[Student][SchoolAttendanceStartDate]', '',
+                                'Beginnt am', new Calendar())
                             ))
-                            .ApiMassReplace::receiverModal($Field, $NodePrefix)
+                            .ApiMassReplace::receiverModal($Field, $StartDatePrefix)
                             .new PullRight((new Link('Massen-Änderung',
                                 ApiMassReplace::getEndpoint(), null, array(
                                     ApiMassReplace::SERVICE_CLASS                                   => MassReplaceStudent::CLASS_MASS_REPLACE_STUDENT,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceStudent::METHOD_REPLACE_PREFIX,
-                                    ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
-                                    'Id'                                                            => $tblPerson->getId(),
-                                    'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                                    'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                    'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                                    'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                                    'Node'                                                          => $NodePrefix,
+                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceStudent::METHOD_REPLACE_START_DATE,
+                                    'Id'                                                      => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
-                                ApiMassReplace::pipelineOpen($Field, $NodePrefix)
+                                ApiMassReplace::pipelineOpen($Field, $StartDatePrefix)
                             ))
-                            , 4),
-                        new LayoutColumn(
-                            ($isIdentifierAuto
-                                ?
-                                (new TextField('Meta[Student][Identifier]', 'Schülernummer',
-                                    'Schülernummer'))->setDisabled()
-                                    ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
-                                :
-                                (new TextField('Meta[Student][Identifier]', 'Schülernummer',
-                                    'Schülernummer'))
-                                    ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
-                            )
-                            , 8)
-                )))),
-                    ($isIdentifierAuto
-                        ? ''
-                        : ApiStudent::receiverControlIdentifier()
-                    )
-
-                ), Panel::PANEL_TYPE_INFO)
-                , 4),
-            new FormColumn(
-                new Panel('Schulpflicht', array(
-                    ApiMassReplace::receiverField((
-                    $Field = new DatePicker('Meta[Student][SchoolAttendanceStartDate]', '',
-                        'Beginnt am', new Calendar())
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Kamenz-Statistik', array(
+                            new CheckBox(
+                                'Meta[Student][HasMigrationBackground]',
+                                'Herkunftssprache ist nicht oder nicht ausschließlich Deutsch',
+                                1
+                            ),
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveStudentBasicContent($tblPerson->getId())),
+                        (new Primary('Abbrechen', ApiPersonEdit::getEndpoint(), new Disable()))
+                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelStudentBasicContent($tblPerson->getId()))
                     ))
-                    .ApiMassReplace::receiverModal($Field, $StartDatePrefix)
-                    .new PullRight((new Link('Massen-Änderung',
-                        ApiMassReplace::getEndpoint(), null, array(
-                            ApiMassReplace::SERVICE_CLASS                                   => MassReplaceStudent::CLASS_MASS_REPLACE_STUDENT,
-                            ApiMassReplace::SERVICE_METHOD                                  => MassReplaceStudent::METHOD_REPLACE_START_DATE,
-                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
-                            'Id'                                                            => $tblPerson->getId(),
-                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                            'Node'                                                          => $NodePrefix,
-                        )))->ajaxPipelineOnClick(
-                        ApiMassReplace::pipelineOpen($Field, $NodePrefix)
-                    ))
-                ), Panel::PANEL_TYPE_INFO)
-                , 4),
-            new FormColumn(
-                new Panel('Kamenz-Statistik', array(
-                    new CheckBox(
-                        'Meta[Student][HasMigrationBackground]',
-                        'Herkunftssprache ist nicht oder nicht ausschließlich Deutsch',
-                        1
-                    ),
-                ), Panel::PANEL_TYPE_INFO)
-                , 4),
-        )),
-        new FormRow(array(new FormColumn(array(
-                (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))
-                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveStudentBasicContent($tblPerson ? $tblPerson->getId() : 0)),
-                (new Primary('Abbrechen', ApiPersonEdit::getEndpoint(), new Disable()))
-                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelStudentBasicContent($tblPerson ? $tblPerson->getId() : 0))
-        )))))))))->disableSubmitAction();
+                ))
+            ))
+        )))->disableSubmitAction();
     }
 }
