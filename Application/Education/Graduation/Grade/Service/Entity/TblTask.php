@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -244,6 +245,18 @@ class TblTask extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getYearName(): string
+    {
+        if (($tblYear = $this->getServiceTblYear())) {
+            return $tblYear->getName();
+        }
+
+        return '&nbsp;';
+    }
+
+    /**
      * @return false|TblGradeType[]
      */
     public function getGradeTypes()
@@ -257,5 +270,31 @@ class TblTask extends Element
     public function getDivisionCourses()
     {
         return Grade::useService()->getDivisionCourseListByTask($this);
+    }
+
+    /**
+     * @return false|TblTaskGrade[]
+     */
+    public function getTaskGrades()
+    {
+        return Grade::useService()->getTaskGradeListByTask($this);
+    }
+
+    /**
+     * @return bool
+     */
+    public function getHasTaskGrades(): bool
+    {
+        return Grade::useService()->getHasTaskGradesByTask($this);
+    }
+
+    /**
+     * @param bool $isString
+     *
+     * @return false|Type[]|string
+     */
+    public function getSchoolTypes(bool $isString = false)
+    {
+        return Grade::useService()->getSchoolTypeListFromTask($this, $isString);
     }
 }

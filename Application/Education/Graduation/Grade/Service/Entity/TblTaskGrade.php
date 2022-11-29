@@ -20,6 +20,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblTaskGrade extends Element
 {
+    const ATTR_TBL_TASK = 'tblGraduationTask';
+
     /**
      * @Column(type="bigint")
      */

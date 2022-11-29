@@ -26,7 +26,10 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -34,11 +37,15 @@ use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
@@ -85,14 +92,15 @@ abstract class FrontendTask extends FrontendGradeType
                         'Date' => $tblTask->getDateString(),
                         'Type' => $tblTask->getTypeName(),
                         'Name' => $tblTask->getName(),
+                        'SchoolTypes' => $tblTask->getSchoolTypes(true),
                         'EditPeriod' => $tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString(),
                         'Option' => ($hasEdit ? (new Standard('', ApiTask::getEndpoint(), new Edit(), array(), 'Bearbeiten'))
                                 ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskEditContent($YearId, $tblTask->getId()))
                             : '')
-//                            . ($tblTask->isLocked() ? null : new Standard('',
-//                                '/Education/Graduation/Evaluation/Task/Headmaster/Destroy', new Remove(),
-//                                array('Id' => $tblTask->getId(), 'IsAllYears' => $IsAllYears),
-//                                'Löschen'))
+                            . ($hasEdit && $tblTask->getHasTaskGrades()
+                                ? null
+                                : (new Standard('', ApiTask::getEndpoint(), new Remove(), array(), 'Löschen'))
+                                    ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskDelete($tblTask->getId())))
 //                            . (new Standard('',
 //                                '/Education/Graduation/Evaluation/Task/Headmaster/Division',
 //                                new Listing(),
@@ -116,6 +124,7 @@ abstract class FrontendTask extends FrontendGradeType
                         'Date' => 'Stichtag',
                         'Type' => 'Kategorie',
                         'Name' => 'Name',
+                        'SchoolTypes' => 'Schul&shy;arten',
                         'EditPeriod' => 'Bearbeitungszeitraum',
                         'Option' => '',
                     ),
@@ -175,6 +184,7 @@ abstract class FrontendTask extends FrontendGradeType
             $global->POST['Data']['FromDate'] = $tblTask->getFromDateString();
             $global->POST['Data']['ToDate'] = $tblTask->getToDateString();
             $global->POST['Data']['ScoreType'] = $tblTask->getTblScoreType() ? $tblTask->getTblScoreType()->getId() : 0;
+            $global->POST['Data']['IsAllYears'] = $tblTask->getIsAllYears();
 
             if (($tblGradeTypeList = $tblTask->getGradeTypes())) {
                 foreach ($tblGradeTypeList as $tblGradeType) {
@@ -365,5 +375,55 @@ abstract class FrontendTask extends FrontendGradeType
                 }
             }
         }
+    }
+
+    /**
+     * @param $TaskId
+     *
+     * @return string
+     */
+    public function loadViewTaskDelete($TaskId): string
+    {
+        if (!($tblTask = Grade::useService()->getTaskById($TaskId))) {
+            return new Danger('Der Notenauftrag wurde nicht gefunden', new Exclamation());
+        }
+
+        $YearId = ($tblYear = $tblTask->getServiceTblYear()) ? $tblYear->getId() : null;
+        $countDivisionCourses = 0;
+        if (($divisionCourses = $tblTask->getDivisionCourses())) {
+            $countDivisionCourses = count($divisionCourses);
+        }
+
+        $type = $tblTask->getTypeName();
+
+        return new Title(
+                (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
+                    ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskList($YearId))
+                . "&nbsp;&nbsp;&nbsp;&nbsp;" . new Remove() . " $type löschen"
+            )
+            . new Well(new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . " Diesen $type wirklich löschen?",
+                                array(
+                                    'Schuljahr: ' . new Bold($tblTask->getYearName()),
+                                    'Name: ' . new Bold($tblTask->getName()),
+                                    'Stichtag: ' . $tblTask->getDateString(),
+                                    'Bearbeitungszeitraum: ' . $tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString(),
+                                    'Kurse: ' . ($countDivisionCourses ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countDivisionCourses) : '0'),
+                                    'Schularten: ' . $tblTask->getSchoolTypes(true)
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new  DangerLink('Ja', ApiTask::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(ApiTask::pipelineSaveTaskDelete($TaskId))
+                            . (new Standard('Nein', ApiTask::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskList($YearId))
+                        )
+                    )
+                )
+            ));
     }
 }

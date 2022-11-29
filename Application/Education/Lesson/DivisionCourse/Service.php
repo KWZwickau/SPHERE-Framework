@@ -1556,7 +1556,11 @@ class Service extends ServiceTeacher
         if ($schoolTypeIdList) {
             foreach ($schoolTypeIdList as $item) {
                 if (isset($item['SchoolTypeId']) && ($tblSchoolType = Type::useService()->getTypeById($item['SchoolTypeId']))) {
-                    $resultList[$tblSchoolType->getId()] = $tblSchoolType;
+                    if ($isString) {
+                        $resultList[$tblSchoolType->getId()] = $tblSchoolType->getShortName() ?: $tblSchoolType->getName();
+                    } else {
+                        $resultList[$tblSchoolType->getId()] = $tblSchoolType;
+                    }
                 }
             }
         }

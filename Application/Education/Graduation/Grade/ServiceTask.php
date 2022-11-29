@@ -8,10 +8,12 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskCourseLink;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTypeLink;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 
 abstract class ServiceTask extends ServiceGradeType
@@ -76,6 +78,26 @@ abstract class ServiceTask extends ServiceGradeType
     public function getTaskCourseLinkBy(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse)
     {
         return (new Data($this->getBinding()))->getTaskCourseLinkBy($tblTask, $tblDivisionCourse);
+    }
+
+    /**
+     * @param TblTask $tblTask
+     *
+     * @return false|TblTaskGrade[]
+     */
+    public function getTaskGradeListByTask(TblTask $tblTask)
+    {
+        return (new Data($this->getBinding()))->getTaskGradeListByTask($tblTask);
+    }
+
+    /**
+     * @param TblTask $tblTask
+     *
+     * @return bool
+     */
+    public function getHasTaskGradesByTask(TblTask $tblTask): bool
+    {
+        return (new Data($this->getBinding()))->getHasTaskGradesByTask($tblTask);
     }
 
     /**
@@ -271,5 +293,54 @@ abstract class ServiceTask extends ServiceGradeType
         if (!empty($removeList)) {
             Grade::useService()->deleteEntityListBulk($removeList);
         }
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param bool $isString
+     *
+     * @return false|Type[]|string
+     */
+    public function getSchoolTypeListFromTask(TblTask $tblTask, bool $isString = false)
+    {
+        $resultList = array();
+        if (($tblDivisionCourseList = $tblTask->getDivisionCourses())) {
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (($tempList = $tblDivisionCourse->getSchoolTypeListFromStudents())) {
+                    $resultList = array_merge($resultList, $tempList);
+                }
+            }
+
+            $resultList = array_unique($resultList);
+        }
+
+        if (empty($resultList)) {
+            return false;
+        } elseif ($isString) {
+            $list = array();
+            foreach ($resultList as $item) {
+                $list[] = $item->getShortName() ?: $item->getName();
+            }
+            return implode(", ", $list);
+        } else {
+            return $resultList;
+        }
+    }
+
+    /**
+     * @param TblTask $tblTask
+     *
+     * @return bool
+     */
+    public function deleteTask(TblTask $tblTask): bool
+    {
+        if (($tempList = (new Data($this->getBinding()))->getTaskCourseLinkListByTask($tblTask))) {
+            Grade::useService()->deleteEntityListBulk($tempList);
+        }
+        if (($tempList = (new Data($this->getBinding()))->getTaskGradeTypeLinkListBy($tblTask))) {
+            Grade::useService()->deleteEntityListBulk($tempList);
+        }
+
+        return Grade::useService()->deleteEntityListBulk(array($tblTask));
     }
 }

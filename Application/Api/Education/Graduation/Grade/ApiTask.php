@@ -6,6 +6,7 @@ use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -33,6 +34,8 @@ class ApiTask extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewTaskEditContent');
         $Dispatcher->registerMethod('saveTaskEdit');
         $Dispatcher->registerMethod('loadTaskGradeTypes');
+        $Dispatcher->registerMethod('loadViewTaskDelete');
+        $Dispatcher->registerMethod('saveTaskDelete');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -234,5 +237,76 @@ class ApiTask extends Extension implements IApiInterface
         }
 
         return  null;
+    }
+
+    /**
+     * @param $TaskId
+
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewTaskDelete($TaskId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewTaskDelete',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'TaskId' => $TaskId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $TaskId
+     *
+     * @return string
+     */
+    public function loadViewTaskDelete($TaskId): string
+    {
+        return Grade::useFrontend()->loadViewTaskDelete($TaskId);
+    }
+
+    /**
+     * @param $TaskId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveTaskDelete($TaskId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveTaskDelete'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'TaskId' => $TaskId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $TaskId
+     *
+     * @return string
+     */
+    public function saveTaskDelete($TaskId): string
+    {
+        if (!($tblTask = Grade::useService()->getTaskById($TaskId))) {
+            return new Danger('Der Notenauftrag wurde nicht gefunden', new Exclamation());
+        }
+
+        $YearId = ($tblYear = $tblTask->getServiceTblYear()) ? $tblYear->getId() : 0;
+        if (Grade::useService()->deleteTask($tblTask)) {
+            return new Success('Der Notenauftrag wurde erfolgreich gelöscht.')
+                . self::pipelineLoadViewTaskList($YearId);
+        } else {
+            return new Danger('Der Notenauftrag konnte nicht gelöscht werden.');
+        }
     }
 }
