@@ -169,7 +169,7 @@ abstract class FrontendTask extends FrontendGradeType
 
             return
                 ($hasHeadmasterRole
-                    ? (new Primary('Notenauftrag anlegen', ApiTask::getEndpoint(), new Plus()))
+                    ? (new Primary('Notenauftrag hinzufügen', ApiTask::getEndpoint(), new Plus()))
                         ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskEditContent($YearId))
                     : '')
                 . new TableData($dataList, null,

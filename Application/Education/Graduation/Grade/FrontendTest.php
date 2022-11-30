@@ -142,6 +142,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
         }
 
         $tblGradeTypeList = Grade::useService()->getGradeTypeList();
+        $size = 4;
 
         return (new Form(new FormGroup(array(
             new FormRow(array(
@@ -163,24 +164,24 @@ abstract class FrontendTest extends FrontendTeacherGroup
                         array(
                             'Data[FinishDate]',
                             'Data[Date]',
-                            'Data[CorrectionDate]',
+//                            'Data[CorrectionDate]',
                             'Data[ReturnDate]'
                         ))
                 ),
                 new FormColumn(
-                    (new DatePicker('Data[FinishDate]', '', 'Enddatum (optional für Notendatum)', new Calendar()))->setDisabled(), 3
+                    (new DatePicker('Data[FinishDate]', '', 'Enddatum (optional für Notendatum)', new Calendar()))->setDisabled(), $size
                 ),
                 new FormColumn(
                     (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))
                         ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning())
-                    , 3
+                    , $size
                 ),
-                new FormColumn(
-                    new DatePicker('Data[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 3
-                ),
+//                new FormColumn(
+//                    new DatePicker('Data[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), $size
+//                ),
                 new FormColumn(
                     new DatePicker('Data[ReturnDate]', '', 'Bekanntgabedatum für Notenübersicht (Eltern, Schüler)',
-                        new Calendar()), 3
+                        new Calendar()), $size
                 ),
             )),
             new FormRow(array(

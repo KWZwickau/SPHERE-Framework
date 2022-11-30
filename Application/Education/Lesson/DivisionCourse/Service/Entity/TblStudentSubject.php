@@ -131,7 +131,16 @@ class TblStudentSubject extends Element
      */
     public function getServiceTblSubject()
     {
-        return $this->serviceTblSubject ? Subject::useService()->getSubjectById($this->serviceTblSubject) : false;
+        // SekI
+        if ($this->serviceTblSubject) {
+            return Subject::useService()->getSubjectById($this->serviceTblSubject);
+        }
+        // SekII
+        if (($tblDivisionCourse = $this->getTblDivisionCourse())) {
+            return $tblDivisionCourse->getServiceTblSubject();
+        }
+
+        return false;
     }
 
     /**

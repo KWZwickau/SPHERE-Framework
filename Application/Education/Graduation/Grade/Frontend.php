@@ -233,7 +233,7 @@ class Frontend extends FrontendTest
                     . new Muted(new Small(" für Kurs: ")) . $textKurs
                     . new Muted(new Small(" im Fach: ")) . $textSubject
                     . ($isEdit
-                        ? new PullRight((new Primary('Leistungsüberprüfung anlegen', ApiGradeBook::getEndpoint(), new Plus()))
+                        ? new PullRight((new Primary('Leistungsüberprüfung hinzufügen', ApiGradeBook::getEndpoint(), new Plus()))
                             ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter)))
                         : ''
                     )
