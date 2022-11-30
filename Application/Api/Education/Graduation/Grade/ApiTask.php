@@ -30,12 +30,16 @@ class ApiTask extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('loadViewTaskList');
+
         $Dispatcher->registerMethod('loadViewTaskEditContent');
         $Dispatcher->registerMethod('saveTaskEdit');
         $Dispatcher->registerMethod('loadTaskGradeTypes');
+
         $Dispatcher->registerMethod('loadViewTaskDelete');
         $Dispatcher->registerMethod('saveTaskDelete');
+
         $Dispatcher->registerMethod('loadViewTaskGradeContent');
+        $Dispatcher->registerMethod('loadDivisionCourseTaskGradeContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -339,5 +343,37 @@ class ApiTask extends Extension implements IApiInterface
     public function loadViewTaskGradeContent($TaskId): string
     {
         return Grade::useFrontend()->getViewTaskGradeContent($TaskId);
+    }
+
+    /**
+     * @param $TaskId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadDivisionCourseTaskGradeContent($TaskId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DivisionCourseTaskGradeContentContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDivisionCourseTaskGradeContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'TaskId' => $TaskId
+        ));
+        $ModalEmitter->setLoadingMessage("Kurs-Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $TaskId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadDivisionCourseTaskGradeContent($TaskId, $Data = null): string
+    {
+        return Grade::useFrontend()->loadDivisionCourseTaskGradeContent($TaskId, $Data);
     }
 }

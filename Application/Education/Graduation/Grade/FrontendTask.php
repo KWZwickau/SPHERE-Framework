@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
-use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
@@ -161,7 +160,7 @@ abstract class FrontendTask extends FrontendGradeType
      */
     private function getBackButton($YearId): Standard
     {
-        return (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
+        return (new Standard("Zurück", ApiTask::getEndpoint(), new ChevronLeft()))
             ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskList($YearId));
     }
 
@@ -454,27 +453,60 @@ abstract class FrontendTask extends FrontendGradeType
 
         $typeName = $tblTask->getTypeName();
         $YearId = ($tblYear = $tblTask->getServiceTblYear()) ? $tblYear->getId() : 0;
+        $tblDivisionCourseList = $tblTask->getDivisionCourses();
 
-        $content = new Panel(
-            $typeName,
-            $tblTask->getName() . ' ' . $tblTask->getDateString()
-                . '&nbsp;&nbsp;' . new Muted(new Small(new Small('Bearbeitungszeitraum '.$tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString()))),
-            Panel::PANEL_TYPE_INFO
-        );
-        if (($tblDivisionCourseList = $tblTask->getDivisionCourses())) {
-            // todo Kurs auswahl: Buttons oder selectBox
-            $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById(42);
-            if ($tblTask->getIsTypeBehavior()) {
-                $content = $this->getTaskGradeViewByBehaviorTask($tblTask, $tblDivisionCourse);
-            } else {
-                $content = $this->getTaskGradeViewByAppointedDateTask($tblTask, $tblDivisionCourse);
-            }
+        $content = new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(
+                new Panel(
+                    'Kurs auswählen',
+                    (new Form(new FormGroup(new FormRow(new FormColumn(
+                        (new SelectBox('Data[DivisionCourse]', '', array("{{ DisplayName }}" => $tblDivisionCourseList)))
+                            ->ajaxPipelineOnChange(ApiTask::pipelineLoadDivisionCourseTaskGradeContent($TaskId))
+                    )))))->disableSubmitAction(),
+                    Panel::PANEL_TYPE_INFO
+                )
+            , 6),
+            new LayoutColumn(
+                new Panel(
+                    $typeName,
+                    $tblTask->getName() . ' ' . $tblTask->getDateString()
+                    . new Container(new Muted('Bearbeitungszeitraum '.$tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString())),
+                    Panel::PANEL_TYPE_INFO
+                )
+            , 6)
+        ))));
+
+        if ($tblDivisionCourseList) {
+            $content .= ApiTask::receiverBlock('', 'DivisionCourseTaskGradeContentContent');
         } else {
             $content .= new Warning("Es sind keine Kurse zu diesem $typeName zugeordnet.", new Exclamation());
         }
 
         return new Title($this->getBackButton($YearId) . "&nbsp;&nbsp;&nbsp;&nbsp;" . new Equalizer() . " $typeName - Zensurenübersicht")
             . $content;
+    }
+
+    /**
+     * @param $TaskId
+     * @param $Data
+     *
+     * @return Warning|string
+     */
+    public function loadDivisionCourseTaskGradeContent($TaskId, $Data): string
+    {
+        if (!($tblTask = Grade::useService()->getTaskById($TaskId))) {
+            return new Danger('Der Notenauftrag wurde nicht gefunden', new Exclamation());
+        }
+
+        if (isset($Data['DivisionCourse']) && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Data['DivisionCourse']))) {
+            if ($tblTask->getIsTypeBehavior()) {
+                return $this->getTaskGradeViewByBehaviorTask($tblTask, $tblDivisionCourse);
+            } else {
+                return $this->getTaskGradeViewByAppointedDateTask($tblTask, $tblDivisionCourse);
+            }
+        } else {
+            return (new Warning('Bitte wählen Sie zunächst einen Kurs aus', new Exclamation()));
+        }
     }
 
     /**
