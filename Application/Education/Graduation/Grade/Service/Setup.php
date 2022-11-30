@@ -30,7 +30,7 @@ class Setup  extends AbstractSetup
         $tblScoreType = $this->setTableScoreType($schema);
         $tblGradeText = $this->setTableGradeText($schema);
         $tblTask = $this->setTableTask($schema, $tblScoreType);
-        $this->setTableTaskGrade($schema, $tblTask, $tblGradeText);
+        $this->setTableTaskGrade($schema, $tblTask, $tblGradeType, $tblGradeText);
         $this->setTableTaskCourseLink($schema, $tblTask);
         $this->setTableTaskGradeTypeLink($schema, $tblTask, $tblGradeType);
 
@@ -163,20 +163,26 @@ class Setup  extends AbstractSetup
     /**
      * @param Schema $schema
      * @param Table $tblTask
+     * @param Table $tblGradeType
      * @param Table $tblGradeText
      */
-    private function setTableTaskGrade(Schema &$schema, Table $tblTask, Table $tblGradeText)
+    private function setTableTaskGrade(Schema &$schema, Table $tblTask, Table $tblGradeType, Table $tblGradeText)
     {
         $table = $this->createTable($schema, 'tblGraduationTaskGrade');
 
         $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
         $this->createForeignKey($table, $tblTask);
+        $this->createForeignKey($table, $tblGradeType, true);
 
         $this->createColumn($table, 'Grade', self::FIELD_TYPE_STRING, true);
         $this->createForeignKey($table, $tblGradeText, true);
         $this->createColumn($table, 'Comment', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
+
+        $this->createIndex($table, array('tblGraduationTask', 'serviceTblPerson'), false);
+//        $this->createIndex($table, array('tblGraduationTask', 'serviceTblPerson', 'serviceTblSubject'), false);
+//        $this->createIndex($table, array('tblGraduationTask', 'serviceTblPerson', 'serviceTblSubject', 'tblGraduationGradeType'), false);
     }
 
     /**

@@ -241,8 +241,14 @@ abstract class DataMigrate extends AbstractData
                                     $grade = $tblGradeOld->getGrade() === null ? null : $tblGradeOld->getDisplayGrade();
                                 }
 
+                                if (($tblGradeTypeOld = $tblGradeOld->getTblGradeType())) {
+                                    $tblGradeTypeNew = $tblGradeTypeList[$tblGradeTypeOld->getCode()];
+                                } else {
+                                    $tblGradeTypeNew = null;
+                                }
+
                                 $tblTaskGrade = new TblTaskGrade(
-                                    $tblStudent, $tblSubject, $tblTask, $grade, $tblGradeText,
+                                    $tblStudent, $tblSubject, $tblTask, $tblGradeTypeNew, $grade, $tblGradeText,
                                     $tblGradeOld->getComment(), $tblGradeOld->getServiceTblPersonTeacher() ?: null
                                 );
                                 $Manager->bulkSaveEntity($tblTaskGrade);

@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTypeLink;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
 abstract class DataTask extends DataMigrate
@@ -153,6 +154,20 @@ abstract class DataTask extends DataMigrate
         } else {
             return false;
         }
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblTaskGrade[]
+     */
+    public function getTaskGradeListByTaskAndPerson(TblTask $tblTask, TblPerson $tblPerson)
+    {
+        $parameters[TblTaskGrade::ATTR_TBL_TASK] = $tblTask->getId();
+        $parameters[TblTaskGrade::ATTR_SERVICE_TBL_PERSON] = $tblPerson->getId();
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTaskGrade', $parameters);
     }
 
     /**

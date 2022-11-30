@@ -6,7 +6,6 @@ use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
-use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -36,6 +35,7 @@ class ApiTask extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadTaskGradeTypes');
         $Dispatcher->registerMethod('loadViewTaskDelete');
         $Dispatcher->registerMethod('saveTaskDelete');
+        $Dispatcher->registerMethod('loadViewTaskGradeContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -308,5 +308,36 @@ class ApiTask extends Extension implements IApiInterface
         } else {
             return new Danger('Der Notenauftrag konnte nicht gelöscht werden.');
         }
+    }
+
+    /**
+     * @param $TaskId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewTaskGradeContent($TaskId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewTaskGradeContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'TaskId' => $TaskId
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $TaskId
+     *
+     * @return string
+     */
+    public function loadViewTaskGradeContent($TaskId): string
+    {
+        return Grade::useFrontend()->getViewTaskGradeContent($TaskId);
     }
 }

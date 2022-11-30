@@ -20,7 +20,10 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblTaskGrade extends Element
 {
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_TBL_TASK = 'tblGraduationTask';
+    const ATTR_TBL_GRADE_TYPE = 'tblGraduationGradeType';
 
     /**
      * @Column(type="bigint")
@@ -34,6 +37,10 @@ class TblTaskGrade extends Element
      * @Column(type="bigint")
      */
     protected int $tblGraduationTask;
+    /**
+     * @Column(type="bigint")
+     */
+    protected ?int $tblGraduationGradeType = null;
     /**
      * @Column(type="string")
      */
@@ -55,17 +62,20 @@ class TblTaskGrade extends Element
      * @param TblPerson $tblPerson
      * @param TblSubject $tblSubject
      * @param TblTask $tblTask
+     * @param TblGradeType|null $tblGradeType
      * @param string|null $Grade
      * @param TblGradeText|null $tblGradeText
      * @param string|null $Comment
      * @param TblPerson|null $tblTeacher
      */
     public function __construct(
-        TblPerson $tblPerson, TblSubject $tblSubject, TblTask $tblTask, ?string $Grade, ?TblGradeText $tblGradeText, ?string $Comment, ?TblPerson $tblTeacher
+        TblPerson $tblPerson, TblSubject $tblSubject, TblTask $tblTask, ?TblGradeType $tblGradeType,
+        ?string $Grade, ?TblGradeText $tblGradeText, ?string $Comment, ?TblPerson $tblTeacher
     ) {
         $this->serviceTblPerson = $tblPerson->getId();
         $this->serviceTblSubject = $tblSubject->getId();
         $this->tblGraduationTask = $tblTask->getId();
+        $this->tblGraduationGradeType = $tblGradeType ? $tblGradeType->getId() : null;
         $this->Grade = $Grade;
         $this->tblGraduationGradeText = $tblGradeText ? $tblGradeText->getId() : null;
         $this->Comment = $Comment;
@@ -123,6 +133,22 @@ class TblTaskGrade extends Element
     }
 
     /**
+     * @return TblGradeType|false
+     */
+    public function getTblGradeType()
+    {
+        return Grade::useService()->getGradeTypeById($this->tblGraduationGradeType);
+    }
+
+    /**
+     * @param ?TblGradeType $tblGradeType
+     */
+    public function setTblGradeType(?TblGradeType $tblGradeType)
+    {
+        $this->tblGraduationGradeType = $tblGradeType ? $tblGradeType->getId() : null;
+    }
+
+    /**
      * @return string|null
      */
     public function getGrade(): ?string
@@ -139,19 +165,19 @@ class TblTaskGrade extends Element
     }
 
     /**
-     * @return TblGradeText
+     * @return TblGradeText|false
      */
-    public function getTblGradeText(): TblGradeText
+    public function getTblGradeText()
     {
         return Grade::useService()->getGradeTextById($this->tblGraduationGradeText);
     }
 
     /**
-     * @param TblGradeText $tblGradeText
+     * @param ?TblGradeText $tblGradeText
      */
-    public function setTblGradeText(TblGradeText $tblGradeText)
+    public function setTblGradeText(?TblGradeText $tblGradeText)
     {
-        $this->tblGraduationGradeText = $tblGradeText->getId();
+        $this->tblGraduationGradeText = $tblGradeText ? $tblGradeText->getId() : null;
     }
 
     /**

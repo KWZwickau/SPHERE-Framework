@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 
 abstract class ServiceTask extends ServiceGradeType
@@ -98,6 +99,17 @@ abstract class ServiceTask extends ServiceGradeType
     public function getHasTaskGradesByTask(TblTask $tblTask): bool
     {
         return (new Data($this->getBinding()))->getHasTaskGradesByTask($tblTask);
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblTaskGrade[]
+     */
+    public function getTaskGradeListByTaskAndPerson(TblTask $tblTask, TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson);
     }
 
     /**
