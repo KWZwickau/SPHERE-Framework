@@ -135,8 +135,8 @@ class FoesAbsGeistigeEntwicklung extends Certificate
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}
-                    erfüllt am Ende der Werkstufe die Anforderungen des Förderplans gemäß § 17 Absatz 1 der Schulordnung Förderschulen und hat
-                    die Förderschule in der Klasse mit Förderbedarf im Förderschwerpunkt geistige Entwicklung mit Erfolg abgeschlossen.')
+                    erfüllt am Ende der Werkstufe die Anforderungen des Förderplans gemäß § 17 Absatz 1 der Schulordnung Förderschulen und hat die Schule
+                    mit dem Förderschwerpunkt geistige Entwicklung mit Erfolg abgeschlossen.')
                     ->styleMarginTop('8px')
                     ->styleAlignLeft()
                 // {% if(Content.P' . $personId . '.Input.FoesAbsText) %}  // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
