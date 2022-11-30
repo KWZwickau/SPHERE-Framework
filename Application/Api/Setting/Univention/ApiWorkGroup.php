@@ -9,8 +9,10 @@ use SPHERE\Application\Setting\Univention\UniventionWorkGroup;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 
 /**
@@ -126,7 +128,8 @@ class ApiWorkGroup implements IApiInterface
 
         if($CountMax == $Identifier){
             return
-                new Bold('<div style="position: absolute; left: 43%; font-size: 16px;"> '.$CountMax.' Stammgruppen an die API gesendet </div>')
+                new Standard('Zurück', '/Setting/Univention/WorkGroupApi', new ChevronLeft())
+                .new Bold('<div style="position: absolute; left: 43%; font-size: 16px;"> '.$CountMax.' Stammgruppen an die API gesendet </div>')
                 .new ProgressBar($DoneCount, 0, 0, 20);
         }
 

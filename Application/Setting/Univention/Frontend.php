@@ -67,7 +67,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUnivention()
     {
         $Stage = new Stage('UCS', '');
-        $Stage->addButton(new Standard('Zurück', '/Setting', new ChevronLeft()));
 
         //ToDO Erklärung der Schnittstelle? + Vorraussetzungen
 
@@ -83,7 +82,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
         set_time_limit(900);
         $Stage = new Stage('UCS', 'Schnittstelle API');
-        $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
 
         // dynamsiche Rollenliste
         $roleList = (new UniventionRole())->getAllRoles();
@@ -739,7 +737,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('API', 'Arbeitsgruppen-Abgleich');
         if(!$isStart){
-            $Stage->addButton(new Primary('Datenabgleich der Arbeitsgruppen starten', '/Setting/Univention/WorkGroupApi', new Upload(), array('isStart' => true)));
+            $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(new Warning('Diese Schnittstelle legt neue Stammgruppen aus der Schulsoftware als
+                 Arbeitsgruppen im DLLP / UCS an und ordnet die entsprechenden Schüler
+                  diesen Gruppen zu. Bitte beachten Sie, dass die entsprechenden Schüler zuvor
+                   mittels der Schnittstelle "UCS über API" erst nach DLLP / UCS übertragen
+                    werden müssen.'), 4),
+                new LayoutColumn(new Primary('Datenabgleich der Arbeitsgruppen starten', '/Setting/Univention/WorkGroupApi', new Upload(), array('isStart' => true)))
+            )))));
             return $Stage;
         }
 
@@ -1077,7 +1082,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUnivCSV()
     {
         $Stage = new Stage('UCS', 'Schnittstelle CSV');
-        $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
         $Stage->addButton(new Standard('CSV Mandant herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download()));
         $Stage->addButton(new Standard('CSV User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Beinhaltet alle Schüler/Mitarbeiter/Lehrer Accounts'));
         // Schularten, welche keine E-Mail als Benutzernamen benötigen
