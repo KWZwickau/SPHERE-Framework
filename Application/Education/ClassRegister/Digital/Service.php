@@ -50,6 +50,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
@@ -655,13 +656,14 @@ class Service extends AbstractService
             $error = true;
         }
 
-        // bei einem gesetzten Vertretungsfach muss auch ein Fach ausgewählt werden
-        if (Subject::useService()->getSubjectById($Data['serviceTblSubstituteSubject'])
-            && empty($Data['serviceTblSubject'])
-        ) {
-            $form->setError('Data[serviceTblSubject]', 'Bitte geben Sie ein Fach an');
-            $error = true;
-        }
+        // nicht mehr verwenden da es als zusätzliches Fach benutzt werden soll
+//        // bei einem gesetzten Vertretungsfach muss auch ein Fach ausgewählt werden
+//        if (Subject::useService()->getSubjectById($Data['serviceTblSubstituteSubject'])
+//            && empty($Data['serviceTblSubject'])
+//        ) {
+//            $form->setError('Data[serviceTblSubject]', 'Bitte geben Sie ein Fach an');
+//            $error = true;
+//        }
 
         return $error ? $form : false;
     }
@@ -1003,7 +1005,7 @@ class Service extends AbstractService
             $columns['Gender'] = 'Ge&shy;schlecht';
             $columns['Birthday'] = 'Geburts&shy;datum';
             $columns['Address'] = 'Adresse';
-            $columns['Phone'] = new ToolTip('Telefon '. new \SPHERE\Common\Frontend\Icon\Repository\Info(),
+            $columns['Phone'] = new ToolTip('Telefon '. new InfoIcon(),
                 'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt');
             $columns['Mail'] = 'E-Mail';
             $columns['AbsenceDays'] = 'Zeugnis&shy;relevante Fehlzeiten Tage<br>(E, U)';
@@ -1148,20 +1150,28 @@ class Service extends AbstractService
      */
     public function getLessonContentCanceledSubjectList(DateTime $toDate, TblDivision $tblDivision = null, TblGroup $tblGroup = null): array
     {
-        $subjectList = array();
+        $subjectCancelList = array();
+        $subjectAdditionalList = array();
         if (($tblLessonContentList = (new Data($this->getBinding()))->getLessonContentCanceledAllByToDate($toDate, $tblDivision, $tblGroup))) {
             foreach ($tblLessonContentList as $tblLessonContent) {
                 if (($tblSubject = $tblLessonContent->getServiceTblSubject())) {
-                    if (isset($subjectList[$tblSubject->getAcronym()])) {
-                        $subjectList[$tblSubject->getAcronym()]++;
+                    if (isset($subjectCancelList[$tblSubject->getAcronym()])) {
+                        $subjectCancelList[$tblSubject->getAcronym()]++;
                     } else {
-                        $subjectList[$tblSubject->getAcronym()] = 1;
+                        $subjectCancelList[$tblSubject->getAcronym()] = 1;
+                    }
+                }
+                if (($tblSubstituteSubjectSubject = $tblLessonContent->getServiceTblSubstituteSubject())) {
+                    if (isset($subjectAdditionalList[$tblSubstituteSubjectSubject->getAcronym()])) {
+                        $subjectAdditionalList[$tblSubstituteSubjectSubject->getAcronym()]++;
+                    } else {
+                        $subjectAdditionalList[$tblSubstituteSubjectSubject->getAcronym()] = 1;
                     }
                 }
             }
         }
 
-        return $subjectList;
+        return array($subjectCancelList, $subjectAdditionalList);
     }
 
     /**
@@ -1176,21 +1186,25 @@ class Service extends AbstractService
     {
         list($fromDate, $toDate, $canceledSubjectList, $additionalSubjectList, $subjectList) = $this->getCanceledSubjectList($dateTime, $tblDivision, $tblGroup);
 
-        $subjectTotalCanceledList = $this->getLessonContentCanceledSubjectList($toDate, $tblDivision, $tblGroup);
+        list($subjectTotalCanceledList, $subjectTotalAdditionalList) = $this->getLessonContentCanceledSubjectList($toDate, $tblDivision, $tblGroup);
 
         if ($subjectList) {
             $columns = array();
             $dataList = array();
             ksort($subjectList);
             $columns['Name'] = 'Fach';
-            $dataList['Canceled']['Name'] = 'Ausgefallene Stunden';
-            $dataList['Additional']['Name'] = 'Zusätzlich erteilte Stunden';
-            $dataList['TotalCanceled']['Name'] = 'Absoluter Ausfall';
+            $dataList['Canceled']['Name'] = new ToolTip('Ausgefallene Stunden ' . new InfoIcon(), "Ausgefallene Stunden der KW{$dateTime->format('W')}");
+            $dataList['Additional']['Name'] = new ToolTip('Zusätzlich erteilte Stunden ' . new InfoIcon(), "Zusätzlich erteilte Stunden der KW{$dateTime->format('W')}");
+            $dataList['TotalCanceled']['Name'] = new ToolTip('Absoluter Ausfall ' . new InfoIcon(),
+                "Aufsummierung der ausgefallenen Stunden bis einschließlich der KW{$dateTime->format('W')}");
+            $dataList['TotalAdditional']['Name'] = new ToolTip('Abs. zus. erteilte Stunden ' . new InfoIcon(),
+                "Aufsummierung der zusätzlich erteilten Stunden bis einschließlich der KW{$dateTime->format('W')}");
             foreach ($subjectList as $acronym => $subject) {
                 $columns[$acronym] = $acronym;
                 $dataList['Canceled'][$acronym] = $canceledSubjectList[$acronym] ?? 0;
                 $dataList['Additional'][$acronym] = $additionalSubjectList[$acronym] ?? 0;
                 $dataList['TotalCanceled'][$acronym] = $subjectTotalCanceledList[$acronym] ?? 0;
+                $dataList['TotalAdditional'][$acronym] = $subjectTotalAdditionalList[$acronym] ?? 0;
             }
 
             $remark = '&nbsp;';

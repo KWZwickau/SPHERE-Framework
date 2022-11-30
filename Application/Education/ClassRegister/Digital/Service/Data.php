@@ -251,7 +251,7 @@ class Data  extends AbstractData
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
      *
-     * @return TblCourseContent[]|false
+     * @return TblLessonContent[]|false
      */
     public function getLessonContentCanceledAllByToDate(DateTime $toDate, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
     {
