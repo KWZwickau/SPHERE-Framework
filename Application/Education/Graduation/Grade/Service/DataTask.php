@@ -133,6 +133,28 @@ abstract class DataTask extends DataMigrate
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TblTask[]|false
+     */
+    public function getTaskListByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        $resultList = array();
+        if (($tempList = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTaskCourseLink', array(
+            TblTaskCourseLink::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+        )))) {
+            /** @var TblTaskCourseLink $temp */
+            foreach ($tempList as $temp) {
+                if (($tblTask = $temp->getTblTask())) {
+                    $resultList[$tblTask->getId()] = $tblTask;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param TblTask $tblTask
      *
      * @return false|TblTaskGrade[]

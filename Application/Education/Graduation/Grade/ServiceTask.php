@@ -82,6 +82,16 @@ abstract class ServiceTask extends ServiceGradeType
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TblTask[]|false
+     */
+    public function getTaskListByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getTaskListByDivisionCourse($tblDivisionCourse);
+    }
+
+    /**
      * @param TblTask $tblTask
      *
      * @return false|TblTaskGrade[]

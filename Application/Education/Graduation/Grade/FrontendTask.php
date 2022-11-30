@@ -7,11 +7,14 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -62,14 +65,17 @@ use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 abstract class FrontendTask extends FrontendGradeType
 {
+    private function getHasHeadmasterRole(): bool
+    {
+        return Access::useService()->hasAuthorization('/Education/Graduation/Grade/GradeBook/Headmaster');
+    }
+
     /**
      * @return Stage
      */
     public function frontendTask(): Stage
     {
         $stage = new Stage();
-
-        // todo Klassenlehrer
 
         // todo Schuljahr auswählen
         $tblYear = false;
@@ -92,43 +98,66 @@ abstract class FrontendTask extends FrontendGradeType
      */
     public function loadViewTaskList($YearId): string
     {
-        // todo Message abhängig ob Klassenlehrer oder Schulleitung
-        // 'Anzeige der Kopfnoten- und Stichtagsnotenaufträge (inklusive vergebener Zensuren),
-        //            wo der angemeldete Lehrer als Klassenlehrer hinterlegt ist.'
+        $hasHeadmasterRole = $this->getHasHeadmasterRole();
+        if ($hasHeadmasterRole) {
+            $description = 'Verwaltung aller Kopfnoten- und Stichtagsnotenaufträge (inklusive der Anzeige der vergebenen Zensuren).';
+        } else {
+            $description = 'Anzeige der Kopfnoten- und Stichtagsnotenaufträge (inklusive vergebener Zensuren), wo der angemeldete Lehrer als Klassenlehrer hinterlegt ist.';
+        }
 
         $title = '<h3>Notenaufträge ' . new Muted(new Small('Übersicht')) . '</h3>'
-            . new Container(new Muted('Verwaltung aller Kopfnoten- und Stichtagsnotenaufträge (inklusive der Anzeige der vergebenen Zensuren).'))
+            . new Container(new Muted($description))
             . new Ruler();
 
         if (($tblYear = Term::useService()->getYearById($YearId))) {
-            $dataList = array();
-            if (($tblTaskList = Grade::useService()->getTaskListByYear($tblYear))) {
-                foreach ($tblTaskList as $tblTask) {
-                    $hasEdit = true;
+            $tblTaskList = false;
+            if ($hasHeadmasterRole) {
+                $tblTaskList = Grade::useService()->getTaskListByYear($tblYear);
+            } elseif (($tblPerson = Account::useService()->getPersonByLogin())
+                && ($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPerson, $tblYear))
+            ) {
+                $tblTaskList = array();
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    if (!$tblDivisionCourse->getServiceTblSubject()
+                        && ($tempList = Grade::useService()->getTaskListByDivisionCourse($tblDivisionCourse))
+                    ) {
+                        $tblTaskList = array_merge($tblTaskList, $tempList);
+                    }
+                }
+                if ($tblTaskList) {
+                    $tblTaskList = array_unique($tblTaskList);
+                }
+            }
 
+            $dataList = array();
+            if ($tblTaskList) {
+                foreach ($tblTaskList as $tblTask) {
                     $dataList[] = array(
                         'Date' => $tblTask->getDateString(),
                         'Type' => $tblTask->getTypeName(),
                         'Name' => $tblTask->getName(),
                         'SchoolTypes' => $tblTask->getSchoolTypes(true),
                         'EditPeriod' => $tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString(),
-                        'Option' => ($hasEdit ? (new Standard('', ApiTask::getEndpoint(), new Edit(), array(), 'Bearbeiten'))
-                                ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskEditContent($YearId, $tblTask->getId()))
-                            : '')
+                        'Option' =>
+                            ($hasHeadmasterRole
+                                ? (new Standard('', ApiTask::getEndpoint(), new Edit(), array(), 'Bearbeiten'))
+                                    ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskEditContent($YearId, $tblTask->getId()))
+                                : '')
                             . (new Standard('', ApiTask::getEndpoint(), new Equalizer(), array(), 'Zensurenübersicht'))
                                 ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskGradeContent($tblTask->getId()))
-                            . ($hasEdit && $tblTask->getHasTaskGrades()
-                                ? null
-                                : (new Standard('', ApiTask::getEndpoint(), new Remove(), array(), 'Löschen'))
-                                    ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskDelete($tblTask->getId())))
+                            . ($hasHeadmasterRole && !$tblTask->getHasTaskGrades()
+                                ? (new Standard('', ApiTask::getEndpoint(), new Remove(), array(), 'Löschen'))
+                                    ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskDelete($tblTask->getId()))
+                                : '')
                     );
                 }
             }
 
-            // todo option breite abhängig von buttons anzahl 1-3
-
-            return $title . (new Primary('Notenauftrag anlegen', ApiTask::getEndpoint(), new Plus()))
-                    ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskEditContent($YearId))
+            return $title
+                . ($hasHeadmasterRole
+                    ? (new Primary('Notenauftrag anlegen', ApiTask::getEndpoint(), new Plus()))
+                        ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskEditContent($YearId))
+                    : '')
                 . new TableData($dataList, null,
                     array(
                         'Date' => 'Stichtag',
@@ -451,9 +480,37 @@ abstract class FrontendTask extends FrontendGradeType
             return new Danger('Der Notenauftrag wurde nicht gefunden', new Exclamation());
         }
 
+        if (!($tblYear = $tblTask->getServiceTblYear())) {
+            return new Danger('Das Schuljahr wurde nicht gefunden', new Exclamation());
+        }
+
         $typeName = $tblTask->getTypeName();
-        $YearId = ($tblYear = $tblTask->getServiceTblYear()) ? $tblYear->getId() : 0;
+
+        // bei Klassenlehrer/Kursleiter Kursauswahl einschränken
         $tblDivisionCourseList = $tblTask->getDivisionCourses();
+        if (!$this->getHasHeadmasterRole()) {
+            $tempList = array();
+            if (($tblPerson = Account::useService()->getPersonByLogin())) {
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    if (DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse,
+                        DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER), $tblPerson
+                    )) {
+                        $tempList[] = $tblDivisionCourse;
+                    }
+                }
+            }
+            if (empty($tempList)) {
+                return new Warning('Keinen entsprechenden Kursleiter gefunden', new Exclamation());
+            } else {
+                $tblDivisionCourseList = $tempList;
+            }
+        }
+
+        if ($tblDivisionCourseList && count($tblDivisionCourseList) == 1) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['DivisionCourse'] = (current($tblDivisionCourseList))->getId();
+            $global->savePost();
+        }
 
         $content = new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn(
@@ -482,7 +539,7 @@ abstract class FrontendTask extends FrontendGradeType
             $content .= new Warning("Es sind keine Kurse zu diesem $typeName zugeordnet.", new Exclamation());
         }
 
-        return new Title($this->getBackButton($YearId) . "&nbsp;&nbsp;&nbsp;&nbsp;" . new Equalizer() . " $typeName - Zensurenübersicht")
+        return new Title($this->getBackButton($tblYear->getId()) . "&nbsp;&nbsp;&nbsp;&nbsp;" . new Equalizer() . " $typeName - Zensurenübersicht")
             . $content;
     }
 
