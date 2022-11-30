@@ -22,6 +22,8 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesso
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -173,6 +175,9 @@ class Data extends Support
         $this->createSupportFocusType('Geistige Entwicklung');
         $this->createSupportFocusType('Lernen');
         $this->createSupportFocusType('Unterricht kranker Schüler');
+        if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
+            $this->createSupportFocusType('Autismus');
+        }
 
 //        // old Table (deprecated)
 //        $this->createStudentDisorderType('LRS');

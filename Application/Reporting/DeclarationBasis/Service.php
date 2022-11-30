@@ -34,6 +34,7 @@ class Service extends Extension
     public function createDivisionReportExcel(DateTime $date)
     {
         $DataContent = array();
+        $DataAutismus = array();
         $DataBlind = array();
         $DataHear = array();
         $DataMental = array();
@@ -45,6 +46,7 @@ class Service extends Extension
         $DataSickStudent = array();
 
         $isSaxony = Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN);
+        $isBerlin = Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN);
 
         $YearString = '';
         if (($tblYearList = Term::useService()->getYearAllByDate($date))) {
@@ -72,6 +74,14 @@ class Service extends Extension
                                         && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
                                     ) {
                                         // füllen der Förderschwerpunkte
+                                        if ($tblSupportFocusType->getName() == 'Autismus') {
+                                            if (isset($DataBlind[$DivisionTypeName][$tblLevel->getName()])) {
+                                                $DataAutismus[$DivisionTypeName][$tblLevel->getName()] += 1;
+                                            } else {
+                                                $DataAutismus[$DivisionTypeName][$tblLevel->getName()] = 1;
+                                            }
+                                            $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
+                                        }
                                         if ($tblSupportFocusType->getName() == 'Sehen') {
                                             if (isset($DataBlind[$DivisionTypeName][$tblLevel->getName()])) {
                                                 $DataBlind[$DivisionTypeName][$tblLevel->getName()] += 1;
@@ -417,6 +427,37 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderVertical(2)
                 ->setBorderRight(2);
             $Row++;
+            if($isBerlin){
+                $export->setValue($export->getCell(0, $Row), "FSP Autismus");
+                // Autismus Insert
+                $SumAutismus = 0;
+                if (isset($DataAutismus[$Type]) && !empty($DataAutismus[$Type])) {
+                    foreach ($DataAutismus[$Type] as $Level => $StudentCount) {
+                        $export->setValue($export->getCell($Level, $Row), $StudentCount);
+                        if ($StudentCount) {
+                            $SumAutismus += $StudentCount;
+                        }
+                    }
+                }
+                $export->setValue($export->getCell(14, $Row), $SumAutismus);
+
+                $export->setStyle($export->getCell(0, $Row))
+                    ->setBorderLeft(2)
+                    ->setBorderBottom(1)
+                    ->setBorderRight(1);
+                $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+                    ->setBorderLeft(1)
+                    ->setBorderBottom(1)
+                    ->setBorderVertical(1)
+                    ->setBorderRight(2)
+                    ->setAlignmentCenter();
+                $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+                    ->setBorderBottom(1)
+                    ->setBorderVertical(2)
+                    ->setBorderRight(2)
+                    ->setAlignmentCenter();
+                $Row++;
+            }
             $export->setValue($export->getCell(0, $Row), "FSP Sehen");
             // Blind Insert
             $SumBlind = 0;
@@ -701,7 +742,12 @@ Förderschwerpunktes (FSP) ist der Meldung zusätzlich beizufügen.');
 
             // Spaltenhöhe Definieren
 //            $export->setStyle($export->getCell(0, 6))->setRowHeight(12);
-            $export->setStyle($export->getCell(0, 10))->setRowHeight(10);
+            if($isSaxony){
+                $export->setStyle($export->getCell(0, 10))->setRowHeight(10);
+            } elseif($isBerlin){
+                $export->setStyle($export->getCell(0, 6))->setRowHeight(10);
+            }
+
 
             // Spaltenbreite Definieren
             $export->setStyle($export->getCell(0, 0))->setColumnWidth(30);
