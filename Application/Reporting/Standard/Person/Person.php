@@ -57,6 +57,9 @@ class Person extends AbstractModule implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/PersonAgreement'), new Link\Name('Mitarbeiter Einverständniserklärung'))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/ClassTeacher'), new Link\Name('Klassenlehrer'))
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPerson'
@@ -99,6 +102,9 @@ class Person extends AbstractModule implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/PersonAgreement', __NAMESPACE__.'\Frontend::frontendAgreement'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/ClassTeacher', __NAMESPACE__.'\Frontend::frontendClassTeacher'
         ));
     }
 
