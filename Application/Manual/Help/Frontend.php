@@ -36,9 +36,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Hilfe', 'Downloadbereich');
 
-        $isUcsApiActive = ($tblConsumer = Consumer::useService()->getConsumerBySession())
-            && ($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))
-            && $tblConsumerLogin->getIsActiveAPI();
+        $isUcsConsumer = ($tblConsumer = Consumer::useService()->getConsumerBySession())
+            && Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS);
 
         $Stage->setContent(
             new Layout(
@@ -102,7 +101,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 2),
                     )),
                     new LayoutRow(array(
-                        $isUcsApiActive
+                        $isUcsConsumer
                             ? new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
                                 , 'Schnittstelle Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;10.11.2022'))->setPictureHeight()
