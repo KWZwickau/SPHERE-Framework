@@ -217,6 +217,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 && ($tblLevel->getName() == '09' || $tblLevel->getName() == '9' || $tblLevel->getName() == '10'))
                             || (($tblSchoolType->getName() == 'Gymnasium'
                                 && $tblLevel->getName() == '12'))
+                            || (($tblSchoolType->getName() == 'Förderschule'
+                                && ($tblLevel->getName() == '12' || $tblLevel->getName() == '13')))
                             || $tblSchoolType->getName() == 'Berufsfachschule'
                             || $tblSchoolType->getName() == 'Fachschule'
                             || $tblSchoolType->getName() == 'Berufsgrundbildungsjahr'
@@ -1970,6 +1972,12 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
                                         array_search($tblPrepareInformation->getValue(),
                                             $Certificate->selectValuesJobGradeText());
+//                                } elseif ($tblPrepareInformation->getField() == 'FoesAbsText' // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
+//                                    && method_exists($Certificate, 'selectValuesFoesAbsText')
+//                                ) {
+//                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
+//                                        array_search($tblPrepareInformation->getValue(),
+//                                            $Certificate->selectValuesFoesAbsText());
                                 } elseif (strpos($tblPrepareInformation->getField(), '_GradeText')
                                     && ($tblGradeText = Gradebook::useService()->getGradeTextByName($tblPrepareInformation->getValue()))
                                 ) {
@@ -2118,6 +2126,12 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             }
 
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['GTA'] = $textGTA;
+                        }
+
+                        // Vorsetzen des Schulbesuchsjahrs
+                        if (($tblStudent = $tblPerson->getStudent())
+                        && !isset($Global->POST['Data'][$tblPrepareStudent->getId()]['SchoolVisitYear'])) {
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['SchoolVisitYear'] = $tblStudent->getSchoolAttendanceYear(false);
                         }
 
                         $isSupportForPrimarySchool = false;
@@ -2335,6 +2349,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                     && method_exists($Certificate, 'selectValuesJobGradeText')
                                                 ) {
                                                     $selectBoxData = $Certificate->selectValuesJobGradeText();
+//                                                } elseif ($PlaceholderName == 'Content.Input.FoesAbsText' // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
+//                                                    && method_exists($Certificate, 'selectValuesFoesAbsText')
+//                                                ) {
+//                                                    $selectBoxData = $Certificate->selectValuesFoesAbsText();
                                                 } elseif (strpos($PlaceholderName, '_GradeText') !== false) {
                                                     if (($tblGradeTextList = Gradebook::useService()->getGradeTextAll())) {
                                                         $selectBoxData = array(TblGradeText::ATTR_NAME => $tblGradeTextList);
@@ -4187,7 +4205,6 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
         $Data = null,
         $CertificateList = null
     ) {
-
         if ($tblPrepare = Prepare::useService()->getPrepareById($PrepareId)) {
             $tblGroup = false;
             $tblPrepareList = false;
@@ -5307,6 +5324,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             || $tblType->getName() == 'Berufsfachschule'
                             || $tblType->getName() == 'Fachschule'
                             || $tblType->getName() == 'Fachoberschule'
+                            || $tblType->getName() == 'Förderschule'
                         )
                         && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
                     ) {
@@ -5450,6 +5468,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA') && $tblType->getName() == 'Fachoberschule') {
                             // HOGA hat ein individuelles Abgangszeugnis
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('HOGA\FosAbg');
+                        } elseif ($tblType->getName() == 'Förderschule') {
+                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('FoesAbgGeistigeEntwicklung');
                         }
                     }
                 }
@@ -5741,7 +5761,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 $certificateDate = new DateTime('now');
             }
 
-            if ($tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung') {
+            if ($tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung'
+             || $tblCertificate->getCertificate() == 'FoesAbgGeistigeEntwicklung') {
                 $hasCertificateGrades = false;
             } else {
                 $hasCertificateGrades = true;
@@ -6061,6 +6082,17 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     $remarkTextArea
                 );
             } elseif ($tblCertificate->getCertificate() == 'EZSH\EzshMsAbg') {
+                $remarkTextArea = new TextArea('Data[InformationList][RemarkWithoutTeam]', '', 'Bemerkungen');
+
+                if ($isApproved) {
+                    $datePicker->setDisabled();
+                    $remarkTextArea->setDisabled();
+                }
+                $otherInformationList = array(
+                    $datePicker,
+                    $remarkTextArea
+                );
+            } elseif ($tblCertificate->getCertificate() == 'FoesAbgGeistigeEntwicklung') {
                 $remarkTextArea = new TextArea('Data[InformationList][RemarkWithoutTeam]', '', 'Bemerkungen');
 
                 if ($isApproved) {

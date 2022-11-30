@@ -739,6 +739,38 @@ abstract class Certificate extends Extension
     /**
      * @param $personId
      * @param string $MarginTop
+     * @param string $YearString
+     *
+     * @return Slice
+     */
+    protected function getFoesLevelAndYear($personId, $MarginTop = '20px', $YearString = 'Schuljahr')
+    {
+        $YearDivisionSlice = (new Slice());
+        $YearDivisionSlice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('
+                {% if(Content.P' . $personId . '.Student.StudentSpecialNeeds.LevelName is not empty) %}
+                    {{ Content.P' . $personId . '.Student.StudentSpecialNeeds.LevelName }}
+                {% else %}
+                    ________ Stufe
+                {% endif %}')
+//                ->styleBorderBottom()
+                , '33%')
+            ->addElementColumn((new Element())
+                ->setContent('{{ Content.P' . $personId . '.Input.SchoolVisitYear }}. Schulbesuchsjahr')
+                    ->styleAlignCenter()
+                , '33%')
+            ->addElementColumn((new Element())
+                ->setContent($YearString . ':&nbsp;&nbsp;{{ Content.P' . $personId . '.Division.Data.Year }}')
+                ->styleAlignRight()
+                , '34%')
+        )->styleMarginTop($MarginTop);
+        return $YearDivisionSlice;
+    }
+
+    /**
+     * @param $personId
+     * @param string $MarginTop
      *
      * @return Slice
      */
@@ -1935,6 +1967,44 @@ abstract class Certificate extends Extension
 
         if($tblSetting && $tblSetting->getValue()){
             $Element->styleAlignJustify();
+        }
+
+        return (new Slice())->addElement($Element);
+    }
+
+    /**
+     * @param $personId
+     * @param string $Height
+     * @param string $MarginTop
+     * @param string $PreRemark
+     * @param string|bool $TextSize
+     * @param string $Remark
+     * @return Slice
+     */
+    public function getDescriptionWithoutTeamContent($personId, $Height = '150px', $MarginTop = '0px', $PreRemark = '', $TextSize = false, $Remark = '')
+    {
+
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
+
+        $Element = (new Element());
+        if($Remark != ''){
+            $Element->setContent($PreRemark.nl2br($Remark));
+        } else {
+            $Element->setContent($PreRemark.
+                '{% if(Content.P' . $personId . '.Input.RemarkWithoutTeam is not empty) %}
+                        {{ Content.P' . $personId . '.Input.RemarkWithoutTeam|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}');
+        }
+        $Element->styleHeight($Height);
+        $Element->styleMarginTop($MarginTop);
+
+        if($tblSetting && $tblSetting->getValue()){
+            $Element->styleAlignJustify();
+        }
+        if($TextSize){
+            $Element->styleTextSize($TextSize);
         }
 
         return (new Slice())->addElement($Element);

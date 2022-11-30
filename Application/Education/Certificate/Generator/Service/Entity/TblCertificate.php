@@ -42,6 +42,7 @@ class TblCertificate extends Element
     const CERTIFICATE_TYPE_GYM = 'Gym';
     const CERTIFICATE_TYPE_BERUFSFACHSCHULE = 'Berufsfachschule';
     const CERTIFICATE_TYPE_FACHSCHULE = 'Fachschule';
+    const CERTIFICATE_TYPE_FOERDERSCHULE = 'Förderschule';
 
     /**
      * @Column(type="string")
@@ -100,6 +101,11 @@ class TblCertificate extends Element
      * @Column(type="boolean")
      */
     protected $IsGradeVerbal;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $CertificateNumber;
 
     /**
      * @return bool|TblConsumer
@@ -349,4 +355,21 @@ class TblCertificate extends Element
     {
         $this->IsGradeVerbal = $IsGradeVerbal;
     }
+
+    /**
+     * @return string
+     */
+    public function getCertificateNumber(): string
+    {
+        return $this->CertificateNumber;
+    }
+
+    /**
+     * @param string $Anlage
+     */
+    public function setCertificateNumber($CertificateNumber): void
+    {
+        $this->CertificateNumber = $CertificateNumber;
+    }
+
 }

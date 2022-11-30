@@ -201,7 +201,7 @@ class MsAbsRs extends Certificate
         return $pageList;
     }
 
-    public static function getSchoolPart($personId)
+    public static function getSchoolPart($personId, $isLastLine = true)
     {
 
         $sliceList = array();
@@ -336,15 +336,17 @@ class MsAbsRs extends Certificate
                 )
                 ->styleMarginTop('10px');
 
-        $sliceList[] = (new Slice())
-            ->addElement((new Element())
-                ->setContent('Name und Anschrift der Schule')
-                ->styleTextSize('9px')
-//                ->styleTextColor('#999')
-                ->styleAlignCenter()
-                ->styleMarginTop('5px')
-                ->styleMarginBottom($hasExtraRow ? '10px' : '30px')
-            );
+        if($isLastLine){
+            $sliceList[] = (new Slice())
+                ->addElement((new Element())
+                    ->setContent('Name und Anschrift der Schule')
+                    ->styleTextSize('9px')
+                    //                ->styleTextColor('#999')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('5px')
+                    ->styleMarginBottom($hasExtraRow ? '10px' : '30px')
+                );
+        }
 
         return $sliceList;
     }

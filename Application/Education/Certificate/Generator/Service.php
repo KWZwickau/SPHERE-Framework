@@ -503,6 +503,7 @@ class Service extends AbstractService
             'Content.Input.Support'             => 'TextArea',
             'Content.Input.SupportSubject'      => 'TextArea',
             'Content.Input.DivisionName'        => 'TextField',
+            'Content.Input.SchoolVisitYear'     => 'TextField',
             'Content.Input.StudentLetter'       => 'TextArea',
             'Content.Input.DialoguesWithYou'    => 'TextArea',
             'Content.Input.DialoguesWithParent' => 'TextArea',
@@ -563,7 +564,9 @@ class Service extends AbstractService
             'Content.Input.Success'             => 'SelectBox',
             'Content.Input.IndustrialPlacement' => 'TextField',
             'Content.Input.IndustrialPlacementDuration' => 'TextField',
-            'Content.Input.EducationDateFrom' => 'DatePicker'
+            'Content.Input.EducationDateFrom' => 'DatePicker',
+            // Förderschule
+//            'Content.Input.FoesAbsText'         => 'SelectBox', // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
         );
 
         if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVAB')){
@@ -621,6 +624,7 @@ class Service extends AbstractService
             'Content.Input.Support'             => 'Inklusive Unterrichtung',
             'Content.Input.SupportSubject'      => 'Thema der lebenspraktisch orientierten Komplexen Leistung',
             'Content.Input.DivisionName'        => 'Klasse',
+            'Content.Input.SchoolVisitYear'     => 'Schulbesuchsjahr',
             'Content.Input.StudentLetter'       => 'Schülerbrief',
             'Content.Input.DialoguesWithYou'    => 'Im Dialog mit dir',
             'Content.Input.DialoguesWithParent' => 'Im Dialog mit deinen Eltern',
@@ -681,7 +685,9 @@ class Service extends AbstractService
             'Content.Input.Success'             => 'Abschluss erfolgreich',
             'Content.Input.IndustrialPlacement' => 'Betriebspraktikum',
             'Content.Input.IndustrialPlacementDuration' => 'Betriebspraktikum (Dauer in Wochen)',
-            'Content.Input.EducationDateFrom' => 'Ausbildung Datum vom'
+            'Content.Input.EducationDateFrom' => 'Ausbildung Datum vom',
+            // Förderschule
+//            'Content.Input.FoesAbsText' => 'Auswahltext für das Zeugnis', // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
         );
     }
 
