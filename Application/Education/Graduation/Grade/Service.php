@@ -520,4 +520,37 @@ class Service extends ServiceTask
 
         return empty($errorList) ? false : Grade::useFrontend()->formTestGrades($tblTest, $tblYear, $tblSubject, $DivisionCourseId, $Filter, false, $errorList);
     }
+
+    /**
+     * @param string|null $grade
+     *
+     * @return false|float
+     */
+    public function getGradeNumberValue(?string $grade)
+    {
+        if ($grade === null) {
+            return false;
+        }
+
+        $grade = str_replace('+', '', $grade);
+        $grade = str_replace('-', '', $grade);
+        $grade = str_replace(',', '.', $grade);
+
+        return is_numeric($grade) ? (float) $grade : false;
+    }
+
+    /**
+     * @param float $sum
+     * @param int $count
+     * @param int $precision
+     *
+     * @return string
+     */
+    public function getGradeAverage(float $sum, int $count, int $precision = 2): string
+    {
+        if ($count > 0) {
+            return str_replace('.', ',', round($sum / $count, $precision));
+        }
+        return '';
+    }
 }

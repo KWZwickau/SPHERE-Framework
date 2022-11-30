@@ -466,6 +466,8 @@ abstract class FrontendTask extends FrontendGradeType
             $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById(42);
             if ($tblTask->getIsTypeBehavior()) {
                 $content = $this->getTaskGradeViewByBehaviorTask($tblTask, $tblDivisionCourse);
+            } else {
+                $content = $this->getTaskGradeViewByAppointedDateTask($tblTask, $tblDivisionCourse);
             }
         } else {
             $content .= new Warning("Es sind keine Kurse zu diesem $typeName zugeordnet.", new Exclamation());
@@ -528,24 +530,23 @@ abstract class FrontendTask extends FrontendGradeType
                 if ($tblGradeTypeList) {
                     foreach ($tblGradeTypeList as $tblGradeType) {
                         $contentList = array();
-                        $sum = 0;
+                        $sum = 0.0;
                         $countGrades = 0;
                         if ($tblSubjectList) {
                             /** @var TblSubject $tblSubject */
                             foreach ($tblSubjectList as $tblSubject) {
                                 if (($gradeDisplay = $tblTaskGradeList[$tblSubject->getId()][$tblGradeType->getId()] ?? null)) {
-                                    $gradeValue = str_replace('+', '', $gradeDisplay);
-                                    $gradeValue = str_replace('-', '', $gradeValue);
-                                    $gradeValue = str_replace(',', '.', $gradeValue);
-                                    $sum += $gradeValue;
-                                    $countGrades++;
+                                    if (($gradeValue = Grade::useService()->getGradeNumberValue($gradeDisplay))) {
+                                        $sum += $gradeValue;
+                                        $countGrades++;
+                                    }
                                 } else {
                                     $gradeDisplay = new WarningText('f');
                                 }
                                 $contentList[] = $tblSubject->getAcronym() . ': ' . $gradeDisplay;
                             }
                         }
-                        $average = ($countGrades > 0 ? new Bold('&#216; ' . str_replace('.', ',', round(floatval($sum) / $countGrades, 2))) . ' | ' : '');
+                        $average = ($countGrades > 0 ? new Bold('&#216; ' . Grade::useService()->getGradeAverage($sum, $countGrades)) . ' | ' : '');
                         $bodyList[$tblPerson->getId()][$tblGradeType->getId()] = $average . new Small(implode(' | ', $contentList));
                     }
                 }
@@ -560,5 +561,128 @@ abstract class FrontendTask extends FrontendGradeType
         $tableBody = new TableBody($rows);
 
         return new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return string
+     */
+    private function getTaskGradeViewByAppointedDateTask(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): string
+    {
+        $headerList['Number'] = $this->getTableColumnHead('#');
+        $headerList['Person'] = $this->getTableColumnHead('Schüler');
+
+        // Fächer der Schüler auch von Unterkursen ermitteln
+        $tblSubjectList = array();
+        $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+        DivisionCourse::useService()->getSubDivisionCourseRecursiveListByDivisionCourse($tblDivisionCourse, $tblDivisionCourseList);
+        foreach ($tblDivisionCourseList as $temp) {
+            if (($tempList = DivisionCourse::useService()->getSubjectListByDivisionCourse($temp))) {
+                $tblSubjectList = array_merge($tblSubjectList, $tempList);
+            }
+        }
+        $subjectListSum = array();
+        $subjectListGradesCount = array();
+        if ($tblSubjectList) {
+            $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('Name');
+            /** @var TblSubject $tblSubject */
+            foreach ($tblSubjectList as $tblSubject) {
+                $headerList[$tblSubject->getId()] = $this->getTableColumnHead($tblSubject->getAcronym());
+                $subjectListSum[$tblSubject->getId()] = 0.0;
+                $subjectListGradesCount[$tblSubject->getId()] = 0;
+             }
+            $headerList['Average'] = $this->getTableColumnHead('&#216;');
+        }
+
+        $bodyList = array();
+        $count = 0;
+        if (($tblYear = $tblTask->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
+                $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
+
+                $tblTaskGradeList = array();
+                $tblTaskGradeTextList = array();
+                if (($tempList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson)))
+                {
+                    foreach($tempList as $tblTaskGrade) {
+                        if (($tblSubject = $tblTaskGrade->getServiceTblSubject())) {
+                            if (($tblGradeText = $tblTaskGrade->getTblGradeText())) {
+                                $tblTaskGradeTextList[$tblSubject->getId()] = $tblGradeText->getName();
+                            } elseif ($tblTaskGrade->getGrade() !== null) {
+                                $tblTaskGradeList[$tblSubject->getId()] = $tblTaskGrade->getGrade();
+                            }
+                        }
+                    }
+                }
+                $sum = 0.0;
+                $countGrades = 0;
+                if ($tblSubjectList) {
+                    foreach ($tblSubjectList as $tblSubject) {
+                        if (isset($tblTaskGradeList[$tblSubject->getId()])) {
+                            $content = $tblTaskGradeList[$tblSubject->getId()];
+                            if (($gradeValue = Grade::useService()->getGradeNumberValue($content))) {
+                                $sum += $gradeValue;
+                                $countGrades++;
+
+                                $subjectListSum[$tblSubject->getId()] += $gradeValue;
+                                $subjectListGradesCount[$tblSubject->getId()]++;
+                             }
+                        } elseif (isset($tblTaskGradeTextList[$tblSubject->getId()])) {
+                            $content = $tblTaskGradeTextList[$tblSubject->getId()];
+                        } elseif ((DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+                            $content = new WarningText('f');
+                        } else {
+                            $content = '&nbsp;';
+                        }
+
+                        // todo Notendurchschnitt für Schüler bei diesem Fach und farbliche Anzeige bei Note
+                        $bodyList[$tblPerson->getId()][$tblSubject->getId()] = $this->getTableColumnBody($content);
+                    }
+                }
+
+                // gesamt-durchschnitt schüler
+                $bodyList[$tblPerson->getId()]['Average'] = $this->getTableColumnBody(Grade::useService()->getGradeAverage($sum, $countGrades));
+            }
+        }
+
+        // Fach-klassen durchschnitt
+        array_unshift($bodyList, $this->getBodyItemDivisionCourseSubjectAverage($tblSubjectList, $subjectListSum, $subjectListGradesCount));
+
+        $tableHead = new TableHead(new TableRow($headerList));
+        $rows = array();
+        foreach ($bodyList as $columnList) {
+            $rows[] = new TableRow($columnList);
+        }
+        $tableBody = new TableBody($rows);
+
+        return new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
+    }
+
+    /**
+     * @param array $tblSubjectList
+     * @param array $subjectListSum
+     * @param array $subjectListGradesCount
+     *
+     * @return array
+     */
+    private function getBodyItemDivisionCourseSubjectAverage(array $tblSubjectList, array $subjectListSum, array $subjectListGradesCount): array
+    {
+        $item['Number'] = $this->getTableColumnBody('');
+        $item['Person'] = $this->getTableColumnBody(new Muted('&#216; Fach-Klasse'));
+        if ($tblSubjectList) {
+            foreach ($tblSubjectList as $tblSubject) {
+                $item[$tblSubject->getId()] = $this->getTableColumnBody(
+                    Grade::useService()->getGradeAverage($subjectListSum[$tblSubject->getId()], $subjectListGradesCount[$tblSubject->getId()])
+                );
+            }
+        }
+        $item['Average'] = $this->getTableColumnBody('');
+
+        return $item;
     }
 }

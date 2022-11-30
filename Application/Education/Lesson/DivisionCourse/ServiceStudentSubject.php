@@ -497,8 +497,6 @@ abstract class ServiceStudentSubject extends AbstractService
     }
 
     /**
-     * @deprecated  es fehlen noch die virtuellen Fächer der Schülerakte
-     *
      * @param TblDivisionCourse $tblDivisionCourse
      * @param bool $hasGrading
      *
@@ -532,12 +530,12 @@ abstract class ServiceStudentSubject extends AbstractService
 
                                 // feste Fächer der Stundentafel
                                 if ($tblSubjectTable->getIsFixed()) {
-                                    if (($tblSubject = $tblSubjectTable->getServiceTblSubject()) && !isset($tblSubjectTable[$tblSubject->getId()])) {
+                                    if (($tblSubject = $tblSubjectTable->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
                                         $tblSubjectList[$tblSubject->getId()] = $tblSubject;
                                     }
                                 // Virtuelle Fächer der Schülerakte
                                 } else {
-                                    if (!isset($tblSubjectTableListNotFixed[$tblSubjectTable->getId()])) {
+                                    if ($tblSubjectTable->getStudentMetaIdentifier() && !isset($tblSubjectTableListNotFixed[$tblSubjectTable->getId()])) {
                                         $tblSubjectTableListNotFixed[$tblSubjectTable->getId()] = $tblSubjectTable;
                                     }
                                 }
@@ -548,14 +546,25 @@ abstract class ServiceStudentSubject extends AbstractService
                     // feste Fächer am Schüler
                     if (($tblSubjectStudentList = $this->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, $hasGrading ?: null))) {
                         foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                            if (($tblSubject = $tblSubjectStudent->getServiceTblSubject()) && !isset($tblSubjectTable[$tblSubject->getId()])) {
+                            if (($tblSubject = $tblSubjectStudent->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
                                 $tblSubjectList[$tblSubject->getId()] = $tblSubject;
                             }
                         }
                     }
-
-                    // todo virtuelle Fächer am Schüler $tblSubjectTableListNotFixed
                 }
+            }
+
+            if (!empty($tblSubjectTableListNotFixed)) {
+                 foreach ($tblSubjectTableListNotFixed as $tblSubjectTable)
+                 {
+                     foreach ($tblPersonList as $tblPerson) {
+                         if (($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))
+                             && !isset($tblSubjectList[$tblSubject->getId()])
+                         ) {
+                             $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                         }
+                     }
+                 }
             }
         }
 
