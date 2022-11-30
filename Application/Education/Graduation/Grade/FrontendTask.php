@@ -38,7 +38,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\Ruler;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -67,6 +67,7 @@ abstract class FrontendTask extends FrontendGradeType
 {
     private function getHasHeadmasterRole(): bool
     {
+//        return false;
         return Access::useService()->hasAuthorization('/Education/Graduation/Grade/GradeBook/Headmaster');
     }
 
@@ -75,14 +76,32 @@ abstract class FrontendTask extends FrontendGradeType
      */
     public function frontendTask(): Stage
     {
-        $stage = new Stage();
-
-        // todo Schuljahr auswählen
         $tblYear = false;
         if (($tblYearList = Term::useService()->getYearByNow())) {
             /** @var TblYear $tblYear */
             $tblYear = current($tblYearList);
+            $global = $this->getGlobal();
+            $global->POST['Data']['Year'] = $tblYear->getId();
+            $global->savePost();
         }
+
+        $form = (new Form(new FormGroup(new FormRow(new FormColumn(
+            (new SelectBox('Data[Year]', '', array("{{ DisplayName }}" => Term::useService()->getYearAll())))
+                ->ajaxPipelineOnChange(ApiTask::pipelineLoadViewTaskList($tblYear ? $tblYear->getId() : null))
+        )))))->disableSubmitAction();
+
+        $stage = new Stage(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Notenaufträge' , 10),
+                new LayoutColumn(new PullClear($form) , 2),
+            ))))
+        );
+        if ($this->getHasHeadmasterRole()) {
+            $message = 'Verwaltung aller Kopfnoten- und Stichtagsnotenaufträge (inklusive der Anzeige der vergebenen Zensuren).';
+        } else {
+            $message = 'Anzeige der Kopfnoten- und Stichtagsnotenaufträge (inklusive vergebener Zensuren), wo der angemeldete Lehrer als Klassenlehrer hinterlegt ist.';
+        }
+        $stage->setMessage($message);
 
         $stage->setContent(
             ApiTask::receiverBlock($this->loadViewTaskList($tblYear ? $tblYear->getId() : 0), 'Content')
@@ -99,15 +118,10 @@ abstract class FrontendTask extends FrontendGradeType
     public function loadViewTaskList($YearId): string
     {
         $hasHeadmasterRole = $this->getHasHeadmasterRole();
-        if ($hasHeadmasterRole) {
-            $description = 'Verwaltung aller Kopfnoten- und Stichtagsnotenaufträge (inklusive der Anzeige der vergebenen Zensuren).';
-        } else {
-            $description = 'Anzeige der Kopfnoten- und Stichtagsnotenaufträge (inklusive vergebener Zensuren), wo der angemeldete Lehrer als Klassenlehrer hinterlegt ist.';
-        }
 
-        $title = '<h3>Notenaufträge ' . new Muted(new Small('Übersicht')) . '</h3>'
-            . new Container(new Muted($description))
-            . new Ruler();
+//        $title = '<h3>Notenaufträge ' . new Muted(new Small('Übersicht')) . '</h3>'
+//            . new Container(new Muted($description))
+//            . new Ruler();
 
         if (($tblYear = Term::useService()->getYearById($YearId))) {
             $tblTaskList = false;
@@ -153,8 +167,8 @@ abstract class FrontendTask extends FrontendGradeType
                 }
             }
 
-            return $title
-                . ($hasHeadmasterRole
+            return
+                ($hasHeadmasterRole
                     ? (new Primary('Notenauftrag anlegen', ApiTask::getEndpoint(), new Plus()))
                         ->ajaxPipelineOnClick(ApiTask::pipelineLoadViewTaskEditContent($YearId))
                     : '')
@@ -178,7 +192,7 @@ abstract class FrontendTask extends FrontendGradeType
                     )
                 );
         } else {
-            return $title . new Warning('Schuljahr wurde nicht gefunden.', new Exclamation());
+            return new Warning('Schuljahr wurde nicht gefunden.', new Exclamation());
         }
     }
 

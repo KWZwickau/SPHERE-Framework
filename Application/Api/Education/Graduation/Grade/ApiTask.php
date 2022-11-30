@@ -78,12 +78,17 @@ class ApiTask extends Extension implements IApiInterface
 
     /**
      * @param $YearId
+     * @param null $Data
      *
      * @return string
      */
-    public function loadViewTaskList($YearId): string
+    public function loadViewTaskList($YearId, $Data = null): string
     {
-        return Grade::useFrontend()->loadViewTaskList($YearId);
+        if (isset($Data["Year"]) && ($tblYear = Term::useService()->getYearById($Data["Year"]))) {
+            return Grade::useFrontend()->loadViewTaskList($tblYear->getId());
+        } else {
+            return Grade::useFrontend()->loadViewTaskList($YearId);
+        }
     }
 
     /**
