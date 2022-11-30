@@ -366,6 +366,12 @@ class Service
 //                $this->setPersonGroup($tblPerson, $Group);
 //            }
 
+            if(($Kindergarten = $this->getValue('Kindergarten'))){
+                if(strtoupper($Kindergarten) == 'WAHR'){
+                    $this->setPersonGroup($tblPerson, 'Kindergarten');
+                }
+            }
+
             $countStudent++;
 
             // common & birthday
