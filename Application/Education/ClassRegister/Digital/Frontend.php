@@ -492,7 +492,7 @@ class Frontend extends FrontendTabs
                 ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Day'));
         }
 
-        $datePicker = (new DatePicker('Data[Date]', '', '', new Calendar()))
+        $datePicker = (new DatePicker('Data[Date]', $Date, '', new Calendar()))
             ->setAutoFocus()
             ->ajaxPipelineOnChange(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, $View));
         $form = (new Form(new FormGroup(new FormRow(array(
@@ -506,7 +506,7 @@ class Frontend extends FrontendTabs
 //                    $DivisionId, $GroupId, $DateString, $View
 //                )))
 //                , 5)
-        )))));
+        )))))->disableSubmitAction();
 
         $layout = new Layout(new LayoutGroup(new LayoutRow(array(
 //                new LayoutColumn($buttons, $View == 'Day' ? 7 : 8),

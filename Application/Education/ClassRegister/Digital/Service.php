@@ -462,14 +462,14 @@ class Service extends AbstractService
      */
     public function getTeacherString(TblPerson $tblPerson, bool $IsToolTip = true): string
     {
-        $teacher = '';
         if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
             && ($acronym = $tblTeacher->getAcronym())
         ) {
             $teacher = $acronym;
         } else {
-            if (strlen($tblPerson->getLastName()) > 5) {
-                $teacher = substr($tblPerson->getLastName(), 0, 5) . '.';
+            $teacher = $tblPerson->getLastName();
+            if (strlen($teacher) > 5) {
+                $teacher = substr($teacher, 0, 5) . '.';
             }
         }
 
