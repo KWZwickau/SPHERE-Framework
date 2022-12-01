@@ -305,4 +305,15 @@ class TblTest extends Element
         return '';
     }
 
+    /**
+     * @return string
+     */
+    public function getYearName(): string
+    {
+        if (($tblYear = $this->getServiceTblYear())) {
+            return $tblYear->getName();
+        }
+
+        return '&nbsp;';
+    }
 }

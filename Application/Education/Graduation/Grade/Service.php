@@ -10,7 +10,6 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
-use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
@@ -133,16 +132,6 @@ class Service extends ServiceTask
     public function getScoreTypeAll()
     {
         return (new Data($this->getBinding()))->getScoreTypeAll();
-    }
-
-    /**
-     * @param $id
-     *
-     * @return false|TblTask
-     */
-    public function getTaskById($id)
-    {
-        return (new Data($this->getBinding()))->getTaskById($id);
     }
 
     /**
@@ -357,6 +346,23 @@ class Service extends ServiceTask
     }
 
     /**
+     * @param TblTest $tblTest
+     *
+     * @return bool
+     */
+    public function deleteTest(TblTest $tblTest): bool
+    {
+        if (($tempList = $tblTest->getGrades())) {
+            $this->softRemoveEntityList($tempList);
+        }
+        if (($tempList = (new Data($this->getBinding()))->getTestCourseLinkListByTest($tblTest))) {
+            $this->softRemoveEntityList($tempList);
+        }
+
+        return $this->softRemoveEntityList(array($tblTest));
+    }
+
+    /**
      * @param array $tblEntityList
      *
      * @return bool
@@ -384,6 +390,16 @@ class Service extends ServiceTask
     public function deleteEntityListBulk(array $tblEntityList): bool
     {
         return (new Data($this->getBinding()))->deleteEntityListBulk($tblEntityList);
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function softRemoveEntityList(array $tblEntityList): bool
+    {
+        return (new Data($this->getBinding()))->softRemoveEntityList($tblEntityList);
     }
 
     /**

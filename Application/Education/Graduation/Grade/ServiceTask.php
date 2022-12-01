@@ -30,6 +30,16 @@ abstract class ServiceTask extends ServiceGradeType
     }
 
     /**
+     * @param $id
+     *
+     * @return false|TblTask
+     */
+    public function getTaskById($id)
+    {
+        return (new Data($this->getBinding()))->getTaskById($id);
+    }
+
+    /**
      * @param TblYear $tblYear
      *
      * @return false|TblTask[]

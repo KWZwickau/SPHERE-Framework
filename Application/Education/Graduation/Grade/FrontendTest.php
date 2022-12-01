@@ -39,8 +39,11 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\History;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -49,6 +52,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -96,11 +100,16 @@ abstract class FrontendTest extends FrontendTeacherGroup
         $title = $TestId ? new Edit() . " Leistungsüberprüfung bearbeiten" : new Plus() . " Leistungsüberprüfung hinzufügen";
 
         return new Title(
-                (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
-                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter))
+                $this->getBackButton($DivisionCourseId, $SubjectId, $Filter)
                 . "&nbsp;&nbsp;&nbsp;&nbsp; $title" . new Muted(new Small(" im Fach: ")) . $textSubject
             )
             . new Well($form);
+    }
+
+    private function getBackButton($DivisionCourseId, $SubjectId, $Filter): Standard
+    {
+        return (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
+            ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter));
     }
 
     /**
@@ -198,8 +207,11 @@ abstract class FrontendTest extends FrontendTeacherGroup
                 new FormColumn(array(
                     (new Primary('Speichern', ApiGradeBook::getEndpoint(), new Save()))
                         ->ajaxPipelineOnClick(ApiGradeBook::pipelineSaveTestEdit($DivisionCourseId, $SubjectId, $Filter, $TestId)),
-                    (new Standard('Abbrechen', ApiGradeBook::getEndpoint(), new Disable()))
-                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter))
+                    $TestId
+                        ? (new DangerLink('Löschen', ApiGradeBook::getEndpoint(), new Remove()))
+                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestDelete($DivisionCourseId, $SubjectId, $Filter, $TestId))
+                        : (new Standard('Abbrechen', ApiGradeBook::getEndpoint(), new Disable()))
+                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter))
                 ))
             ))
         ))))->disableSubmitAction();
@@ -380,8 +392,8 @@ abstract class FrontendTest extends FrontendTeacherGroup
     private function getTestPlaningHeader(DateTime $date, $week): string
     {
         $year = $date->format('Y');
-        $monday = date('d.m.y', strtotime("$year-W{$week}"));
-        $friday = date('d.m.y', strtotime("$year-W{$week}-5"));
+        $monday = date('d.m.y', strtotime("$year-W$week"));
+        $friday = date('d.m.y', strtotime("$year-W$week-5"));
 
         return new Bold('KW: ' . $week) . new Muted(' &nbsp;&nbsp;&nbsp;(' . $monday . ' - ' . $friday . ')');
     }
@@ -516,8 +528,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
         }
 
         return new Title(
-                (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
-                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter))
+                $this->getBackButton($DivisionCourseId, $SubjectId, $Filter)
                 . "&nbsp;&nbsp;&nbsp;&nbsp; Leistungsüberprüfung" . new Muted(new Small(" Zensuren eintragen im Fach: ")) . $textSubject
             )
             . ApiSupportReadOnly::receiverOverViewModal()
@@ -700,5 +711,53 @@ abstract class FrontendTest extends FrontendTeacherGroup
         )));
 
         return (new Form(new FormGroup($formRows)))->disableSubmitAction();
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return string
+     */
+    public function loadViewTestDelete($DivisionCourseId, $SubjectId, $Filter, $TestId): string
+    {
+        if (!($tblTest = Grade::useService()->getTestById($TestId))) {
+            return new Danger('Die Leistungsüberprüfung wurde nicht gefunden', new Exclamation());
+        }
+
+        $countTestGrades = 0;
+        if (($tblTestGrades = $tblTest->getGrades())) {
+            $countTestGrades = count($tblTestGrades);
+        }
+
+        return
+            new Title(
+                $this->getBackButton($DivisionCourseId, $SubjectId, $Filter)
+                    . "&nbsp;&nbsp;&nbsp;&nbsp;" . new Remove() . " Leistungsüberprüfung löschen"
+            )
+            . new Well(new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . " Diese Leistungsüberprüfung wirklich löschen?",
+                                array(
+                                    'Schuljahr: ' . new Bold($tblTest->getYearName()),
+                                    'Beschreibung: ' . new Bold($tblTest->getDescription()),
+                                    'Datum: ' . $tblTest->getDateString(),
+                                    'Zensuren: ' . ($countTestGrades ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countTestGrades) : '0'),
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new  DangerLink('Ja', ApiGradeBook::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(ApiGradeBook::pipelineSaveTestDelete($DivisionCourseId, $SubjectId, $Filter, $TestId))
+                            . (new Standard('Nein', ApiGradeBook::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter))
+                        )
+                    )
+                )
+            ));
     }
 }

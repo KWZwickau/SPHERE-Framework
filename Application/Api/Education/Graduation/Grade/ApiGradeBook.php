@@ -51,6 +51,10 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewTestGradeEditContent');
         $Dispatcher->registerMethod('saveTestGradeEdit');
 
+        // todo test löschen
+        $Dispatcher->registerMethod('loadViewTestDelete');
+        $Dispatcher->registerMethod('saveTestDelete');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -614,5 +618,94 @@ class ApiGradeBook extends Extension implements IApiInterface
 
         return new Success("Zensuren wurde erfolgreich gespeichert.")
             . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewTestDelete($DivisionCourseId, $SubjectId, $Filter, $TestId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewTestDelete',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter,
+            'TestId' => $TestId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return string
+     */
+    public function loadViewTestDelete($DivisionCourseId, $SubjectId, $Filter, $TestId): string
+    {
+        return Grade::useFrontend()->loadViewTestDelete($DivisionCourseId, $SubjectId, $Filter, $TestId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveTestDelete($DivisionCourseId, $SubjectId, $Filter, $TestId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveTestDelete'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter,
+            'TestId' => $TestId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TestId
+     *
+     * @return string
+     */
+    public function saveTestDelete($DivisionCourseId, $SubjectId, $Filter, $TestId): string
+    {
+        if (!($tblTest = Grade::useService()->getTestById($TestId))) {
+            return new Danger('Die Leistungsüberprüfung wurde nicht gefunden', new Exclamation());
+        }
+
+        // todo
+        if (Grade::useService()->deleteTest($tblTest)) {
+            return new Success('Die Leistungsüberprüfung wurde erfolgreich gelöscht.')
+                . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
+        } else {
+            return new Danger('Die Leistungsüberprüfung konnte nicht gelöscht werden.');
+        }
     }
 }
