@@ -298,7 +298,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
             $tblSubjectAll = array(new TblSubject());
         }
 
-        FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
+        FrontendStudentBasic::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
         $tblStudent = $tblPerson->getStudent();
 
         $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
