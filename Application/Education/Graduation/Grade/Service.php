@@ -191,21 +191,11 @@ class Service extends ServiceTask
                     && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
                 ) {
                     foreach ($tblYearList as $tblYear) {
-                        if ($tblYear->getId() == $tblYearSelected->getId()) {
-                            // Lehrauftrag
-                            if (DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPerson, $tblDivisionCourse, $tblSubject)) {
-                                return true;
-                            }
-                            // eigne Lerngruppe
-                            if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP
-                                && ($tblTeacherList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
-                            ) {
-                                foreach ($tblTeacherList as $tblTeacher) {
-                                    if ($tblTeacher->getId() == $tblPerson->getId()) {
-                                        return true;
-                                    }
-                                }
-                            }
+                        if ($tblYear->getId() == $tblYearSelected->getId()
+                            && ($tblYearFromDivisionCourse = $tblDivisionCourse->getServiceTblYear())
+                            && $tblYear->getId() == $tblYearFromDivisionCourse->getId()
+                        ) {
+                            return $this->getHasTeacherLectureshipForDivisionCourseAndSubject($tblPerson, $tblDivisionCourse, $tblSubject);
                         }
                     }
                 }
@@ -213,6 +203,34 @@ class Service extends ServiceTask
             case "AllReadonly":
             default: return false;
         }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function getHasTeacherLectureshipForDivisionCourseAndSubject(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): bool
+    {
+        // Lehrauftrag
+        if (DivisionCourse::useService()->getTeacherLectureshipListBy(null, $tblPerson, $tblDivisionCourse, $tblSubject)) {
+            return true;
+        }
+        // eigne Lerngruppe
+        if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP
+            && ($tblTeacherList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
+                TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+        ) {
+            foreach ($tblTeacherList as $tblTeacher) {
+                if ($tblTeacher->getId() == $tblPerson->getId()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

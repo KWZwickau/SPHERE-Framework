@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -131,6 +132,7 @@ class Frontend extends FrontendTest
     public function loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter): string
     {
         $isEdit = Grade::useService()->getIsEdit($DivisionCourseId, $SubjectId);
+        $isCheckTeacherLectureship = $isEdit && (Grade::useService()->getRole() == 'Teacher');
 
         $textKurs = "";
         $textSubject = "";
@@ -145,11 +147,15 @@ class Frontend extends FrontendTest
             $headerList = array();
             $bodyList = array();
 
-            list($gradeList, $tblTestList, $integrationList, $pictureList, $courseList) = $this->getTestGradeListAndTestListByPersonListAndSubject(
-                $tblPersonList, $tblYear, $tblSubject, $DivisionCourseId, $Filter, $isEdit);
+            $tblTestList = array();
             if (($tblTempList = Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject))) {
-                $tblTestList = array_merge($tblTestList, $tblTempList);
+                foreach ($tblTempList as $temp) {
+                    $tblTestList[$temp->getId()] = $temp;
+                }
             }
+
+            list($gradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList) = $this->getTestGradeListAndTestListByPersonListAndSubject(
+                $tblPersonList, $tblYear, $tblSubject, $DivisionCourseId, $Filter, $tblTestList, $isEdit, $isCheckTeacherLectureship);
 
             $headerList['Number'] = $this->getTableColumnHead('#');
             $headerList['Person'] = $this->getTableColumnHead('Schüler');
@@ -165,7 +171,13 @@ class Frontend extends FrontendTest
 
             $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('SortDate', new DateTimeSorter());
             foreach ($tblTestList as $tblTest) {
-                $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest, $DivisionCourseId, $SubjectId, $Filter, $isEdit);
+                if ($isCheckTeacherLectureship) {
+                    $isEditTest = $isEdit && !isset($tblTestListNoTeacherLectureship[$tblTest->getId()]);
+                } else {
+                    $isEditTest = $isEdit;
+                }
+
+                $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest, $DivisionCourseId, $SubjectId, $Filter, $isEditTest);
             }
 
             $count = 0;
@@ -193,11 +205,18 @@ class Frontend extends FrontendTest
 
                                 if (isset($gradeList[$tblPerson->getId()][$testId])) {
                                     $contentGrade = $gradeList[$tblPerson->getId()][$testId];
-                                } elseif ($isEdit) {
-                                    $contentGrade = (new Link($this->getGradeContainer(), ApiGradeBook::getEndpoint()))
-                                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestGradeEditContent($DivisionCourseId, $tblSubject->getId(), $Filter, $testId));
                                 } else {
-                                    $contentGrade = '&nbsp;';
+                                    if ($isCheckTeacherLectureship) {
+                                        $isNewGrade = $isEdit && !isset($tblTestListNoTeacherLectureship[$testId]);
+                                    } else {
+                                        $isNewGrade = $isEdit;
+                                    }
+                                    if ($isNewGrade) {
+                                        $contentGrade = (new Link($this->getGradeContainer(), ApiGradeBook::getEndpoint()))
+                                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestGradeEditContent($DivisionCourseId, $tblSubject->getId(), $Filter, $testId));
+                                    } else {
+                                        $contentGrade = '&nbsp;';
+                                    }
                                 }
 
                                 $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody($contentGrade);
@@ -259,18 +278,22 @@ class Frontend extends FrontendTest
      * @param TblSubject $tblSubject
      * @param $DivisionCourseId
      * @param $Filter
+     * @param array $tblTestList
      * @param $isEdit
+     * @param $isCheckTeacherLectureship
      *
      * @return array[]
      */
     private function getTestGradeListAndTestListByPersonListAndSubject($tblPersonList, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId,
-        $Filter, $isEdit): array
+        $Filter, array &$tblTestList, $isEdit, $isCheckTeacherLectureship): array
     {
+        $tblPersonLogin = Account::useService()->getPersonByLogin();
+
         $gradeList = array();
-        $testList = array();
         $integrationList = array();
         $pictureList = array();
         $courseList = array();
+        $tblTestListNoTeacherLectureship = array();
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
                 if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
@@ -280,18 +303,44 @@ class Frontend extends FrontendTest
                     if (($tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
                         foreach ($tblTestGradeList as $tblTestGrade) {
                             $tblTest = $tblTestGrade->getTblTest();
+
+                            if ($tblTestGrade->getGrade() !== null && !isset($tblTestList[$tblTest->getId()])) {
+                                $tblTestList[$tblTest->getId()] = $tblTest;
+
+                                $hasTestEdit = false;
+                                // bei Lehrern prüfen, ob ein Lehrauftrag vorliegt
+                                if ($isCheckTeacherLectureship) {
+                                    if (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
+                                        foreach ($tblDivisionCourseList as $temp) {
+                                            if (($hasTestEdit = Grade::useService()->getHasTeacherLectureshipForDivisionCourseAndSubject(
+                                                $tblPersonLogin, $temp, $tblSubject
+                                            ))) {
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (!$hasTestEdit) {
+                                        $tblTestListNoTeacherLectureship[$tblTest->getId()] = $tblTest;
+                                    }
+                                } else {
+                                    $hasTestEdit = true;
+                                }
+                            } elseif ($isCheckTeacherLectureship) {
+                                $hasTestEdit = !isset($tblTestListNoTeacherLectureship[$tblTest->getId()]);
+                            } else {
+                                $hasTestEdit = true;
+                            }
+
                             $gradeValue = $tblTestGrade->getGrade() !== null ? $tblTestGrade->getGrade() : '&ndash;';
                             $contentGrade = ($tblTest->getTblGradeType()->getIsHighlighted() ? new Bold($gradeValue) : $gradeValue)
                                 // öffentlicher Kommentar
                                 . (($tblTestGrade->getPublicComment() != '') ? new ToolTip(' ' . new Info(), $tblTestGrade->getPublicComment()) : '');
-                            $gradeList[$tblPerson->getId()][$tblTest->getId()] = $isEdit
+                            $gradeList[$tblPerson->getId()][$tblTest->getId()] = $isEdit && $hasTestEdit
                                 ? (new Link($this->getGradeContainer($contentGrade), ApiGradeBook::getEndpoint()))
                                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestGradeEditContent(
                                         $DivisionCourseId, $tblSubject->getId(), $Filter, $tblTest->getId()))
                                 : $contentGrade;
-                            if ($tblTestGrade->getGrade() !== null) {
-                                $testList[$tblTest->getId()] = $tblTest;
-                            }
                         }
                     }
 
@@ -300,7 +349,7 @@ class Frontend extends FrontendTest
             }
         }
 
-        return array($gradeList, $testList, $integrationList, $pictureList, $courseList);
+        return array($gradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList);
     }
 
     /**
@@ -333,7 +382,7 @@ class Frontend extends FrontendTest
                 ))->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter, $tblTest->getId()))
             );
         } else {
-            $content = new Container($text);
+            $content = new Container($tblTest->getDescription() ? new ToolTip($text, htmlspecialchars($tblTest->getDescription())) :($text));
         }
 
         if (!$tblGradeType->getIsHighlighted()) {
