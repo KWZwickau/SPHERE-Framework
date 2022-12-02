@@ -213,4 +213,16 @@ class TblTaskGrade extends Element
     {
         $this->serviceTblPersonTeacher = $tblPerson->getId();
     }
+
+    /**
+     * @return string
+     */
+    public function getDisplayGrade(): string
+    {
+        if (($tblGradeText = $this->getTblGradeText())) {
+            return $tblGradeText->getName();
+        }
+
+        return $this->getGrade() ?: '';
+    }
 }

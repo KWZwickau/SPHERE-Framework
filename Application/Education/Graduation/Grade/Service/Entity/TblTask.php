@@ -247,6 +247,14 @@ class TblTask extends Element
     /**
      * @return string
      */
+    public function getShortTypeName(): string
+    {
+        return $this->IsTypeBehavior ? 'KN' : 'SN';
+    }
+
+    /**
+     * @return string
+     */
     public function getYearName(): string
     {
         if (($tblYear = $this->getServiceTblYear())) {

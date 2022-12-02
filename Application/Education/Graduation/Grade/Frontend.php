@@ -2,11 +2,15 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use DateTime;
 use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -154,8 +158,10 @@ class Frontend extends FrontendTest
                 }
             }
 
-            list($gradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList) = $this->getTestGradeListAndTestListByPersonListAndSubject(
-                $tblPersonList, $tblYear, $tblSubject, $DivisionCourseId, $Filter, $tblTestList, $isEdit, $isCheckTeacherLectureship);
+            list($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList)
+                = $this->getTestGradeListAndTestListByPersonListAndSubject(
+                    $tblPersonList, $tblYear, $tblSubject, $DivisionCourseId, $Filter, $tblTestList, $isEdit, $isCheckTeacherLectureship
+                );
 
             $headerList['Number'] = $this->getTableColumnHead('#');
             $headerList['Person'] = $this->getTableColumnHead('Schüler');
@@ -168,20 +174,11 @@ class Frontend extends FrontendTest
             if (($hasCourse = !empty($courseList))) {
                 $headerList['Course'] = $this->getTableColumnHead(new ToolTip('BG', 'Bildungsgang'));
             }
-
-            $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('SortDate', new DateTimeSorter());
-            foreach ($tblTestList as $tblTest) {
-                if ($isCheckTeacherLectureship) {
-                    $isEditTest = $isEdit && !isset($tblTestListNoTeacherLectureship[$tblTest->getId()]);
-                } else {
-                    $isEditTest = $isEdit;
-                }
-
-                $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest, $DivisionCourseId, $SubjectId, $Filter, $isEditTest);
-            }
+            $taskListIsEdit = array();
+            $this->setGradeBookHeaderList($headerList, $taskListIsEdit, $tblDivisionCourse, $tblTestList, $isEdit, $isCheckTeacherLectureship, $SubjectId, $Filter);
 
             $count = 0;
-            if (($tblPersonList)) {
+            if ($tblPersonList) {
                 foreach ($tblPersonList as $tblPerson) {
                     if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
                         && $tblVirtualSubject->getHasGrading()
@@ -200,11 +197,12 @@ class Frontend extends FrontendTest
                         }
 
                         foreach ($headerList as $key => $value) {
+                            // Leistungsüberprüfung
                             if (strpos($key, 'Test') !== false) {
                                 $testId = str_replace('Test', '', $key);
 
-                                if (isset($gradeList[$tblPerson->getId()][$testId])) {
-                                    $contentGrade = $gradeList[$tblPerson->getId()][$testId];
+                                if (isset($testGradeList[$tblPerson->getId()][$testId])) {
+                                    $contentGrade = $testGradeList[$tblPerson->getId()][$testId];
                                 } else {
                                     if ($isCheckTeacherLectureship) {
                                         $isNewGrade = $isEdit && !isset($tblTestListNoTeacherLectureship[$testId]);
@@ -220,6 +218,16 @@ class Frontend extends FrontendTest
                                 }
 
                                 $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody($contentGrade);
+                            // Notenauftrag
+                            } elseif (strpos($key, 'Task') !== false) {
+                                $taskId = str_replace('Task', '', $key);
+                                $contentGrade = $taskGradeList[$tblPerson->getId()][$taskId] ?? '';
+                                if ($taskListIsEdit[$taskId]) {
+                                    $contentGrade = (new Link($contentGrade ?: $this->getGradeContainer(), ApiGradeBook::getEndpoint()))
+                                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTaskGradeEditContent($DivisionCourseId, $tblSubject->getId(), $Filter, $taskId));
+                                }
+
+                                $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody($contentGrade, self::BACKGROUND_COLOR_TASK_BODY);
                             }
                         }
                     }
@@ -289,7 +297,8 @@ class Frontend extends FrontendTest
     {
         $tblPersonLogin = Account::useService()->getPersonByLogin();
 
-        $gradeList = array();
+        $testGradeList = array();
+        $taskGradeList = array();
         $integrationList = array();
         $pictureList = array();
         $courseList = array();
@@ -299,7 +308,7 @@ class Frontend extends FrontendTest
                 if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
                     && $tblVirtualSubject->getHasGrading()
                 ) {
-                    // Zensuren
+                    // Zensuren - Leistungsüberprüfungen
                     if (($tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
                         foreach ($tblTestGradeList as $tblTestGrade) {
                             $tblTest = $tblTestGrade->getTblTest();
@@ -336,11 +345,23 @@ class Frontend extends FrontendTest
                             $contentGrade = ($tblTest->getTblGradeType()->getIsHighlighted() ? new Bold($gradeValue) : $gradeValue)
                                 // öffentlicher Kommentar
                                 . (($tblTestGrade->getPublicComment() != '') ? new ToolTip(' ' . new Info(), $tblTestGrade->getPublicComment()) : '');
-                            $gradeList[$tblPerson->getId()][$tblTest->getId()] = $isEdit && $hasTestEdit
+                            $testGradeList[$tblPerson->getId()][$tblTest->getId()] = $isEdit && $hasTestEdit
                                 ? (new Link($this->getGradeContainer($contentGrade), ApiGradeBook::getEndpoint()))
                                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestGradeEditContent(
                                         $DivisionCourseId, $tblSubject->getId(), $Filter, $tblTest->getId()))
                                 : $contentGrade;
+                        }
+                    }
+
+                    // Zensuren - Notenaufträge
+                    if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+                        foreach ($tblTaskGradeList as $tblTaskGrade) {
+                            $tblTask = $tblTaskGrade->getTblTask();
+                            if (isset($taskGradeList[$tblPerson->getId()][$tblTask->getId()])) {
+                                $taskGradeList[$tblPerson->getId()][$tblTask->getId()] .= ', ' . $tblTaskGrade->getDisplayGrade();
+                            } else {
+                                $taskGradeList[$tblPerson->getId()][$tblTask->getId()] = $tblTaskGrade->getDisplayGrade();
+                            }
                         }
                     }
 
@@ -349,7 +370,54 @@ class Frontend extends FrontendTest
             }
         }
 
-        return array($gradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList);
+        return array($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList);
+    }
+
+    private function setGradeBookHeaderList(array &$headerList, array &$taskListIsEdit,
+        TblDivisionCourse $tblDivisionCourse, $tblTestList, bool $isEdit, bool $isCheckTeacherLectureship, $SubjectId, $Filter)
+    {
+        $isRoleHeadmaster = Grade::useService()->getRole() == 'Headmaster';
+        if ($tblTestList) {
+            foreach ($tblTestList as $tblTest) {
+                $virtualTestTaskList[] = new VirtualTestTask($tblTest->getDate() ?: $tblTest->getFinishDate(), $tblTest, null);
+            }
+        }
+        if (($tblTaskList = Grade::useService()->getTaskListByStudentsInDivisionCourse($tblDivisionCourse))) {
+            foreach ($tblTaskList as $tblTask) {
+                $virtualTestTaskList[] = new VirtualTestTask($tblTask->getDate(), null, $tblTask);
+            }
+        }
+        if (!empty($virtualTestTaskList)) {
+            $virtualTestTaskList = $this->getSorter($virtualTestTaskList)->sortObjectBy('Date', new DateTimeSorter());
+            /** @var VirtualTestTask $virtualTestTask */
+            foreach ($virtualTestTaskList as $virtualTestTask) {
+                if ($virtualTestTask->getIsTask()) {
+                    $taskId = $virtualTestTask->getTblTask()->getId();
+                    $isEditTask = false;
+                    if ($isEdit) {
+                        $now = new DateTime('now');
+                        if ($isRoleHeadmaster) {
+                            $isEditTask = $virtualTestTask->getTblTask()->getFromDate() <= $now;
+                        } else {
+                            $isEditTask = $virtualTestTask->getTblTask()->getFromDate() <= $now && $now <= $virtualTestTask->getTblTask()->getToDate();
+                        }
+                    }
+                    $taskListIsEdit[$taskId] = $isEditTask;
+                    $headerList['Task' . $taskId]
+                        = $this->getTableColumnHeadByTask($virtualTestTask->getTblTask(), $tblDivisionCourse->getId(), $SubjectId, $Filter, $isEditTask);
+                } else {
+                    $testId = $virtualTestTask->getTblTest()->getId();
+                    if ($isCheckTeacherLectureship) {
+                        $isEditTest = $isEdit && !isset($tblTestListNoTeacherLectureship[$testId]);
+                    } else {
+                        $isEditTest = $isEdit;
+                    }
+
+                    $headerList['Test' . $testId]
+                        = $this->getTableColumnHeadByTest($virtualTestTask->getTblTest(), $tblDivisionCourse->getId(), $SubjectId, $Filter, $isEditTest);
+                }
+            }
+        }
     }
 
     /**
@@ -393,5 +461,53 @@ class Frontend extends FrontendTest
         return $this->getTableColumnHead(
             $content, $tblGradeType->getIsHighlighted()
         );
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param bool $isEdit
+     *
+     * @return TableColumn
+     */
+    private function getTableColumnHeadByTask(TblTask $tblTask, $DivisionCourseId, $SubjectId, $Filter, bool $isEdit): TableColumn
+    {
+        $date = $tblTask->getDateString();
+        if (strlen($date) > 6) {
+            $date = substr($date, 0, 6);
+        }
+
+        $text = new Small($date) . '<br>' . $tblTask->getShortTypeName();
+        $toolTip = htmlspecialchars($tblTask->getName() . ' (' . $tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString() . ')');
+
+        if ($isEdit) {
+            $content = new Container(
+                (new Link(
+                    $text,
+                    ApiGradeBook::getEndpoint(),
+                    null,
+                    array(),
+                    $toolTip
+                ))->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $tblTask->getId()))
+            );
+        } else {
+            $content = new Container(new ToolTip($text, $toolTip));
+        }
+
+        return $this->getTableColumnHead($content, true, 1, self::BACKGROUND_COLOR_TASK_HEADER);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TaskId
+     * @return string
+     */
+    public function loadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId): string
+    {
+        return 'Notenauftrag';
     }
 }

@@ -20,6 +20,8 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
     const VIEW_TEACHER_GROUP = "VIEW_TEACHER_GROUP";
 
     const BACKGROUND_COLOR = '#E0F0FF';
+    const BACKGROUND_COLOR_TASK_HEADER = '#E7E7E7';
+    const BACKGROUND_COLOR_TASK_BODY = '#E7E7E7';
     const MIN_HEIGHT_HEADER = '46px';
     const MIN_HEIGHT_BODY = '30px';
     const PADDING = '3px';
@@ -61,13 +63,14 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
      * @param string $content
      * @param bool $isBold
      * @param int $size
+     * @param string|null $backgroundColor
      *
      * @return TableColumn
      */
-    public function getTableColumnHead(string $content, bool $isBold = true, int $size = 1): TableColumn
+    public function getTableColumnHead(string $content, bool $isBold = true, int $size = 1, ?string $backgroundColor = null): TableColumn
     {
         return (new TableColumn(new Center($isBold ? new Bold($content) : $content), $size))
-            ->setBackgroundColor(self::BACKGROUND_COLOR)
+            ->setBackgroundColor($backgroundColor ?: self::BACKGROUND_COLOR)
             ->setMinHeight(self::MIN_HEIGHT_HEADER)
             ->setVerticalAlign('middle')
             ->setPadding(self::PADDING);

@@ -51,9 +51,11 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewTestGradeEditContent');
         $Dispatcher->registerMethod('saveTestGradeEdit');
 
-        // todo test löschen
         $Dispatcher->registerMethod('loadViewTestDelete');
         $Dispatcher->registerMethod('saveTestDelete');
+
+        $Dispatcher->registerMethod('loadViewTaskGradeEditContent');
+        $Dispatcher->registerMethod('saveTaskGradeEdit');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -700,12 +702,154 @@ class ApiGradeBook extends Extension implements IApiInterface
             return new Danger('Die Leistungsüberprüfung wurde nicht gefunden', new Exclamation());
         }
 
-        // todo
         if (Grade::useService()->deleteTest($tblTest)) {
             return new Success('Die Leistungsüberprüfung wurde erfolgreich gelöscht.')
                 . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
         } else {
             return new Danger('Die Leistungsüberprüfung konnte nicht gelöscht werden.');
         }
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TaskId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewTaskGradeEditContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter,
+            'TaskId' => $TaskId
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TaskId
+     *
+     * @return string
+     */
+    public function loadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId): string
+    {
+        return Grade::useFrontend()->loadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TaskId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveTaskGradeEdit($DivisionCourseId, $SubjectId, $Filter, $TaskId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveTaskGradeEdit'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter,
+            'TaskId' => $TaskId
+        ));
+        $ModalEmitter->setLoadingMessage("Wird bearbeitet");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TaskId
+     * @param $Data
+     *
+     * @return string
+     */
+    public function saveTaskGradeEdit($DivisionCourseId, $SubjectId, $Filter, $TaskId, $Data): string
+    {
+//        if (!($tblTask = Grade::useService()->getTaskById($TaskId))) {
+//            return (new Danger("Leistungsüberprüfung wurde nicht gefunden!", new Exclamation()));
+//        }
+//        if (!($tblYear = $tblTask->getServiceTblYear())) {
+//            return (new Danger("Schuljahr wurde nicht gefunden!", new Exclamation()));
+//        }
+//        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
+//            return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
+//        }
+//
+//        if (($form = Grade::useService()->checkFormTaskGrades($Data, $tblTask, $tblYear, $tblSubject, $DivisionCourseId, $Filter))) {
+//            // display Errors on form
+//            return Grade::useFrontend()->getTaskGradesEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TaskId);
+//        }
+//
+//        $createList = array();
+//        $updateList = array();
+//        $deleteList = array();
+//        if($Data) {
+//            $tblTeacher = Account::useService()->getPersonByLogin();
+//            foreach ($Data as $personId => $item) {
+//                if (($tblPerson = Person::useService()->getPersonById($personId))) {
+//                    $comment = trim($item['Comment']);
+//                    $publicComment = trim($item['PublicComment']);
+//                    $grade = str_replace(',', '.', trim($item['Grade']));
+//                    $isNotAttendance = isset($item['Attendance']);
+//                    $date = !empty($item['Date']) ? new DateTime($item['Date']) : null;
+//
+//                    $hasGradeValue = (!empty($grade) && $grade != -1) || $isNotAttendance;
+//                    $gradeValue = $isNotAttendance ? null : $grade;
+//
+//                    if (($tblTaskGrade = Grade::useService()->getTaskGradeByTaskAndPerson($tblTask, $tblPerson))) {
+//                        if ($hasGradeValue) {
+//                            $tblTaskGrade->setDate($date);
+//                            $tblTaskGrade->setGrade($gradeValue);
+//                            $tblTaskGrade->setComment($comment);
+//                            $tblTaskGrade->setPublicComment($publicComment);
+//                            $tblTaskGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
+//                            $updateList[] = $tblTaskGrade;
+//                        } else {
+//                            $deleteList[] = $tblTaskGrade;
+//                        }
+//                    } else {
+//                        if ($hasGradeValue) {
+//                            $createList[] = new TblTaskGrade($tblPerson, $tblTask, $date, $gradeValue, $comment, $publicComment, $tblTeacher ?: null);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        if (!empty($createList)) {
+//            Grade::useService()->createEntityListBulk($createList);
+//        }
+//        if (!empty($updateList)) {
+//            Grade::useService()->updateEntityListBulk($updateList);
+//        }
+//        if (!empty($deleteList)) {
+//            Grade::useService()->deleteEntityListBulk($deleteList);
+//        }
+//
+//        return new Success("Zensuren wurde erfolgreich gespeichert.")
+//            . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
     }
 }

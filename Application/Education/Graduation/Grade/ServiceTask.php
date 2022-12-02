@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTypeLink;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -124,12 +125,25 @@ abstract class ServiceTask extends ServiceGradeType
     /**
      * @param TblTask $tblTask
      * @param TblPerson $tblPerson
+     * @param TblSubject|null $tblSubject
      *
      * @return false|TblTaskGrade[]
      */
-    public function getTaskGradeListByTaskAndPerson(TblTask $tblTask, TblPerson $tblPerson)
+    public function getTaskGradeListByTaskAndPerson(TblTask $tblTask, TblPerson $tblPerson, ?TblSubject $tblSubject)
     {
-        return (new Data($this->getBinding()))->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson);
+        return (new Data($this->getBinding()))->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return TblTaskGrade[]|false
+     */
+    public function getTaskGradeListByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        return (new Data($this->getBinding()))->getTaskGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
     }
 
     /**
@@ -374,5 +388,28 @@ abstract class ServiceTask extends ServiceGradeType
         }
 
         return Grade::useService()->deleteEntityListBulk(array($tblTask));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TblTask[]|false
+     */
+    public function getTaskListByStudentsInDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        $tblTaskList = array();
+        if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))) {
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (($tempList = $this->getTaskListByDivisionCourse($tblDivisionCourse))) {
+                    foreach ($tempList as $temp) {
+                        if (!isset($tblTaskList[$temp->getId()])) {
+                            $tblTaskList[$temp->getId()] = $temp;
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($tblTaskList) ? false : $tblTaskList;
     }
 }

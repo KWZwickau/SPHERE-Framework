@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskCourseLi
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTypeLink;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -181,15 +182,54 @@ abstract class DataTask extends DataMigrate
     /**
      * @param TblTask $tblTask
      * @param TblPerson $tblPerson
+     * @param TblSubject|null $tblSubject
      *
      * @return false|TblTaskGrade[]
      */
-    public function getTaskGradeListByTaskAndPerson(TblTask $tblTask, TblPerson $tblPerson)
+    public function getTaskGradeListByTaskAndPerson(TblTask $tblTask, TblPerson $tblPerson, ?TblSubject $tblSubject)
     {
         $parameters[TblTaskGrade::ATTR_TBL_TASK] = $tblTask->getId();
         $parameters[TblTaskGrade::ATTR_SERVICE_TBL_PERSON] = $tblPerson->getId();
+        if ($tblSubject) {
+            $parameters[TblTaskGrade::ATTR_SERVICE_TBL_SUBJECT] = $tblSubject->getId();
+        }
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTaskGrade', $parameters);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return TblTaskGrade[]|false
+     */
+    public function getTaskGradeListByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('g')
+            ->from(TblTaskGrade::class, 'g')
+            ->join(TblTask::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('g.tblGraduationTask', 't.Id'),
+                    $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblYear', '?2'),
+                    $queryBuilder->expr()->eq('g.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->isNull('g.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId())
+            ->setParameter(3, $tblSubject->getId())
+            ->orderBy('t.Date', 'ASC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**
