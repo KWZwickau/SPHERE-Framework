@@ -15,12 +15,17 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblGradeText extends Element
 {
+    const ATTR_NAME = 'Name';
     const ATTR_IDENTIFIER = 'Identifier';
 
     /**
      * @Column(type="string")
      */
-    protected string $Name;
+    protected string $Name = '';
+    /**
+     * @Column(type="string")
+     */
+    protected string $ShortName;
     /**
      * @Column(type="string")
      */
@@ -56,5 +61,21 @@ class TblGradeText extends Element
     public function setIdentifier(string $Identifier): void
     {
         $this->Identifier = $Identifier;
+    }
+
+    /**
+     * @return string
+     */
+    public function getShortName(): string
+    {
+        return $this->ShortName;
+    }
+
+    /**
+     * @param string $ShortName
+     */
+    public function setShortName(string $ShortName): void
+    {
+        $this->ShortName = $ShortName;
     }
 }

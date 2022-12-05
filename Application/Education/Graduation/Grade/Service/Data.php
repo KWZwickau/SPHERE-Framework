@@ -40,11 +40,11 @@ class Data extends DataTask
             }
         }
 
-        $this->createGradeText('nicht erteilt', 'NOT_GRANTED');
-        $this->createGradeText('teilgenommen', 'ATTENDED');
-        $this->createGradeText('keine Benotung', 'NO_GRADING');
-        $this->createGradeText('befreit', 'LIBERATED');
-        $this->createGradeText('&ndash;', 'DASH');
+        $this->createGradeText('nicht erteilt', 'n.e.', 'NOT_GRANTED');
+        $this->createGradeText('teilgenommen', 't.','ATTENDED');
+        $this->createGradeText('keine Benotung', 'k.B.', 'NO_GRADING');
+        $this->createGradeText('befreit', 'b', 'LIBERATED');
+        $this->createGradeText('&ndash;', '&ndash;', 'DASH');
     }
 
     /**
@@ -217,7 +217,7 @@ class Data extends DataTask
      *
      * @return TblGradeText
      */
-    public function createGradeText(string $name, string $identifier): TblGradeText
+    public function createGradeText(string $name, string $shortName, string $identifier): TblGradeText
     {
         $Manager = $this->getEntityManager();
         $identifier = strtoupper($identifier);
@@ -225,6 +225,7 @@ class Data extends DataTask
         if (null === $Entity) {
             $Entity = new TblGradeText();
             $Entity->setName($name);
+            $Entity->setShortName($shortName);
             $Entity->setIdentifier($identifier);
 
             $Manager->saveEntity($Entity);

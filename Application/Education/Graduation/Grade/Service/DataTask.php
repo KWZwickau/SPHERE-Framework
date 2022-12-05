@@ -274,7 +274,7 @@ abstract class DataTask extends DataMigrate
      * @param TblTask $tblTask
      * @param TblSubject $tblSubject
      *
-     * @return TblTaskGrade[]|false
+     * @return TblTaskGrade|false
      */
     public function getTaskGradeByPersonAndTaskAndSubject(TblPerson $tblPerson, TblTask $tblTask, TblSubject $tblSubject)
     {

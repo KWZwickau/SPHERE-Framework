@@ -234,12 +234,13 @@ class TblTaskGrade extends Element
     }
 
     /**
+     * @param bool $isGradeTextShortName
      * @return string
      */
-    public function getDisplayGrade(): string
+    public function getDisplayGrade(bool $isGradeTextShortName = true): string
     {
         if (($tblGradeText = $this->getTblGradeText())) {
-            return $tblGradeText->getName();
+            return $isGradeTextShortName ? $tblGradeText->getShortName() : $tblGradeText->getName();
         }
 
         return $this->getGrade() ?: '';

@@ -20,6 +20,10 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
+use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -58,6 +62,10 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewTaskGradeEditContent');
         $Dispatcher->registerMethod('saveTaskGradeEdit');
 
+        $Dispatcher->registerMethod('openGradeTextModal');
+        $Dispatcher->registerMethod('setGradeText');
+        $Dispatcher->registerMethod('changeGradeText');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -70,6 +78,25 @@ class ApiGradeBook extends Extension implements IApiInterface
     public static function receiverBlock(string $Content = '', string $Identifier = ''): BlockReceiver
     {
         return (new BlockReceiver($Content))->setIdentifier($Identifier);
+    }
+
+    /**
+     * @return ModalReceiver
+     */
+    public static function receiverModal(): ModalReceiver
+    {
+        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalReceiverGradeBook');
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineClose(): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
+
+        return $Pipeline;
     }
 
     /**
@@ -844,12 +871,20 @@ class ApiGradeBook extends Extension implements IApiInterface
                     } else {
                         $comment = trim($item['Comment']);
                         $tblGradeText = isset($item['GradeText']) ? Grade::useService()->getGradeTextById($item['GradeText']) : null;
-                        $gradeValue = str_replace(',', '.', trim($item['Grade']));
-                        $hasGradeValue = !empty($gradeValue) && $gradeValue != -1;
+                        $gradeTextId = $tblGradeText ? $tblGradeText->getId() : 0;
+                        if ($tblGradeText) {
+                            $gradeValue = null;
+                        } else {
+                            $gradeValue = str_replace(',', '.', trim($item['Grade']));
+                        }
+                        $hasGradeValue = (!empty($gradeValue) && $gradeValue != -1) || $tblGradeText;
                         if (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblTask, $tblSubject))) {
                             if ($hasGradeValue) {
-                                if ($gradeValue != $tblTaskGrade->getGrade() || $comment != $tblTaskGrade->getComment()) {
+                                $tblGradeTextTemp = $tblTaskGrade->getTblGradeText();
+                                $gradeTextTempId = $tblGradeTextTemp ? $tblGradeTextTemp->getId() : 0;
+                                if ($gradeValue != $tblTaskGrade->getGrade() || $comment != $tblTaskGrade->getComment() || $gradeTextId != $gradeTextTempId) {
                                     $tblTaskGrade->setGrade($gradeValue);
+                                    $tblTaskGrade->setTblGradeText($tblGradeText ?: null);
                                     $tblTaskGrade->setComment($comment);
                                     $tblTaskGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
                                     $updateList[] = $tblTaskGrade;
@@ -879,5 +914,113 @@ class ApiGradeBook extends Extension implements IApiInterface
 
         return new Success("Zensuren wurde erfolgreich gespeichert.")
             . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenGradeTextModal($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openGradeTextModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return String
+     */
+    public function openGradeTextModal($DivisionCourseId): string
+    {
+        return (new Frontend())->openGradeTextModal($DivisionCourseId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSetGradeText($DivisionCourseId): Pipeline
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'setGradeText',
+        ));
+        $emitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Danger|string
+     */
+    public function setGradeText($DivisionCourseId)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return (new Danger('Kurs nicht gefunden', new Exclamation()));
+        }
+
+        $Global = $this->getGlobal();
+        $gradeTextId = $Global->POST['GradeText'];
+
+        $result = '';
+        if (($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses())) {
+            foreach ($tempPersons as $tblPerson) {
+                $result .= self::pipelineChangeGradeText($gradeTextId, $tblPerson->getId());
+            }
+        }
+
+        return $result . self::pipelineClose();
+    }
+
+    /**
+     * @param $gradeTextId
+     * @param $personId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineChangeGradeText($gradeTextId, $personId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ChangeGradeText_' . $personId), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'changeGradeText',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'GradeTextId' => $gradeTextId,
+            'PersonId' => $personId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $GradeTextId
+     * @param $PersonId
+     *
+     * @return SelectBox
+     */
+    public function changeGradeText($GradeTextId, $PersonId): SelectBox
+    {
+        return (new Frontend())->getGradeTextSelectBox($PersonId, $GradeTextId);
     }
 }

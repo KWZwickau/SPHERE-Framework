@@ -6,6 +6,7 @@ use DateTime;
 use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
@@ -37,6 +38,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -45,6 +47,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\Table;
 use SPHERE\Common\Frontend\Table\Structure\TableBody;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
@@ -563,6 +566,7 @@ class Frontend extends FrontendTest
             )
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
+            . ApiGradeBook::receiverModal()
             . $content;
     }
 
@@ -586,7 +590,8 @@ class Frontend extends FrontendTest
         $pictureList = array();
         $courseList = array();
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
-            && ($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses())) {
+            && ($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
             foreach ($tempPersons as $tblPersonTemp) {
                 if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(
                         $tblPersonTemp, $tblYear, $tblSubject
@@ -633,8 +638,10 @@ class Frontend extends FrontendTest
 
         if (!$tblTask->getIsTypeBehavior()) {
             $headerList['Grade'] = 'Zensur';
-            // todo alle bearbeiten modal
-            $headerList['GradeText'] = 'oder Zeugnistext';
+            $headerList['GradeText'] = 'oder Zeugnistext' . new PullRight(
+                (new Standard('Alle bearbeiten', ApiGradeBook::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenGradeTextModal($DivisionCourseId))
+            );
             $headerList['Comment'] = 'Vermerk Notenänderung';
         }
 
@@ -705,7 +712,6 @@ class Frontend extends FrontendTest
                     }
                 // Stichtagsnoten
                 } else {
-                    // todo Zeugnistext
                     // todo Zensuren bis zum Stichtag
                     // todo Notendurchschnitt voreintragen
                     if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
@@ -722,6 +728,11 @@ class Frontend extends FrontendTest
                         $selectComplete->setError('Bitte geben Sie eine gültige Stichtagsnote ein');
                     }
                     $bodyList[$tblPerson->getId()]['Grade'] = $selectComplete;
+
+                    $bodyList[$tblPerson->getId()]['GradeText'] = ApiGradeBook::receiverBlock(
+                        $this->getGradeTextSelectBox($tblPerson->getId(), $tblGrade && ($tblGradeText = $tblGrade->getTblGradeText()) ? $tblGradeText->getId() : 0),
+                        'ChangeGradeText_' . $tblPerson->getId()
+                    );
 
                     $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))
                         ->setTabIndex(1000 + $tabIndex);
@@ -763,5 +774,65 @@ class Frontend extends FrontendTest
         )));
 
         return (new Form(new FormGroup($formRows)))->disableSubmitAction();
+    }
+
+    /**
+     * @param $personId
+     * @param $gradeTextId
+     *
+     * @return SelectBox
+     */
+    public function getGradeTextSelectBox($personId, $gradeTextId): SelectBox
+    {
+        $global = $this->getGlobal();
+        $global->POST['Data'][$personId]['GradeText'] = $gradeTextId;
+        $global->savePost();
+
+        return new SelectBox(
+            'Data[' . $personId . '][GradeText]', '', array(TblGradeText::ATTR_NAME => Grade::useService()->getGradeTextAll())
+        );
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return String
+     */
+    public function openGradeTextModal($DivisionCourseId): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return (new Danger('Kurs nicht gefunden', new Exclamation()));
+        }
+
+        $selectBox = new SelectBox(
+            'GradeText',
+            '',
+            array(\SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText::ATTR_NAME => Grade::useService()->getGradeTextAll())
+        );
+
+        return
+            new Title('Stichtagsnote - Zeugnistext für den gesamten Kurs: ' . new Bold($tblDivisionCourse->getName()) . ' auswählen')
+            . '<br>'
+            . new Warning(
+                'Es werden alle Zeugnistexte auf den gewählten Wert vorausgefüllt. Die Daten müssen anschließend noch gespeichert werden.',
+                new Exclamation()
+            )
+            . new Well(new Form(new FormGroup(array(
+                new FormRow(
+                    new FormColumn(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        '<table><tr><td style="width:100px">&nbsp;Zeugnistext</td><td style="width:720px">' . $selectBox . '</td></tr></table>'
+                    )))))
+                ),
+                new FormRow(
+                    new FormColumn(
+                        new Container('&nbsp;')
+                    )
+                ),
+                new FormRow(
+                    new FormColumn(
+                        (new Primary('Übernehmen', ApiGradeBook::getEndpoint()))->ajaxPipelineOnClick(ApiGradeBook::pipelineSetGradeText($DivisionCourseId))
+                    )
+                )
+            ))));
     }
 }

@@ -237,6 +237,7 @@ class Setup  extends AbstractSetup
         $table = $this->createTable($schema, 'tblGraduationGradeText');
 
         $this->createColumn($table, 'Name');
+        $this->createColumn($table, 'ShortName');
         $this->createColumn($table, 'Identifier');
 
         $this->createIndex($table, array('Identifier'));
