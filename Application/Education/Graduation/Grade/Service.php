@@ -127,6 +127,16 @@ class Service extends ServiceTask
     }
 
     /**
+     * @param $identifier
+     *
+     * @return false|TblScoreType
+     */
+    public function getScoreTypeByIdentifier($identifier)
+    {
+        return (new Data($this->getBinding()))->getScoreTypeByIdentifier($identifier);
+    }
+
+    /**
      * @return false|TblScoreType[]
      */
     public function getScoreTypeAll()
@@ -586,5 +596,40 @@ class Service extends ServiceTask
             return str_replace('.', ',', round($sum / $count, $precision));
         }
         return '';
+    }
+
+    /**
+     * @param TblScoreType $tblScoreType
+     *
+     * @return array
+     */
+    public function getGradeSelectListByScoreType(TblScoreType $tblScoreType): array
+    {
+        $selectList[-1] = '';
+        switch ($tblScoreType->getIdentifier()) {
+            case 'POINTS':
+                for ($i = 0; $i < 16; $i++) {
+                    $selectList[$i] = (string)$i;
+                }
+                break;
+            case 'GRADES_BEHAVIOR_TASK':
+                for ($i = 1; $i < 5; $i++) {
+                    $selectList[$i . '+'] = ($i . '+');
+                    $selectList[$i] = (string)($i);
+                    $selectList[$i . '-'] = ($i . '-');
+                }
+                $selectList[5] = 5;
+                break;
+            case 'GRADES':
+            default:
+                for ($i = 1; $i < 6; $i++) {
+                    $selectList[$i . '+'] = ($i . '+');
+                    $selectList[$i] = (string)($i);
+                    $selectList[$i . '-'] = ($i . '-');
+                }
+                $selectList[6] = 6;
+        }
+
+        return $selectList;
     }
 }

@@ -169,6 +169,16 @@ class Data extends DataTask
     }
 
     /**
+     * @param $identifier
+     *
+     * @return false|TblScoreType
+     */
+    public function getScoreTypeByIdentifier($identifier)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblScoreType', array(TblScoreType::ATTR_IDENTIFIER => $identifier));
+    }
+
+    /**
      * @return false|TblScoreType[]
      */
     public function getScoreTypeAll()

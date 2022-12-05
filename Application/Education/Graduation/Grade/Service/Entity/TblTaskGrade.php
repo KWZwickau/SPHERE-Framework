@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -212,6 +213,24 @@ class TblTaskGrade extends Element
     public function setServiceTblPersonTeacher(TblPerson $tblPerson)
     {
         $this->serviceTblPersonTeacher = $tblPerson->getId();
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayTeacher(): string
+    {
+        if (($tblPerson = $this->getServiceTblPersonTeacher())){
+            if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))){
+                if ($tblTeacher->getAcronym()) {
+                    return $tblTeacher->getAcronym();
+                }
+            }
+
+            return $tblPerson->getLastName();
+        }
+
+        return '';
     }
 
     /**

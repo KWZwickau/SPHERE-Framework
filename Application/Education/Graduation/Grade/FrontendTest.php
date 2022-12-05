@@ -106,7 +106,14 @@ abstract class FrontendTest extends FrontendTeacherGroup
             . new Well($form);
     }
 
-    private function getBackButton($DivisionCourseId, $SubjectId, $Filter): Standard
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     *
+     * @return Standard
+     */
+    protected function getBackButton($DivisionCourseId, $SubjectId, $Filter): Standard
     {
         return (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
             ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter));
@@ -549,7 +556,6 @@ abstract class FrontendTest extends FrontendTeacherGroup
      */
     public function formTestGrades(TblTest $tblTest, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId, $Filter, bool $setPost = false, $Errors = null): Form
     {
-        $headerList = array();
         $bodyList = array();
 
         $tblPersonList = array();
@@ -606,23 +612,16 @@ abstract class FrontendTest extends FrontendTeacherGroup
             }
         }
 
-        $headerList['Number'] = '#';
-        $headerList['Person'] = 'Schüler';
-        if (($hasPicture = !empty($pictureList))) {
-            $headerList['Picture'] = 'Fo&shy;to';
-        }
-        if (($hasIntegration = !empty($integrationList))) {
-            $headerList['Integration'] = 'Inte&shy;gra&shy;tion';
-        }
-        if (($hasCourse = !empty($courseList))) {
-            $headerList['Course'] = new ToolTip('BG', 'Bildungsgang');
-        }
+        $hasPicture = !empty($pictureList);
+        $hasIntegration = !empty($integrationList);
+        $hasCourse = !empty($courseList);
+        $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
         $headerList['Grade'] = 'Zensur';
         if ($tblTest->getIsContinues()) {
             $headerList['Date'] = 'Datum' . ($tblTest->getFinishDateString() ? ' (' . $tblTest->getFinishDateString() . ')' : '');
         }
-        $headerList['Comment'] = 'Vermerk Noten&shy;änderung';
         $headerList['Attendance'] = 'Nicht teil&shy;genommen';
+        $headerList['Comment'] = 'Vermerk Noten&shy;änderung';
         $headerList['PublicComment'] = 'Kommentar für Eltern-/Schülerzugang';
 
         if ($tblPersonList) {
@@ -630,13 +629,8 @@ abstract class FrontendTest extends FrontendTeacherGroup
             $tabIndex = 1;
 
             // todo bewertungssystem abhängig vom Schüler
-            $selectList[-1] = '';
-            for ($i = 1; $i < 6; $i++) {
-                $selectList[$i . '+'] = (string)($i . '+');
-                $selectList[$i] = (string)($i);
-                $selectList[$i . '-'] = (string)($i . '-');
-            }
-            $selectList[6] = 6;
+            $tblScoreType = Grade::useService()->getScoreTypeById(1);
+            $selectList = Grade::useService()->getGradeSelectListByScoreType($tblScoreType);
 
             foreach ($tblPersonList as $tblPerson) {
                 /** @var TblTestGrade $tblGrade */
@@ -657,27 +651,26 @@ abstract class FrontendTest extends FrontendTeacherGroup
 
                 // todo verschiedene Bewertungssysteme
                 $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
-                    ->setTabIndex($tabIndex++);
+                    ->setTabIndex($tabIndex++)
+                    ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
                 $bodyList[$tblPerson->getId()]['Grade'] = $selectComplete;
 
                 if ($tblTest->getIsContinues()) {
                     $datePicker = (new DatePicker('Data[' . $tblPerson->getId() . '][Date]', '', '', null, array('widgetPositioning' => array('vertical' => 'bottom'))))
-                        ->setTabIndex($tabIndex++);
+                        ->setTabIndex(500 + $tabIndex);
                     if (isset($Errors[$tblPerson->getId()]['Date'])) {
                         $datePicker->setError('Bitte geben Sie ein Datum an');
                     }
                     $bodyList[$tblPerson->getId()]['Date'] = $datePicker;
                 }
-                $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))
-                    ->setTabIndex(1000 + $tabIndex)
-                    ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
+                $bodyList[$tblPerson->getId()]['Attendance'] = (new CheckBox('Data[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(1000 + $tabIndex);
+                $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))->setTabIndex(2000 + $tabIndex);
                 if (isset($Errors[$tblPerson->getId()]['Comment'])) {
                     $textFieldComment->setError('Bitte geben Sie einen Änderungsgrund an');
                 }
                 $bodyList[$tblPerson->getId()]['Comment'] = $textFieldComment;
-                $bodyList[$tblPerson->getId()]['Attendance'] = (new CheckBox('Data[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(2000 + $tabIndex);
                 $bodyList[$tblPerson->getId()]['PublicComment'] =
-                    (new TextField('Data[' . $tblPerson->getId() . '][PublicComment]', 'z.B.: für Betrugsversuch', '', new Comment()))->setTabIndex(1000 + $tabIndex);
+                    (new TextField('Data[' . $tblPerson->getId() . '][PublicComment]', 'z.B.: für Betrugsversuch', '', new Comment()))->setTabIndex(3000 + $tabIndex);
             }
         }
 

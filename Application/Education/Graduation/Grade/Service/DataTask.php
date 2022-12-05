@@ -54,6 +54,8 @@ abstract class DataTask extends DataMigrate
                     $resultList[$tblGradeType->getId()] = $tblGradeType;
                 }
             }
+
+            $resultList = $this->getSorter($resultList)->sortObjectBy('Name');
         }
 
         return empty($resultList) ? false : $resultList;
@@ -230,6 +232,85 @@ abstract class DataTask extends DataMigrate
         $resultList = $query->getResult();
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param TblTask $tblTask
+     *
+     * @return TblTaskGrade[]|false
+     */
+    public function getTaskGradeListByPersonAndYearAndSubjectAndTask(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, TblTask $tblTask)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('g')
+            ->from(TblTaskGrade::class, 'g')
+            ->join(TblTask::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('g.tblGraduationTask', 't.Id'),
+                    $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblYear', '?2'),
+                    $queryBuilder->expr()->eq('g.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->eq('t.Id', '?4'),
+                    $queryBuilder->expr()->isNull('g.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId())
+            ->setParameter(3, $tblSubject->getId())
+            ->setParameter(4, $tblTask->getId())
+            ->orderBy('t.Date', 'ASC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param DateTime $date
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblTaskGrade
+     */
+    public function getPreviousBehaviorTaskGrade(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, DateTime $date, TblGradeType $tblGradeType)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('g')
+            ->from(TblTaskGrade::class, 'g')
+            ->join(TblTask::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('g.tblGraduationTask', 't.Id'),
+                    $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblYear', '?2'),
+                    $queryBuilder->expr()->eq('g.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->lt('t.Date', '?4'),
+                    $queryBuilder->expr()->eq('g.tblGraduationGradeType', '?5'),
+                    $queryBuilder->expr()->isNull('g.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId())
+            ->setParameter(3, $tblSubject->getId())
+            ->setParameter(4, $date)
+            ->setParameter(5, $tblGradeType->getId())
+            ->orderBy('t.Date', 'DESC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : current($resultList);
     }
 
     /**

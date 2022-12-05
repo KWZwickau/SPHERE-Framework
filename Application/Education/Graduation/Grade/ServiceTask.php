@@ -129,7 +129,7 @@ abstract class ServiceTask extends ServiceGradeType
      *
      * @return false|TblTaskGrade[]
      */
-    public function getTaskGradeListByTaskAndPerson(TblTask $tblTask, TblPerson $tblPerson, ?TblSubject $tblSubject)
+    public function getTaskGradeListByTaskAndPerson(TblTask $tblTask, TblPerson $tblPerson, ?TblSubject $tblSubject = null)
     {
         return (new Data($this->getBinding()))->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson, $tblSubject);
     }
@@ -144,6 +144,33 @@ abstract class ServiceTask extends ServiceGradeType
     public function getTaskGradeListByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
     {
         return (new Data($this->getBinding()))->getTaskGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param TblTask $tblTask
+     *
+     * @return TblTaskGrade[]|false
+     */
+    public function getTaskGradeListByPersonAndYearAndSubjectAndTask(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, TblTask $tblTask)
+    {
+        return (new Data($this->getBinding()))->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblYear, $tblSubject, $tblTask);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param DateTime $date
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblTaskGrade
+     */
+    public function getPreviousBehaviorTaskGrade(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, DateTime $date, TblGradeType $tblGradeType)
+    {
+        return (new Data($this->getBinding()))->getPreviousBehaviorTaskGrade($tblPerson, $tblYear, $tblSubject, $date, $tblGradeType);
     }
 
     /**
