@@ -236,13 +236,12 @@ abstract class DataTask extends DataMigrate
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
-     * @param TblSubject $tblSubject
      * @param TblTask $tblTask
+     * @param TblSubject $tblSubject
      *
      * @return TblTaskGrade[]|false
      */
-    public function getTaskGradeListByPersonAndYearAndSubjectAndTask(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, TblTask $tblTask)
+    public function getTaskGradeListByPersonAndYearAndSubjectAndTask(TblPerson $tblPerson, TblTask $tblTask, TblSubject $tblSubject)
     {
         $Manager = $this->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
@@ -254,22 +253,91 @@ abstract class DataTask extends DataMigrate
                 $queryBuilder->expr()->andX(
                     $queryBuilder->expr()->eq('g.tblGraduationTask', 't.Id'),
                     $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
-                    $queryBuilder->expr()->eq('t.serviceTblYear', '?2'),
+                    $queryBuilder->expr()->eq('t.Id', '?2'),
                     $queryBuilder->expr()->eq('g.serviceTblSubject', '?3'),
-                    $queryBuilder->expr()->eq('t.Id', '?4'),
                     $queryBuilder->expr()->isNull('g.EntityRemove'),
                 ),
             )
             ->setParameter(1, $tblPerson->getId())
-            ->setParameter(2, $tblYear->getId())
+            ->setParameter(2, $tblTask->getId())
             ->setParameter(3, $tblSubject->getId())
-            ->setParameter(4, $tblTask->getId())
             ->orderBy('t.Date', 'ASC')
             ->getQuery();
 
         $resultList = $query->getResult();
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     * @param TblSubject $tblSubject
+     *
+     * @return TblTaskGrade[]|false
+     */
+    public function getTaskGradeByPersonAndTaskAndSubject(TblPerson $tblPerson, TblTask $tblTask, TblSubject $tblSubject)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('g')
+            ->from(TblTaskGrade::class, 'g')
+            ->join(TblTask::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('g.tblGraduationTask', 't.Id'),
+                    $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.Id', '?2'),
+                    $queryBuilder->expr()->eq('g.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->isNull('g.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblTask->getId())
+            ->setParameter(3, $tblSubject->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : current($resultList);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     * @param TblSubject $tblSubject
+     * @param TblGradeType $tblGradeType
+     *
+     * @return TblTaskGrade|false
+     */
+    public function getTaskGradeByPersonAndTaskAndSubjectAndGradeType(TblPerson $tblPerson, TblTask $tblTask, TblSubject $tblSubject, TblGradeType $tblGradeType)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('g')
+            ->from(TblTaskGrade::class, 'g')
+            ->join(TblTask::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('g.tblGraduationTask', 't.Id'),
+                    $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.Id', '?2'),
+                    $queryBuilder->expr()->eq('g.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->eq('g.tblGraduationGradeType', '?4'),
+                    $queryBuilder->expr()->isNull('g.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblTask->getId())
+            ->setParameter(3, $tblSubject->getId())
+            ->setParameter(4, $tblGradeType->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : current($resultList);
     }
 
     /**

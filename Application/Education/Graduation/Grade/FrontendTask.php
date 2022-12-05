@@ -548,7 +548,7 @@ abstract class FrontendTask extends FrontendGradeType
         ))));
 
         if ($tblDivisionCourseList) {
-            $content .= ApiTask::receiverBlock('', 'DivisionCourseTaskGradeContentContent');
+            $content .= ApiTask::receiverBlock('', 'DivisionCourseTaskGradeContent');
         } else {
             $content .= new Warning("Es sind keine Kurse zu diesem $typeName zugeordnet.", new Exclamation());
         }

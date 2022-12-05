@@ -7,6 +7,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Graduation\Grade\Frontend;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -788,68 +789,95 @@ class ApiGradeBook extends Extension implements IApiInterface
      */
     public function saveTaskGradeEdit($DivisionCourseId, $SubjectId, $Filter, $TaskId, $Data): string
     {
-//        if (!($tblTask = Grade::useService()->getTaskById($TaskId))) {
-//            return (new Danger("Leistungsüberprüfung wurde nicht gefunden!", new Exclamation()));
-//        }
-//        if (!($tblYear = $tblTask->getServiceTblYear())) {
-//            return (new Danger("Schuljahr wurde nicht gefunden!", new Exclamation()));
-//        }
-//        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
-//            return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
-//        }
-//
-//        if (($form = Grade::useService()->checkFormTaskGrades($Data, $tblTask, $tblYear, $tblSubject, $DivisionCourseId, $Filter))) {
-//            // display Errors on form
-//            return Grade::useFrontend()->getTaskGradesEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TaskId);
-//        }
-//
-//        $createList = array();
-//        $updateList = array();
-//        $deleteList = array();
-//        if($Data) {
-//            $tblTeacher = Account::useService()->getPersonByLogin();
-//            foreach ($Data as $personId => $item) {
-//                if (($tblPerson = Person::useService()->getPersonById($personId))) {
-//                    $comment = trim($item['Comment']);
-//                    $publicComment = trim($item['PublicComment']);
-//                    $grade = str_replace(',', '.', trim($item['Grade']));
-//                    $isNotAttendance = isset($item['Attendance']);
-//                    $date = !empty($item['Date']) ? new DateTime($item['Date']) : null;
-//
-//                    $hasGradeValue = (!empty($grade) && $grade != -1) || $isNotAttendance;
-//                    $gradeValue = $isNotAttendance ? null : $grade;
-//
-//                    if (($tblTaskGrade = Grade::useService()->getTaskGradeByTaskAndPerson($tblTask, $tblPerson))) {
-//                        if ($hasGradeValue) {
-//                            $tblTaskGrade->setDate($date);
-//                            $tblTaskGrade->setGrade($gradeValue);
-//                            $tblTaskGrade->setComment($comment);
-//                            $tblTaskGrade->setPublicComment($publicComment);
-//                            $tblTaskGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
-//                            $updateList[] = $tblTaskGrade;
-//                        } else {
-//                            $deleteList[] = $tblTaskGrade;
-//                        }
-//                    } else {
-//                        if ($hasGradeValue) {
-//                            $createList[] = new TblTaskGrade($tblPerson, $tblTask, $date, $gradeValue, $comment, $publicComment, $tblTeacher ?: null);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//        if (!empty($createList)) {
-//            Grade::useService()->createEntityListBulk($createList);
-//        }
-//        if (!empty($updateList)) {
-//            Grade::useService()->updateEntityListBulk($updateList);
-//        }
-//        if (!empty($deleteList)) {
-//            Grade::useService()->deleteEntityListBulk($deleteList);
-//        }
-//
-//        return new Success("Zensuren wurde erfolgreich gespeichert.")
-//            . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
+        if (!($tblTask = Grade::useService()->getTaskById($TaskId))) {
+            return (new Danger("Leistungsüberprüfung wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblYear = $tblTask->getServiceTblYear())) {
+            return (new Danger("Schuljahr wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
+            return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
+        }
+
+        if (($form = Grade::useService()->checkFormTaskGrades($Data, $tblTask, $tblYear, $tblSubject, $DivisionCourseId, $Filter))) {
+            // display Errors on form
+            return Grade::useFrontend()->getTaskGradesEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TaskId);
+        }
+
+        $createList = array();
+        $updateList = array();
+        $deleteList = array();
+        if($Data) {
+            $tblTeacher = Account::useService()->getPersonByLogin();
+            foreach ($Data as $personId => $item) {
+                if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                    // Kopfnoten
+                    if ($tblTask->getIsTypeBehavior()) {
+                        if (isset($item['GradeTypes'])) {
+                            foreach ($item['GradeTypes'] as $gradeTypeId => $value) {
+                                if (($tblGradeType = Grade::useService()->getGradeTypeById($gradeTypeId))) {
+                                    $gradeValue = str_replace(',', '.', trim($value));
+                                    $hasGradeValue = !empty($gradeValue) && $gradeValue != -1;
+                                    if (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubjectAndGradeType(
+                                        $tblPerson, $tblTask, $tblSubject, $tblGradeType
+                                    ))) {
+                                        if ($hasGradeValue) {
+                                            if ($gradeValue != $tblTaskGrade->getGrade()) {
+                                                $tblTaskGrade->setGrade($gradeValue);
+                                                $tblTaskGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
+                                                $updateList[] = $tblTaskGrade;
+                                            }
+                                        } else {
+                                            $deleteList[] = $tblTaskGrade;
+                                        }
+                                    } else {
+                                        if ($hasGradeValue) {
+                                            $createList[] = new TblTaskGrade($tblPerson, $tblSubject, $tblTask, $tblGradeType, $gradeValue, null, null,
+                                                $tblTeacher ?: null);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    // Stichtagsnoten
+                    } else {
+                        $comment = trim($item['Comment']);
+                        $tblGradeText = isset($item['GradeText']) ? Grade::useService()->getGradeTextById($item['GradeText']) : null;
+                        $gradeValue = str_replace(',', '.', trim($item['Grade']));
+                        $hasGradeValue = !empty($gradeValue) && $gradeValue != -1;
+                        if (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblTask, $tblSubject))) {
+                            if ($hasGradeValue) {
+                                if ($gradeValue != $tblTaskGrade->getGrade() || $comment != $tblTaskGrade->getComment()) {
+                                    $tblTaskGrade->setGrade($gradeValue);
+                                    $tblTaskGrade->setComment($comment);
+                                    $tblTaskGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
+                                    $updateList[] = $tblTaskGrade;
+                                }
+                            } else {
+                                $deleteList[] = $tblTaskGrade;
+                            }
+                        } else {
+                            if ($hasGradeValue) {
+                                $createList[] = new TblTaskGrade($tblPerson, $tblSubject, $tblTask, null, $gradeValue, $tblGradeText ?: null, $comment, $tblTeacher ?: null);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($createList)) {
+            Grade::useService()->createEntityListBulk($createList);
+        }
+        if (!empty($updateList)) {
+            Grade::useService()->updateEntityListBulk($updateList);
+        }
+        if (!empty($deleteList)) {
+            Grade::useService()->deleteEntityListBulk($deleteList);
+        }
+
+        return new Success("Zensuren wurde erfolgreich gespeichert.")
+            . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
     }
 }

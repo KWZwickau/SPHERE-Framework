@@ -358,7 +358,7 @@ class ApiTask extends Extension implements IApiInterface
     public static function pipelineLoadDivisionCourseTaskGradeContent($TaskId): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DivisionCourseTaskGradeContentContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DivisionCourseTaskGradeContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadDivisionCourseTaskGradeContent',
         ));

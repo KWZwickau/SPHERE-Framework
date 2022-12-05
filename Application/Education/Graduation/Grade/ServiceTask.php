@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 
@@ -148,15 +149,39 @@ abstract class ServiceTask extends ServiceGradeType
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
-     * @param TblSubject $tblSubject
      * @param TblTask $tblTask
+     * @param TblSubject $tblSubject
      *
      * @return TblTaskGrade[]|false
      */
-    public function getTaskGradeListByPersonAndYearAndSubjectAndTask(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, TblTask $tblTask)
+    public function getTaskGradeListByPersonAndYearAndSubjectAndTask(TblPerson $tblPerson, TblTask $tblTask, TblSubject $tblSubject)
     {
-        return (new Data($this->getBinding()))->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblYear, $tblSubject, $tblTask);
+        return (new Data($this->getBinding()))->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblTask, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     * @param TblSubject $tblSubject
+     *
+     * @return TblTaskGrade|false
+     */
+    public function getTaskGradeByPersonAndTaskAndSubject(TblPerson $tblPerson, TblTask $tblTask, TblSubject $tblSubject)
+    {
+        return (new Data($this->getBinding()))->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblTask, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     * @param TblSubject $tblSubject
+     * @param TblGradeType $tblGradeType
+     *
+     * @return TblTaskGrade|false
+     */
+    public function getTaskGradeByPersonAndTaskAndSubjectAndGradeType(TblPerson $tblPerson, TblTask $tblTask, TblSubject $tblSubject, TblGradeType $tblGradeType)
+    {
+        return (new Data($this->getBinding()))->getTaskGradeByPersonAndTaskAndSubjectAndGradeType($tblPerson, $tblTask, $tblSubject, $tblGradeType);
     }
 
     /**
@@ -438,5 +463,68 @@ abstract class ServiceTask extends ServiceGradeType
         }
 
         return empty($tblTaskList) ? false : $tblTaskList;
+    }
+
+    /**
+     * @param $Data
+     * @param TblTask $tblTask
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param $DivisionCourseId
+     * @param $Filter
+     *
+     * @return false|Form
+     */
+    public function checkFormTaskGrades($Data, TblTask $tblTask, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId, $Filter)
+    {
+        $errorList = array();
+        if ($Data) {
+            foreach ($Data as $personId => $item) {
+                if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                    if ($tblTask->getIsTypeBehavior()) {
+                        $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('GRADES_BEHAVIOR_TASK');
+                        if (($tblGradeTypes = $tblTask->getGradeTypes())) {
+                            foreach ($tblGradeTypes as $tblGradeType) {
+                                $gradeValue = $item['GradeTypes'][$tblGradeType->getId()] ?? '';
+                                if ((!empty($gradeValue) && $gradeValue != -1)) {
+                                    // Bewertungssystem Pattern prüfen
+                                    if ($tblScoreType && ($pattern = $tblScoreType->getPattern())) {
+                                        if (!preg_match('!' . $pattern . '!is', $gradeValue)) {
+                                            $errorList[$personId]['GradeTypes'][$tblGradeType->getId()] = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+                            $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('POINTS');
+                        } else {
+                            $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('GRADES');
+                        }
+                        $comment = trim($item['Comment']);
+                        $gradeValue = str_replace(',', '.', trim($item['Grade']));
+                        if (!empty($gradeValue) && $gradeValue != -1) {
+                            // Bewertungssystem Pattern prüfen
+                            if ($tblScoreType && ($pattern = $tblScoreType->getPattern())) {
+                                if (!preg_match('!' . $pattern . '!is', $gradeValue)) {
+                                    $errorList[$personId]['Grade'] = true;
+                                }
+                            }
+
+                            // Grund bei Noten-Änderung angeben
+                            if (empty($comment)
+                                && ($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblTask, $tblSubject))
+                                && $gradeValue != $tblTaskGrade->getGrade()
+                            ) {
+                                $errorList[$personId]['Comment'] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($errorList) ? false : Grade::useFrontend()->formTaskGrades($tblTask, $tblYear, $tblSubject, $DivisionCourseId, $Filter, false, $errorList);
     }
 }

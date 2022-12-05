@@ -605,7 +605,7 @@ class Frontend extends FrontendTest
             if ($tblPersonList) {
                 foreach ($tblPersonList as $tblPerson) {
                     $global = $this->getGlobal();
-                    if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblYear, $tblSubject, $tblTask))) {
+                    if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblTask, $tblSubject))) {
                         foreach ($tblTaskGradeList as $tblTaskGrade) {
                             if ($tblTask->getIsTypeBehavior()) {
                                 if (($tblGradeType = $tblTaskGrade->getTblGradeType())) {
@@ -633,6 +633,8 @@ class Frontend extends FrontendTest
 
         if (!$tblTask->getIsTypeBehavior()) {
             $headerList['Grade'] = 'Zensur';
+            // todo alle bearbeiten modal
+            $headerList['GradeText'] = 'oder Zeugnistext';
             $headerList['Comment'] = 'Vermerk Notenänderung';
         }
 
@@ -693,13 +695,19 @@ class Frontend extends FrontendTest
                             ))) {
                                 $selectComplete->setPrefixValue($tblPreviousBehaviorGrade->getGrade());
                             }
+                            // Eingabe-Fehler anzeigen
+                            if (isset($Errors[$tblPerson->getId()]['GradeTypes'][$tblGradeType->getId()])) {
+                                $selectComplete->setError('Bitte geben Sie eine gültige Kopfnote ein');
+                            }
 
                             $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody($selectComplete);
                         }
                     }
                 // Stichtagsnoten
                 } else {
-                    // todo
+                    // todo Zeugnistext
+                    // todo Zensuren bis zum Stichtag
+                    // todo Notendurchschnitt voreintragen
                     if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
                         $selectList = $selectListPoints;
                     } else {
@@ -709,6 +717,10 @@ class Frontend extends FrontendTest
                     $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
                         ->setTabIndex($tabIndex++)
                         ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
+                    // Eingabe-Fehler anzeigen
+                    if (isset($Errors[$tblPerson->getId()]['Grade'])) {
+                        $selectComplete->setError('Bitte geben Sie eine gültige Stichtagsnote ein');
+                    }
                     $bodyList[$tblPerson->getId()]['Grade'] = $selectComplete;
 
                     $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))
