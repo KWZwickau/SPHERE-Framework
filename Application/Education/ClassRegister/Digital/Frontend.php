@@ -492,7 +492,7 @@ class Frontend extends FrontendTabs
                 ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Day'));
         }
 
-        $datePicker = (new DatePicker('Data[Date]', '', '', new Calendar()))
+        $datePicker = (new DatePicker('Data[Date]', $Date, '', new Calendar()))
             ->setAutoFocus()
             ->ajaxPipelineOnChange(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, $View));
         $form = (new Form(new FormGroup(new FormRow(array(
@@ -506,7 +506,7 @@ class Frontend extends FrontendTabs
 //                    $DivisionId, $GroupId, $DateString, $View
 //                )))
 //                , 5)
-        )))));
+        )))))->disableSubmitAction();
 
         $layout = new Layout(new LayoutGroup(new LayoutRow(array(
 //                new LayoutColumn($buttons, $View == 'Day' ? 7 : 8),
@@ -1331,7 +1331,7 @@ class Frontend extends FrontendTabs
                     ))
                 , 6),
             new FormColumn(
-                new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
+                new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach / zusätzliches Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
                 , 6),
 //                    new FormColumn(
 //                        new SelectBox('Data[serviceTblPerson]', 'Lehrer', array('{{ FullName }}' => $tblTeacherList))

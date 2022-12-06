@@ -19,6 +19,10 @@ class Data extends AbstractData
         $tblCategoryCommon = $this->createCategory(TblCategory::COMMON, 'Allgemeinbildende Schulen');
         $tblCategoryTechnical = $this->createCategory(TblCategory::TECHNICAL, 'Berufsbildende Schulen');
         $tblCategorySecondCourse = $this->createCategory(TblCategory::SECOND_COURSE, 'Schulen des zweiten Bildungsweges');
+        $tblCategoryPreSchool = $this->createCategory(TblCategory::PRE_SCHOOL, 'Kindergarten');
+
+        // Kindergarten
+        $this->createType('Kindertageseinrichtung', 'KTE', $tblCategoryPreSchool, true);
 
         // Allgemeinbildend
         $this->createType('Grundschule', 'GS', $tblCategoryCommon, true);

@@ -199,6 +199,16 @@ abstract class Student extends AbstractService
     }
 
     /**
+     * @param $Name
+     *
+     * @return false|TblStudentSchoolEnrollmentType
+     */
+    public function getStudentSchoolEnrollmentTypeByName($Name)
+    {
+        return (new Data($this->getBinding()))->getStudentSchoolEnrollmentTypeByName($Name);
+    }
+
+    /**
      * @param $Identifier
      *
      * @return false|TblStudentSchoolEnrollmentType

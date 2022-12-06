@@ -10,8 +10,11 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
@@ -23,6 +26,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Document;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -30,8 +34,13 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Star;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -44,8 +53,10 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -760,6 +771,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     : new Document().'<br/>'.new Small(new Muted('Standard'))
                                 ).'</div>',
                             'Category' => $tblCertificate->getDisplayCategory(),
+                            'CertificateNumber' => $tblCertificate->getCertificateNumber(),
                             'Option' => new Standard(
                                 '', '/Education/Certificate/Setting/Configuration', new Select(),
                                 array(
@@ -770,11 +782,12 @@ class Frontend extends Extension implements IFrontendInterface
                 });
 
             $Content = new TableData($TemplateTable, null, array(
-                'Typ'         => 'Typ',
-                'Category'    => 'Kategorie',
-                'Name'        => 'Name',
-                'Description' => 'Beschreibung',
-                'Option'      => ''
+                'Typ'               => 'Typ',
+                'Category'          => 'Kategorie',
+                'Name'              => 'Name',
+                'CertificateNumber' => 'Anlage',
+                'Description'       => 'Beschreibung',
+                'Option'            => ''
             ), array(
                 'order'      => array(array(0, 'asc'), array(1, 'asc'), array(2, 'asc'), array(3, 'asc')),
                 'columnDefs' => array(
@@ -853,27 +866,66 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Einstellungen', 'Zeugnisvorlagen installieren');
         $Stage = self::setSettingMenue($Stage, '');
+        $LayoutRowList = array();
+
+        $isRef = false;
+        if(($tblCOnsumer = Consumer::useService()->getConsumerBySession())){
+            if($tblCOnsumer->getAcronym() == 'REF'){
+                $isRef = true;
+            }
+        }
+
+
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_GRUND_SCHULE))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_PRIMARY,
+                'Zeugnisse Grundschule', 'GsJa');
+        }
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_SECONDARY,
+                'Zeugnisse Oberschule', 'MsJ');
+        }
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_GYM,
+                'Zeugnisse Gymnasium', 'GymJ');
+        }
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_FOERDERSCHULE,
+                'Zeugnisse Förderschule', 'FoesJGeistigeEntwicklung');
+        }
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_BERUFS_FACH_SCHULE))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE,
+                'Zeugnisse Berufsfachschule', 'BfsJ');
+        }
+        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_FACH_SCHULE))
+            && School::useService()->getSchoolByType($tblType)){
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_FACHSCHULE,
+                'Zeugnisse Fachschule', 'FsJ');
+        }
+        if(empty($LayoutRowList)){
+            $LayoutRowList[] = new LayoutRow(new LayoutColumn(
+                new Warning('Der Mandant hat keine Schulen(Schulart) hinterlegt. [Einstellungen -> Mandant -> Schulen]')
+            ));
+        }
 
         $Stage->setContent(
-            new Layout(
+            new Layout(array(
                 new LayoutGroup(array(
-                    new LayoutRow(array(
+                    new LayoutRow(
                         new LayoutColumn(new Title('Auswahl'))
-                    )),
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            // nur Sachsen
-                            Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)
-                                ? $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_PRIMARY, 'Zeugnisse Grundschule', 'GsJa')
-                                . $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_SECONDARY, 'Zeugnisse Oberschule', 'MsJ')
-                                . $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_GYM, 'Zeugnisse Gymnasium', 'GymJ')
-                                . $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE, 'Zeugnisse Berufsfachschule', 'BfsHj')
-                                . $this->getCertificateInstallButton(TblCertificate::CERTIFICATE_TYPE_FACHSCHULE, 'Zeugnisse Fachschule', 'FsHj')
-                                : ''
-                        )
-                    ))
-                ))
-            )
+                    )
+                )),
+                new LayoutGroup(
+                // nur Sachsen
+                    Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)
+                        ? $LayoutRowList
+                        : new LayoutRow(new LayoutColumn(''))
+                )
+            ))
         );
 
         return $Stage;
@@ -884,20 +936,151 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string $Name
      * @param string $CertificateClass
      *
-     * @return Standard|SuccessLink
+     * @return LayoutRow
      */
-    private function getCertificateInstallButton($Type, $Name, $CertificateClass)
+    private function getCertificateInstallAccordion($Type, $Name, $CertificateClass)
+    {
+        // Grundschule
+        $GsList = array(
+            'Grundschule Halbjahresinformation 1' => 'GsHjOneInfo',
+            'Grundschule Jahreszeugnis 1' => 'GsJOne',
+            'Grundschule Halbjahresinformation' => 'GsHjInformation',
+            'Grundschule Jahreszeugnis' => 'GsJa',
+            'Bildungsempfehlung' => 'BeGs'
+        );
+        // Oberschule
+        $OsList = array(
+            'Bildungsempfehlung' => 'BeSOFS',
+            'Oberschule Halbjahresinformation' => 'MsHjInfo',
+            'Oberschule Halbjahresinformation HS' => 'MsHjInfoHs',
+            'Oberschule Halbjahresinformation RS' => 'MsHjInfoRs',
+            'Oberschule Halbjahresinformation Lernen' => 'MsHjInfoFsLernen',
+            'Oberschule Halbjahresinformation Geistige Entwicklung' => 'MsHjInfoFsGeistigeEntwicklung',
+
+//            'Oberschule Halbjahreszeugnis ' => 'MsHj',
+            'Oberschule Halbjahreszeugnis HS' => 'MsHjHs',
+            'Oberschule Halbjahreszeugnis RS' => 'MsHjRs',
+            'Oberschule Halbjahreszeugnis Lernen' => 'MsHjFsLernen',
+            'Oberschule Halbjahreszeugnis Geistige Entwicklung' => 'MsHjFsGeistigeEntwicklung',
+
+            'Oberschule Jahreszeugnis' => 'MsJ',
+            'Oberschule Jahreszeugnis HS' => 'MsJHs',
+            'Oberschule Jahreszeugnis RS' => 'MsJRs',
+            'Oberschule Jahreszeugnis Lernen' => 'MsJFsLernen',
+            'Oberschule Jahreszeugnis Geistige Entwicklung' => 'MsJFsGeistigeEntwicklung',
+
+//            'Oberschule Abschlusszeugnis' => 'MsAbs',
+            'Oberschule Abschlusszeugnis HS' => 'MsAbsHs',
+            'Oberschule Abschlusszeugnis HS Qualifiziert' => 'MsAbsHsQ',
+            'Oberschule Abschlusszeugnis RS' => 'MsAbsRs',
+//            'Oberschule Abschlusszeugnis RS' => 'MsAbsRs',
+            'Oberschule Abschlusszeugnis Hauptschulbildungsgang Lernen' => 'MsAbsLernenHs',
+            'Oberschule Abschlusszeugnis Hauptschulabschluss gleichgestellt Lernen' => 'MsAbsLernenEquatedHs',
+            'Oberschule Abschlusszeugnis' => 'MsAbsLernen',
+
+            'Oberschule Abgangszeugnis' => 'MsAbg',
+            'Oberschule Abgangszeugnis Lernen' => 'MsAbgLernen',
+            'Oberschule Abgangszeugnis Lernen mit Hauptschulbildungsgang' => 'MsAbgLernenHs',
+            'Oberschule Abgangszeugnis Geistige Entwicklung' => 'MsAbgGeistigeEntwicklung'
+        );
+        // Gymnasium
+        $GymList = array(
+            'Gymnasium Halbjahresinformation' => 'GymHjInfo',
+            'Gymnasium Halbjahreszeugnis' => 'GymHj',
+            'Gymnasium Jahreszeugnis' => 'GymJ',
+            'Gymnasium Kurshalbjahreszeugnis' => 'GymKurshalbjahreszeugnis',
+            'Gymnasium Abschlusszeugnis' => 'GymAbitur',
+            'Gymnasium Abgangszeugnis Sek I' => 'GymAbgSekI',
+            'Gymnasium Abgangszeugnis Sek II' => 'GymAbgSekII'
+        );
+        $BfsList = array(
+            'Berufsfachschule Halbjahresinformation' => 'BfsHjInfo',
+            'Berufsfachschule Halbjahreszeugnis' => 'BfsHj',
+            'Berufsfachschule Jahreszeugnis' => 'BfsJ',
+            'Berufsfachschule Abschlusszeugnis' => 'BfsAbs',
+            'Berufsfachschule Abgangszeugnis' => 'BfsAbg',
+            'Berufsfachschule Jahreszeugnis Pflege' => 'BfsPflegeJ'
+        );
+        $FsList = array(
+            'Fachschule Halbjahresinformation' => 'FsHjInfo',
+            'Fachschule Halbjahreszeugnis' => 'FsHj',
+            'Fachschule Jahreszeugnis' => 'FsJ',
+            'Fachschule Abschlusszeugnis FHR' => 'FsAbsFhr',
+            'Fachschule Abschlusszeugnis' => 'FsAbs',
+            'Fachschule Abgangszeugnis' => 'FsAbg'
+        );
+        $FoesList = array(
+            'Förderschule Halbjahresinformation' => 'FoesHjInfoGeistigeEntwicklung',
+            'Förderschule Halbjahreszeugnis' => 'FoesHjGeistigeEntwicklung',
+            'Förderschule Jahreszeugnis' => 'FoesJGeistigeEntwicklung',
+            'Förderschule Abgangszeugnis' => 'FoesAbgGeistigeEntwicklung',
+            'Förderschule Abschlusszeugnis' => 'FoesAbsGeistigeEntwicklung'
+        );
+
+        $LayoutRow = new LayoutRow(array(new LayoutColumn('', 3)));
+        $List = array();
+        switch ($Type) {
+            case TblCertificate::CERTIFICATE_TYPE_PRIMARY:
+                $List = $GsList;
+                break;
+            case TblCertificate::CERTIFICATE_TYPE_SECONDARY:
+                $List = $OsList;
+                break;
+            case TblCertificate::CERTIFICATE_TYPE_GYM:
+                $List = $GymList;
+                break;
+            case TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE:
+                $List = $BfsList;
+                break;
+            case TblCertificate::CERTIFICATE_TYPE_FACHSCHULE:
+                $List = $FsList;
+                break;
+            case TblCertificate::CERTIFICATE_TYPE_FOERDERSCHULE:
+                $List = $FoesList;
+                break;
+        }
+        if(Generator::useService()->getCertificateByCertificateClassName($CertificateClass)){
+            $Button = (new SuccessLink($Name,'/Education/Certificate/Setting/ImplementCertificate',
+                new Ok(), array('Type' => $Type),
+                'Installation wiederholen (eventuell fehlende/neue ergänzen)'));
+            $Content = $this->getCertificateInstallationFeedback($List);
+//            array_unshift($Content, $Button);
+            $Accordion = new Accordion();
+            $Accordion->addItem(new PullClear("Sichtkontrolle installierte Zeugnisse für $Name".new PullRight($Button)), new Listing($Content));
+            $LayoutRow->addColumn(new LayoutColumn($Accordion, 6));
+        } else {
+            $Button = new Standard($Name, '/Education/Certificate/Setting/ImplementCertificate',
+                new Save(), array('Type' => $Type));
+            $Content = $this->getCertificateInstallationFeedback($List, true);
+//            array_unshift($Content, $Button);
+            $Accordion = new Accordion();
+            $Accordion->addItem(new PullClear("Sicht nicht installierte Zeugnisse für $Name".new PullRight($Button)), new Listing($Content));
+            $LayoutRow->addColumn(new LayoutColumn($Accordion, 6));
+        }
+        return $LayoutRow;
+    }
+
+    /**
+     * @param $ClassList
+     *
+     * @return array
+     */
+    private function getCertificateInstallationFeedback($ClassList, $IsDisable = false)
     {
 
-        $Button = new Standard($Name, '/Education/Certificate/Setting/ImplementCertificate',
-            new Save(), array('Type' => $Type));
-        // Installation schon vorhanden? Test an einem Zeugnis
-        if(Generator::useService()->getCertificateByCertificateClassName($CertificateClass)){
-            $Button = new SuccessLink($Name,'/Education/Certificate/Setting/ImplementCertificate',
-                new Ok(), array('Type' => $Type),
-                'Erneut Installieren (eventuell fehlende/neue ergänzen)');
+        $ContentArray = array();
+        foreach($ClassList as $Name => $Class){
+            if($IsDisable){
+                $ContentArray[] = new Muted($Name);
+                continue;
+            }
+            if(Generator::useService()->getCertificateByCertificateClassName($Class)){
+                $ContentArray[] = new Success(new SuccessIcon()." $Name installiert ");
+            } else {
+                $ContentArray[] = new DangerText(new Disable()." $Name nicht installiert ");
+            }
         }
-        return $Button;
+        return $ContentArray;
     }
 
     public function frontendImplementCertificate($Type = '')

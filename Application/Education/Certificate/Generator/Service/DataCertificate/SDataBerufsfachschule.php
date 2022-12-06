@@ -16,23 +16,26 @@ class SDataBerufsfachschule
     public static function setCertificateStandard(Data $Data)
     {
 
-        self::setBfsHjInfo($Data);
-        self::setBfsHj($Data);
-        self::setBfsJ(($Data));
-        self::setBfsPflegeJ(($Data));
-        self::setBfsAbs(($Data));
-        self::setBfsAbg(($Data));
+        self::setBfsHjInfo($Data, 'B.01.01');
+        self::setBfsHj($Data, 'B.01.03');
+        self::setBfsJ($Data, 'B.01.02');
+        self::setBfsPflegeJ($Data, 'B.02.02a');
+        self::setBfsAbs($Data, 'B.01.05');
+        self::setBfsAbg($Data, 'B.01.04');
     }
 
     /**
      * @param Data $Data
      */
-    private static function setBfsHjInfo(Data $Data)
+    private static function setBfsHjInfo(Data $Data, $CertificateNumber)
     {
 
         $tblCertificate = $Data->createCertificate('Berufsfachschule Halbjahresinformation', '',
             'BfsHjInfo');
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if ($Data->getTblSchoolTypeBerufsfachschule()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeBerufsfachschule(), null, true);
                 // Automaitk soll hier nicht entscheiden
@@ -70,12 +73,15 @@ class SDataBerufsfachschule
     /**
      * @param Data $Data
      */
-    private static function setBfsHj(Data $Data)
+    private static function setBfsHj(Data $Data, $CertificateNumber)
     {
 
         $tblCertificate = $Data->createCertificate('Berufsfachschule Halbjahreszeugnis', '',
             'BfsHj');
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if ($Data->getTblSchoolTypeBerufsfachschule()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeBerufsfachschule(), null, true);
                 // Automaitk soll hier nicht entscheiden
@@ -113,11 +119,14 @@ class SDataBerufsfachschule
     /**
      * @param Data $Data
      */
-    private static function setBfsJ(Data $Data)
+    private static function setBfsJ(Data $Data, $CertificateNumber)
     {
         $tblCertificate = $Data->createCertificate('Berufsfachschule Jahreszeugnis', '',
             'BfsJ');
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if ($Data->getTblSchoolTypeBerufsfachschule()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeBerufsfachschule(), null, false);
                 // Automaitk soll hier nicht entscheiden
@@ -155,12 +164,15 @@ class SDataBerufsfachschule
     /**
      * @param Data $Data
      */
-    private static function setBfsAbs(Data $Data)
+    private static function setBfsAbs(Data $Data, $CertificateNumber)
     {
 
         if (($tblCertificate = $Data->createCertificate('Berufsfachschule Abschlusszeugnis', '', 'BfsAbs',
             null, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeBerufsfachschule()))
         ) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             // ToDO hinterlegung irgendwelcher Fächer?
 
 //            'DateFrom' ist auf Seite 1
@@ -182,12 +194,15 @@ class SDataBerufsfachschule
     /**
      * @param Data $Data
      */
-    private static function setBfsAbg(Data $Data)
+    private static function setBfsAbg(Data $Data, $CertificateNumber)
     {
 
         $tblCertificate = $Data->createCertificate('Berufsfachschule Abgangszeugnis', '', 'BfsAbg',
             null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeBerufsfachschule());
-//        if ($tblCertificate) {
+        if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             // ToDO hinterlegung irgendwelcher Fächer?
 //            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
 //                $row = 1;
@@ -214,16 +229,19 @@ class SDataBerufsfachschule
 //                $Data->setCertificateSubject($tblCertificate, 'TC', $row, $column++);
 //                $Data->setCertificateSubject($tblCertificate, 'INF', $row, $column);
 //            }
-//        }
+        }
     }
 
     /**
      * @param Data $Data
      */
-    private static function setBfsPflegeJ(Data $Data)
+    private static function setBfsPflegeJ(Data $Data, $CertificateNumber)
     {
         $tblCertificate = $Data->createCertificate('Berufsfachschule Jahreszeugnis', 'für Pflegeberufe', 'BfsPflegeJ');
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if ($Data->getTblSchoolTypeBerufsfachschule()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeBerufsfachschule(), null, false, true);
             }
