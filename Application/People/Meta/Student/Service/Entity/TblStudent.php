@@ -450,9 +450,11 @@ class TblStudent extends Element
     }
 
     /**
-     * @return int|ToolTip
+     * @param bool $DisplayError
+     *
+     * @return int|ToolTip|string
      */
-    public function getSchoolAttendanceYear()
+    public function getSchoolAttendanceYear($DisplayError = true)
     {
         // SBJ (Schulbesuchsjahr): automatisch berechnet aus Datum / Jahr  der Ersteinschulung und richtig setzen entsprechend aktuelle Schuljahr (Stichtag vor und nach 1.8)
         if (($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
@@ -472,7 +474,11 @@ class TblStudent extends Element
 
             return ($nowYear - $enrollmentYear + ($now > $endOfPeriod ? 1 : 0));
         } else {
-            return new ToolTip(new Warning(new Exclamation()), 'Bitte pflegen Sie das Ersteinschulungsdatum ein.');
+            if($DisplayError){
+                return new ToolTip(new Warning(new Exclamation()), 'Bitte pflegen Sie das Ersteinschulungsdatum ein.');
+            } else {
+                return '';
+            }
         }
     }
 }

@@ -140,10 +140,10 @@ table.dataTable.table-condensed thead > tr > th {
     background-color: white;
 }
 
-th.sorting_disabled {
-    padding-right: 5px !important;
-    background-color: white;
-}
+/*th.sorting_disabled {*/
+/*    padding-right: 5px !important;*/
+/*    background-color: white;*/
+/*}*/
 
 table.dataTable.table-condensed thead .sorting:after,
 table.dataTable.table-condensed thead .sorting_asc:after,

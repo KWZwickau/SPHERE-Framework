@@ -13,23 +13,26 @@ class SDataGym
     public static function setCertificateStandard(Data $Data)
     {
 
-        self::setGymHjInfo($Data);
-        self::setGymHj($Data);
-        self::setGymJ($Data);
-        self::setGymKurshalbjahreszeugnis($Data);
-        self::setGymAbitur($Data);
-        self::setGymAbgSekI($Data);
-        self::setGymAbgSekII($Data);
+        self::setGymHjInfo($Data, '4.1');
+        self::setGymHj($Data, '4.1');
+        self::setGymJ($Data, '4.2');
+        self::setGymKurshalbjahreszeugnis($Data, 'Anlage 4');
+        self::setGymAbitur($Data, '4.5');
+        self::setGymAbgSekI($Data, '4.5');
+        self::setGymAbgSekII($Data, 'Anlage 6');
     }
 
     /**
      * @param Data $Data
      */
-    private static function setGymHjInfo(Data $Data)
+    private static function setGymHjInfo(Data $Data, $CertificateNumber)
     {
 
         $tblCertificate = $Data->createCertificate('Gymnasium Halbjahresinformation', '', 'GymHjInfo');
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if ($Data->getTblSchoolTypeGym()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeGym(), null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
@@ -90,11 +93,14 @@ class SDataGym
     /**
      * @param Data $Data
      */
-    private static function setGymHj(Data $Data)
+    private static function setGymHj(Data $Data, $CertificateNumber)
     {
 
         $tblCertificate = $Data->createCertificate('Gymnasium Halbjahreszeugnis', '', 'GymHj');
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if ($Data->getTblSchoolTypeGym()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeGym());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
@@ -140,11 +146,14 @@ class SDataGym
     /**
      * @param Data $Data
      */
-    private static function setGymJ(Data $Data)
+    private static function setGymJ(Data $Data, $CertificateNumber)
     {
 
         $tblCertificate = $Data->createCertificate('Gymnasium Jahreszeugnis', '', 'GymJ');
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if ($Data->getTblSchoolTypeGym()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeGym());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
@@ -213,12 +222,15 @@ class SDataGym
     /**
      * @param Data $Data
      */
-    private static function setGymKurshalbjahreszeugnis(Data $Data)
+    private static function setGymKurshalbjahreszeugnis(Data $Data, $CertificateNumber)
     {
 
         // Kurshalbjahreszeugnis
         $tblCertificate = $Data->createCertificate('Gymnasium Kurshalbjahreszeugnis', '', 'GymKurshalbjahreszeugnis');
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if ($Data->getTblSchoolTypeGym() && $Data->getTblCertificateTypeMidTermCourse()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeMidTermCourse(), $Data->getTblSchoolTypeGym(),
                     null);
@@ -260,12 +272,15 @@ class SDataGym
     /**
      * @param Data $Data
      */
-    private static function setGymAbitur(Data $Data)
+    private static function setGymAbitur(Data $Data, $CertificateNumber)
     {
 
         if (($tblCertificate = $Data->createCertificate('Gymnasium Abschlusszeugnis', 'Abitur', 'GymAbitur',
             null, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeGym()))
         ) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             // SSW-531 Rename
             if ($tblCertificate->getName() == 'Gymnasium Abitur') {
                 $Data->updateCertificateName($tblCertificate, 'Gymnasium Abschlusszeugnis', 'Abitur');
@@ -282,12 +297,15 @@ class SDataGym
     /**
      * @param Data $Data
      */
-    private static function setGymAbgSekI(Data $Data)
+    private static function setGymAbgSekI(Data $Data, $CertificateNumber)
     {
 
         $tblCertificate = $Data->createCertificate('Gymnasium Abgangszeugnis', 'Sekundarstufe I', 'GymAbgSekI',
             null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeGym());
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
                 $row = 1;
                 $Data->setCertificateSubject($tblCertificate, 'DE', 1, $row++);
@@ -321,10 +339,15 @@ class SDataGym
     /**
      * @param Data $Data
      */
-    private static function setGymAbgSekII(Data $Data)
+    private static function setGymAbgSekII(Data $Data, $CertificateNumber)
     {
 
-        $Data->createCertificate('Gymnasium Abgangszeugnis', 'Sekundarstufe II', 'GymAbgSekII',
+        $tblCertificate = $Data->createCertificate('Gymnasium Abgangszeugnis', 'Sekundarstufe II', 'GymAbgSekII',
             null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeGym());
+        if($tblCertificate){
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
+        }
     }
 }

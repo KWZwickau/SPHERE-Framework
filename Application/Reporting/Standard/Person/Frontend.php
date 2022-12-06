@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Reporting\Standard\Person;
 
 use DateTime;
+use SPHERE\Application\Api\Education\Division\DivisionTeacher;
 use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -59,6 +60,7 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -1596,6 +1598,45 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
+        return $Stage;
+    }
+
+    public function frontendClassTeacher(?string $YearId = null): Stage
+    {
+
+        $Stage = new Stage('Auswertung', 'Klassenlehrer');
+        $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        $Stage->addButton(
+            new Primary('Herunterladen',
+                '/Api/Reporting/Standard/Person/DivisionTeacherList/Download', new Download())
+        );
+
+        list($TableContent, $headers) = Person::useService()->createDivisionTeacherList();
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($TableContent, null, $headers,
+
+
+                                array(
+                                    'columnDefs' => array(
+                                        array('type' => 'natural', 'targets' => array(0)),
+                                        array("orderable" => false, "targets"   => -1),
+                                    ),
+                                    'order' => array(
+                                      array(0, 'asc')
+                                    ),
+                                    'responsive' => false
+
+                                ))
+                            , 12)
+                    ), new Title(new Listing() . ' Übersicht')
+                )
+            ));
         return $Stage;
     }
 

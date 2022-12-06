@@ -363,6 +363,8 @@ class TblLessonContent extends Element
                 . ($tblSubstituteSubject ? ($isAcronymOnly ? $tblSubstituteSubject->getAcronym() : $tblSubstituteSubject->getDisplayName()) : '');
         } elseif ($tblSubject) {
             $subject = $isAcronymOnly ? $tblSubject->getAcronym() : $tblSubject->getDisplayName();
+        } elseif ($tblSubstituteSubject) {
+            $subject = $isAcronymOnly ? $tblSubstituteSubject->getAcronym() : $tblSubstituteSubject->getDisplayName();
         }
 
         return $subject;

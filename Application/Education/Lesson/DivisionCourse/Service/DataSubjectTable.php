@@ -16,7 +16,7 @@ abstract class DataSubjectTable extends DataStudentSubject
 {
     protected function setupDatabaseContentForSubjectTable()
     {
-        if (GatekeeperConsumer::useService()->getConsumerTypeFromServerHost() == TblConsumer::TYPE_SACHSEN) {
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)) {
             if (($tblSchoolTypePrimary = Type::useService()->getTypeByShortName('GS'))
                 && !$this->getSubjectTableListBy($tblSchoolTypePrimary)
             ) {
@@ -47,7 +47,7 @@ abstract class DataSubjectTable extends DataStudentSubject
                 $this->setSachsenGyLevel9($tblSchoolTypeGy);
                 $this->setSachsenGyLevel10($tblSchoolTypeGy);
             }
-        } elseif (GatekeeperConsumer::useService()->getConsumerTypeFromServerHost() == TblConsumer::TYPE_BERLIN) {
+        } elseif (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
             if (($tblSchoolTypePrimary = Type::useService()->getTypeByShortName('GS'))
                 && !$this->getSubjectTableListBy($tblSchoolTypePrimary)
             ) {

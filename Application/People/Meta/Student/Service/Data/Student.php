@@ -441,6 +441,18 @@ abstract class Student extends AbstractData
     }
 
     /**
+     * @param $Name
+     *
+     * @return false|TblStudentSchoolEnrollmentType
+     */
+    public function getStudentSchoolEnrollmentTypeByName($Name)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentSchoolEnrollmentType', array(
+            TblStudentSchoolEnrollmentType::ATTR_NAME => $Name
+        ));
+    }
+
+    /**
      * @param $Identifier
      *
      * @return false|TblStudentSchoolEnrollmentType

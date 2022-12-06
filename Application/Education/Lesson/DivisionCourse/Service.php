@@ -1211,7 +1211,7 @@ class Service extends ServiceTeacher
                 $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
                 $error = true;
             // in Berlin sind die Klassenstufen Zuordnungen zu den Schularten anders
-            } elseif (GatekeeperConsumer::useService()->getConsumerTypeFromServerHost() == TblConsumer::TYPE_SACHSEN) {
+            } elseif (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)) {
                 switch ($tblSchoolType->getShortName()) {
                     case 'GS':
                         if ($level > 4) {
