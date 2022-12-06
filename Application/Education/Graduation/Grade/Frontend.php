@@ -30,6 +30,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -48,12 +49,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Frontend\Table\Structure\Table;
-use SPHERE\Common\Frontend\Table\Structure\TableBody;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Table\Structure\TableHead;
-use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -239,13 +235,7 @@ class Frontend extends FrontendTest
             }
 
             // table float
-            $tableHead = new TableHead(new TableRow($headerList));
-            $rows = array();
-            foreach ($bodyList as $columnList) {
-                $rows[] = new TableRow($columnList);
-            }
-            $tableBody = new TableBody($rows);
-            $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
+            $table = $this->getTableCustom($headerList, $bodyList);
 
 //            $content = (new Container($table))->setStyle(array(
 ////                'max-width: 2000px;',
@@ -578,10 +568,12 @@ class Frontend extends FrontendTest
      * @param $Filter
      * @param bool $setPost
      * @param null $Errors
+     * @param null $Data
      *
      * @return Form
      */
-    public function formTaskGrades(TblTask $tblTask, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId, $Filter, bool $setPost = false, $Errors = null): Form
+    public function formTaskGrades(TblTask $tblTask, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId, $Filter, bool $setPost = false,
+        $Errors = null, $Data = null): Form
     {
         $bodyList = array();
 
@@ -605,13 +597,13 @@ class Frontend extends FrontendTest
             }
         }
 
-        $tblGradeList = array();
+        $tblTaskGradeList = array();
         if ($setPost) {
             if ($tblPersonList) {
                 foreach ($tblPersonList as $tblPerson) {
                     $global = $this->getGlobal();
-                    if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblTask, $tblSubject))) {
-                        foreach ($tblTaskGradeList as $tblTaskGrade) {
+                    if (($tempList = Grade::useService()->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblTask, $tblSubject))) {
+                        foreach ($tempList as $tblTaskGrade) {
                             if ($tblTask->getIsTypeBehavior()) {
                                 if (($tblGradeType = $tblTaskGrade->getTblGradeType())) {
                                     $global->POST['Data'][$tblPerson->getId()]['GradeTypes'][$tblGradeType->getId()] = $tblTaskGrade->getGrade();
@@ -621,8 +613,8 @@ class Frontend extends FrontendTest
                                 $global->POST['Data'][$tblPerson->getId()]['Grade'] = $gradeValue;
                                 $global->POST['Data'][$tblPerson->getId()]['Comment'] = $tblTaskGrade->getComment();
 
-                                // für Lehrer, welcher die Note gespeichert hat
-                                $tblGradeList[$tblPerson->getId()] = $tblTaskGrade;
+                                // für Lehrer, welcher die Note gespeichert hat + Zeugnistexte
+                                $tblTaskGradeList[$tblPerson->getId()] = $tblTaskGrade;
                             }
                         }
                     }
@@ -634,15 +626,24 @@ class Frontend extends FrontendTest
         $hasPicture = !empty($pictureList);
         $hasIntegration = !empty($integrationList);
         $hasCourse = !empty($courseList);
-        $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
+        $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse, true);
 
+        // Stichtagsnotenauftrag
         if (!$tblTask->getIsTypeBehavior()) {
-            $headerList['Grade'] = 'Zensur';
-            $headerList['GradeText'] = 'oder Zeugnistext' . new PullRight(
-                (new Standard('Alle bearbeiten', ApiGradeBook::getEndpoint()))
+            list($tblTestList, $tblTestGradeValueList) = $this->getTestsAndTestGradesForAppointedDateTask($tblPersonList, $tblTask, $tblYear, $tblSubject);
+            if ($tblTestList) {
+                $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('SortDate', new DateTimeSorter());
+                foreach ($tblTestList as $tblTest) {
+                    $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest, $DivisionCourseId, $tblSubject->getId(), $Filter, false);
+                }
+            }
+
+            $headerList['Grade'] = $this->getTableColumnHead('Zensur');
+            $headerList['GradeText'] = $this->getTableColumnHead(
+                (new Link('oder Zeugnistext ' . new Edit(), ApiGradeBook::getEndpoint(), null, array(), 'Alle Zeugnistexte des Kurses auf einmal bearbeiten'))
                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenGradeTextModal($DivisionCourseId))
             );
-            $headerList['Comment'] = 'Vermerk Notenänderung';
+            $headerList['Comment'] = $this->getTableColumnHead('Vermerk Noten&shy;änderung');
         }
 
         if ($tblPersonList) {
@@ -667,7 +668,7 @@ class Frontend extends FrontendTest
 
             foreach ($tblPersonList as $tblPerson) {
                 /** @var TblTaskGrade $tblGrade */
-                $tblGrade = $tblGradeList[$tblPerson->getId()] ?? false;
+                $tblGrade = $tblTaskGradeList[$tblPerson->getId()] ?? false;
 
                 $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
                 $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
@@ -691,7 +692,7 @@ class Frontend extends FrontendTest
                             $key = 'GradeType' . $tblGradeType->getId();
                             if (!isset($headerList[$key])) {
                                 $tooltip = $this->getGradeTypeTooltip($tblGradeType);
-                                $headerList[$key] = $tooltip ? new ToolTip($tblGradeType->getName(), $tooltip) : $tblGradeType->getName();
+                                $headerList[$key] = $this->getTableColumnHead($tooltip ? new ToolTip($tblGradeType->getName(), $tooltip) : $tblGradeType->getName());
                             }
 
                             $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][GradeTypes][' . $tblGradeType->getId() . ']', '', '', $selectList))
@@ -712,8 +713,16 @@ class Frontend extends FrontendTest
                     }
                 // Stichtagsnoten
                 } else {
-                    // todo Zensuren bis zum Stichtag
+                    // Zensuren bis zum Stichtag
+                    foreach ($headerList as $key => $value) {
+                        if (strpos($key, 'Test') !== false) {
+                            $testId = str_replace('Test', '', $key);
+                            $bodyList[$tblPerson->getId()]['Test' . $testId] = $this->getTableColumnBody($tblTestGradeValueList[$tblPerson->getId()][$testId] ?? '');
+                        }
+                    }
+
                     // todo Notendurchschnitt voreintragen
+
                     if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
                         $selectList = $selectListPoints;
                     } else {
@@ -727,39 +736,47 @@ class Frontend extends FrontendTest
                     if (isset($Errors[$tblPerson->getId()]['Grade'])) {
                         $selectComplete->setError('Bitte geben Sie eine gültige Stichtagsnote ein');
                     }
-                    $bodyList[$tblPerson->getId()]['Grade'] = $selectComplete;
+                    $bodyList[$tblPerson->getId()]['Grade'] = $this->getTableColumnBody($selectComplete);
 
-                    $bodyList[$tblPerson->getId()]['GradeText'] = ApiGradeBook::receiverBlock(
-                        $this->getGradeTextSelectBox($tblPerson->getId(), $tblGrade && ($tblGradeText = $tblGrade->getTblGradeText()) ? $tblGradeText->getId() : 0),
+                    if (isset($Data[$tblPerson->getId()]['GradeText'])) {
+                        $gradeTextId = $Data[$tblPerson->getId()]['GradeText'];
+                    } else {
+                        $gradeTextId = $tblGrade && ($tblGradeText = $tblGrade->getTblGradeText()) ? $tblGradeText->getId() : 0;
+                    }
+                    $bodyList[$tblPerson->getId()]['GradeText'] = $this->getTableColumnBody(ApiGradeBook::receiverBlock(
+                        $this->getGradeTextSelectBox($tblPerson->getId(), $gradeTextId),
                         'ChangeGradeText_' . $tblPerson->getId()
-                    );
+                    ));
 
                     $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))
                         ->setTabIndex(1000 + $tabIndex);
                     if (isset($Errors[$tblPerson->getId()]['Comment'])) {
                         $textFieldComment->setError('Bitte geben Sie einen Änderungsgrund an');
                     }
-                    $bodyList[$tblPerson->getId()]['Comment'] = $textFieldComment;
+                    $bodyList[$tblPerson->getId()]['Comment'] = $this->getTableColumnBody($textFieldComment);
                 }
             }
         }
 
+        $table = $this->getTableCustom($headerList, $bodyList);
+
         $formRows[] = new FormRow(new FormColumn(
-            new TableData($bodyList, null, $headerList,
-                array(
-                    "paging"         => false, // Deaktivieren Blättern
-                    "iDisplayLength" => -1,    // Alle Einträge zeigen
-                    "searching"      => false, // Deaktivieren Suchen
-                    "info"           => false,  // Deaktivieren Such-Info
-                    "responsive"   => false,
-                    'order'      => array(
-                        array('0', 'asc'),
-                    ),
-                    'columnDefs' => array(
-                        array('orderable' => false, 'targets' => '_all'),
-                    ),
-                )
-            )
+            $table
+//            new TableData($bodyList, null, $headerList,
+//                array(
+//                    "paging"         => false, // Deaktivieren Blättern
+//                    "iDisplayLength" => -1,    // Alle Einträge zeigen
+//                    "searching"      => false, // Deaktivieren Suchen
+//                    "info"           => false,  // Deaktivieren Such-Info
+//                    "responsive"   => false,
+//                    'order'      => array(
+//                        array('0', 'asc'),
+//                    ),
+//                    'columnDefs' => array(
+//                        array('orderable' => false, 'targets' => '_all'),
+//                    ),
+//                )
+//            )
         ));
         if ($Errors) {
             $formRows[] = new FormRow(new FormColumn(
@@ -774,6 +791,35 @@ class Frontend extends FrontendTest
         )));
 
         return (new Form(new FormGroup($formRows)))->disableSubmitAction();
+    }
+
+    private function getTestsAndTestGradesForAppointedDateTask($tblPersonList, TblTask $tblTask, TblYear $tblYear, TblSubject $tblSubject): array
+    {
+        $dateTask = $tblTask->getDate();
+        $tblTestGradeValueList = array();
+        $tblTestList = array();
+        if ($tblPersonList) {
+            foreach ($tblPersonList as $tblPerson) {
+                // Zensuren - Leistungsüberprüfungen
+                if (($tempList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+                    foreach ($tempList as $tblTestGrade) {
+                        $tblTest = $tblTestGrade->getTblTest();
+                        $dateGrade = $tblTestGrade->getDate() ?: $tblTest->getSortDate();
+                        if ($dateGrade <= $dateTask
+                            && ($tblTestGrade->getGrade() !== null)
+                        ) {
+                            $tblTestGradeValueList[$tblPerson->getId()][$tblTest->getId()] = $tblTestGrade->getGrade();
+
+                            if (!isset($tblTestList[$tblTest->getId()])) {
+                                $tblTestList[$tblTest->getId()] = $tblTest;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return array($tblTestList, $tblTestGradeValueList);
     }
 
     /**

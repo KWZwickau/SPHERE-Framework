@@ -8,7 +8,11 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Table\Structure\Table;
+use SPHERE\Common\Frontend\Table\Structure\TableBody;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
+use SPHERE\Common\Frontend\Table\Structure\TableHead;
+use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Info;
@@ -91,6 +95,24 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
             ->setMinHeight(self::MIN_HEIGHT_BODY)
             ->setVerticalAlign('middle')
             ->setPadding(self::PADDING);
+    }
+
+    /**
+     * @param array $headerList
+     * @param array $bodyList
+     *
+     * @return Table
+     */
+    public function getTableCustom(array $headerList, array $bodyList): Table
+    {
+        $tableHead = new TableHead(new TableRow($headerList));
+        $rows = array();
+        foreach ($bodyList as $columnList) {
+            $rows[] = new TableRow($columnList);
+        }
+        $tableBody = new TableBody($rows);
+
+        return new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
     }
 
     /**

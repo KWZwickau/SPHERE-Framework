@@ -51,11 +51,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Frontend\Table\Structure\Table;
-use SPHERE\Common\Frontend\Table\Structure\TableBody;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Table\Structure\TableHead;
-use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -656,14 +652,7 @@ abstract class FrontendTask extends FrontendGradeType
             }
         }
 
-        $tableHead = new TableHead(new TableRow($headerList));
-        $rows = array();
-        foreach ($bodyList as $columnList) {
-            $rows[] = new TableRow($columnList);
-        }
-        $tableBody = new TableBody($rows);
-
-        return new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
+        return $this->getTableCustom($headerList, $bodyList);
     }
 
     /**
@@ -756,14 +745,7 @@ abstract class FrontendTask extends FrontendGradeType
         // Fach-klassen durchschnitt
         array_unshift($bodyList, $this->getBodyItemDivisionCourseSubjectAverage($tblSubjectList, $subjectListSum, $subjectListGradesCount));
 
-        $tableHead = new TableHead(new TableRow($headerList));
-        $rows = array();
-        foreach ($bodyList as $columnList) {
-            $rows[] = new TableRow($columnList);
-        }
-        $tableBody = new TableBody($rows);
-
-        return new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
+        return $this->getTableCustom($headerList, $bodyList);
     }
 
     /**

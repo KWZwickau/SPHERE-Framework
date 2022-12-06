@@ -525,6 +525,6 @@ abstract class ServiceTask extends ServiceGradeType
             }
         }
 
-        return empty($errorList) ? false : Grade::useFrontend()->formTaskGrades($tblTask, $tblYear, $tblSubject, $DivisionCourseId, $Filter, false, $errorList);
+        return empty($errorList) ? false : Grade::useFrontend()->formTaskGrades($tblTask, $tblYear, $tblSubject, $DivisionCourseId, $Filter, false, $errorList, $Data);
     }
 }
