@@ -279,14 +279,14 @@ class Frontend extends Extension implements IFrontendInterface
             $orderByColumn = array(0, 'asc');
             $columnDefs = array(
                 array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
-                array('orderable' => false, 'width' => '75px', 'targets' => -1),
+                array('orderable' => false, 'width' => '60px', 'targets' => -1),
             );
             // Student column definition
             if($tblGroup->getMetaTable() == TblGroup::META_TABLE_CUSTODY){
                 $columnDefs = array(
                     array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
                     array('orderable' => false, 'targets' => -2),
-                    array('orderable' => false, 'width' => '75px', 'targets' => -1),
+                    array('orderable' => false, 'width' => '60px', 'targets' => -1),
                 );
             }
             // Student column definition
@@ -294,7 +294,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnDefs = array(
                     array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
                     array('type' => 'natural', 'targets' => array(2,3)),
-                    array('orderable' => false, 'width' => '75px', 'targets' => -1),
+                    array('orderable' => false, 'width' => '60px', 'targets' => -1),
                 );
             }
             // Archive order & column definition
@@ -303,14 +303,14 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnDefs = array(
                     array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
                     array('type' => 'de_date', 'targets' => 4),
-                    array('orderable' => false, 'width' => '75px', 'targets' => -1),
+                    array('orderable' => false, 'width' => '60px', 'targets' => -1),
                 );
             }
             if ($showDivision) {
                 $columnDefs = array(
                     array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
                     array('type' => 'natural', 'targets' => 2),
-                    array('orderable' => false, 'width' => '75px', 'targets' => -1),
+                    array('orderable' => false, 'width' => '60px', 'targets' => -1),
                 );
             }
 
