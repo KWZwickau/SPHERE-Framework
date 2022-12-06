@@ -429,14 +429,15 @@ class Frontend extends Extension implements IFrontendInterface
 
                 ))
             )));
-        } elseif(strtolower($this->getRequest()->getHost()) == 'www.demo.schulsoftware.schule'){
-//            $Form.= new Layout(new LayoutGroup(new LayoutRow(
-//                new LayoutColumn(array(
-//                    '<br/><br/><br/><br/>',
-//                    new Title('Anmeldung UCS Demo (Pilot)'),
-//                    new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\DLLPDemo')
-//                ))
-//            )));
+        } elseif(strtolower($this->getRequest()->getHost()) == 'www.demo.schulsoftware.schule'
+        || $this->getRequest()->getHost() == '192.168.37.128'){
+            $Form.= new Layout(new LayoutGroup(new LayoutRow(
+                new LayoutColumn(array(
+                    '<br/><br/><br/><br/>',
+                    new Title('Anmeldung Vidis Demo'),
+                    new PrimaryLink('Login', '/Platform/Gatekeeper/Authentication/OAuth2/OAuthTestSite')
+                ))
+            )));
         }
 
         setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');
