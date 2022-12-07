@@ -110,7 +110,7 @@ class ApiPersonSearch  extends Extension implements IApiInterface
     public function selectGroup($Data = null): string
     {
         return self::pipelineLoadSearchTextInput('')
-            . Search::useFrontend()->loadGroup($Data['Id']);
+            . Search::useFrontend()->loadGroup($Data['Id'] ?? '');
     }
 
     /**
