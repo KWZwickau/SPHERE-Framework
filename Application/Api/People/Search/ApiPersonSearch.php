@@ -108,7 +108,7 @@ class ApiPersonSearch  extends Extension implements IApiInterface
      */
     public function selectGroup($Data = null): string
     {
-        return Search::useFrontend()->loadGroup($Data['Id']);
+        return Search::useFrontend()->loadGroup($Data['Id'] ?? '');
     }
 
     /**
