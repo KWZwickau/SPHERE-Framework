@@ -366,7 +366,7 @@ abstract class DataMigrate extends AbstractData
                                 }
 
                                 // Lehraufträge ohne Gruppen
-                                if (($tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))) {
+                                if (!$isCourseSystem && ($tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))) {
                                     foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
                                         if (($tblTeacherPerson = $tblSubjectTeacher->getServiceTblPerson())) {
                                             $Manager->bulkSaveEntity(TblTeacherLectureship::withParameter($tblTeacherPerson, $tblYear, $tblDivisionCourse, $tblSubject));

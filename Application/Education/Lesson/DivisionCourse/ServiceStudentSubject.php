@@ -32,6 +32,8 @@ abstract class ServiceStudentSubject extends AbstractService
     }
 
     /**
+     * SEKI
+     *
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
@@ -41,6 +43,20 @@ abstract class ServiceStudentSubject extends AbstractService
     public function getStudentSubjectByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
     {
         return (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+    }
+
+    /**
+     * SEKII
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblStudentSubject
+     */
+    public function getStudentSubjectByPersonAndYearAndSubjectForCourseSystem(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        return (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubjectForCourseSystem($tblPerson, $tblYear, $tblSubject);
     }
 
     /**
@@ -54,8 +70,13 @@ abstract class ServiceStudentSubject extends AbstractService
      */
     public function getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
     {
-        // gespeichertes Fach - StudentSubject
+        // gespeichertes Fach - StudentSubject SEKI
         if (($tblStudentSubject = (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+            return new VirtualSubject($tblSubject, $tblStudentSubject->getHasGrading(), null);
+        }
+
+        // gespeichertes Fach - StudentSubject SEKII
+        if (($tblStudentSubject = (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubjectForCourseSystem($tblPerson, $tblYear, $tblSubject))) {
             return new VirtualSubject($tblSubject, $tblStudentSubject->getHasGrading(), null);
         }
 

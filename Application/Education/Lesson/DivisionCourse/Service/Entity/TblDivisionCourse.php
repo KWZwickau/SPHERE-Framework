@@ -324,7 +324,20 @@ class TblDivisionCourse extends Element
      * @return false|TblPerson[]
      */
     public function getStudents(bool $withInActive = false) {
-        return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_STUDENT, $withInActive);
+        if ($this->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE || $this->getTypeIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE) {
+            $tblPersonList = array();
+            if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListBySubjectDivisionCourse($this))) {
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if (($tblPersonTemp = $tblStudentSubject->getServiceTblPerson())) {
+                        $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
+                    }
+                }
+            }
+
+            return empty($tblPersonList) ? false : $tblPersonList;
+        } else {
+            return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_STUDENT, $withInActive);
+        }
     }
 
     /**
@@ -335,7 +348,20 @@ class TblDivisionCourse extends Element
      */
     public function getStudentsWithSubCourses(bool $withInActive = false, bool $isResultPersonList = true)
     {
-        return DivisionCourse::useService()->getStudentListBy($this, $withInActive, $isResultPersonList);
+        if ($this->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE || $this->getTypeIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE) {
+            $tblPersonList = array();
+            if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListBySubjectDivisionCourse($this))) {
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if (($tblPersonTemp = $tblStudentSubject->getServiceTblPerson())) {
+                        $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
+                    }
+                }
+            }
+
+            return empty($tblPersonList) ? false : $tblPersonList;
+        } else {
+            return DivisionCourse::useService()->getStudentListBy($this, $withInActive, $isResultPersonList);
+        }
     }
 
     /**

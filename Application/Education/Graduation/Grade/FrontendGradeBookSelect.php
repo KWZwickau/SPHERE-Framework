@@ -225,8 +225,9 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
      * @param array $dataList
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblSubject $tblSubject
+     * @param null $Filter
      */
-    private function setDivisionCourseSelectData(array &$dataList, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject)
+    private function setDivisionCourseSelectData(array &$dataList, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject, $Filter = null)
     {
         $key = $tblDivisionCourse->getId() . '_' . $tblSubject->getId();
         if (!isset($dataList[$key])) {
@@ -237,7 +238,7 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
                 'Subject' => $tblSubject->getDisplayName(),
                 'SubjectTeachers' => $tblDivisionCourse->getDivisionTeacherNameListString(', '),
                 'Option' => (new Standard("", ApiGradeBook::getEndpoint(), new Check(), array(), "Auswählen"))
-                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($tblDivisionCourse->getId(), $tblSubject->getId()))
+                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($tblDivisionCourse->getId(), $tblSubject->getId(), $Filter))
             );
         }
     }
@@ -256,7 +257,7 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
     {
         // Lerngruppe oder SekII-Kurs
         if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
-            $this->setDivisionCourseSelectData($dataList, $tblDivisionCourse, $tblSubject);
+            $this->setDivisionCourseSelectData($dataList, $tblDivisionCourse, $tblSubject, $Filter);
             // alle Lehraufträge des Kurses
         } elseif (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, null, $tblDivisionCourse))) {
             foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {

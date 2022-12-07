@@ -1548,6 +1548,10 @@ class Service extends ServiceTeacher
             case TblDivisionCourseType::TYPE_CORE_GROUP:
                 $schoolTypeIdList = (new Data($this->getBinding()))->getSchoolTypeIdListByTypeCoreGroup($tblDivisionCourse);
                 break;
+            case TblDivisionCourseType::TYPE_ADVANCED_COURSE:
+            case TblDivisionCourseType::TYPE_BASIC_COURSE:
+                $schoolTypeIdList = (new Data($this->getBinding()))->getSchoolTypeIdListByStudentSubject($tblDivisionCourse);
+                break;
             default:
                 $schoolTypeIdList = (new Data($this->getBinding()))->getSchoolTypeIdListByDivisionCourseWithMember($tblDivisionCourse);
         }

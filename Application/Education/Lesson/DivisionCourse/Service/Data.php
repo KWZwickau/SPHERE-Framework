@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -1346,6 +1347,43 @@ class Data extends DataTeacher
                 ->setParameter(1, $tblDivisionCourse->getId())
                 ->setParameter(2, ($this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT))->getId())
                 ->setParameter(3, $tblYear->getId())
+                ->distinct()
+                ->getQuery();
+
+            $resultList = $query->getResult();
+
+            return empty($resultList) ? false : $resultList;
+        }
+
+        return false;
+    }
+
+    /**
+     * SEKII
+     *
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return array|false
+     */
+    public function getSchoolTypeIdListByStudentSubject(TblDivisionCourse $tblDivisionCourse)
+    {
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+            $Manager = $this->getEntityManager();
+            $queryBuilder = $Manager->getQueryBuilder();
+
+            $query = $queryBuilder->select('e.serviceTblSchoolType as SchoolTypeId')
+                ->from(TblStudentEducation::class, 'e')
+                ->join(TblStudentSubject::class, 'm')
+                ->where(
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->eq('m.tblLessonDivisionCourse', '?1'),
+                        $queryBuilder->expr()->isNull('e.EntityRemove'),
+                        $queryBuilder->expr()->eq('e.serviceTblYear', '?2'),
+                        $queryBuilder->expr()->eq('e.serviceTblPerson', 'm.serviceTblPerson'),
+                    ),
+                )
+                ->setParameter(1, $tblDivisionCourse->getId())
+                ->setParameter(2, $tblYear->getId())
                 ->distinct()
                 ->getQuery();
 
