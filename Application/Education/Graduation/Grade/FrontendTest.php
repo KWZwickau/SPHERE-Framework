@@ -57,7 +57,6 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -616,13 +615,13 @@ abstract class FrontendTest extends FrontendTeacherGroup
         $hasIntegration = !empty($integrationList);
         $hasCourse = !empty($courseList);
         $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
-        $headerList['Grade'] = 'Zensur';
+        $headerList['Grade'] = $this->getTableColumnHead('Zensur');
         if ($tblTest->getIsContinues()) {
-            $headerList['Date'] = 'Datum' . ($tblTest->getFinishDateString() ? ' (' . $tblTest->getFinishDateString() . ')' : '');
+            $headerList['Date'] = $this->getTableColumnHead('Datum' . ($tblTest->getFinishDateString() ? ' (' . $tblTest->getFinishDateString() . ')' : ''));
         }
-        $headerList['Attendance'] = 'Nicht teil&shy;genommen';
-        $headerList['Comment'] = 'Vermerk Noten&shy;änderung';
-        $headerList['PublicComment'] = 'Kommentar für Eltern-/Schülerzugang';
+        $headerList['Attendance'] = $this->getTableColumnHead('Nicht teil&shy;genommen');
+        $headerList['Comment'] = $this->getTableColumnHead('Vermerk Noten&shy;änderung');
+        $headerList['PublicComment'] = $this->getTableColumnHead('Kommentar für Eltern-/Schülerzugang');
 
         if ($tblPersonList) {
             $count = 0;
@@ -636,24 +635,14 @@ abstract class FrontendTest extends FrontendTeacherGroup
                 /** @var TblTestGrade $tblGrade */
                 $tblGrade = $tblGradeList[$tblPerson->getId()] ?? false;
 
-                $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
-                $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
-
-                if ($hasPicture) {
-                    $bodyList[$tblPerson->getId()]['Picture'] = $this->getTableColumnBody($pictureList[$tblPerson->getId()] ?? '&nbsp;');
-                }
-                if ($hasIntegration) {
-                    $bodyList[$tblPerson->getId()]['Integration'] = $this->getTableColumnBody($integrationList[$tblPerson->getId()] ?? '&nbsp;');
-                }
-                if ($hasCourse) {
-                    $bodyList[$tblPerson->getId()]['Course'] = $this->getTableColumnBody($courseList[$tblPerson->getId()] ?? '&nbsp;');
-                }
+                $bodyList[$tblPerson->getId()] = $this->getGradeBookPreBodyList($tblPerson, ++$count, $hasPicture, $hasIntegration, $hasCourse,
+                    $pictureList, $integrationList, $courseList);
 
                 // todo verschiedene Bewertungssysteme
                 $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
                     ->setTabIndex($tabIndex++)
                     ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
-                $bodyList[$tblPerson->getId()]['Grade'] = $selectComplete;
+                $bodyList[$tblPerson->getId()]['Grade'] = $this->getTableColumnBody($selectComplete);
 
                 if ($tblTest->getIsContinues()) {
                     $datePicker = (new DatePicker('Data[' . $tblPerson->getId() . '][Date]', '', '', null, array('widgetPositioning' => array('vertical' => 'bottom'))))
@@ -661,35 +650,24 @@ abstract class FrontendTest extends FrontendTeacherGroup
                     if (isset($Errors[$tblPerson->getId()]['Date'])) {
                         $datePicker->setError('Bitte geben Sie ein Datum an');
                     }
-                    $bodyList[$tblPerson->getId()]['Date'] = $datePicker;
+                    $bodyList[$tblPerson->getId()]['Date'] = $this->getTableColumnBody($datePicker);
                 }
-                $bodyList[$tblPerson->getId()]['Attendance'] = (new CheckBox('Data[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(1000 + $tabIndex);
+                $bodyList[$tblPerson->getId()]['Attendance'] = $this->getTableColumnBody(
+                    (new CheckBox('Data[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(1000 + $tabIndex)
+                );
                 $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))->setTabIndex(2000 + $tabIndex);
                 if (isset($Errors[$tblPerson->getId()]['Comment'])) {
                     $textFieldComment->setError('Bitte geben Sie einen Änderungsgrund an');
                 }
-                $bodyList[$tblPerson->getId()]['Comment'] = $textFieldComment;
-                $bodyList[$tblPerson->getId()]['PublicComment'] =
-                    (new TextField('Data[' . $tblPerson->getId() . '][PublicComment]', 'z.B.: für Betrugsversuch', '', new Comment()))->setTabIndex(3000 + $tabIndex);
+                $bodyList[$tblPerson->getId()]['Comment'] = $this->getTableColumnBody($textFieldComment);
+                $bodyList[$tblPerson->getId()]['PublicComment'] = $this->getTableColumnBody(
+                    (new TextField('Data[' . $tblPerson->getId() . '][PublicComment]', 'z.B.: für Betrugsversuch', '', new Comment()))->setTabIndex(3000 + $tabIndex)
+                );
             }
         }
 
         $formRows[] = new FormRow(new FormColumn(
-            new TableData($bodyList, null, $headerList,
-                array(
-                    "paging"         => false, // Deaktivieren Blättern
-                    "iDisplayLength" => -1,    // Alle Einträge zeigen
-                    "searching"      => false, // Deaktivieren Suchen
-                    "info"           => false,  // Deaktivieren Such-Info
-                    "responsive"   => false,
-                    'order'      => array(
-                        array('0', 'asc'),
-                    ),
-                    'columnDefs' => array(
-                        array('orderable' => false, 'targets' => '_all'),
-                    ),
-                )
-            )
+            $this->getTableCustom($headerList, $bodyList)
         ));
         if ($Errors) {
             $formRows[] = new FormRow(new FormColumn(

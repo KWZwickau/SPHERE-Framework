@@ -484,6 +484,7 @@ abstract class ServiceTask extends ServiceGradeType
                     if ($tblTask->getIsTypeBehavior()) {
                         $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('GRADES_BEHAVIOR_TASK');
                         if (($tblGradeTypes = $tblTask->getGradeTypes())) {
+                            $comment = trim($item['Comment']);
                             foreach ($tblGradeTypes as $tblGradeType) {
                                 $gradeValue = $item['GradeTypes'][$tblGradeType->getId()] ?? '';
                                 if ((!empty($gradeValue) && $gradeValue != -1)) {
@@ -492,6 +493,15 @@ abstract class ServiceTask extends ServiceGradeType
                                         if (!preg_match('!' . $pattern . '!is', $gradeValue)) {
                                             $errorList[$personId]['GradeTypes'][$tblGradeType->getId()] = true;
                                         }
+                                    }
+
+                                    // Grund bei Noten-Änderung angeben
+                                    if (empty($comment)
+                                        && ($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubjectAndGradeType(
+                                            $tblPerson, $tblTask, $tblSubject, $tblGradeType))
+                                        && $gradeValue != $tblTaskGrade->getGrade()
+                                    ) {
+                                        $errorList[$personId]['Comment'] = true;
                                     }
                                 }
                             }

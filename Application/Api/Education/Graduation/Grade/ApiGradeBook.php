@@ -607,8 +607,8 @@ class ApiGradeBook extends Extension implements IApiInterface
             $tblTeacher = Account::useService()->getPersonByLogin();
             foreach ($Data as $personId => $item) {
                 if (($tblPerson = Person::useService()->getPersonById($personId))) {
-                    $comment = trim($item['Comment']);
-                    $publicComment = trim($item['PublicComment']);
+                    $comment = trim($item['Comment']) ?: null;
+                    $publicComment = trim($item['PublicComment']) ?: null;
                     $grade = str_replace(',', '.', trim($item['Grade']));
                     $isNotAttendance = isset($item['Attendance']);
                     $date = !empty($item['Date']) ? new DateTime($item['Date']) : null;
@@ -618,12 +618,19 @@ class ApiGradeBook extends Extension implements IApiInterface
 
                     if (($tblTestGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson))) {
                         if ($hasGradeValue) {
-                            $tblTestGrade->setDate($date);
-                            $tblTestGrade->setGrade($gradeValue);
-                            $tblTestGrade->setComment($comment);
-                            $tblTestGrade->setPublicComment($publicComment);
-                            $tblTestGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
-                            $updateList[] = $tblTestGrade;
+                            // nur updaten bei wirklicher Änderung, ansonsten wird eventuell ein anderer Lehrer gespeichert
+                            if ($gradeValue != $tblTestGrade->getGrade()
+                                || $date != $tblTestGrade->getDate()
+                                || $comment != $tblTestGrade->getComment()
+                                || $publicComment != $tblTestGrade->getPublicComment()
+                            ) {
+                                $tblTestGrade->setGrade($gradeValue);
+                                $tblTestGrade->setDate($date);
+                                $tblTestGrade->setComment($comment);
+                                $tblTestGrade->setPublicComment($publicComment);
+                                $tblTestGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
+                                $updateList[] = $tblTestGrade;
+                            }
                         } else {
                             $deleteList[] = $tblTestGrade;
                         }
@@ -841,6 +848,7 @@ class ApiGradeBook extends Extension implements IApiInterface
                     // Kopfnoten
                     if ($tblTask->getIsTypeBehavior()) {
                         if (isset($item['GradeTypes'])) {
+                            $comment = trim($item['Comment']) ?: null;
                             foreach ($item['GradeTypes'] as $gradeTypeId => $value) {
                                 if (($tblGradeType = Grade::useService()->getGradeTypeById($gradeTypeId))) {
                                     $gradeValue = str_replace(',', '.', trim($value));
@@ -849,8 +857,12 @@ class ApiGradeBook extends Extension implements IApiInterface
                                         $tblPerson, $tblTask, $tblSubject, $tblGradeType
                                     ))) {
                                         if ($hasGradeValue) {
-                                            if ($gradeValue != $tblTaskGrade->getGrade()) {
+                                            // nur updaten bei wirklicher Änderung, ansonsten wird eventuell ein anderer Lehrer gespeichert
+                                            if ($gradeValue != $tblTaskGrade->getGrade()
+                                                || $comment != $tblTaskGrade->getComment()
+                                            ) {
                                                 $tblTaskGrade->setGrade($gradeValue);
+                                                $tblTaskGrade->setComment($comment);
                                                 $tblTaskGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
                                                 $updateList[] = $tblTaskGrade;
                                             }
@@ -859,8 +871,8 @@ class ApiGradeBook extends Extension implements IApiInterface
                                         }
                                     } else {
                                         if ($hasGradeValue) {
-                                            $createList[] = new TblTaskGrade($tblPerson, $tblSubject, $tblTask, $tblGradeType, $gradeValue, null, null,
-                                                $tblTeacher ?: null);
+                                            $createList[] = new TblTaskGrade(
+                                                $tblPerson, $tblSubject, $tblTask, $tblGradeType, $gradeValue, null, $comment, $tblTeacher ?: null);
                                         }
                                     }
                                 }
@@ -869,7 +881,7 @@ class ApiGradeBook extends Extension implements IApiInterface
 
                     // Stichtagsnoten
                     } else {
-                        $comment = trim($item['Comment']);
+                        $comment = trim($item['Comment']) ?: null;
                         $tblGradeText = isset($item['GradeText']) ? Grade::useService()->getGradeTextById($item['GradeText']) : null;
                         $gradeTextId = $tblGradeText ? $tblGradeText->getId() : 0;
                         if ($tblGradeText) {
@@ -882,7 +894,11 @@ class ApiGradeBook extends Extension implements IApiInterface
                             if ($hasGradeValue) {
                                 $tblGradeTextTemp = $tblTaskGrade->getTblGradeText();
                                 $gradeTextTempId = $tblGradeTextTemp ? $tblGradeTextTemp->getId() : 0;
-                                if ($gradeValue != $tblTaskGrade->getGrade() || $comment != $tblTaskGrade->getComment() || $gradeTextId != $gradeTextTempId) {
+                                // nur updaten bei wirklicher Änderung, ansonsten wird eventuell ein anderer Lehrer gespeichert
+                                if ($gradeValue != $tblTaskGrade->getGrade()
+                                    || $gradeTextId != $gradeTextTempId
+                                    || $comment != $tblTaskGrade->getComment()
+                                ) {
                                     $tblTaskGrade->setGrade($gradeValue);
                                     $tblTaskGrade->setTblGradeText($tblGradeText ?: null);
                                     $tblTaskGrade->setComment($comment);
@@ -894,7 +910,8 @@ class ApiGradeBook extends Extension implements IApiInterface
                             }
                         } else {
                             if ($hasGradeValue) {
-                                $createList[] = new TblTaskGrade($tblPerson, $tblSubject, $tblTask, null, $gradeValue, $tblGradeText ?: null, $comment, $tblTeacher ?: null);
+                                $createList[] = new TblTaskGrade(
+                                    $tblPerson, $tblSubject, $tblTask, null, $gradeValue, $tblGradeText ?: null, $comment, $tblTeacher ?: null);
                             }
                         }
                     }
@@ -997,7 +1014,7 @@ class ApiGradeBook extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineChangeGradeText($gradeTextId, $personId)
+    public static function pipelineChangeGradeText($gradeTextId, $personId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ChangeGradeText_' . $personId), self::getEndpoint());

@@ -172,7 +172,7 @@ class Frontend extends FrontendTest
             $hasPicture = !empty($pictureList);
             $hasIntegration = !empty($integrationList);
             $hasCourse = !empty($courseList);
-            $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse, true);
+            $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
             $taskListIsEdit = array();
             $this->setGradeBookHeaderList($headerList, $taskListIsEdit, $tblTestListNoTeacherLectureship,
                 $tblDivisionCourse, $tblTestList, $isEdit, $isCheckTeacherLectureship, $SubjectId, $Filter);
@@ -184,17 +184,8 @@ class Frontend extends FrontendTest
                         && $tblVirtualSubject->getHasGrading()
                     ) {
 //                        $bodyList[$tblPerson->getId()]['Number'] = ($this->getTableColumnBody(++$count))->setClass("tableFixFirstColumn");
-                        $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
-                        $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
-                        if ($hasPicture) {
-                            $bodyList[$tblPerson->getId()]['Picture'] = $this->getTableColumnBody($pictureList[$tblPerson->getId()] ?? '&nbsp;');
-                        }
-                        if ($hasIntegration) {
-                            $bodyList[$tblPerson->getId()]['Integration'] = $this->getTableColumnBody($integrationList[$tblPerson->getId()] ?? '&nbsp;');
-                        }
-                        if ($hasCourse) {
-                            $bodyList[$tblPerson->getId()]['Course'] = $this->getTableColumnBody($courseList[$tblPerson->getId()] ?? '&nbsp;');
-                        }
+                        $bodyList[$tblPerson->getId()] = $this->getGradeBookPreBodyList($tblPerson, ++$count, $hasPicture, $hasIntegration, $hasCourse,
+                            $pictureList, $integrationList, $courseList);
 
                         foreach ($headerList as $key => $value) {
                             // Leistungsüberprüfung
@@ -227,7 +218,7 @@ class Frontend extends FrontendTest
                                         ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTaskGradeEditContent($DivisionCourseId, $tblSubject->getId(), $Filter, $taskId));
                                 }
 
-                                $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody($contentGrade, self::BACKGROUND_COLOR_TASK_BODY);
+                                $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody($contentGrade, self::BACKGROUND_COLOR_TASK_BODY == '#FFFFFF' ? null : self::BACKGROUND_COLOR_TASK_BODY);
                             }
                         }
                     }
@@ -490,7 +481,7 @@ class Frontend extends FrontendTest
             $content = new Container(new ToolTip($text, $toolTip));
         }
 
-        return $this->getTableColumnHead($content, true, 1, self::BACKGROUND_COLOR_TASK_HEADER);
+        return $this->getTableColumnHead($content, true, self::BACKGROUND_COLOR_TASK_HEADER);
     }
 
     /**
@@ -607,6 +598,7 @@ class Frontend extends FrontendTest
                             if ($tblTask->getIsTypeBehavior()) {
                                 if (($tblGradeType = $tblTaskGrade->getTblGradeType())) {
                                     $global->POST['Data'][$tblPerson->getId()]['GradeTypes'][$tblGradeType->getId()] = $tblTaskGrade->getGrade();
+                                    $global->POST['Data'][$tblPerson->getId()]['Comment'] = $tblTaskGrade->getComment();
                                 }
                             } else {
                                 $gradeValue = str_replace('.', ',', $tblTaskGrade->getGrade());
@@ -626,7 +618,7 @@ class Frontend extends FrontendTest
         $hasPicture = !empty($pictureList);
         $hasIntegration = !empty($integrationList);
         $hasCourse = !empty($courseList);
-        $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse, true);
+        $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
 
         // Stichtagsnotenauftrag
         if (!$tblTask->getIsTypeBehavior()) {
@@ -670,18 +662,8 @@ class Frontend extends FrontendTest
                 /** @var TblTaskGrade $tblGrade */
                 $tblGrade = $tblTaskGradeList[$tblPerson->getId()] ?? false;
 
-                $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
-                $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
-
-                if ($hasPicture) {
-                    $bodyList[$tblPerson->getId()]['Picture'] = $this->getTableColumnBody($pictureList[$tblPerson->getId()] ?? '&nbsp;');
-                }
-                if ($hasIntegration) {
-                    $bodyList[$tblPerson->getId()]['Integration'] = $this->getTableColumnBody($integrationList[$tblPerson->getId()] ?? '&nbsp;');
-                }
-                if ($hasCourse) {
-                    $bodyList[$tblPerson->getId()]['Course'] = $this->getTableColumnBody($courseList[$tblPerson->getId()] ?? '&nbsp;');
-                }
+                $bodyList[$tblPerson->getId()] = $this->getGradeBookPreBodyList($tblPerson, ++$count, $hasPicture, $hasIntegration, $hasCourse,
+                    $pictureList, $integrationList, $courseList);
 
                 // Kopfnoten
                 if ($tblTask->getIsTypeBehavior()) {
@@ -707,10 +689,21 @@ class Frontend extends FrontendTest
                             if (isset($Errors[$tblPerson->getId()]['GradeTypes'][$tblGradeType->getId()])) {
                                 $selectComplete->setError('Bitte geben Sie eine gültige Kopfnote ein');
                             }
-
                             $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody($selectComplete);
                         }
                     }
+
+                    // Kommentar Notenänderung
+                    if (!isset($headerList['Comment'])) {
+                        $headerList['Comment'] = $this->getTableColumnHead('Vermerk Noten&shy;änderung');
+                    }
+
+                    $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))
+                        ->setTabIndex(1000 + $tabIndex);
+                    if (isset($Errors[$tblPerson->getId()]['Comment'])) {
+                        $textFieldComment->setError('Bitte geben Sie einen Änderungsgrund an');
+                    }
+                    $bodyList[$tblPerson->getId()]['Comment'] = $this->getTableColumnBody($textFieldComment);
                 // Stichtagsnoten
                 } else {
                     // Zensuren bis zum Stichtag
@@ -808,7 +801,9 @@ class Frontend extends FrontendTest
                         if ($dateGrade <= $dateTask
                             && ($tblTestGrade->getGrade() !== null)
                         ) {
-                            $tblTestGradeValueList[$tblPerson->getId()][$tblTest->getId()] = $tblTestGrade->getGrade();
+                            $tblTestGradeValueList[$tblPerson->getId()][$tblTest->getId()] = $tblTest->getTblGradeType()->getIsHighlighted()
+                                ? new Bold($tblTestGrade->getGrade())
+                                : $tblTestGrade->getGrade();
 
                             if (!isset($tblTestList[$tblTest->getId()])) {
                                 $tblTestList[$tblTest->getId()] = $tblTest;
