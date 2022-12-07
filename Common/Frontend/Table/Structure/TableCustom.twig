@@ -1,7 +1,8 @@
 {% if( TableTitle is not empty ) %}
     {{ TableTitle }}
 {% endif %}
-<table class="table tableFixHead table-bordered table-condensed table-striped" style="margin-bottom: 8px;">
+<style>table#table_{{ Hash }} div.form-group{width: 100%;}</style>
+<table id="table_{{ Hash }}" class="table tableFixHead table-bordered table-condensed table-striped form-inline" style="margin-bottom: 8px;">
     <thead>
     {% for TableHead in HeadList %}
         {% for TableRow in TableHead.getTableRow %}
