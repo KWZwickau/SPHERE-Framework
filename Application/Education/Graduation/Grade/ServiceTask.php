@@ -19,7 +19,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 
-abstract class ServiceTask extends ServiceGradeType
+abstract class ServiceTask extends ServiceScore
 {
     /**
      * @param TblYear $tblYear

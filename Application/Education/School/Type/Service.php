@@ -168,4 +168,22 @@ class Service extends AbstractService
             default: return false;
         }
     }
+
+    /**
+     * @param TblType $tblType
+     *
+     * @return false|int
+     */
+    public function getMinLevelByType(TblType $tblType)
+    {
+        switch ($tblType->getShortName()) {
+            case 'ISS':
+            case 'OS':
+            case 'Gy': return 5;
+
+            case 'BGy': return 11;
+            // todo weitere Schularten
+            default: return 1;
+        }
+    }
 }

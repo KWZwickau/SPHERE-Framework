@@ -166,4 +166,12 @@ class TblType extends Element
     {
         return Type::useService()->getMaxLevelByType($this);
     }
+
+    /**
+     * @return false|int
+     */
+    public function getMinLevel()
+    {
+        return Type::useService()->getMinLevelByType($this);
+    }
 }

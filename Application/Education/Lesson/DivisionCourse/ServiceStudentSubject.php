@@ -521,7 +521,7 @@ abstract class ServiceStudentSubject extends AbstractService
      * @param TblDivisionCourse $tblDivisionCourse
      * @param bool $hasGrading
      *
-     * @return array|false
+     * @return TblSubject[]|false
      */
     public function getSubjectListByDivisionCourse(TblDivisionCourse $tblDivisionCourse, bool $hasGrading = true)
     {
@@ -532,60 +532,101 @@ abstract class ServiceStudentSubject extends AbstractService
         } elseif (($tblPersonList = $tblDivisionCourse->getStudents())
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
-            $schoolTypeLevelList = array();
-            $tblSubjectTableListNotFixed = array();
-            foreach ($tblPersonList as $tblPerson) {
-                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
-                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
-                    && ($level = $tblStudentEducation->getLevel())
+            if (!($tblSubjectList = $this->getSubjectListByPersonListAndYear($tblPersonList, $tblYear, $hasGrading))) {
+                return false;
+            }
+        }
+
+        return empty($tblSubjectList) ? false : $tblSubjectList;
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int $level
+     * @param TblYear $tblYear
+     * @param bool $hasGrading
+     *
+     * @return false|TblSubject[]
+     */
+    public function getSubjectListBySchoolTypeAndLevelAndYear(TblType $tblSchoolType, int $level, TblYear $tblYear, bool $hasGrading = true)
+    {
+        $tblPersonList = array();
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear, $tblSchoolType, $level))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (($tblPerson = $tblStudentEducation->getServiceTblPerson())
+                    && !isset($tblPersonList[$tblPerson->getId()])
                 ) {
-                    // Stundentafel
-                    if (!isset($schoolTypeLevelList[$tblSchoolType->getId()][$level])) {
-                        $schoolTypeLevelList[$tblSchoolType->getId()][$level] = 1;
-                        if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
-                            foreach ($tblSubjectTableList as $tblSubjectTable) {
-                                // Benotung
-                                if ($hasGrading && !$tblSubjectTable->getHasGrading()) {
-                                    continue;
-                                }
+                    $tblPersonList[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+        }
 
-                                // feste Fächer der Stundentafel
-                                if ($tblSubjectTable->getIsFixed()) {
-                                    if (($tblSubject = $tblSubjectTable->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
-                                        $tblSubjectList[$tblSubject->getId()] = $tblSubject;
-                                    }
-                                // Virtuelle Fächer der Schülerakte
-                                } else {
-                                    if ($tblSubjectTable->getStudentMetaIdentifier() && !isset($tblSubjectTableListNotFixed[$tblSubjectTable->getId()])) {
-                                        $tblSubjectTableListNotFixed[$tblSubjectTable->getId()] = $tblSubjectTable;
-                                    }
-                                }
+        return empty($tblPersonList) ? false : $this->getSubjectListByPersonListAndYear($tblPersonList, $tblYear, $hasGrading);
+    }
+
+    /**
+     * @param array $tblPersonList
+     * @param TblYear $tblYear
+     * @param bool $hasGrading
+     *
+     * @return TblSubject[]|false
+     */
+    public function getSubjectListByPersonListAndYear(array $tblPersonList, TblYear $tblYear, bool $hasGrading = true)
+    {
+        $tblSubjectList = array();
+        $schoolTypeLevelList = array();
+        $tblSubjectTableListNotFixed = array();
+        foreach ($tblPersonList as $tblPerson) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && ($level = $tblStudentEducation->getLevel())
+            ) {
+                // Stundentafel
+                if (!isset($schoolTypeLevelList[$tblSchoolType->getId()][$level])) {
+                    $schoolTypeLevelList[$tblSchoolType->getId()][$level] = 1;
+                    if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
+                        foreach ($tblSubjectTableList as $tblSubjectTable) {
+                            // Benotung
+                            if ($hasGrading && !$tblSubjectTable->getHasGrading()) {
+                                continue;
                             }
-                        }
-                    }
 
-                    // feste Fächer am Schüler
-                    if (($tblSubjectStudentList = $this->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, $hasGrading ?: null))) {
-                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                            if (($tblSubject = $tblSubjectStudent->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
-                                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                            // feste Fächer der Stundentafel
+                            if ($tblSubjectTable->getIsFixed()) {
+                                if (($tblSubject = $tblSubjectTable->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
+                                    $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                                }
+                                // Virtuelle Fächer der Schülerakte
+                            } else {
+                                if ($tblSubjectTable->getStudentMetaIdentifier() && !isset($tblSubjectTableListNotFixed[$tblSubjectTable->getId()])) {
+                                    $tblSubjectTableListNotFixed[$tblSubjectTable->getId()] = $tblSubjectTable;
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            if (!empty($tblSubjectTableListNotFixed)) {
-                 foreach ($tblSubjectTableListNotFixed as $tblSubjectTable)
-                 {
-                     foreach ($tblPersonList as $tblPerson) {
-                         if (($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))
-                             && !isset($tblSubjectList[$tblSubject->getId()])
-                         ) {
-                             $tblSubjectList[$tblSubject->getId()] = $tblSubject;
-                         }
-                     }
-                 }
+                // feste Fächer am Schüler
+                if (($tblSubjectStudentList = $this->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, $hasGrading ?: null))) {
+                    foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                        if (($tblSubject = $tblSubjectStudent->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
+                            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($tblSubjectTableListNotFixed)) {
+            foreach ($tblSubjectTableListNotFixed as $tblSubjectTable)
+            {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))
+                        && !isset($tblSubjectList[$tblSubject->getId()])
+                    ) {
+                        $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                    }
+                }
             }
         }
 

@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -76,5 +78,13 @@ class TblScoreType extends Element
     public function setPattern(string $Pattern): void
     {
         $this->Pattern = $Pattern;
+    }
+
+    /**
+     * @return false|Score\TblScoreTypeSubject[]
+     */
+    public function getScoreTypeSubjects(?TblType $tblSchoolType = null)
+    {
+        return Grade::useService()->getScoreTypeSubjectListByScoreType($this, $tblSchoolType);
     }
 }

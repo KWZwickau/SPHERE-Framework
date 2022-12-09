@@ -6,6 +6,7 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\ClipBoard;
+use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -21,6 +22,10 @@ class Grade  implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\GradeType'), new Link\Name('Zensuren-Typ'),
                 new Link\Icon(new Tag()))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'\ScoreType'), new Link\Name('Bewertungssystem'),
+                new Link\Icon(new Quantity()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\GradeBook'), new Link\Name('Notenbuch'), new Link\Icon(new Book()))
@@ -44,6 +49,16 @@ class Grade  implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Activate', __NAMESPACE__.'\Frontend::frontendActivateGradeType')
+        );
+
+        // Bewertungssystem
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreType',
+                __NAMESPACE__.'\Frontend::frontendScoreType')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreType\Edit',
+                __NAMESPACE__.'\Frontend::frontendScoreTypeEdit')
         );
 
         // Notenbuch

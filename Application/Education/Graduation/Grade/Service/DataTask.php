@@ -15,7 +15,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
-abstract class DataTask extends DataMigrate
+abstract class DataTask extends DataScore
 {
     /**
      * @param $id

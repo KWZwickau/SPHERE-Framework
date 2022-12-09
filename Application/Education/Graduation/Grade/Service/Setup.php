@@ -34,6 +34,9 @@ class Setup  extends AbstractSetup
         $this->setTableTaskCourseLink($schema, $tblTask);
         $this->setTableTaskGradeTypeLink($schema, $tblTask, $tblGradeType);
 
+        // Score
+        $this->setTableScoreTypeSubject($schema, $tblScoreType);
+
         /**
          * Migration & Protocol
          */
@@ -244,4 +247,29 @@ class Setup  extends AbstractSetup
 
         return $table;
     }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblScoreType
+     */
+    private function setTableScoreTypeSubject(Schema &$schema, Table $tblScoreType)
+    {
+        $table = $this->createTable($schema, 'tblGraduationScoreTypeSubject');
+        $this->createColumn($table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Level', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createForeignKey($table, $tblScoreType);
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblScoreRule
+     */
+//    private function setTableScoreDivisionCourseSubject(Schema &$schema, Table $tblScoreRule)
+//    {
+//        $table = $this->createTable($schema, 'tblGraduationScoreRuleSubjectDivisionCourse');
+//        $this->createColumn($table, 'serviceTblDivisionCourse', self::FIELD_TYPE_BIGINT);
+//        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+//        $this->createForeignKey($table, $tblScoreRule);
+//    }
 }
