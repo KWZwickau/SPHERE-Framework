@@ -613,7 +613,7 @@ class ApiGradeBook extends Extension implements IApiInterface
                     $isNotAttendance = isset($item['Attendance']);
                     $date = !empty($item['Date']) ? new DateTime($item['Date']) : null;
 
-                    $hasGradeValue = (!empty($grade) && $grade != -1) || $isNotAttendance;
+                    $hasGradeValue = $grade === '0' || (!empty($grade) && $grade != -1) || $isNotAttendance;
                     $gradeValue = $isNotAttendance ? null : $grade;
 
                     if (($tblTestGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson))) {
@@ -852,7 +852,7 @@ class ApiGradeBook extends Extension implements IApiInterface
                             foreach ($item['GradeTypes'] as $gradeTypeId => $value) {
                                 if (($tblGradeType = Grade::useService()->getGradeTypeById($gradeTypeId))) {
                                     $gradeValue = str_replace(',', '.', trim($value));
-                                    $hasGradeValue = !empty($gradeValue) && $gradeValue != -1;
+                                    $hasGradeValue = $gradeValue === '0' || (!empty($gradeValue) && $gradeValue != -1);
                                     if (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubjectAndGradeType(
                                         $tblPerson, $tblTask, $tblSubject, $tblGradeType
                                     ))) {
@@ -889,7 +889,7 @@ class ApiGradeBook extends Extension implements IApiInterface
                         } else {
                             $gradeValue = str_replace(',', '.', trim($item['Grade']));
                         }
-                        $hasGradeValue = (!empty($gradeValue) && $gradeValue != -1) || $tblGradeText;
+                        $hasGradeValue = $gradeValue === '0' || (!empty($gradeValue) && $gradeValue != -1) || $tblGradeText;
                         if (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblTask, $tblSubject))) {
                             if ($hasGradeValue) {
                                 $tblGradeTextTemp = $tblTaskGrade->getTblGradeText();

@@ -487,7 +487,7 @@ abstract class ServiceTask extends ServiceScore
                             $comment = trim($item['Comment']);
                             foreach ($tblGradeTypes as $tblGradeType) {
                                 $gradeValue = $item['GradeTypes'][$tblGradeType->getId()] ?? '';
-                                if ((!empty($gradeValue) && $gradeValue != -1)) {
+                                if ($gradeValue === '0' || (!empty($gradeValue) && $gradeValue != -1)) {
                                     // Bewertungssystem Pattern prüfen
                                     if ($tblScoreType && ($pattern = $tblScoreType->getPattern())) {
                                         if (!preg_match('!' . $pattern . '!is', $gradeValue)) {
@@ -514,7 +514,7 @@ abstract class ServiceTask extends ServiceScore
                         }
                         $comment = trim($item['Comment']);
                         $gradeValue = str_replace(',', '.', trim($item['Grade']));
-                        if (!empty($gradeValue) && $gradeValue != -1) {
+                        if ($gradeValue === '0' || (!empty($gradeValue) && $gradeValue != -1)) {
                             // Bewertungssystem Pattern prüfen
                             if ($tblScoreType && ($pattern = $tblScoreType->getPattern())) {
                                 if (!preg_match('!' . $pattern . '!is', $gradeValue)) {

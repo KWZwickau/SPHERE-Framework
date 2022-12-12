@@ -506,15 +506,23 @@ class Service extends ServiceTask
         if ($Data) {
             foreach ($Data as $personId => $item) {
                 if (($tblPerson = Person::useService()->getPersonById($personId))) {
-                    // todo pattern abhängig vom Bewertungssystem prüfen
-
                     $comment = trim($item['Comment']);
                     $grade = str_replace(',', '.', trim($item['Grade']));
                     $isNotAttendance = isset($item['Attendance']);
                     $date = !empty($item['Date']) ? new DateTime($item['Date']) : null;
 
-                    $hasGradeValue = (!empty($grade) && $grade != -1) || $isNotAttendance;
+                    $hasGradeValue = $grade === '0' || (!empty($grade) && $grade != -1) || $isNotAttendance;
                     $gradeValue = $isNotAttendance ? null : $grade;
+
+                    // Bewertungssystem Pattern prüfen
+                    if ($hasGradeValue
+                        && ($tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                        && ($pattern = $tblScoreType->getPattern())
+                    ) {
+                        if (!preg_match('!' . $pattern . '!is', $gradeValue)) {
+                            $errorList[$personId]['Grade'] = true;
+                        }
+                    }
 
                     // Grund bei Noten-Änderung angeben
                     if ($hasGradeValue

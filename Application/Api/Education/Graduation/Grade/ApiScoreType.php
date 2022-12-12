@@ -5,7 +5,7 @@ namespace SPHERE\Application\Api\Education\Graduation\Grade;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
-use SPHERE\Application\Education\Graduation\Grade\Service\Entity\Score\TblScoreTypeSubject;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
@@ -91,7 +91,7 @@ class ApiScoreType extends Extension implements IApiInterface
     public static function pipelineSaveScoreTypeEdit($ScoreTypeId): Pipeline
     {
         $Pipeline = new Pipeline();
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ScoreTypeSubjectsContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'saveScoreTypeEdit'
         ));
@@ -145,7 +145,7 @@ class ApiScoreType extends Extension implements IApiInterface
                             continue;
                         // update
                         } elseif (($tblScoreTypeSubject = Grade::useService()->getScoreTypeSubjectBySchoolTypeAndLevelAndSubject($tblSchoolType, $level, $tblSubject))) {
-                            $tblScoreTypeSubject->setScoreType($tblScoreType);
+                            $tblScoreTypeSubject->setTblScoreType($tblScoreType);
                             $updateList[] = $tblScoreTypeSubject;
                         // neu
                         } else {

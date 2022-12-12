@@ -43,6 +43,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Quote;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -627,22 +628,15 @@ abstract class FrontendTest extends FrontendTeacherGroup
             $count = 0;
             $tabIndex = 1;
 
-            // todo bewertungssystem abhängig vom Schüler
-            $tblScoreType = Grade::useService()->getScoreTypeById(1);
-            $selectList = Grade::useService()->getGradeSelectListByScoreType($tblScoreType);
-
             foreach ($tblPersonList as $tblPerson) {
                 /** @var TblTestGrade $tblGrade */
-                $tblGrade = $tblGradeList[$tblPerson->getId()] ?? false;
+                $tblGrade = $tblGradeList[$tblPerson->getId()] ?? null;
 
                 $bodyList[$tblPerson->getId()] = $this->getGradeBookPreBodyList($tblPerson, ++$count, $hasPicture, $hasIntegration, $hasCourse,
                     $pictureList, $integrationList, $courseList);
 
-                // todo verschiedene Bewertungssysteme
-                $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
-                    ->setTabIndex($tabIndex++)
-                    ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
-                $bodyList[$tblPerson->getId()]['Grade'] = $this->getTableColumnBody($selectComplete);
+                $bodyList[$tblPerson->getId()]['Grade'] = $this->getTableColumnBody(
+                    $this->getGradeInput($tblPerson, $tblYear, $tblSubject, $tblGrade, $tabIndex, $Errors));
 
                 if ($tblTest->getIsContinues()) {
                     $datePicker = (new DatePicker('Data[' . $tblPerson->getId() . '][Date]', '', '', null, array('widgetPositioning' => array('vertical' => 'bottom'))))
@@ -682,6 +676,38 @@ abstract class FrontendTest extends FrontendTeacherGroup
         )));
 
         return (new Form(new FormGroup($formRows)))->disableSubmitAction();
+    }
+
+    private function getGradeInput(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, ?TblTestGrade $tblGrade, int &$tabIndex, $Errors)
+    {
+        if (($tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+            switch ($tblScoreType->getIdentifier()) {
+                case 'VERBAL':
+                    $inputField = (new TextField('Data[' . $tblPerson->getId() . '][Grade]', '', '', new Quote()))
+                        ->setTabIndex($tabIndex++)
+                        ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
+                    break;
+                case 'GRADES_V1':
+                case 'GRADES_COMMA':
+                    $inputField = (new TextField('Data[' . $tblPerson->getId() . '][Grade]', '', ''))
+                        ->setTabIndex($tabIndex++)
+                        ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
+                    break;
+                default:
+                    $selectList = Grade::useService()->getGradeSelectListByScoreType($tblScoreType);
+                    $inputField = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
+                        ->setTabIndex($tabIndex++)
+                        ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
+            }
+
+            if (isset($Errors[$tblPerson->getId()]['Grade'])) {
+                $inputField->setError('Die Eingegebene Zensur entspricht nicht dem Pattern des eingestellten Bewertungssystems!');
+            }
+        } else {
+            $inputField = new \SPHERE\Common\Frontend\Text\Repository\Warning('Kein Bewertungssystem hinterlegt!');
+        }
+
+        return $inputField;
     }
 
     /**

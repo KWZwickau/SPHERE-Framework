@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -107,7 +108,6 @@ abstract class FrontendScoreType extends FrontendGradeType
                     Panel::PANEL_TYPE_INFO
                 )
                 . new Well($this->formScoreType($tblScoreType, true))
-                . ApiScoreType::receiverBlock('', 'Content')
             );
         } else {
             $Stage->setContent(new Danger('Berechnungsvorschrift nicht gefunden.', new Exclamation()));
@@ -153,11 +153,18 @@ abstract class FrontendScoreType extends FrontendGradeType
     public function loadScoreTypeSubjects(TblScoreType $tblScoreType, $Data = null): string
     {
         if ((isset($Data['SchoolType']) && ($tblSchoolType = Type::useService()->getTypeById($Data['SchoolType'])))) {
-            if (($tblScoreTypeSubjectList = $tblScoreType->getScoreTypeSubjects($tblSchoolType))) {
+            $list = array();
+            if (($tblScoreTypeSubjectList = Grade::useService()->getScoreTypeSubjectListBySchoolType($tblSchoolType))) {
                 $global = $this->getGlobal();
                 foreach ($tblScoreTypeSubjectList as $tblScoreTypeSubject) {
-                    if (($tblSubject = $tblScoreTypeSubject->getServiceTblSubject())) {
-                        $global->POST['Data']['Subjects'][$tblScoreTypeSubject->getLevel()][$tblSubject->getId()] = 1;
+                    if (($tblSubject = $tblScoreTypeSubject->getServiceTblSubject())
+                        && ($tblScoreTypeTemp = $tblScoreTypeSubject->getTblScoreType())
+                    ) {
+                        if ($tblScoreType->getId() == $tblScoreTypeTemp->getId()) {
+                            $global->POST['Data']['Subjects'][$tblScoreTypeSubject->getLevel()][$tblSubject->getId()] = 1;
+                        } else {
+                            $list[$tblScoreTypeSubject->getLevel()][$tblSubject->getId()] = ' ' . new Label($tblScoreTypeTemp->getName(), Label::LABEL_TYPE_PRIMARY);
+                         }
                     }
                 }
                 $global->savePost();
@@ -178,7 +185,8 @@ abstract class FrontendScoreType extends FrontendGradeType
                             foreach ($tblSubjectList as $tblSubject) {
                                 $name = 'Data[Subjects][' . $level . '][' . $tblSubject->getId() .']';
                                 $toggleList[$level][$tblSubject->getId()] = $name;
-                                $contentPanelList[$level][$tblSubject->getId()] = new CheckBox($name, $tblSubject->getDisplayName(), 1);
+                                $contentPanelList[$level][$tblSubject->getId()] =
+                                    new CheckBox($name, $tblSubject->getDisplayName() . ($list[$level][$tblSubject->getId()] ?? ''), 1);
                             }
                         }
                     }

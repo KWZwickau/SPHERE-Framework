@@ -2,8 +2,8 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade\Service;
 
-use SPHERE\Application\Education\Graduation\Grade\Service\Entity\Score\TblScoreTypeSubject;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -51,7 +51,19 @@ abstract class DataScore extends DataMigrate
             $parameters[TblScoreTypeSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE] = $tblSchoolType->getId();
         }
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'Score\TblScoreTypeSubject', $parameters);
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreTypeSubject', $parameters);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     *
+     * @return false|TblScoreTypeSubject[]
+     */
+    public function getScoreTypeSubjectListBySchoolType(TblType $tblSchoolType)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreTypeSubject', array(
+            TblScoreTypeSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE => $tblSchoolType->getId()
+        ));
     }
 
     /**
@@ -63,7 +75,7 @@ abstract class DataScore extends DataMigrate
      */
     public function getScoreTypeSubjectBySchoolTypeAndLevelAndSubject(TblType $tblSchoolType, int $level, TblSubject $tblSubject)
     {
-        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'Score\TblScoreTypeSubject', array(
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblScoreTypeSubject', array(
             TblScoreTypeSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE => $tblSchoolType->getId(),
             TblScoreTypeSubject::ATTR_LEVEL => $level,
             TblScoreTypeSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),

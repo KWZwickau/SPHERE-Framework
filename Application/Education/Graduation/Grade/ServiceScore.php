@@ -3,10 +3,13 @@
 namespace SPHERE\Application\Education\Graduation\Grade;
 
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
-use SPHERE\Application\Education\Graduation\Grade\Service\Entity\Score\TblScoreTypeSubject;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 abstract class ServiceScore extends ServiceGradeType
 {
@@ -51,6 +54,16 @@ abstract class ServiceScore extends ServiceGradeType
 
     /**
      * @param TblType $tblSchoolType
+     *
+     * @return false|TblScoreTypeSubject[]
+     */
+    public function getScoreTypeSubjectListBySchoolType(TblType $tblSchoolType)
+    {
+        return (new Data($this->getBinding()))->getScoreTypeSubjectListBySchoolType($tblSchoolType);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
      * @param int $level
      * @param TblSubject $tblSubject
      *
@@ -59,6 +72,22 @@ abstract class ServiceScore extends ServiceGradeType
     public function getScoreTypeSubjectBySchoolTypeAndLevelAndSubject(TblType $tblSchoolType, int $level, TblSubject $tblSubject)
     {
         return (new Data($this->getBinding()))->getScoreTypeSubjectBySchoolTypeAndLevelAndSubject($tblSchoolType, $level, $tblSubject);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int $level
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblScoreType
+     */
+    public function getScoreTypeBySchoolTypeAndLevelAndSubject(TblType $tblSchoolType, int $level, TblSubject $tblSubject)
+    {
+        if (($temp = (new Data($this->getBinding()))->getScoreTypeSubjectBySchoolTypeAndLevelAndSubject($tblSchoolType, $level, $tblSubject))) {
+            return $temp->getTblScoreType();
+        }
+
+        return false;
     }
 
     /**
@@ -94,5 +123,31 @@ abstract class ServiceScore extends ServiceGradeType
         }
 
         return $selectList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblScoreType
+     */
+    public function getScoreTypeByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        $tblScoreType = false;
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+        ) {
+            if (!($tblScoreType = $this->getScoreTypeBySchoolTypeAndLevelAndSubject($tblSchoolType, $tblStudentEducation->getLevel(), $tblSubject))) {
+                // Fallback, falls kein Bewertungssystem eingestellt ist
+                if (DivisionCourse::useService()->getIsCourseSystemBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel())) {
+                    $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('POINTS');
+                } else {
+                    $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('GRADES');
+                }
+            }
+        }
+
+        return $tblScoreType ?: Grade::useService()->getScoreTypeByIdentifier('GRADES');
     }
 }
