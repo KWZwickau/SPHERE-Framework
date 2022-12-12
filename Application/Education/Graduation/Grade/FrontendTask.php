@@ -635,7 +635,7 @@ abstract class FrontendTask extends FrontendScoreType
                             /** @var TblSubject $tblSubject */
                             foreach ($tblSubjectList as $tblSubject) {
                                 if (($gradeDisplay = $tblTaskGradeList[$tblSubject->getId()][$tblGradeType->getId()] ?? null)) {
-                                    if (($gradeValue = Grade::useService()->getGradeNumberValue($gradeDisplay))) {
+                                    if (($gradeValue = Grade::useService()->getGradeNumberValue($gradeDisplay)) !== null) {
                                         $sum += $gradeValue;
                                         $countGrades++;
                                     }
@@ -717,7 +717,7 @@ abstract class FrontendTask extends FrontendScoreType
                     foreach ($tblSubjectList as $tblSubject) {
                         if (isset($tblTaskGradeList[$tblSubject->getId()])) {
                             $content = $tblTaskGradeList[$tblSubject->getId()];
-                            if (($gradeValue = Grade::useService()->getGradeNumberValue($content))) {
+                            if (($gradeValue = Grade::useService()->getGradeNumberValue($content)) !== null) {
                                 $sum += $gradeValue;
                                 $countGrades++;
 

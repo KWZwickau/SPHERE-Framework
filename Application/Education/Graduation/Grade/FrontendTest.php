@@ -54,6 +54,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -526,7 +527,14 @@ abstract class FrontendTest extends FrontendTeacherGroup
                             , 3),
                         new LayoutColumn(
                             new Panel('Beschreibung', $tblTest->getDescription(), Panel::PANEL_TYPE_INFO)
-                            , 9),
+                            , 6),
+                        new LayoutColumn(
+                            new Panel(
+                                'Notenspiegel',
+                                (new Link('Notenspiegel anzeigen', ApiGradeBook::getEndpoint()))
+                                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenGradeMirrorModal($TestId)),
+                                Panel::PANEL_TYPE_INFO)
+                            , 3),
                     ))
                 )))
                 . $form;
@@ -540,6 +548,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
             )
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
+            . ApiGradeBook::receiverModal()
             . $content;
     }
 
@@ -756,5 +765,97 @@ abstract class FrontendTest extends FrontendTeacherGroup
                     )
                 )
             ));
+    }
+
+    /**
+     * @param $TestId
+     *
+     * @return string
+     */
+    public function openGradeMirrorModal($TestId): string
+    {
+        if (!($tblTest = Grade::useService()->getTestById($TestId))) {
+            return new Danger('Die Leistungsüberprüfung wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblYear = $tblTest->getServiceTblYear())) {
+            return new Danger('Das Schuljahr wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblSubject = $tblTest->getServiceTblSubject())) {
+            return new Danger('Das Fach wurde nicht gefunden', new Exclamation());
+        }
+
+        $gradeList = array();
+        if (($tblTestGradeList = $tblTest->getGrades())) {
+            foreach ($tblTestGradeList as $tblTestGrade) {
+                if (($tblPerson = $tblTestGrade->getServiceTblPerson())
+                    && ($gradeValue = $tblTestGrade->getGradeNumberValue()) !== null
+                    && ($tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                ) {
+                    // auf ganze Note runden
+                    $gradeValue = intval(round($gradeValue));
+
+                    if (!isset($gradeList[$tblScoreType->getId()])) {
+                        $gradeList[$tblScoreType->getId()]['Sum'] = 0;
+                        $gradeList[$tblScoreType->getId()]['Count'] = 0;
+                    }
+                    if (!isset($gradeList[$tblScoreType->getId()]['Mirror'][$gradeValue])) {
+                        $gradeList[$tblScoreType->getId()]['Mirror'][$gradeValue] = 0;
+                    }
+
+                    $gradeList[$tblScoreType->getId()]['Sum'] += $gradeValue;
+                    $gradeList[$tblScoreType->getId()]['Count']++;
+                    $gradeList[$tblScoreType->getId()]['Mirror'][$gradeValue]++;
+                }
+            }
+        }
+
+        $panelList = array();
+        foreach ($gradeList as $scoreTypeId => $item) {
+            if (($tblScoreType = Grade::useService()->getScoreTypeById($scoreTypeId))) {
+                $panelContent = array();
+                $panelContent[] = new Bold('Bewertungssystem: ' . $tblScoreType->getName());
+                if ($tblScoreType->getIdentifier() == 'VERBAL') {
+                    $panelContent[] = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
+                        . ' Für die verbale Bewertung ist kein Notenspiegel verfügbar.'));
+                } else {
+                    $description = 'Note';
+                    $minRange = $maxRange = 0;
+                    if ($tblScoreType->getIdentifier() == 'GRADES' || $tblScoreType->getIdentifier() == 'GRADES_COMMA') {
+                        $minRange = 1;
+                        $maxRange = 6;
+                    } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
+//                        $minRange = 0;
+                        $maxRange = 15;
+                        $description = 'Punkte ';
+                    } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1'
+                        || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK') {
+                        $minRange = 1;
+                        $maxRange = 5;
+                    }
+
+                    $sum = $item['Sum'];
+                    $count = floatval($item['Count']);
+                    for ($i = $minRange; $i <= $maxRange; $i++) {
+                        $value = $item['Mirror'][$i] ?? 0;
+                        $panelContent[] = $description . ' ' . new Bold($i) . ': ' . $value .
+                            ($count > 0 ? ' (' . (round(($value / $count) * 100)) . '%)' : '');
+                    }
+                    if ($count > 0) {
+                        $average = $sum / $count;
+                    } else {
+                        $average = '';
+                    }
+                    $panelContent[] = new Bold('Fach-Klassen &#216;: ' . ($average ? round($average, 2) : $average));
+                }
+
+                $panelList[] = new Panel(
+                    'Notenspiegel',
+                    $panelContent,
+                    Panel::PANEL_TYPE_PRIMARY
+                );
+            }
+        }
+
+        return empty($panelList) ? new Warning('Keine entsprechenden Zensuren zu der Leistungsüberprüfung vorhanden') : implode('<br>', $panelList);
     }
 }

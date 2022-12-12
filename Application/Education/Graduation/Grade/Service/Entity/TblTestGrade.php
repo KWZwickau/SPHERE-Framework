@@ -213,4 +213,12 @@ class TblTestGrade extends Element
 
         return '';
     }
+
+    /**
+     * @return float|null
+     */
+    public function getGradeNumberValue(): ?float
+    {
+        return Grade::useService()->getGradeNumberValue($this->getGrade());
+    }
 }

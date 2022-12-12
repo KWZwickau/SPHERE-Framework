@@ -66,6 +66,8 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('setGradeText');
         $Dispatcher->registerMethod('changeGradeText');
 
+        $Dispatcher->registerMethod('openGradeMirrorModal');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -1039,5 +1041,35 @@ class ApiGradeBook extends Extension implements IApiInterface
     public function changeGradeText($GradeTextId, $PersonId): SelectBox
     {
         return (new Frontend())->getGradeTextSelectBox($PersonId, $GradeTextId);
+    }
+
+    /**
+     * @param $TestId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenGradeMirrorModal($TestId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openGradeMirrorModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'TestId' => $TestId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $TestId
+     *
+     * @return String
+     */
+    public function openGradeMirrorModal($TestId): string
+    {
+        return (new Frontend())->openGradeMirrorModal($TestId);
     }
 }

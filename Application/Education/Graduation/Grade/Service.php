@@ -547,19 +547,19 @@ class Service extends ServiceTask
     /**
      * @param string|null $grade
      *
-     * @return false|float
+     * @return null|float
      */
-    public function getGradeNumberValue(?string $grade)
+    public function getGradeNumberValue(?string $grade) : ?float
     {
         if ($grade === null) {
-            return false;
+            return null;
         }
 
         $grade = str_replace('+', '', $grade);
         $grade = str_replace('-', '', $grade);
         $grade = str_replace(',', '.', $grade);
 
-        return is_numeric($grade) ? (float) $grade : false;
+        return is_numeric($grade) ? (float) $grade : null;
     }
 
     /**
