@@ -1,13 +1,12 @@
 <?php
 
-namespace SPHERE\Application\Education\Graduation\Grade\Service\Entity\Score;
+namespace SPHERE\Application\Education\Graduation\Grade\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
-use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -108,7 +107,7 @@ class TblScoreTypeSubject extends Element
     /**
      * @return false|TblScoreType
      */
-    public function getScoreType()
+    public function getTblScoreType()
     {
         return Grade::useService()->getScoreTypeById($this->tblGraduationScoreType);
     }
@@ -116,7 +115,7 @@ class TblScoreTypeSubject extends Element
     /**
      * @param TblScoreType $tblScoreType
      */
-    public function setScoreType(TblScoreType $tblScoreType)
+    public function setTblScoreType(TblScoreType $tblScoreType)
     {
         $this->tblGraduationScoreType = $tblScoreType->getId();
     }
