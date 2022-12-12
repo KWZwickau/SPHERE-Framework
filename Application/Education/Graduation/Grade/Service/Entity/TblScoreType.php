@@ -81,7 +81,7 @@ class TblScoreType extends Element
     }
 
     /**
-     * @return false|Score\TblScoreTypeSubject[]
+     * @return false|TblScoreTypeSubject[]
      */
     public function getScoreTypeSubjects(?TblType $tblSchoolType = null)
     {
