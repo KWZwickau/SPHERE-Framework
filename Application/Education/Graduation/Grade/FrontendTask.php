@@ -275,7 +275,8 @@ abstract class FrontendTask extends FrontendScoreType
             (new TextField('Data[Name]', '', 'Name'))->setRequired()
         , $TaskId ? 12 : 8);
 
-        $columnsBotton[] = new FormColumn(new SelectBox('Data[ScoreType]', 'Bewertungssystem überschreiben', array('Name' => $tblScoreTypeList)), 4);
+        $columnsBotton = array();
+//        $columnsBotton[] = new FormColumn(new SelectBox('Data[ScoreType]', 'Bewertungssystem überschreiben', array('Name' => $tblScoreTypeList)), 4);
         if (School::useService()->hasConsumerTechnicalSchool()) {
             $columnsBotton[] = new FormColumn(new CheckBox('Data[IsAllYears]', 'Notenauftrag über alle Schuljahre', 1), 8);
         }
