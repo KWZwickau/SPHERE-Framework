@@ -344,7 +344,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         } else {
-            $tblPersonList = $tblDivisionCourse->getStudents();
+            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
         }
 
         if ($tblPersonList) {
