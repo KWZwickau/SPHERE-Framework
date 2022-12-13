@@ -20,11 +20,13 @@ use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockIView;
 use SPHERE\Application\Education\Certificate\Prepare\Abitur\LeavePoints;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText;
@@ -2219,6 +2221,55 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $tblPerson->getFullName()
                                 . ' ' . ' WURDE ZUR ABSCHLUSSPRÜFUNG NICHT ZUGELASSEN / HAT DIE ABSCHLUSSPRÜFUNG NICHT BESTANDEN '
                                 . 'und kann erst nach erfolgreicher Wiederholung der Klassenstufe erneut an der Abschlussprüfung teilnehmen.';
+                        }
+                        //ToDO Jahresnoten Vorschlag zur Speicherung BFS Generalistik
+                        if($Page == 2
+                        && $tblCertificate->getName() == 'Berufsfachschule Jahreszeugnis'
+                        && $tblCertificate->getDescription() == 'Generalistik'
+                        && ($tblYear = $tblDivision->getServiceTblYear())
+                        && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier(TblTestType::TEST))
+                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                        && ($tblTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
+                        && ($tblTechnicalCourse = $tblTechnicalSchool->getServiceTblTechnicalCourse())
+                        ){
+                            if(($tblCertificateSubjectList = Setting::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse))){
+                                $GradeSum = 0;
+                                $GradeSumCount = 0;
+                                $GradePracticalSum = 0;
+                                $GradePracticalCount = 0;
+                                foreach($tblCertificateSubjectList as $tblCertificateSubject){
+                                    if(($tblSubject = $tblCertificateSubject->getServiceTblSubject())
+                                    && $tblCertificateSubject->getRanking() != 15){
+                                        if(($tblGradeList = Gradebook::useService()->getGradesAllByStudentAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblTestType))){
+                                            /** @var TblGrade $tblGrade */
+                                            foreach($tblGradeList as $tblGrade){
+                                                $GradeSum += (int)$tblGrade->getGrade();
+                                                $GradeSumCount++;
+                                            }
+                                        }
+                                    } elseif(($tblSubject = $tblCertificateSubject->getServiceTblSubject())
+                                    && $tblCertificateSubject->getRanking() == 15){
+                                        if(($tblGradeList = Gradebook::useService()->getGradesAllByStudentAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblTestType))){
+                                            /** @var TblGrade $tblGrade */
+                                            foreach($tblGradeList as $tblGrade){
+                                                $GradePracticalSum += (int)$tblGrade->getGrade();
+                                                $GradePracticalCount++;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if($GradeSumCount){
+                                    $Calc = round($GradeSum/$GradeSumCount, 2);
+                                    $Calc = str_replace('.', ',', $Calc);
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['YearGradeAverageLesson_Average'] = $Calc;
+                                }
+                                if($GradePracticalCount){
+                                    $Calc = round($GradePracticalSum/$GradePracticalCount, 2);
+                                    $Calc = str_replace('.', ',', $Calc);
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['YearGradeAveragePractical_Average'] = $Calc;
+                                }
+                            }
                         }
 
                         $Global->savePost();
