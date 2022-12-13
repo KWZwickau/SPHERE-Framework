@@ -1026,9 +1026,9 @@ class Service extends AbstractService
                         'columnDefs' => array(
                             array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                             array('width' => '60px', 'targets' => $hasColumnCourse ? 4 : 3),
-                            array('width' => '60px', 'targets' => -1),
                             array('width' => '60px', 'targets' => -2),
                             array('width' => '60px', 'targets' => -3),
+                            array('width' => '180px', 'targets' => -6),
                             array('orderable' => false, 'width' => '60px', 'targets' => -1),
                         ),
                         'responsive' => false
