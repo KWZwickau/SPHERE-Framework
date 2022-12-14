@@ -49,6 +49,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -2337,7 +2338,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $data['Number'] = $count % 5 == 0 ? new Bold($count) : $count;
                         $count++;
                         $data['Student'] = $tblPerson->getLastFirstName();
-
                         if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                             $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                                 ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
@@ -3261,9 +3261,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new ChevronLeft(), array('IsAllYears' => $IsAllYears)
             )
         );
-
+        $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         $tblCurrentDivision = Division::useService()->getDivisionById($DivisionId);
-
         $tblDivisionAllByTask = Evaluation::useService()->getDivisionAllByTask($tblTask);
         $buttonList = array();
         if ($tblDivisionAllByTask) {
@@ -3605,6 +3605,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(
                                 new LayoutColumn(array(
                                     new Title('Klasse', $tblDivision->getDisplayName()),
+                                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Education/Graduation/Evaluation/TaskGrades/Download',
+                                        new Download()
+                                    ),
                                     new TableData(
                                         isset($studentList[$tblDivision->getId()]) ? $studentList[$tblDivision->getId()] : array(),
                                         null,
