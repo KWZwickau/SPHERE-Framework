@@ -3,6 +3,9 @@
 namespace SPHERE\Application\Education\Graduation\Grade;
 
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreCondition;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroup;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -149,5 +152,53 @@ abstract class ServiceScore extends ServiceGradeType
         }
 
         return $tblScoreType ?: Grade::useService()->getScoreTypeByIdentifier('GRADES');
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblScoreRule
+     */
+    public function getScoreRuleById($id)
+    {
+        return (new Data($this->getBinding()))->getScoreRuleById($id);
+    }
+
+    /**
+     * @param bool $withInActive
+     *
+     * @return false|TblScoreRule[]
+     */
+    public function getScoreRuleAll(bool $withInActive = false)
+    {
+        return (new Data($this->getBinding()))->getScoreRuleAll($withInActive);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblScoreCondition
+     */
+    public function getScoreConditionById($id)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionById($id);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblScoreGroup
+     */
+    public function getScoreGroupById($id)
+    {
+        return (new Data($this->getBinding()))->getScoreGroupById($id);
+    }
+
+    /**
+     * @return array
+     */
+    public function migrateScoreRules(): array
+    {
+        return (new Data($this->getBinding()))->migrateScoreRules();
     }
 }

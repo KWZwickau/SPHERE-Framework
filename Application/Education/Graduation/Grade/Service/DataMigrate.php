@@ -8,6 +8,14 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest as
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreCondition;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGradeTypeList;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGroupList;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGroupRequirement;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroup;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroupGradeTypeList;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
@@ -173,7 +181,7 @@ abstract class DataMigrate extends AbstractData
         }
 
         $tblGradeTypeList = array();
-        if (($tblTemp3List = Grade::useService()->getGradeTypeList(true))) {
+        if (($tblTemp3List = Grade::useService()->getGradeTypeAll(true))) {
             foreach ($tblTemp3List as $tblTemp3) {
                 $tblGradeTypeList[$tblTemp3->getCode()] = $tblTemp3;
             }
@@ -280,5 +288,111 @@ abstract class DataMigrate extends AbstractData
         $end = hrtime(true);
 
         return round(($end - $start) / 1000000000, 2);
+    }
+
+    /**
+     * @return array
+     */
+    public function migrateScoreRules(): array
+    {
+        $count = 0;
+        $start = hrtime(true);
+
+        $Manager = $this->getEntityManager();
+
+        $tblGradeTypeList = array();
+        if (($tblTempList = Grade::useService()->getGradeTypeAll(true))) {
+            foreach ($tblTempList as $tblTemp) {
+                $tblGradeTypeList[$tblTemp->getCode()] = $tblTemp;
+            }
+        }
+
+        // TblScoreGroup
+        $tblScoreGroupList = array();
+        if (($tblTempList = Gradebook::useService()->getScoreGroupAll())) {
+            foreach ($tblTempList as $tblScoreGroupOld) {
+                $tblScoreGroup = new TblScoreGroup($tblScoreGroupOld->getName(), $tblScoreGroupOld->getMultiplier(),
+                    $tblScoreGroupOld->isEveryGradeASingleGroup(), $tblScoreGroupOld->isActive(), $tblScoreGroupOld->getId());
+                $Manager->saveEntityWithSetId($tblScoreGroup);
+                $tblScoreGroupList[$tblScoreGroup->getId()] = $tblScoreGroup;
+
+                // TblScoreGroupGradeTypeList
+                if (($tblScoreGroupGradeTypeList = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroupOld))) {
+                    foreach ($tblScoreGroupGradeTypeList as $item) {
+                        if (($tblGradeTypeOld = $item->getTblGradeType())) {
+                            $tblGradeType = $tblGradeTypeList[$tblGradeTypeOld->getCode()];
+                            $Manager->bulkSaveEntity(new TblScoreGroupGradeTypeList($item->getMultiplier(), $tblGradeType, $tblScoreGroup));
+                        }
+                    }
+                }
+            }
+        }
+
+        // TblScoreCondition
+        $tblScoreConditionList = array();
+        if (($tblTempList = Gradebook::useService()->getScoreConditionAll())) {
+            foreach ($tblTempList as $tblScoreConditionOld) {
+                $tblScoreCondition = new TblScoreCondition($tblScoreConditionOld->getName(), $tblScoreConditionOld->getPriority(),
+                    $tblScoreConditionOld->getPeriod(), $tblScoreConditionOld->isActive(), $tblScoreConditionOld->getId());
+                $Manager->saveEntityWithSetId($tblScoreCondition);
+                $tblScoreConditionList[$tblScoreCondition->getId()] = $tblScoreCondition;
+
+                // TblScoreConditionGradeTypeList
+                if (($tblScoreConditionGradeTypeList = Gradebook::useService()->getScoreConditionGradeTypeListByCondition($tblScoreConditionOld))) {
+                    foreach ($tblScoreConditionGradeTypeList as $item) {
+                        if (($tblGradeTypeOld = $item->getTblGradeType())) {
+                            $tblGradeType = $tblGradeTypeList[$tblGradeTypeOld->getCode()];
+                            $Manager->bulkSaveEntity(new TblScoreConditionGradeTypeList($item->getCount(), $tblGradeType, $tblScoreCondition));
+                        }
+                    }
+                }
+
+                // TblScoreConditionGroupList
+                if (($tblScoreConditionGroupList = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreConditionOld))) {
+                    foreach ($tblScoreConditionGroupList as $item) {
+                        if (($tblScoreGroupOld = $item->getTblScoreGroup())) {
+                            $tblScoreGroup = $tblScoreGroupList[$tblScoreGroupOld->getId()];
+                            $Manager->bulkSaveEntity(new TblScoreConditionGroupList($tblScoreGroup, $tblScoreCondition));
+                        }
+                    }
+                }
+
+                // TblScoreConditionGroupRequirement
+                if (($tblScoreConditionGroupRequirementList = Gradebook::useService()->getScoreConditionGroupRequirementAllByCondition($tblScoreConditionOld))) {
+                    foreach ($tblScoreConditionGroupRequirementList as $item) {
+                        if (($tblScoreGroupOld = $item->getTblScoreGroup())) {
+                            $tblScoreGroup = $tblScoreGroupList[$tblScoreGroupOld->getId()];
+                            $Manager->bulkSaveEntity(new TblScoreConditionGroupRequirement($item->getCount(), $tblScoreGroup, $tblScoreCondition));
+                        }
+                    }
+                }
+            }
+        }
+
+        // TblScoreRule
+        if (($tblScoreRuleList = Gradebook::useService()->getScoreRuleAll())) {
+            foreach ($tblScoreRuleList as $tblScoreRuleOld) {
+                $count++;
+                $tblScoreRule = new TblScoreRule($tblScoreRuleOld->getName(), $tblScoreRuleOld->getDescription(),
+                    $tblScoreRuleOld->getDescriptionForExtern(), $tblScoreRuleOld->isActive(), $tblScoreRuleOld->getId());
+                $Manager->saveEntityWithSetId($tblScoreRule);
+
+                // TblScoreRuleGradeTypeList
+                if (($tblScoreRuleConditionList = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRuleOld))) {
+                    foreach ($tblScoreRuleConditionList as $item) {
+                        if (($tblScoreConditionOld = $item->getTblScoreCondition())) {
+                            $tblScoreCondition = $tblScoreConditionList[$tblScoreConditionOld->getId()];
+                            $Manager->bulkSaveEntity(new TblScoreRuleConditionList($tblScoreCondition, $tblScoreRule));
+                        }
+                    }
+                }
+            }
+        }
+
+        $Manager->flushCache();
+
+        $end = hrtime(true);
+
+        return array($count, round(($end - $start) / 1000000000, 2));
     }
 }

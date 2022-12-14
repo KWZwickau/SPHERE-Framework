@@ -601,7 +601,7 @@ UPDATE ".$Acronym."_SettingConsumer.tblPrepareInformation SET Value = CONCAT(SUB
     /**
      * @return Stage
      */
-    public function frontendDivisionCourse()
+    public function frontendDivisionCourse(): Stage
     {
         $stage = new Stage('Migration Klassen zu Kursen');
         $stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
@@ -612,7 +612,8 @@ UPDATE ".$Acronym."_SettingConsumer.tblPrepareInformation SET Value = CONCAT(SUB
             $stage->setContent(new Success('Die Daten wurden bereits migriert.'));
         } else {
             $content = ApiMigrateDivision::receiverBlock('', 'MigrateDivisions')
-                . ApiMigrateDivision::receiverBlock('', 'MigrateGroups');
+                . ApiMigrateDivision::receiverBlock('', 'MigrateGroups')
+                . ApiMigrateDivision::receiverBlock('', 'MigrateScoreRules');
             if (($tblYearList = Term::useService()->getYearAll())) {
                 $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('Id');
                 /** @var TblYear $tblYear */

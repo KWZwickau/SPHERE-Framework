@@ -44,6 +44,22 @@ class TblScoreRuleSubject extends Element
     protected int $tblGraduationScoreRule;
 
     /**
+     * @param TblYear $tblYear
+     * @param TblType $tblSchoolType
+     * @param int $level
+     * @param TblSubject $tblSubject
+     * @param TblScoreRule $tblScoreRule
+     */
+    public function __construct(TblYear $tblYear, TblType $tblSchoolType, int $level, TblSubject $tblSubject, TblScoreRule $tblScoreRule)
+    {
+        $this->serviceTblYear = $tblYear->getId();
+        $this->serviceTblSchoolType = $tblSchoolType->getId();
+        $this->Level = $level;
+        $this->serviceTblSubject = $tblSubject->getId();
+        $this->tblGraduationScoreRule = $tblScoreRule->getId();
+    }
+
+    /**
      * @return bool|TblYear
      */
     public function getServiceTblYear()

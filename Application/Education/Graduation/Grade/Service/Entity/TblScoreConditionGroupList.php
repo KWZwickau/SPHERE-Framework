@@ -29,6 +29,16 @@ class TblScoreConditionGroupList extends Element
     protected int $tblGraduationScoreCondition;
 
     /**
+     * @param TblScoreGroup $tblScoreGroup
+     * @param TblScoreCondition $tblScoreCondition
+     */
+    public function __construct(TblScoreGroup $tblScoreGroup, TblScoreCondition $tblScoreCondition)
+    {
+        $this->tblGraduationScoreGroup = $tblScoreGroup->getId();
+        $this->tblGraduationScoreCondition = $tblScoreCondition->getId();
+    }
+
+    /**
      * @return TblScoreGroup|false
      */
     public function getTblScoreGroup()

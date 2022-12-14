@@ -40,6 +40,24 @@ class TblScoreCondition extends Element
     protected bool $IsActive;
 
     /**
+     * @param string $name
+     * @param string $priority
+     * @param int|null $period
+     * @param bool $isActive
+     * @param int|null $id
+     */
+    public function __construct(string $name, string $priority, ?int $period, bool $isActive, ?int $id = null)
+    {
+        $this->Name = $name;
+        $this->Priority = $priority;
+        $this->Period = $period;
+        $this->IsActive = $isActive;
+        if ($id) {
+            $this->Id = $id;
+        }
+    }
+
+    /**
      * @return string
      */
     public function getName(): string

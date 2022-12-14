@@ -36,6 +36,18 @@ class TblScoreRuleSubjectDivisionCourse extends Element
     protected int $tblGraduationScoreRule;
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     * @param TblScoreRule $tblScoreRule
+     */
+    public function __construct(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject, TblScoreRule $tblScoreRule)
+    {
+        $this->serviceTblDivisionCourse = $tblDivisionCourse->getId();
+        $this->serviceTblSubject = $tblSubject->getId();
+        $this->tblGraduationScoreRule = $tblScoreRule->getId();
+    }
+
+    /**
      * @return false|TblDivisionCourse
      */
     public function getServiceTblDivisionCourse()

@@ -15,6 +15,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblScoreRule extends Element
 {
+    const ATTR_IS_ACTIVE = 'IsActive';
+
     /**
      * @Column(type="string")
      */
@@ -31,6 +33,24 @@ class TblScoreRule extends Element
      * @Column(type="boolean")
      */
     protected bool $IsActive;
+
+    /**
+     * @param string $name
+     * @param string $description
+     * @param string $descriptionForExtern
+     * @param bool $isActive
+     * @param int|null $id
+     */
+    public function __construct(string $name, string $description, string $descriptionForExtern, bool $isActive, ?int $id = null)
+    {
+        $this->Name = $name;
+        $this->Description = $description;
+        $this->DescriptionForExtern = $descriptionForExtern;
+        $this->IsActive = $isActive;
+        if ($id) {
+            $this->Id = $id;
+        }
+    }
 
     /**
      * @return string

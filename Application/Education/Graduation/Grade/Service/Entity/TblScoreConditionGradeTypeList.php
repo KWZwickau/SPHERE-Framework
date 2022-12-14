@@ -33,6 +33,18 @@ class TblScoreConditionGradeTypeList extends Element
     protected int $tblGraduationScoreCondition;
 
     /**
+     * @param int $count
+     * @param TblGradeType $tblGradeType
+     * @param TblScoreCondition $tblScoreCondition
+     */
+    public function __construct(int $count, TblGradeType $tblGradeType, TblScoreCondition $tblScoreCondition)
+    {
+        $this->Count = $count;
+        $this->tblGraduationGradeType = $tblGradeType->getId();
+        $this->tblGraduationScoreCondition = $tblScoreCondition->getId();
+    }
+
+    /**
      * @return int
      */
     public function getCount(): int

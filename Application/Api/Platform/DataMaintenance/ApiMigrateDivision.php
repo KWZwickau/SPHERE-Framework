@@ -50,6 +50,7 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('status');
         $Dispatcher->registerMethod('migrateDivisions');
         $Dispatcher->registerMethod('migrateGroups');
+        $Dispatcher->registerMethod('migrateScoreRules');
         $Dispatcher->registerMethod('migrateYear');
         $Dispatcher->registerMethod('migrateYearItem');
 
@@ -155,6 +156,32 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
     {
         list($count, $time) = DivisionCourse::useService()->migrateTblGroupToTblDivisionCourse();
         return new Success("$count Stammgruppen erfolgreich migriert." . new PullRight("$time Sekunden"))
+            . self::pipelineMigrateScoreRules();
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineMigrateScoreRules(): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'MigrateScoreRules'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'migrateScoreRules',
+        ));
+        $ModalEmitter->setLoadingMessage('Berechnungsvorschriften werden migriert.');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return string
+     */
+    public function migrateScoreRules(): string
+    {
+        list($count, $time) = Grade::useService()->migrateScoreRules();
+        return new Success("$count Berechnungsvorschriften erfolgreich migriert." . new PullRight("$time Sekunden"))
             . (($tblNextYear = $this->getNextYear()) ? self::pipelineMigrateYear($tblNextYear->getId()) : '');
     }
 

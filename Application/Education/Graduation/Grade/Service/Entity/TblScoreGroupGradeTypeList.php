@@ -30,6 +30,18 @@ class TblScoreGroupGradeTypeList extends Element
     protected int $tblGraduationScoreGroup;
 
     /**
+     * @param string $multiplier
+     * @param TblGradeType $tblGradeType
+     * @param TblScoreGroup $tblScoreGroup
+     */
+    public function __construct(string $multiplier, TblGradeType $tblGradeType, TblScoreGroup $tblScoreGroup)
+    {
+        $this->Multiplier = $multiplier;
+        $this->tblGraduationGradeType = $tblGradeType->getId();
+        $this->tblGraduationScoreGroup = $tblScoreGroup->getId();
+    }
+
+    /**
      * @return string
      */
     public function getMultiplier(): string

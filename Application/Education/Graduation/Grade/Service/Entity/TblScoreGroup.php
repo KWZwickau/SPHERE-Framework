@@ -36,6 +36,24 @@ class TblScoreGroup extends Element
     protected bool $IsActive;
 
     /**
+     * @param string $name
+     * @param string $multiplier
+     * @param bool $isEveryGradeASingleGroup
+     * @param bool $isActive
+     * @param int|null $id
+     */
+    public function __construct(string $name, string $multiplier, bool $isEveryGradeASingleGroup, bool $isActive, ?int $id = null)
+    {
+        $this->Name = $name;
+        $this->Multiplier = $multiplier;
+        $this->IsEveryGradeASingleGroup = $isEveryGradeASingleGroup;
+        $this->IsActive = $isActive;
+        if ($id) {
+            $this->Id = $id;
+        }
+    }
+
+    /**
      * @return string
      */
     public function getName(): string

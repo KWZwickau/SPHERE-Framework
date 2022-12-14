@@ -2,6 +2,9 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade\Service;
 
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreCondition;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroup;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -105,5 +108,47 @@ abstract class DataScore extends DataMigrate
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblScoreRule
+     */
+    public function getScoreRuleById($id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblScoreRule', $id);
+    }
+
+    /**
+     * @param bool $withInActive
+     *
+     * @return false|TblScoreRule[]
+     */
+    public function getScoreRuleAll(bool $withInActive = false)
+    {
+        return $withInActive
+            ? $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblScoreRule')
+            : $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreRule', array(TblScoreRule::ATTR_IS_ACTIVE => true));
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblScoreCondition
+     */
+    public function getScoreConditionById($id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblScoreCondition', $id);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblScoreGroup
+     */
+    public function getScoreGroupById($id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblScoreGroup', $id);
     }
 }

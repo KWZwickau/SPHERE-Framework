@@ -2,6 +2,11 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubject;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubjectDivisionCourse;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -149,6 +154,23 @@ abstract class DataMigrate extends AbstractData
         $this->tblSubjectOrientationList = Subject::useService()->getSubjectOrientationAll();
         $this->tblSubjectElectiveList = Subject::useService()->getSubjectElectiveAll();
 
+        $tblScoreTypeList = array();
+        if (($tblTemp1List = Grade::useService()->getScoreTypeAll())) {
+            foreach ($tblTemp1List as $tblTemp1) {
+                $tblScoreTypeList[$tblTemp1->getIdentifier()] = $tblTemp1;
+            }
+        }
+        $scoreTypeSubjectList = array();
+
+        $tblScoreRuleList = array();
+        if (($tblTemp2List = Grade::useService()->getScoreRuleAll(true))) {
+            foreach ($tblTemp2List as $tblTemp2) {
+                $tblScoreRuleList[$tblTemp2->getId()] = $tblTemp2;
+            }
+        }
+        $scoreRuleSubjectList = array();
+
+        $isCurrentYear = Term::useService()->getIsCurrentYear($tblYear);
         if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
             $tblTypeAdvancedCourse = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_ADVANCED_COURSE);
             $tblTypeBasicCourse = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_BASIC_COURSE);
@@ -160,8 +182,6 @@ abstract class DataMigrate extends AbstractData
                     && ($tblSchoolType = $tblLevel->getServiceTblType())
                     && ($tblDivisionCourse = $this->getDivisionCourseById($tblDivision->getId()))
                 ) {
-                    $isCurrentYear = Term::useService()->getIsCurrentYear($tblYear);
-
                     // bei EKPO 2 schulen mit Level 'W' und WVSZ hat Level mit leeren Namen
                     $level = intval($tblLevel->getName());
 
@@ -347,6 +367,17 @@ abstract class DataMigrate extends AbstractData
                                                     }
                                                 }
                                             }
+
+                                            // Berechnungsvorschrift an SekII-Kursen
+                                            if ($tblDivisionCourseSekII
+                                                && ($tblScoreRuleSubjectGroup = Gradebook::useService()->getScoreRuleSubjectGroupByDivisionAndSubjectAndGroup(
+                                                    $tblDivision, $tblSubject, $tblSubjectGroup
+                                                ))
+                                                && ($tblScoreRuleOld = $tblScoreRuleSubjectGroup->getTblScoreRule())
+                                            ) {
+                                                $tblScoreRule = $tblScoreRuleList[$tblScoreRuleOld->getId()];
+                                                $Manager->bulkSaveEntity(new TblScoreRuleSubjectDivisionCourse($tblDivisionCourseSekII, $tblSubject, $tblScoreRule));
+                                            }
                                         }
                                     }
                                 } else {
@@ -370,6 +401,27 @@ abstract class DataMigrate extends AbstractData
                                     foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
                                         if (($tblTeacherPerson = $tblSubjectTeacher->getServiceTblPerson())) {
                                             $Manager->bulkSaveEntity(TblTeacherLectureship::withParameter($tblTeacherPerson, $tblYear, $tblDivisionCourse, $tblSubject));
+                                        }
+                                    }
+                                }
+
+                                // Bewertungssystem und Berechnungsvorschrift
+                                if (($tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision, $tblSubject))) {
+                                    // Bewertungssystem nur bei aktuellem Schuljahr, es gibt beim Bewertungssystem keine Schuljahre mehr
+                                    if ($isCurrentYear && ($tblScoreTypeOld = $tblScoreRuleDivisionSubject->getTblScoreType())) {
+                                        if (!isset($scoreTypeSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()])) {
+                                            $tblScoreType = $tblScoreTypeList[$tblScoreTypeOld->getIdentifier()];
+                                            $scoreTypeSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()] = $tblScoreType;
+                                            $Manager->bulkSaveEntity(new TblScoreTypeSubject($tblSchoolType, $level, $tblSubject, $tblScoreType));
+                                        }
+                                    }
+
+                                    // Berechnungsvorschrift
+                                    if (($tblScoreRuleOld = $tblScoreRuleDivisionSubject->getTblScoreRule())) {
+                                        if (!isset($scoreRuleSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()])) {
+                                            $tblScoreRule = $tblScoreRuleList[$tblScoreRuleOld->getId()];
+                                            $scoreRuleSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()] = $tblScoreRule;
+                                            $Manager->bulkSaveEntity(new TblScoreRuleSubject($tblYear, $tblSchoolType, $level, $tblSubject, $tblScoreRule));
                                         }
                                     }
                                 }
