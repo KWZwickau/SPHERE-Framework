@@ -904,7 +904,6 @@ class Frontend extends Extension
                                 'School' => 'Aktuelle Schule',
                                 'PrimaryFocus' => 'primärer FS',
                                 'Template' => 'Zeugnisvorlage'
-                                    . ApiGenerate::receiverModal()
                                     . new PullRight(
                                         (new Standard('Alle bearbeiten', ApiGenerate::getEndpoint()))
                                             ->ajaxPipelineOnClick(ApiGenerate::pipelineOpenCertificateModal($tblPrepare->getId()))
@@ -932,7 +931,8 @@ class Frontend extends Extension
             $form->appendFormButton(new Primary('Speichern', new Save()));
 
             $Stage->setContent(
-                new Layout(array(
+                ApiGenerate::receiverModal()
+                .new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
