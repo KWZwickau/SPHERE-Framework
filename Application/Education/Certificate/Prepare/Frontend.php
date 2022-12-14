@@ -2222,7 +2222,6 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 . ' ' . ' WURDE ZUR ABSCHLUSSPRÜFUNG NICHT ZUGELASSEN / HAT DIE ABSCHLUSSPRÜFUNG NICHT BESTANDEN '
                                 . 'und kann erst nach erfolgreicher Wiederholung der Klassenstufe erneut an der Abschlussprüfung teilnehmen.';
                         }
-                        //ToDO Jahresnoten Vorschlag zur Speicherung BFS Generalistik
                         if($Page == 2
                         && $tblCertificate->getName() == 'Berufsfachschule Jahreszeugnis'
                         && $tblCertificate->getDescription() == 'Generalistik'
@@ -2259,14 +2258,16 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     }
                                 }
 
-                                if($GradeSumCount){
+                                if($GradeSumCount
+                                && !isset($Global->POST['Data'][$tblPrepareStudent->getId()]['YearGradeAverageLesson_Average'])){
                                     $Calc = round($GradeSum/$GradeSumCount, 2);
-                                    $Calc = str_replace('.', ',', $Calc);
+                                    $Calc = number_format($Calc, 2, ",", ".");
                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['YearGradeAverageLesson_Average'] = $Calc;
                                 }
-                                if($GradePracticalCount){
+                                if($GradePracticalCount
+                                && !isset($Global->POST['Data'][$tblPrepareStudent->getId()]['YearGradeAveragePractical_Average'])){
                                     $Calc = round($GradePracticalSum/$GradePracticalCount, 2);
-                                    $Calc = str_replace('.', ',', $Calc);
+                                    $Calc = number_format($Calc, 2, ",", ".");
                                     $Global->POST['Data'][$tblPrepareStudent->getId()]['YearGradeAveragePractical_Average'] = $Calc;
                                 }
                             }
@@ -3699,7 +3700,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         $pageList[$tblPerson->getId()] = $Template->buildPages($tblPerson);
                         $bridge = $Template->createCertificate($Content, $pageList);
 
-                        $ContentLayout = $bridge->getContent();
+                        $ContentLayout[] = $bridge->getContent();
                     }
                 }
             }
@@ -3741,9 +3742,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                         : Panel::PANEL_TYPE_WARNING
                                 ),
                             ), 12),
-                            new LayoutColumn(array(
+                            new LayoutColumn(
                                 $ContentLayout
-                            )),
+                            ),
                         ))
                     ))
                 ))
