@@ -18,6 +18,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
 abstract class FrontendBasic extends Extension implements IFrontendInterface
@@ -34,6 +35,10 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
     const MIN_HEIGHT_HEADER = '46px';
     const MIN_HEIGHT_BODY = '30px';
     const PADDING = '5px';
+
+    const SCORE_RULE = 0;
+    const SCORE_CONDITION = 1;
+    const GRADE_GROUP = 2;
 
     /**
      * @param string $View
@@ -198,5 +203,30 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
         }
 
         return $tooltip;
+    }
+
+    /**
+     * @param Stage $Stage
+     * @param int $view
+     */
+    protected function setScoreStageMenuButtons(Stage $Stage, int $view)
+    {
+        $text = ' Berechnungsvorschriften';
+        $Stage->addButton(
+            new Standard($view == self::SCORE_RULE ? new Edit() . new Info ($text) : $text,
+                '/Education/Graduation/Grade/ScoreRule', null, null, 'Erstellen/Berarbeiten')
+        );
+
+        $text = ' Berechnungsvarianten';
+        $Stage->addButton(
+            new Standard($view == self::SCORE_CONDITION ? new Edit() . new Info ($text) : $text,
+                '/Education/Graduation/Grade/ScoreRule/Condition', null, null, 'Erstellen/Berarbeiten')
+        );
+
+        $text = ' Zensuren-Gruppen';
+        $Stage->addButton(
+            new Standard($view == self::GRADE_GROUP ? new Edit() . new Info ($text) : $text,
+                '/Education/Graduation/Grade/ScoreRule/Group', null, null, 'Erstellen/Berarbeiten')
+        );
     }
 }

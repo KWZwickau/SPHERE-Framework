@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -114,5 +115,13 @@ class TblScoreRule extends Element
     public function setIsActive(bool $IsActive): void
     {
         $this->IsActive = $IsActive;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsUsed(): bool
+    {
+        return Grade::useService()->getIsScoreRuleUsed($this);
     }
 }

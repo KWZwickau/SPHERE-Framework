@@ -6,6 +6,7 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\ClipBoard;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Main;
@@ -22,6 +23,10 @@ class Grade  implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\GradeType'), new Link\Name('Zensuren-Typ'),
                 new Link\Icon(new Tag()))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'\ScoreRule'), new Link\Name('Berechnungsvorschrift'),
+                new Link\Icon(new Pencil()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\ScoreType'), new Link\Name('Bewertungssystem'),
@@ -49,6 +54,41 @@ class Grade  implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Activate', __NAMESPACE__.'\Frontend::frontendActivateGradeType')
+        );
+
+        // Berechnungsvorschrift
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule', __NAMESPACE__.'\Frontend::frontendScoreRule')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Edit', __NAMESPACE__.'\Frontend::frontendEditScoreRule')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Destroy', __NAMESPACE__.'\Frontend::frontendDestroyScoreRule')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Activate', __NAMESPACE__.'\Frontend::frontendActivateScoreRule')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Group', __NAMESPACE__.'\Frontend::frontendScoreGroup')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Group\Edit', __NAMESPACE__.'\Frontend::frontendEditScoreGroup')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Group\Destroy', __NAMESPACE__.'\Frontend::frontendDestroyScoreGroup')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Group\Activate', __NAMESPACE__.'\Frontend::frontendActivateScoreGroup')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Group\GradeType\Select', __NAMESPACE__.'\Frontend::frontendScoreGroupGradeTypeSelect')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Group\GradeType\Add', __NAMESPACE__.'\Frontend::frontendScoreGroupGradeTypeAdd')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Group\GradeType\Remove', __NAMESPACE__.'\Frontend::frontendScoreGroupGradeTypeRemove')
         );
 
         // Bewertungssystem

@@ -16,6 +16,9 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblScoreGroupGradeTypeList extends Element
 {
+    const ATTR_TBL_GRADE_TYPE = 'tblGraduationGradeType';
+    const ATTR_TBL_SCORE_GROUP = 'tblGraduationScoreGroup';
+
     /**
      * @Column(type="string")
      */
@@ -47,6 +50,14 @@ class TblScoreGroupGradeTypeList extends Element
     public function getMultiplier(): string
     {
         return $this->Multiplier;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayMultiplier(): string
+    {
+        return str_replace('.', ',', $this->Multiplier);
     }
 
     /**

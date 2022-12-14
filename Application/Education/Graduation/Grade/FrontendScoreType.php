@@ -36,7 +36,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Stage;
 
-abstract class FrontendScoreType extends FrontendGradeType
+abstract class FrontendScoreType extends FrontendScoreRule
 {
     /**
      * @return Stage
@@ -46,7 +46,7 @@ abstract class FrontendScoreType extends FrontendGradeType
         $Stage = new Stage('Bewertungssystem', 'Übersicht');
         $Stage->setMessage(
             'Hier werden alle verfügbaren Bewertungssysteme angezeigt. Nach der Auswahl eines Bewertungssystems können dem
-            Bewertungssystem die entsprechenden Fach-Klassen zugeordnet werden.'
+            Bewertungssystem die entsprechenden Fach-Klassenstufen zugeordnet werden.'
         );
 
         $dataList = array();
@@ -55,7 +55,7 @@ abstract class FrontendScoreType extends FrontendGradeType
                 $dataList[] = array(
                     'Name' => $tblScoreType->getName(),
                     'Option' => new Standard('', '/Education/Graduation/Grade/ScoreType/Edit', new Equalizer(),
-                        array('Id' => $tblScoreType->getId()), 'Fach-Kurse zuordnen')
+                        array('Id' => $tblScoreType->getId()), 'Fach-Klassenstufen zuordnen')
                 );
             }
         }

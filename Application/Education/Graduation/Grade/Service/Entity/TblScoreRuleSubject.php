@@ -22,6 +22,12 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblScoreRuleSubject extends Element
 {
+    const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
+    const ATTR_SERVICE_TBL_SCHOOL_TYPE = 'serviceTblSchoolType';
+    const ATTR_LEVEL = 'Level';
+    const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const ATTR_TBL_SCORE_RULE = 'tblGraduationScoreRule';
+
     /**
      * @Column(type="bigint")
      */

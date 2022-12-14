@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -42,7 +43,7 @@ class TblScoreGroup extends Element
      * @param bool $isActive
      * @param int|null $id
      */
-    public function __construct(string $name, string $multiplier, bool $isEveryGradeASingleGroup, bool $isActive, ?int $id = null)
+    public function __construct(string $name, string $multiplier, bool $isEveryGradeASingleGroup, bool $isActive = true, ?int $id = null)
     {
         $this->Name = $name;
         $this->Multiplier = $multiplier;
@@ -75,6 +76,14 @@ class TblScoreGroup extends Element
     public function getMultiplier(): string
     {
         return $this->Multiplier;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayMultiplier(): string
+    {
+        return str_replace('.', ',', $this->Multiplier);
     }
 
     /**
@@ -115,5 +124,13 @@ class TblScoreGroup extends Element
     public function setIsActive(bool $IsActive): void
     {
         $this->IsActive = $IsActive;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsUsed(): bool
+    {
+        return Grade::useService()->getIsScoreGroupUsed($this);
     }
 }
