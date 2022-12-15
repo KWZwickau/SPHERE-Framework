@@ -4,6 +4,11 @@ namespace SPHERE\Application\Education\Graduation\Evaluation;
 
 use DateInterval;
 use DateTime;
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Document;
+use SPHERE\Application\Document\Storage\FilePointer;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Data;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
@@ -76,6 +81,106 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
+    }
+
+    /**
+     * @param $tblPersonList
+     * @return array
+     */
+    public function generateTaskGrades($tblPersonList)
+    {
+        $tableContent = array();
+        if ($tblPersonList) {
+
+            $count = 1;
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$tableContent, &$count) {
+
+                $Item['Number'] = $count++;
+                $Item['Salutation'] = $tblPerson->getSalutation();
+                $Item['FirstName'] = $tblPerson->getFirstSecondName();
+                $Item['LastName'] = $tblPerson->getLastName();
+                $Item['Gender'] = '';
+
+                array_push($tableContent, $Item);
+            });
+        }
+
+        return $tableContent;
+    }
+
+    /**
+     * @param $tableContent
+     * @param $tblPersonList
+     *
+     * @return false|FilePointer
+     */
+    public function generateTaskGradesExcel($tableContent)
+    {
+
+        if (!empty($tableContent)) {
+            $fileLocation = Storage::createFilePointer('xlsx');
+
+            $Row = 0;
+            $Column = 0;
+
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $export->setValue($export->getCell($Column++, $Row), "Name");
+//            $export->setValue($export->getCell($Column++, $Row), "Vorname");
+//            $export->setValue($export->getCell($Column++, $Row), "Geschlecht");
+//            $export->setValue($export->getCell($Column++, $Row), "Konfession");
+//            $export->setValue($export->getCell($Column++, $Row), "Geburtsdatum");
+//            $export->setValue($export->getCell($Column++, $Row), "Geburtsort");
+//            $export->setValue($export->getCell($Column++, $Row), "Ortsteil");
+//            $export->setValue($export->getCell($Column++, $Row), "Straße");
+//            $export->setValue($export->getCell($Column++, $Row), "Hausnr.");
+//            $export->setValue($export->getCell($Column++, $Row), "PLZ");
+//            $export->setValue($export->getCell($Column++, $Row), "Ort");
+//            $export->setValue($export->getCell($Column++, $Row), "Telefon");
+//            $export->setValue($export->getCell($Column++, $Row), "E-Mail");
+//            $export->setValue($export->getCell($Column++, $Row), "E-Mail Privat");
+//            $export->setValue($export->getCell($Column++, $Row), "E-Mail Geschäftlich");
+//            $export->setValue($export->getCell($Column++, $Row), "FS 1");
+//            $export->setValue($export->getCell($Column++, $Row), "FS 2");
+//            $export->setValue($export->getCell($Column++, $Row), "FS 3");
+//            $export->setValue($export->getCell($Column, $Row), "Religion");
+
+            $export->setStyle($export->getCell(0, $Row), $export->getCell($Column, $Row))
+                // Header Fett
+                ->setFontBold()
+                // Strich nach dem Header
+                ->setBorderBottom();
+
+
+            foreach ($tableContent as $tableRow) {
+                $Row++;
+                $Column = 0;
+
+//                $export->setValue($export->getCell($Column++, $Row), $tableRow['Number']);
+                $export->setValue($export->getCell($Column++, $Row), $tableRow['Name']);
+//                $export->setValue($export->getCell($Column++, $Row), $tableRow['FirstName']);
+//                $export->setValue($export->getCell($Column++, $Row), $tableRow['Gender']);
+//                $export->setValue($export->getCell($Column++, $Row), $tableRow['Denomination']);
+
+                // Strich nach jedem Schüler
+//                $export->setStyle($export->getCell(0, $Row), $export->getCell($Column, $Row))
+//                    ->setBorderBottom();
+            }
+
+            //Column width
+            $column = 0;
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(7);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(15);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(17);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(13);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(15);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
     }
 
     /**
