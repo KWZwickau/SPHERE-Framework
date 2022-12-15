@@ -169,6 +169,16 @@ abstract class DataScore extends DataMigrate
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblScoreRuleConditionList
+     */
+    public function getScoreRuleConditionListById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreRuleConditionList', $Id);
+    }
+
+    /**
      * @param TblScoreRule $tblScoreRule
      *
      * @return bool|TblScoreRuleConditionList[]
@@ -205,6 +215,125 @@ abstract class DataScore extends DataMigrate
         if ($this->getScoreRuleSubjectDivisionCourseListByScoreRule($tblScoreRule)) {
             return true;
         }
+        return false;
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     * @param string $DescriptionForExtern
+     *
+     * @return TblScoreRule
+     */
+    public function createScoreRule(string $Name, string $Description, string $DescriptionForExtern): TblScoreRule
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblScoreRule')->findOneBy(array(TblScoreRule::ATTR_NAME => $Name));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreRule($Name, $Description, $DescriptionForExtern);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param string $Name
+     * @param string $Description
+     * @param string $DescriptionForExtern
+     * @param bool $IsActive
+     *
+     * @return bool
+     */
+    public function updateScoreRule(TblScoreRule $tblScoreRule, string $Name, string $Description, string $DescriptionForExtern, bool $IsActive): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreRule $Entity */
+        $Entity = $Manager->getEntityById('TblScoreRule', $tblScoreRule->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Entity->setDescriptionForExtern($DescriptionForExtern);
+            $Entity->setIsActive($IsActive);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool
+     */
+    public function destroyScoreRule(TblScoreRule $tblScoreRule): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreRule $Entity */
+        $Entity = $Manager->getEntityById('TblScoreRule', $tblScoreRule->getId());
+        if (null !== $Entity) {
+            if (($tblScoreConditionsByScoreRule = $this->getScoreRuleConditionListByScoreRule($tblScoreRule))) {
+                foreach ($tblScoreConditionsByScoreRule as $tblScoreRuleConditionList) {
+                    $this->removeScoreRuleConditionList($tblScoreRuleConditionList);
+                }
+            }
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return TblScoreRuleConditionList
+     */
+    public function addScoreRuleConditionList(TblScoreRule $tblScoreRule, TblScoreCondition $tblScoreCondition): TblScoreRuleConditionList
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblScoreRuleConditionList')
+            ->findOneBy(array(
+                TblScoreRuleConditionList::ATTR_TBL_SCORE_RULE => $tblScoreRule->getId(),
+                TblScoreRuleConditionList::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId(),
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreRuleConditionList($tblScoreCondition, $tblScoreRule);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblScoreRuleConditionList $tblScoreRuleConditionList
+     *
+     * @return bool
+     */
+    public function removeScoreRuleConditionList(TblScoreRuleConditionList $tblScoreRuleConditionList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreConditionGroupList $Entity */
+        $Entity = $Manager->getEntityById('TblScoreRuleConditionList', $tblScoreRuleConditionList->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
         return false;
     }
 

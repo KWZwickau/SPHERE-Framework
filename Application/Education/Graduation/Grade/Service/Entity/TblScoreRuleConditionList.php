@@ -57,7 +57,7 @@ class TblScoreRuleConditionList extends Element
     /**
      * @return false|TblScoreRule
      */
-    public function getScoreRule()
+    public function getTblScoreRule()
     {
         return Grade::useService()->getScoreRuleById($this->tblGraduationScoreRule);
     }
@@ -65,7 +65,7 @@ class TblScoreRuleConditionList extends Element
     /**
      * @param TblScoreRule $tblScoreRule
      */
-    public function setScoreRule(TblScoreRule $tblScoreRule)
+    public function setTblScoreRule(TblScoreRule $tblScoreRule)
     {
         $this->tblGraduationScoreRule = $tblScoreRule->getId();
     }

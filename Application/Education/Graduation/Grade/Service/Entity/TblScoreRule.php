@@ -16,6 +16,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblScoreRule extends Element
 {
+    const ATTR_NAME = 'Name';
     const ATTR_IS_ACTIVE = 'IsActive';
 
     /**
@@ -42,7 +43,7 @@ class TblScoreRule extends Element
      * @param bool $isActive
      * @param int|null $id
      */
-    public function __construct(string $name, string $description, string $descriptionForExtern, bool $isActive, ?int $id = null)
+    public function __construct(string $name, string $description, string $descriptionForExtern, bool $isActive = true, ?int $id = null)
     {
         $this->Name = $name;
         $this->Description = $description;

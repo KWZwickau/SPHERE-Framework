@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Redirect;
 
@@ -212,6 +213,16 @@ abstract class ServiceScore extends ServiceGradeType
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblScoreRuleConditionList
+     */
+    public function getScoreRuleConditionListById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreRuleConditionListById($Id);
+    }
+
+    /**
      * @param TblScoreRule $tblScoreRule
      *
      * @return bool|TblScoreRuleConditionList[]
@@ -223,12 +234,226 @@ abstract class ServiceScore extends ServiceGradeType
 
     /**
      * @param TblScoreRule $tblScoreRule
+     * @return TblScoreCondition[]|false
+     */
+    public function getScoreConditionsByScoreRule(TblScoreRule $tblScoreRule)
+    {
+        $tblScoreConditionList = array();
+        if (($list = $this->getScoreRuleConditionListByScoreRule($tblScoreRule))) {
+            foreach ($list as $item) {
+                if (($tblScoreCondition = $item->getTblScoreCondition())) {
+                    $tblScoreConditionList[] = $tblScoreCondition;
+                }
+            }
+        }
+
+        return empty($tblScoreConditionList) ? false : $tblScoreConditionList;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
      *
      * @return bool
      */
     public function getIsScoreRuleUsed(TblScoreRule $tblScoreRule): bool
     {
         return (new Data($this->getBinding()))->getIsScoreRuleUsed($tblScoreRule);
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param                     $ScoreRule
+     *
+     * @return IFormInterface|string
+     */
+    public function createScoreRule(?IFormInterface $form, $ScoreRule = null)
+    {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreRule) {
+            return $form;
+        }
+
+        $Error = false;
+        if (isset($ScoreRule['Name']) && empty($ScoreRule['Name'])) {
+            $form->setError('ScoreRule[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->createScoreRule(
+                $ScoreRule['Name'],
+                $ScoreRule['Description'],
+                $ScoreRule['DescriptionForExtern']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfasst worden')
+                . new Redirect('/Education/Graduation/Grade/ScoreRule', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $form;
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param $Id
+     * @param $ScoreRule
+     * @return IFormInterface|string
+     */
+    public function updateScoreRule(?IFormInterface $form, $Id, $ScoreRule)
+    {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreRule || null === $Id) {
+            return $form;
+        }
+
+        $Error = false;
+        if (isset($ScoreRule['Name']) && empty($ScoreRule['Name'])) {
+            $form->setError('ScoreRule[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        $tblScoreRule = $this->getScoreRuleById($Id);
+        if (!$tblScoreRule) {
+            return new Danger(new Ban() . ' Berechnungsvorschrift nicht gefunden')
+                . new Redirect('/Education/Graduation/Grade/ScoreRule', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateScoreRule(
+                $tblScoreRule,
+                $ScoreRule['Name'],
+                $ScoreRule['Description'],
+                $ScoreRule['DescriptionForExtern'],
+                $tblScoreRule->getIsActive()
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfolgreich gespeichert worden')
+                . new Redirect('/Education/Graduation/Grade/ScoreRule', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $form;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool
+     */
+    public function destroyScoreRule(TblScoreRule $tblScoreRule): bool
+    {
+        return (new Data($this->getBinding()))->destroyScoreRule($tblScoreRule);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param bool $IsActive
+     *
+     * @return string
+     */
+    public function setScoreRuleActive(TblScoreRule $tblScoreRule, bool $IsActive = true): string
+    {
+        return (new Data($this->getBinding()))->updateScoreRule($tblScoreRule, $tblScoreRule->getName(),
+            $tblScoreRule->getDescription(), $tblScoreRule->getDescriptionForExtern(), $IsActive);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return string
+     */
+    public function addScoreRuleConditionList(TblScoreRule $tblScoreRule, TblScoreCondition $tblScoreCondition): string
+    {
+        if ((new Data($this->getBinding()))->addScoreRuleConditionList($tblScoreRule, $tblScoreCondition)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/Select', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblScoreRule->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht hinzugefügt werden.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/Select', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblScoreRule->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreRuleConditionList $tblScoreRuleConditionList
+     * @return string
+     */
+    public function removeScoreRuleConditionList(TblScoreRuleConditionList $tblScoreRuleConditionList): string
+    {
+        $tblScoreRule = $tblScoreRuleConditionList->getTblScoreRule();
+        if ((new Data($this->getBinding()))->removeScoreRuleConditionList($tblScoreRuleConditionList)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/Select', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblScoreRule->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/Select', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblScoreRule->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param array $structure
+     *
+     * @return array
+     */
+    public function getScoreRuleStructure(TblScoreRule $tblScoreRule, array $structure): array
+    {
+        $tblScoreConditions = $this->getScoreConditionsByScoreRule($tblScoreRule);
+        if ($tblScoreConditions) {
+            $tblScoreConditions = $this->getSorter($tblScoreConditions)->sortObjectBy('Priority');
+
+            $count = 1;
+            /** @var TblScoreCondition $tblScoreCondition */
+            foreach ($tblScoreConditions as $tblScoreCondition) {
+                $structure[] = $count++ . '. Berechnungsvariante: ' . $tblScoreCondition->getName()
+                    . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
+                    . $tblScoreCondition->getPriority();
+
+                if (($requirements = Grade::useService()->getRequirementsForScoreCondition($tblScoreCondition, true))) {
+                    $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Bedingungen: ' . $requirements;
+                }
+
+                $tblScoreConditionGroupListByCondition = Grade::useService()->getScoreConditionGroupListByCondition(
+                    $tblScoreCondition
+                );
+                if ($tblScoreConditionGroupListByCondition) {
+                    foreach ($tblScoreConditionGroupListByCondition as $tblScoreConditionGroupList) {
+                        $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Zensuren-Gruppe: '
+                            . $tblScoreConditionGroupList->getTblScoreGroup()->getName()
+                            . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
+                            . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier()
+                            . ($tblScoreConditionGroupList->getTblScoreGroup()->getIsEveryGradeASingleGroup()
+                                ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Noten einzeln ' : '');
+
+                        $tblGradeTypeList = Grade::useService()->getScoreGroupGradeTypeListByGroup(
+                            $tblScoreConditionGroupList->getTblScoreGroup()
+                        );
+                        if ($tblGradeTypeList) {
+                            foreach ($tblGradeTypeList as $tblGradeType) {
+                                $structure[] = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9702;&nbsp;&nbsp;'
+                                    . 'Zensuren-Typ: '
+                                    . ($tblGradeType->getTblGradeType() ? $tblGradeType->getTblGradeType()->getDisplayName() : '')
+                                    . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
+                                    . $tblGradeType->getDisplayMultiplier();
+                            }
+                        } else {
+                            $structure[] = new Warning('Kein Zenuren-Typ hinterlegt.', new Ban());
+                        }
+                    }
+                } else {
+                    $structure[] = new Warning('Keine Zenuren-Gruppe hinterlegt.', new Ban());
+                }
+                $structure[] = ' ';
+            }
+        } else {
+            $structure[] = new Warning('Keine Berechnungsvariante hinterlegt.', new Ban());
+        }
+        return $structure;
     }
 
     /**
