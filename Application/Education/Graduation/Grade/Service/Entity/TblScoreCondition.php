@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -46,7 +47,7 @@ class TblScoreCondition extends Element
      * @param bool $isActive
      * @param int|null $id
      */
-    public function __construct(string $name, string $priority, ?int $period, bool $isActive, ?int $id = null)
+    public function __construct(string $name, string $priority, ?int $period = null, bool $isActive = true, ?int $id = null)
     {
         $this->Name = $name;
         $this->Priority = $priority;
@@ -134,5 +135,13 @@ class TblScoreCondition extends Element
         }
 
         return $period;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsUsed(): bool
+    {
+        return Grade::useService()->getIsScoreConditionUsed($this);
     }
 }

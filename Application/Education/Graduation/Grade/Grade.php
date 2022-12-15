@@ -69,6 +69,7 @@ class Grade  implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Activate', __NAMESPACE__.'\Frontend::frontendActivateScoreRule')
         );
+        // Berechnungsvorschrift - Zensuren-Gruppe
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Group', __NAMESPACE__.'\Frontend::frontendScoreGroup')
         );
@@ -89,6 +90,46 @@ class Grade  implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Group\GradeType\Remove', __NAMESPACE__.'\Frontend::frontendScoreGroupGradeTypeRemove')
+        );
+        // Berechnungsvorschrift - Berechnungsvariante
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition', __NAMESPACE__.'\Frontend::frontendScoreCondition')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\Edit', __NAMESPACE__.'\Frontend::frontendEditScoreCondition')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\Destroy', __NAMESPACE__.'\Frontend::frontendDestroyScoreCondition')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\Activate', __NAMESPACE__.'\Frontend::frontendActivateScoreCondition')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\Select', __NAMESPACE__.'\Frontend::frontendScoreRuleConditionSelect')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\Add', __NAMESPACE__.'\Frontend::frontendScoreRuleConditionAdd')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\Remove', __NAMESPACE__.'\Frontend::frontendScoreRuleConditionRemove')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\Group\Select', __NAMESPACE__.'\Frontend::frontendScoreGroupSelect')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\Group\Add', __NAMESPACE__.'\Frontend::frontendScoreGroupAdd')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\Group\Remove', __NAMESPACE__.'\Frontend::frontendScoreGroupRemove')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\GradeType\Select', __NAMESPACE__.'\Frontend::frontendScoreConditionGradeTypeSelect')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\GradeType\Add', __NAMESPACE__.'\Frontend::frontendScoreConditionGradeTypeAdd')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\GradeType\Remove', __NAMESPACE__.'\Frontend::frontendScoreConditionGradeTypeRemove')
         );
 
         // Bewertungssystem

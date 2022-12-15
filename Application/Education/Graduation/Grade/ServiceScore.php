@@ -5,9 +5,13 @@ namespace SPHERE\Application\Education\Graduation\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreCondition;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGradeTypeList;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGroupList;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGroupRequirement;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubject;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubjectDivisionCourse;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
@@ -21,6 +25,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Redirect;
 
 abstract class ServiceScore extends ServiceGradeType
@@ -209,6 +214,16 @@ abstract class ServiceScore extends ServiceGradeType
     /**
      * @param TblScoreRule $tblScoreRule
      *
+     * @return bool|TblScoreRuleConditionList[]
+     */
+    public function getScoreRuleConditionListByScoreRule(TblScoreRule $tblScoreRule)
+    {
+        return (new Data($this->getBinding()))->getScoreRuleConditionListByScoreRule($tblScoreRule);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
      * @return bool
      */
     public function getIsScoreRuleUsed(TblScoreRule $tblScoreRule): bool
@@ -234,6 +249,389 @@ abstract class ServiceScore extends ServiceGradeType
     public function getScoreConditionAll(bool $withInActive = false)
     {
         return (new Data($this->getBinding()))->getScoreConditionAll($withInActive);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblScoreConditionGradeTypeList
+     */
+    public function getScoreConditionGradeTypeListById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionGradeTypeListById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblScoreConditionGroupList
+     */
+    public function getScoreConditionGroupListById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionGroupListById($Id);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool|TblScoreConditionGroupList[]
+     */
+    public function getScoreConditionGroupListByCondition(TblScoreCondition $tblScoreCondition)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionGroupListByCondition($tblScoreCondition);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool|TblScoreConditionGradeTypeList[]
+     */
+    public function getScoreConditionGradeTypeListByCondition(TblScoreCondition $tblScoreCondition)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionGradeTypeListByCondition($tblScoreCondition);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblScoreConditionGroupRequirement
+     */
+    public function getScoreConditionGroupRequirementById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionGroupRequirementById($Id);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool|TblScoreConditionGroupRequirement[]
+     */
+    public function getScoreConditionGroupRequirementAllByCondition(TblScoreCondition $tblScoreCondition)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionGroupRequirementAllByCondition($tblScoreCondition);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @param bool $isDisplay
+     *
+     * @return array|bool
+     */
+    public function getRequirementsForScoreCondition(TblScoreCondition $tblScoreCondition, bool $isDisplay = false)
+    {
+        $requirements = array();
+        $displayList = array();
+        // period
+        if ($tblScoreCondition->getPeriod()) {
+            $requirements['Period'] = $tblScoreCondition->getPeriod();
+            $displayList[] = $tblScoreCondition->getPeriodDisplayName();
+        }
+
+        // gradeTypes
+        if (($tblScoreConditionGradeTypeList = $this->getScoreConditionGradeTypeListByCondition($tblScoreCondition))) {
+            $temp = array();
+            foreach ($tblScoreConditionGradeTypeList as $tblScoreConditionGradeType) {
+                if (($tblGradeType = $tblScoreConditionGradeType->getTblGradeType())) {
+                    $temp[] = $tblScoreConditionGradeType;
+                    $displayList[] = $tblGradeType->getDisplayName() . ' ' . new Muted('(Anzahl: '
+                            . $tblScoreConditionGradeType->getCount() . ')');
+                }
+            }
+            $requirements['GradeTypes'] = $temp;
+        }
+        // groups
+        if (($tblScoreConditionGroupRequirementList = $this->getScoreConditionGroupRequirementAllByCondition($tblScoreCondition))) {
+            $temp = array();
+            foreach ($tblScoreConditionGroupRequirementList as $tblScoreConditionGroupRequirement) {
+                if (($tblScoreGroup = $tblScoreConditionGroupRequirement->getTblScoreGroup())) {
+                    $temp[] = $tblScoreConditionGroupRequirement;
+                    $displayList[] = $tblScoreGroup->getName() . ' '
+                        . new Muted('(Anzahl: ' . $tblScoreConditionGroupRequirement->getCount() . ')');
+                }
+            }
+            $requirements['GradeGroups'] = $temp;
+        }
+
+        if ($isDisplay) {
+            return implode(', ', $displayList);
+        } else {
+            return empty($requirements) ? false : $requirements;
+        }
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool
+     */
+    public function getIsScoreConditionUsed(TblScoreCondition $tblScoreCondition): bool
+    {
+        if ((new Data($this->getBinding()))->getScoreRuleConditionListByScoreCondition($tblScoreCondition)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param                     $ScoreCondition
+     *
+     * @return IFormInterface|string
+     */
+    public function createScoreCondition(IFormInterface $form = null, $ScoreCondition = null)
+    {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreCondition) {
+            return $form;
+        }
+
+        $Error = false;
+        if (isset($ScoreCondition['Name']) && empty($ScoreCondition['Name'])) {
+            $form->setError('ScoreCondition[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        if ($ScoreCondition['Priority'] == '') {
+            $priority = 1;
+        } else {
+            $priority = $ScoreCondition['Priority'];
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->createScoreCondition($ScoreCondition['Name'], $priority);
+
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvariante ist erfasst worden')
+                . new Redirect('/Education/Graduation/Grade/ScoreRule/Condition', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $form;
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param $Id
+     * @param $ScoreCondition
+     * @return IFormInterface|string
+     */
+    public function updateScoreCondition(IFormInterface $form = null, $Id, $ScoreCondition)
+    {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreCondition || null === $Id) {
+            return $form;
+        }
+
+        $Error = false;
+        if (isset($ScoreCondition['Name']) && empty($ScoreCondition['Name'])) {
+            $form->setError('ScoreCondition[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        $tblScoreCondition = $this->getScoreConditionById($Id);
+        if (!$tblScoreCondition) {
+            return new Danger(new Ban() . ' Berechnungsvariante nicht gefunden')
+                . new Redirect('/Education/Graduation/Grade/ScoreRule/Condition', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateScoreCondition(
+                $tblScoreCondition,
+                $ScoreCondition['Name'],
+                $ScoreCondition['Priority'],
+                $tblScoreCondition->getIsActive(),
+                $tblScoreCondition->getPeriod()
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvariante ist erfolgreich gespeichert worden')
+                . new Redirect('/Education/Graduation/Grade/ScoreRule/Condition', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $form;
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @param bool $IsActive
+     *
+     * @return bool
+     */
+    public function setScoreConditionActive(TblScoreCondition $tblScoreCondition, bool $IsActive = true): bool
+    {
+        return (new Data($this->getBinding()))->updateScoreCondition($tblScoreCondition, $tblScoreCondition->getName(), $tblScoreCondition->getPriority(),
+            $IsActive, $tblScoreCondition->getPeriod());
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @param TblScoreGroup $tblScoreGroup
+     *
+     * @return string
+     */
+    public function addScoreConditionGroupList(TblScoreCondition $tblScoreCondition, TblScoreGroup $tblScoreGroup): string
+    {
+        if ((new Data($this->getBinding()))->addScoreConditionGroupList($tblScoreCondition, $tblScoreGroup)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/Group/Select', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger('Konnte nicht hinzugefügt werden.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/Group/Select', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreConditionGroupList $tblScoreConditionGroupList
+     *
+     * @return string
+     */
+    public function removeScoreConditionGroupList(TblScoreConditionGroupList $tblScoreConditionGroupList): string
+    {
+        $tblScoreCondition = $tblScoreConditionGroupList->getTblScoreCondition();
+        if ((new Data($this->getBinding()))->removeScoreConditionGroupList($tblScoreConditionGroupList)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/Group/Select', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/Group/Select', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param TblScoreCondition|null $tblScoreCondition
+     * @param $Period
+     *
+     * @return IFormInterface|string
+     */
+    public function updateScoreConditionRequirementPeriod(IFormInterface $form = null, TblScoreCondition $tblScoreCondition = null, $Period)
+    {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $tblScoreCondition || null === $Period) {
+            return $form;
+        }
+
+        (new Data($this->getBinding()))->updateScoreCondition(
+            $tblScoreCondition,
+            $tblScoreCondition->getName(),
+            $tblScoreCondition->getPriority(),
+            $tblScoreCondition->getIsActive(),
+            $Period < 0 ? null : $Period
+        );
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Bedingung ist erfolgreich gespeichert worden')
+            . new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblScoreCondition->getId()));
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     * @param TblScoreCondition $tblScoreCondition
+     * @param $count
+     *
+     * @return string
+     */
+    public function addScoreConditionGradeTypeList(TblGradeType $tblGradeType, TblScoreCondition $tblScoreCondition, $count): string
+    {
+        if ((new Data($this->getBinding()))->addScoreConditionGradeTypeList($tblGradeType, $tblScoreCondition, $count)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht hinzugefügt werden.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     * @param TblScoreCondition $tblScoreCondition
+     * @param $count
+     *
+     * @return string
+     */
+    public function addScoreConditionGroupRequirement(TblScoreGroup $tblScoreGroup, TblScoreCondition $tblScoreCondition, $count): string
+    {
+        if ((new Data($this->getBinding()))->addScoreConditionGroupRequirement($tblScoreGroup, $tblScoreCondition, $count)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht hinzugefügt werden.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreConditionGradeTypeList $tblScoreConditionGradeTypeList
+     *
+     * @return string
+     */
+    public function removeScoreConditionGradeTypeList(TblScoreConditionGradeTypeList $tblScoreConditionGradeTypeList): string
+    {
+        $tblScoreCondition = $tblScoreConditionGradeTypeList->getTblScoreCondition();
+        if ((new Data($this->getBinding()))->removeScoreConditionGradeTypeList($tblScoreConditionGradeTypeList)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreConditionGroupRequirement $tblScoreConditionGroupRequirement
+     *
+     * @return string
+     */
+    public function removeScoreConditionGroupRequirement(TblScoreConditionGroupRequirement $tblScoreConditionGroupRequirement): string
+    {
+        $tblScoreCondition = $tblScoreConditionGroupRequirement->getTblScoreCondition();
+        if ((new Data($this->getBinding()))->removeScoreConditionGroupRequirement($tblScoreConditionGroupRequirement)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
+                new Redirect('/Education/Graduation/Grade/ScoreRule/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return TblGradeType[]|bool
+     */
+    public function getGradeTypeAllByScoreCondition(TblScoreCondition $tblScoreCondition)
+    {
+        $tblGradeTypeList = array();
+        if (($tblScoreConditionGroupList = $this->getScoreConditionGroupListByCondition($tblScoreCondition))) {
+            foreach ($tblScoreConditionGroupList as $item) {
+                if (($tblScoreGroup = $item->getTblScoreGroup())
+                    && ($tblScoreGroupGradeTypeList = $this->getScoreGroupGradeTypeListByGroup($tblScoreGroup))
+                ) {
+                    foreach ($tblScoreGroupGradeTypeList as $subItem) {
+                        if (($tblGradeType = $subItem->getTblGradeType())) {
+                            $tblGradeTypeList[$tblGradeType->getId()] = $tblGradeType;
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($tblGradeTypeList) ? false : $tblGradeTypeList;
     }
 
     /**
@@ -281,7 +679,13 @@ abstract class ServiceScore extends ServiceGradeType
      */
     public function getIsScoreGroupUsed(TblScoreGroup $tblScoreGroup): bool
     {
-        // todo
+        if ((new Data($this->getBinding()))->getScoreConditionGroupListByGroup($tblScoreGroup)) {
+            return true;
+        }
+        if ((new Data($this->getBinding()))->getScoreConditionGroupRequirementAllByGroup($tblScoreGroup)) {
+            return true;
+        }
+
         return false;
     }
 

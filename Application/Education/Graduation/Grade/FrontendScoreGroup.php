@@ -45,7 +45,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
-abstract class FrontendScoreGroup extends FrontendGradeType
+abstract class FrontendScoreGroup extends FrontendScoreCondition
 {
     /**
      * @param null $ScoreGroup
