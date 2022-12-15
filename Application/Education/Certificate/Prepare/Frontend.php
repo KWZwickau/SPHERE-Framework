@@ -217,8 +217,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                 && ($tblLevel->getName() == '09' || $tblLevel->getName() == '9' || $tblLevel->getName() == '10'))
                             || (($tblSchoolType->getName() == 'Gymnasium'
                                 && $tblLevel->getName() == '12'))
-                            || (($tblSchoolType->getName() == 'Förderschule'
-                                && ($tblLevel->getName() == '12' || $tblLevel->getName() == '13')))
+                            || $tblSchoolType->getName() == 'Förderschule'
                             || $tblSchoolType->getName() == 'Berufsfachschule'
                             || $tblSchoolType->getName() == 'Fachschule'
                             || $tblSchoolType->getName() == 'Berufsgrundbildungsjahr'
