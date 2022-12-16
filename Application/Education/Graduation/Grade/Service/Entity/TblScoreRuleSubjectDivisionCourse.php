@@ -20,6 +20,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblScoreRuleSubjectDivisionCourse extends Element
 {
+    const ATTR_SERVICE_TBL_DIVISION_COURSE = 'serviceTblDivisionCourse';
+    const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_TBL_SCORE_RULE = 'tblGraduationScoreRule';
 
     /**
@@ -82,7 +84,7 @@ class TblScoreRuleSubjectDivisionCourse extends Element
     /**
      * @return false|TblScoreRule
      */
-    public function getScoreRule()
+    public function getTblScoreRule()
     {
         return Grade::useService()->getScoreRuleById($this->tblGraduationScoreRule);
     }
@@ -90,7 +92,7 @@ class TblScoreRuleSubjectDivisionCourse extends Element
     /**
      * @param TblScoreRule $tblScoreRule
      */
-    public function setScoreRule(TblScoreRule $tblScoreRule)
+    public function setTblScoreRule(TblScoreRule $tblScoreRule)
     {
         $this->tblGraduationScoreRule = $tblScoreRule->getId();
     }

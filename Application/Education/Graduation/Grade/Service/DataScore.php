@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSub
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubjectDivisionCourse;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -202,6 +203,65 @@ abstract class DataScore extends DataMigrate
     }
 
     /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblScoreRuleSubjectDivisionCourse[]
+     */
+    public function getScoreRuleSubjectDivisionCourseListByYear(TblYear $tblYear)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(TblScoreRuleSubjectDivisionCourse::class, 't')
+            ->join(TblDivisionCourse::class, 'c')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.serviceTblDivisionCourse', 'c.Id'),
+                    $queryBuilder->expr()->eq('c.serviceTblYear', '?1')
+                ),
+            )
+            ->setParameter(1, $tblYear->getId())
+            ->distinct()
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param TblYear $tblYear
+     *
+     * @return false|TblScoreRuleSubjectDivisionCourse[]
+     */
+    public function getScoreRuleSubjectDivisionCourseListByScoreRuleAndYear(TblScoreRule $tblScoreRule, TblYear $tblYear)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(TblScoreRuleSubjectDivisionCourse::class, 't')
+            ->join(TblDivisionCourse::class, 'c')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.serviceTblDivisionCourse', 'c.Id'),
+                    $queryBuilder->expr()->eq('t.tblGraduationScoreRule', '?1'),
+                    $queryBuilder->expr()->eq('c.serviceTblYear', '?2')
+                ),
+            )
+            ->setParameter(1, $tblScoreRule->getId())
+            ->setParameter(2, $tblYear->getId())
+            ->distinct()
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param TblScoreRule $tblScoreRule
      *
      * @return false|TblScoreRuleSubjectDivisionCourse[]
@@ -210,6 +270,20 @@ abstract class DataScore extends DataMigrate
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreRuleSubjectDivisionCourse', array(
             TblScoreRuleSubjectDivisionCourse::ATTR_TBL_SCORE_RULE => $tblScoreRule->getId()
+        ));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblScoreRuleSubjectDivisionCourse
+     */
+    public function getScoreRuleSubjectDivisionCourseByDivisionCourseAndSubject(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblScoreRuleSubjectDivisionCourse', array(
+            TblScoreRuleSubjectDivisionCourse::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+            TblScoreRuleSubjectDivisionCourse::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
         ));
     }
 

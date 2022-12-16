@@ -7,7 +7,11 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditi
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -55,6 +59,7 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 abstract class FrontendScoreRule extends FrontendScoreGroup
 {
@@ -120,7 +125,7 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
         }
 
         $Form = $this->formScoreRule()
-            ->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()))
+            ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
@@ -546,7 +551,7 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
             )),
             new FormRow(new FormColumn(array(
                 (new \SPHERE\Common\Frontend\Link\Repository\Primary('Speichern', ApiScoreRule::getEndpoint(), new Save()))
-                    ->ajaxPipelineOnClick(ApiScoreRule::pipelineSaveScoreRuleEdit($tblScoreRule->getId())),
+                    ->ajaxPipelineOnClick(ApiScoreRule::pipelineSaveScoreRuleSubjects($tblScoreRule->getId())),
                 (new Standard('Abbrechen', '/Education/Graduation/Grade/ScoreRule', new Disable()))
             )))
         )));
@@ -568,7 +573,6 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
             $Data['Subjects'] = array();
             $list = array();
             if (($tblScoreRuleSubjectList = Grade::useService()->getScoreRuleSubjectListByYearAndSchoolType($tblYear, $tblSchoolType))) {
-
                 foreach ($tblScoreRuleSubjectList as $tblScoreRuleSubject) {
                     if (($tblSubject = $tblScoreRuleSubject->getServiceTblSubject())
                         && ($tblScoreRuleTemp = $tblScoreRuleSubject->getTblScoreRule())
@@ -620,5 +624,202 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
         }
 
         return new Warning('Bitte wählen Sie zunächst ein Schuljahr und eine Schulart aus.');
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendScoreRuleSubjectDivisionCourse($Id = null, $Data = null): Stage
+    {
+        $Stage = new Stage('Berechnungsvorschrift', 'Fach-Kurse einer Berechnungsvorschrift zuordnen');
+        $Stage->setMessage('Hier können der ausgewählten Berechnungsvorschrift Fach-Kursen zugeordnet werden.');
+        $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Grade/ScoreRule', new ChevronLeft()));
+
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            $tblYear = current($tblYearList);
+            $Data['Year'] = $tblYear->getId();
+            $global = $this->getGlobal();
+            $global->POST['Data']['Year'] = $tblYear->getId();
+            $global->savePost();
+        }
+
+        if ($tblScoreRule = Grade::useService()->getScoreRuleById($Id)) {
+            $Stage->setContent(
+                new Panel(
+                    'Berechnungsvorschrift',
+                    new Bold($tblScoreRule->getName()) . '&nbsp;&nbsp;'
+                    . new Muted(new Small(new Small($tblScoreRule->getDescription()))),
+                    Panel::PANEL_TYPE_INFO
+                )
+                . new Well($this->formScoreRuleSubjectDivisionCourse($tblScoreRule, $Data))
+            );
+        } else {
+            $Stage->setContent(new Danger('Berechnungsvorschrift nicht gefunden.', new Exclamation()));
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param null $Data
+     *
+     * @return Form
+     */
+    public function formScoreRuleSubjectDivisionCourse(TblScoreRule $tblScoreRule, $Data = null): Form
+    {
+        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeCommonAll();
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    (new SelectBox('Data[Year]', 'Schuljahr', array("{{ DisplayName }}" => Term::useService()->getYearAll())))
+                        ->ajaxPipelineOnChange(ApiScoreRule::pipelineLoadScoreRuleSubjectDivisionCourses($tblScoreRule->getId()))
+                    , 6),
+                new FormColumn(
+                    (new SelectBox('Data[SchoolType]', 'Schulart', array('{{ Name }}' => $tblSchoolTypeList)))
+                        ->ajaxPipelineOnChange(ApiScoreRule::pipelineLoadScoreRuleSubjectDivisionCourses($tblScoreRule->getId()))
+                    , 6),
+            )),
+            new FormRow(new FormColumn(
+                ApiScoreRule::receiverBlock($this->loadScoreRuleSubjectDivisionCourses($tblScoreRule, $Data), 'ScoreRuleSubjectDivisionCoursesContent')
+            )),
+            new FormRow(new FormColumn(array(
+                (new \SPHERE\Common\Frontend\Link\Repository\Primary('Speichern', ApiScoreRule::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick(ApiScoreRule::pipelineSaveScoreRuleSubjectDivisionCourses($tblScoreRule->getId())),
+                (new Standard('Abbrechen', '/Education/Graduation/Grade/ScoreRule', new Disable()))
+            )))
+        )));
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadScoreRuleSubjectDivisionCourses(TblScoreRule $tblScoreRule, $Data = null): string
+    {
+        if ((isset($Data['Year']) && ($tblYear = Term::useService()->getYearById($Data['Year'])))
+            && (isset($Data['SchoolType']) && ($tblSchoolType = Type::useService()->getTypeById($Data['SchoolType'])))
+        ) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['SubjectDivisionCourses'] = array();
+            $Data['SubjectDivisionCourses'] = array();
+            $list = array();
+            if (($tblScoreRuleSubjectDivisionCourseList = Grade::useService()->getScoreRuleSubjectDivisionCourseListByYear($tblYear))) {
+                foreach ($tblScoreRuleSubjectDivisionCourseList as $tblScoreRuleSubjectDivisionCourse) {
+                    if (($tblSubject = $tblScoreRuleSubjectDivisionCourse->getServiceTblSubject())
+                        && ($tblScoreRuleTemp = $tblScoreRuleSubjectDivisionCourse->getTblScoreRule())
+                        && ($tblDivisionCourse = $tblScoreRuleSubjectDivisionCourse->getServiceTblDivisionCourse())
+                        && ($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                        && isset($tblSchoolTypeList[$tblSchoolType->getId()])
+                    ) {
+                        if ($tblScoreRule->getId() == $tblScoreRuleTemp->getId()) {
+                            $global->POST['Data']['SubjectDivisionCourses'][$tblDivisionCourse->getId()][$tblSubject->getId()] = 1;
+                        } else {
+                            $list[$tblDivisionCourse->getId()][$tblSubject->getId()] = ' ' . new Label($tblScoreRuleTemp->getName(), Label::LABEL_TYPE_PRIMARY);
+                        }
+                    }
+                }
+            }
+            $global->savePost();
+
+            $layoutGroups = array();
+            if (($temp = $this->getLayoutGroupForDivisionCoursesSelectByTypeIdentifier($tblYear, TblDivisionCourseType::TYPE_DIVISION, $tblSchoolType, $list))) {
+                $layoutGroups[] = $temp;
+            }
+            if (($temp = $this->getLayoutGroupForDivisionCoursesSelectByTypeIdentifier($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP, $tblSchoolType, $list))) {
+                $layoutGroups[] = $temp;
+            }
+            if (($temp = $this->getLayoutGroupForDivisionCoursesSelectByTypeIdentifier($tblYear, TblDivisionCourseType::TYPE_TEACHING_GROUP, $tblSchoolType, $list))) {
+                $layoutGroups[] = $temp;
+            }
+            if (($temp = $this->getLayoutGroupForDivisionCoursesSelectByTypeIdentifier($tblYear, TblDivisionCourseType::TYPE_ADVANCED_COURSE, $tblSchoolType, $list))) {
+                $layoutGroups[] = $temp;
+            }
+            if (($temp = $this->getLayoutGroupForDivisionCoursesSelectByTypeIdentifier($tblYear, TblDivisionCourseType::TYPE_BASIC_COURSE, $tblSchoolType, $list))) {
+                $layoutGroups[] = $temp;
+            }
+
+            if (empty($layoutGroups)) {
+                return new Warning('Keine entsprechenden Kurse gefunden.', new Exclamation());
+            } else {
+                return new Layout($layoutGroups);
+            }
+        }
+
+        return new Warning('Bitte wählen sie zunächst ein Schuljahr und eine Schulart aus.');
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param string $TypeIdentifier
+     * @param TblType $tblSchoolType
+     * @param array $list
+     *
+     * @return false|LayoutGroup
+     */
+    private function getLayoutGroupForDivisionCoursesSelectByTypeIdentifier(TblYear $tblYear, string $TypeIdentifier, TblType $tblSchoolType, array $list)
+    {
+        $size = 3;
+        $columnList = array();
+        $contentPanelList = array();
+        $toggleList = array();
+
+        $tblDivisionCourseType = DivisionCourse::useService()->getDivisionCourseTypeByIdentifier($TypeIdentifier);
+        $this->setContentPanelListForDivisionCourseType($contentPanelList, $toggleList, $tblYear, $TypeIdentifier, $tblSchoolType, $list);
+        if (!empty($contentPanelList)) {
+            foreach ($contentPanelList as $divisionCourseId => $content) {
+                if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))) {
+                    if (isset($toggleList[$tblDivisionCourse->getId()])) {
+                        array_unshift($content, new ToggleSelective('Alle wählen/abwählen', $toggleList[$tblDivisionCourse->getId()]));
+                    }
+                    $columnList[] = new LayoutColumn(new Panel($tblDivisionCourse->getName(), $content, Panel::PANEL_TYPE_INFO), $size);
+                }
+            }
+
+            return new LayoutGroup(
+                Grade::useService()->getLayoutRowsByLayoutColumnList($columnList, $size),
+                new Title($tblDivisionCourseType->getName() . 'n')
+            );
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $contentPanelList
+     * @param array $toggleList
+     * @param TblYear $tblYear
+     * @param string $TypeIdentifier
+     * @param TblType $tblSchoolType
+     * @param array $list
+     */
+    private function setContentPanelListForDivisionCourseType(array &$contentPanelList, array &$toggleList, TblYear $tblYear,
+        string $TypeIdentifier, TblType $tblSchoolType, array $list)
+    {
+        if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, $TypeIdentifier))) {
+            $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('Name', new StringNaturalOrderSorter());
+            /** @var TblDivisionCourse $tblDivisionCourse */
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                    && isset($tblSchoolTypeList[$tblSchoolType->getId()])
+                ) {
+                    if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByDivisionCourse($tblDivisionCourse))) {
+                        $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('DisplayName');
+                        foreach ($tblSubjectList as $tblSubject) {
+                            $name = "Data[SubjectDivisionCourses][{$tblDivisionCourse->getId()}][{$tblSubject->getId()}]";
+                            $toggleList[$tblDivisionCourse->getId()][$tblSubject->getId()] = $name;
+                            $contentPanelList[$tblDivisionCourse->getId()][$tblSubject->getId()]
+                                = new CheckBox($name, $tblSubject->getDisplayName() . ($list[$tblDivisionCourse->getId()][$tblSubject->getId()] ?? ''), 1);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

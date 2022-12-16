@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSub
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -228,13 +229,48 @@ abstract class ServiceScore extends ServiceGradeType
     }
 
     /**
-     * @param TblScoreRule $tblScoreRule
+     * @param TblYear $tblYear
      *
      * @return false|TblScoreRuleSubjectDivisionCourse[]
      */
-    public function getScoreRuleSubjectDivisionCourseListByScoreRule(TblScoreRule $tblScoreRule)
+    public function getScoreRuleSubjectDivisionCourseListByYear(TblYear $tblYear)
     {
-        return (new Data($this->getBinding()))->getScoreRuleSubjectDivisionCourseListByScoreRule($tblScoreRule);
+        return (new Data($this->getBinding()))->getScoreRuleSubjectDivisionCourseListByYear($tblYear);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param TblYear $tblYear
+     * @param TblType $tblSchoolType
+     *
+     * @return false|TblScoreRuleSubjectDivisionCourse[]
+     */
+    public function getScoreRuleSubjectDivisionCourseListByScoreRuleAndYearAndSchoolType(TblScoreRule $tblScoreRule, TblYear $tblYear, TblType $tblSchoolType)
+    {
+        $resultList = array();
+        if (($list = (new Data($this->getBinding()))->getScoreRuleSubjectDivisionCourseListByScoreRuleAndYear($tblScoreRule, $tblYear))) {
+            foreach ($list as $item) {
+                if (($tblDivisionCourse = $item->getServiceTblDivisionCourse())
+                    && ($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                    && isset($tblSchoolTypeList[$tblSchoolType->getId()])
+                ) {
+                    $resultList[] = $item;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblScoreRuleSubjectDivisionCourse
+     */
+    public function getScoreRuleSubjectDivisionCourseByDivisionCourseAndSubject(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject)
+    {
+        return (new Data($this->getBinding()))->getScoreRuleSubjectDivisionCourseByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject);
     }
 
     /**
