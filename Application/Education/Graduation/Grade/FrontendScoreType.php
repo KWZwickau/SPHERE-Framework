@@ -54,7 +54,7 @@ abstract class FrontendScoreType extends FrontendScoreRule
             foreach ($tblScoreTypeAll as $tblScoreType) {
                 $dataList[] = array(
                     'Name' => $tblScoreType->getName(),
-                    'Option' => new Standard('', '/Education/Graduation/Grade/ScoreType/Edit', new Equalizer(),
+                    'Option' => new Standard('', '/Education/Graduation/Grade/ScoreType/Subject', new Equalizer(),
                         array('Id' => $tblScoreType->getId()), 'Fach-Klassenstufen zuordnen')
                 );
             }
@@ -94,7 +94,7 @@ abstract class FrontendScoreType extends FrontendScoreRule
      *
      * @return Stage
      */
-    public function frontendScoreTypeEdit($Id = null): Stage
+    public function frontendScoreTypeSubject($Id = null): Stage
     {
         $Stage = new Stage('Bewertungssystem', 'Klassenstufen(Schulart) einem Bewertungssystem zuordnen');
         $Stage->setMessage('Hier können dem ausgewählten Bewertungssystem Klassenstufen(Schulart) zugeordnet werden.');
@@ -107,10 +107,10 @@ abstract class FrontendScoreType extends FrontendScoreRule
                     new Bold($tblScoreType->getName()),
                     Panel::PANEL_TYPE_INFO
                 )
-                . new Well($this->formScoreType($tblScoreType, true))
+                . new Well($this->formScoreType($tblScoreType))
             );
         } else {
-            $Stage->setContent(new Danger('Berechnungsvorschrift nicht gefunden.', new Exclamation()));
+            $Stage->setContent(new Danger('Bewertungssystem nicht gefunden.', new Exclamation()));
         }
 
         return $Stage;

@@ -2,9 +2,17 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreRule;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreCondition;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleConditionList;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -16,6 +24,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Group;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
@@ -27,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -35,6 +45,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -99,10 +110,10 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
                         ($tblScoreRule->getIsActive() ?
                             (new Standard('', '/Education/Graduation/Grade/ScoreRule/Condition/Select', new Listing(),
                                 array('Id' => $tblScoreRule->getId()), 'Berechnungsvarianten auswählen')) .
-                            (new Standard('', '/Education/Graduation/Grade/ScoreRule/Division', new Equalizer(),
-                                array('Id' => $tblScoreRule->getId()), 'Fach-Klassen zuordnen')) .
-                            (new Standard('', '/Education/Graduation/Grade/ScoreRule/SubjectGroup', new Group(),
-                                array('Id' => $tblScoreRule->getId()), 'Fachgruppen zuordnen'))
+                            (new Standard('', '/Education/Graduation/Grade/ScoreRule/Subject', new Equalizer(),
+                                array('Id' => $tblScoreRule->getId()), 'Fach-Klassenstufen(Schulart) zuordnen')) .
+                            (new Standard('', '/Education/Graduation/Grade/ScoreRule/SubjectDivisionCourse', new Group(),
+                                array('Id' => $tblScoreRule->getId()), 'Fach-Kurse zuordnen'))
                             : '')
                 );
             }
@@ -470,5 +481,144 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendScoreRuleSubject($Id = null, $Data = null): Stage
+    {
+        $Stage = new Stage('Berechnungsvorschrift', 'Fach-Klassenstufen(Schulart) einer Berechnungsvorschrift zuordnen');
+        $Stage->setMessage('Hier können der ausgewählten Berechnungsvorschrift Fach-Klassenstufen(Schulart) zugeordnet werden.');
+        $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Grade/ScoreRule', new ChevronLeft()));
+
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            $tblYear = current($tblYearList);
+            $Data['Year'] = $tblYear->getId();
+            $global = $this->getGlobal();
+            $global->POST['Data']['Year'] = $tblYear->getId();
+            $global->savePost();
+        }
+
+        if ($tblScoreRule = Grade::useService()->getScoreRuleById($Id)) {
+            $Stage->setContent(
+                new Panel(
+                    'Berechnungsvorschrift',
+                    new Bold($tblScoreRule->getName()) . '&nbsp;&nbsp;'
+                    . new Muted(new Small(new Small($tblScoreRule->getDescription()))),
+                    Panel::PANEL_TYPE_INFO
+                )
+                . new Well($this->formScoreRuleSubject($tblScoreRule, $Data))
+            );
+        } else {
+            $Stage->setContent(new Danger('Berechnungsvorschrift nicht gefunden.', new Exclamation()));
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param null $Data
+     *
+     * @return Form
+     */
+    public function formScoreRuleSubject(TblScoreRule $tblScoreRule, $Data = null): Form
+    {
+        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeCommonAll();
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    (new SelectBox('Data[Year]', 'Schuljahr', array("{{ DisplayName }}" => Term::useService()->getYearAll())))
+                        ->ajaxPipelineOnChange(ApiScoreRule::pipelineLoadScoreRuleSubjects($tblScoreRule->getId()))
+                , 6),
+                new FormColumn(
+                    (new SelectBox('Data[SchoolType]', 'Schulart', array('{{ Name }}' => $tblSchoolTypeList)))
+                        ->ajaxPipelineOnChange(ApiScoreRule::pipelineLoadScoreRuleSubjects($tblScoreRule->getId()))
+                , 6),
+            )),
+            new FormRow(new FormColumn(
+                ApiScoreRule::receiverBlock($this->loadScoreRuleSubjects($tblScoreRule, $Data), 'ScoreRuleSubjectsContent')
+            )),
+            new FormRow(new FormColumn(array(
+                (new \SPHERE\Common\Frontend\Link\Repository\Primary('Speichern', ApiScoreRule::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick(ApiScoreRule::pipelineSaveScoreRuleEdit($tblScoreRule->getId())),
+                (new Standard('Abbrechen', '/Education/Graduation/Grade/ScoreRule', new Disable()))
+            )))
+        )));
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadScoreRuleSubjects(TblScoreRule $tblScoreRule, $Data = null): string
+    {
+        if (isset($Data['Year']) && ($tblYear = Term::useService()->getYearById($Data['Year']))
+            && isset($Data['SchoolType']) && ($tblSchoolType = Type::useService()->getTypeById($Data['SchoolType']))
+        ) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Subjects'] = array();
+            $Data['Subjects'] = array();
+            $list = array();
+            if (($tblScoreRuleSubjectList = Grade::useService()->getScoreRuleSubjectListByYearAndSchoolType($tblYear, $tblSchoolType))) {
+
+                foreach ($tblScoreRuleSubjectList as $tblScoreRuleSubject) {
+                    if (($tblSubject = $tblScoreRuleSubject->getServiceTblSubject())
+                        && ($tblScoreRuleTemp = $tblScoreRuleSubject->getTblScoreRule())
+                    ) {
+                        if ($tblScoreRule->getId() == $tblScoreRuleTemp->getId()) {
+                            $global->POST['Data']['Subjects'][$tblScoreRuleSubject->getLevel()][$tblSubject->getId()] = 1;
+                        } else {
+                            $list[$tblScoreRuleSubject->getLevel()][$tblSubject->getId()] = ' ' . new Label($tblScoreRuleTemp->getName(), Label::LABEL_TYPE_PRIMARY);
+                        }
+                    }
+                }
+            }
+            $global->savePost();
+
+            $size = 3;
+            $columnList = array();
+            $toggleList = array();
+
+            $minLevel = $tblSchoolType->getMinLevel();
+            $maxLevel = $tblSchoolType->getMaxLevel();
+            for ($level = $minLevel; $level <= $maxLevel; $level++) {
+                $contentPanelList = array();
+                if (($tblSubjectList = DivisionCourse::useService()->getSubjectListBySchoolTypeAndLevelAndYear($tblSchoolType, $level, $tblYear))) {
+                    $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('DisplayName');
+                    foreach ($tblSubjectList as $tblSubject) {
+                        $name = 'Data[Subjects][' . $level . '][' . $tblSubject->getId() .']';
+                        $toggleList[$level][$tblSubject->getId()] = $name;
+                        $contentPanelList[$level][$tblSubject->getId()] =
+                            new CheckBox($name, $tblSubject->getDisplayName() . ($list[$level][$tblSubject->getId()] ?? ''), 1);
+                    }
+                }
+
+                if (!empty($contentPanelList[$level])) {
+                    if (isset($toggleList[$level])) {
+                        array_unshift($contentPanelList[$level], new ToggleSelective('Alle wählen/abwählen', $toggleList[$level]));
+                    }
+                    $columnList[] = new LayoutColumn(new Panel('Klassenstufe ' . $level, $contentPanelList[$level], Panel::PANEL_TYPE_INFO), $size);
+                }
+            }
+
+            if (empty($columnList)) {
+                return new Warning('Keine entsprechenden Klassenstufen gefunden.', new Exclamation());
+            } else {
+                return new Layout(new LayoutGroup(
+                    Grade::useService()->getLayoutRowsByLayoutColumnList($columnList, $size),
+                    new Title($tblSchoolType->getName())
+                ));
+            }
+        }
+
+        return new Warning('Bitte wählen Sie zunächst ein Schuljahr und eine Schulart aus.');
     }
 }

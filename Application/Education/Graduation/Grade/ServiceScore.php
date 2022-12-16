@@ -192,14 +192,39 @@ abstract class ServiceScore extends ServiceGradeType
     }
 
     /**
-     * @param TblScoreRule $tblScoreRule
-     * @param TblType|null $tblSchoolType
+     * @param TblYear $tblYear
+     * @param TblType $tblSchoolType
      *
      * @return false|TblScoreRuleSubject[]
      */
-    public function getScoreRuleSubjectListByScoreRule(TblScoreRule $tblScoreRule, ?TblType $tblSchoolType)
+    public function getScoreRuleSubjectListByYearAndSchoolType(TblYear $tblYear, TblType $tblSchoolType)
     {
-        return (new Data($this->getBinding()))->getScoreRuleSubjectListByScoreRule($tblScoreRule, $tblSchoolType);
+        return (new Data($this->getBinding()))->getScoreRuleSubjectListByYearAndSchoolType($tblYear, $tblSchoolType);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param TblYear $tblYear
+     * @param TblType $tblSchoolType
+     *
+     * @return false|TblScoreRuleSubject[]
+     */
+    public function getScoreRuleSubjectListByScoreRuleAndYearAndSchoolType(TblScoreRule $tblScoreRule, TblYear $tblYear, TblType $tblSchoolType)
+    {
+        return (new Data($this->getBinding()))->getScoreRuleSubjectListByScoreRuleAndYearAndSchoolType($tblScoreRule, $tblYear, $tblSchoolType);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblType $tblSchoolType
+     * @param int $level
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblScoreRuleSubject
+     */
+    public function getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject(TblYear $tblYear, TblType $tblSchoolType, int $level, TblSubject $tblSubject)
+    {
+        return (new Data($this->getBinding()))->getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject($tblYear, $tblSchoolType, $level, $tblSubject);
     }
 
     /**

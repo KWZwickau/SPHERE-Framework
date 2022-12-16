@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -124,5 +126,13 @@ class TblScoreRule extends Element
     public function getIsUsed(): bool
     {
         return Grade::useService()->getIsScoreRuleUsed($this);
+    }
+
+    /**
+     * @return false|TblScoreRuleSubject[]
+     */
+    public function getScoreRuleSubjects(TblYear $tblYear, TblType $tblSchoolType)
+    {
+        return Grade::useService()->getScoreRuleSubjectListByScoreRuleAndYearAndSchoolType($this, $tblYear, $tblSchoolType);
     }
 }

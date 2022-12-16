@@ -78,6 +78,12 @@ class Grade  implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition\Remove', __NAMESPACE__.'\Frontend::frontendScoreRuleConditionRemove')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Subject', __NAMESPACE__.'\Frontend::frontendScoreRuleSubject')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\SubjectDivisionCourse', __NAMESPACE__.'\Frontend::frontendScoreRuleSubjectDivisionCourse')
+        );
         // Berechnungsvorschrift - Berechnungsvariante
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule\Condition', __NAMESPACE__.'\Frontend::frontendScoreCondition')
@@ -134,12 +140,10 @@ class Grade  implements IModuleInterface
 
         // Bewertungssystem
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreType',
-                __NAMESPACE__.'\Frontend::frontendScoreType')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreType', __NAMESPACE__.'\Frontend::frontendScoreType')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreType\Edit',
-                __NAMESPACE__.'\Frontend::frontendScoreTypeEdit')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreType\Subject', __NAMESPACE__.'\Frontend::frontendScoreTypeSubject')
         );
 
         // Notenbuch

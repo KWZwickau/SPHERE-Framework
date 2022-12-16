@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSub
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
@@ -141,19 +142,63 @@ abstract class DataScore extends DataMigrate
     }
 
     /**
-     * @param TblScoreRule $tblScoreRule
-     * @param TblType|null $tblSchoolType
+     * @param TblYear $tblYear
+     * @param TblType $tblSchoolType
      *
      * @return false|TblScoreRuleSubject[]
      */
-    public function getScoreRuleSubjectListByScoreRule(TblScoreRule $tblScoreRule, ?TblType $tblSchoolType)
+    public function getScoreRuleSubjectListByYearAndSchoolType(TblYear $tblYear, TblType $tblSchoolType)
     {
-        $parameters[TblScoreRuleSubject::ATTR_TBL_SCORE_RULE] = $tblScoreRule->getId();
-        if ($tblSchoolType) {
-            $parameters[TblScoreRuleSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE] = $tblSchoolType->getId();
-        }
+        $parameters[TblScoreRuleSubject::ATTR_SERVICE_TBL_YEAR] = $tblYear->getId();
+        $parameters[TblScoreRuleSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE] = $tblSchoolType->getId();
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreRuleSubject', $parameters);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param TblYear $tblYear
+     * @param TblType $tblSchoolType
+     *
+     * @return false|TblScoreRuleSubject[]
+     */
+    public function getScoreRuleSubjectListByScoreRuleAndYearAndSchoolType(TblScoreRule $tblScoreRule, TblYear $tblYear, TblType $tblSchoolType)
+    {
+        $parameters[TblScoreRuleSubject::ATTR_TBL_SCORE_RULE] = $tblScoreRule->getId();
+        $parameters[TblScoreRuleSubject::ATTR_SERVICE_TBL_YEAR] = $tblYear->getId();
+        $parameters[TblScoreRuleSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE] = $tblSchoolType->getId();
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreRuleSubject', $parameters);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return false|TblScoreRuleSubject[]
+     */
+    public function getScoreRuleSubjectListByScoreRule(TblScoreRule $tblScoreRule)
+    {
+        $parameters[TblScoreRuleSubject::ATTR_TBL_SCORE_RULE] = $tblScoreRule->getId();
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreRuleSubject', $parameters);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblType $tblSchoolType
+     * @param int $level
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblScoreRuleSubject
+     */
+    public function getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject(TblYear $tblYear, TblType $tblSchoolType, int $level, TblSubject $tblSubject)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblScoreRuleSubject', array(
+            TblScoreRuleSubject::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
+            TblScoreRuleSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE => $tblSchoolType->getId(),
+            TblScoreRuleSubject::ATTR_LEVEL => $level,
+            TblScoreRuleSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+        ));
     }
 
     /**
@@ -209,7 +254,7 @@ abstract class DataScore extends DataMigrate
      */
     public function getIsScoreRuleUsed(TblScoreRule $tblScoreRule): bool
     {
-        if ($this->getScoreRuleSubjectListByScoreRule($tblScoreRule, null)) {
+        if ($this->getScoreRuleSubjectListByScoreRule($tblScoreRule)) {
             return true;
         }
         if ($this->getScoreRuleSubjectDivisionCourseListByScoreRule($tblScoreRule)) {
