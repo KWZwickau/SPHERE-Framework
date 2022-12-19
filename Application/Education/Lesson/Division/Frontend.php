@@ -146,7 +146,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Route(__NAMESPACE__), new PersonGroup())
         );
 
-        $YearAll = Term::useService()->getYearAllSinceYears(1);
+        $YearAll = Term::useService()->getYearAllSinceYears(2);
         if (!empty( $YearAll )) {
             foreach ($YearAll as $key => $row) {
                 $name[$key] = strtoupper($row->getDisplayName());
