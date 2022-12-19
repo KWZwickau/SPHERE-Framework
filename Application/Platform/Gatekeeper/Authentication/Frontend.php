@@ -394,24 +394,23 @@ class Frontend extends Extension implements IFrontendInterface
         // Create Form
         $Form = new Form(
             new FormGroup(array(
-                    new FormRow(
-                        new FormColumn(array(
-                            new Headline('Anmeldung Schulsoftware'),
-                            new Ruler(),
-                            new Listing(array(
-                                new Container($CredentialNameField) .
-                                new Container($CredentialLockField)
-                            )),
-                            $FormError
-                        ))
-                    ),
-                    new FormRow(
-                        new FormColumn(array(
-                            (new Primary('Login')),
-                        ))
-                    )
+                new FormRow(
+                    new FormColumn(array(
+                        new Headline('Anmeldung Schulsoftware'),
+                        new Ruler(),
+                        new Listing(array(
+                            new Container($CredentialNameField) .
+                            new Container($CredentialLockField)
+                        )),
+                        $FormError
+                    ))
+                ),
+                new FormRow(
+                    new FormColumn(array(
+                        (new Primary('Login')),
+                    ))
                 )
-            )
+            ))
         );
 
         // set depending information
@@ -429,13 +428,21 @@ class Frontend extends Extension implements IFrontendInterface
 
                 ))
             )));
-        } elseif(strtolower($this->getRequest()->getHost()) == 'www.demo.schulsoftware.schule'
-        || $this->getRequest()->getHost() == '192.168.37.128'){
+        } elseif( strtolower($this->getRequest()->getHost()) == 'www.demo.schulsoftware.schule'
+        || $this->getRequest()->getHost() == '192.168.202.230'
+        || $this->getRequest()->getHost() == '192.168.37.128'
+        || $this->getRequest()->getHost() == '192.168.150.128'
+        ){
             $Form.= new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
                     '<br/><br/><br/><br/>',
                     new Title('Anmeldung Vidis Demo'),
-                    new PrimaryLink('Login', '/Platform/Gatekeeper/Authentication/OAuth2/OAuthTestSite')
+                        (new PrimaryLink('Login', '/Platform/Gatekeeper/OAuth2/OAuthTestSite'))->setExternal()
+//                    .'<script>https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js</script>'
+                    .'<script src="https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js"></script>'
+//                    // size L/M/S
+//                    // cookie = "true" (zum testen erstmal false)
+                    .'<vidis-login size = "L" cookie = "false" loginurl="http://192.168.150.128/Platform/Gatekeeper/OAuth2/OAuthTestSite"></vidis-login>'
                 ))
             )));
         }

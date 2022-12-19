@@ -3,8 +3,8 @@ namespace SPHERE\Application\Platform\Gatekeeper;
 
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Authentication;
-use SPHERE\Application\Platform\Gatekeeper\Authentication\OAuth2\OAuth2;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Authorization;
+use SPHERE\Application\Platform\Gatekeeper\OAuth2\OAuth2;
 use SPHERE\Application\Platform\Gatekeeper\Saml\Saml;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
 use SPHERE\Common\Main;
