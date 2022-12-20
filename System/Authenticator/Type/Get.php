@@ -52,7 +52,7 @@ class Get extends Extension implements ITypeInterface
         if (!empty( $Global->GET ) && !isset( $Global->GET['_Sign'] )) {
             // Ausnahmen für Vidis Login
             if(isset($Global->GET['kc_idp_hint'])
-            || (isset($Global->GET['state']) && isset($Global->GET['session_state']))){
+            || (isset($Global->GET['state']) && isset($Global->GET['session_state']) && isset($Global->GET['code']))){
                 $Global->saveGet();
                 return true;
             }

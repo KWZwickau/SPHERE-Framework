@@ -428,7 +428,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 ))
             )));
-        } elseif( strtolower($this->getRequest()->getHost()) == 'www.demo.schulsoftware.schule'
+        } elseif( strtolower($this->getRequest()->getHost()) == 'demo.schulsoftware.schule'
         || $this->getRequest()->getHost() == '192.168.202.230'
         || $this->getRequest()->getHost() == '192.168.37.128'
         || $this->getRequest()->getHost() == '192.168.150.128'
@@ -437,7 +437,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutColumn(array(
                     '<br/><br/><br/><br/>',
                     new Title('Anmeldung Vidis Demo'),
-                        (new PrimaryLink('Login', '/Platform/Gatekeeper/OAuth2/OAuthTestSite'))->setExternal()
+                        (new PrimaryLink('Login', '/Platform/Gatekeeper/OAuth2/OAuthSite'))->setExternal()
 //                    .'<script>https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js</script>'
                     .'<script src="https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js"></script>'
 //                    // size L/M/S

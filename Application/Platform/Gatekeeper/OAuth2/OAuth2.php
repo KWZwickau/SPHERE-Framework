@@ -16,10 +16,7 @@ class OAuth2 implements IModuleInterface
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/OAuthTestSite', __NAMESPACE__.'/Frontend::frontendOAuthTestSite'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/OAuthTestSite?kc_idp_hint=DLLP', __NAMESPACE__.'/Frontend::frontendOAuthTestRequest'
+            __NAMESPACE__.'/OAuthSite', __NAMESPACE__.'/Frontend::frontendOAuthRequest'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Vidis', __NAMESPACE__.'/Frontend::frontendVidis'
