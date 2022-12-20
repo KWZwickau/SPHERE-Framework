@@ -30,6 +30,7 @@ class GymAbgSekI extends Certificate
     const COURSE_HS = 1;
     const COURSE_RS = 2;
     const COURSE_HSQ = 3;
+    const COURSE_LERNEN = 4;
 
     /**
      * @param TblPerson|null $tblPerson
@@ -153,15 +154,6 @@ class GymAbgSekI extends Certificate
                         , '4%')
                     ->addElementColumn((new Element())
                     ->setContent('
-                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                Frau
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    Herr
-                                {% else %}
-                                    Frau/Herr
-                                {% endif %}
-                            {% endif %}
                             <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
                             gemäß § 7 Absatz 7 Satz 2 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe
                             10 nach Jahrgangsstufe 11 des Gymnasiums einen dem Realschulabschluss gleichgestellten mittleren
@@ -183,15 +175,6 @@ class GymAbgSekI extends Certificate
                         , '4%')
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                Frau
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    Herr
-                                {% else %}
-                                    Frau/Herr
-                                {% endif %}
-                            {% endif %}
                             <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
                             gemäß § 7 Absatz 7 Satz 1 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe 9
                             nach Klassenstufe 10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben.¹')
@@ -202,12 +185,13 @@ class GymAbgSekI extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('¹ Zutreffendes ist anzukreuzen')
-                        ->styleTextSize('9.5px')
-                        ->styleBorderTop()
-                        , '20%')
-                    ->addElementColumn((new Element())
-                    )
+                        ->styleBorderBottom()
+                        , '30%')
+                    ->addElementColumn((new Element()))
+                )
+                ->addElement((new Element())
+                    ->setContent('¹ Zutreffendes ist anzukreuzen sowie Vorname und Name einzutragen.')
+                    ->styleTextSize('9.5px')
                 )
                 ->styleMarginTop('410px')
             );

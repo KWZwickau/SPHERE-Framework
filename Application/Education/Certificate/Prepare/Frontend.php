@@ -6103,9 +6103,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     $remarkTextArea
                 );
             } else {
-                if ($tblCertificate->getCertificate() == 'MsAbgLernen'
-                    || $tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung'
-                ) {
+                if ($tblCertificate->getCertificate() == 'MsAbgGeistigeEntwicklung') {
                     $remarkTextArea = new TextArea('Data[InformationList][Support]', '', 'Inklusive Unterrichtung');
                 } else {
                     $remarkTextArea = new TextArea('Data[InformationList][Remark]', '', 'Bemerkungen');
@@ -6163,13 +6161,20 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                      den qualifizierenden Hauptschulabschluss erworben.',
                     GymAbgSekI::COURSE_HSQ
                 ));
+                $radio3 = (new RadioBox(
+                    'Data[InformationList][EqualGraduation]',
+                    'gemäß § 63 Absatz 3 Nummer 3 der Schulordnung Ober- und Abendoberschulen einen dem Abschluss im Förderschwerpunkt Lernen gemäß 
+                     § 34a Absatz 1 der Schulordnung Förderschulen gleichgestellten Abschluss erworben.',
+                    GymAbgSekI::COURSE_LERNEN
+                ));
                 if ($isApproved) {
                     $radio1->setDisabled();
                     $radio2->setDisabled();
+                    $radio3->setDisabled();
                 }
                 $otherInformationList[] = new Panel(
                     'Gleichgestellter Schulabschluss',
-                    array($radio1, $radio2),
+                    array($radio1, $radio2, $radio3),
                     Panel::PANEL_TYPE_DEFAULT
                 );
             }
