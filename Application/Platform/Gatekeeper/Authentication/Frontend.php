@@ -504,11 +504,18 @@ class Frontend extends Extension implements IFrontendInterface
         $tblAccount = null;
         $LoginOk = false;
 
-        if(isset($_SESSION['samlUserdata']['ucsschoolRecordUID']) && $_SESSION['samlUserdata']['ucsschoolRecordUID']){
-//            var_dump($_SESSION['samlUserdata']);
+        if(isset($_SESSION['samlUserdata']['uid']) && !empty($_SESSION['samlUserdata']['uid'])){
             $AccountNameAPI = current($_SESSION['samlUserdata']['uid']);
+        } else {
+            $AccountNameAPI = new Bold('UCS missing (uid)');
+        }
+
+        if(isset($_SESSION['samlUserdata']['ucsschoolRecordUID']) && $_SESSION['samlUserdata']['ucsschoolRecordUID']){
+//            $AccountNameAPI = current($_SESSION['samlUserdata']['uid']);
             $AccountId = current($_SESSION['samlUserdata']['ucsschoolRecordUID']);
             $tblAccount = Account::useService()->getAccountById($AccountId);
+        } else {
+            $AccountId = new Bold('UCS missing (ucsschoolRecordUID)');
         }
 
         // AccountId gegen Prüfung
@@ -544,7 +551,6 @@ class Frontend extends Extension implements IFrontendInterface
             if($Session = session_id()){
                 Account::useService()->destroySession(null, $Session);
             }
-
         }
 
         $tblIdentification = null;
@@ -569,8 +575,13 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $detailInfo = '';
+        if(isset($AccountNameAPI) || isset($AccountId)){
+            $detailInfo = '( '.(isset($AccountNameAPI)? $AccountNameAPI: '').' [ '.(isset($AccountId)? $AccountId: '').' ]'.' )';
+        }
+
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
-            new LayoutColumn(new Warning('Ihr Login von UCS ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
+            new LayoutColumn(new Warning('Ihr Login von UCS '.$detailInfo.' ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
         ))));
 
         return $Stage;
