@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Certificate\Prepare\TechnicalSchool;
 
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradesAllYears;
+use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
@@ -1135,7 +1136,8 @@ class Frontend extends Extension
             }
 
             $Stage->setContent(
-                new Layout(array(
+                ApiPrepare::receiverModal()
+                .new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(

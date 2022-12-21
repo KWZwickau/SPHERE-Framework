@@ -1799,7 +1799,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                     );
 
                     $Stage->setContent(
-                        new Layout(array(
+                        ApiPrepare::receiverModal()
+                        .new Layout(array(
                             new LayoutGroup(array(
                                 new LayoutRow(array(
                                     new LayoutColumn(array(
@@ -2301,7 +2302,6 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                 $isApiField = true;
                                                 if (!$isAdded) {
                                                     $columnTable[$key] = $Label
-                                                        . ApiPrepare::receiverModal()
                                                         . new PullRight(
                                                             (new Standard('Alle bearbeiten', ApiPrepare::getEndpoint()))
                                                                 ->ajaxPipelineOnClick(ApiPrepare::pipelineOpenInformationModal(
@@ -4396,7 +4396,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                 );
 
                 $Stage->setContent(
-                    new Layout(array(
+                    ApiPrepare::receiverModal()
+                    .new Layout(array(
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
