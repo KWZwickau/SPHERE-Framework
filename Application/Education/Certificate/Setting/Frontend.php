@@ -785,8 +785,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'Typ'               => 'Typ',
                 'Category'          => 'Kategorie',
                 'Name'              => 'Name',
-                'CertificateNumber' => 'Anlage',
                 'Description'       => 'Beschreibung',
+                'CertificateNumber' => 'Anlage',
                 'Option'            => ''
             ), array(
                 'order'      => array(array(0, 'asc'), array(1, 'asc'), array(2, 'asc'), array(3, 'asc')),
@@ -979,8 +979,6 @@ class Frontend extends Extension implements IFrontendInterface
             'Oberschule Abschlusszeugnis' => 'MsAbsLernen',
 
             'Oberschule Abgangszeugnis' => 'MsAbg',
-            'Oberschule Abgangszeugnis Lernen' => 'MsAbgLernen',
-            'Oberschule Abgangszeugnis Lernen mit Hauptschulbildungsgang' => 'MsAbgLernenHs',
             'Oberschule Abgangszeugnis Geistige Entwicklung' => 'MsAbgGeistigeEntwicklung'
         );
         // Gymnasium
