@@ -442,7 +442,7 @@ class Frontend extends Extension implements IFrontendInterface
                     .'<script src="https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js"></script>'
 //                    // size L/M/S
 //                    // cookie = "true" (zum testen erstmal false)
-                    .'<vidis-login size = "L" cookie = "false" loginurl="http://192.168.150.128/Platform/Gatekeeper/OAuth2/OAuthTestSite"></vidis-login>'
+                    .'<vidis-login size = "L" cookie = "false" loginurl="http://demo.schulsoftware.schule/Platform/Gatekeeper/OAuth2/OAuthSite"></vidis-login>'
                 ))
             )));
         }
