@@ -3024,7 +3024,7 @@ class Service extends Extension
                     }
 
                     // Definition mit leerwerten wird für das Frontend benötigt
-                    $TypeList = array('Sorgeberechtigt' => 3, 'Vormund' => 3, 'Bevollmächtigt' => 3, 'Notfallkontakt' => 3);
+                    $TypeList = array('Sorgeberechtigt' => 3, 'Vormund' => 3, 'Bevollmächtigt' => 3, 'Notfallkontakt' => 4);
                     foreach($TypeList as $Type => $Count){
                         for($j = 1; $j <= $Count; $j++) {
                             $DataPerson[$Type.$j.'_Salutation'] = '';
