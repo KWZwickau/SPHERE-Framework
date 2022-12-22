@@ -221,4 +221,20 @@ class TblTestGrade extends Element
     {
         return Grade::useService()->getGradeNumberValue($this->getGrade());
     }
+
+    /**
+     * @return bool
+     */
+    public function getIsGradeNumeric(): bool
+    {
+        return $this->getGradeNumberValue() !== null;
+    }
+
+    /**
+     * @return TblGradeType|false
+     */
+    public function getTblGradeType()
+    {
+        return $this->getTblTest()->getTblGradeType();
+    }
 }

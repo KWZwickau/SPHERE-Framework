@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -164,9 +165,9 @@ class Frontend extends FrontendTest
                 }
             }
 
-            list($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList)
+            list($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList, $averagePeriodList, $averagePersonList, $scoreRulePersonList)
                 = $this->getTestGradeListAndTestListByPersonListAndSubject(
-                    $tblPersonList, $tblYear, $tblSubject, $DivisionCourseId, $Filter, $tblTestList, $isEdit, $isCheckTeacherLectureship
+                    $tblPersonList, $tblYear, $tblSubject, $tblDivisionCourse, $Filter, $tblTestList, $isEdit, $isCheckTeacherLectureship
                 );
 
             $hasPicture = !empty($pictureList);
@@ -175,7 +176,7 @@ class Frontend extends FrontendTest
             $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
             $taskListIsEdit = array();
             $this->setGradeBookHeaderList($headerList, $taskListIsEdit, $tblTestListNoTeacherLectureship,
-                $tblDivisionCourse, $tblTestList, $isEdit, $isCheckTeacherLectureship, $SubjectId, $Filter);
+                $tblDivisionCourse, $tblTestList, $isEdit, $isCheckTeacherLectureship, $SubjectId, $Filter, $averagePeriodList);
 
             $count = 0;
             if ($tblPersonList) {
@@ -219,6 +220,34 @@ class Frontend extends FrontendTest
                                 }
 
                                 $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody($contentGrade, self::BACKGROUND_COLOR_TASK_BODY == '#FFFFFF' ? null : self::BACKGROUND_COLOR_TASK_BODY);
+                            // Halbjahr - Durchschnitt
+                            } elseif (strpos($key, 'Period') !== false) {
+                                $periodId = str_replace('Period', '', $key);
+                                if (isset($averagePersonList[$tblPerson->getId()]['Periods'][$periodId])
+                                    && ($tblPeriod = Term::useService()->getPeriodById($periodId))
+                                    && ($tblTempTestGradeList = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
+                                        $tblPerson, $tblYear, $tblSubject, $tblPeriod->getFromDateTime(), $tblPeriod->getToDateTime()
+                                    ))
+                                ) {
+                                    $contentPeriod = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $tblTempTestGradeList,
+                                        $scoreRulePersonList[$tblPerson->getId()] ?? null, $tblPeriod);
+                                } else {
+                                    $contentPeriod = '';
+                                }
+                                $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody(new Bold($contentPeriod), self::BACKGROUND_COLOR_PERIOD);
+                            // Gesamtes Schuljahr - Durchschnitt
+                            } elseif (strpos($key, 'TotalAverage') !== false) {
+                                if (isset($averagePersonList[$tblPerson->getId()]['TotalAverage'])
+                                    && ($tblTempTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject(
+                                        $tblPerson, $tblYear, $tblSubject
+                                    ))
+                                ) {
+                                    $contentPeriod = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $tblTempTestGradeList,
+                                        $scoreRulePersonList[$tblPerson->getId()] ?? null);
+                                } else {
+                                    $contentPeriod = '';
+                                }
+                                $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody(new Bold($contentPeriod), self::BACKGROUND_COLOR_PERIOD);
                             }
                         }
                     }
@@ -269,7 +298,7 @@ class Frontend extends FrontendTest
      * @param $tblPersonList
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
-     * @param $DivisionCourseId
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param $Filter
      * @param array $tblTestList
      * @param $isEdit
@@ -277,10 +306,11 @@ class Frontend extends FrontendTest
      *
      * @return array[]
      */
-    private function getTestGradeListAndTestListByPersonListAndSubject($tblPersonList, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId,
+    private function getTestGradeListAndTestListByPersonListAndSubject($tblPersonList, TblYear $tblYear, TblSubject $tblSubject, TblDivisionCourse $tblDivisionCourse,
         $Filter, array &$tblTestList, $isEdit, $isCheckTeacherLectureship): array
     {
         $tblPersonLogin = Account::useService()->getPersonByLogin();
+        $DivisionCourseId = $tblDivisionCourse->getId();
 
         $testGradeList = array();
         $taskGradeList = array();
@@ -288,6 +318,21 @@ class Frontend extends FrontendTest
         $pictureList = array();
         $courseList = array();
         $tblTestListNoTeacherLectureship = array();
+        $scoreRulePersonList = array();
+
+        $periodList = array();
+        $averagePeriodList = array();
+        $averagePersonList = array();
+        if (($tblPeriodList = $tblYear->getTblPeriodList(false, true))) {
+            foreach($tblPeriodList as $tblPeriod) {
+                if ($tblPeriod->isLevel12()) {
+                    $periodList['Short'][$tblPeriod->getId()] = $tblPeriod;
+                } else {
+                    $periodList['Normal'][$tblPeriod->getId()] = $tblPeriod;
+                }
+            }
+        }
+
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
                 if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
@@ -350,21 +395,73 @@ class Frontend extends FrontendTest
                         }
                     }
 
+                    // Schüler-Informationen
                     Grade::useService()->setStudentInfo($tblPerson, $tblYear, $integrationList, $pictureList, $courseList);
+
+                    // Schüler Berechnungsvorschrift ermitteln
+                    if (($tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse))) {
+                        $scoreRulePersonList[$tblPerson->getId()] = $tblScoreRule;
+                    }
+
+                    // Schüler-Durchschnitte anzeigen
+                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                        && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                    ) {
+                        // SEKII
+                        if (DivisionCourse::useService()->getIsCourseSystemBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel())) {
+                            $tempList = $periodList['Normal'] ?? array();
+                            if (DivisionCourse::useService()->getIsShortYearBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel())
+                                && isset($periodList['Short'])
+                            ) {
+                                $tempList = $periodList['Short'];
+                            }
+                            if (!empty($tempList)) {
+                                $count = 0;
+                                foreach ($tempList as $period) {
+                                    $count++;
+                                    $averagePersonList[$tblPerson->getId()]['Periods'][$period->getId()] = $period->getToDateTime();
+                                    if (!isset($averagePeriodList['Periods'][$period->getId()])) {
+                                        $averagePeriodList['Periods'][$period->getId()] = $count;
+                                    }
+                                }
+                            }
+                        // SEKI
+                        } else {
+                            if (isset($periodList['Normal'])) {
+                                $countPeriod = count($periodList['Normal']);
+                                $count = 0;
+                                foreach ($periodList['Normal'] as $item) {
+                                    $count++;
+                                    if ($count < $countPeriod) {
+                                        $averagePersonList[$tblPerson->getId()]['Periods'][$item->getId()] = $item->getToDateTime();
+                                        if (!isset($averagePeriodList['Periods'][$item->getId()])) {
+                                            $averagePeriodList['Periods'][$item->getId()] = $count;
+                                        }
+                                    } else {
+                                        $averagePersonList[$tblPerson->getId()]['TotalAverage'] = $item->getToDateTime();
+                                        if (!isset($averagePeriodList['TotalAverage'])) {
+                                            $averagePeriodList['TotalAverage'] = $item;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        return array($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList);
+        return array($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList,
+            $averagePeriodList, $averagePersonList, $scoreRulePersonList);
     }
 
     private function setGradeBookHeaderList(array &$headerList, array &$taskListIsEdit, array $tblTestListNoTeacherLectureship,
-        TblDivisionCourse $tblDivisionCourse, $tblTestList, bool $isEdit, bool $isCheckTeacherLectureship, $SubjectId, $Filter)
+        TblDivisionCourse $tblDivisionCourse, $tblTestList, bool $isEdit, bool $isCheckTeacherLectureship, $SubjectId, $Filter, $averagePeriodList)
     {
         $isRoleHeadmaster = Grade::useService()->getRole() == 'Headmaster';
         if ($tblTestList) {
             foreach ($tblTestList as $tblTest) {
-                $virtualTestTaskList[] = new VirtualTestTask($tblTest->getDate() ?: $tblTest->getFinishDate(), $tblTest, null);
+                $virtualTestTaskList[] = new VirtualTestTask($tblTest->getDate() ?: $tblTest->getFinishDate(), $tblTest);
             }
         }
         if (($tblTaskList = Grade::useService()->getTaskListByStudentsInDivisionCourse($tblDivisionCourse))) {
@@ -372,34 +469,59 @@ class Frontend extends FrontendTest
                 $virtualTestTaskList[] = new VirtualTestTask($tblTask->getDate(), null, $tblTask);
             }
         }
+        if (isset($averagePeriodList['Periods'])) {
+            foreach ($averagePeriodList['Periods'] as $periodId => $countPeriod) {
+                if (($tblPeriod = Term::useService()->getPeriodById($periodId))) {
+                    $virtualTestTaskList[] = new VirtualTestTask($tblPeriod->getToDateTime(), null, null, $tblPeriod, $countPeriod);
+                }
+            }
+        }
+        if (isset($averagePeriodList['TotalAverage'])) {
+            /** @var TblPeriod $tblPeriodTemp */
+            $tblPeriodTemp = $averagePeriodList['TotalAverage'];
+            $virtualTestTaskList[] = new VirtualTestTask($tblPeriodTemp->getToDateTime(), null, null, $tblPeriodTemp);
+        }
+
         if (!empty($virtualTestTaskList)) {
             $virtualTestTaskList = $this->getSorter($virtualTestTaskList)->sortObjectBy('Date', new DateTimeSorter());
             /** @var VirtualTestTask $virtualTestTask */
             foreach ($virtualTestTaskList as $virtualTestTask) {
-                if ($virtualTestTask->getIsTask()) {
-                    $taskId = $virtualTestTask->getTblTask()->getId();
-                    $isEditTask = false;
-                    if ($isEdit) {
-                        $now = new DateTime('now');
-                        if ($isRoleHeadmaster) {
-                            $isEditTask = $virtualTestTask->getTblTask()->getFromDate() <= $now;
+                switch ($virtualTestTask->getType()) {
+                    case VirtualTestTask::TYPE_TEST:
+                        $testId = $virtualTestTask->getTblTest()->getId();
+                        if ($isCheckTeacherLectureship) {
+                            $isEditTest = $isEdit && !isset($tblTestListNoTeacherLectureship[$testId]);
                         } else {
-                            $isEditTask = $virtualTestTask->getTblTask()->getFromDate() <= $now && $now <= $virtualTestTask->getTblTask()->getToDate();
+                            $isEditTest = $isEdit;
                         }
-                    }
-                    $taskListIsEdit[$taskId] = $isEditTask;
-                    $headerList['Task' . $taskId]
-                        = $this->getTableColumnHeadByTask($virtualTestTask->getTblTask(), $tblDivisionCourse->getId(), $SubjectId, $Filter, $isEditTask);
-                } else {
-                    $testId = $virtualTestTask->getTblTest()->getId();
-                    if ($isCheckTeacherLectureship) {
-                        $isEditTest = $isEdit && !isset($tblTestListNoTeacherLectureship[$testId]);
-                    } else {
-                        $isEditTest = $isEdit;
-                    }
 
-                    $headerList['Test' . $testId]
-                        = $this->getTableColumnHeadByTest($virtualTestTask->getTblTest(), $tblDivisionCourse->getId(), $SubjectId, $Filter, $isEditTest);
+                        $headerList['Test' . $testId]
+                            = $this->getTableColumnHeadByTest($virtualTestTask->getTblTest(), $tblDivisionCourse->getId(), $SubjectId, $Filter, $isEditTest);
+                        break;
+                    case VirtualTestTask::TYPE_TASK:
+                        $taskId = $virtualTestTask->getTblTask()->getId();
+                        $isEditTask = false;
+                        if ($isEdit) {
+                            $now = new DateTime('now');
+                            if ($isRoleHeadmaster) {
+                                $isEditTask = $virtualTestTask->getTblTask()->getFromDate() <= $now;
+                            } else {
+                                $isEditTask = $virtualTestTask->getTblTask()->getFromDate() <= $now && $now <= $virtualTestTask->getTblTask()->getToDate();
+                            }
+                        }
+                        $taskListIsEdit[$taskId] = $isEditTask;
+                        $headerList['Task' . $taskId]
+                            = $this->getTableColumnHeadByTask($virtualTestTask->getTblTask(), $tblDivisionCourse->getId(), $SubjectId, $Filter, $isEditTask);
+                        break;
+                    case VirtualTestTask::TYPE_PERIOD:
+                        $isTotalAverage = $virtualTestTask->getCountPeriod() == 0;
+                        $preKey = $isTotalAverage ? 'TotalAverage' : 'Period';
+                        $headerList[$preKey . $virtualTestTask->getTblPeriod()->getId()] = $this->getTableColumnHead(
+                            '&#216;'
+                                . (!$isTotalAverage ? new Container($virtualTestTask->getCountPeriod() . '. HJ') : ''),
+                            true,
+                            self::BACKGROUND_COLOR_PERIOD
+                        );
                 }
             }
         }

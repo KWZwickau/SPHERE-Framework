@@ -32,6 +32,7 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
 //    const BACKGROUND_COLOR_TASK_BODY = '#EEEEEE';
     const BACKGROUND_COLOR_TASK_HEADER = '#FFFFFF';
     const BACKGROUND_COLOR_TASK_BODY = '#FFFFFF';
+    const BACKGROUND_COLOR_PERIOD = '#EEEEEE';
     const MIN_HEIGHT_HEADER = '46px';
     const MIN_HEIGHT_BODY = '30px';
     const PADDING = '5px';

@@ -546,6 +546,63 @@ class Data extends DataTask
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblTestGrade[]|false
+     */
+    public function getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject,
+        DateTime $fromDate, DateTime $toDate)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('g')
+            ->from(__NAMESPACE__ . '\Entity\TblTestGrade', 'g')
+            ->join(__NAMESPACE__ . '\Entity\TblTest', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('g.tblGraduationTest', 't.Id'),
+                    $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblYear', '?2'),
+                    $queryBuilder->expr()->eq('t.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->isNull('g.EntityRemove'),
+                    $queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->isNotNull('t.Date'),
+                            $queryBuilder->expr()->gte('t.Date', '?4'),
+                            $queryBuilder->expr()->lte('t.Date', '?5'),
+                        ),
+                        $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->isNotNull('t.FinishDate'),
+                            $queryBuilder->expr()->gte('t.FinishDate', '?4'),
+                            $queryBuilder->expr()->lte('t.FinishDate', '?5'),
+                        ),
+                        $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->isNotNull('g.Date'),
+                            $queryBuilder->expr()->gte('g.Date', '?4'),
+                            $queryBuilder->expr()->lte('g.Date', '?5'),
+                        ),
+                    )
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId())
+            ->setParameter(3, $tblSubject->getId())
+            ->setParameter(4, $fromDate)
+            ->setParameter(5, $toDate)
+            ->orderBy('t.Date', 'ASC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param TblTest $tblTest
      *
      * @return false|TblTestGrade[]

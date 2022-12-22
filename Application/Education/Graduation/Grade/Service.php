@@ -437,6 +437,21 @@ class Service extends ServiceTask
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblTestGrade[]|false
+     */
+    public function getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject,
+        DateTime $fromDate, DateTime $toDate)
+    {
+        return (new Data($this->getBinding()))->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $fromDate, $toDate);
+    }
+
+    /**
      * @param TblTest $tblTest
      *
      * @return false|TblTestGrade[]

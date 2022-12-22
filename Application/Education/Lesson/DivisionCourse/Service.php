@@ -330,6 +330,35 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @param TblType $tblSchoolType
+     * @param int $level
+     *
+     * @return bool
+     */
+    public function getIsShortYearBySchoolTypeAndLevel(TblType $tblSchoolType, int $level): bool
+    {
+        return ($tblSchoolType->getShortName() == 'Gy' && preg_match('!(12)!is', $level))
+            || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(13)!is', $level));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return bool
+     */
+    public function getIsShortYearByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear): bool
+    {
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+        ) {
+            return $this->getIsShortYearBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel());
+        }
+
+        return false;
+    }
+
+    /**
      * @param $Filter
      * @param $Data
      * @param TblDivisionCourse|null $tblDivisionCourse
