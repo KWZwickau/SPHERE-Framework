@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use DateTime;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
@@ -10,9 +11,11 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -55,6 +58,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
@@ -715,7 +719,9 @@ abstract class FrontendTask extends FrontendScoreType
                 $sum = 0.0;
                 $countGrades = 0;
                 if ($tblSubjectList) {
+                    list($startDate, $tblPeriod) = $this->getStartDateAndPeriodByPerson($tblPerson, $tblYear, $tblTask);
                     foreach ($tblSubjectList as $tblSubject) {
+                        $gradeValue = null;
                         if (isset($tblTaskGradeList[$tblSubject->getId()])) {
                             $content = $tblTaskGradeList[$tblSubject->getId()];
                             if (($gradeValue = Grade::useService()->getGradeNumberValue($content)) !== null) {
@@ -724,7 +730,7 @@ abstract class FrontendTask extends FrontendScoreType
 
                                 $subjectListSum[$tblSubject->getId()] += $gradeValue;
                                 $subjectListGradesCount[$tblSubject->getId()]++;
-                             }
+                            }
                         } elseif (isset($tblTaskGradeTextList[$tblSubject->getId()])) {
                             $content = $tblTaskGradeTextList[$tblSubject->getId()];
                         } elseif ((DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
@@ -733,8 +739,19 @@ abstract class FrontendTask extends FrontendScoreType
                             $content = '&nbsp;';
                         }
 
-                        // todo Notendurchschnitt für Schüler bei diesem Fach und farbliche Anzeige bei Note
-                        $bodyList[$tblPerson->getId()][$tblSubject->getId()] = $this->getTableColumnBody($content);
+                        $average = $this->getAppointedTaskAverage($tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $tblTask, $startDate ?: null, $tblPeriod ?: null);
+                        if ($average && $gradeValue !== null) {
+                            $averageFloat = Grade::useService()->getGradeNumberValue($average);
+                            if (($gradeValue - 0.5) <= $averageFloat && ($gradeValue + 0.5) >= $averageFloat) {
+                                $content = new Success($content);
+                            } else {
+                                $content = new \SPHERE\Common\Frontend\Text\Repository\Danger($content);
+                            }
+                        }
+
+                        $bodyList[$tblPerson->getId()][$tblSubject->getId()] = $this->getTableColumnBody($content . ' '
+                            . ($average ? new Muted(new Small('&nbsp;&nbsp; &#216;' . $average)) : '')
+                        );
                     }
                 }
 
@@ -770,5 +787,62 @@ abstract class FrontendTask extends FrontendScoreType
         $item['Average'] = $this->getTableColumnBody('');
 
         return $item;
+    }
+
+    private function getStartDateAndPeriodByPerson(TblPerson $tblPerson, TblYear $tblYear, TblTask $tblTask): array
+    {
+        $startDate = false;
+        $tblPeriodPerson = false;
+
+        // SEKII: nur Noten des Halbjahres bei Kurssystem
+        if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+            if (($tblPeriodList = $tblYear->getPeriodListByPerson($tblPerson))) {
+                foreach ($tblPeriodList as $tblPeriod) {
+                    if ($tblPeriod->getFromDateTime() <= $tblTask->getDate()
+                        && $tblTask->getDate() <= $tblPeriod->getToDateTime()
+                    ) {
+                        $startDate = $tblPeriod->getFromDateTime();
+                        $tblPeriodPerson = $tblPeriod;
+                        break;
+                    }
+                }
+            }
+            // SEKI
+        } else {
+            list($startDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            $count = 0;
+            // es kann sein, dass es eine Berechnungsvarianten-Bedingung für das 1. Halbjahr gibt
+            if (($tblPeriodList = $tblYear->getPeriodListByPerson($tblPerson))) {
+                foreach ($tblPeriodList as $tblPeriod) {
+                    $count++;
+                    if ($count == 1) {
+                        if ($tblTask->getDate() <= $tblPeriod->getToDateTime()) {
+                            $tblPeriodPerson = $tblPeriod;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        return array($startDate, $tblPeriodPerson);
+    }
+
+    private function getAppointedTaskAverage(TblPerson $tblPerson, TblYear $tblYear, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject,
+        TblTask $tblTask, ?DateTime $startDate, ?TblPeriod $tblPeriod): string
+    {
+        $result = '';
+
+        // Zensuren - Leistungsüberprüfungen
+        if ($startDate
+            && ($tblGradeList = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
+                $tblPerson, $tblYear, $tblSubject, $startDate, $tblTask->getDate()
+            ))
+        ) {
+            $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
+            list($result) = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $tblGradeList, $tblScoreRule ?: null, $tblPeriod ?: null);
+        }
+
+        return $result;
     }
 }
