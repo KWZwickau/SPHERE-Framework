@@ -193,6 +193,33 @@ abstract class ServiceScore extends ServiceGradeType
     }
 
     /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return TblGradeType[]|false
+     */
+    public function getGradeTypeListByScoreRule(TblScoreRule $tblScoreRule)
+    {
+        $resultList = array();
+        if (($tblScoreConditionAllByRule = Grade::useService()->getScoreConditionsByScoreRule($tblScoreRule))) {
+            foreach ($tblScoreConditionAllByRule as $tblScoreCondition){
+                if (($tblGroupListByCondition = Grade::useService()->getScoreConditionGroupListByCondition($tblScoreCondition))){
+                    foreach ($tblGroupListByCondition as $group){
+                        if (($tblScoreGroupGradeTypeListByGroup = Grade::useService()->getScoreGroupGradeTypeListByGroup($group->getTblScoreGroup()))){
+                            foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeType){
+                                if ($tblScoreGroupGradeType->getTblGradeType() && $tblScoreGroupGradeType->getTblGradeType()->getIsActive()) {
+                                    $resultList[$tblScoreGroupGradeType->getTblGradeType()->getId()] = $tblScoreGroupGradeType->getTblGradeType();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param TblYear $tblYear
      * @param TblType $tblSchoolType
      *

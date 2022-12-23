@@ -257,10 +257,10 @@ abstract class FrontendTask extends FrontendScoreType
             $global->savePost();
         }
 
-        $typeList[1] = new SelectBoxItem(1, 'Leistungsüberprüfung');
-        $typeList[2] = new SelectBoxItem(2, 'Kopfnote');
+        $typeList[1] = new SelectBoxItem(1, 'Stichtagsnotenauftrag');
+        $typeList[2] = new SelectBoxItem(2, 'Kopfnotenauftrag');
 
-        $tblScoreTypeList = Grade::useService()->getScoreTypeAll();
+//        $tblScoreTypeList = Grade::useService()->getScoreTypeAll();
 
         $columnsTop = array();
         if (!$TaskId) {

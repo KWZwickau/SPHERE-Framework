@@ -11,10 +11,9 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Icon\Repository\Ban;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 
 abstract class ServiceScoreCalc extends ServiceScore
 {
@@ -25,24 +24,30 @@ abstract class ServiceScoreCalc extends ServiceScore
      * @param TblScoreRule|null $tblScoreRule
      * @param TblPeriod|null $tblPeriod
      *
-     * @return array|false|float|string
+     * @return array
      */
-    public function calcStudentAverage(TblPerson $tblPerson, TblYear $tblYear, array $tblGradeList, ?TblScoreRule $tblScoreRule = null, ?TblPeriod $tblPeriod = null)
+    public function calcStudentAverage(TblPerson $tblPerson, TblYear $tblYear, array $tblGradeList, ?TblScoreRule $tblScoreRule = null, ?TblPeriod $tblPeriod = null): array
     {
+        $resultAverage = '';
+        $scoreRuleText = '';
+        $error = array();
+
         if (!empty($tblGradeList)) {
             $result = array();
             $averageGroup = array();
-            $resultAverage = '';
             $count = 0;
             $sum = 0;
 
             if ($tblScoreRule) {
                 $tblScoreCondition = $this->getScoreConditionByStudent($tblPerson, $tblYear, $tblScoreRule, $tblGradeList, $tblPeriod);
+                $scoreRuleText = 'Berechnungsvorschrift: ' . $tblScoreRule->getName();
+                if ($tblScoreCondition) {
+                    $scoreRuleText .= '<br>Berechnungsvariante ' . $tblScoreCondition->getPriority() . ': ' . $tblScoreCondition->getName();
+                }
             } else {
                 $tblScoreCondition = false;
             }
 
-            $error = array();
             // Teilnoten
             $subResult = array();
             /** @var TblTestGrade $tblGrade */
@@ -90,18 +95,9 @@ abstract class ServiceScoreCalc extends ServiceScore
                             }
                         }
 
-                        if (!$hasFoundGradeType && $tblGrade->getIsGradeNumeric()) {
-                            if ($tblGrade->getTblGradeType()) {
-                                $error[$tblGrade->getTblGradeType()->getId()] =
-                                    new LayoutRow(
-                                        new LayoutColumn(
-                                            new Warning('Der Zensuren-Typ: ' . $tblGrade->getTblGradeType()->getDisplayName()
-                                                . ' ist nicht in der Berechnungsvariante: ' . $tblScoreCondition->getName() . ' hinterlegt.',
-                                                new Ban()
-                                            )
-                                        )
-                                    );
-                            }
+                        if (!$hasFoundGradeType && $tblGrade->getIsGradeNumeric() && $tblGrade->getTblGradeType()) {
+                            $error[$tblGrade->getTblGradeType()->getId()] = 'Der Zensuren-Typ: ' . $tblGrade->getTblGradeType()->getDisplayName()
+                                    . ' ist nicht in der Berechnungsvariante: ' . $tblScoreCondition->getName() . ' hinterlegt!';
                         }
                     }
                 } else {
@@ -113,16 +109,17 @@ abstract class ServiceScoreCalc extends ServiceScore
                 }
             }
             if (!empty($error)) {
-                return $error;
+                $average = new Bold(new Danger('Fehler'));
+                return array($average,  $scoreRuleText, $error);
             }
 
             if (!$tblScoreCondition) {
+                // alle Gleichwertig
                 if ($count > 0) {
-                    $average = $sum / $count;
-                    return round($average, 2);
-                } else {
-                    return false;
+                    $resultAverage = Grade::useService()->getGradeAverage($sum, $count);
                 }
+
+                return array($resultAverage, $scoreRuleText, $error);
             }
 
             // Teilnoten zusammenführen -> Gesamt-Teilnote
@@ -183,18 +180,46 @@ abstract class ServiceScoreCalc extends ServiceScore
                     }
 
                     if ($totalMultiplier > 0) {
-                        $average = $average / $totalMultiplier;
-                        $resultAverage = round($average, 2);
+                        $resultAverage = Grade::useService()->getGradeAverage($average, $totalMultiplier);
                     }
                 }
             }
-
-            // todo rückgabe getrennt
-            return $resultAverage === '' ? false : $resultAverage
-                . ($tblScoreCondition ? '(' . $tblScoreCondition->getPriority() . ': ' . $tblScoreCondition->getName() . ')' : '');
         }
 
-        return false;
+        return array($resultAverage, $scoreRuleText, $error);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param array $tblGradeList
+     * @param TblScoreRule|null $tblScoreRule
+     * @param TblPeriod|null $tblPeriod
+     *
+     * @return string
+     */
+    public function getCalcStudentAverageToolTip(TblPerson $tblPerson, TblYear $tblYear, array $tblGradeList, ?TblScoreRule $tblScoreRule = null,
+        ?TblPeriod $tblPeriod = null): string
+    {
+        list($average, $scoreRuleText, $error) = $this->calcStudentAverage($tblPerson, $tblYear, $tblGradeList, $tblScoreRule, $tblPeriod);
+
+        return $this->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
+    }
+
+    /**
+     * @param string $average
+     * @param string $scoreRuleText
+     * @param array $error
+     *
+     * @return string
+     */
+    public function getCalcStudentAverageToolTipByAverage(string $average, string $scoreRuleText, array $error): string
+    {
+        if ($scoreRuleText || !empty($error)) {
+            return (new ToolTip($average, $scoreRuleText . (!empty($error) ? '<br>' . implode('<br>', $error) : '')))->enableHtml();
+        }
+
+        return $average;
     }
 
     /**
@@ -341,5 +366,29 @@ abstract class ServiceScoreCalc extends ServiceScore
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblScoreRule[]
+     */
+    public function getScoreRuleListByDivisionCourseAndSubject(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject)
+    {
+        $tblScoreRuleList = array();
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tblScoreRule = $this->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse))
+                    && (!isset($tblScoreRuleList[$tblScoreRule->getId()]))
+                ) {
+                    $tblScoreRuleList[$tblScoreRule->getId()] = $tblScoreRule;
+                }
+            }
+        }
+
+        return empty($tblScoreRuleList) ? false : $tblScoreRuleList;
     }
 }

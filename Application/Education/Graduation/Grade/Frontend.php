@@ -229,7 +229,7 @@ class Frontend extends FrontendTest
                                         $tblPerson, $tblYear, $tblSubject, $tblPeriod->getFromDateTime(), $tblPeriod->getToDateTime()
                                     ))
                                 ) {
-                                    $contentPeriod = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $tblTempTestGradeList,
+                                    $contentPeriod = Grade::useService()->getCalcStudentAverageToolTip($tblPerson, $tblYear, $tblTempTestGradeList,
                                         $scoreRulePersonList[$tblPerson->getId()] ?? null, $tblPeriod);
                                 } else {
                                     $contentPeriod = '';
@@ -242,7 +242,7 @@ class Frontend extends FrontendTest
                                         $tblPerson, $tblYear, $tblSubject
                                     ))
                                 ) {
-                                    $contentPeriod = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $tblTempTestGradeList,
+                                    $contentPeriod = Grade::useService()->getCalcStudentAverageToolTip($tblPerson, $tblYear, $tblTempTestGradeList,
                                         $scoreRulePersonList[$tblPerson->getId()] ?? null);
                                 } else {
                                     $contentPeriod = '';
@@ -323,7 +323,7 @@ class Frontend extends FrontendTest
         $periodList = array();
         $averagePeriodList = array();
         $averagePersonList = array();
-        if (($tblPeriodList = $tblYear->getTblPeriodList(false, true))) {
+        if (($tblPeriodList = $tblYear->getPeriodList(false, true))) {
             foreach($tblPeriodList as $tblPeriod) {
                 if ($tblPeriod->isLevel12()) {
                     $periodList['Short'][$tblPeriod->getId()] = $tblPeriod;
@@ -694,6 +694,8 @@ class Frontend extends FrontendTest
         $integrationList = array();
         $pictureList = array();
         $courseList = array();
+        $personScoreRuleList = array();
+        $personPeriodList = array();
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses())
         ) {
@@ -706,6 +708,12 @@ class Frontend extends FrontendTest
                 ) {
                     Grade::useService()->setStudentInfo($tblPersonTemp, $tblYear, $integrationList, $pictureList, $courseList);
                     $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
+
+                    if (!$tblTask->getIsTypeBehavior()) {
+                        if (($tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPersonTemp, $tblYear, $tblSubject, $tblDivisionCourse))) {
+                            $personScoreRuleList[$tblPersonTemp->getId()] = $tblScoreRule;
+                        }
+                    }
                 }
             }
         }
@@ -744,14 +752,15 @@ class Frontend extends FrontendTest
 
         // Stichtagsnotenauftrag
         if (!$tblTask->getIsTypeBehavior()) {
-            list($tblTestList, $tblTestGradeValueList) = $this->getTestsAndTestGradesForAppointedDateTask($tblPersonList, $tblTask, $tblYear, $tblSubject);
+            list($tblTestList, $tblTestGradeValueList, $tblTestGradeList, $personPeriodList)
+                = $this->getTestsAndTestGradesForAppointedDateTask($tblPersonList, $tblTask, $tblYear, $tblSubject);
             if ($tblTestList) {
                 $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('SortDate', new DateTimeSorter());
                 foreach ($tblTestList as $tblTest) {
                     $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest, $DivisionCourseId, $tblSubject->getId(), $Filter, false);
                 }
             }
-
+            $headerList['Average'] = $this->getTableColumnHead('&#216;');
             $headerList['Grade'] = $this->getTableColumnHead('Zensur');
             $headerList['GradeText'] = $this->getTableColumnHead(
                 (new Link('oder Zeugnistext ' . new Edit(), ApiGradeBook::getEndpoint(), null, array(), 'Alle Zeugnistexte des Kurses auf einmal bearbeiten'))
@@ -836,7 +845,20 @@ class Frontend extends FrontendTest
                         }
                     }
 
-                    // todo Notendurchschnitt voreintragen
+                    list ($contentAverage, $scoreRuleText, $error) = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $tblTestGradeList[$tblPerson->getId()] ?? array(),
+                        $personScoreRuleList[$tblPerson->getId()] ?? null, $personPeriodList[$tblPerson->getId()] ?? null
+                    );
+                    $bodyList[$tblPerson->getId()]['Average'] = $this->getTableColumnBody(Grade::useService()->getCalcStudentAverageToolTipByAverage(
+                        $contentAverage, $scoreRuleText, $error));
+                    // Notenvorschlag ins Noten-Feld voreintragen
+                    if ($contentAverage !== '' && !$tblGrade && $setPost && empty($error)) {
+                        $global = $this->getGlobal();
+                        $global->POST['Data'][$tblPerson->getId()]['Grade'] = Grade::useService()->getGradeAverageByString($contentAverage);
+                        $global->savePost();
+                        $gradeAverageProposal = 'Notenvorschlag';
+                    } else {
+                        $gradeAverageProposal = '';
+                    }
 
                     if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
                         $selectList = $selectListPoints;
@@ -846,7 +868,7 @@ class Frontend extends FrontendTest
 
                     $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
                         ->setTabIndex($tabIndex++)
-                        ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
+                        ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : $gradeAverageProposal);
                     // Eingabe-Fehler anzeigen
                     if (isset($Errors[$tblPerson->getId()]['Grade'])) {
                         $selectComplete->setError('Bitte geben Sie eine gültige Stichtagsnote ein');
@@ -910,22 +932,58 @@ class Frontend extends FrontendTest
 
     private function getTestsAndTestGradesForAppointedDateTask($tblPersonList, TblTask $tblTask, TblYear $tblYear, TblSubject $tblSubject): array
     {
-        $dateTask = $tblTask->getDate();
         $tblTestGradeValueList = array();
+        $tblTestGradeList = array();
         $tblTestList = array();
+        $personPeriodList = array();
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
+                $startDate = false;
+                // SEKII: nur Noten des Halbjahres bei Kurssystem
+                if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+                    if (($tblPeriodList = $tblYear->getPeriodListByPerson($tblPerson))) {
+                        foreach ($tblPeriodList as $tblPeriod) {
+                            if ($tblPeriod->getFromDateTime() <= $tblTask->getDate()
+                                && $tblTask->getDate() <= $tblPeriod->getToDateTime()
+                            ) {
+                                $startDate = $tblPeriod->getFromDateTime();
+                                $personPeriodList[$tblPerson->getId()] = $tblPeriod;
+                                break;
+                            }
+                        }
+                    }
+                // SEKI
+                } else {
+                    list($startDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                    $count = 0;
+                    // es kann sein, dass es eine Berechnungsvarianten-Bedingung für das 1. Halbjahr gibt
+                    if (($tblPeriodList = $tblYear->getPeriodListByPerson($tblPerson))) {
+                        foreach ($tblPeriodList as $tblPeriod) {
+                            $count++;
+                            if ($count == 1) {
+                                if ($tblTask->getDate() <= $tblPeriod->getToDateTime()) {
+                                    $personPeriodList[$tblPerson->getId()] = $tblPeriod;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 // Zensuren - Leistungsüberprüfungen
-                if (($tempList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+                if ($startDate
+                    && ($tempList = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
+                        $tblPerson, $tblYear, $tblSubject, $startDate, $tblTask->getDate()
+                    ))
+                ) {
                     foreach ($tempList as $tblTestGrade) {
                         $tblTest = $tblTestGrade->getTblTest();
-                        $dateGrade = $tblTestGrade->getDate() ?: $tblTest->getSortDate();
-                        if ($dateGrade <= $dateTask
-                            && ($tblTestGrade->getGrade() !== null)
-                        ) {
+                        if (($tblTestGrade->getGrade() !== null)) {
                             $tblTestGradeValueList[$tblPerson->getId()][$tblTest->getId()] = $tblTest->getTblGradeType()->getIsHighlighted()
                                 ? new Bold($tblTestGrade->getGrade())
                                 : $tblTestGrade->getGrade();
+
+                            $tblTestGradeList[$tblPerson->getId()][$tblTestGrade->getId()] = $tblTestGrade;
 
                             if (!isset($tblTestList[$tblTest->getId()])) {
                                 $tblTestList[$tblTest->getId()] = $tblTest;
@@ -936,7 +994,7 @@ class Frontend extends FrontendTest
             }
         }
 
-        return array($tblTestList, $tblTestGradeValueList);
+        return array($tblTestList, $tblTestGradeValueList, $tblTestGradeList, $personPeriodList);
     }
 
     /**

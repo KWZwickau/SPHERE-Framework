@@ -390,7 +390,7 @@ class Data extends AbstractData
             } elseif ($isShortYear) {
                 return $this->getSorter(empty($periodShortList) ? $periodNormalList : $periodShortList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
             } else {
-                return $this->getSorter($periodShortList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
+                return $this->getSorter($periodNormalList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
             }
         }
 

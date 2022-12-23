@@ -526,7 +526,7 @@ class Service extends ServiceTask
                     $isNotAttendance = isset($item['Attendance']);
                     $date = !empty($item['Date']) ? new DateTime($item['Date']) : null;
 
-                    $hasGradeValue = $grade === '0' || (!empty($grade) && $grade != -1) || $isNotAttendance;
+                    $hasGradeValue = $grade === '0' || (!empty($grade) && $grade != -1);
                     $gradeValue = $isNotAttendance ? null : $grade;
 
                     // Bewertungssystem Pattern prüfen
@@ -540,7 +540,7 @@ class Service extends ServiceTask
                     }
 
                     // Grund bei Noten-Änderung angeben
-                    if ($hasGradeValue
+                    if (($hasGradeValue || $isNotAttendance)
                         && empty($comment)
                         && ($tblTestGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson))
                         && $gradeValue != $tblTestGrade->getGrade()
@@ -549,7 +549,7 @@ class Service extends ServiceTask
                     }
 
                     // Datum ist Pflicht, bei fortlaufendem Test ohne Datum
-                    if ($hasGradeValue && !$isNotAttendance && $tblTest->getIsContinues() && !$tblTest->getFinishDate() && !$date) {
+                    if ($hasGradeValue && $tblTest->getIsContinues() && !$tblTest->getFinishDate() && !$date) {
                         $errorList[$personId]['Date'] = true;
                     }
                 }
@@ -590,5 +590,17 @@ class Service extends ServiceTask
             return str_replace('.', ',', round($sum / $count, $precision));
         }
         return '';
+    }
+
+    /**
+     * @param string $average
+     * @param int $precision
+     *
+     * @return string
+     */
+    public function getGradeAverageByString(string $average, int $precision = 0): string
+    {
+        $average = str_replace(',', '.', $average);
+        return str_replace('.', ',', round($average, $precision));
     }
 }

@@ -158,7 +158,24 @@ abstract class FrontendTest extends FrontendTeacherGroup
             $Global->savePost();
         }
 
-        $tblGradeTypeList = Grade::useService()->getGradeTypeList();
+        // nur Zensuren-Typen, welche bei den hinterlegten Berechnungsvorschriften hinterlegt sind
+        $tblGradeTypeList = array();
+        if (($tblDivisionCourseItem = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
+            && ($tblScoreRuleList = Grade::useService()->getScoreRuleListByDivisionCourseAndSubject($tblDivisionCourseItem, $tblSubject))
+        ) {
+            foreach ($tblScoreRuleList as $tblScoreRule)
+            {
+                if (($tempList = $tblScoreRule->getGradeTypeList())) {
+                    $tblGradeTypeList = array_merge($tblGradeTypeList, $tempList);
+                }
+            }
+        }
+        // keine Zensuren-Typen bei diesen Berechnungsvorschriften verfügbar
+        if (empty($tblGradeTypeList)) {
+            $tblGradeTypeList = Grade::useService()->getGradeTypeList();
+        }
+
         $size = 4;
 
         return (new Form(new FormGroup(array(

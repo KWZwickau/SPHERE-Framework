@@ -143,4 +143,12 @@ class TblScoreRule extends Element
     {
         return Grade::useService()->getScoreRuleSubjectDivisionCourseListByScoreRuleAndYearAndSchoolType($this, $tblYear, $tblSchoolType);
     }
+
+    /**
+     * @return false|TblGradeType[]
+     */
+    public function getGradeTypeList()
+    {
+        return Grade::useService()->getGradeTypeListByScoreRule($this);
+    }
 }

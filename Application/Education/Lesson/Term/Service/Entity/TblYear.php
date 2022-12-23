@@ -95,7 +95,7 @@ class TblYear extends Element
     /**
      * @return false|TblPeriod[]
      */
-    public function getTblPeriodList(bool $isShortYear = false, bool $isAllYear = false)
+    public function getPeriodList(bool $isShortYear = false, bool $isAllYear = false)
     {
         return Term::useService()->getPeriodListByYear($this, $isShortYear, $isAllYear);
     }
