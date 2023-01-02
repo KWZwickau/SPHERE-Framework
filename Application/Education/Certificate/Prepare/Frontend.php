@@ -778,6 +778,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
         $tblPrepareList = false;
         $tblGroup = false;
         $headTableColumnList = array();
+        $isAbsenceHour = false;
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))) {
             $tblConsumer = Consumer::useService()->getConsumerBySession();
             $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
@@ -1460,9 +1461,37 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             );
                         }
 
+                        foreach ($tblPrepareList as $tblPrepareItem) {
+                            if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
+                                && !$isAbsenceHour
+                                && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
+                            ) {
+                                foreach ($tblStudentList as $tblPerson) {
+                                    if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)){
+                                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem, $tblPerson);
+                                        if ($tblPrepareStudent && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
+                                            if ($tblCertificate->getName() == 'Berufsfachschule Jahreszeugnis' && $tblCertificate->getDescription() == 'Generalistik') {
+                                                $isAbsenceHour = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+
                         $headTableColumnList[] = new TableColumn('Schüler', 4);
-                        $headTableColumnList[] = new TableColumn('Entschuldigte Fehlzeiten', 3);
-                        $headTableColumnList[] = new TableColumn('Unentschuldigte Fehlzeiten', 3);
+                        if($isAbsenceHour){
+                            // Zusatzspalte für Stunden
+                            $headTableColumnList[] = new TableColumn('Entschuldigte Fehlzeiten', 4);
+                            $headTableColumnList[] = new TableColumn('Unentschuldigte Fehlzeiten', 4);
+                        } else {
+                            // Standard
+                            $headTableColumnList[] = new TableColumn('Entschuldigte Fehlzeiten', 3);
+                            $headTableColumnList[] = new TableColumn('Unentschuldigte Fehlzeiten', 3);
+                        }
 
                         if ($useClassRegisterForAbsence) {
                             $columnTable = array(
@@ -1482,20 +1511,42 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                     'Für fehlende Unterrichtseinheiten können zusätzliche Fehltage erfasst werden')
                             );
                         } else {
-                            $columnTable = array(
-                                'Number' => '#',
-                                'Name' => 'Name',
-                                'IntegrationButton' => 'Integration',
-                                'Course' => 'Bildungsgang',
+                            if($isAbsenceHour){
+                                // Zusatzspalte für Stunden
+                                $columnTable = array(
+                                    'Number' => '#',
+                                    'Name' => 'Name',
+                                    'IntegrationButton' => 'Integration',
+                                    'Course' => 'Bildungsgang',
 
-                                'ExcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
-                                'ExcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
-                                'ExcusedDays' => 'Tage auf dem Zeugnis',
+                                    'ExcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
+                                    'ExcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
+                                    'ExcusedDaysInHours' => new ToolTip('Stunden','Gesamt: 1 Tag = 8 Stunden'),
+                                    'ExcusedDays' => 'Stunden auf dem Zeugnis',
 
-                                'UnexcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
-                                'UnexcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
-                                'UnexcusedDays' => 'Tage auf dem Zeugnis',
-                            );
+                                    'UnexcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
+                                    'UnexcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
+                                    'UnexcusedDaysInHours' => new ToolTip('Stunden','Gesamt: 1 Tag = 8 Stunden'),
+                                    'UnexcusedDays' => 'Stunden auf dem Zeugnis',
+                                );
+                            } else {
+                                // Standard
+                                $columnTable = array(
+                                    'Number' => '#',
+                                    'Name' => 'Name',
+                                    'IntegrationButton' => 'Integration',
+                                    'Course' => 'Bildungsgang',
+
+                                    'ExcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
+                                    'ExcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
+                                    'ExcusedDays' => 'Tage auf dem Zeugnis',
+
+                                    'UnexcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
+                                    'UnexcusedLessons' => new ToolTip('Unterrichts&shy;einheiten', 'Unterrichtseinheiten im Klassenbuch'),
+                                    'UnexcusedDays' => 'Tage auf dem Zeugnis',
+                                );
+                            }
+
                         }
                     } else {
                         $columnTable = array(
@@ -1640,9 +1691,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                                 }
 
                                                 $studentTable[$tblPerson->getId()]['ExcusedDays'] = $excusedDays;
+                                                $studentTable[$tblPerson->getId()]['ExcusedDaysInHours'] = $excusedDays * 8 + $excusedLessons;
                                                 $studentTable[$tblPerson->getId()]['ExcusedLessons'] = $excusedLessons;
 
                                                 $studentTable[$tblPerson->getId()]['UnexcusedDays'] = $unexcusedDays;
+                                                $studentTable[$tblPerson->getId()]['UnexcusedDaysInHours'] = $unexcusedDays * 8 + $unexcusedLessons;
                                                 $studentTable[$tblPerson->getId()]['UnexcusedLessons'] = $unexcusedLessons;
 
                                                 // Eingabe nur möglich wenn UEs beim Schüler erfasst wurden
@@ -1672,9 +1725,11 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                             } else {
                                                 // Fehlzeiten werden hier (Zeugnisvorbereitung) gepflegt
                                                 $studentTable[$tblPerson->getId()]['ExcusedDaysInClassRegister'] = $excusedDaysFromClassRegister;
+                                                $studentTable[$tblPerson->getId()]['ExcusedDaysInHours'] = $excusedDaysFromClassRegister * 8 + $excusedLessons;
                                                 $studentTable[$tblPerson->getId()]['ExcusedLessons'] = $excusedLessons;
 
                                                 $studentTable[$tblPerson->getId()]['UnexcusedDaysInClassRegister'] = $unexcusedDaysFromClassRegister;
+                                                $studentTable[$tblPerson->getId()]['UnexcusedDaysInHours'] = $unexcusedDaysFromClassRegister * 8 + $unexcusedLessons;
                                                 $studentTable[$tblPerson->getId()]['UnexcusedLessons'] = $unexcusedLessons;
 
                                                 $inputExcusedDays = new NumberField(
