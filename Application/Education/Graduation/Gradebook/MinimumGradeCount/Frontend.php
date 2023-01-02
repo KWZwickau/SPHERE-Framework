@@ -436,7 +436,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Confirm = false
     ) {
 
-        $Stage = new Stage('Mindesnotenanzahl', 'Löschen');
+        $Stage = new Stage('Mindestnotenanzahl', 'Löschen');
 
         $tblMinimumGradeCount = Gradebook::useService()->getMinimumGradeCountById($Id);
         if ($tblMinimumGradeCount) {

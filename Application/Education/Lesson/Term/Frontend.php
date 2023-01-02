@@ -192,7 +192,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $YearList = array();
-        for ($i = -1; $i < 5; $i++) {
+        for ($i = -2; $i < 5; $i++) {
             $this->addYear($YearList, $i);
         }
 
