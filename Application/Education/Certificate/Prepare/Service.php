@@ -1018,6 +1018,7 @@ class Service extends AbstractService
                 $orientation = '';
                 $remark = '';
                 $support = '';
+                $rating = '';
 
                 foreach ($tblPrepareInformationList as $tblPrepareInformation) {
                     if ($tblPrepareInformation->getField() == 'Team') {
@@ -1066,6 +1067,16 @@ class Service extends AbstractService
                         $Content['P' . $personId]['Input']['AddEducation_AverageInWord']
                             = Gradebook::useService()->getAverageInWord($tblPrepareInformation->getValue(), ',');
                     }
+                    if($tblPrepareInformation->getField() == 'Rating'){
+                        $rating = $tblPrepareInformation->getValue();
+                    }
+                }
+
+                // rating by Settings -> default value "---" or empty
+                if($hasRemarkBlocking && $rating == ''){
+                    $Content['P' . $personId]['Input']['Rating'] = '---';
+                } else {
+                    $Content['P' . $personId]['Input']['Rating'] = $rating;
                 }
 
                 if ($orientation) {
