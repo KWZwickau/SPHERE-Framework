@@ -61,9 +61,13 @@ use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 class Frontend extends FrontendTest
 {
     /**
+     * @param null $DivisionCourseId
+     * @param null $SubjectId
+     * @param null $TaskId
+     *
      * @return Stage
      */
-    public function frontendGradeBook(): Stage
+    public function frontendGradeBook($DivisionCourseId = null, $SubjectId = null, $TaskId = null): Stage
     {
         $stage = new Stage();
 
@@ -125,7 +129,13 @@ class Frontend extends FrontendTest
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
-                        ApiGradeBook::receiverBlock($this->loadViewGradeBookSelect(), 'Content')
+                        ApiGradeBook::receiverBlock(
+                            // von der Willkommensseite direkt zur Noteneingabe für Notenaufträge springen
+                            $TaskId
+                                ? $this->loadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, array(), $TaskId)
+                                : $this->loadViewGradeBookSelect(),
+                            'Content'
+                        )
                     )
                 ))
             )))
@@ -939,6 +949,7 @@ class Frontend extends FrontendTest
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
                 $startDate = false;
+                $tempList = false;
                 // SEKII: nur Noten des Halbjahres bei Kurssystem
                 if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
                     if (($tblPeriodList = $tblYear->getPeriodListByPerson($tblPerson))) {
@@ -970,12 +981,17 @@ class Frontend extends FrontendTest
                     }
                 }
 
-                // Zensuren - Leistungsüberprüfungen
-                if ($startDate
-                    && ($tempList = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
+                if ($tblTask->getIsAllYears()) {
+                    // Zensuren von allen Schuljahren
+                    $tempList = Grade::useService()->getTestGradeListToDateTimeByPersonAndSubject($tblPerson, $tblSubject, $tblTask->getToDate());
+                } elseif ($startDate) {
+                    $tempList = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
                         $tblPerson, $tblYear, $tblSubject, $startDate, $tblTask->getDate()
-                    ))
-                ) {
+                    );
+                }
+
+                // Zensuren - Leistungsüberprüfungen
+                if ($tempList) {
                     foreach ($tempList as $tblTestGrade) {
                         $tblTest = $tblTestGrade->getTblTest();
                         if (($tblTestGrade->getGrade() !== null)) {

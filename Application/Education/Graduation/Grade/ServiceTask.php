@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use DateInterval;
 use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
@@ -14,10 +15,23 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Extern;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 
 abstract class ServiceTask extends ServiceScoreCalc
 {
@@ -536,5 +550,169 @@ abstract class ServiceTask extends ServiceScoreCalc
         }
 
         return empty($errorList) ? false : Grade::useFrontend()->formTaskGrades($tblTask, $tblYear, $tblSubject, $DivisionCourseId, $Filter, false, $errorList, $Data);
+    }
+
+    /**
+     * @param TblPerson $tblPersonLogin
+     *
+     * @return false|Layout
+     */
+    public function getTeacherWelcomeGradeTask(TblPerson $tblPersonLogin)
+    {
+        $appointedDateTaskList = array();
+        $behaviorTaskList = array();
+        $futureAppointedDateTaskList = array();
+        $futureBehaviorTaskList = array();
+        $dataList = array();
+
+        $tblSettingBehaviorHasGrading = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'))
+            && $tblSetting->getValue();
+        $now = new DateTime('now');
+
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPersonLogin))) {
+                    foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                        if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
+                            && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
+                            && ($tblTaskList = $this->getTaskListByDivisionCourse($tblDivisionCourse))
+                        ) {
+                            foreach ($tblTaskList as $tblTask) {
+                                // current task
+                                if ($now > $tblTask->getFromDate() && $now <= $tblTask->getToDate()) {
+                                    if ($this->setCurrentTask($tblDivisionCourse, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading)) {
+                                        if ($tblTask->getIsTypeBehavior()) {
+                                            if (!isset($behaviorTaskList[$tblTask->getId()])) {
+                                                $behaviorTaskList[$tblTask->getId()] = $tblTask;
+                                            }
+                                        } else {
+                                            if (!isset($appointedDateTaskList[$tblTask->getId()])) {
+                                                $appointedDateTaskList[$tblTask->getId()] = $tblTask;
+                                            }
+                                        }
+                                    }
+                                // future task
+                                } elseif ($now < $tblTask->getFromDate() && $now > ($tblTask->getFromDate()->sub(new DateInterval('P7D')))) {
+                                    if ($tblTask->getIsTypeBehavior()) {
+                                        $futureBehaviorTaskList[$tblTask->getId()] = $tblTask;
+                                    } else {
+                                        $futureAppointedDateTaskList[$tblTask->getId()] = $tblTask;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $columns = array();
+        $columns = $this->getWelcomeContent($appointedDateTaskList, $columns, $dataList);
+        $columns = $this->getWelcomeContent($behaviorTaskList, $columns, $dataList);
+        $columns = $this->getWelcomeContent($futureAppointedDateTaskList, $columns, $dataList, true);
+        $columns = $this->getWelcomeContent($futureBehaviorTaskList, $columns, $dataList, true);
+
+        if (empty($columns)) {
+            return false;
+        } else {
+            return new Layout(new LayoutGroup(Grade::useService()->getLayoutRowsByLayoutColumnList($columns, 6)));
+        }
+    }
+
+    private function setCurrentTask(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject, TblYear $tblYear, TblTask $tblTask, array &$dataList,
+        bool $tblSettingBehaviorHasGrading): bool
+    {
+        $countPersons = 0;
+        $countGrades = 0;
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($virtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                    && ($virtualSubject->getHasGrading() || ($tblTask->getIsTypeBehavior() && $tblSettingBehaviorHasGrading))
+                ) {
+                    $countPersons++;
+                    if (($tblTaskGradeList = $this->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblTask, $tblSubject))) {
+                        $countGrades += count($tblTaskGradeList);
+                    }
+                }
+            }
+        }
+
+        if ($countPersons == 0) {
+            return false;
+        }
+
+        if ($tblTask->getIsTypeBehavior() && ($tblGradeTypeList = $tblTask->getGradeTypes())) {
+            $countPersons = $countPersons * count($tblGradeTypeList);
+        }
+
+        $text = ' ' . $tblDivisionCourse->getDisplayName()
+            . ' ' . $tblSubject->getAcronym()
+            . ' ' . $tblSubject->getName()
+            . ': ' . $countGrades . ' von ' . $countPersons . ' Zensuren vergeben';
+
+        $dataList[$tblTask->getId()][] = new PullClear(($countGrades < $countPersons
+                ? new Warning(new Exclamation() . $text)
+                : new \SPHERE\Common\Frontend\Text\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                    . $text))
+            . new PullRight(new Standard(
+                '',
+                '/Education/Graduation/Grade/GradeBook',
+                new Extern(),
+                array(
+                    'DivisionCourseId' => $tblDivisionCourse->getId(),
+                    'SubjectId' => $tblSubject->getId(),
+                    'TaskId' => $tblTask->getId()
+                ),
+                'Zur Noteneingabe wechseln'
+            )));
+
+        return true;
+    }
+
+    /**
+     * @param $tblTaskList
+     * @param $columns
+     * @param $dataList
+     * @param bool $isFuture
+     *
+     * @return array
+     */
+    private function getWelcomeContent($tblTaskList, $columns, $dataList, bool $isFuture = false): array
+    {
+        /** @var TblTask $tblTask */
+        foreach ($tblTaskList as $tblTask) {
+            if ($isFuture) {
+                $panel = new Panel(
+                    (!$tblTask->getIsTypeBehavior()
+                        ? 'Nächster Stichtagsnotenauftrag '
+                        : 'Nächster Kopfnotenauftrag '),
+                    array(
+                        new Muted('Stichtag: ' . $tblTask->getDateString()),
+                        new Muted('Bearbeitungszeitraum: ' . $tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString())
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                );
+                $columns[] = new LayoutColumn($panel, 6);
+            } else {
+                $messageList = array();
+                if (isset($dataList[$tblTask->getId()])) {
+                    sort($dataList[$tblTask->getId()], SORT_NATURAL);
+                    $messageList = $dataList[$tblTask->getId()];
+                }
+                array_unshift($messageList,
+                    new Muted('Bearbeitungszeitraum: ' . $tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString()));
+                array_unshift($messageList, new Muted('Stichtag: ' . $tblTask->getDateString()));
+                $panel = new Panel(
+                    (!$tblTask->getIsTypeBehavior()
+                        ? 'Aktueller Stichtagsnotenauftrag '
+                        : 'Aktueller Kopfnotenauftrag '),
+                    $messageList,
+                    Panel::PANEL_TYPE_INFO
+                );
+                $columns[] = new LayoutColumn($panel, 6);
+            }
+        }
+
+        return $columns;
     }
 }

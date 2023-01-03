@@ -7,7 +7,7 @@ use Exception;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\ParentStudentAccess\OnlineGradebook\OnlineGradebook;
@@ -123,7 +123,7 @@ class Frontend extends Extension implements IFrontendInterface
                     && ($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
                 ) {
-                    $contentTeacherWelcome = Evaluation::useService()->getTeacherWelcomeGradeTask($tblPerson)
+                    $contentTeacherWelcome = Grade::useService()->getTeacherWelcomeGradeTask($tblPerson)
                         . (($timeTable = Timetable::useService()->getTimetablePanelForTeacher())
                             ? $timeTable : Digital::useService()->getDigitalClassRegisterPanelForTeacher());
                 }

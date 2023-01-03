@@ -603,6 +603,54 @@ class Data extends DataTask
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param DateTime $toDate
+     *
+     * @return TblTestGrade[]|false
+     */
+    public function getTestGradeListToDateTimeByPersonAndSubject(TblPerson $tblPerson, TblSubject $tblSubject, DateTime $toDate)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('g')
+            ->from(__NAMESPACE__ . '\Entity\TblTestGrade', 'g')
+            ->join(__NAMESPACE__ . '\Entity\TblTest', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('g.tblGraduationTest', 't.Id'),
+                    $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblSubject', '?2'),
+                    $queryBuilder->expr()->isNull('g.EntityRemove'),
+                    $queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->isNotNull('t.Date'),
+                            $queryBuilder->expr()->lte('t.Date', '?3'),
+                        ),
+                        $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->isNotNull('t.FinishDate'),
+                            $queryBuilder->expr()->lte('t.FinishDate', '?3'),
+                        ),
+                        $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->isNotNull('g.Date'),
+                            $queryBuilder->expr()->lte('g.Date', '?3'),
+                        ),
+                    )
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblSubject->getId())
+            ->setParameter(3, $toDate)
+            ->orderBy('t.Date', 'ASC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param TblTest $tblTest
      *
      * @return false|TblTestGrade[]
