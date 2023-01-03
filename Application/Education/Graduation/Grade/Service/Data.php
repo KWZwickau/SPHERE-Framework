@@ -5,6 +5,9 @@ namespace SPHERE\Application\Education\Graduation\Grade\Service;
 use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGradeTypeList;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroupGradeTypeList;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTypeLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
@@ -275,16 +278,41 @@ class Data extends DataTask
      */
     public function getIsGradeTypeUsedInGradeBook(TblGradeType $tblGradeType): bool
     {
-        if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest', array(TblTest::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()))
+        if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+            array(TblTest::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()))
         ) {
             return true;
         }
 
-        // todo 'TblScoreConditionGradeTypeList'
+        if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreConditionGradeTypeList',
+            array(TblScoreConditionGradeTypeList::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()))
+        ) {
+            return true;
+        }
 
-        // todo 'TblScoreGroupGradeTypeList'
+        if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreGroupGradeTypeList',
+            array(TblScoreGroupGradeTypeList::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()))
+        ) {
+            return true;
+        }
 
         // todo 'TblMinimumGradeCount'
+
+        return false;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function getIsGradeTypeUsedInTask(TblGradeType $tblGradeType): bool
+    {
+        if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTaskGradeTypeLink',
+            array(TblTaskGradeTypeLink::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()))
+        ) {
+            return true;
+        }
 
         return false;
     }

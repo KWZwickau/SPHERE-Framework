@@ -55,7 +55,12 @@ abstract class ServiceGradeType extends AbstractService
             return true;
         }
 
-        // todo weitere prüfen Zeugniseinstellungen, Zeugnisnote, Notenauftrag
+        // Notenaufträge
+        if ((new Data($this->getBinding()))->getIsGradeTypeUsedInTask($tblGradeType)) {
+            return true;
+        }
+
+        // todo weitere prüfen Zeugniseinstellungen, Zeugnisnote
 
         return false;
     }

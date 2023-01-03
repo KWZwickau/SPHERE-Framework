@@ -175,7 +175,8 @@ class Frontend extends FrontendTest
                 }
             }
 
-            list($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList, $averagePeriodList, $averagePersonList, $scoreRulePersonList)
+            list($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList, $averagePeriodList,
+                $averagePersonList, $scoreRulePersonList, $averageTestSumList, $averageTestCountList)
                 = $this->getTestGradeListAndTestListByPersonListAndSubject(
                     $tblPersonList, $tblYear, $tblSubject, $tblDivisionCourse, $Filter, $tblTestList, $isEdit, $isCheckTeacherLectureship
                 );
@@ -264,6 +265,9 @@ class Frontend extends FrontendTest
                 }
             }
 
+            // Fach-Klassen-Durchschnitt
+            $bodyList[-1] = $this->getDivisionCourseSubjectAverageData($hasPicture, $hasIntegration, $hasCourse, $headerList, $averageTestSumList, $averageTestCountList);
+
             // table float
             $table = $this->getTableCustom($headerList, $bodyList);
 
@@ -292,6 +296,35 @@ class Frontend extends FrontendTest
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
             . $content;
+    }
+
+    private function getDivisionCourseSubjectAverageData(bool $hasPicture, bool $hasIntegration, bool $hasCourse, $headerList, $averageTestSumList, $averageTestCountList): array
+    {
+        $data['Number'] = $this->getTableColumnBody('&nbsp;');
+        $data['Person'] = $this->getTableColumnBody(new Muted('&#216; Fach-Klasse'));
+        if ($hasPicture) {
+            $data['Picture'] = $this->getTableColumnBody('&nbsp;');
+        }
+        if ($hasIntegration) {
+            $data['Integration'] = $this->getTableColumnBody('&nbsp;');
+        }
+        if ($hasCourse) {
+            $data['Course'] = $this->getTableColumnBody('&nbsp;');
+        }
+
+        foreach ($headerList as $key => $value) {
+            $contentTemp = '';
+            // Leistungsüberprüfung
+            if (strpos($key, 'Test') !== false) {
+                $testId = str_replace('Test', '', $key);
+                if (isset($averageTestSumList[$testId]) && isset($averageTestCountList[$testId])) {
+                    $contentTemp = new Muted(Grade::useService()->getGradeAverage($averageTestSumList[$testId], $averageTestCountList[$testId]));
+                }
+            }
+            $data[$key] = $this->getTableColumnBody($contentTemp);
+        }
+
+        return $data;
     }
 
     /**
@@ -333,6 +366,11 @@ class Frontend extends FrontendTest
         $periodList = array();
         $averagePeriodList = array();
         $averagePersonList = array();
+
+        // für Fach-Klassen-Durchschnitt
+        $averageTestSumList = array();
+        $averageTestCountList = array();
+
         if (($tblPeriodList = $tblYear->getPeriodList(false, true))) {
             foreach($tblPeriodList as $tblPeriod) {
                 if ($tblPeriod->isLevel12()) {
@@ -390,6 +428,20 @@ class Frontend extends FrontendTest
                                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestGradeEditContent(
                                         $DivisionCourseId, $tblSubject->getId(), $Filter, $tblTest->getId()))
                                 : $contentGrade;
+
+                            // Fach-Klassen-Durchschnitt
+                            if ($tblTestGrade->getIsGradeNumeric()) {
+                                if (isset($averageTestSumList[$tblTest->getId()])) {
+                                    $averageTestSumList[$tblTest->getId()] += $tblTestGrade->getGradeNumberValue();
+                                } else {
+                                    $averageTestSumList[$tblTest->getId()] = $tblTestGrade->getGradeNumberValue();
+                                }
+                                if (isset($averageTestCountList[$tblTest->getId()])) {
+                                    $averageTestCountList[$tblTest->getId()]++;
+                                } else {
+                                    $averageTestCountList[$tblTest->getId()] = 1;
+                                }
+                            }
                         }
                     }
 
@@ -462,7 +514,7 @@ class Frontend extends FrontendTest
         }
 
         return array($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList,
-            $averagePeriodList, $averagePersonList, $scoreRulePersonList);
+            $averagePeriodList, $averagePersonList, $scoreRulePersonList, $averageTestSumList, $averageTestCountList);
     }
 
     private function setGradeBookHeaderList(array &$headerList, array &$taskListIsEdit, array $tblTestListNoTeacherLectureship,
