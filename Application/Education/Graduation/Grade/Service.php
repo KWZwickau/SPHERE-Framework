@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Setup;
+use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
@@ -33,6 +34,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 class Service extends ServiceTask
 {
@@ -614,5 +616,124 @@ class Service extends ServiceTask
     {
         $average = str_replace(',', '.', $average);
         return str_replace('.', ',', round($average, $precision));
+    }
+
+    /**
+     * @param array $virtualTestTaskList
+     * @param array $averagePeriodList
+     *
+     * @return array
+     */
+    public function getVirtualTestTaskListSorted(array $virtualTestTaskList, array $averagePeriodList): array
+    {
+        $isSortedByHighlighted = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'SortHighlighted'))
+            && $tblSetting->getValue();
+        $isSortedToRight = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IsHighlightedSortedRight'))
+            && $tblSetting->getValue();
+        if ($isSortedByHighlighted) {
+            $tempList = array();
+            $resultList = array();
+            /** @var VirtualTestTask $virtualTestTask */
+            foreach ($virtualTestTaskList as $virtualTestTask) {
+                switch ($virtualTestTask->getType()) {
+                    case VirtualTestTask::TYPE_TEST:
+                        $tblTest = $virtualTestTask->getTblTest();
+                        $date = $tblTest->getFinishDate() ?: $tblTest->getDate();
+                        $hasPeriodFound = false;
+                        $count = 0;
+                        if ($date) {
+                            foreach ($averagePeriodList['Periods'] as $periodId => $count) {
+                                if (($tblPeriod = Term::useService()->getPeriodById($periodId)) && $date <= $tblPeriod->getToDateTime()) {
+                                    $hasPeriodFound = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!$hasPeriodFound) {
+                            $count++;
+                        }
+                        if (($tblGradeType = $tblTest->getTblGradeType()) && $tblGradeType->getIsHighlighted()) {
+                            $tempList[$count]['Highlighted'][] = $virtualTestTask;
+                        } else {
+                            $tempList[$count]['NotHighlighted'][] = $virtualTestTask;
+                        }
+                        break;
+                    case VirtualTestTask::TYPE_TASK:
+                        $tblTask = $virtualTestTask->getTblTask();
+                        $date = $tblTask->getDate();
+                        $hasPeriodFound = false;
+                        $count = 0;
+                        if ($date) {
+                            foreach ($averagePeriodList['Periods'] as $periodId => $count) {
+                                if (($tblPeriod = Term::useService()->getPeriodById($periodId)) && $date <= $tblPeriod->getToDateTime()) {
+                                    $hasPeriodFound = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!$hasPeriodFound) {
+                            $count++;
+                        }
+                        $tempList[$count]['Default'][] = $virtualTestTask;
+                        break;
+                    case VirtualTestTask::TYPE_PERIOD:
+                        $tblPeriod = $virtualTestTask->getTblPeriod();
+                        $hasPeriodFound = false;
+                        $count = 0;
+                        foreach ($averagePeriodList['Periods'] as $periodId => $count) {
+                            if ($tblPeriod->getId() == $periodId) {
+                                $hasPeriodFound = true;
+                                break;
+                            }
+                        }
+                        if (!$hasPeriodFound) {
+                            $count++;
+                        }
+                        $tempList[$count]['Default'][] = $virtualTestTask;
+                }
+            }
+
+            ksort($tempList);
+            foreach ($tempList as $array) {
+                $highlightedList = array();
+                if (isset($array['Highlighted'])) {
+                    $highlightedList = $this->getSorter($array['Highlighted'])->sortObjectBy('Date', new DateTimeSorter());
+                }
+                $notHighlightedList = array();
+                if (isset($array['NotHighlighted'])) {
+                    $notHighlightedList = $this->getSorter($array['NotHighlighted'])->sortObjectBy('Date', new DateTimeSorter());
+                }
+                $defaultList = array();
+                if (isset($array['Default'])) {
+                    $defaultList = $this->getSorter($array['Default'])->sortObjectBy('Date', new DateTimeSorter());
+                }
+
+                if ($isSortedToRight) {
+                    if (!empty($notHighlightedList)) {
+                        $resultList = array_merge($resultList, $notHighlightedList);
+                    }
+                    if (!empty($highlightedList)) {
+                        $resultList = array_merge($resultList, $highlightedList);
+                    }
+                } else {
+                    if (!empty($highlightedList)) {
+                        $resultList = array_merge($resultList, $highlightedList);
+                    }
+                    if (!empty($notHighlightedList)) {
+                        $resultList = array_merge($resultList, $notHighlightedList);
+                    }
+                }
+
+                if (!empty($defaultList)) {
+                    $resultList = array_merge($resultList, $defaultList);
+                }
+            }
+            $virtualTestTaskList = $resultList;
+
+        } else {
+            $virtualTestTaskList = $this->getSorter($virtualTestTaskList)->sortObjectBy('Date', new DateTimeSorter());
+        }
+
+        return $virtualTestTaskList;
     }
 }

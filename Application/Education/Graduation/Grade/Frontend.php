@@ -266,7 +266,7 @@ class Frontend extends FrontendTest
             }
 
             // Fach-Klassen-Durchschnitt
-            $bodyList[-1] = $this->getDivisionCourseSubjectAverageData($hasPicture, $hasIntegration, $hasCourse, $headerList, $averageTestSumList, $averageTestCountList);
+            $bodyList[-1] = $this->getDivisionCourseSubjectAverageData($headerList, $averageTestSumList, $averageTestCountList);
 
             // table float
             $table = $this->getTableCustom($headerList, $bodyList);
@@ -298,24 +298,16 @@ class Frontend extends FrontendTest
             . $content;
     }
 
-    private function getDivisionCourseSubjectAverageData(bool $hasPicture, bool $hasIntegration, bool $hasCourse, $headerList, $averageTestSumList, $averageTestCountList): array
+    private function getDivisionCourseSubjectAverageData($headerList, $averageTestSumList, $averageTestCountList): array
     {
-        $data['Number'] = $this->getTableColumnBody('&nbsp;');
-        $data['Person'] = $this->getTableColumnBody(new Muted('&#216; Fach-Klasse'));
-        if ($hasPicture) {
-            $data['Picture'] = $this->getTableColumnBody('&nbsp;');
-        }
-        if ($hasIntegration) {
-            $data['Integration'] = $this->getTableColumnBody('&nbsp;');
-        }
-        if ($hasCourse) {
-            $data['Course'] = $this->getTableColumnBody('&nbsp;');
-        }
-
+        $data = array();
         foreach ($headerList as $key => $value) {
             $contentTemp = '';
+            if ($key == 'Person') {
+                $contentTemp = new Muted('&#216; Fach-Klasse');
+            }
             // Leistungsüberprüfung
-            if (strpos($key, 'Test') !== false) {
+            elseif (strpos($key, 'Test') !== false) {
                 $testId = str_replace('Test', '', $key);
                 if (isset($averageTestSumList[$testId]) && isset($averageTestCountList[$testId])) {
                     $contentTemp = new Muted(Grade::useService()->getGradeAverage($averageTestSumList[$testId], $averageTestCountList[$testId]));
@@ -538,14 +530,15 @@ class Frontend extends FrontendTest
                 }
             }
         }
-        if (isset($averagePeriodList['TotalAverage'])) {
-            /** @var TblPeriod $tblPeriodTemp */
-            $tblPeriodTemp = $averagePeriodList['TotalAverage'];
-            $virtualTestTaskList[] = new VirtualTestTask($tblPeriodTemp->getToDateTime(), null, null, $tblPeriodTemp);
-        }
 
         if (!empty($virtualTestTaskList)) {
-            $virtualTestTaskList = $this->getSorter($virtualTestTaskList)->sortObjectBy('Date', new DateTimeSorter());
+            $virtualTestTaskList = Grade::useService()->getVirtualTestTaskListSorted($virtualTestTaskList, $averagePeriodList);
+            // soll immer als Letztes stehen
+            if (isset($averagePeriodList['TotalAverage'])) {
+                /** @var TblPeriod $tblPeriodTemp */
+                $tblPeriodTemp = $averagePeriodList['TotalAverage'];
+                $virtualTestTaskList[] = new VirtualTestTask($tblPeriodTemp->getToDateTime(), null, null, $tblPeriodTemp);
+            }
             /** @var VirtualTestTask $virtualTestTask */
             foreach ($virtualTestTaskList as $virtualTestTask) {
                 switch ($virtualTestTask->getType()) {
