@@ -1023,12 +1023,12 @@ class Service extends AbstractService
                 foreach ($tblPrepareInformationList as $tblPrepareInformation) {
                     if ($tblPrepareInformation->getField() == 'Team') {
                         if ($tblPrepareInformation->getValue() != '') {
-                            $team = 'Arbeitsgemeinschaften: ' . $tblPrepareInformation->getValue();
-                            $teamChange = $tblPrepareInformation->getValue();
+                            $team = 'Arbeitsgemeinschaften: '.'"'.$tblPrepareInformation->getValue().'"';
+                            $teamChange = '"'.$tblPrepareInformation->getValue().'"';
                         }
                     } elseif ($tblPrepareInformation->getField() == 'Orientation') {
                         if ($tblPrepareInformation->getValue() != '') {
-                            $orientation = $tblPrepareInformation->getValue();
+                            $orientation = '"'.$tblPrepareInformation->getValue().'"';
                         }
                     } elseif ($tblPrepareInformation->getField() == 'Remark') {
                         $remark = $tblPrepareInformation->getValue();
