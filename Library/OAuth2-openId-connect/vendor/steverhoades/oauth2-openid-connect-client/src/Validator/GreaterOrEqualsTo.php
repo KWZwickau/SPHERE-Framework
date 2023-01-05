@@ -13,9 +13,17 @@ final class GreaterOrEqualsTo implements ValidatorInterface
     public function isValid($expectedValue, $actualValue): bool
     {
         Assert::nullOrIntegerish($expectedValue);
-        Assert::nullOrIntegerish($actualValue);
 
-        if ($actualValue >= $expectedValue) {
+        if($actualValue instanceof \DateTimeImmutable) {
+            /** @var \DateTimeImmutable|string $actualValue*/
+            $actualValueString = $actualValue->getTimestamp();
+            Assert::nullOrIntegerish($actualValueString);
+        } else {
+            $actualValueString = $actualValue;
+            Assert::nullOrIntegerish($actualValueString);
+        }
+
+        if ($actualValueString >= $expectedValue) {
             return true;
         }
 
