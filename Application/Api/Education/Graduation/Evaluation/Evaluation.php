@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Education\Graduation\Evaluation;
 
+use DI\Debug;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
 use MOC\V\Core\FileSystem\FileSystem;
@@ -14,6 +15,7 @@ use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 use SPHERE\Application\Reporting\Standard\Person\Service;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Evaluation
@@ -32,29 +34,35 @@ class Evaluation implements IModuleInterface
 
     public static function useService()
     {
-
     }
 
     public static function useFrontend()
     {
-
     }
 
     public static function downloadTaskGrades($DivisionId = null): string
     {
 
-        // Content soll aus der funktion kommen
-        $content = array(array('Name' => 'das ist der Name'), array('Name' => 'Zeile 2'));
-        // Startpunkt muss im frontend nachgeschaut werden (könnte aber divisionId sien)
-        if (// ($tblDivision = Division::useService()->getDivisionById($DivisionId))
-//            && ($content = EvaluationApp::useService()->generateTaskGrades($tblDivision))          // TODO: erstell getTaskGradesContent    woher holt er denn die Daten max?
-//            &&
-        ($fileLocation = EvaluationApp::useService()->generateTaskGradesExcel($content))    // TODO: erstell createTaskGradesContentExcel
-        ) {
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Notenübersicht ".date("Y-m-d H:i:s").".xlsx")->__toString();
+        // Klassenobjekt abrufen
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            // Liste von Personenobjekten abrufen
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+            // Notenübersicht generieren
+            $content = EvaluationApp::useService()->generateTaskGrades($tblPersonList);
+            if ($content) {
+                // Excel-Datei mit Notenübersicht erstellen
+                $fileLocation = EvaluationApp::useService()->generateTaskGradesExcel($content);
+                // Download-Link für Excel-Datei erstellen
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Notenübersicht " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+            }
         }
-        return 'Keine Daten vorhanden!';
+        return 'Keine Daten vorhanden';
     }
 }
 
+/*
+Debugger::screenDump();
+exit;
+*/

@@ -98,6 +98,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
@@ -3355,10 +3356,10 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblTask $tblTask
-     * @param         $divisionList
-     * @param         $tableHeaderList
-     * @param         $studentList
-     * @param         $tableList
+     * @param $divisionList
+     * @param $tableHeaderList
+     * @param $studentList
+     * @param $tableList
      * @return LayoutGroup[]
      */
     private function setGradeOverviewForTask(
@@ -3595,7 +3596,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-
         if (!empty($tableHeaderList)) {
             foreach ($tableHeaderList as $divisionId => $tableHeader) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
@@ -3606,7 +3606,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new Title('Klasse', $tblDivision->getDisplayName()),
                                     new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Education/Graduation/Evaluation/TaskGrades/Download',
-                                        new Download()
+                                        new Download(), array('DivisionId' => $tblDivision->getId())
                                     ),
                                     new TableData(
                                         isset($studentList[$tblDivision->getId()]) ? $studentList[$tblDivision->getId()] : array(),
