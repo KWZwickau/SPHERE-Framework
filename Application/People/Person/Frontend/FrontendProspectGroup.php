@@ -79,6 +79,20 @@ class FrontendProspectGroup  extends FrontendReadOnly
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return '';
         }
+        $AuthorizedToCollectGroups[] = TblGroup::META_TABLE_STUDENT;
+        $AuthorizedToCollectGroups[] = TblGroup::META_TABLE_PROSPECT;
+        $hasBlock = false;
+        foreach ($AuthorizedToCollectGroups as $group) {
+            if (($tblGroup = Group::useService()->getGroupByMetaTable($group))
+                && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
+            ) {
+                $hasBlock = true;
+                break;
+            }
+        }
+        if(!$hasBlock){
+            return '';
+        }
         $listingContent[] = ApiPersonReadOnly::receiverBlock(FrontendProspect::getProspectContent($PersonId), 'ProspectContent');
         $listingContent[] = ApiPersonReadOnly::receiverBlock(FrontendProspectTransfer::getProspectTransferContent($PersonId), 'ProspectTransferContent');
         $content = new Listing($listingContent);

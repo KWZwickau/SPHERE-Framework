@@ -398,7 +398,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblSchoolTypeAll = Type::useService()->getTypeAll();
 
-        $tblYearAll = Term::useService()->getYearAllSinceYears(0);
+        $tblYearAll = Term::useService()->getYearAllSinceYears(2);
 
         $receiver = AddDivision::receiverFormSelect((new AddDivision())->reloadLevelNameInput());
 

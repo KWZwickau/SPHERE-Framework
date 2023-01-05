@@ -38,8 +38,6 @@ class SDataSecondary
         self::setMsAbsLernen($Data, '3.10');
         self::setMsAbsRs($Data, '3.7');
         self::setMsAbg($Data, '3.3');
-        self::setMsAbgLernen($Data, '3.4');
-        self::setMsAbgLernenHs($Data, '3.3');
         self::setMsAbgGeistigeEntwicklung($Data, '3.9');
     }
 
@@ -1033,80 +1031,6 @@ class SDataSecondary
     {
 
         $tblCertificate = $Data->createCertificate('Oberschule Abgangszeugnis', '', 'MsAbg',
-            null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeSecondary());
-        if ($tblCertificate) {
-            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
-                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
-            }
-            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
-                $row = 1;
-                $Data->setCertificateSubject($tblCertificate, 'DE', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'EN', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'KU', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'MU', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'GE', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'GK', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'GEO', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'WTH', 1, $row);
-                $row = 1;
-                $Data->setCertificateSubject($tblCertificate, 'MA', 2, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'BIO', 2, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'CH', 2, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'PH', 2, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'SPO', 2, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, $row++, false);
-                $Data->setCertificateSubject($tblCertificate, 'RE/k', 2, $row++, false);
-                $Data->setCertificateSubject($tblCertificate, 'RE/j', 2, $row++, false);
-                $Data->setCertificateSubject($tblCertificate, 'ETH', 2, $row++, false);
-                $Data->setCertificateSubject($tblCertificate, 'INF', 2, $row);
-            }
-        }
-    }
-
-    /**
-     * @param Data $Data
-     */
-    private static function setMsAbgLernen(Data $Data, $CertificateNumber)
-    {
-
-        $tblCertificate = $Data->createCertificate('Oberschule Abgangszeugnis', 'Förderschwerpunkt Lernen', 'MsAbgLernen',
-            null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeSecondary());
-        if ($tblCertificate) {
-            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
-                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
-            }
-            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
-                $row = 1;
-                $Data->setCertificateSubject($tblCertificate, 'DE', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'EN', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'KU', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'MU', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'GE', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'GK', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'GEO', 1, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'WTH', 1, $row);
-                $row = 1;
-                $Data->setCertificateSubject($tblCertificate, 'MA', 2, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'BIO', 2, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'CH', 2, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'PH', 2, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'SPO', 2, $row++);
-                $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, $row++, false);
-                $Data->setCertificateSubject($tblCertificate, 'RE/k', 2, $row++, false);
-                $Data->setCertificateSubject($tblCertificate, 'RE/j', 2, $row++, false);
-                $Data->setCertificateSubject($tblCertificate, 'ETH', 2, $row++, false);
-                $Data->setCertificateSubject($tblCertificate, 'INF', 2, $row);
-            }
-        }
-    }
-
-    /**
-     * @param Data $Data
-     */
-    private static function setMsAbgLernenHs(Data $Data, $CertificateNumber)
-    {
-
-        $tblCertificate = $Data->createCertificate('Oberschule Abgangszeugnis', 'Förderschwerpunkt Lernen + Hauptschulbildungsgang', 'MsAbgLernenHs',
             null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeSecondary());
         if ($tblCertificate) {
             if($tblCertificate->getCertificateNumber() != $CertificateNumber){

@@ -49,7 +49,7 @@ class GymJ extends Certificate
             ->addSlice($this->getDivisionAndYear($personId))
             ->addSlice($this->getStudentName($personId))
             ->addSlice($this->getGradeLanesSmall($personId, '14px', false, '5px'))
-            ->addSlice($this->getRatingContent($personId, '35px', '5px'))
+            ->addSlice($this->getRatingContent($personId, '45px', '5px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
