@@ -485,7 +485,7 @@ class Frontend extends FrontendScoreRule
                 array(
                     'PersonId' => $tblPerson ? $tblPerson->getId() : 0
                 ),
-                'Auswertung über die Erfüllung der Mindesnotenanzahl'
+                'Auswertung über die Erfüllung der Mindestnotenanzahl'
             );
         } else {
             $studentViewLinkButton = false;
@@ -758,7 +758,7 @@ class Frontend extends FrontendScoreRule
                                 '/Education/Graduation/Gradebook/Gradebook/MinimumGradeCount/Headmaster/Reporting',
                                 null,
                                 array(),
-                                'Auswertung über die Erfüllung der Mindesnotenanzahl'
+                                'Auswertung über die Erfüllung der Mindestnotenanzahl'
                             )
                         ))
                     ))
@@ -929,14 +929,7 @@ class Frontend extends FrontendScoreRule
 
         // Mindestnotenanzahlen
         if ($tblDivision) {
-            if ($tblLevel
-                && ($levelName = $tblLevel->getName())
-                && ($levelName == '11' || $levelName == '12')
-            ) {
-                $isSekII = true;
-            } else {
-                $isSekII = false;
-            }
+            $isSekII = Division::useService()->getIsDivisionCourseSystem($tblDivision);
 
             $tblMinimumGradeCountList = Gradebook::useService()->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject, $isSekII);
             $minimumGradeCountPanel = $this->getMinimumGradeCountPanel($tblMinimumGradeCountList, $isSekII);
@@ -2178,7 +2171,7 @@ class Frontend extends FrontendScoreRule
                 }
 
                 return new Panel(
-                    'Mindesnotenanzahl',
+                    'Mindestnotenanzahl',
                     '<div style="margin-top: -18px;">'.
                     new TableData(
                         $minimumGradeCountContent,

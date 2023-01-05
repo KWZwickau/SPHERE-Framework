@@ -113,13 +113,9 @@ class StudentGroupSelect extends Extension implements IApiInterface
                 $header = array_merge($header, $filterHeader);
             }
             // SekII zusätzliche Anzeige der Leistungskurse
-            $isSekII = false;
+            $isSekII = Division::useService()->getIsDivisionCourseSystem($tblDivision);
             $personAdvancedCourses = array();
-            if (($levelName = $filter->getLevelName())
-                && $levelName == '11' || $levelName == '12'
-            ) {
-                $isSekII = true;
-
+            if ($isSekII) {
                 if (($tblDivisionSubjectList = DivisionApplication::useService()->getDivisionSubjectByDivision($tblDivision))) {
                     foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
                         if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())

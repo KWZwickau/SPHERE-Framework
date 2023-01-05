@@ -1641,7 +1641,8 @@ class Service extends AbstractService
                 $tblStudentSubject = current($tblStudentSubjectList);
                 if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
                     $Content['P' . $personId]['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name']
-                        = str_replace('Profil', '', $tblSubjectProfile->getName());
+//                        = str_replace('Profil', '', $tblSubjectProfile->getName());
+                        = $tblSubjectProfile->getName();
 
                     // für Herrnhut EZSH Anpassung des Profilnamens
                     $profile = $tblSubjectProfile->getName();
@@ -1694,6 +1695,8 @@ class Service extends AbstractService
                     $Content['P' . $personId]['Input']['EqualGraduation']['HS'] = true;
                 } elseif ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_HSQ) {
                     $Content['P' . $personId]['Input']['EqualGraduation']['HSQ'] = true;
+                } elseif ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_LERNEN) {
+                    $Content['P' . $personId]['Input']['EqualGraduation']['LERNEN'] = true;
                 }
             }
 
