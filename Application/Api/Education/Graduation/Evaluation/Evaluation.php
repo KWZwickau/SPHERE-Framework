@@ -1,21 +1,11 @@
 <?php
 namespace SPHERE\Application\Api\Education\Graduation\Evaluation;
 
-use DI\Debug;
-use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
-use MOC\V\Component\Document\Document;
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation as EvaluationApp;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
-use SPHERE\Application\Reporting\Standard\Person\Service;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Evaluation
@@ -40,19 +30,20 @@ class Evaluation implements IModuleInterface
     {
     }
 
-    public static function downloadTaskGrades($DivisionId = null): string
+    public static function downloadTaskGrades($Id = null, $DivisionId = null): string
     {
 
         // Klassenobjekt abrufen
+        $tblTask = EvaluationApp::useService()->getTaskById($Id);
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
+        if ($tblTask && $tblDivision) {
             // Liste von Personenobjekten abrufen
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
             // Notenübersicht generieren
-            $content = EvaluationApp::useService()->generateTaskGrades($tblPersonList);
-            if ($content) {
+            list($tableHeader, $tableContent) = EvaluationApp::useService()->getStudentGrades($tblTask, $tblDivision);
+
+            if ($tableHeader && $tableContent) {
                 // Excel-Datei mit Notenübersicht erstellen
-                $fileLocation = EvaluationApp::useService()->generateTaskGradesExcel($content);
+                $fileLocation = EvaluationApp::useService()->generateTaskGradesExcel($tableHeader, $tableContent);
                 // Download-Link für Excel-Datei erstellen
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Notenübersicht " . date("Y-m-d H:i:s") . ".xlsx")->__toString();

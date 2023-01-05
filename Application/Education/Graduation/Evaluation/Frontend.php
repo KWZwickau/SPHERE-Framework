@@ -98,7 +98,6 @@ use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
@@ -3264,16 +3263,17 @@ class Frontend extends Extension implements IFrontendInterface
         );
         $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
-        $tblCurrentDivision = Division::useService()->getDivisionById($DivisionId);
         $tblDivisionAllByTask = Evaluation::useService()->getDivisionAllByTask($tblTask);
+
         $buttonList = array();
+        $tblCurrentDivision = null;
         if ($tblDivisionAllByTask) {
             $tblDivisionAllByTask = $this->getSorter($tblDivisionAllByTask)->sortObjectBy('DisplayName');
 
-            if (!$tblCurrentDivision) {
-                $tblCurrentDivision = current($tblDivisionAllByTask);
+            $tblCurrentDivision = current($tblDivisionAllByTask);
+            if($DivisionId == null){
+                $DivisionId = $tblCurrentDivision->getId();
             }
-
             if (count($tblDivisionAllByTask) > 1) {
                 /** @var TblDivision $tblDivision */
                 foreach ($tblDivisionAllByTask as $tblDivision) {
@@ -3304,51 +3304,55 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask,
-            $tblCurrentDivision ? $tblCurrentDivision : null);
-
-        $divisionList = array();
-        if ($tblTestAllByTask) {
-            foreach ($tblTestAllByTask as $tblTest) {
-                $tblDivision = $tblTest->getServiceTblDivision();
-                if ($tblDivision) {
-                    $divisionList[$tblDivision->getId()][$tblTest->getId()] = $tblTest;
-                }
-            }
-        }
-
-        $tableList = array();
-        $studentList = array();
-        $tableHeaderList = array();
-        if (!empty($divisionList)) {
-
-            $tableList = $this->setGradeOverviewForTask($tblTask, $divisionList, $tableHeaderList, $studentList,
-                $tableList);
-        }
+        list($tableHeader, $tableContent) = Evaluation::useService()->getStudentGrades($tblTask, $tblCurrentDivision);
 
         $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Panel(
-                                $tblTask->getTblTestType()->getName(),
-                                $tblTask->getName() . ' ' . $tblTask->getDate()
-                                . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
-                                    'Bearbeitungszeitraum '.$tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
-                                Panel::PANEL_TYPE_INFO
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(array(
+                    new Panel(
+                        $tblTask->getTblTestType()->getName(),
+                        $tblTask->getName() . ' ' . $tblTask->getDate()
+                        . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
+                            'Bearbeitungszeitraum '.$tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
+                        Panel::PANEL_TYPE_INFO
+                    ),
+                    $tblDivisionAllByTask ? null : new WarningMessage(
+                        'Es sind keine Klassen zu diesem Notenauftrag zugeordnet.', new Exclamation()
+                    )
+                )),
+                new LayoutColumn(
+                    empty($buttonList) ? null : $buttonList
+                )
+            ))))
+            . new Layout(new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(array(
+                        new Title('Klasse', $tblDivision->getDisplayName()),
+                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Education/Graduation/Evaluation/TaskGrades/Download',
+                            new Download(), array(
+                                'Id'         => $tblTask->getId(),
+                                'DivisionId' => $tblDivision->getId())
+                        ),
+                        new TableData(
+                            $tableContent,
+                            null,
+                            $tableHeader,
+                            array(
+                                "paging"         => false, // Deaktivieren Blättern
+                                "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                "searching"      => false, // Deaktivieren Suchen
+                                "info"           => false,  // Deaktivieren Such-Info
+                                "responsive"     => false
                             ),
-                            $tblDivisionAllByTask ? null : new WarningMessage(
-                                'Es sind keine Klassen zu diesem Notenauftrag zugeordnet.', new Exclamation()
+                            array(
+                                'columnDefs' => array(
+                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                ),
                             )
-                        )),
-                        new LayoutColumn(
-                            empty($buttonList) ? null : $buttonList
                         )
                     ))
-                )),
+                )
             ))
-            . new Layout($tableList)
         );
 
         return $Stage;
@@ -5094,7 +5098,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function checkIsPersonInActive(TblDivision $tblDivision, TblPerson $tblPerson, DateTime $taskDate)
     {
-         // inaktive Schüler abhängig vom Austrittsdatum ignorieren
+        // inaktive Schüler abhängig vom Austrittsdatum ignorieren
         if (($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson(
                 $tblDivision, $tblPerson
             ))
