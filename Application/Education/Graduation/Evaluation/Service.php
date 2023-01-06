@@ -332,9 +332,9 @@ class Service extends AbstractService
                 $tableHeader['Name'] = 'Schüler';
                 $grades = array();
 
-                if (!empty($testList)) {
+                if (!empty($tblTestAllByTask)) {
                     /** @var TblTest $tblTest */
-                    foreach ($testList as $tblTest) {
+                    foreach ($tblTestAllByTask as $tblTest) {
                         $tblGradeType = $tblTest->getServiceTblGradeType();
                         if ($tblGradeType && $tblTest->getServiceTblDivision() && $tblTest->getServiceTblSubject()) {
 
@@ -495,9 +495,9 @@ class Service extends AbstractService
         if ($tblGrade) {
             // Zeugnistext
             if (($tblGradeText = $tblGrade->getTblGradeText())) {
-                $tableContent[$tblPerson->getId()]
-                ['Subject' . $tblSubject->getId()] = $tblGradeText->getName();
-
+                $tableContent[$tblPerson->getId()]['Subject' . $tblSubject->getId()] = $tblGradeText->getName();
+                $tableContent[$tblPerson->getId()]['Subject' . $tblSubject->getId().'Grade'] = $tblGradeText->getName();
+                $tableContent[$tblPerson->getId()]['Subject' . $tblSubject->getId().'Average'] = ($average || $average === (float)0 ? 'Ø'.$average : '');
                 return $tableContent;
             }
 
