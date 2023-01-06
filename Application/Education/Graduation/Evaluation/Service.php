@@ -194,58 +194,161 @@ class Service extends AbstractService
 
         $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivision);
 
-        $divisionList = array();
-        if ($tblTestAllByTask) {
-            foreach ($tblTestAllByTask as $tblTest) {
-                $tblDivision = $tblTest->getServiceTblDivision();
-                if ($tblDivision) {
-                    $divisionList[$tblDivision->getId()][$tblTest->getId()] = $tblTest;
-                }
-            }
-        }
-
         $tableContent = array();
         $tableHeader = array();
 
         $gradeList = array();
         $taskDate = new DateTime($tblTask->getDate());
-        foreach ($divisionList as $divisionId => $testList) {
-            $tblDivision = Division::useService()->getDivisionById($divisionId);
-            if ($tblDivision) {
-                if (($tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision, true))) {
-                    $count = 1;
-                    foreach ($tblDivisionStudentAll as $tblPerson) {
-                        if ($this->checkIsPersonInActive($tblDivision, $tblPerson, $taskDate)) {
-                            continue;
-                        }
+        if ($tblDivision) {
+            if (($tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision, true))) {
+                $count = 1;
+                foreach ($tblDivisionStudentAll as $tblPerson) {
+                    if ($this->checkIsPersonInActive($tblDivision, $tblPerson, $taskDate)) {
+                        continue;
+                    }
+                    $tableContent[$tblPerson->getId()]['Number'] = $count++;
+                    $tableContent[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
+                    $tableContent[$tblPerson->getId()]['FirstName'] = $tblPerson->getFirstSecondName();
+                    $tableContent[$tblPerson->getId()]['LastName'] = $tblPerson->getLastName();
+                    $tableContent[$tblPerson->getId()]['Average'] = '';
+                }
+            }
 
-                        $tableContent[$tblPerson->getId()]['Number'] = $count++;
-                        $tableContent[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
-                        $tableContent[$tblPerson->getId()]['FirstName'] = $tblPerson->getFirstSecondName();
-                        $tableContent[$tblPerson->getId()]['LastName'] = $tblPerson->getLastName();
-                        $tableContent[$tblPerson->getId()]['Average'] = '';
+            // Stichtagsnote
+            if ($tblTask->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')) {
+                $averageGradeList = array();
+                if (!empty($tblTestAllByTask)) {
+                    /** @var TblTest $tblTest */
+                    foreach ($tblTestAllByTask as $tblTest) {
+                        $tblSubject = $tblTest->getServiceTblSubject();
+                        if ($tblSubject && $tblTest->getServiceTblDivision()) {
+                            $tableHeader['Subject' . $tblSubject->getId()] = $tblSubject->getAcronym();
+                            $tableContent[0]['Subject' . $tblSubject->getId()] = '';
+                            $tableContent[0]['Average'] = '';
+
+                            $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                                $tblTest->getServiceTblDivision(),
+                                $tblSubject,
+                                $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+                            );
+
+                            if ($tblDivisionSubject && $tblDivisionSubject->getTblSubjectGroup()) {
+                                $tblSubjectStudentAllByDivisionSubject =
+                                    Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+                                if ($tblSubjectStudentAllByDivisionSubject) {
+                                    foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
+
+                                        $tblPerson = $tblSubjectStudent->getServiceTblPerson();
+                                        if ($tblPerson) {
+                                            if ($this->checkIsPersonInActive($tblDivision, $tblPerson, $taskDate)) {
+                                                continue;
+                                            }
+
+                                            $tableContent = $this->setTableContentForAppointedDateTask($tblDivision,
+                                                $tblTest, $tblSubject, $tblPerson, $tableContent,
+                                                $tblDivisionSubject->getTblSubjectGroup()
+                                                    ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                                $gradeList,
+                                                $averageGradeList
+                                            );
+                                        }
+                                    }
+                                }
+                            } else {
+                                if ($tblDivisionStudentAll) {
+                                    foreach ($tblDivisionStudentAll as $tblPerson) {
+                                        if ($this->checkIsPersonInActive($tblDivision, $tblPerson, $taskDate)) {
+                                            continue;
+                                        }
+
+                                        $tableContent = $this->setTableContentForAppointedDateTask($tblDivision,
+                                            $tblTest, $tblSubject, $tblPerson, $tableContent, null, $gradeList,
+                                            $averageGradeList);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
-                // Stichtagsnote
-                if ($tblTask->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')) {
-                    $averageGradeList = array();
-                    if (!empty($testList)) {
-                        /** @var TblTest $tblTest */
-                        foreach ($testList as $tblTest) {
-                            $tblSubject = $tblTest->getServiceTblSubject();
-                            if ($tblSubject && $tblTest->getServiceTblDivision()) {
-                                $tableHeader['Subject' . $tblSubject->getId()] = $tblSubject->getAcronym();
-                                $tableContent[0]['Subject' . $tblSubject->getId()] = '';
-                                $tableContent[0]['Average'] = '';
+                // Sortierung nach Fächer-Acroynm
+                if (!empty($tableHeader)) {
+                    asort($tableHeader);
+                }
+                $prependTableHeader['Number'] = '#';
+                $prependTableHeader['Name'] = 'Schüler';
+                $tableHeader = $prependTableHeader + $tableHeader;
 
-                                $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-                                    $tblTest->getServiceTblDivision(),
-                                    $tblSubject,
-                                    $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
-                                );
+                // Bug Schüler ist nicht in der Gruppe, wenn nicht alle Schüler in einer Gruppe sind, z.B. bei Ethik
+                if (!empty($tableContent)) {
+                    $count = 1;
+                    foreach ($tableContent as $PersonId => $student) {
+                        foreach ($tableHeader as $key => $value) {
+                            if ($key == 'Number') {
+                                $tableContent[$PersonId][$key] = $count++;
+                            } elseif (!isset($student[$key])) {
+                                $tableContent[$PersonId][$key] = "";
+                            }
+                        }
+                    }
+                }
 
-                                if ($tblDivisionSubject && $tblDivisionSubject->getTblSubjectGroup()) {
+                // Gesamtdurchschnitt
+                $tableHeader['Average'] = '&#216;';
+                if (!empty($gradeList)) {
+                    foreach ($gradeList as $personId => $gradeArray) {
+                        $sum = 0;
+                        foreach ($gradeArray as $grade) {
+                            $sum += $grade;
+                        }
+                        $count = count($gradeArray);
+                        $tableContent[$personId]['Average'] = $count  > 0
+                            ? round($sum / $count, 2 ) : '';
+                    }
+                }
+
+                // Durchschnitte pro Fach-Klasse
+                $tableContent[0]['Number'] = '';
+                $tableContent[0]['Name'] = new Muted('&#216; Fach-Klasse');
+                $tableContent[0]['FirstName'] = '';
+                $tableContent[0]['LastName'] = '';
+                foreach ($averageGradeList as $subjectId => $grades) {
+                    $countGrades = count($grades);
+                    $tableContent[0]['Subject' . $subjectId] = $countGrades  > 0
+                        ? round(array_sum($grades) / $countGrades, 2 ) : '';
+                }
+            } else {
+
+                if (($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation',
+                    'ShowProposalBehaviorGrade'))
+                ) {
+                    $showProposalBehaviorGrade = $tblSetting->getValue();
+                } else {
+                    $showProposalBehaviorGrade = false;
+                }
+
+                // Kopfnoten
+                $tableHeader['Number'] = '#';
+                $tableHeader['Name'] = 'Schüler';
+                $grades = array();
+
+                if (!empty($testList)) {
+                    /** @var TblTest $tblTest */
+                    foreach ($testList as $tblTest) {
+                        $tblGradeType = $tblTest->getServiceTblGradeType();
+                        if ($tblGradeType && $tblTest->getServiceTblDivision() && $tblTest->getServiceTblSubject()) {
+
+                            $tableHeader['Type' . $tblGradeType->getId()]
+                                = $tblGradeType->getCode() . ' (' . $tblGradeType->getName() . ')';
+
+                            $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                                $tblTest->getServiceTblDivision(),
+                                $tblTest->getServiceTblSubject(),
+                                $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+                            );
+
+                            if ($tblDivisionSubject) {
+                                if ($tblDivisionSubject->getTblSubjectGroup()) {
                                     $tblSubjectStudentAllByDivisionSubject =
                                         Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
                                     if ($tblSubjectStudentAllByDivisionSubject) {
@@ -257,13 +360,8 @@ class Service extends AbstractService
                                                     continue;
                                                 }
 
-                                                $tableContent = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                    $tblTest, $tblSubject, $tblPerson, $tableContent,
-                                                    $tblDivisionSubject->getTblSubjectGroup()
-                                                        ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                                    $gradeList,
-                                                    $averageGradeList
-                                                );
+                                                list($tableContent, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
+                                                    $tblTest, $tblPerson, $tableContent, $grades);
                                             }
                                         }
                                     }
@@ -274,9 +372,8 @@ class Service extends AbstractService
                                                 continue;
                                             }
 
-                                            $tableContent = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                $tblTest, $tblSubject, $tblPerson, $tableContent, null, $gradeList,
-                                                $averageGradeList);
+                                            list($tableContent, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
+                                                $tblTest, $tblPerson, $tableContent, $grades);
                                         }
                                     }
                                 }
@@ -284,145 +381,34 @@ class Service extends AbstractService
                         }
                     }
 
-                    // Sortierung nach Fächer-Acroynm
-                    if (!empty($tableHeader)) {
-                        asort($tableHeader);
-                    }
-                    $prependTableHeader['Number'] = '#';
-                    $prependTableHeader['Name'] = 'Schüler';
-                    $tableHeader = $prependTableHeader + $tableHeader;
-
-                    // Bug Schüler ist nicht in der Gruppe, wenn nicht alle Schüler in einer Gruppe sind, z.B. bei Ethik
-                    if (!empty($tableContent)) {
-                        $count = 1;
-                        foreach ($tableContent as $PersonId => $student) {
-                            foreach ($tableHeader as $key => $value) {
-                                if ($key == 'Number') {
-                                    $tableContent[$PersonId][$key] = $count++;
-                                } elseif (!isset($student[$key])) {
-                                    $tableContent[$PersonId][$key] = "";
-                                }
-                            }
-                        }
-                    }
-
-                    // Gesamtdurchschnitt
-                    $tableHeader['Average'] = '&#216;';
-                    if (!empty($gradeList)) {
-                        foreach ($gradeList as $personId => $gradeArray) {
-                            $sum = 0;
-                            foreach ($gradeArray as $grade) {
-                                $sum += $grade;
-                            }
-                            $count = count($gradeArray);
-                            $tableContent[$personId]['Average'] = $count  > 0
-                                ? round($sum / $count, 2 ) : '';
-                        }
-                    }
-
-                    // Durchschnitte pro Fach-Klasse
-                    $tableContent[0]['Number'] = '';
-                    $tableContent[0]['Name'] = new Muted('&#216; Fach-Klasse');
-                    $tableContent[0]['FirstName'] = '';
-                    $tableContent[0]['LastName'] = '';
-                    foreach ($averageGradeList as $subjectId => $grades) {
-                        $countGrades = count($grades);
-                        $tableContent[0]['Subject' . $subjectId] = $countGrades  > 0
-                            ? round(array_sum($grades) / $countGrades, 2 ) : '';
-                    }
-                } else {
-
-                    if (($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation',
-                        'ShowProposalBehaviorGrade'))
-                    ) {
-                        $showProposalBehaviorGrade = $tblSetting->getValue();
-                    } else {
-                        $showProposalBehaviorGrade = false;
-                    }
-
-                    // Kopfnoten
-                    $tableHeader['Number'] = '#';
-                    $tableHeader['Name'] = 'Schüler';
-                    $grades = array();
-
-                    if (!empty($testList)) {
-                        /** @var TblTest $tblTest */
-                        foreach ($testList as $tblTest) {
-                            $tblGradeType = $tblTest->getServiceTblGradeType();
-                            if ($tblGradeType && $tblTest->getServiceTblDivision() && $tblTest->getServiceTblSubject()) {
-
-                                $tableHeader['Type' . $tblGradeType->getId()]
-                                    = $tblGradeType->getCode() . ' (' . $tblGradeType->getName() . ')';
-
-                                $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-                                    $tblTest->getServiceTblDivision(),
-                                    $tblTest->getServiceTblSubject(),
-                                    $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
-                                );
-
-                                if ($tblDivisionSubject) {
-                                    if ($tblDivisionSubject->getTblSubjectGroup()) {
-                                        $tblSubjectStudentAllByDivisionSubject =
-                                            Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-                                        if ($tblSubjectStudentAllByDivisionSubject) {
-                                            foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
-
-                                                $tblPerson = $tblSubjectStudent->getServiceTblPerson();
-                                                if ($tblPerson) {
-                                                    if ($this->checkIsPersonInActive($tblDivision, $tblPerson, $taskDate)) {
-                                                        continue;
-                                                    }
-
-                                                    list($tableContent, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                        $tblTest, $tblPerson, $tableContent, $grades);
-                                                }
-                                            }
+                    // calc Average
+                    if (isset($tableContent)) {
+                        foreach ($tableContent as $personId => $rowList) {
+                            $tblPerson = Person::useService()->getPersonById($personId);
+                            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+                            $tblGradeTypeAllWhereBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
+                            if ($tblPerson && $tblGradeTypeAllWhereBehavior) {
+                                foreach ($tblGradeTypeAllWhereBehavior as $tblGradeType) {
+                                    $gradeTypeId = $tblGradeType->getId();
+                                    // Kopfnotenvorschlag KL
+                                    if ($showProposalBehaviorGrade) {
+                                        $proposalGrade = new Warning(new Bold('f'));
+                                        if (($tblProposalBehaviorGrade = Gradebook::useService()->getProposalBehaviorGrade(
+                                                $tblDivision, $tblTask, $tblGradeType, $tblPerson
+                                            )) && $tblProposalBehaviorGrade->getDisplayGrade() !== ''
+                                        ) {
+                                            $proposalGrade = new Bold($tblProposalBehaviorGrade->getDisplayGrade());
                                         }
-                                    } else {
-                                        if ($tblDivisionStudentAll) {
-                                            foreach ($tblDivisionStudentAll as $tblPerson) {
-                                                if ($this->checkIsPersonInActive($tblDivision, $tblPerson, $taskDate)) {
-                                                    continue;
-                                                }
 
-                                                list($tableContent, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                    $tblTest, $tblPerson, $tableContent, $grades);
-                                            }
+                                        if (isset($rowList['Type' . $gradeTypeId])) {
+                                            $rowList['Type' . $gradeTypeId] .= new Small(' | (KL-Vorschlag: ' . $proposalGrade . ')');
                                         }
                                     }
-                                }
-                            }
-                        }
-
-                        // calc Average
-                        if (isset($tableContent)) {
-                            foreach ($tableContent as $personId => $rowList) {
-                                $tblPerson = Person::useService()->getPersonById($personId);
-                                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
-                                $tblGradeTypeAllWhereBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
-                                if ($tblPerson && $tblGradeTypeAllWhereBehavior) {
-                                    foreach ($tblGradeTypeAllWhereBehavior as $tblGradeType) {
-                                        $gradeTypeId = $tblGradeType->getId();
-                                        // Kopfnotenvorschlag KL
-                                        if ($showProposalBehaviorGrade) {
-                                            $proposalGrade = new Warning(new Bold('f'));
-                                            if (($tblProposalBehaviorGrade = Gradebook::useService()->getProposalBehaviorGrade(
-                                                    $tblDivision, $tblTask, $tblGradeType, $tblPerson
-                                                )) && $tblProposalBehaviorGrade->getDisplayGrade() !== ''
-                                            ) {
-                                                $proposalGrade = new Bold($tblProposalBehaviorGrade->getDisplayGrade());
-                                            }
-
-                                            if (isset($rowList['Type' . $gradeTypeId])) {
-                                                $rowList['Type' . $gradeTypeId] .= new Small(' | (KL-Vorschlag: ' . $proposalGrade . ')');
-                                            }
-                                        }
-                                        if (isset($grades[$personId][$gradeTypeId]) && $grades[$personId][$gradeTypeId]['Count'] > 0) {
-                                            $tableContent[$personId]['Type' . $gradeTypeId] =
-                                                new Bold('&#216; ' .
-                                                    round(floatval($grades[$personId][$gradeTypeId]['Sum']) / floatval($grades[$personId][$gradeTypeId]['Count']),
-                                                        2) . ' | ') . $rowList['Type' . $gradeTypeId];
-                                        }
+                                    if (isset($grades[$personId][$gradeTypeId]) && $grades[$personId][$gradeTypeId]['Count'] > 0) {
+                                        $tableContent[$personId]['Type' . $gradeTypeId] =
+                                            new Bold('&#216; ' .
+                                                round(floatval($grades[$personId][$gradeTypeId]['Sum']) / floatval($grades[$personId][$gradeTypeId]['Count']),
+                                                    2) . ' | ') . $rowList['Type' . $gradeTypeId];
                                     }
                                 }
                             }
@@ -659,7 +645,7 @@ class Service extends AbstractService
             }
             $export->setValue($export->getCell($Column, $Row), 'Ø');
 
-            $export->setStyle($export->getCell(0, $Row), $export->getCell($Column-1, $Row))
+            $export->setStyle($export->getCell(0, $Row), $export->getCell($Column, $Row))
                 // Header Fett
                 ->setFontBold()
                 // Strich nach dem Header
@@ -675,7 +661,6 @@ class Service extends AbstractService
                 // [Subject26] => GE
                 foreach($tableHeader as $SubjectKey => $Value){
                     if(strpos($SubjectKey, 'Subject') !== false){
-                        //ToDO irgendwas wird nicht befüllt weswegen der Download abbricht
                         if(isset($tableRow[$SubjectKey.'Grade'])){
                             $export->setValue($export->getCell($Column++, $Row), $tableRow[$SubjectKey.'Grade']);
                         }

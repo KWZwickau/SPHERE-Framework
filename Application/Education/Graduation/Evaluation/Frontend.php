@@ -3269,11 +3269,12 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCurrentDivision = null;
         if ($tblDivisionAllByTask) {
             $tblDivisionAllByTask = $this->getSorter($tblDivisionAllByTask)->sortObjectBy('DisplayName');
-
-            $tblCurrentDivision = current($tblDivisionAllByTask);
-            if($DivisionId == null){
-                $DivisionId = $tblCurrentDivision->getId();
+            if($DivisionId){
+                $tblCurrentDivision = Division::useService()->getDivisionById($DivisionId);
+            } else {
+                $tblCurrentDivision = current($tblDivisionAllByTask);
             }
+
             if (count($tblDivisionAllByTask) > 1) {
                 /** @var TblDivision $tblDivision */
                 foreach ($tblDivisionAllByTask as $tblDivision) {
@@ -3327,11 +3328,11 @@ class Frontend extends Extension implements IFrontendInterface
             . new Layout(new LayoutGroup(
                 new LayoutRow(
                     new LayoutColumn(array(
-                        new Title('Klasse', $tblDivision->getDisplayName()),
+                        new Title('Klasse', $tblCurrentDivision->getDisplayName()),
                         new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Education/Graduation/Evaluation/TaskGrades/Download',
                             new Download(), array(
                                 'Id'         => $tblTask->getId(),
-                                'DivisionId' => $tblDivision->getId())
+                                'DivisionId' => $tblCurrentDivision->getId())
                         ),
                         new TableData(
                             $tableContent,
