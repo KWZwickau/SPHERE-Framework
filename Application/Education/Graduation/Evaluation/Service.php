@@ -308,7 +308,6 @@ class Service extends AbstractService
 
                     // Gesamtdurchschnitt
                     $tableHeader['Average'] = '&#216;';
-                    $tableHeader['AverageExcel'] = 'Ø';
                     if (!empty($gradeList)) {
                         foreach ($gradeList as $personId => $gradeArray) {
                             $sum = 0;
@@ -645,12 +644,20 @@ class Service extends AbstractService
 
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
+
+            $export->setValue($export->getCell($Column++, $Row), '#');
+            $export->setValue($export->getCell($Column++, $Row), 'Vorname');
+            $export->setValue($export->getCell($Column++, $Row), 'Nachname');
+            unset($tableHeader['Number']);
+            unset($tableHeader['Name']);
+            unset($tableHeader['Average']);
             foreach ($tableHeader as $Value){
-                if($Value == '&#216;'){
-                    continue;
-                }
                 $export->setValue($export->getCell($Column++, $Row), $Value);
+                $Column++;
+                $export->setStyle($export->getCell($Column-2, $Row), $export->getCell($Column-1, $Row))
+                ->mergeCells();
             }
+            $export->setValue($export->getCell($Column, $Row), 'Ø');
 
             $export->setStyle($export->getCell(0, $Row), $export->getCell($Column-1, $Row))
                 // Header Fett
@@ -669,9 +676,16 @@ class Service extends AbstractService
                 foreach($tableHeader as $SubjectKey => $Value){
                     if(strpos($SubjectKey, 'Subject') !== false){
                         //ToDO irgendwas wird nicht befüllt weswegen der Download abbricht
-//                        $export->setValue($export->getCell($Column++, $Row), $tableRow[$SubjectKey.'Grade']);
-//                        $export->setValue($export->getCell($Column++, $Row), $tableRow[$SubjectKey.'Average']);
+                        if(isset($tableRow[$SubjectKey.'Grade'])){
+                            $export->setValue($export->getCell($Column++, $Row), $tableRow[$SubjectKey.'Grade']);
+                        }
+                        if(isset($tableRow[$SubjectKey.'Average'])){
+                            $export->setValue($export->getCell($Column++, $Row), $tableRow[$SubjectKey.'Average']);
+                        }
                     }
+                }
+                if(isset($tableHeader['Average'])){
+                    $export->setValue($export->getCell($Column, $Row), $tableRow['Average']);
                 }
 
 //                 Strich nach jedem Schüler
