@@ -90,8 +90,14 @@ class CmsGsJExt extends CmsStyle
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
                 )
+                ->addSection(
+                    self::getCMSMissing($personId)
+                )
+                ->addElement((new Element())
+                    ->styleMarginTop('15px')
+                )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '500px')
+                    self::getCMSRemark($personId, '468px')
                 )
             );
         $PageList[] = (new Page())
@@ -108,13 +114,7 @@ class CmsGsJExt extends CmsStyle
                     ->styleMarginTop('20px')
                 )
                 ->addSectionList(
-                    self::getCMSSecondRemark($personId, '705px')
-                )
-                ->addSection(
-                    self::getCMSMissing($personId)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('15px')
+                    self::getCMSSecondRemark($personId, '737px')
                 )
                 ->addSection(
                     self::getCMSTransfer($personId)
