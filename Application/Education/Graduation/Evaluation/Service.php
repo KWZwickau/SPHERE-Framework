@@ -294,7 +294,7 @@ class Service extends AbstractService
                 }
 
                 // Gesamtdurchschnitt
-                $tableHeader['Average'] = '&#216;';
+                $tableHeader['Average'] = 'Ø';
                 if (!empty($gradeList)) {
                     foreach ($gradeList as $personId => $gradeArray) {
                         $sum = 0;
@@ -634,60 +634,77 @@ class Service extends AbstractService
             $export->setValue($export->getCell($Column++, $Row), '#');
             $export->setValue($export->getCell($Column++, $Row), 'Vorname');
             $export->setValue($export->getCell($Column++, $Row), 'Nachname');
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $export->setValue($export->getCell($Column++, $Row), '#');
+            $export->setValue($export->getCell($Column++, $Row), 'Vorname');
+            $export->setValue($export->getCell($Column++, $Row), 'Nachname');
             unset($tableHeader['Number']);
             unset($tableHeader['Name']);
-            unset($tableHeader['Average']);
             foreach ($tableHeader as $Value){
                 $export->setValue($export->getCell($Column++, $Row), $Value);
                 $Column++;
                 $export->setStyle($export->getCell($Column-2, $Row), $export->getCell($Column-1, $Row))
-                ->mergeCells();
+                    ->mergeCells();
             }
-            $export->setValue($export->getCell($Column, $Row), 'Ø');
-
-            $export->setStyle($export->getCell(0, $Row), $export->getCell($Column, $Row))
+            $export->setStyle($export->getCell(0, $Row), $export->getCell($Column-1, $Row))
                 // Header Fett
                 ->setFontBold()
                 // Strich nach dem Header
                 ->setBorderBottom();
+            $export->getActiveSheet()
+                ->getStyle('A:A')
+                ->getFont()
+                ->setBold(true);
 
+            $count = count($tableContent);
+            // Befüllen der Tabelle
             foreach ($tableContent as $tableRow) {
                 $Row++;
                 $Column = 0;
                 $export->setValue($export->getCell($Column++, $Row), $tableRow['Number']);
                 $export->setValue($export->getCell($Column++, $Row), $tableRow['FirstName']);
                 $export->setValue($export->getCell($Column++, $Row), $tableRow['LastName']);
-
-                // [Subject26] => GE
-                foreach($tableHeader as $SubjectKey => $Value){
-                    if(strpos($SubjectKey, 'Subject') !== false){
-                        if(isset($tableRow[$SubjectKey.'Grade'])){
-                            $export->setValue($export->getCell($Column++, $Row), $tableRow[$SubjectKey.'Grade']);
+                $export->setStyle($export->getCell($Column, $Row), $export->getCell($Column, $Row));
+                foreach ($tableHeader as $SubjectKey => $Value) {
+                    if (strpos($SubjectKey, 'Subject') !== false) {
+                        if (isset($tableRow[$SubjectKey . 'Grade'])) {
+                            $export->setValue($export->getCell($Column, $Row), $tableRow[$SubjectKey . 'Grade']);
                         }
-                        if(isset($tableRow[$SubjectKey.'Average'])){
-                            $export->setValue($export->getCell($Column++, $Row), $tableRow[$SubjectKey.'Average']);
+                        // Trennstrich pro Fach
+                        if($Row != $count)
+                        {
+                            $export->setStyle($export->getCell($Column, $Row), $export->getCell($Column, $Row))
+                                ->setBorderLeft();
                         }
+                        $Column++;
+                        if (isset($tableRow[$SubjectKey . 'Average'])) {
+                            $export->setValue($export->getCell($Column, $Row), $tableRow[$SubjectKey . 'Average']);
+                        }
+                        $Column++;
                     }
                 }
-                if(isset($tableHeader['Average'])){
+                if (isset($tableHeader['Average']) && ($Row != $count)) {
                     $export->setValue($export->getCell($Column, $Row), $tableRow['Average']);
+                    // Trennstrich Durchschnitt
+                    $export->setStyle($export->getCell($Column, $Row), $export->getCell($Column, $Row))
+                        ->setBorderLeft();
                 }
-
-//                 Strich nach jedem Schüler
-//                $export->setStyle($export->getCell(0, $Row), $export->getCell($Column, $Row))
-//                    ->setBorderBottom();
             }
-
-            //Column width
-            $column = 0;
-//            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(7);
-//            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(15);
-//            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(17);
-//            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(13);
-//            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $Row))->setColumnWidth(15);
-
+            // set column width
+            $export->getActiveSheet()->getColumnDimension('A')->setWidth(3);
+            $export->getActiveSheet()->getColumnDimension('B')->setWidth(11);
+            $export->getActiveSheet()->getColumnDimension('C')->setWidth(14);
+            $colCount = count($tableHeader);
+            $colCount *= 2;
+            $a = 3;
+            for ($col = 'D'; $a <= $colCount; $col++) {
+                $width = ($a % 2 == 1) ? 3 : 7;
+                $export->getActiveSheet()
+                    ->getColumnDimension($col)
+                    ->setWidth($width);
+                $a++;
+            }
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
-
             return $fileLocation;
         }
         return false;
