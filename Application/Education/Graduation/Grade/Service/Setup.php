@@ -47,6 +47,11 @@ class Setup  extends AbstractSetup
         $this->setTableScoreRuleSubject($schema, $tblScoreRule);
         $this->setTableScoreRuleSubjectDivisionCourse($schema, $tblScoreRule);
 
+        // MinimumGradeCount
+        $tblMinimumGradeCount = $this->setTableMinimumGradeCount($schema, $tblGradeType);
+        $this->setTableMinimumGradeCountLevelLink($schema, $tblMinimumGradeCount);
+        $this->setTableMinimumGradeCountSubjectLink($schema, $tblMinimumGradeCount);
+
         /**
          * Migration & Protocol
          */
@@ -300,5 +305,32 @@ class Setup  extends AbstractSetup
         $this->createColumn($table, 'serviceTblDivisionCourse', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
         $this->createForeignKey($table, $tblScoreRule);
+    }
+
+    private function setTableMinimumGradeCount(Schema $schema, Table $tblGradeType): Table
+    {
+        $table = $this->createTable($schema, 'tblGraduationMinimumGradeCount');
+        $this->createColumn($table, 'Count', self::FIELD_TYPE_INTEGER);
+        $this->createForeignKey($table, $tblGradeType, true);
+        $this->createColumn($table, 'Period', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($table, 'Highlighted', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($table, 'Course', self::FIELD_TYPE_INTEGER);
+
+        return $table;
+    }
+
+    private function setTableMinimumGradeCountLevelLink(Schema $schema, Table $tblMinimumGradeCount)
+    {
+        $table = $this->createTable($schema, 'tblGraduationMinimumGradeCountLevelLink');
+        $this->createForeignKey($table, $tblMinimumGradeCount);
+        $this->createColumn($table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Level', self::FIELD_TYPE_INTEGER);
+    }
+
+    private function setTableMinimumGradeCountSubjectLink(Schema $schema, Table $tblMinimumGradeCount)
+    {
+        $table = $this->createTable($schema, 'tblGraduationMinimumGradeCountSubjectLink');
+        $this->createForeignKey($table, $tblMinimumGradeCount);
+        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
     }
 }

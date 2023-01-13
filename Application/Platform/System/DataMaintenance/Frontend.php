@@ -613,7 +613,8 @@ UPDATE ".$Acronym."_SettingConsumer.tblPrepareInformation SET Value = CONCAT(SUB
         } else {
             $content = ApiMigrateDivision::receiverBlock('', 'MigrateDivisions')
                 . ApiMigrateDivision::receiverBlock('', 'MigrateGroups')
-                . ApiMigrateDivision::receiverBlock('', 'MigrateScoreRules');
+                . ApiMigrateDivision::receiverBlock('', 'MigrateScoreRules')
+                . ApiMigrateDivision::receiverBlock('', 'MigrateMinimumGradeCounts');
             if (($tblYearList = Term::useService()->getYearAll())) {
                 $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('Id');
                 /** @var TblYear $tblYear */

@@ -33,6 +33,10 @@ class Grade  implements IModuleInterface
                 new Link\Icon(new Quantity()))
         );
         Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'\MinimumGradeCount'), new Link\Name('Mindestnotenanzahl'),
+                new Link\Icon(new Quantity()))
+        );
+        Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\GradeBook'), new Link\Name('Notenbuch'), new Link\Icon(new Book()))
         );
         Main::getDisplay()->addModuleNavigation(
@@ -166,6 +170,17 @@ class Grade  implements IModuleInterface
         // Notenauftrag
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Task', __NAMESPACE__.'\Frontend::frontendTask')
+        );
+
+        // Mindestnoten
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\MinimumGradeCount', __NAMESPACE__ . '\Frontend::frontendMinimumGradeCount')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\MinimumGradeCount\Edit', __NAMESPACE__ . '\Frontend::frontendEditMinimumGradeCount')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\MinimumGradeCount\Destroy', __NAMESPACE__ . '\Frontend::frontendDestroyMinimumGradeCount')
         );
     }
 

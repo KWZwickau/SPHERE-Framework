@@ -30,7 +30,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Redirect;
 
-abstract class ServiceScore extends ServiceGradeType
+abstract class ServiceScore extends ServiceMinimumGradeCount
 {
     const PREG_MATCH_DECIMAL_NUMBER = '!^[0-9]+((\.|,)[0-9]+)?$!is';
 

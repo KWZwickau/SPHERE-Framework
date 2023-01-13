@@ -8,6 +8,9 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest as
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCountLevelLink;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCountSubjectLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGradeTypeList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGroupList;
@@ -384,6 +387,102 @@ abstract class DataMigrate extends AbstractData
                             $tblScoreCondition = $tblScoreConditionList[$tblScoreConditionOld->getId()];
                             $Manager->bulkSaveEntity(new TblScoreRuleConditionList($tblScoreCondition, $tblScoreRule));
                         }
+                    }
+                }
+            }
+        }
+
+        $Manager->flushCache();
+
+        $end = hrtime(true);
+
+        return array($count, round(($end - $start) / 1000000000, 2));
+    }
+
+    /**
+     * @return array
+     */
+    public function migrateMinimumGradeCounts(): array
+    {
+        $count = 0;
+        $start = hrtime(true);
+
+        $Manager = $this->getEntityManager();
+
+        $tblGradeTypeList = array();
+        if (($tblTempList = Grade::useService()->getGradeTypeAll(true))) {
+            foreach ($tblTempList as $tblTemp) {
+                $tblGradeTypeList[$tblTemp->getCode()] = $tblTemp;
+            }
+        }
+
+        if (!Grade::useService()->getMinimumGradeCountAll()
+            && ($tblMinimumGradeCountListOld = Gradebook::useService()->getMinimumGradeCountAll())
+        ) {
+            $list = array();
+            foreach ($tblMinimumGradeCountListOld as $tblMinimumGradeCountOld) {
+                $tblGradeTypeOld = $tblMinimumGradeCountOld->getTblGradeType();
+                if (!isset($list['H' . $tblMinimumGradeCountOld->getHighlighted()
+                    . 'G' . ($tblGradeTypeOld ? $tblGradeTypeOld->getId() : 0)
+                    . 'P' . $tblMinimumGradeCountOld->getPeriod()
+                    . 'C' . $tblMinimumGradeCountOld->getCourse()
+                    . 'N' . $tblMinimumGradeCountOld->getCount()])
+                ) {
+                    $list['H' . $tblMinimumGradeCountOld->getHighlighted()
+                    . 'G' . ($tblGradeTypeOld ? $tblGradeTypeOld->getId() : 0)
+                    . 'P' . $tblMinimumGradeCountOld->getPeriod()
+                    . 'C' . $tblMinimumGradeCountOld->getCourse()
+                    . 'N' . $tblMinimumGradeCountOld->getCount()] = array(
+                        'Id' => $tblMinimumGradeCountOld->getId(),
+                        'GradeType' => $tblGradeTypeOld ? $tblGradeTypeOld->getCode() : null,
+                        'Period' => $tblMinimumGradeCountOld->getPeriod(),
+                        'Course' => $tblMinimumGradeCountOld->getCourse(),
+                        'Count' => $tblMinimumGradeCountOld->getCount(),
+                        'Highlighted' => $tblMinimumGradeCountOld->getHighlighted()
+                    );
+                }
+
+                if (($tblLevel = $tblMinimumGradeCountOld->getServiceTblLevel())) {
+                    $list['H' . $tblMinimumGradeCountOld->getHighlighted()
+                    . 'G' . ($tblGradeTypeOld ? $tblGradeTypeOld->getId() : 0)
+                    . 'P' . $tblMinimumGradeCountOld->getPeriod()
+                    . 'C' . $tblMinimumGradeCountOld->getCourse()
+                    . 'N' . $tblMinimumGradeCountOld->getCount()]
+                    ['Levels'][$tblLevel->getId()] = $tblLevel->getName();
+                }
+                if ($tblSubject = $tblMinimumGradeCountOld->getServiceTblSubject()) {
+                    $list['H' . $tblMinimumGradeCountOld->getHighlighted()
+                    . 'G' . ($tblGradeTypeOld ? $tblGradeTypeOld->getId() : 0)
+                    . 'P' . $tblMinimumGradeCountOld->getPeriod()
+                    . 'C' . $tblMinimumGradeCountOld->getCourse()
+                    . 'N' . $tblMinimumGradeCountOld->getCount()]
+                    ['Subjects'][$tblSubject->getId()] = $tblSubject;
+                }
+            }
+
+            foreach ($list as $item) {
+                $count++;
+                $tblMinimumGradeCount = new TblMinimumGradeCount(
+                    $item['Count'], $tblGradeTypeList[$item['GradeType']] ?? null, $item['Period'], $item['Highlighted'], $item['Course']
+                );
+                $Manager->saveEntity($tblMinimumGradeCount);
+
+                if (isset($item['Levels'])) {
+                    foreach ($item['Levels'] as $levelId => $value) {
+                        if (($tblLevel = Division::useService()->getLevelById($levelId))
+                            && ($tblSchoolType = $tblLevel->getServiceTblType())
+                        ) {
+                            $Manager->bulkSaveEntity(
+                                new TblMinimumGradeCountLevelLink($tblMinimumGradeCount, $tblSchoolType, intval($tblLevel->getName()))
+                            );
+                        }
+                    }
+                }
+                if (isset($item['Subjects'])) {
+                    foreach ($item['Subjects'] as $tblSubject) {
+                        $Manager->bulkSaveEntity(
+                            new TblMinimumGradeCountSubjectLink($tblMinimumGradeCount, $tblSubject)
+                        );
                     }
                 }
             }

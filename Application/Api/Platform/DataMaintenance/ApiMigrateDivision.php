@@ -51,6 +51,7 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('migrateDivisions');
         $Dispatcher->registerMethod('migrateGroups');
         $Dispatcher->registerMethod('migrateScoreRules');
+        $Dispatcher->registerMethod('migrateMinimumGradeCounts');
         $Dispatcher->registerMethod('migrateYear');
         $Dispatcher->registerMethod('migrateYearItem');
 
@@ -182,6 +183,32 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
     {
         list($count, $time) = Grade::useService()->migrateScoreRules();
         return new Success("$count Berechnungsvorschriften erfolgreich migriert." . new PullRight("$time Sekunden"))
+            . self::pipelineMigrateMinimumGradeCounts();
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineMigrateMinimumGradeCounts(): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'MigrateMinimumGradeCounts'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'migrateMinimumGradeCounts',
+        ));
+        $ModalEmitter->setLoadingMessage('Berechnungsvorschriften werden migriert.');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return string
+     */
+    public function migrateMinimumGradeCounts(): string
+    {
+        list($count, $time) = Grade::useService()->migrateMinimumGradeCounts();
+        return new Success("$count Mindestnoten erfolgreich migriert." . new PullRight("$time Sekunden"))
             . (($tblNextYear = $this->getNextYear()) ? self::pipelineMigrateYear($tblNextYear->getId()) : '');
     }
 

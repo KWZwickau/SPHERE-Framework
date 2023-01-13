@@ -21,7 +21,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
-abstract class DataScore extends DataMigrate
+abstract class DataScore extends DataMinimumGradeCount
 {
     /**
      * @param $id
