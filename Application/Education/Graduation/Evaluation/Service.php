@@ -696,9 +696,9 @@ class Service extends AbstractService
             $export->getActiveSheet()->getColumnDimension('C')->setWidth(14);
             $colCount = count($tableHeader);
             $colCount *= 2;
-            $a = 3;
+            $a = 0;
             for ($col = 'D'; $a <= $colCount; $col++) {
-                $width = ($a % 2 == 1) ? 3 : 7;
+                $width = ($a % 2 == 0) ? 3 : 7;
                 $export->getActiveSheet()
                     ->getColumnDimension($col)
                     ->setWidth($width);
