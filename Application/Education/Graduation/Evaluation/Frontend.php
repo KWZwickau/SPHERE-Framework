@@ -2524,7 +2524,6 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $columnDefinition['Grade'] = 'Zensur';
                 $columnDefinition['Text'] = 'oder Zeugnistext'
-                    . ApiEvaluation::receiverModal()
                     . new PullRight(
                         (new Standard('Alle bearbeiten', ApiEvaluation::getEndpoint()))
                             ->ajaxPipelineOnClick(ApiEvaluation::pipelineOpenGradeTextModal($tblTest->getId()))
@@ -2715,6 +2714,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
             ApiSupportReadOnly::receiverOverViewModal()
+            .($isTestAppointedDateTask? ApiEvaluation::receiverModal(): '')
             .new Layout (array(
                 new LayoutGroup(array(
                     new LayoutRow(array(

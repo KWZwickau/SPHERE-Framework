@@ -307,6 +307,14 @@ class Data extends AbstractData
                 IDataHOGA::setCertificateIndividually($this);
             }
         }
+
+        // Zeugnisvorlagen löschen
+        if (($tblCertificate = $this->getCertificateByCertificateClassName('MsAbgLernen'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
+        if (($tblCertificate = $this->getCertificateByCertificateClassName('MsAbgLernenHs'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
     }
 
     /**

@@ -785,8 +785,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'Typ'               => 'Typ',
                 'Category'          => 'Kategorie',
                 'Name'              => 'Name',
-                'CertificateNumber' => 'Anlage',
                 'Description'       => 'Beschreibung',
+                'CertificateNumber' => 'Anlage',
                 'Option'            => ''
             ), array(
                 'order'      => array(array(0, 'asc'), array(1, 'asc'), array(2, 'asc'), array(3, 'asc')),
@@ -868,43 +868,44 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = self::setSettingMenue($Stage, '');
         $LayoutRowList = array();
 
-        $isRef = false;
-        if(($tblCOnsumer = Consumer::useService()->getConsumerBySession())){
-            if($tblCOnsumer->getAcronym() == 'REF'){
-                $isRef = true;
+        $showAll = false;
+        if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
+            if($tblConsumer->getAcronym() == 'REF'
+            || $tblConsumer->getAcronym() == 'DEMO'){
+                $showAll = true;
             }
         }
 
 
-        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_GRUND_SCHULE))
+        if($showAll || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_GRUND_SCHULE))
             && School::useService()->getSchoolByType($tblType)){
             $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_PRIMARY,
-                'Zeugnisse Grundschule', 'GsJa');
+                'Grundschule', 'GsJa', count($LayoutRowList));
         }
-        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE))
+        if($showAll || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE))
             && School::useService()->getSchoolByType($tblType)){
             $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_SECONDARY,
-                'Zeugnisse Oberschule', 'MsJ');
+                'Oberschule', 'MsJ', count($LayoutRowList));
         }
-        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM))
+        if($showAll || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM))
             && School::useService()->getSchoolByType($tblType)){
             $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_GYM,
-                'Zeugnisse Gymnasium', 'GymJ');
+                'Gymnasium', 'GymJ', count($LayoutRowList));
         }
-        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE))
+        if($showAll || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE))
             && School::useService()->getSchoolByType($tblType)){
             $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_FOERDERSCHULE,
-                'Zeugnisse Förderschule', 'FoesJGeistigeEntwicklung');
+                'Förderschule', 'FoesJGeistigeEntwicklung', count($LayoutRowList));
         }
-        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_BERUFS_FACH_SCHULE))
+        if($showAll || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_BERUFS_FACH_SCHULE))
             && School::useService()->getSchoolByType($tblType)){
             $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE,
-                'Zeugnisse Berufsfachschule', 'BfsJ');
+                'Berufsfachschule', 'BfsJ', count($LayoutRowList));
         }
-        if($isRef || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_FACH_SCHULE))
+        if($showAll || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_FACH_SCHULE))
             && School::useService()->getSchoolByType($tblType)){
             $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_FACHSCHULE,
-                'Zeugnisse Fachschule', 'FsJ');
+                'Fachschule', 'FsJ', count($LayoutRowList));
         }
         if(empty($LayoutRowList)){
             $LayoutRowList[] = new LayoutRow(new LayoutColumn(
@@ -938,7 +939,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return LayoutRow
      */
-    private function getCertificateInstallAccordion($Type, $Name, $CertificateClass)
+    private function getCertificateInstallAccordion($Type, $Name, $CertificateClass, $count)
     {
         // Grundschule
         $GsList = array(
@@ -979,8 +980,6 @@ class Frontend extends Extension implements IFrontendInterface
             'Oberschule Abschlusszeugnis' => 'MsAbsLernen',
 
             'Oberschule Abgangszeugnis' => 'MsAbg',
-            'Oberschule Abgangszeugnis Lernen' => 'MsAbgLernen',
-            'Oberschule Abgangszeugnis Lernen mit Hauptschulbildungsgang' => 'MsAbgLernenHs',
             'Oberschule Abgangszeugnis Geistige Entwicklung' => 'MsAbgGeistigeEntwicklung'
         );
         // Gymnasium
@@ -1039,14 +1038,18 @@ class Frontend extends Extension implements IFrontendInterface
                 $List = $FoesList;
                 break;
         }
+        $showContent = false;
+        if($count == 0){
+            $showContent = true;
+        }
         if(Generator::useService()->getCertificateByCertificateClassName($CertificateClass)){
             $Button = (new SuccessLink($Name,'/Education/Certificate/Setting/ImplementCertificate',
                 new Ok(), array('Type' => $Type),
-                'Installation wiederholen (eventuell fehlende/neue ergänzen)'));
+                'Installation wiederholen (eventuell fehlende / neue ergänzen)'));
             $Content = $this->getCertificateInstallationFeedback($List);
 //            array_unshift($Content, $Button);
             $Accordion = new Accordion();
-            $Accordion->addItem(new PullClear("Sichtkontrolle installierte Zeugnisse für $Name".new PullRight($Button)), new Listing($Content));
+            $Accordion->addItem(new PullClear("Installierte / verfügbare Zeugnisse $Name".new PullRight($Button)), new Listing($Content), $showContent);
             $LayoutRow->addColumn(new LayoutColumn($Accordion, 6));
         } else {
             $Button = new Standard($Name, '/Education/Certificate/Setting/ImplementCertificate',
@@ -1054,7 +1057,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Content = $this->getCertificateInstallationFeedback($List, true);
 //            array_unshift($Content, $Button);
             $Accordion = new Accordion();
-            $Accordion->addItem(new PullClear("Sicht nicht installierte Zeugnisse für $Name".new PullRight($Button)), new Listing($Content));
+            $Accordion->addItem(new PullClear("Nicht installierte Zeugnisse $Name".new PullRight($Button)), new Listing($Content), $showContent);
             $LayoutRow->addColumn(new LayoutColumn($Accordion, 6));
         }
         return $LayoutRow;

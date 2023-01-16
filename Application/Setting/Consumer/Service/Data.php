@@ -117,8 +117,12 @@ class Data extends AbstractData
         $this->createSetting('Education', 'Certificate', 'Diploma', 'ShowExtendedSchoolName', TblSetting::TYPE_BOOLEAN,
             '', 'Zeugnisse', 'Schul-Zusatz-Name von der Institution auf Abschlusszeugnissen und Abgangszeugnissen
             anzeigen [Standard: Nein]', true);
-        $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking', TblSetting::TYPE_BOOLEAN, '1',
-            'Zeugnisse', 'Sollen leere Bemerkungsfelder auf Zeugnissen gesperrt werden ("---"). [Standard: Ja]', true);
+        $tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking', TblSetting::TYPE_BOOLEAN, '1',
+            'Zeugnisse', 'Sollen leere Bemerkung- und Einschätzungsfelder auf Zeugnissen mit  ("—") ergänzen. [Standard: Ja]', true);
+        if($tblSetting->getDescription() != 'Sollen leere Bemerkung- und Einschätzungsfelder auf Zeugnissen mit  ("—") ergänzen. [Standard: Ja]'){
+            $this->updateSettingDescription($tblSetting, $tblSetting->getCategory(),
+                'Sollen leere Bemerkung- und Einschätzungsfelder auf Zeugnissen mit  ("—") ergänzen. [Standard: Ja]', $tblSetting->isPublic());
+        }
         $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowTeamsInCertificateRemark', TblSetting::TYPE_BOOLEAN, '1',
             'Zeugnisse', 'Sollen Arbeitsgemeinschaften in das Bemerkungsfeld der Zeugnisse eingetragen werden. [Standard: Ja]', true);
         $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowOrientationsInCertificateRemark', TblSetting::TYPE_BOOLEAN, '1',

@@ -79,9 +79,14 @@ class CmsGsHjExt extends CmsStyle
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
+                )->addSection(
+                    self::getCMSMissing($personId)
+                )
+                ->addElement((new Element())
+                    ->styleMarginTop('15px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '500px')
+                    self::getCMSRemark($personId, '470px')
                 )
             );
         $PageList[] = (new Page())
@@ -99,12 +104,6 @@ class CmsGsHjExt extends CmsStyle
                 )
                 ->addSectionList(
                     self::getCMSSecondRemark($personId, '739px')
-                )
-                ->addSection(
-                    self::getCMSMissing($personId)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('15px')
                 )
                 ->addSection(
                     self::getCMSDate($personId)
