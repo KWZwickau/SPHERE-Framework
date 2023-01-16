@@ -15,11 +15,16 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -30,22 +35,25 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
 class FrontendMinimumGradeCount extends FrontendGradeType
 {
     /**
-     * @param null $MinimumGradeCount
+     * @param null $Data
      *
      * @return Stage
      */
-    public function frontendMinimumGradeCount($MinimumGradeCount = null): Stage
+    public function frontendMinimumGradeCount($Data = null): Stage
     {
-        if(!isset($_POST['MinimumGradeCount']['Period'])){
-            $_POST['MinimumGradeCount']['Period'] = SelectBoxItem::PERIOD_FULL_YEAR;
+        if(!isset($_POST['Data']['Period'])){
+            $_POST['Data']['Period'] = SelectBoxItem::PERIOD_FULL_YEAR;
         }
 
         $Stage = new Stage('Mindestnotenanzahl', 'Übersicht');
@@ -108,9 +116,7 @@ class FrontendMinimumGradeCount extends FrontendGradeType
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            // todo service
-//                            new Well(Grade::useService()->updateMinimumGradeCount($Form, $MinimumGradeCount))
-                            $Form
+                            new Well(Grade::useService()->createMinimumGradeCount($Form, $Data))
                         )
                     ))
                 ), new Title(new PlusSign() . ' Hinzufügen'))
@@ -146,7 +152,7 @@ class FrontendMinimumGradeCount extends FrontendGradeType
                 $maxLevel = $tblSchoolType->getMaxLevel();
                 for ($level = $minLevel; $level <= $maxLevel; $level++) {
                     $schoolTypeList[$tblSchoolType->getId()][$level]
-                        = new CheckBox('MinimumGradeCount[' . $tblSchoolType->getId() . '][Levels][' . $level . ']', $level, 1);
+                        = new CheckBox('Data[Levels][' . $tblSchoolType->getId() . '][' . $level . ']', $level, 1);
                 }
             }
         }
@@ -179,7 +185,7 @@ class FrontendMinimumGradeCount extends FrontendGradeType
             /** @var TblSubject $tblSubject */
             foreach ($tblSubjectAll as $tblSubject) {
                 $layoutColumns[] = new LayoutColumn(
-                    new CheckBox('MinimumGradeCount[Subjects][' . $tblSubject->getId() . ']', $tblSubject->getDisplayName(), 1), 3
+                    new CheckBox('Data[Subjects][' . $tblSubject->getId() . ']', $tblSubject->getDisplayName(), 1), 3
                 );
             }
 
@@ -209,16 +215,16 @@ class FrontendMinimumGradeCount extends FrontendGradeType
             )),
             new FormRow(array(
                 new FormColumn(
-                    new SelectBox('MinimumGradeCount[GradeType]', 'Zensuren-Typ', array('{{ Code }} - {{ Name }}' => $tblGradeTypeList)), 3
+                    new SelectBox('Data[GradeType]', 'Zensuren-Typ', array('{{ Code }} - {{ Name }}' => $tblGradeTypeList)), 3
                 ),
                 new FormColumn(
-                    new SelectBox('MinimumGradeCount[Period]', 'Zeitraum', array('{{ Name }}' => $periodList)), 3
+                    new SelectBox('Data[Period]', 'Zeitraum', array('{{ Name }}' => $periodList)), 3
                 ),
                 new FormColumn(
-                    new SelectBox('MinimumGradeCount[Course]', 'SEKII - Kurs', array('{{ Name }}' => $courseList)), 3
+                    new SelectBox('Data[Course]', 'SEKII - Kurs', array('{{ Name }}' => $courseList)), 3
                 ),
                 new FormColumn(
-                    (new NumberField('MinimumGradeCount[Count]', '', 'Anzahl ', new Quantity()))->setRequired(), 3
+                    (new NumberField('Data[Count]', '', 'Anzahl ', new Quantity()))->setRequired(), 3
                 ),
             )),
             new FormRow(array(
@@ -227,5 +233,125 @@ class FrontendMinimumGradeCount extends FrontendGradeType
                 )),
             ))
         )));
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Data
+     *
+     * @return Stage|string
+     */
+    public function frontendEditMinimumGradeCount($Id = null, $Data = null)
+    {
+        $Stage = new Stage('Mindestnotenanzahl', 'Bearbeiten');
+        $Stage->addButton(
+            new Standard('Zurück', '/Education/Graduation/Grade/MinimumGradeCount', new ChevronLeft())
+        );
+
+        if ($tblMinimumGradeCount = Grade::useService()->getMinimumGradeCountById($Id)) {
+            $tblGradeType = $tblMinimumGradeCount->getTblGradeType();
+
+            $global = $this->getGlobal();
+            if (!$global->POST) {
+                $global->POST['Data']['GradeType'] = $tblGradeType ? $tblGradeType : -$tblMinimumGradeCount->getHighlighted();
+                $global->POST['Data']['Period'] = $tblMinimumGradeCount->getPeriod();
+                $global->POST['Data']['Course'] = $tblMinimumGradeCount->getCourse();
+                $global->POST['Data']['Count'] = $tblMinimumGradeCount->getCount();
+
+                if (($levelList = Grade::useService()->getMinimumGradeCountLevelLinkByMinimumGradeCount($tblMinimumGradeCount))) {
+                    foreach ($levelList as $levelItem) {
+                        if (($tblSchoolType = $levelItem->getServiceTblSchoolType())) {
+                            $global->POST['Data']['Levels'][$tblSchoolType->getId()][$levelItem->getLevel()] = 1;
+                        }
+                    }
+                }
+                if (($subjectList = Grade::useService()->getMinimumGradeCountSubjectLinkByMinimumGradeCount($tblMinimumGradeCount))) {
+                    foreach ($subjectList as $subjectItem) {
+                        if (($tblSubject = $subjectItem->getServiceTblSubject())) {
+                            $global->POST['Data']['Subjects'][$tblSubject->getId()] = 1;
+                        }
+                    }
+                }
+                $global->savePost();
+            }
+
+            $Form = $this->formMinimumGradeCount()
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Well(Grade::useService()->updateMinimumGradeCount($Form, $Data, $tblMinimumGradeCount))
+                            ),
+                        ))
+                    ), new Title(new Edit() . ' Bearbeiten'))
+                ))
+            );
+
+            return $Stage;
+        } else {
+            return $Stage . new Danger(new Ban() . ' Mindestnotenanzahl nicht gefunden')
+                . new Redirect('/Education/Graduation/Grade/MinimumGradeCount', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @param null $Id
+     * @param bool|false $Confirm
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroyMinimumGradeCount($Id = null, $Confirm = false)
+    {
+        $Stage = new Stage('Mindesnotenanzahl', 'Löschen');
+
+        if ($tblMinimumGradeCount = Grade::useService()->getMinimumGradeCountById($Id)) {
+            $Stage->addButton(
+                new Standard('Zur&uuml;ck', '/Education/Graduation/Grade/MinimumGradeCount', new ChevronLeft())
+            );
+
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(new Question() . ' Diese Mindestnotenanzahl wirklich löschen?',
+                            array(
+                                'Zensuren-Typ: ' . $tblMinimumGradeCount->getGradeTypeDisplayName(),
+                                'Zeitraum: ' . $tblMinimumGradeCount->getPeriodDisplayName(),
+                                'SEKII - Kurs: ' . $tblMinimumGradeCount->getCourseDisplayName(),
+                                'Anzahl: ' . $tblMinimumGradeCount->getCount(),
+                                'Klassenstufen: ' . $tblMinimumGradeCount->getLevelListDisplayName(),
+                                'Fächer: ' . $tblMinimumGradeCount->getSubjectListDisplayName()
+                            ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Education/Graduation/Grade/MinimumGradeCount/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            . new Standard(
+                                'Nein', '/Education/Graduation/Grade/MinimumGradeCount', new Disable())
+                        )
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Grade::useService()->removeMinimumGradeCount($tblMinimumGradeCount)
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                    . ' Die Mindestnotenanzahl wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Mindestnotenanzahl konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Education/Graduation/Grade/MinimumGradeCount', Redirect::TIMEOUT_SUCCESS)
+                        )))
+                    )))
+                );
+            }
+
+            return $Stage;
+        }
+
+        return $Stage . new Danger('Mindestnotenanzahl nicht gefunden.', new Ban())
+            . new Redirect('/Education/Graduation/Grade/MinimumGradeCount', Redirect::TIMEOUT_ERROR);
     }
 }
