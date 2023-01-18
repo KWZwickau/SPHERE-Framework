@@ -1481,7 +1481,7 @@ abstract class BfsStyle extends Certificate
                 ->stylePaddingLeft('5px')
                 , 'auto'
             )
-            ->addElementColumn((new Element())      //ToDO richtiges Acronym auswählen
+            ->addElementColumn((new Element())
                 ->setContent(empty($Subject) ? '&ndash;'
                          :'{% if(Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
                              {{ Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
@@ -1524,14 +1524,13 @@ abstract class BfsStyle extends Certificate
                 ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation1 is not empty) %}
                         {{ Content.P' . $personId . '.Input.Operation1 }}
                     {% else %}
-                        < EINSATZGEBIETE >
-                    {% endif %}</b> (Dauer 
+                        &nbsp;
+                    {% endif %}</b>
                      {% if(Content.P' . $personId . '.Input.OperationTime1 is not empty) %}
-                        {{ Content.P' . $personId . '.Input.OperationTime1 }}
+                        (Dauer {{ Content.P' . $personId . '.Input.OperationTime1 }} Wochen)
                     {% else %}
-                        X
-                    {% endif %}
-                     Wochen)')
+                        &nbsp;
+                    {% endif %}')
                 ->stylePaddingTop('10px')
                 ->stylePaddingLeft('5px')
             )
@@ -1542,14 +1541,13 @@ abstract class BfsStyle extends Certificate
                 ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation2 is not empty) %}
                         {{ Content.P' . $personId . '.Input.Operation2 }}
                     {% else %}
-                        < EINSATZGEBIETE >
-                    {% endif %}</b> (Dauer 
+                        &nbsp;
+                    {% endif %}</b>
                      {% if(Content.P' . $personId . '.Input.OperationTime2 is not empty) %}
-                        {{ Content.P' . $personId . '.Input.OperationTime2 }}
+                        (Dauer {{ Content.P' . $personId . '.Input.OperationTime2 }} Wochen)
                     {% else %}
-                        X
-                    {% endif %}
-                     Wochen)')
+                        &nbsp;
+                    {% endif %}')
                 ->stylePaddingTop('10px')
                 ->stylePaddingLeft('5px')
                 , '60%'
@@ -1580,14 +1578,13 @@ abstract class BfsStyle extends Certificate
                 ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation3 is not empty) %}
                         {{ Content.P' . $personId . '.Input.Operation3 }}
                     {% else %}
-                        < EINSATZGEBIETE >
-                    {% endif %}</b> (Dauer 
+                        &nbsp;
+                    {% endif %}</b>
                      {% if(Content.P' . $personId . '.Input.OperationTime3 is not empty) %}
-                        {{ Content.P' . $personId . '.Input.OperationTime3 }}
+                        (Dauer {{ Content.P' . $personId . '.Input.OperationTime3 }} Wochen)
                     {% else %}
-                        X
-                    {% endif %}
-                     Wochen)')
+                        &nbsp;
+                    {% endif %}')
                 ->stylePaddingTop('10px')
                 ->stylePaddingLeft('5px')
             )
@@ -1756,7 +1753,7 @@ abstract class BfsStyle extends Certificate
         if($IsAbsence) {
             $Slice->addElement((new Element())
                 ->setContent('Fehlzeiten Unterricht entschuldigt: {% if(Content.P' . $personId . '.Input.Missing is not empty) %}
-                    {{ Content.P' . $personId . '.Input.Missing }}
+                    {{ Content.P' . $personId . '.Input.Missing }} Stunden
                 {% else %}
                     &nbsp;
                 {% endif %}')
@@ -1764,7 +1761,7 @@ abstract class BfsStyle extends Certificate
             );
             $Slice->addElement((new Element())
                 ->setContent('Fehlzeiten Unterricht unentschuldigt: {% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
-                    {{ Content.P' . $personId . '.Input.Bad.Missing }}
+                    {{ Content.P' . $personId . '.Input.Bad.Missing }} Stunden
                 {% else %}
                     &nbsp;
                 {% endif %}')
@@ -1805,7 +1802,11 @@ abstract class BfsStyle extends Certificate
 
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.P' . $personId . '.Company.Address.City.Name }}')
+                ->setContent('{% if( Content.P' . $personId . '.Company.Address.City.Name is not empty) %}
+                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
                 ->styleAlignCenter()
                 ->styleBorderBottom('0.5px')
                 , '35%')
@@ -2369,31 +2370,31 @@ abstract class BfsStyle extends Certificate
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse);
 
-        $Subject = array();
-
-        if (!empty($tblCertificateSubjectAll)) {
-            $SubjectStructure = array();
-            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
-                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
-                if ($tblSubject) {
-                    $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
-                    $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
-
-                    if($tblCertificateSubject->getRanking() == 15) {
-
-                        // Wird immer ausgewiesen (Fach wird nicht abgebildet)
-                        $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
-                            = $tblSubject->getAcronym();
-                        $SubjectStructure[$RankingString.$LaneString]['SubjectName']
-                            = $tblSubject->getName();
-                    }
-                }
-            }
-            $Subject = current($SubjectStructure);
-        }
-
-        $TextSize = '14px';
-        $TextSizeSmall = '8px';
+//        $Subject = array();
+//
+//        if (!empty($tblCertificateSubjectAll)) {
+//            $SubjectStructure = array();
+//            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+//                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+//                if ($tblSubject) {
+//                    $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
+//                    $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
+//
+//                    if($tblCertificateSubject->getRanking() == 15) {
+//
+//                        // Wird immer ausgewiesen (Fach wird nicht abgebildet)
+//                        $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
+//                            = $tblSubject->getAcronym();
+//                        $SubjectStructure[$RankingString.$LaneString]['SubjectName']
+//                            = $tblSubject->getName();
+//                    }
+//                }
+//            }
+//            $Subject = current($SubjectStructure);
+//        }
+//
+//        $TextSize = '14px';
+//        $TextSizeSmall = '8px';
 
         $slice = new Slice();
         $slice->styleBorderAll('0.5px');
@@ -2406,42 +2407,42 @@ abstract class BfsStyle extends Certificate
                 ->stylePaddingLeft('5px')
                 , 'auto'
             )
-            ->addElementColumn((new Element())
-                ->setContent(empty($Subject) ? '&ndash;'
-                    :'{% if(Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                                 {{ Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
-                             {% else %}
-                                 &ndash;
-                             {% endif %}')
-                    ->styleAlignCenter()
-                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
-                    ->stylePaddingTop(empty($Subject) ? '2px'
-                        :'{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
-                                    and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
-                                ) %}
-                                     5.3px
-                                 {% else %}
-                                     2px
-                                 {% endif %}')
-                    ->stylePaddingBottom(empty($Subject) ? '2px'
-                        :'{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
-                                    and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
-                                ) %}
-                                     6px
-                                 {% else %}
-                                     2px
-                                 {% endif %}')
-                    ->styleTextSize(empty($Subject) ? $TextSize
-                        :'{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
-                                    and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
-                                ) %}
-                                     ' . $TextSizeSmall . '
-                                 {% else %}
-                                     ' . $TextSize . '
-                                 {% endif %}'
-                    )
-                    , '9%'
-                )
+//            ->addElementColumn((new Element())
+//                ->setContent(empty($Subject) ? '&ndash;'
+//                    :'{% if(Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+//                                 {{ Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
+//                             {% else %}
+//                                 &ndash;
+//                             {% endif %}')
+//                    ->styleAlignCenter()
+//                    ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
+//                    ->stylePaddingTop(empty($Subject) ? '2px'
+//                        :'{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+//                                    and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+//                                ) %}
+//                                     5.3px
+//                                 {% else %}
+//                                     2px
+//                                 {% endif %}')
+//                    ->stylePaddingBottom(empty($Subject) ? '2px'
+//                        :'{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+//                                    and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+//                                ) %}
+//                                     6px
+//                                 {% else %}
+//                                     2px
+//                                 {% endif %}')
+//                    ->styleTextSize(empty($Subject) ? $TextSize
+//                        :'{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+//                                    and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+//                                ) %}
+//                                     ' . $TextSizeSmall . '
+//                                 {% else %}
+//                                     ' . $TextSize . '
+//                                 {% endif %}'
+//                    )
+//                    , '9%'
+//                )
         );
 
         $slice->addElement((new Element())->styleMarginTop('15px'));
@@ -2449,80 +2450,79 @@ abstract class BfsStyle extends Certificate
         for ($i = 1; $i <= 4; $i++) {
             $section = new Section();
             // 3 Zeilen werden immer abgebildet
-            if($i <= 3){
-                $section
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                    {% if(Content.P' . $personId . '.Input.Subarea' . $i . ' is not empty) %}
-                        {{ Content.P' . $personId . '.Input.Subarea' . $i . ' }}
-                    {% else %}
-                        &lt;TEILBEREICH&gt;
-                    {% endif %}
-                    (Dauer: 
-                    {% if(Content.P' . $personId . '.Input.SubareaTime' . $i . ' is not empty) %}
-                        {{ Content.P' . $personId . '.Input.SubareaTime' . $i . ' }}
-                    {% else %}
-                        &lt;X&gt;
-                    {% endif %}
-                    Wochen)
-                    
-                    &nbsp;&nbsp;&nbsp;
-                    Fehlzeiten entschuldigt: 
-                    {% if(Content.P' . $personId . '.Input.SubareaExcusedDays' . $i . ' is not empty) %}
-                        {{ Content.P' . $personId . '.Input.SubareaExcusedDays' . $i . ' }}
-                    {% else %}
-                        &lt;X&gt;
-                    {% endif %}
-                  
-                    &nbsp;&nbsp;&nbsp;
-                    Fehlzeiten unentschuldigt: 
-                    {% if(Content.P' . $personId . '.Input.SubareaUnexcusedDays' . $i . ' is not empty) %}
-                        {{ Content.P' . $personId . '.Input.SubareaUnexcusedDays' . $i . ' }}
-                    {% else %}
-                        &lt;X&gt;
-                    {% endif %}
-                ')
-                        ->styleTextSize('11px')
-                        ->stylePaddingLeft('5px')
-                    );
-            } else {
+//            if($i <= 3){
+//                $section
+//                    ->addElementColumn((new Element())
+//                        ->setContent('
+//                    {% if(Content.P' . $personId . '.Input.Subarea' . $i . ' is not empty) %}
+//                        {{ Content.P' . $personId . '.Input.Subarea' . $i . ' }}
+//                    {% else %}
+//                        &lt;TEILBEREICH&gt;
+//                    {% endif %}
+//                    (Dauer:
+//                    {% if(Content.P' . $personId . '.Input.SubareaTime' . $i . ' is not empty) %}
+//                        {{ Content.P' . $personId . '.Input.SubareaTime' . $i . ' }}
+//                    {% else %}
+//                        &lt;X&gt;
+//                    {% endif %}
+//                    Wochen)
+//
+//                    &nbsp;&nbsp;&nbsp;
+//                    Fehlzeiten entschuldigt:
+//                    {% if(Content.P' . $personId . '.Input.SubareaExcusedDays' . $i . ' is not empty) %}
+//                        {{ Content.P' . $personId . '.Input.SubareaExcusedDays' . $i . ' }}
+//                    {% else %}
+//                        &lt;X&gt;
+//                    {% endif %}
+//
+//                    &nbsp;&nbsp;&nbsp;
+//                    Fehlzeiten unentschuldigt:
+//                    {% if(Content.P' . $personId . '.Input.SubareaUnexcusedDays' . $i . ' is not empty) %}
+//                        {{ Content.P' . $personId . '.Input.SubareaUnexcusedDays' . $i . ' }}
+//                    {% else %}
+//                        &lt;X&gt;
+//                    {% endif %}
+//                ')
+//                        ->styleTextSize('11px')
+//                        ->stylePaddingLeft('5px')
+//                    );
+//            } else {
                 // Zeile 4 optional (wenn "Teilbereich" eingetragen wurde)
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                    {% if(Content.P' . $personId . '.Input.Subarea' . $i . ' is not empty) %}
-                        {{ Content.P' . $personId . '.Input.Subarea' . $i . ' }}
-                        (Dauer: 
-                        {% if(Content.P' . $personId . '.Input.SubareaTime' . $i . ' is not empty) %}
-                            {{ Content.P' . $personId . '.Input.SubareaTime' . $i . ' }}
-                        {% else %}
-                            &lt;X&gt;
-                        {% endif %}
-                        Wochen)
-                        
-                        &nbsp;&nbsp;&nbsp;
-                        Fehlzeiten entschuldigt: 
-                        {% if(Content.P' . $personId . '.Input.SubareaExcusedDays' . $i . ' is not empty) %}
-                            {{ Content.P' . $personId . '.Input.SubareaExcusedDays' . $i . ' }}
-                        {% else %}
-                            &lt;X&gt;
-                        {% endif %}
-                      
-                        &nbsp;&nbsp;&nbsp;
-                        Fehlzeiten unentschuldigt: 
-                        {% if(Content.P' . $personId . '.Input.SubareaUnexcusedDays' . $i . ' is not empty) %}
-                            {{ Content.P' . $personId . '.Input.SubareaUnexcusedDays' . $i . ' }}
-                        {% else %}
-                            &lt;X&gt;
-                        {% endif %}
-                    {% else %}
-                        &nbsp;
-                    {% endif %}
-                ')
+                            {% if(Content.P' . $personId . '.Input.Subarea' . $i . ' is not empty) %}
+                                {{ Content.P' . $personId . '.Input.Subarea' . $i . ' }}
+                                , dauer der Ausbildung 
+                                {% if(Content.P' . $personId . '.Input.SubareaTimeH' . $i . ' is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.SubareaTimeH' . $i . ' }}
+                                {% else %}
+                                    &lt;X&gt;
+                                {% endif %}
+                                Stunden
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                         ->styleTextSize('11px')
                         ->stylePaddingLeft('5px')
-                );
-            }
+                    , '70%');
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if(Content.P' . $personId . '.Input.SubareaTimeHDone' . $i . ' is not empty) %}
+                                davon anwesend
+                                {{ Content.P' . $personId . '.Input.SubareaTimeHDone' . $i . ' }}
+                                Stunden
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleTextSize('11px')
+                        ->stylePaddingRight('20px')
+                        ->styleAlignRight()
+                , '30%');
+//            }
             $slice->addSection($section);
         }
 

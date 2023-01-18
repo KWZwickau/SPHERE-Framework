@@ -2272,10 +2272,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         // Berufsfachschule Pflegeberufe
                         if (!$hasRemarkText
                             && $Certificate->getCertificateEntity()->getCertificate() == 'BfsPflegeJ'
+                            && $tblLevel->getName() == 3
                         ) {
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $tblPerson->getFullName()
-                                . ' ' . ' WURDE ZUR ABSCHLUSSPRÜFUNG NICHT ZUGELASSEN / HAT DIE ABSCHLUSSPRÜFUNG NICHT BESTANDEN '
-                                . 'und kann erst nach erfolgreicher Wiederholung der Klassenstufe erneut an der Abschlussprüfung teilnehmen.';
+                                . ' ' . ' hat regelmässig am theoretischen und praktischen Unterricht sowie der praktischen Ausbildung in den Klassenstufen 1 bis 3 teilgenommen.';
                         }
                         if($Page == 2
                         && $tblCertificate->getName() == 'Berufsfachschule Jahreszeugnis'
