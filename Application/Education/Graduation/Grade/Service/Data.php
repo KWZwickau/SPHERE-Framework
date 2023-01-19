@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Graduation\Grade\Service;
 use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGradeTypeList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTypeLink;
@@ -278,25 +279,29 @@ class Data extends DataTask
      */
     public function getIsGradeTypeUsedInGradeBook(TblGradeType $tblGradeType): bool
     {
-        if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+        if ($this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblTest',
             array(TblTest::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()))
         ) {
             return true;
         }
 
-        if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreConditionGradeTypeList',
+        if ($this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblScoreConditionGradeTypeList',
             array(TblScoreConditionGradeTypeList::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()))
         ) {
             return true;
         }
 
-        if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreGroupGradeTypeList',
+        if ($this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblScoreGroupGradeTypeList',
             array(TblScoreGroupGradeTypeList::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()))
         ) {
             return true;
         }
 
-        // todo 'TblMinimumGradeCount'
+        if ($this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblMinimumGradeCount',
+            array(TblMinimumGradeCount::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()))
+        ) {
+            return true;
+        }
 
         return false;
     }

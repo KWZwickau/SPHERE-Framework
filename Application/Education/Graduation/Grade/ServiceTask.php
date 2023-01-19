@@ -495,6 +495,7 @@ abstract class ServiceTask extends ServiceScoreCalc
         if ($Data) {
             foreach ($Data as $personId => $item) {
                 if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                    // Kopfnoten
                     if ($tblTask->getIsTypeBehavior()) {
                         $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('GRADES_BEHAVIOR_TASK');
                         if (($tblGradeTypes = $tblTask->getGradeTypes())) {
@@ -520,6 +521,7 @@ abstract class ServiceTask extends ServiceScoreCalc
                                 }
                             }
                         }
+                    // Stichtagsnoten
                     } else {
                         if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
                             $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('POINTS');
@@ -528,6 +530,21 @@ abstract class ServiceTask extends ServiceScoreCalc
                         }
                         $comment = trim($item['Comment']);
                         $gradeValue = str_replace(',', '.', trim($item['Grade']));
+                        $tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblTask, $tblSubject);
+
+                        // Zeugnistext
+                        if (($tblGradeText = isset($item['GradeText']) ? Grade::useService()->getGradeTextById($item['GradeText']) : null)) {
+                            $gradeValue = null;
+                            // Grund bei Noten-Änderung angeben
+                            if (empty($comment)
+                                && $tblTaskGrade
+                                && (!$tblTaskGrade->getTblGradeText() || $tblTaskGrade->getTblGradeText()->getId() != $tblGradeText->getId())
+                            ) {
+                                $errorList[$personId]['Comment'] = true;
+                            }
+                        }
+
+                        // Zensur
                         if ($gradeValue === '0' || (!empty($gradeValue) && $gradeValue != -1)) {
                             // Bewertungssystem Pattern prüfen
                             if ($tblScoreType && ($pattern = $tblScoreType->getPattern())) {
@@ -538,7 +555,7 @@ abstract class ServiceTask extends ServiceScoreCalc
 
                             // Grund bei Noten-Änderung angeben
                             if (empty($comment)
-                                && ($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblTask, $tblSubject))
+                                && $tblTaskGrade
                                 && $gradeValue != $tblTaskGrade->getGrade()
                             ) {
                                 $errorList[$personId]['Comment'] = true;

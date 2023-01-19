@@ -734,7 +734,7 @@ abstract class FrontendTask extends FrontendScoreType
                         } elseif (isset($tblTaskGradeTextList[$tblSubject->getId()])) {
                             $content = $tblTaskGradeTextList[$tblSubject->getId()];
                         } elseif ((DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
-                            $content = new WarningText('f');
+                            $content = new WarningText(new Bold('f'));
                         } else {
                             $content = '&nbsp;';
                         }
@@ -743,9 +743,9 @@ abstract class FrontendTask extends FrontendScoreType
                         if ($average && $gradeValue !== null) {
                             $averageFloat = Grade::useService()->getGradeNumberValue($average);
                             if (($gradeValue - 0.5) <= $averageFloat && ($gradeValue + 0.5) >= $averageFloat) {
-                                $content = new Success($content);
+                                $content = new Success(new Bold($content));
                             } else {
-                                $content = new \SPHERE\Common\Frontend\Text\Repository\Danger($content);
+                                $content = new \SPHERE\Common\Frontend\Text\Repository\Danger(new Bold($content));
                             }
                         }
 

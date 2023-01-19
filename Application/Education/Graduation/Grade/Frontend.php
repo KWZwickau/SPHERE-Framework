@@ -412,6 +412,12 @@ class Frontend extends FrontendTest
                             }
 
                             $gradeValue = $tblTestGrade->getGrade() !== null ? $tblTestGrade->getGrade() : '&ndash;';
+
+                            // verbale Benotung abkürzen + ToolTip
+                            if (strlen($gradeValue) > 10) {
+                                $gradeValue = new ToolTip(substr($gradeValue, 0, 9) . '.', $gradeValue);
+                            }
+
                             $contentGrade = ($tblTest->getTblGradeType()->getIsHighlighted() ? new Bold($gradeValue) : $gradeValue)
                                 // öffentlicher Kommentar
                                 . (($tblTestGrade->getPublicComment() != '') ? new ToolTip(' ' . new Info(), $tblTestGrade->getPublicComment()) : '');

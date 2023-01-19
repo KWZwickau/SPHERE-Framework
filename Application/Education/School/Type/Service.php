@@ -164,8 +164,7 @@ class Service extends AbstractService
             case 'Gy': return 12;
 
             case 'BGy': return 13;
-            // todo weitere Schularten
-            default: return false;
+            default: return 4;
         }
     }
 
@@ -182,7 +181,6 @@ class Service extends AbstractService
             case 'Gy': return 5;
 
             case 'BGy': return 11;
-            // todo weitere Schularten
             default: return 1;
         }
     }
