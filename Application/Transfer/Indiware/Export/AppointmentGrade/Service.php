@@ -10,6 +10,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Data;
@@ -148,67 +149,64 @@ class Service extends AbstractService
         if ($tblTestList) {
             foreach ($tblTestList as $tblTest) {
                 if ($tblDivision = $tblTest->getServiceTblDivision()) {
-                    if ($tbLevel = $tblDivision->getTblLevel()) {
-                        if ($tbLevel->getName() == '11' || $tbLevel->getName() == '12' || $tbLevel->getName() == '13') {
-                            $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
-                            if ($tblGradeList) {
-
-                                foreach ($tblGradeList as $tblGrade) {
-                                    $tblPersonStudent = $tblGrade->getServiceTblPerson();
-                                    if ($tblPersonStudent) {
-                                        $StudentSubjectOrder = AppointmentGrade::useService()->getIndiwareStudentSubjectOrderByPerson($tblPersonStudent);
-                                        if ($StudentSubjectOrder) {
-                                            if (!isset($PeopleGradeList[$tblPersonStudent->getId()])) {
-                                                $PeopleGradeList[$tblPersonStudent->getId()]['FirstName'] = utf8_decode($tblPersonStudent->getFirstName());
-                                                $PeopleGradeList[$tblPersonStudent->getId()]['LastName'] = utf8_decode($tblPersonStudent->getLastName());
-                                                $Birthday = '';
-                                                $tblCommon = Common::useService()->getCommonByPerson($tblPersonStudent);
-                                                if ($tblCommon) {
-                                                    $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
-                                                    if ($tblCommonBirthDates) {
-                                                        $Birthday = $tblCommonBirthDates->getBirthday();
-                                                    }
+                    if (Division::useService()->getIsDivisionCourseSystem($tblDivision)) {
+                        $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
+                        if ($tblGradeList) {
+                            foreach ($tblGradeList as $tblGrade) {
+                                $tblPersonStudent = $tblGrade->getServiceTblPerson();
+                                if ($tblPersonStudent) {
+                                    $StudentSubjectOrder = AppointmentGrade::useService()->getIndiwareStudentSubjectOrderByPerson($tblPersonStudent);
+                                    if ($StudentSubjectOrder) {
+                                        if (!isset($PeopleGradeList[$tblPersonStudent->getId()])) {
+                                            $PeopleGradeList[$tblPersonStudent->getId()]['FirstName'] = utf8_decode($tblPersonStudent->getFirstSecondName());
+                                            $PeopleGradeList[$tblPersonStudent->getId()]['LastName'] = utf8_decode($tblPersonStudent->getLastName());
+                                            $Birthday = '';
+                                            $tblCommon = Common::useService()->getCommonByPerson($tblPersonStudent);
+                                            if ($tblCommon) {
+                                                $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
+                                                if ($tblCommonBirthDates) {
+                                                    $Birthday = $tblCommonBirthDates->getBirthday();
                                                 }
-                                                $PeopleGradeList[$tblPersonStudent->getId()]['Birthday'] = $Birthday;
                                             }
+                                            $PeopleGradeList[$tblPersonStudent->getId()]['Birthday'] = $Birthday;
+                                        }
 
-                                            $tblSubject = $tblGrade->getServiceTblSubject();
-                                            if ($tblSubject) {
-                                                if (strtolower($StudentSubjectOrder->getSubject1()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['1'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject2()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['2'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject3()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['3'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject4()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['4'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject5()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['5'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject6()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['6'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject7()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['7'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject8()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['8'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject9()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['9'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject10()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['10'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject11()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['11'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject12()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['12'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject13()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['13'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject14()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['14'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject15()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['15'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject16()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['16'] = $tblGrade->getGrade();
-                                                } elseif (strtolower($StudentSubjectOrder->getSubject17()) == strtolower($tblSubject->getAcronym())) {
-                                                    $PeopleGradeList[$tblPersonStudent->getId()]['17'] = $tblGrade->getGrade();
-                                                }
+                                        $tblSubject = $tblGrade->getServiceTblSubject();
+                                        if ($tblSubject) {
+                                            if (strtolower($StudentSubjectOrder->getSubject1()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['1'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject2()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['2'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject3()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['3'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject4()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['4'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject5()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['5'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject6()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['6'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject7()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['7'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject8()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['8'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject9()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['9'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject10()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['10'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject11()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['11'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject12()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['12'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject13()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['13'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject14()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['14'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject15()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['15'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject16()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['16'] = $tblGrade->getGrade();
+                                            } elseif (strtolower($StudentSubjectOrder->getSubject17()) == strtolower($tblSubject->getAcronym())) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['17'] = $tblGrade->getGrade();
                                             }
                                         }
                                     }
