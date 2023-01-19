@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Repository\Sorter;
 
 /**
  * @Entity()
@@ -195,19 +196,9 @@ class TblMinimumGradeCount extends Element
     {
         $result = '';
         if (($tempList = Grade::useService()->getMinimumGradeCountLevelLinkByMinimumGradeCount($this))) {
+            $tempList = $this->getSorter($tempList)->sortObjectBy('DisplayName', new Sorter\StringNaturalOrderSorter());
             foreach ($tempList as $item) {
-                if (($tblSchoolType = $item->getServiceTblSchoolType())) {
-                    $typeName = $tblSchoolType->getName();
-                    if ($typeName == 'Grundschule') {
-                        $typeName = 'GS';
-                    } elseif ($typeName == 'Mittelschule / Oberschule') {
-                        $typeName = 'OS';
-                    } elseif ($typeName == 'Gymnasium') {
-                        $typeName = 'GYM';
-                    }
-                    $levelName = $item->getLevel() . ' (' . $typeName . ')';
-                    $result .= ($result ? ', ' : '') . $levelName;
-                }
+                $result .= ($result ? ', ' : '') . $item->getDisplayName();
             }
         }
 
@@ -221,10 +212,9 @@ class TblMinimumGradeCount extends Element
     {
         $result = '';
         if (($tempList = Grade::useService()->getMinimumGradeCountSubjectLinkByMinimumGradeCount($this))) {
+            $tempList = $this->getSorter($tempList)->sortObjectBy('DisplayName', new Sorter\StringNaturalOrderSorter());
             foreach ($tempList as $item) {
-                if (($tblSubject = $item->getServiceTblSubject())) {
-                    $result .= ($result ? ', ' : '') . $tblSubject->getAcronym();
-                }
+                $result .= ($result ? ', ' : '') . $item->getDisplayName();
             }
         }
 

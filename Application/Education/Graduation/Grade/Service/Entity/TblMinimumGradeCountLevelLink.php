@@ -92,4 +92,25 @@ class TblMinimumGradeCountLevelLink extends Element
     {
         $this->Level = $Level;
     }
+
+    /**
+     * @return string
+     */
+    public function getDisplayName(): string
+    {
+        if (($tblSchoolType = $this->getServiceTblSchoolType())) {
+            $typeName = $tblSchoolType->getName();
+            if ($typeName == 'Grundschule') {
+                $typeName = 'GS';
+            } elseif ($typeName == 'Mittelschule / Oberschule') {
+                $typeName = 'OS';
+            } elseif ($typeName == 'Gymnasium') {
+                $typeName = 'GYM';
+            }
+
+            return $this->getLevel() . ' (' . $typeName . ')';
+        }
+
+        return '-NA-';
+    }
 }

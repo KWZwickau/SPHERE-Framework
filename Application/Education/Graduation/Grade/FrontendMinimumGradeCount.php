@@ -107,6 +107,7 @@ class FrontendMinimumGradeCount extends FrontendGradeType
                                     ),
                                     'columnDefs' => array(
                                         array('orderable' => false, 'targets' => -1),
+                                        array('type' => 'natural', 'targets' => 4),
                                     ),
                                 )
                             )

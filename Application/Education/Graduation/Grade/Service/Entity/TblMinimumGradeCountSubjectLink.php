@@ -70,4 +70,16 @@ class TblMinimumGradeCountSubjectLink extends Element
     {
         $this->serviceTblSubject = $tblSubject->getId();
     }
+
+    /**
+     * @return string
+     */
+    public function getDisplayName(): string
+    {
+        if (($tblSubject = $this->getServiceTblSubject())) {
+            return $tblSubject->getAcronym();
+        }
+
+        return '-NA-';
+    }
 }

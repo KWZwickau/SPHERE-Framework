@@ -31,6 +31,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeTyp
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -457,6 +458,15 @@ abstract class DataMigrate extends AbstractData
                     . 'C' . $tblMinimumGradeCountOld->getCourse()
                     . 'N' . $tblMinimumGradeCountOld->getCount()]
                     ['Subjects'][$tblSubject->getId()] = $tblSubject;
+
+                    if ($tblLevel) {
+                        $list['H' . $tblMinimumGradeCountOld->getHighlighted()
+                        . 'G' . ($tblGradeTypeOld ? $tblGradeTypeOld->getId() : 0)
+                        . 'P' . $tblMinimumGradeCountOld->getPeriod()
+                        . 'C' . $tblMinimumGradeCountOld->getCourse()
+                        . 'N' . $tblMinimumGradeCountOld->getCount()]
+                        ['SubjectsLevelVerify'][$tblSubject->getId()][$tblLevel->getId()] = $tblLevel->getName();
+                    }
                 }
             }
 
@@ -479,10 +489,46 @@ abstract class DataMigrate extends AbstractData
                     }
                 }
                 if (isset($item['Subjects'])) {
+                    // es kann Fächer geben, wo die Mindestnoten nicht für alle Fächer gelten
+                    $extraSubjectList = array();
+                    if (isset($item['SubjectsLevelVerify'])) {
+                        $countMaxLevels = isset($item['Levels']) ? count($item['Levels']) : 0;
+                        foreach ($item['SubjectsLevelVerify'] as $subjectId => $levels) {
+                            if (count($levels) < $countMaxLevels) {
+                                foreach($levels as $tempId => $name) {
+                                    $extraSubjectList[$subjectId][$tempId] = $name;
+                                }
+                            }
+                        }
+                    }
+
                     foreach ($item['Subjects'] as $tblSubject) {
-                        $Manager->bulkSaveEntity(
-                            new TblMinimumGradeCountSubjectLink($tblMinimumGradeCount, $tblSubject)
-                        );
+                        if (!isset($extraSubjectList[$tblSubject->getId()])) {
+                            $Manager->bulkSaveEntity(new TblMinimumGradeCountSubjectLink($tblMinimumGradeCount, $tblSubject));
+                        }
+                    }
+
+                    if (!empty($extraSubjectList)) {
+                        foreach ($extraSubjectList as $subjectIdExtra => $levelList)
+                        {
+                            if (($tblSubjectExtra = Subject::useService()->getSubjectById($subjectIdExtra))) {
+                                $count++;
+                                $tblMinimumGradeCountExtra = new TblMinimumGradeCount(
+                                    $item['Count'], $tblGradeTypeList[$item['GradeType']] ?? null, $item['Period'], $item['Highlighted'], $item['Course']
+                                );
+                                $Manager->saveEntity($tblMinimumGradeCountExtra);
+                                $Manager->bulkSaveEntity(new TblMinimumGradeCountSubjectLink($tblMinimumGradeCountExtra, $tblSubjectExtra));
+                                foreach ($levelList as $levelIdExtra => $levelName) {
+                                    if (($tblLevelExtra = Division::useService()->getLevelById($levelIdExtra))
+                                        && ($tblSchoolTypeExtra = $tblLevelExtra->getServiceTblType())
+                                    ) {
+                                        $Manager->bulkSaveEntity(
+                                            new TblMinimumGradeCountLevelLink($tblMinimumGradeCountExtra, $tblSchoolTypeExtra, intval($tblLevelExtra->getName()))
+                                        );
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
