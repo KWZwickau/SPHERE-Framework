@@ -8,6 +8,7 @@ use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradesAllYears;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
@@ -3234,7 +3235,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @param null $DivisionId
      * @param null $IsAllYears
-     *
+     * @param TblTestType $tblTestType
      * @return Stage|string
      */
     public function frontendHeadmasterTaskGrades($Id = null, $DivisionId = null, $IsAllYears = null)
@@ -3304,9 +3305,19 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-
+        $button = new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Education/Graduation/Evaluation/TaskGrades/Download',
+            new Download(), array(
+                'Id'         => $tblTask->getId(),
+                'DivisionId' => $tblCurrentDivision->getId())
+        );
+        if(($tblTestType = $tblTask->getTblTestType()) && $tblTestType->getIdentifier() == TblTestType::BEHAVIOR_TASK){
+            $button = new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Education/Graduation/Evaluation/TaskGradesHead/Download',
+                new Download(), array(
+                    'Id'         => $tblTask->getId(),
+                    'DivisionId' => $tblCurrentDivision->getId())
+            );
+        }
         list($tableHeader, $tableContent) = Evaluation::useService()->getStudentGrades($tblTask, $tblCurrentDivision);
-
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(array(
@@ -3329,11 +3340,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutRow(
                     new LayoutColumn(array(
                         new Title('Klasse', $tblCurrentDivision->getDisplayName()),
-                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Education/Graduation/Evaluation/TaskGrades/Download',
-                            new Download(), array(
-                                'Id'         => $tblTask->getId(),
-                                'DivisionId' => $tblCurrentDivision->getId())
-                        ),
+                        $button,
                         new TableData(
                             $tableContent,
                             null,

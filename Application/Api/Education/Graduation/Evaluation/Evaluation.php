@@ -20,6 +20,11 @@ class Evaluation implements IModuleInterface
             __NAMESPACE__ . '/TaskGrades/Download',
             __CLASS__ . '::downloadTaskGrades'
         ));
+
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/TaskGradesHead/Download',
+            __CLASS__ . '::downloadTaskGradesHead'
+        ));
     }
 
     public static function useService()
@@ -51,9 +56,23 @@ class Evaluation implements IModuleInterface
         }
         return 'Keine Daten vorhanden';
     }
-}
 
-/*
-Debugger::screenDump();
-exit;
-*/
+    public static function downloadTaskGradesHead($Id = null, $DivisionId = null): string
+    {
+
+        $tblTask = EvaluationApp::useService()->getTaskById($Id);
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblTask && $tblDivision) {
+            list($tableHeader, $tableContent) = EvaluationApp::useService()->getStudentGrades($tblTask, $tblDivision);
+
+            if ($tableHeader && $tableContent) {
+                // Excel-Datei mit Kopfnotenübersicht erstellen
+                $fileLocation = EvaluationApp::useService()->generateTaskGradesExcelHead($tableHeader, $tableContent);
+                // Download-Link für Excel-Datei erstellen
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Kopfnotenübersicht " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+            }
+        }
+        return 'Keine Daten vorhanden';
+    }
+}

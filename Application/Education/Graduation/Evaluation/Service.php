@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Graduation\Evaluation;
 
 use DateInterval;
 use DateTime;
+use DI\Debug;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
@@ -54,6 +55,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
@@ -406,7 +408,7 @@ class Service extends AbstractService
                                     }
                                     if (isset($grades[$personId][$gradeTypeId]) && $grades[$personId][$gradeTypeId]['Count'] > 0) {
                                         $tableContent[$personId]['Type' . $gradeTypeId] =
-                                            new Bold('&#216; ' .
+                                            new Bold('Ø ' .
                                                 round(floatval($grades[$personId][$gradeTypeId]['Sum']) / floatval($grades[$personId][$gradeTypeId]['Count']),
                                                     2) . ' | ') . $rowList['Type' . $gradeTypeId];
                                     }
@@ -600,7 +602,6 @@ class Service extends AbstractService
                 $gradeText = $tblSubject->getAcronym() . ': ' .
                     new Warning(new Bold('f'));
             }
-
             if (!isset($tableContent[$tblPerson->getId()]['Type' . $gradeTypeId])) {
                 $tableContent[$tblPerson->getId()]
                 ['Type' . $gradeTypeId] = new Small(new Small($gradeText));
@@ -620,7 +621,7 @@ class Service extends AbstractService
      *
      * @return false|FilePointer
      */
-    public function generateTaskGradesExcel($tableHeader, $tableContent)
+    public function generateTaskGradesExcelHead($tableHeader, $tableContent)
     {
         if (!empty($tableHeader) && !empty($tableContent)) {
             $fileLocation = Storage::createFilePointer('xlsx');
@@ -630,10 +631,67 @@ class Service extends AbstractService
 
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-
             $export->setValue($export->getCell($Column++, $Row), '#');
             $export->setValue($export->getCell($Column++, $Row), 'Vorname');
             $export->setValue($export->getCell($Column++, $Row), 'Nachname');
+            unset($tableHeader['Number']);
+            unset($tableHeader['Name']);
+            foreach ($tableHeader as $Value){
+                $export->setValue($export->getCell($Column++, $Row), $Value);
+            }
+            $export->setStyle($export->getCell(0, $Row), $export->getCell($Column-1, $Row))
+                // Header Fett mit Unterstrich
+                ->setFontBold()
+                ->setBorderBottom();
+            $export->getActiveSheet()->getStyle('A:A')
+                ->getFont()
+                ->setBold(true);
+            // Befüllen der Tabelle
+            foreach ($tableContent as $tableRow) {
+                $Row++;
+                $Column = 0;
+                $export->setValue($export->getCell($Column++, $Row), $tableRow['Number']);
+                $export->setValue($export->getCell($Column++, $Row), $tableRow['FirstName']);
+                $export->setValue($export->getCell($Column++, $Row), $tableRow['LastName']);
+                foreach ($tableHeader as $SubjectKey => $Value) {
+                    if (strpos($SubjectKey, 'Type') !== false) {
+                        if (isset($tableRow[$SubjectKey])) {
+                            $export->setValue($export->getCell($Column, $Row), strip_tags($tableRow[$SubjectKey]));
+                        }
+                        // Trennstrich pro Fach
+                            $export->setStyle($export->getCell($Column, $Row), $export->getCell($Column, $Row))
+                                ->setBorderLeft();
+                        $Column++;
+                    }
+                }
+            }
+            // set column width
+            $widths = [3,11,15,95,95,95,95];
+            for ($i = 0; $i < $Column; $i++) {
+                $export->setStyle($export->getCell($i, 0))->setColumnWidth($widths[$i]);
+            }
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+            return $fileLocation;
+        }
+        return false;
+    }
+
+    /**
+     * @param $tableContent
+     * @param $tblPersonList
+     *
+     * @return false|FilePointer
+     */
+    public function generateTaskGradesExcel($tableHeader, $tableContent)
+    {
+
+        if (!empty($tableHeader) && !empty($tableContent)) {
+            $fileLocation = Storage::createFilePointer('xlsx');
+
+            $Row = 0;
+            $Column = 0;
+
+            /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell($Column++, $Row), '#');
             $export->setValue($export->getCell($Column++, $Row), 'Vorname');
@@ -656,8 +714,8 @@ class Service extends AbstractService
                 ->getFont()
                 ->setBold(true);
 
-            $count = count($tableContent);
             // Befüllen der Tabelle
+            $count = count($tableContent);
             foreach ($tableContent as $tableRow) {
                 $Row++;
                 $Column = 0;
@@ -691,17 +749,15 @@ class Service extends AbstractService
                 }
             }
             // set column width
-            $export->getActiveSheet()->getColumnDimension('A')->setWidth(3);
-            $export->getActiveSheet()->getColumnDimension('B')->setWidth(11);
-            $export->getActiveSheet()->getColumnDimension('C')->setWidth(14);
+            $export->setStyle($export->getCell(0, 0))->setColumnWidth(3);
+            $export->setStyle($export->getCell(1, 0))->setColumnWidth(13);
+            $export->setStyle($export->getCell(2, 0))->setColumnWidth(15);
             $colCount = count($tableHeader);
             $colCount *= 2;
-            $a = 0;
-            for ($col = 'D'; $a <= $colCount; $col++) {
-                $width = ($a % 2 == 0) ? 3 : 7;
-                $export->getActiveSheet()
-                    ->getColumnDimension($col)
-                    ->setWidth($width);
+            $a = 3;
+            for ($col = 3; $a <= $colCount; $col++) {
+                $width = ($a % 2 == 1) ? 3 : 7;
+                $export->setStyle($export->getCell($col, 0))->setColumnWidth($width);
                 $a++;
             }
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
@@ -709,7 +765,6 @@ class Service extends AbstractService
         }
         return false;
     }
-
     /**
      * @param IFormInterface|null $Stage
      * @param null $DivisionSubjectId
