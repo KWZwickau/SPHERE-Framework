@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Document\Standard\AccidentReport;
+namespace SPHERE\Application\Document\Standard\TeacherAccidentReport;
 
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
@@ -60,55 +60,36 @@ use SPHERE\System\Extension\Extension;
 
 
 /**
- * Class AccidentReport
+ * Class TeacherAccidentReport
  *
- * @package SPHERE\Application\Document\Standard\AccidentReport
+ * @package SPHERE\Application\Document\Standard\TeacherAccidentReport
  */
 
-class AccidentReport extends Extension
+class TeacherAccidentReport extends Extension
 {
-
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unfallanzeige'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unfallanzeige Lehrer'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__.'::frontendSelectPerson'
+            __NAMESPACE__, __CLASS__.'::frontendSelectTeacher'
         ));
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Fill', __CLASS__.'::frontendFillAccidentReport'
-        ));
+            __NAMESPACE__.'/Fill', __CLASS__.'::frontendFillAccidentReportTeacher'
+                ));
+
     }
 
-    /**
-     * @return IServiceInterface
-     */
-    public static function useService()
-    {
-        // TODO: Implement useService() method.
-    }
-
-    /**
-     * @return IFrontendInterface
-     */
-    public static function useFrontend()
-    {
-        // TODO: Implement useFrontend() method.
-    }
-
-    /**
-     * @return Stage
-     */
-    public static function frontendSelectPerson()
+    public static function frontendSelectTeacher()
     {
 
-        $Stage = new Stage('Unfallanzeige', 'Schüler auswählen');
+        $Stage = new Stage('Unfallanzeige', 'Lehrer auswählen');
 
         $dataList = array();
-        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))) {
             if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                 array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$dataList) {
                     $Data['PersonId'] = $tblPerson->getId();
@@ -159,14 +140,7 @@ class AccidentReport extends Extension
         return $Stage;
     }
 
-
-
-    /**
-     * @param null $Id
-     *
-     * @return Stage
-     */
-    public function frontendFillAccidentReport($Id = null)
+    public function frontendFillAccidentReportTeacher($Id = null)
     {
 
         $Stage = new Stage('Unfallanzeige', 'Erstellen');
@@ -175,9 +149,9 @@ class AccidentReport extends Extension
         $Global = $this->getGlobal();
 
         // Sachsen Standard
-        $Global->POST['Data']['AddressTarget'] = 'Unfallkasse Sachsen';
-        $Global->POST['Data']['TargetAddressStreet'] = 'Postfach 42';
-        $Global->POST['Data']['TargetAddressCity'] = '01651 Meißen';
+        $Global->POST['Data']['AddressTarget'] = 'VBG-Bezirksverwaltung Dresden';
+        $Global->POST['Data']['TargetAddressStreet'] = 'Wiener Platz 6';
+        $Global->POST['Data']['TargetAddressCity'] = '01069 Dresden';
 
         if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
             $Global->POST['Data']['AddressTarget'] = 'Unfallkasse Berlin';
@@ -569,8 +543,25 @@ class AccidentReport extends Extension
                                                         ))
                                                         , 3),
                                                     new LayoutColumn(
+                                                        new Bold(new Sup(8).' Versicherte Person ist:').
+                                                        new Listing(array(
+                                                            new RadioBox('Data[MartialStatus]', 'Unternehmer',
+                                                                'Unternehmer'),
+                                                            new RadioBox('Data[MartialStatus]', 'mit Unternehmer verwandt',
+                                                                'mit Unternehmer verwandt'),
+                                                            new RadioBox('Data[MartialStatus]', 'Ehegatte des Unternehmers',
+                                                                'Ehegatte des Unternehmers'),
+                                                            new RadioBox('Data[MartialStatus]', 'Gesellschafter oder Geschäftsführer',
+                                                                'Gesellschafter/Geschäftsführer'),
+                                                        ))
+                                                        , 3),
+                                                    new LayoutColumn(
                                                         new TextField('Data[Nationality]', 'Staatsangehörigkeit',
                                                             new Sup(9).' Staatsangehörigkeit')
+                                                        , 3),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[Apprentice]', 'Auszubildender',
+                                                            new Sup(9).' Auszubildender')
                                                         , 3),
                                                     new LayoutColumn(
                                                         new TextField('Data[Custody]', 'Vertreter',
@@ -586,6 +577,12 @@ class AccidentReport extends Extension
                                                             new Sup(10).' Anschrift Vertreter')
                                                         , 6),
                                                 )),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new TextField('Data[ContinuePayment]', '',
+                                                        new Sup(10). ' Anspruch auf Entgeltfortzahlung in Wochen:')
+                                                    , 6),
+                                                )
                                             ))
                                         )
                                     )),
@@ -622,7 +619,21 @@ class AccidentReport extends Extension
                                                         new TextField('Data[AccidentPlace]', 'Ort',
                                                             new Sup(13).' Unfallort')
                                                         , 6),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[LocationSince]', 'Tätigkeit',
+                                                            new Sup(13).' Seit wann in dieser Tätigkeit?')
+                                                        , 3),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[WorkAtAccident]', 'Beschäftigung',
+                                                            new Sup(14).' Zum Unfallzeitpunkt beschäftigt als:')
+                                                        , 3),
                                                 )),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new TextField('Data[WorkArea]', 'Teil des Unternehmens',
+                                                            new Sup(14).' In welchem Teil des Unternehmens tätig')
+                                                    , 6),
+                                                ),
                                                 new LayoutRow(
                                                     new LayoutColumn(
                                                         new TextArea('Data[AccidentDescription]', 'Beschreibung',
@@ -783,7 +794,9 @@ class AccidentReport extends Extension
 //                    )
 //                ))
             ))
-            , new Primary('Download', new Download(), true), '\Api\Document\Standard\AccidentReport\Create'
+            , new Primary('Download', new Download(), true), '\Api\Document\Standard\TeacherAccidentReport\Create'
         );
     }
+
 }
+
