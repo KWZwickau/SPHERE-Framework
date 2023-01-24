@@ -237,6 +237,14 @@ class Service extends AbstractService
                                     continue;
                                 }
 
+                                // Berufsfachschüler mit Fachrichtung "Generalistik" sollen das korrekte Zeugnis automatisch gesetzt bekommen
+                                if(($tblTechnicalCourse = Student::useService()->getTechnicalCourseByPerson($tblPerson))
+                                 && $tblTechnicalCourse->getName() == 'Generalistik') {
+                                    $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BfsPflegeJ');
+                                    $saveCertificatesForStudents[$tblPrepare->getId()][$tblPerson->getId()] = $tblCertificate;
+                                    continue;
+                                }
+
                                 if ($tblConsumerBySession) {
                                     // Eigene Vorlage
                                     if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson,
