@@ -19,6 +19,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblMinimumGradeCountSubjectLink extends Element
 {
     const ATTR_TBL_MINIMUM_GRADE_COUNT = 'tblGraduationMinimumGradeCount';
+    const ATTR_TBL_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
 
     /**
      * @Column(type="bigint")

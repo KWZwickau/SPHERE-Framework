@@ -7,8 +7,13 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGrade
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCountLevelLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCountSubjectLink;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -280,5 +285,76 @@ abstract class ServiceMinimumGradeCount extends ServiceGradeType
         }
 
         return Grade::useService()->deleteEntityListBulk(array($tblMinimumGradeCount));
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int $Level
+     * @param TblSubject $tblSubject
+     *
+     * @return TblMinimumGradeCount[]|false
+     */
+    public function getMinimumGradeCountListBySchoolTypeAndLevelAndSubject(TblType $tblSchoolType, int $Level, TblSubject $tblSubject)
+    {
+        return (new Data($this->getBinding()))->getMinimumGradeCountListBySchoolTypeAndLevelAndSubject($tblSchoolType, $Level, $tblSubject);
+    }
+
+    /**
+     * @param TblMinimumGradeCount $tblMinimumGradeCount
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return int
+     */
+    public function getMinimumGradeCountNumberByPersonAndYearAndSubject(TblMinimumGradeCount $tblMinimumGradeCount, TblPerson $tblPerson,
+        TblYear $tblYear, TblSubject $tblSubject
+    ): int {
+        $count = 0;
+        $tblGradeType = $tblMinimumGradeCount->getTblGradeType();
+        $tblPeriod = false;
+        if ($tblMinimumGradeCount->getPeriod() != SelectBoxItem::PERIOD_FULL_YEAR) {
+            $index = $tblMinimumGradeCount->getPeriod() - 1;
+            if (($tblPeriodList = Term::useService()->getPeriodListByPersonAndYear($tblPerson, $tblYear))
+                && isset($tblPeriodList[$index])
+            ) {
+                $tblPeriod = $tblPeriodList[$index];
+            }
+        }
+
+        if (($tblGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject(
+            $tblPerson, $tblYear, $tblSubject
+        ))) {
+            foreach ($tblGradeList as $tblGrade) {
+                if (($tblGrade->getGrade() !== null)
+                    && ($tblGradeTypeItem = $tblGrade->getTblGradeType())
+                ) {
+                    if ($tblPeriod
+                        && ($date = $tblGrade->getSortDate())
+                        && ($date < $tblPeriod->getFromDateTime() || $date > $tblPeriod->getToDateTime())
+                    ) {
+                        continue;
+                    }
+                    if ($tblGradeType) {
+                        if ($tblGradeType->getId() == $tblGradeTypeItem->getId()) {
+                            $count++;
+                        }
+                    } elseif ($tblMinimumGradeCount->getHighlighted() == SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED) {
+                        if ($tblGradeTypeItem->getIsHighlighted()) {
+                            $count++;
+                        }
+                    } elseif ($tblMinimumGradeCount->getHighlighted() == SelectBoxItem::HIGHLIGHTED_IS_NOT_HIGHLIGHTED) {
+                        if (!$tblGradeTypeItem->getIsHighlighted()) {
+                            $count++;
+                        }
+                    } else {
+                        // Alle Zensuren-Typen
+                        $count++;
+                    }
+                }
+            }
+        }
+
+        return $count;
     }
 }

@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\VirtualSubject;
@@ -77,7 +78,8 @@ abstract class ServiceStudentSubject extends AbstractService
 
         // gespeichertes Fach - StudentSubject SEKII
         if (($tblStudentSubject = (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubjectForCourseSystem($tblPerson, $tblYear, $tblSubject))) {
-            return new VirtualSubject($tblSubject, $tblStudentSubject->getHasGrading(), null);
+            return new VirtualSubject($tblSubject, $tblStudentSubject->getHasGrading(), null,
+                $tblStudentSubject->getTblDivisionCourse()->getType()->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE);
         }
 
         // Stundentafel
@@ -87,7 +89,7 @@ abstract class ServiceStudentSubject extends AbstractService
 
         // Stundentafel - Schülerakte
         if (($tblVirtualSubjectList = $this->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndYear($tblPerson, $tblYear))) {
-            return isset($tblVirtualSubjectList[$tblSubject->getId()]) ? $tblVirtualSubjectList[$tblSubject->getId()] : false;
+            return $tblVirtualSubjectList[$tblSubject->getId()] ?? false;
         }
 
         return false;

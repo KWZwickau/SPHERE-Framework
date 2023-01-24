@@ -7,10 +7,12 @@ use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -34,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -51,9 +54,11 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success as TextSuccess;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
@@ -287,6 +292,9 @@ class Frontend extends FrontendTest
                     . "&nbsp;&nbsp;&nbsp;&nbsp;Notenbuch"
                     . new Muted(new Small(" für Kurs: ")) . $textKurs
                     . new Muted(new Small(" im Fach: ")) . $textSubject
+                    . "&nbsp;&nbsp;&nbsp;"
+                    . (new Link('Mindestnotenanzahl anzeigen', ApiGradeBook::getEndpoint()))
+                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewMinimumGradeCountContent($DivisionCourseId, $SubjectId, $Filter))
                     . ($isEdit
                         ? new PullRight((new Primary('Leistungsüberprüfung hinzufügen', ApiGradeBook::getEndpoint(), new Plus()))
                             ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter)))
@@ -1122,5 +1130,194 @@ class Frontend extends FrontendTest
                     )
                 )
             ))));
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     *
+     * @return string
+     */
+    public function loadViewMinimumGradeCountContent($DivisionCourseId, $SubjectId, $Filter): string
+    {
+        $textKurs = "";
+        $textSubject = "";
+        $minimumGradeCountList = array();
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            $textKurs = new Bold($tblDivisionCourse->getDisplayName());
+            $textSubject = new Bold($tblSubject->getDisplayName());
+            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
+
+            $bodyList = array();
+            $integrationList = array();
+            $pictureList = array();
+            $courseList = array();
+            $educationList = array();
+            $schoolTypeLevelList = array();
+
+            if ($tblPersonList) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear,
+                            $tblSubject))
+                        && $tblVirtualSubject->getHasGrading()
+                    ) {
+                        // Schüler-Informationen
+                        Grade::useService()->setStudentInfo($tblPerson, $tblYear, $integrationList, $pictureList, $courseList);
+
+                        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                            && $Level = $tblStudentEducation->getLevel()
+                        ) {
+                            $educationList[$tblPerson->getId()] = array('tblSchoolType' => $tblSchoolType, 'Level' => $Level);
+                            if (!isset($schoolTypeLevelList[$tblSchoolType->getId()][$Level])) {
+                                $tblMinimumGradeTypeList = Grade::useService()->getMinimumGradeCountListBySchoolTypeAndLevelAndSubject(
+                                    $tblSchoolType, $Level, $tblSubject
+                                );
+                                if ($tblMinimumGradeTypeList) {
+                                    foreach ($tblMinimumGradeTypeList as $tblMinimumGradeCount) {
+                                        $minimumGradeCountList[$tblMinimumGradeCount->getId()] = $tblMinimumGradeCount;
+                                        $schoolTypeLevelList[$tblSchoolType->getId()][$Level][$tblMinimumGradeCount->getId()] = $tblMinimumGradeCount;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $hasPicture = !empty($pictureList);
+            $hasIntegration = !empty($integrationList);
+            $hasCourse = !empty($courseList);
+            $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
+
+            $count = 0;
+            foreach ($minimumGradeCountList as $headerKey => $header) {
+                $headerList[$headerKey] = $this->getTableColumnHead('#' . ++$count);
+            }
+
+            $count = 0;
+            if ($tblPersonList) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                        && $tblVirtualSubject->getHasGrading()
+                    ) {
+                        $bodyList[$tblPerson->getId()] = $this->getGradeBookPreBodyList($tblPerson, ++$count, $hasPicture, $hasIntegration, $hasCourse,
+                            $pictureList, $integrationList, $courseList);
+
+                        if (isset($educationList[$tblPerson->getId()])) {
+                            $tblSchoolType = $educationList[$tblPerson->getId()]['tblSchoolType'];
+                            $schoolTypeId = $tblSchoolType->getId();
+                            $level = $educationList[$tblPerson->getId()]['Level'];
+
+                            foreach ($minimumGradeCountList as $key => $item) {
+                                if (isset($schoolTypeLevelList[$schoolTypeId][$level][$key])
+                                    && (!DivisionCourse::useService()->getIsCourseSystemBySchoolTypeAndLevel($tblSchoolType, $level)
+                                        // SEKII-Kurse
+                                        || ($tblVirtualSubject->getIsAdvancedCourse() && $item->getCourse() == SelectBoxItem::COURSE_ADVANCED)
+                                        || (!$tblVirtualSubject->getIsAdvancedCourse() && $item->getCourse() == SelectBoxItem::COURSE_BASIC)
+                                    )
+                                ) {
+                                    $number = Grade::useService()->getMinimumGradeCountNumberByPersonAndYearAndSubject(
+                                        $item, $tblPerson, $tblYear, $tblSubject
+                                    );
+                                    if ($number < $item->getCount()){
+                                        $contentPerson = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Disable() . ' '. new Bold(
+                                            $number . ' von ' . $item->getCount() . ' ' . $item->getGradeTypeDisplayShortName()
+                                        ));
+                                    } else {
+                                        $contentPerson = new TextSuccess(new Ok() . ' ' . new Bold($number) . ' ' . $item->getGradeTypeDisplayShortName());
+                                    }
+                                } else {
+                                    $contentPerson = '&nbsp;';
+                                }
+                                $bodyList[$tblPerson->getId()][$key] = $contentPerson;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // table float
+            $table = $this->getTableCustom($headerList, $bodyList);
+            $content = $table;
+        } else {
+            $content = new Danger("Kurse oder Fach nicht gefunden.", new Exclamation());
+        }
+
+        return new Title(
+                (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
+                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter))
+                . "&nbsp;&nbsp;&nbsp;&nbsp;Notenbuch - Mindestnotenanzahl"
+                . new Muted(new Small(" für Kurs: ")) . $textKurs
+                . new Muted(new Small(" im Fach: ")) . $textSubject
+            )
+            . ApiSupportReadOnly::receiverOverViewModal()
+            . ApiPersonPicture::receiverModal()
+            . $this->getMinimumGradeCountPanel($minimumGradeCountList)
+            . $content;
+    }
+
+    /**
+     * @param $tblMinimumGradeCountList
+     *
+     * @return false|Panel
+     */
+    private function getMinimumGradeCountPanel($tblMinimumGradeCountList)
+    {
+        if ($tblMinimumGradeCountList) {
+            $minimumGradeCountContent = array();
+            $count = 1;
+
+            /** @var TblMinimumGradeCount $tblMinimumGradeCount */
+            foreach ($tblMinimumGradeCountList as $tblMinimumGradeCount) {
+                $minimumGradeCountContent[] = array(
+                    'Number' => '#' . $count++,
+                    'Level' => $tblMinimumGradeCount->getLevelListDisplayName(),
+                    'Subject' => $tblMinimumGradeCount->getSubjectListDisplayName(),
+                    'GradeType' => $tblMinimumGradeCount->getGradeTypeDisplayName(),
+                    'Period' => $tblMinimumGradeCount->getPeriodDisplayName(),
+                    'Course' => $tblMinimumGradeCount->getCourseDisplayName(),
+                    'Count' => $tblMinimumGradeCount->getCount()
+                );
+            }
+
+            if (!empty($minimumGradeCountContent)) {
+                $columns = array(
+                    'Number' => 'Nummer',
+                    'Level' => 'Klassenstufe',
+                    'Subject' => 'Fach',
+                    'GradeType' => 'Zensuren-Typ',
+                    'Period' => 'Zeitraum',
+                    'Course' => 'SEKII - Kurs',
+                    'Count' => 'Anzahl',
+                );
+
+                return new Panel(
+                    'Mindestnotenanzahl',
+                    '<div style="margin-top: -18px;">'.
+                    new TableData(
+                        $minimumGradeCountContent,
+                        null,
+                        $columns,
+                        array(
+                            'pageLength' => -1,
+                            'paging' => false,
+                            'info' => false,
+                            'searching' => false,
+                            'responsive' => false,
+                            'ordering' => false
+                        )
+                    ).'</div>',
+                    Panel::PANEL_TYPE_INFO
+                );
+            }
+        }
+
+        return false;
     }
 }

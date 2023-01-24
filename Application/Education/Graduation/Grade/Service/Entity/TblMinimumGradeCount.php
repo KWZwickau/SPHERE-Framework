@@ -112,6 +112,25 @@ class TblMinimumGradeCount extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getGradeTypeDisplayShortName(): string
+    {
+        if (($tblGradeType = $this->getTblGradeType())){
+            return $tblGradeType->getCode();
+        } else {
+            switch ($this->getHighlighted())  {
+                case SelectBoxItem::HIGHLIGHTED_ALL: $gradeType = 'Alle Z-T'; break;
+                case SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED: $gradeType = 'Große Z-T'; break;
+                case SelectBoxItem::HIGHLIGHTED_IS_NOT_HIGHLIGHTED: $gradeType = 'Kleine Z-T'; break;
+                default: $gradeType = '';
+            }
+
+            return $gradeType;
+        }
+    }
+
+    /**
      * @return integer
      */
     public function getPeriod()

@@ -237,4 +237,19 @@ class TblTestGrade extends Element
     {
         return $this->getTblTest()->getTblGradeType();
     }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getSortDate(): ?DateTime
+    {
+        if ($this->getDate()) {
+            return $this->getDate();
+        }
+        if (($tblTest = $this->getTblTest())) {
+            return $tblTest->getSortDate();
+        }
+
+        return null;
+    }
 }
