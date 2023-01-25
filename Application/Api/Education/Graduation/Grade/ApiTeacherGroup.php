@@ -39,6 +39,8 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewTeacherGroupDelete');
         $Dispatcher->registerMethod('saveTeacherGroupDelete');
 
+        $Dispatcher->registerMethod('loadViewTeacherGroupSort');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -110,6 +112,7 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
     /**
      * @param null $SubjectId
      * @param null $DivisionCourseId
+     * @param null $Data
      *
      * @return Pipeline
      */
@@ -318,5 +321,35 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
         } else {
             return new Danger('Der Kurs konnte nicht gelöscht werden.');
         }
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewTeacherGroupSort($DivisionCourseId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewTeacherGroupSort',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadViewTeacherGroupSort($DivisionCourseId): string
+    {
+        return Grade::useFrontend()->loadViewTeacherGroupSort($DivisionCourseId);
     }
 }

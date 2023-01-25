@@ -2,8 +2,10 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseMember;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Frontend\FrontendMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
@@ -16,6 +18,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -24,6 +27,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -65,9 +69,11 @@ abstract class FrontendTeacherGroup extends FrontendTask
                         'Subject' => $tblDivisionCourse->getSubjectName(),
                         'Students' => $tblDivisionCourse->getCountStudents(),
                         'Option' =>
-                            (new Standard('', ApiTeacherGroup::getEndpoint(), new Pen(), array(), 'Bearbeiten'))
+                            (new Standard('', ApiTeacherGroup::getEndpoint(), new Pen(), array(), 'Lerngruppe bearbeiten'))
                                 ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupEdit($tblDivisionCourse->getId()))
-                            . (new Standard('', ApiTeacherGroup::getEndpoint(), new Remove(), array(), 'Löschen'))
+                            . (new Standard('', ApiTeacherGroup::getEndpoint(), new ResizeVertical(), array(), 'Schüler sortieren'))
+                                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupSort($tblDivisionCourse->getId()))
+                            . (new Standard('', ApiTeacherGroup::getEndpoint(), new Remove(), array(), 'Lerngruppe Löschen'))
                                 ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupDelete($tblDivisionCourse->getId()))
                     );
                 }
@@ -89,7 +95,7 @@ abstract class FrontendTeacherGroup extends FrontendTask
                     array(
                         'columnDefs' => array(
                             array('type' => 'natural', 'targets' => 0),
-                            array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                            array('orderable' => false, 'width' => '98px', 'targets' => -1),
                         ),
                         'order'      => array(array(0, 'asc'), array(1, 'asc')),
                         'responsive' => false
@@ -285,7 +291,7 @@ abstract class FrontendTeacherGroup extends FrontendTask
     public function loadViewTeacherGroupDelete($DivisionCourseId): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+            return new Danger('Die Lerngruppe wurde nicht gefunden', new Exclamation());
         }
 
         $countStudents = 0;
@@ -297,13 +303,13 @@ abstract class FrontendTeacherGroup extends FrontendTask
             $countDivisionTeachers = count($divisionTeachers);
         }
 
-        return new Title(new Remove() . ' Kurs löschen')
+        return new Title(new Remove() . ' Lerngruppe löschen')
             . new Well(new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel(
-                                new Question() . ' Diesen Kurs wirklich löschen?',
+                                new Question() . ' Diese Lerngruppe wirklich löschen?',
                                 array(
                                     'Schuljahr: ' . new Bold($tblDivisionCourse->getYearName()),
                                     'Typ: ' . $tblDivisionCourse->getTypeName(),
@@ -323,5 +329,46 @@ abstract class FrontendTeacherGroup extends FrontendTask
                     )
                 )
             ));
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public function loadViewTeacherGroupSort($DivisionCourseId): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $MemberTypeIdentifier = TblDivisionCourseMemberType::TYPE_STUDENT;
+            $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
+            $content = new Title('Schüler sortieren', 'der ' . $text . ' im Schuljahr ' . new Bold($tblDivisionCourse->getYearName()));
+
+            $buttonList[] = (new Standard('Zurück', ApiTeacherGroup::getEndpoint(), new ChevronLeft()))
+                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroups());
+            $buttonList[] = (new Standard('Sortierung alphabetisch', ApiDivisionCourseMember::getEndpoint(), new ResizeVertical()))
+                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineOpenSortMemberModal($tblDivisionCourse->getId(), $MemberTypeIdentifier,  'Sortierung alphabetisch'));
+            $buttonList[] = (new Standard('Sortierung Geschlecht (alphabetisch)', ApiDivisionCourseMember::getEndpoint(), new ResizeVertical()))
+                ->ajaxPipelineOnClick(ApiDivisionCourseMember::pipelineOpenSortMemberModal($tblDivisionCourse->getId(), $MemberTypeIdentifier, 'Sortierung Geschlecht (alphabetisch)'));
+
+            $content .=
+                ApiDivisionCourseMember::receiverModal()
+                . DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
+                . new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn($buttonList),
+                            new LayoutColumn(
+                                ApiDivisionCourseMember::receiverBlock(
+                                    (new FrontendMember())->loadSortMemberContent($DivisionCourseId, $MemberTypeIdentifier), 'SortMemberContent'
+                                )
+                            )
+                        ))
+                    ))
+                ));
+
+            return $content;
+        }
+
+        return '';
     }
 }
