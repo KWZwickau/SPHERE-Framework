@@ -3,12 +3,19 @@
         <label for="{{ ElementName }}">{{ ElementLabel }}{% if( Required is not empty ) %}<span
                     class="text-danger"> *</span>{% endif %}</label>
     {% endif %}
-    {% if( ElementIcon is not empty ) %}
-    <div class="input-group">
-        <span class="input-group-addon">
-            {{ ElementIcon }}
-        </span>
-        {% endif %}
+    {% if( ElementIcon is not empty or ElementPrefix is not empty ) %}
+        <div class="input-group">
+            {% if( ElementIcon is not empty ) %}
+                <span class="input-group-addon">
+                    {{ ElementIcon }}
+                </span>
+            {% endif %}
+            {% if ElementPrefix is not empty %}
+                <span class="input-group-addon input-group-prefix">
+                    {{ ElementPrefix }}
+                </span>
+            {% endif %}
+    {% endif %}
         <select id="{{ ElementName }}" name="{{ ElementName }}"
                 {% if( Disabled is not empty ) %}disabled{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}>
             {% for Value, Title in ElementData %}
@@ -16,9 +23,9 @@
             {% endfor %}
         </select>
         {{ ElementFeedbackIcon }}
-        {% if( ElementIcon is not empty ) %}
-    </div>
-    {% endif %}
+        {% if( ElementIcon is not empty or ElementPrefix is not empty ) %}
+            </div>
+        {% endif %}
     {{ ElementFeedbackMessage }}
 </div>
 <script type="text/javascript">

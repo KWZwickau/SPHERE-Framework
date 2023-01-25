@@ -79,6 +79,7 @@ class Setup extends AbstractSetup
 
         // todo kann nach der vollständigen Migration der Alt-Daten gedropt werden
         $this->createColumn($table, 'MigrateGroupId', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'MigrateSekCourse', self::FIELD_TYPE_STRING, true);
 
         $this->createForeignKey($table, $tblType);
 

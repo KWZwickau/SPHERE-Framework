@@ -2755,4 +2755,36 @@ class Data extends AbstractData
            TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
         ));
     }
+
+    /**
+     * für Migration der Zensuren
+     *
+     * @param TblYear $tblYear
+     * @param $StartId
+     * @param $MaxCount
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionListByStartIdAndMaxCount(TblYear $tblYear, $StartId, $MaxCount)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblDivision', 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->eq('t.serviceTblYear', '?1'),
+                $queryBuilder->expr()->gt('t.Id', '?2'),
+                $queryBuilder->expr()->isNull('t.EntityRemove'),
+            ))
+            ->setParameter(1, $tblYear->getId())
+            ->setParameter(2, intval($StartId))
+            ->setMaxResults($MaxCount)
+            ->orderBy('t.Id', 'ASC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
 }

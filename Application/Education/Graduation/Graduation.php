@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Graduation;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -26,8 +27,9 @@ class Graduation implements IApplicationInterface
     public static function registerApplication()
     {
 
-        Gradebook::registerModule();
-        Evaluation::registerModule();
+//        Gradebook::registerModule();
+//        Evaluation::registerModule();
+        Grade::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Zensuren'))
@@ -49,7 +51,7 @@ class Graduation implements IApplicationInterface
         $Stage->setContent(Main::getDispatcher()->fetchDashboard('Grade'));
         $TableContent = array();
         $Item = array();
-        if (Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/GradeType')) {
+        if (Access::useService()->hasAuthorization('/Education/Graduation/Grade/GradeType')) {
             $Item['Modul'] = new Bold('Zensuren-Typ');
             $Item['Description'] = 'Verwaltung der Zensuren-Typen (Kopfnoten, Leistungsüberprüfung).';
             array_push($TableContent, $Item);

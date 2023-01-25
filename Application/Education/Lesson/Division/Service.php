@@ -3325,4 +3325,30 @@ class Service extends AbstractService
 
         return false;
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return string
+     */
+    public function getMigrateSekCourseString(TblDivision $tblDivision, TblSubject $tblSubject, TblSubjectGroup $tblSubjectGroup): string
+    {
+        return "DivisionId:{$tblDivision->getId()}_SubjectId:{$tblSubject->getId()}_SubjectGroupId:{$tblSubjectGroup->getId()}";
+    }
+
+    /**
+     * für Migration der Zensuren
+     *
+     * @param TblYear $tblYear
+     * @param $StartId
+     * @param $MaxCount
+     *
+     * @return false|TblDivision[]
+     */
+    public function getDivisionListByStartIdAndMaxCount(TblYear $tblYear, $StartId, $MaxCount)
+    {
+        return (new Data($this->getBinding()))->getDivisionListByStartIdAndMaxCount($tblYear, $StartId, $MaxCount);
+    }
 }

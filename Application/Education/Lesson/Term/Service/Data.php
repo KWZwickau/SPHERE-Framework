@@ -276,6 +276,8 @@ class Data extends AbstractData
     }
 
     /**
+     * @deprecated
+     *
      * @param TblYear $tblYear
      * @param bool $IsLevel12
      * @param bool $IsAll
@@ -350,6 +352,45 @@ class Data extends AbstractData
                         return $periodListOthers;
                     }
                 }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param bool $isShortYear
+     * @param bool $isAllYear
+     *
+     * @return false|TblPeriod[]
+     */
+    public function getPeriodListByYear(TblYear $tblYear, bool $isShortYear = false, bool $isAllYear = false)
+    {
+        $periodAllList = array();
+        $periodNormalList = array();
+        $periodShortList = array();
+        if (($list =  $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblYearPeriod',
+            array(TblYearPeriod::ATTR_TBL_YEAR => $tblYear->getId())))
+        ) {
+            /** @var TblYearPeriod $tblYearPeriod */
+            foreach ($list as $tblYearPeriod) {
+                if (($tblPeriod = $tblYearPeriod->getTblPeriod())) {
+                    if ($tblPeriod->isLevel12()) {
+                        $periodShortList[$tblPeriod->getId()] = $tblPeriod;
+                    } else {
+                        $periodNormalList[$tblPeriod->getId()] = $tblPeriod;
+                    }
+                    $periodAllList[$tblPeriod->getId()] = $tblPeriod;
+                }
+            }
+
+            if ($isAllYear) {
+                return $this->getSorter($periodAllList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
+            } elseif ($isShortYear) {
+                return $this->getSorter(empty($periodShortList) ? $periodNormalList : $periodShortList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
+            } else {
+                return $this->getSorter($periodNormalList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
             }
         }
 

@@ -7,8 +7,7 @@ use Exception;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\ParentStudentAccess\OnlineGradebook\OnlineGradebook;
@@ -110,7 +109,6 @@ class Frontend extends Extension implements IFrontendInterface
                        && new DateTime('now') <= new DateTime($Date.'23:59:59'));
         $maintenanceMessage = '';
         $contentTeacherWelcome = false;
-        $contentHeadmasterWelcome = false;
         $contentSecretariatWelcome = false;
         $IsChangePassword = false;
         $IsNavigationAssistance = false;
@@ -125,13 +123,9 @@ class Frontend extends Extension implements IFrontendInterface
                     && ($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
                 ) {
-                    $contentTeacherWelcome = Evaluation::useService()->getTeacherWelcomeGradeTask($tblPerson)
+                    $contentTeacherWelcome = Grade::useService()->getTeacherWelcomeGradeTask($tblPerson)
                         . (($timeTable = Timetable::useService()->getTimetablePanelForTeacher())
                             ? $timeTable : Digital::useService()->getDigitalClassRegisterPanelForTeacher());
-                }
-
-                if (Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Type/Select')) {
-                    $contentHeadmasterWelcome = Gradebook::useService()->getMissingSubjectsWithScoreType();
                 }
             }
         }
@@ -229,7 +223,6 @@ class Frontend extends Extension implements IFrontendInterface
                 ? $this->layoutNavigationAssistance($IsStudentAccount)
                 : ''
             )
-            . ($contentHeadmasterWelcome ?: '')
             . ($contentTeacherWelcome ?: '')
             . ($contentSecretariatWelcome ?: '')
             . $this->getCleanLocalStorage()

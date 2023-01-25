@@ -84,104 +84,6 @@ class Service extends ServiceScoreRule
     }
 
     /**
-     * @param IFormInterface|null $Stage
-     * @param                     $GradeType
-     *
-     * @return IFormInterface|string
-     */
-    public function createGradeType(IFormInterface $Stage = null, $GradeType)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $GradeType) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset($GradeType['Name']) && empty($GradeType['Name'])) {
-            $Stage->setError('GradeType[Name]', 'Bitte geben Sie einen Namen an');
-            $Error = true;
-        }
-        if (isset($GradeType['Code']) && empty($GradeType['Code'])) {
-            $Stage->setError('GradeType[Code]', 'Bitte geben Sie eine Abk&uuml;rzung an');
-            $Error = true;
-        }
-        if (!($tblTestType = Evaluation::useService()->getTestTypeById($GradeType['Type']))) {
-            $Stage->setError('GradeType[Type]', 'Bitte wählen Sie eine Kategorie aus');
-            $Error = true;
-        }
-
-        if (!$Error) {
-            (new Data($this->getBinding()))->createGradeType(
-                $GradeType['Name'],
-                $GradeType['Code'],
-                $GradeType['Description'],
-                isset($GradeType['IsHighlighted']) ? true : false,
-                $tblTestType,
-                isset($GradeType['IsPartGrade']) ? true : false
-            );
-
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Der Zensuren-Typ ist erfasst worden')
-                . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_SUCCESS);
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param                     $Id
-     * @param                     $GradeType
-     *
-     * @return IFormInterface|string
-     */
-    public function updateGradeType(IFormInterface $Stage = null, $Id, $GradeType)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $GradeType || null === $Id) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset($GradeType['Name']) && empty($GradeType['Name'])) {
-            $Stage->setError('GradeType[Name]', 'Bitte geben sie einen Namen an');
-            $Error = true;
-        }
-        if (isset($GradeType['Code']) && empty($GradeType['Code'])) {
-            $Stage->setError('GradeType[Code]', 'Bitte geben sie eine Abkürzung an');
-            $Error = true;
-        }
-
-        $tblGradeType = $this->getGradeTypeById($Id);
-        if (!$tblGradeType) {
-            return new Danger(new Ban() . ' Zensuren-Typ nicht gefunden')
-            . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_ERROR);
-        }
-
-        if (!$Error) {
-            (new Data($this->getBinding()))->updateGradeType(
-                $tblGradeType,
-                $GradeType['Name'],
-                $GradeType['Code'],
-                $GradeType['Description'],
-                isset($GradeType['IsHighlighted']) ? true : false,
-                Evaluation::useService()->getTestTypeById($GradeType['Type']),
-                $tblGradeType->isActive(),
-                isset($GradeType['IsPartGrade']) ? true : false
-            );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Der Zensuren-Typ ist erfolgreich gespeichert worden')
-            . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_SUCCESS);
-        }
-
-        return $Stage;
-    }
-
-    /**
      * @param TblPerson|null $tblPerson
      * @param TblDivision|null $tblDivision
      * @param TblPeriod|null $tblPeriod
@@ -1610,27 +1512,6 @@ class Service extends ServiceScoreRule
         }
 
         return false;
-    }
-
-    /**
-     * @param TblGradeType $tblGradeType
-     * @param bool $IsActive
-     *
-     * @return string
-     */
-    public function setGradeTypeActive(TblGradeType $tblGradeType, $IsActive = true)
-    {
-
-        return (new Data($this->getBinding()))->updateGradeType(
-            $tblGradeType,
-            $tblGradeType->getName(),
-            $tblGradeType->getCode(),
-            $tblGradeType->getDescription(),
-            $tblGradeType->isHighlighted(),
-            $tblGradeType->getServiceTblTestType() ? $tblGradeType->getServiceTblTestType() : null,
-            $IsActive,
-            $tblGradeType->isPartGrade()
-        );
     }
 
     /**

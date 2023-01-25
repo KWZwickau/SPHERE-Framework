@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
@@ -401,10 +402,11 @@ class FrontendTeacher extends FrontendSubjectTable
             if ($columnList) {
                 return new Layout(new LayoutGroup(array(
                     new LayoutRow($columnList),
-                    new LayoutRow(new LayoutColumn(
+                    new LayoutRow(new LayoutColumn(array(
                         (new Primary('Speichern', ApiTeacherLectureship::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiTeacherLectureship::pipelineSaveTeacherLectureship($Filter, $PersonId))
-                    ))
+                            ->ajaxPipelineOnClick(ApiTeacherLectureship::pipelineSaveTeacherLectureship($Filter, $PersonId)),
+                        new Standard('Abbrechen', '/Education/Lesson/TeacherLectureship', new Disable(), array('Filter' => $Filter))
+                    )))
                 )));
             } else {
                 return new Warning('Keine Kurse für das Schuljahr gefunden', new Exclamation());

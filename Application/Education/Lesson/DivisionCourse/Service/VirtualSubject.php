@@ -13,16 +13,20 @@ class VirtualSubject
 
     private ?TblSubjectTable $tblSubjectTable;
 
+    private ?bool $IsAdvancedCourse;
+
     /**
      * @param TblSubject|null $tblSubject
      * @param bool $hasGrading
      * @param TblSubjectTable|null $tblSubjectTable
+     * @param bool|null $IsAdvancedCourse
      */
-    public function __construct(?TblSubject $tblSubject, bool $hasGrading, ?TblSubjectTable $tblSubjectTable)
+    public function __construct(?TblSubject $tblSubject, bool $hasGrading, ?TblSubjectTable $tblSubjectTable, ?bool $IsAdvancedCourse = null)
     {
         $this->setTblSubject($tblSubject);
         $this->setHasGrading($hasGrading);
         $this->setTblSubjectTable($tblSubjectTable);
+        $this->setIsAdvancedCourse($IsAdvancedCourse);
     }
 
     /**
@@ -71,5 +75,21 @@ class VirtualSubject
     public function setTblSubjectTable(?TblSubjectTable $tblSubjectTable): void
     {
         $this->tblSubjectTable = $tblSubjectTable;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getIsAdvancedCourse(): ?bool
+    {
+        return $this->IsAdvancedCourse;
+    }
+
+    /**
+     * @param bool|null $IsAdvancedCourse
+     */
+    public function setIsAdvancedCourse(?bool $IsAdvancedCourse): void
+    {
+        $this->IsAdvancedCourse = $IsAdvancedCourse;
     }
 }

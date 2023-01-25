@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -26,6 +27,9 @@ class TblDivisionCourse extends Element
     const SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_IS_SHOWN_IN_PERSON_DATA = 'IsShownInPersonData';
     const ATTR_IS_REPORTING = 'IsReporting';
+
+    const ATTR_MIGRATE_GROUP_ID = 'MigrateGroupId';
+    const ATTR_MIGRATE_SEK_COURSE = 'MigrateSekCourse';
 
     /**
      * @Column(type="bigint")
@@ -73,6 +77,11 @@ class TblDivisionCourse extends Element
     protected ?int $MigrateGroupId = null;
 
     /**
+     * @Column(type="string")
+     */
+    protected ?string $MigrateSekCourse = null;
+
+    /**
      * @param TblDivisionCourseType $tblType
      * @param TblYear $tblYear
      * @param string $name
@@ -81,11 +90,15 @@ class TblDivisionCourse extends Element
      * @param bool $isReporting
      * @param TblSubject|null $tblSubject
      * @param int|null $migrateGroupId
+     * @param string|null $migrateSekCourse
      *
      * @return TblDivisionCourse
      */
-    public static function withParameter(TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description,
-        bool $isShownInPersonData = false, bool $isReporting = false, ?TblSubject $tblSubject = null, ?int $migrateGroupId = null): TblDivisionCourse
+    public static function withParameter(
+        TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description,
+        bool $isShownInPersonData = false, bool $isReporting = false, ?TblSubject $tblSubject = null,
+        ?int $migrateGroupId = null, ?string $migrateSekCourse = null
+    ): TblDivisionCourse
     {
         // php erlaubt leider keine mehrfach Konstruktoren :(
         $instance = new self();
@@ -99,6 +112,7 @@ class TblDivisionCourse extends Element
         //        $instance->IsUcs = $isUcs;
         $instance->setServiceTblSubject($tblSubject);
         $instance->MigrateGroupId = $migrateGroupId;
+        $instance->MigrateSekCourse = $migrateSekCourse;
 
         return  $instance;
     }
@@ -310,7 +324,44 @@ class TblDivisionCourse extends Element
      * @return false|TblPerson[]
      */
     public function getStudents(bool $withInActive = false) {
-        return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_STUDENT, $withInActive);
+        if ($this->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE || $this->getTypeIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE) {
+            $tblPersonList = array();
+            if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListBySubjectDivisionCourse($this))) {
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if (($tblPersonTemp = $tblStudentSubject->getServiceTblPerson())) {
+                        $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
+                    }
+                }
+            }
+
+            return empty($tblPersonList) ? false : $tblPersonList;
+        } else {
+            return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_STUDENT, $withInActive);
+        }
+    }
+
+    /**
+     * @param bool $withInActive
+     * @param bool $isResultPersonList
+     *
+     * @return false|TblDivisionCourseMember[]|TblPerson[]
+     */
+    public function getStudentsWithSubCourses(bool $withInActive = false, bool $isResultPersonList = true)
+    {
+        if ($this->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE || $this->getTypeIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE) {
+            $tblPersonList = array();
+            if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListBySubjectDivisionCourse($this))) {
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if (($tblPersonTemp = $tblStudentSubject->getServiceTblPerson())) {
+                        $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
+                    }
+                }
+            }
+
+            return empty($tblPersonList) ? false : $tblPersonList;
+        } else {
+            return DivisionCourse::useService()->getStudentListBy($this, $withInActive, $isResultPersonList);
+        }
     }
 
     /**
@@ -347,5 +398,22 @@ class TblDivisionCourse extends Element
     public function getDivisionTeacherNameListString(string $separator = '<br/>'): string
     {
         return DivisionCourse::useService()->getDivisionTeacherNameListString($this, $separator);
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubjectName(): string
+    {
+        return ($tblSubject = $this->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '';
+    }
+
+    /**
+     * @param bool $isString
+     * @return false|Type[]|string
+     */
+    public function getSchoolTypeListFromStudents(bool $isString = false)
+    {
+        return DivisionCourse::useService()->getSchoolTypeListByDivisionCourse($this, $isString);
     }
 }

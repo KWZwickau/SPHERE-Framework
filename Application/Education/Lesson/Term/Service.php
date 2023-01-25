@@ -5,6 +5,7 @@ use DateInterval;
 use DateTime;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Data;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHolidayType;
@@ -15,6 +16,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Setup;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\BasicData\BasicData;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -23,6 +25,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Service
@@ -71,6 +74,8 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated
+     *
      * @param TblYear $tblYear
      * @param TblDivision|null $tblDivision
      * @param bool $IsAll
@@ -92,6 +97,33 @@ class Service extends AbstractService
         }
 
         return (new Data($this->getBinding()))->getPeriodAllByYear($tblYear, $IsLevel12, $IsAll);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param bool $isShortYear
+     * @param bool $isAllYear
+     *
+     * @return false|TblPeriod[]
+     */
+    public function getPeriodListByYear(TblYear $tblYear, bool $isShortYear = false, bool $isAllYear = false)
+    {
+        return (new Data($this->getBinding()))->getPeriodListByYear($tblYear, $isShortYear, $isAllYear);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblPeriod[]
+     */
+    public function getPeriodListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        if (DivisionCourse::useService()->getIsShortYearByPersonAndYear($tblPerson, $tblYear)) {
+            return $this->getPeriodListByYear($tblYear, true);
+        } else {
+            return $this->getPeriodListByYear($tblYear);
+        }
     }
 
     /**

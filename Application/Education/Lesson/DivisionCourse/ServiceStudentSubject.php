@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\VirtualSubject;
@@ -32,6 +33,8 @@ abstract class ServiceStudentSubject extends AbstractService
     }
 
     /**
+     * SEKI
+     *
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
@@ -41,6 +44,55 @@ abstract class ServiceStudentSubject extends AbstractService
     public function getStudentSubjectByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
     {
         return (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+    }
+
+    /**
+     * SEKII
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblStudentSubject
+     */
+    public function getStudentSubjectByPersonAndYearAndSubjectForCourseSystem(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        return (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubjectForCourseSystem($tblPerson, $tblYear, $tblSubject);
+    }
+
+    /**
+     * prüft ob der Schüler das Fach hat oder ob er es virtuell über Stundentafel-Schülerakte hat
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return false|VirtualSubject
+     */
+    public function getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        // gespeichertes Fach - StudentSubject SEKI
+        if (($tblStudentSubject = (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+            return new VirtualSubject($tblSubject, $tblStudentSubject->getHasGrading(), null);
+        }
+
+        // gespeichertes Fach - StudentSubject SEKII
+        if (($tblStudentSubject = (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubjectForCourseSystem($tblPerson, $tblYear, $tblSubject))) {
+            return new VirtualSubject($tblSubject, $tblStudentSubject->getHasGrading(), null,
+                $tblStudentSubject->getTblDivisionCourse()->getType()->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE);
+        }
+
+        // Stundentafel
+        if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+            return new VirtualSubject($tblSubject, $tblSubjectTable->getHasGrading(), $tblSubjectTable);
+        }
+
+        // Stundentafel - Schülerakte
+        if (($tblVirtualSubjectList = $this->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndYear($tblPerson, $tblYear))) {
+            return $tblVirtualSubjectList[$tblSubject->getId()] ?? false;
+        }
+
+        return false;
     }
 
     /**
@@ -294,6 +346,7 @@ abstract class ServiceStudentSubject extends AbstractService
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())
             && ($tblSubjectDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Data['SubjectDivisionCourse']))
         ) {
+            // SekII-Kurse habe immer eine Benotung
             $hasGrading = true;
 
             $createList = array();
@@ -464,5 +517,172 @@ abstract class ServiceStudentSubject extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param bool $hasGrading
+     *
+     * @return TblSubject[]|false
+     */
+    public function getSubjectListByDivisionCourse(TblDivisionCourse $tblDivisionCourse, bool $hasGrading = true)
+    {
+        $tblSubjectList = array();
+        // Fach hängt direkt am Kurs (SekII-Kurse, Lerngruppen)
+        if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
+            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+        } elseif (($tblPersonList = $tblDivisionCourse->getStudents())
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            if (!($tblSubjectList = $this->getSubjectListByPersonListAndYear($tblPersonList, $tblYear, $hasGrading))) {
+                return false;
+            }
+        }
+
+        return empty($tblSubjectList) ? false : $tblSubjectList;
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int $level
+     * @param TblYear $tblYear
+     * @param bool $hasGrading
+     *
+     * @return false|TblSubject[]
+     */
+    public function getSubjectListBySchoolTypeAndLevelAndYear(TblType $tblSchoolType, int $level, TblYear $tblYear, bool $hasGrading = true)
+    {
+        $tblPersonList = array();
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear, $tblSchoolType, $level))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (($tblPerson = $tblStudentEducation->getServiceTblPerson())
+                    && !isset($tblPersonList[$tblPerson->getId()])
+                ) {
+                    $tblPersonList[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($tblPersonList) ? false : $this->getSubjectListByPersonListAndYear($tblPersonList, $tblYear, $hasGrading);
+    }
+
+    /**
+     * @param array $tblPersonList
+     * @param TblYear $tblYear
+     * @param bool $hasGrading
+     *
+     * @return TblSubject[]|false
+     */
+    public function getSubjectListByPersonListAndYear(array $tblPersonList, TblYear $tblYear, bool $hasGrading = true)
+    {
+        $tblSubjectList = array();
+        $schoolTypeLevelList = array();
+        $tblSubjectTableListNotFixed = array();
+        foreach ($tblPersonList as $tblPerson) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && ($level = $tblStudentEducation->getLevel())
+            ) {
+                // Stundentafel
+                if (!isset($schoolTypeLevelList[$tblSchoolType->getId()][$level])) {
+                    $schoolTypeLevelList[$tblSchoolType->getId()][$level] = 1;
+                    if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
+                        foreach ($tblSubjectTableList as $tblSubjectTable) {
+                            // Benotung
+                            if ($hasGrading && !$tblSubjectTable->getHasGrading()) {
+                                continue;
+                            }
+
+                            // feste Fächer der Stundentafel
+                            if ($tblSubjectTable->getIsFixed()) {
+                                if (($tblSubject = $tblSubjectTable->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
+                                    $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                                }
+                                // Virtuelle Fächer der Schülerakte
+                            } else {
+                                if ($tblSubjectTable->getStudentMetaIdentifier() && !isset($tblSubjectTableListNotFixed[$tblSubjectTable->getId()])) {
+                                    $tblSubjectTableListNotFixed[$tblSubjectTable->getId()] = $tblSubjectTable;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // feste Fächer am Schüler
+                if (($tblSubjectStudentList = $this->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, $hasGrading ?: null))) {
+                    foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                        if (($tblSubject = $tblSubjectStudent->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
+                            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($tblSubjectTableListNotFixed)) {
+            foreach ($tblSubjectTableListNotFixed as $tblSubjectTable)
+            {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))
+                        && !isset($tblSubjectList[$tblSubject->getId()])
+                    ) {
+                        $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                    }
+                }
+            }
+        }
+
+        return empty($tblSubjectList) ? false : $tblSubjectList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param bool $hasGrading
+     *
+     * @return TblSubject[]|false
+     */
+    public function getSubjectListByStudentAndYear(TblPerson $tblPerson, TblYear $tblYear, bool $hasGrading = true)
+    {
+        $tblSubjectList = array();
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+            && ($level = $tblStudentEducation->getLevel())
+        ) {
+            if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
+                foreach ($tblSubjectTableList as $tblSubjectTable) {
+                    // Benotung
+                    if ($hasGrading && !$tblSubjectTable->getHasGrading()) {
+                        continue;
+                    }
+
+                    // feste Fächer der Stundentafel
+                    if ($tblSubjectTable->getIsFixed()) {
+                        if (($tblSubject = $tblSubjectTable->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
+                            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                        }
+                        // Virtuelle Fächer der Schülerakte
+                    } else {
+                        if ($tblSubjectTable->getStudentMetaIdentifier()
+                            && ($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))
+                            && !isset($tblSubjectList[$tblSubject->getId()])
+                        ) {
+                            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                        }
+                    }
+                }
+            }
+
+            // feste Fächer am Schüler
+            if (($tblSubjectStudentList = $this->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, $hasGrading ?: null))) {
+                foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                    if (($tblSubject = $tblSubjectStudent->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
+                        $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                    }
+                }
+            }
+        }
+
+        return empty($tblSubjectList) ? false : $tblSubjectList;
     }
 }

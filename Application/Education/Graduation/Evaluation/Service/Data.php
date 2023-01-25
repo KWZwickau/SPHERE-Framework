@@ -292,22 +292,6 @@ class Data extends AbstractData
     /**
      * @return bool|TblTestType[]
      */
-    public function getTestTypesForGradeTypes()
-    {
-
-        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
-        $queryBuilder->select('t')->from(__NAMESPACE__ . '\Entity\TblTestType', 't');
-        $queryBuilder->where($queryBuilder->expr()->notLike('t.Identifier', '?1'));
-        $queryBuilder->setParameter(1, '%TASK%');
-
-        $query = $queryBuilder->getQuery();
-
-        return $query->getResult();
-    }
-
-    /**
-     * @return bool|TblTestType[]
-     */
     public function getTestTypeAllWhereTask()
     {
 

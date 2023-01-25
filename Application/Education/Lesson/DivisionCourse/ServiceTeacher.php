@@ -15,7 +15,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Binding\AbstractService;
 
 abstract class ServiceTeacher extends ServiceSubjectTable
 {
@@ -97,5 +96,16 @@ abstract class ServiceTeacher extends ServiceSubjectTable
         } else {
             return new Danger('Schuljahr oder Fach nicht gefunden', new Exclamation());
         }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblSubject[]
+     */
+    public function getSubjectListByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getSubjectListByTeacherAndYear($tblPerson, $tblYear);
     }
 }

@@ -32,6 +32,8 @@ abstract class DataStudentSubject extends DataMigrate
     }
 
     /**
+     * SEKI
+     *
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
@@ -45,6 +47,42 @@ abstract class DataStudentSubject extends DataMigrate
             TblStudentSubject::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
             TblStudentSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
         ));
+    }
+
+    /**
+     * SEKII
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblStudentSubject
+     */
+    public function getStudentSubjectByPersonAndYearAndSubjectForCourseSystem(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(TblStudentSubject::class, 't')
+            ->join(TblDivisionCourse::class, 'c')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.tblLessonDivisionCourse', 'c.Id'),
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblYear', '?2'),
+                    $queryBuilder->expr()->eq('c.serviceTblSubject', '?3'),
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId())
+            ->setParameter(3, $tblSubject->getId())
+            ->distinct()
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : current($resultList);
     }
 
     /**

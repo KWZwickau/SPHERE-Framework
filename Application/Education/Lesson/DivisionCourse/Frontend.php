@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBo
 use SPHERE\Application\Education\Lesson\DivisionCourse\Frontend\FrontendYearChange;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -134,6 +135,11 @@ class Frontend extends FrontendYearChange
             $showExtraInfo = isset($Filter['ShowExtraInfo']);
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                // Lerngruppen der Lehrer überspringen
+                if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
+                    continue;
+                }
+
                 $countActive = 0;
                 $countInActive = 0;
                 $tblSubCourseList = array();
@@ -253,7 +259,7 @@ class Frontend extends FrontendYearChange
      */
     public function formFilter(&$Filter = null): Form
     {
-        $tblTypeAll = DivisionCourse::useService()->getDivisionCourseTypeAll();
+        $tblTypeAll = DivisionCourse::useService()->getDivisionCourseTypeListWithoutTeacherGroup();
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll && Term::useService()->getYearByNow()) {
 
@@ -345,7 +351,7 @@ class Frontend extends FrontendYearChange
                 }
             });
         }
-        $tblTypeAll = DivisionCourse::useService()->getDivisionCourseTypeAll();
+        $tblTypeAll = DivisionCourse::useService()->getDivisionCourseTypeListWithoutTeacherGroup();
 
         $formRows[] = new FormRow(array(
             new FormColumn($tblDivisionCourse
@@ -459,6 +465,11 @@ class Frontend extends FrontendYearChange
                 foreach ($tblDivisionCourseAvailableList as $tblDivisionCourseAvailable) {
                     // SekII-Kurse können nicht verknüpft werden, da diese anders funktionieren (Halbjahre + Schüler-Fächer)
                     if ($tblDivisionCourseAvailable->getType()->getIsCourseSystem()) {
+                        continue;
+                    }
+
+                    // Lerngruppen der Lehrer überspringen
+                    if ($tblDivisionCourseAvailable->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
                         continue;
                     }
 

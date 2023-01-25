@@ -164,8 +164,24 @@ class Service extends AbstractService
             case 'Gy': return 12;
 
             case 'BGy': return 13;
-            // todo weitere Schularten
-            default: return false;
+            default: return 4;
+        }
+    }
+
+    /**
+     * @param TblType $tblType
+     *
+     * @return false|int
+     */
+    public function getMinLevelByType(TblType $tblType)
+    {
+        switch ($tblType->getShortName()) {
+            case 'ISS':
+            case 'OS':
+            case 'Gy': return 5;
+
+            case 'BGy': return 11;
+            default: return 1;
         }
     }
 }

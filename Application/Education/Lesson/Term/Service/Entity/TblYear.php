@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -78,6 +79,8 @@ class TblYear extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @param TblDivision|null $tblDivision
      * @param false $IsAll
      *
@@ -87,6 +90,24 @@ class TblYear extends Element
     {
 
         return Term::useService()->getPeriodAllByYear($this, $tblDivision, $IsAll);
+    }
+
+    /**
+     * @return false|TblPeriod[]
+     */
+    public function getPeriodList(bool $isShortYear = false, bool $isAllYear = false)
+    {
+        return Term::useService()->getPeriodListByYear($this, $isShortYear, $isAllYear);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPeriod[]
+     */
+    public function getPeriodListByPerson(TblPerson $tblPerson)
+    {
+        return Term::useService()->getPeriodListByPersonAndYear($tblPerson, $this);
     }
 
     /**
