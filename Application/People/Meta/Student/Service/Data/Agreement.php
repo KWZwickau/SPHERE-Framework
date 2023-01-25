@@ -86,17 +86,19 @@ abstract class Agreement extends Liberation
     }
 
     /**
-     * @param string $Name
+     * @param string                      $Name
+     * @param TblStudentAgreementCategory $tblStudentAgreementCategory
      *
-     * @return bool|TblStudentAgreementType
+     * @return false|TblStudentAgreementType
      */
-    public function getStudentAgreementTypeByName($Name)
+    public function getStudentAgreementTypeByNameAndCategory($Name, TblStudentAgreementCategory $tblStudentAgreementCategory)
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentAgreementType',
             array(
-                TblStudentAgreementType::ATTR_NAME => $Name
+                TblStudentAgreementType::ATTR_NAME => $Name,
+                TblStudentAgreementType::ATTR_TBL_STUDENT_AGREEMENT_CATEGORY => $tblStudentAgreementCategory->getId()
             )
         );
     }
