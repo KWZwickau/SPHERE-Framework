@@ -332,15 +332,17 @@ class Data extends DataTask
      * @param DateTime|null $ReturnDate
      * @param bool $IsContinues
      * @param string $Description
+     * @param TblPerson|null $tblTeacher
      *
      * @return TblTest
      */
     public function createTest(TblYear $tblYear, TblSubject $tblSubject, TblGradeType $tblGradeType,
-        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description): TblTest
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description,
+        ?TblPerson $tblTeacher): TblTest
     {
         $Manager = $this->getEntityManager();
 
-        $Entity = new TblTest($tblYear, $tblSubject, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues, $Description);
+        $Entity = new TblTest($tblYear, $tblSubject, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues, $Description, $tblTeacher);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

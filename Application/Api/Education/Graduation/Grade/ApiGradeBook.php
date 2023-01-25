@@ -444,7 +444,8 @@ class ApiGradeBook extends Extension implements IApiInterface
             }
         } else {
             if (($tblTestNew = Grade::useService()->createTest(
-                $tblYear, $tblSubject, $tblGradeType, $date, $finishDate, $correctionDate, $returnDate, $isContinues, $description
+                $tblYear, $tblSubject, $tblGradeType, $date, $finishDate, $correctionDate, $returnDate, $isContinues, $description,
+                Account::useService()->getPersonByLogin() ?: null
             ))) {
                 // Kurse hinzufügen
                 if (isset($Data['DivisionCourses'])) {

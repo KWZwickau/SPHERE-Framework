@@ -318,14 +318,16 @@ class Service extends ServiceTask
      * @param DateTime|null $ReturnDate
      * @param bool $IsContinues
      * @param string $Description
+     * @param TblPerson|null $tblTeacher
      *
      * @return TblTest
      */
     public function createTest(TblYear $tblYear, TblSubject $tblSubject, TblGradeType $tblGradeType,
-        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description): TblTest
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description,
+        ?TblPerson $tblTeacher): TblTest
     {
         return (new Data($this->getBinding()))->createTest($tblYear, $tblSubject, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues,
-            $Description);
+            $Description, $tblTeacher);
     }
 
     /**

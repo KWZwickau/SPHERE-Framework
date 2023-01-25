@@ -106,7 +106,7 @@ abstract class DataMigrate extends AbstractData
                                     $tblTest = new TblTest(
                                         $tblYear, $tblSubject, $tblGradeTypeList[$tblGradeTypeOld->getCode()],
                                         $item->getDateTime(), $item->getFinishDateTime(), $item->getCorrectionDateTime(), $item->getReturnDateTime(),
-                                        $item->isContinues(), $item->getDescription(), $item->getId()
+                                        $item->isContinues(), $item->getDescription(), null, $item->getId()
                                     );
                                     // beim Speichern mit vorgegebener Id ist kein bulkSave möglich
                                     $Manager->saveEntityWithSetId($tblTest);

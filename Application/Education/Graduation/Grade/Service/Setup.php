@@ -95,6 +95,8 @@ class Setup  extends AbstractSetup
         $this->createColumn($table, 'IsContinues', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'Description');
 
+        $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
+
         return $table;
     }
 

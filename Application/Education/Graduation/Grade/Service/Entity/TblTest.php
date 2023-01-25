@@ -13,6 +13,9 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -60,6 +63,10 @@ class TblTest extends Element
      * @Column(type="string")
      */
     protected string $Description = '';
+    /**
+     * @Column(type="bigint")
+     */
+    protected ?int $serviceTblPersonTeacher = null;
 
     /**
      * @param TblYear $tblYear
@@ -71,11 +78,13 @@ class TblTest extends Element
      * @param DateTime|null $ReturnDate
      * @param bool $IsContinues
      * @param string $Description
+     * @param TblPerson|null $tblTeacher
      * @param int|null $Id
      */
     public function __construct(
         TblYear $tblYear, TblSubject $tblSubject, TblGradeType $tblGradeType,
-        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description, ?int $Id = null
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description,
+        ?TblPerson $tblTeacher, ?int $Id = null
     ) {
         $this->serviceTblYear = $tblYear->getId();
         $this->serviceTblSubject = $tblSubject->getId();
@@ -86,6 +95,7 @@ class TblTest extends Element
         $this->ReturnDate = $ReturnDate;
         $this->IsContinues = $IsContinues;
         $this->Description = $Description;
+        $this->serviceTblPersonTeacher = $tblTeacher ? $tblTeacher->getId() : null;
         if ($Id) {
             $this->Id = $Id;
         }
@@ -315,5 +325,41 @@ class TblTest extends Element
         }
 
         return '&nbsp;';
+    }
+
+    /**
+     * @param bool $IsForce
+     *
+     * @return false|TblPerson
+     */
+    public function getServiceTblPersonTeacher(bool $IsForce = false)
+    {
+        return Person::useService()->getPersonById($this->serviceTblPersonTeacher, $IsForce);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     */
+    public function setServiceTblPersonTeacher(TblPerson $tblPerson)
+    {
+        $this->serviceTblPersonTeacher = $tblPerson->getId();
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayTeacher(): string
+    {
+        if (($tblPerson = $this->getServiceTblPersonTeacher())){
+            if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))){
+                if ($tblTeacher->getAcronym()) {
+                    return $tblTeacher->getAcronym();
+                }
+            }
+
+            return $tblPerson->getLastName();
+        }
+
+        return '';
     }
 }

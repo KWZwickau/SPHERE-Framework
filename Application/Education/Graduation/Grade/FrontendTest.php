@@ -444,7 +444,11 @@ abstract class FrontendTest extends FrontendTeacherGroup
 
         $divisionCourseNameList = array();
         $teachers = array();
-        if (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
+        // Test Ersteller anzeigen
+        if ($tblTest->getServiceTblPersonTeacher()) {
+            $teachers[] = $tblTest->getDisplayTeacher();
+        // Alternativ die Lehraufträge anzeigen
+        } elseif (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
                 $divisionCourseNameList[] = $tblDivisionCourse->getName();
                 // Lerngruppe
