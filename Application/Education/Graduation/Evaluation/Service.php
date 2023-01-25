@@ -397,7 +397,7 @@ class Service extends AbstractService
 
         $tblTest = $this->getTestById($Id);
         $Error = false;
-        if (!($tblPeriod = Term::useService()->getPeriodById($Test['Period']))) {
+        if (!isset($Test['Period']) || !($tblPeriod = Term::useService()->getPeriodById($Test['Period']))) {
             $Stage->setError('Test[Period]', 'Bitte wählen Sie einen Zeitraum aus');
             $Error = true;
         }

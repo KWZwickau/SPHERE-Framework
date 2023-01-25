@@ -90,14 +90,14 @@ class CmsGsJ extends CmsStyle
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
                 )
-                ->addSectionList(
-                    self::getCMSRemark($personId, '220px')
-                )
                 ->addSection(
                     self::getCMSMissing($personId)
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('15px')
+                )
+                ->addSectionList(
+                    self::getCMSRemark($personId, '220px')
                 )
                 ->addSection(
                     self::getCMSTransfer($personId)

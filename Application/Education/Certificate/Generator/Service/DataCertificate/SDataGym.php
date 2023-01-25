@@ -17,7 +17,7 @@ class SDataGym
         self::setGymHj($Data, '4.1');
         self::setGymJ($Data, '4.2');
         self::setGymKurshalbjahreszeugnis($Data, 'Anlage 4');
-        self::setGymAbitur($Data, '4.5');
+        self::setGymAbitur($Data, 'Anlage 18');
         self::setGymAbgSekI($Data, '4.5');
         self::setGymAbgSekII($Data, 'Anlage 6');
     }

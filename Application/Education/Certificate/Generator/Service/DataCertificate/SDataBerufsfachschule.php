@@ -237,10 +237,13 @@ class SDataBerufsfachschule
      */
     private static function setBfsPflegeJ(Data $Data, $CertificateNumber)
     {
-        $tblCertificate = $Data->createCertificate('Berufsfachschule Jahreszeugnis', 'für Pflegeberufe', 'BfsPflegeJ');
+        $tblCertificate = $Data->createCertificate('Berufsfachschule Jahreszeugnis', 'Generalistik', 'BfsPflegeJ');
         if ($tblCertificate) {
             if($tblCertificate->getCertificateNumber() != $CertificateNumber){
                 $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
+            if($tblCertificate->getDescription() != 'Generalistik'){
+                $Data->updateCertificateName($tblCertificate, $tblCertificate->getName(), 'Generalistik');
             }
             if ($Data->getTblSchoolTypeBerufsfachschule()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeBerufsfachschule(), null, false, true);

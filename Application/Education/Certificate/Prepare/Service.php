@@ -1018,6 +1018,7 @@ class Service extends AbstractService
                 $orientation = '';
                 $remark = '';
                 $support = '';
+                $rating = '';
 
                 foreach ($tblPrepareInformationList as $tblPrepareInformation) {
                     if ($tblPrepareInformation->getField() == 'Team') {
@@ -1066,6 +1067,16 @@ class Service extends AbstractService
                         $Content['P' . $personId]['Input']['AddEducation_AverageInWord']
                             = Gradebook::useService()->getAverageInWord($tblPrepareInformation->getValue(), ',');
                     }
+                    if($tblPrepareInformation->getField() == 'Rating'){
+                        $rating = $tblPrepareInformation->getValue();
+                    }
+                }
+
+                // rating by Settings -> default value "---" or empty
+                if($hasRemarkBlocking && $rating == ''){
+                    $Content['P' . $personId]['Input']['Rating'] = '---';
+                } else {
+                    $Content['P' . $personId]['Input']['Rating'] = $rating;
                 }
 
                 if ($orientation) {
@@ -1641,7 +1652,8 @@ class Service extends AbstractService
                 $tblStudentSubject = current($tblStudentSubjectList);
                 if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
                     $Content['P' . $personId]['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name']
-                        = str_replace('Profil', '', $tblSubjectProfile->getName());
+//                        = str_replace('Profil', '', $tblSubjectProfile->getName());
+                        = $tblSubjectProfile->getName();
 
                     // für Herrnhut EZSH Anpassung des Profilnamens
                     $profile = $tblSubjectProfile->getName();
@@ -1694,6 +1706,8 @@ class Service extends AbstractService
                     $Content['P' . $personId]['Input']['EqualGraduation']['HS'] = true;
                 } elseif ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_HSQ) {
                     $Content['P' . $personId]['Input']['EqualGraduation']['HSQ'] = true;
+                } elseif ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_LERNEN) {
+                    $Content['P' . $personId]['Input']['EqualGraduation']['LERNEN'] = true;
                 }
             }
 

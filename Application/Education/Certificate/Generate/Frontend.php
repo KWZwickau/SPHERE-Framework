@@ -446,10 +446,7 @@ class Frontend extends Extension
                                         && ($tblLevel->getName() == '9' || $tblLevel->getName() == '10')
                                     ) {
                                         $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
-                                    }  elseif ($type->getName() == 'Förderschule'
-                                        && (($tblLevel = $tblDivision->getTblLevel()))
-                                        && ($tblLevel->getName() == '12' || $tblLevel->getName() == '13')
-                                    ) {
+                                    }  elseif ($type->getName() == 'Förderschule') {
                                         $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
                                     } elseif ($type->getName() == 'Berufsfachschule') {
                                         $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
@@ -904,7 +901,6 @@ class Frontend extends Extension
                                 'School' => 'Aktuelle Schule',
                                 'PrimaryFocus' => 'primärer FS',
                                 'Template' => 'Zeugnisvorlage'
-                                    . ApiGenerate::receiverModal()
                                     . new PullRight(
                                         (new Standard('Alle bearbeiten', ApiGenerate::getEndpoint()))
                                             ->ajaxPipelineOnClick(ApiGenerate::pipelineOpenCertificateModal($tblPrepare->getId()))
@@ -932,7 +928,8 @@ class Frontend extends Extension
             $form->appendFormButton(new Primary('Speichern', new Save()));
 
             $Stage->setContent(
-                new Layout(array(
+                ApiGenerate::receiverModal()
+                .new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(

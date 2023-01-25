@@ -1744,7 +1744,7 @@ abstract class BfsStyle extends Certificate
      *
      * @return Slice
      */
-    protected function getDescriptionBsContent($personId, $Height = '195px')
+    protected function getDescriptionBsContent($personId, $Height = '195px', $IsAbsence = false)
     {
 
         $Slice = new Slice();
@@ -1753,6 +1753,25 @@ abstract class BfsStyle extends Certificate
         $Slice->stylePaddingTop('5px');
         $Slice->styleHeight($Height);
         $Slice->styleBorderAll('0.5px');
+        if($IsAbsence) {
+            $Slice->addElement((new Element())
+                ->setContent('Fehlzeiten Unterricht entschuldigt: {% if(Content.P' . $personId . '.Input.Missing is not empty) %}
+                    {{ Content.P' . $personId . '.Input.Missing }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+                ->stylePaddingLeft('5px')
+            );
+            $Slice->addElement((new Element())
+                ->setContent('Fehlzeiten Unterricht unentschuldigt: {% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
+                    {{ Content.P' . $personId . '.Input.Bad.Missing }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+                ->stylePaddingLeft('5px')
+                ->stylePaddingBottom('3px')
+            );
+        }
 
         $Slice->addElement((new Element())
             ->setContent('Bemerkungen:')
@@ -2427,17 +2446,52 @@ abstract class BfsStyle extends Certificate
 
         $slice->addElement((new Element())->styleMarginTop('15px'));
 
-        for ($i = 1; $i < 5; $i++) {
+        for ($i = 1; $i <= 4; $i++) {
             $section = new Section();
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if(Content.P' . $personId . '.Input.Subarea' . $i . ' is not empty) %}
-                            {{ Content.P' . $personId . '.Input.Subarea' . $i . ' }}
-                        {% else %}
-                            &lt;TEILBEREICH&gt;
-                        {% endif %}
-                         
+            // 3 Zeilen werden immer abgebildet
+            if($i <= 3){
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                    {% if(Content.P' . $personId . '.Input.Subarea' . $i . ' is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Subarea' . $i . ' }}
+                    {% else %}
+                        &lt;TEILBEREICH&gt;
+                    {% endif %}
+                    (Dauer: 
+                    {% if(Content.P' . $personId . '.Input.SubareaTime' . $i . ' is not empty) %}
+                        {{ Content.P' . $personId . '.Input.SubareaTime' . $i . ' }}
+                    {% else %}
+                        &lt;X&gt;
+                    {% endif %}
+                    Wochen)
+                    
+                    &nbsp;&nbsp;&nbsp;
+                    Fehlzeiten entschuldigt: 
+                    {% if(Content.P' . $personId . '.Input.SubareaExcusedDays' . $i . ' is not empty) %}
+                        {{ Content.P' . $personId . '.Input.SubareaExcusedDays' . $i . ' }}
+                    {% else %}
+                        &lt;X&gt;
+                    {% endif %}
+                  
+                    &nbsp;&nbsp;&nbsp;
+                    Fehlzeiten unentschuldigt: 
+                    {% if(Content.P' . $personId . '.Input.SubareaUnexcusedDays' . $i . ' is not empty) %}
+                        {{ Content.P' . $personId . '.Input.SubareaUnexcusedDays' . $i . ' }}
+                    {% else %}
+                        &lt;X&gt;
+                    {% endif %}
+                ')
+                        ->styleTextSize('11px')
+                        ->stylePaddingLeft('5px')
+                    );
+            } else {
+                // Zeile 4 optional (wenn "Teilbereich" eingetragen wurde)
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                    {% if(Content.P' . $personId . '.Input.Subarea' . $i . ' is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Subarea' . $i . ' }}
                         (Dauer: 
                         {% if(Content.P' . $personId . '.Input.SubareaTime' . $i . ' is not empty) %}
                             {{ Content.P' . $personId . '.Input.SubareaTime' . $i . ' }}
@@ -2461,10 +2515,14 @@ abstract class BfsStyle extends Certificate
                         {% else %}
                             &lt;X&gt;
                         {% endif %}
-                    ')
-                    ->styleTextSize('11px')
-                    ->stylePaddingLeft('5px')
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                ')
+                        ->styleTextSize('11px')
+                        ->stylePaddingLeft('5px')
                 );
+            }
             $slice->addSection($section);
         }
 

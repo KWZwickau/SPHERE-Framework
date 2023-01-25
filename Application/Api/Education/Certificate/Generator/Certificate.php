@@ -791,15 +791,15 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param $personId
      * @param bool|true $isSlice
      * @param array $languagesWithStartLevel
      * @param string $TextSize
      * @param bool $IsGradeUnderlined
      * @param bool $hasSecondLanguageDiploma
      * @param bool $hasSecondLanguageSecondarySchool
+     * @param bool $hasSecondLanguageFoteNote
      *
-     * @return Section[]|Slice
+     * @return Section|Slice
      */
     protected function getSubjectLanes(
         $personId,
@@ -808,7 +808,8 @@ abstract class Certificate extends Extension
         $TextSize = '14px',
         $IsGradeUnderlined = false,
         $hasSecondLanguageDiploma = false,
-        $hasSecondLanguageSecondarySchool = false
+        $hasSecondLanguageSecondarySchool = false,
+        $hasSecondLanguageFoteNote = false
     ) {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -1138,7 +1139,7 @@ abstract class Certificate extends Extension
                     }
 
                     $content = $hasSecondLanguageSecondarySchool
-                        ? $hasAdditionalLine['Ranking'] . '. Fremdsprache (abschlussorientiert)'
+                        ? $hasAdditionalLine['Ranking'] . '. Fremdsprache (abschlussorientiert)' . ($hasSecondLanguageFoteNote ? '¹' : '')
                         : $hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
                         '{% if(Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
                                      {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }})
@@ -3172,14 +3173,15 @@ abstract class Certificate extends Extension
         $section = new Section();
         $section
             ->addElementColumn($elementName
-                , '32%')
-            ->addElementColumn((new Element())
-                ->setContent('Profil')
-                ->stylePaddingTop($paddingTop)
-                ->stylePaddingBottom($paddingBottom)
-                ->styleTextSize($TextSize)
-                ->styleAlignCenter()
-                , '7%')
+                , '38%')
+            ->addElementColumn((new Element()), '1%')
+//            ->addElementColumn((new Element())
+//                ->setContent('Profil')
+//                ->stylePaddingTop($paddingTop)
+//                ->stylePaddingBottom($paddingBottom)
+//                ->styleTextSize($TextSize)
+//                ->styleAlignCenter()
+//                , '7%')
             ->addElementColumn($elementGrade, '9%')
             ->addElementColumn((new Element()), '4%')
             ->addElementColumn($elementForeignName, '38%')
