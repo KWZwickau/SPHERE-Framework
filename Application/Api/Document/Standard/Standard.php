@@ -46,7 +46,7 @@ class Standard extends Extension implements IModuleInterface
             __NAMESPACE__.'/AccidentReport/Create', __CLASS__.'::createAccidentReportPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/TeacherAccidentReport/Create', __CLASS__.'::createTeacherAccidentReportPdf'
+            __NAMESPACE__.'/StaffAccidentReport/Create', __CLASS__.'::createStaffAccidentReportPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/PasswordChange/Create', __CLASS__.'::createPasswordChangePdf'
@@ -175,10 +175,10 @@ class Standard extends Extension implements IModuleInterface
         return Creator::createDataPdf($Data, 'AccidentReport', Creator::PAPERORIENTATION_PORTRAIT);
     }
 
-    public static function createTeacherAccidentReportPdf($Data = array())
+    public static function createStaffAccidentReportPdf($Data = array())
     {
 
-        return Creator::createDataPdf($Data, 'TeacherAccidentReport', Creator::PAPERORIENTATION_PORTRAIT);
+        return Creator::createDataPdf($Data, 'StaffAccidentReport', Creator::PAPERORIENTATION_PORTRAIT);
     }
 
 

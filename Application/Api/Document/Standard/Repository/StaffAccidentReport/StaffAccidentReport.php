@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Api\Document\Standard\Repository\TeacherAccidentReport;
+namespace SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -12,11 +12,11 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Common\Frontend\Text\Repository\Code;
 
 /**
- * Class TeacherAccidentReport
+ * Class StaffAccidentReport
  *
  * @package SPHERE\Application\Api\Document\Standard\Repository
  */
-class TeacherAccidentReport extends AbstractDocument
+class StaffAccidentReport extends AbstractDocument
 {
 
     /**

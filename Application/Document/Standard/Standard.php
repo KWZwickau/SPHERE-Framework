@@ -9,6 +9,9 @@
 namespace SPHERE\Application\Document\Standard;
 
 use SPHERE\Application\Document\Standard\AccidentReport\AccidentReport;
+use SPHERE\Application\Document\Standard\AccidentReport\AccidentReportTest;
+use SPHERE\Application\Document\Standard\StaffAccidentReport\AccidentReportTeacher;
+use SPHERE\Application\Document\Standard\StaffAccidentReport\StaffAccidentReport;
 use SPHERE\Application\Document\Standard\EnrollmentDocument\EnrollmentDocument;
 use SPHERE\Application\Document\Standard\SignOutCertificate\SignOutCertificate;
 use SPHERE\Application\Document\Standard\StudentCard\StudentCard;
@@ -32,6 +35,7 @@ class Standard implements IApplicationInterface
         EnrollmentDocument::registerModule();
         StudentCard::registerModule();
         AccidentReport::registerModule();
+        StaffAccidentReport::registerModule();
         StudentTransfer::registerModule();
         SignOutCertificate::registerModule();
 

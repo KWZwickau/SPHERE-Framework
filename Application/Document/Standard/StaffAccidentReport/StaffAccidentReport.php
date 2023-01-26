@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Document\Standard\TeacherAccidentReport;
+namespace SPHERE\Application\Document\Standard\StaffAccidentReport;
 
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -60,17 +61,17 @@ use SPHERE\System\Extension\Extension;
 
 
 /**
- * Class TeacherAccidentReport
+ * Class StaffAccidentReport
  *
- * @package SPHERE\Application\Document\Standard\TeacherAccidentReport
+ * @package SPHERE\Application\Document\Standard\StaffAccidentReport
  */
 
-class TeacherAccidentReport extends Extension
+class StaffAccidentReport extends Extension
 {
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unfallanzeige Lehrer'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unfallanzeige Mitarbeiter'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -86,10 +87,10 @@ class TeacherAccidentReport extends Extension
     public static function frontendSelectTeacher()
     {
 
-        $Stage = new Stage('Unfallanzeige', 'Lehrer auswählen');
+        $Stage = new Stage('Unfallanzeige', 'Mitarbeiter auswählen');
 
         $dataList = array();
-        if (($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))) {
+        if (($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF))) {
             if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                 array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$dataList) {
                     $Data['PersonId'] = $tblPerson->getId();
@@ -98,7 +99,6 @@ class TeacherAccidentReport extends Extension
                     $dataList[] = array(
                         'Name'     => $tblPerson->getLastFirstName(),
                         'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
                         'Option'   => new Standard('Erstellen', __NAMESPACE__.'/Fill', null,
                             array('Id' => $tblPerson->getId()))
 //                            .new External('Herunterladen',
@@ -121,7 +121,6 @@ class TeacherAccidentReport extends Extension
                                 array(
                                     'Name'     => 'Name',
                                     'Address'  => 'Adresse',
-                                    'Division' => 'Klasse',
                                     'Option'   => ''
                                 ),
                                 array(
@@ -382,7 +381,7 @@ class TeacherAccidentReport extends Extension
 
         $form = $this->formStudentTransfer();
 
-        $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
+        $HeadPanel = new Panel('Mitarbeiter', $tblPerson->getLastFirstName());
 
         $Stage->addButton(new External('Blanko Unfallanzeige herunterladen',
             'SPHERE\Application\Api\Document\Standard\AccidentReport\Create',
@@ -511,7 +510,7 @@ class TeacherAccidentReport extends Extension
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         new TextField('Data[LastFirstName]', 'Name, Vorname',
-                                                            new Sup(5).' Name, Vorname des Schülers/der Schülerin')
+                                                            new Sup(5).' Name, Vorname des Mitarbeiters/der Mitarbeiterin')
                                                         , 8),
                                                     new LayoutColumn(
                                                         new TextField('Data[Birthday]', 'Geburtstag',
@@ -794,7 +793,7 @@ class TeacherAccidentReport extends Extension
 //                    )
 //                ))
             ))
-            , new Primary('Download', new Download(), true), '\Api\Document\Standard\TeacherAccidentReport\Create'
+            , new Primary('Download', new Download(), true), '\Api\Document\Standard\StaffAccidentReport\Create'
         );
     }
 

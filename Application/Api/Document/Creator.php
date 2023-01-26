@@ -26,7 +26,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\MultiStudent
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\PrimarySchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\SecondarySchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
-use SPHERE\Application\Api\Document\Standard\Repository\TeacherAccidentReport\TeacherAccidentReport;
+use SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport\StaffAccidentReport;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
@@ -519,8 +519,8 @@ class Creator extends Extension
             if ($DocumentName == 'AccidentReport') {
                 $Document = new AccidentReport($Data);
             }
-            if ($DocumentName == 'TeacherAccidentReport'){
-                $Document = new TeacherAccidentReport($Data);
+            if ($DocumentName == 'StaffAccidentReport'){
+                $Document = new StaffAccidentReport($Data);
             }
             if ($Document) {
                 $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
