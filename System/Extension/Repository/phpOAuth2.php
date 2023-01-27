@@ -36,7 +36,7 @@ class phpOAuth2
             'clientSecret'            => 'HkpLEqKdrAROaXQ49AeSKB6wa96FXlqP',
             // the issuer of the identity token (id_token) this will be compared with what is returned in the token.
 //            'idTokenIssuer'           => 'Schulsoftware',
-            'idTokenIssuer'           => 'Test Landesportal',
+            'idTokenIssuer'           => 'https://aai-test.vidis.schule/auth/realms/vidis',
             // Your server
             'redirectUri'             => 'https://demo.schulsoftware.schule/Platform/Gatekeeper/OAuth2/Vidis',
             'urlAuthorize'            => 'https://aai-test.vidis.schule/auth/realms/vidis/protocol/openid-connect/auth',
@@ -71,6 +71,10 @@ lQIDAQAB
                 'code' => $_GET['code']
             ]);
         } catch (\OpenIDConnectClient\Exception\InvalidTokenException $e) {
+
+            echo "<pre>";
+            var_dump('Catch: '.$e->getMessage());
+            echo "</pre>";
             $errors = $provider->getValidatorChain()->getMessages();
             return new Listing($errors);
         }
@@ -81,12 +85,17 @@ lQIDAQAB
         $idToken        = $token->getIdToken();
 
         echo "<pre>";
-        print_r($token);
+        print_r('accessToken'.'<br/>');
         print_r($accessToken);
+        echo "</pre>";
+        echo "<pre>";
+        print_r('refreshToken'.'<br/>');
         print_r($refreshToken);
-        print_r($expires);
-        print_r($hasExpired);
-        print_r($idToken);
+        echo "</pre>";
+        echo "<pre>";
+        print_r('idToken'.'<br/>');
+        print_r($idToken->claims()->get('preferred_username').'<br/>');
+        print_r(gmdate('Y.m.d H:i:s', $idToken->claims()->get('auth_time')));
         echo "</pre>";
 
         return 'kommt bis zum Ende';
