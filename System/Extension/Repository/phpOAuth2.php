@@ -1,7 +1,19 @@
 <?php
 namespace SPHERE\System\Extension\Repository;
 
+use SPHERE\Application\Platform\Gatekeeper\Authentication\Authentication;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
+use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Window\Stage;
 
 class phpOAuth2
 {
@@ -78,26 +90,63 @@ lQIDAQAB
             $errors = $provider->getValidatorChain()->getMessages();
             return new Listing($errors);
         }
-        $accessToken    = $token->getToken();
-        $refreshToken   = $token->getRefreshToken();
-        $expires        = $token->getExpires();
         $hasExpired     = $token->hasExpired();
         $idToken        = $token->getIdToken();
 
-        echo "<pre>";
-        print_r('accessToken'.'<br/>');
-        print_r($accessToken);
-        echo "</pre>";
-        echo "<pre>";
-        print_r('refreshToken'.'<br/>');
-        print_r($refreshToken);
-        echo "</pre>";
-        echo "<pre>";
-        print_r('idToken'.'<br/>');
-        print_r($idToken->claims()->get('preferred_username').'<br/>');
-        print_r(gmdate('Y.m.d H:i:s', $idToken->claims()->get('auth_time')));
-        echo "</pre>";
+//        echo "<pre>";
+//        print_r('idToken'.'<br/>');
+//        print_r($idToken->claims()->get('preferred_username').'<br/>');
+//        print_r(gmdate('Y.m.d H:i:s', $idToken->claims()->get('auth_time')));
+//        echo "</pre>";
 
-        return 'kommt bis zum Ende';
+        $Stage = new Stage(new Nameplate().' Anmelden', '', 'demo.schulsoftware.schule');
+
+        $AccountMessage = '';
+        if($idToken && $hasExpired === false){
+            $UserName = $idToken->claims()->get('preferred_username');
+            $tblAccount = Account::useService()->getAccountByUsername($UserName);
+            if($tblAccount) {
+                if(($ExistSessionAccount = Account::useService()->getAccountBySession())){
+                    // is requested account the same like session account go to welcome
+                    if($tblAccount && $ExistSessionAccount->getId() == $tblAccount->getId()){
+                        $Stage->setContent(new Redirect('/', Redirect::TIMEOUT_SUCCESS));
+                        return $Stage;
+                    }
+                    // remove existing Session if User is not the same
+                    if($Session = session_id()){
+                        Account::useService()->destroySession(null, $Session);
+                    }
+                }
+
+                $tblIdentification = null;
+                if($tblAccount
+                    && ($tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount))){
+                    $tblIdentification = $tblAuthentication->getTblIdentification();
+                }
+
+                // Matching Account found?
+                if ($tblAccount && $tblIdentification) {
+                    // Anfragen von SAML müssen Cookies aktiviert haben
+                    $isCookieAvailable = true;
+                    switch ($tblIdentification->getName()) {
+                        case TblIdentification::NAME_AUTHENTICATOR_APP:
+                        case TblIdentification::NAME_TOKEN:
+                        case TblIdentification::NAME_SYSTEM:
+                            return Authentication::useFrontend()->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId(), null, $isCookieAvailable);
+                        case TblIdentification::NAME_CREDENTIAL:
+                        case TblIdentification::NAME_USER_CREDENTIAL:
+                            return Authentication::useFrontend()->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId(), 0, $isCookieAvailable);
+                    }
+                }
+            } else {
+                $AccountMessage = new Bold('"No SSW User"');
+            }
+        }
+
+        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
+            new LayoutColumn(new Warning('Ihr Login ist nicht möglich. '.$AccountMessage))
+        ))));
+
+        return $Stage;
     }
 }

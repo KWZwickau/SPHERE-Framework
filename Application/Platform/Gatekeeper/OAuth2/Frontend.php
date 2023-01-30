@@ -18,13 +18,6 @@ class Frontend
     public function frontendVidis()
     {
 
-//        echo "<pre>";
-//        print_r($_GET);
-//        echo "</pre>";
-
-        return
-            // '<script src="https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js"></script>'.
-            (new phpOAuth2())->getLoginProcess()
-            .'Nachgelagerter Kontent';
+        return (new phpOAuth2())->getLoginProcess();
     }
 }
