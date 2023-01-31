@@ -136,14 +136,35 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * $isSubjectCourseIgnore ignoriert Lerngruppen und SEKII-Kurse
+     *
      * @param TblYear|null $tblYear
      * @param string|null $TypeIdentifier
+     * @param bool $isSubjectCourseIgnore
      *
      * @return false|TblDivisionCourse[]
      */
-    public function getDivisionCourseListBy(TblYear $tblYear = null, ?string $TypeIdentifier = '')
+    public function getDivisionCourseListBy(TblYear $tblYear = null, ?string $TypeIdentifier = '', bool $isSubjectCourseIgnore = false)
     {
-        return (new Data($this->getBinding()))->getDivisionCourseListBy($tblYear, $TypeIdentifier);
+        $list = (new Data($this->getBinding()))->getDivisionCourseListBy($tblYear, $TypeIdentifier);
+        if ($isSubjectCourseIgnore && $list) {
+            $dataList = array();
+            foreach($list as $tblDivisionCourse) {
+                if (($identifier = $tblDivisionCourse->getType()->getIdentifier())
+                    && ($identifier == TblDivisionCourseType::TYPE_TEACHER_GROUP
+                        || $identifier == TblDivisionCourseType::TYPE_BASIC_COURSE
+                        || $identifier == TblDivisionCourseType::TYPE_ADVANCED_COURSE
+                    )
+                ) {
+                    continue;
+                }
+                $dataList[] = $tblDivisionCourse;
+            }
+
+            return empty($dataList) ? false : $dataList;
+        } else {
+            return $list;
+        }
     }
 
     /**
@@ -759,10 +780,11 @@ class Service extends ServiceTeacher
     /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
+     * @param bool $withTeacherGroup
      *
      * @return TblDivisionCourse[]|false
      */
-    public function getDivisionCourseListByDivisionTeacher(TblPerson $tblPerson, TblYear $tblYear)
+    public function getDivisionCourseListByDivisionTeacher(TblPerson $tblPerson, TblYear $tblYear, bool $withTeacherGroup = false)
     {
         $resultList = array();
         if (($tblMemberType = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
@@ -772,6 +794,10 @@ class Service extends ServiceTeacher
         ) {
             foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
                 if (($tblDivisionCourse = $tblDivisionCourseMember->getTblDivisionCourse())) {
+                    if (!$withTeacherGroup && $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
+                        continue;
+                    }
+
                     $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
                 }
             }

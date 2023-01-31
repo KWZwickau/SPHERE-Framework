@@ -63,7 +63,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
-abstract class FrontendTask extends FrontendScoreType
+abstract class FrontendTask extends FrontendStudentOverview
 {
     private function getHasHeadmasterRole(): bool
     {

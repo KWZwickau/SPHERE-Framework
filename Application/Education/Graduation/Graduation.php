@@ -27,8 +27,8 @@ class Graduation implements IApplicationInterface
     public static function registerApplication()
     {
 
-//        Gradebook::registerModule();
-//        Evaluation::registerModule();
+        Gradebook::registerModule();
+        Evaluation::registerModule();
         Grade::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
