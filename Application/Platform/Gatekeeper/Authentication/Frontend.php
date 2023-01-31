@@ -201,6 +201,14 @@ class Frontend extends Extension implements IFrontendInterface
                 if(Consumer::useService()->getConsumerLoginListByConsumer($tblConsumer)){
                     $isConsumerLogin = true;
                 }
+                // Vidis temporär Login auf der Demo-Version
+                if( strtolower($this->getRequest()->getHost()) == 'demo.schulsoftware.schule'
+                    || $this->getRequest()->getHost() == '192.168.202.230'
+                ){
+                    if($tblConsumer->getAcronym() == 'DEMO'){
+                        $isConsumerLogin = true;
+                    }
+                }
             }
         }
 
@@ -430,20 +438,17 @@ class Frontend extends Extension implements IFrontendInterface
             )));
         } elseif( strtolower($this->getRequest()->getHost()) == 'demo.schulsoftware.schule'
         || $this->getRequest()->getHost() == '192.168.202.230'
-        || $this->getRequest()->getHost() == '192.168.37.128'
-        || $this->getRequest()->getHost() == '192.168.150.128'
         ){
+            // Vidis temporär Login auf der Demo-Version
             $Form.= new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
                     '<br/><br/><br/><br/>',
                     new Title('Anmeldung Vidis Demo'),
                         (new PrimaryLink('Login', '/Platform/Gatekeeper/OAuth2/OAuthSite'))->setExternal()
-//                    .'<script>https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js</script>'
                     .'<script src="https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js"></script>'
 //                    // size L/M/S
 //                    // cookie = "true" (zum testen erstmal false)
-                    .'<vidis-login size = "L" cookie = "false" kc_idp_hint="Test Landesportal" vidis_idp_hint="Test Landesportal"
-                        loginurl="http://demo.schulsoftware.schule/Platform/Gatekeeper/OAuth2/OAuthSite"></vidis-login>'
+                    .'<vidis-login Size = "L" cookie = "true" loginurl="http://demo.schulsoftware.schule/Platform/Gatekeeper/OAuth2/OAuthSite"></vidis-login>'
                 ))
             )));
         }
