@@ -25,6 +25,16 @@ class Evaluation implements IModuleInterface
             __NAMESPACE__ . '/TaskGradesHead/Download',
             __CLASS__ . '::downloadTaskGradesHead'
         ));
+
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/TaskGradesTeacher/Download',
+            __CLASS__ . '::downloadTaskGradesTeacher'
+        ));
+
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/TaskGradesTeacherHead/Download',
+            __CLASS__ . '::downloadTaskGradesTeacherHead'
+        ));
     }
 
     public static function useService()
@@ -58,6 +68,44 @@ class Evaluation implements IModuleInterface
     }
 
     public static function downloadTaskGradesHead($Id = null, $DivisionId = null): string
+    {
+
+        $tblTask = EvaluationApp::useService()->getTaskById($Id);
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblTask && $tblDivision) {
+            list($tableHeader, $tableContent) = EvaluationApp::useService()->getStudentGrades($tblTask, $tblDivision);
+
+            if ($tableHeader && $tableContent) {
+                // Excel-Datei mit Kopfnotenübersicht erstellen
+                $fileLocation = EvaluationApp::useService()->generateTaskGradesExcelHead($tableHeader, $tableContent);
+                // Download-Link für Excel-Datei erstellen
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Kopfnotenübersicht " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+            }
+        }
+        return 'Keine Daten vorhanden';
+    }
+
+    public static function downloadTaskGradesTeacher($Id = null, $DivisionId = null): string
+    {
+
+        $tblTask = EvaluationApp::useService()->getTaskById($Id);
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblTask && $tblDivision) {
+            list($tableHeader, $tableContent) = EvaluationApp::useService()->getStudentGrades($tblTask, $tblDivision);
+
+            if ($tableHeader && $tableContent) {
+                // Excel-Datei mit Kopfnotenübersicht erstellen
+                $fileLocation = EvaluationApp::useService()->generateTaskGradesExcel($tableHeader, $tableContent);
+                // Download-Link für Excel-Datei erstellen
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Notenübersicht " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+            }
+        }
+        return 'Keine Daten vorhanden';
+    }
+
+    public static function downloadTaskGradesTeacherHead($Id = null, $DivisionId = null): string
     {
 
         $tblTask = EvaluationApp::useService()->getTaskById($Id);

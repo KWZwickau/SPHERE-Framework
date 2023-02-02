@@ -99,6 +99,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
@@ -3305,18 +3306,13 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-        $button = new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Education/Graduation/Evaluation/TaskGrades/Download',
-            new Download(), array(
-                'Id'         => $tblTask->getId(),
-                'DivisionId' => $tblCurrentDivision->getId())
-        );
-        if(($tblTestType = $tblTask->getTblTestType()) && $tblTestType->getIdentifier() == TblTestType::BEHAVIOR_TASK){
-            $button = new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Education/Graduation/Evaluation/TaskGradesHead/Download',
-                new Download(), array(
-                    'Id'         => $tblTask->getId(),
-                    'DivisionId' => $tblCurrentDivision->getId())
-            );
-        }
+        $tblTestType = $tblTask->getTblTestType();
+        $path = $tblTestType && $tblTestType->getIdentifier() == TblTestType::BEHAVIOR_TASK ?
+            '/Api/Education/Graduation/Evaluation/TaskGradesTeacherHead/Download' :
+            '/Api/Education/Graduation/Evaluation/TaskGradesTeacher/Download';
+        $button = new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', $path, new Download(),
+            array('Id' => $tblTask->getId(), 'DivisionId' => $tblCurrentDivision->getId()));
+
         list($tableHeader, $tableContent) = Evaluation::useService()->getStudentGrades($tblTask, $tblCurrentDivision);
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
@@ -3381,7 +3377,6 @@ class Frontend extends Extension implements IFrontendInterface
         $studentList,
         $tableList
     ) {
-
         $gradeList = array();
         $taskDate = new DateTime($tblTask->getDate());
         foreach ($divisionList as $divisionId => $testList) {
@@ -3494,8 +3489,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 $sum += $grade;
                             }
                             $count = count($gradeArray);
-                            $studentList[$divisionId][$personId]['Average'] = $count  > 0
-                                ? round($sum / $count, 2 ) : '';
+                            $studentList[$divisionId][$personId]['Average'] = $count > 0
+                                ? round($sum / $count, 2) : '';
                         }
                     }
 
@@ -3504,8 +3499,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $studentList[$tblDivision->getId()][0]['Name'] = new Muted('&#216; Fach-Klasse');
                     foreach ($averageGradeList as $subjectId => $grades) {
                         $countGrades = count($grades);
-                        $studentList[$tblDivision->getId()][0]['Subject' . $subjectId] = $countGrades  > 0
-                            ? round(array_sum($grades) / $countGrades, 2 ) : '';
+                        $studentList[$tblDivision->getId()][0]['Subject' . $subjectId] = $countGrades > 0
+                            ? round(array_sum($grades) / $countGrades, 2) : '';
                     }
                 } else {
 
@@ -3584,7 +3579,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($showProposalBehaviorGrade) {
                                             $proposalGrade = new Warning(new Bold('f'));
                                             if (($tblProposalBehaviorGrade = Gradebook::useService()->getProposalBehaviorGrade(
-                                                $tblDivision, $tblTask, $tblGradeType, $tblPerson
+                                                    $tblDivision, $tblTask, $tblGradeType, $tblPerson
                                                 )) && $tblProposalBehaviorGrade->getDisplayGrade() !== ''
                                             ) {
                                                 $proposalGrade = new Bold($tblProposalBehaviorGrade->getDisplayGrade());
@@ -3608,6 +3603,13 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+        $tblTestType = $tblTask->getTblTestType();
+        $path = $tblTestType && $tblTestType->getIdentifier() == TblTestType::BEHAVIOR_TASK ?
+            '/Api/Education/Graduation/Evaluation/TaskGradesTeacherHead/Download' :
+            '/Api/Education/Graduation/Evaluation/TaskGradesTeacher/Download';
+        $button = new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', $path, new Download(),
+            array('Id' => $tblTask->getId(), 'DivisionId' => $tblDivision->getId()));
+
         if (!empty($tableHeaderList)) {
             foreach ($tableHeaderList as $divisionId => $tableHeader) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
@@ -3617,9 +3619,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(
                                 new LayoutColumn(array(
                                     new Title('Klasse', $tblDivision->getDisplayName()),
-                                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Education/Graduation/Evaluation/TaskGrades/Download',
-                                        new Download(), array('DivisionId' => $tblDivision->getId())
-                                    ),
+                                    $button,
                                     new TableData(
                                         isset($studentList[$tblDivision->getId()]) ? $studentList[$tblDivision->getId()] : array(),
                                         null,
@@ -3821,6 +3821,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Notenauftrag', 'Zensurenübersicht');
+        $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
 
         $tblTask = false;
 
@@ -3842,7 +3844,6 @@ class Frontend extends Extension implements IFrontendInterface
                 new ChevronLeft(), array('IsAllYears' => $IsAllYears)
             )
         );
-
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {

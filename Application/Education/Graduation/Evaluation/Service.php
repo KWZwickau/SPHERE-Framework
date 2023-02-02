@@ -605,10 +605,14 @@ class Service extends AbstractService
             if (!isset($tableContent[$tblPerson->getId()]['Type' . $gradeTypeId])) {
                 $tableContent[$tblPerson->getId()]
                 ['Type' . $gradeTypeId] = new Small(new Small($gradeText));
+                $tableContent[$tblPerson->getId()]
+                ['GradeType' . $gradeTypeId][$tblSubject->getAcronym()] = strip_tags($gradeText);
                 return array($tableContent, $grades);
             } else {
                 $tableContent[$tblPerson->getId()]
                 ['Type' . $gradeTypeId] .= new Small(new Small(' | ' . $gradeText));
+                $tableContent[$tblPerson->getId()]
+                ['GradeType' . $gradeTypeId][$tblSubject->getAcronym()] = strip_tags($gradeText);
                 return array($tableContent, $grades);
             }
         }
@@ -653,17 +657,24 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($Column++, $Row), $tableRow['Number']);
                 $export->setValue($export->getCell($Column++, $Row), $tableRow['FirstName']);
                 $export->setValue($export->getCell($Column++, $Row), $tableRow['LastName']);
-                foreach ($tableHeader as $SubjectKey => $Value) {
-                    if (strpos($SubjectKey, 'Type') !== false) {
-                        if (isset($tableRow[$SubjectKey])) {
-                            $export->setValue($export->getCell($Column, $Row), strip_tags($tableRow[$SubjectKey]));
-                        }
-                        // Trennstrich pro Fach
-                            $export->setStyle($export->getCell($Column, $Row), $export->getCell($Column, $Row))
-                                ->setBorderLeft();
-                        $Column++;
+                $MaxColumn = $Column;
+
+                foreach ($tableRow as $SubjectKey => $PersonGradeList) {
+                    if (strpos($SubjectKey, 'GradeType') === false) {
+                        continue;
                     }
+                    $GradesColumn = $Column;
+                    foreach ($PersonGradeList as $Acronym => $GradeText) {
+                        $export->setValue($export->getCell($GradesColumn++, $Row), $GradeText);
+                    }
+                    if ($MaxColumn < $GradesColumn) {
+                        $MaxColumn = $GradesColumn;
+                    }
+                    #$export->setStyle($export->getCell($Column, $Row), $export->getCell($Column, $Row))
+                    #    ->setBorderLeft();
+                    #$GradesColumn++;
                 }
+                $Column = $MaxColumn;
             }
             // set column width
             $widths = [3,11,15,95,95,95,95];
@@ -765,6 +776,7 @@ class Service extends AbstractService
         }
         return false;
     }
+
     /**
      * @param IFormInterface|null $Stage
      * @param null $DivisionSubjectId
