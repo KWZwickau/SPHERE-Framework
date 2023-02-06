@@ -958,10 +958,8 @@ abstract class EzshStyle extends Certificate
                 }
             }
 
-            // aktuell immer anzeigen
-//            if ($elementOrientationName || $elementForeignLanguageName) {
-            $section = new Section();
             if($isProfile){
+                $section = new Section();
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('Schulspezifisches Profil ab Klasse 8:')
@@ -971,20 +969,8 @@ abstract class EzshStyle extends Certificate
                         ->styleFontFamily(self::FONT_FAMILY_BOLD)
                         ->styleLineHeight(self::LINE_HEIGHT)
                     );
-            } else {
-                $section
-                    ->addElementColumn((new Element())
-                        ->setContent('Wahlpflichtbereich:')
-                        ->styleTextBold()
-                        ->styleMarginTop('10px')
-                        ->styleTextSize($TextSize)
-                        ->styleFontFamily(self::FONT_FAMILY_BOLD)
-                        ->styleLineHeight(self::LINE_HEIGHT)
-                    );
+                $sectionList[] = $section;
             }
-
-            $sectionList[] = $section;
-//            }
 
             if ($elementObligationName) {
                 $section = new Section();
@@ -1008,7 +994,8 @@ abstract class EzshStyle extends Certificate
                 } else {
                     $section
                         ->addElementColumn((new Element())
-                            ->setContent('2. Fremdsprache ab Klasse 6')
+//                            ->setContent('2. Fremdsprache ab Klasse 6')
+                            ->setContent('2. Fremdsprache (abschlussorientiert)')
                             ->styleBorderTop('1px', '#BBB')
                             ->styleMarginTop('0px')
                             ->stylePaddingTop()
@@ -1057,13 +1044,14 @@ abstract class EzshStyle extends Certificate
                 } else {
                     $section
                         ->addElementColumn((new Element())
-                            ->setContent('2. Fremdsprache ab Klasse
-                        {% if ' . $Level . ' == false %}
-                            6
-                        {% else %}
-                            ' . $Level . '
-                        {% endif %}
-                        ')
+//                            ->setContent('2. Fremdsprache ab Klasse
+//                                {% if ' . $Level . ' == false %}
+//                                    6
+//                                {% else %}
+//                                    ' . $Level . '
+//                                {% endif %}
+//                            ')
+                            ->setContent('2. Fremdsprache (abschlussorientiert)')
                             ->styleBorderTop('1px', '#BBB')
                             ->stylePaddingTop()
                             ->styleTextSize('13px')
@@ -1128,13 +1116,14 @@ abstract class EzshStyle extends Certificate
                 } else {
                     $section
                         ->addElementColumn((new Element())
-                            ->setContent('2. Fremdsprache ab Klasse'
-                                . '{% if ' . $Level . ' == false %}
-                                    6
-                                {% else %}
-                                    ' . $Level . '
-                                {% endif %}'
-                            )
+//                            ->setContent('2. Fremdsprache ab Klasse'
+//                                . '{% if ' . $Level . ' == false %}
+//                                    6
+//                                {% else %}
+//                                    ' . $Level . '
+//                                {% endif %}'
+//                            )
+                            ->setContent('2. Fremdsprache (abschlussorientiert)')
                             ->styleBorderTop('1px', '#BBB')
                             ->stylePaddingTop()
                             ->styleTextSize('13px')
@@ -1214,7 +1203,8 @@ abstract class EzshStyle extends Certificate
                 $section = new Section();
                 $section
                     ->addElementColumn((new Element())
-                        ->setContent('2. Fremdsprache ab Klasse 6')
+//                        ->setContent('2. Fremdsprache ab Klasse 6')
+                        ->setContent('2. Fremdsprache (abschlussorientiert)')
                         ->styleBorderTop('1px', '#BBB')
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
