@@ -2492,8 +2492,8 @@ abstract class BfsStyle extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('
                             {% if(Content.P' . $personId . '.Input.Subarea' . $i . ' is not empty) %}
-                                {{ Content.P' . $personId . '.Input.Subarea' . $i . ' }}
-                                , dauer der Ausbildung 
+                                {{ Content.P' . $personId . '.Input.Subarea' . $i . ' }},
+                                Dauer der Ausbildung 
                                 {% if(Content.P' . $personId . '.Input.SubareaTimeH' . $i . ' is not empty) %}
                                     {{ Content.P' . $personId . '.Input.SubareaTimeH' . $i . ' }}
                                 {% else %}
