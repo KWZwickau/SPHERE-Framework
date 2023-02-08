@@ -760,7 +760,7 @@ class Service extends AbstractService
                         if (isset($tableRow[$SubjectKey . 'Grade'])) {
                             $export->setValue($export->getCell($Column, $Row), $tableRow[$SubjectKey . 'Grade']);
                         }
-                        // Trennstrich pro Fach
+                            // Trennstrich pro Fach
                         if($Row != $count)
                         {
                             $export->setStyle($export->getCell($Column, $Row), $export->getCell($Column, $Row))
