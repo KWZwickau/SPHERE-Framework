@@ -1553,19 +1553,19 @@ abstract class BfsStyle extends Certificate
                 , '60%'
             )
             ->addElementColumn((new Element())
-                ->setContent('Dauer gesamt:
-                {% set WeekCount = 0 %}
-                    {% if(Content.P' . $personId . '.Input.OperationTime1 is not empty) %}
-                        {%set WeekCount = WeekCount + Content.P' . $personId . '.Input.OperationTime1|replace({"," : "."} ) %}
+                ->setContent("Dauer gesamt:
+                    {% set WeekCount = 0 %}
+                    {% if(Content.P" . $personId . ".Input.OperationTime1 is not empty) and (Content.P" . $personId . ".Input.OperationTime1 matches '/^\\d+$/') %}
+                        {%set WeekCount = WeekCount + Content.P" . $personId . ".Input.OperationTime1|replace({',' : '.'} ) %}
                     {% endif %}
-                    {% if(Content.P' . $personId . '.Input.OperationTime2 is not empty) %}
-                        {%set WeekCount = WeekCount + Content.P' . $personId . '.Input.OperationTime2|replace({"," : "."} ) %}
+                    {% if(Content.P" . $personId . ".Input.OperationTime2 is not empty) and (Content.P" . $personId . ".Input.OperationTime1 matches '/^\\d+$/') %}
+                        {%set WeekCount = WeekCount + Content.P" . $personId . ".Input.OperationTime2|replace({',' : '.'} ) %}
                     {% endif %}
-                    {% if(Content.P' . $personId . '.Input.OperationTime3 is not empty) %}
-                        {%set WeekCount = WeekCount + Content.P' . $personId . '.Input.OperationTime3|replace({"," : "."} ) %}
+                    {% if(Content.P" . $personId . ".Input.OperationTime3 is not empty) and (Content.P" . $personId . ".Input.OperationTime1 matches '/^\\d+$/') %}
+                        {%set WeekCount = WeekCount + Content.P" . $personId . ".Input.OperationTime3|replace({',' : '.'} ) %}
                     {% endif %}
-                  {{ WeekCount|replace({"." : ","}) }}
-                  Wochen')
+                    {{ WeekCount|replace({',' : '.'}) }}
+                  Wochen")
                 ->stylePaddingTop('10px')
                 ->styleAlignRight()
                 ->stylePaddingRight('15px')
