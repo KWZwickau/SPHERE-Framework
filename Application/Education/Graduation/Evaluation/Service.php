@@ -413,6 +413,8 @@ class Service extends AbstractService
                                             new Bold('Ø ' . $average
                                                  . ' | ') . $rowList['Type' . $gradeTypeId];
                                         $tableContent[$personId]['AverageExcel' . $gradeTypeId] = 'Ø ' . $average;
+                                    } else {
+                                        $tableContent[$personId]['AverageExcel' . $gradeTypeId] = 'Ø ';
                                     }
                                 }
                             }
@@ -615,6 +617,8 @@ class Service extends AbstractService
                 ['Type' . $gradeTypeId] .= new Small(new Small(' | ' . $gradeText));
                 $tableContent[$tblPerson->getId()]
                 ['GradeType' . $gradeTypeId][$tblSubject->getAcronym()] = strip_tags($gradeText);
+                ksort($tableContent[$tblPerson->getId()]
+                ['GradeType' . $gradeTypeId]);
                 return array($tableContent, $grades);
             }
         }
@@ -643,12 +647,14 @@ class Service extends AbstractService
             unset($tableHeader['Number']);
             unset($tableHeader['Name']);
             $maxCount = 0;
-            // Sortieren nach GradeType
-            foreach ($tableContent as $Grades) {
-                $gradeType = $Grades['GradeType1'];
-                $count = count($gradeType);
-                if ($count > $maxCount) {
-                    $maxCount = $count;
+            foreach ($tableContent as $columnList) {
+                foreach ($columnList as $subjectAcronym => $gradeList) {
+                    if (strpos($subjectAcronym, 'GradeType') !== false) {
+                        $count = count($gradeList);
+                        if ($count > $maxCount) {
+                            $maxCount = $count;
+                        }
+                    }
                 }
             }
             // Header verbinden
@@ -674,29 +680,20 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($Column++, $Row), $tableRow['Number']);
                 $export->setValue($export->getCell($Column++, $Row), $tableRow['FirstName']);
                 $export->setValue($export->getCell($Column++, $Row), $tableRow['LastName']);
-//                $maxColumn = $Column;
-//                $gradesColumn = $Column;
-
-//                        Debugger::screenDump($tableRow);
-//                        exit;
                 foreach ($tableRow as $subjectKey => $personGradeList) {
                     if (strpos($subjectKey, 'GradeType') !== false) {
                         $gradeTypeId = str_replace('GradeType', '', $subjectKey);
                         if (isset($tableRow['AverageExcel' . $gradeTypeId])) {
                             $export->setValue($export->getCell($Column++, $Row), $tableRow['AverageExcel' . $gradeTypeId]);
+                            $export->setStyle($export->getCell($Column-1, $Row), $export->getCell($Column, $Row))
+                                ->setBorderLeft();
                         }
-                        foreach ($personGradeList as $Acronym => $gradeText) {
+                        foreach ($personGradeList as $gradeText) {
                             $export->setValue($export->getCell($Column++, $Row), $gradeText);
                         }
                     }
-//                    if ($maxColumn < $gradesColumn) {
-//                        $maxColumn = $gradesColumn;
-//                    }
                 }
-//                $Column = $maxColumn;
             }
-            $export->setStyle($export->getCell($Column, $Row), $export->getCell($Column, $Row))
-                ->setBorderLeft();
             // set column width
             $widths = [3, 11, 15];
             for ($i = 0; $i < $Column; $i++) {
