@@ -382,14 +382,18 @@ class StaffAccidentReport extends Extension
                                                             new Sup(10).' Staatsangehörigkeit')
                                                         , 6),
                                                     new LayoutColumn(
-                                                        new PullClear(new Bold(new Sup(11).' Leiharbeitnehmer/in?')).
+                                                        new TextField('Data[HealthInsurance]', 'Krankenkasse',
+                                                            new Sup(11).' Krankenkasse')
+                                                        , 6),
+                                                    new LayoutColumn(
+                                                        new PullClear(new Bold(new Sup(12).' Leiharbeitnehmer/in?')).
                                                         new PullLeft(new CheckBox('Data[TemporaryWorkYes]',
                                                             'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true)).
                                                         new PullLeft(new CheckBox('Data[TemporaryWorkNo]',
                                                             'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
                                                         , 3),
                                                     new LayoutColumn(
-                                                        new PullClear(new Bold(new Sup(12).' Auszubildender?')).
+                                                        new PullClear(new Bold(new Sup(13).' Auszubildender?')).
                                                         new PullLeft(new CheckBox('Data[ApprenticeYes]',
                                                             'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true)).
                                                         new PullLeft(new CheckBox('Data[ApprenticeNo]',
@@ -404,7 +408,7 @@ class StaffAccidentReport extends Extension
                                                 new LayoutRow(
                                                     new LayoutColumn(
                                                         new TextField('Data[ContinuePayment]', '',
-                                                        new Sup(13). ' Anspruch auf Entgeltfortzahlung in Wochen:')
+                                                        new Sup(14). ' Anspruch auf Entgeltfortzahlung in Wochen:')
                                                     , 6),
                                                 )
                                             ))
@@ -418,7 +422,7 @@ class StaffAccidentReport extends Extension
                                             new LayoutGroup(array(
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new PullClear(new Bold(new Sup(14).' Tödlicher Unfall?')).
+                                                        new PullClear(new Bold(new Sup(15).' Tödlicher Unfall?')).
                                                         new PullLeft(new CheckBox('Data[DeathAccidentYes]',
                                                             'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true)).
                                                         new PullLeft(new CheckBox('Data[DeathAccidentNo]',
@@ -427,46 +431,46 @@ class StaffAccidentReport extends Extension
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentDate]',
                                                             (new DateTime())->format('d.m.Y'),
-                                                            new Sup(15).' Datum des Unfalls')
+                                                            new Sup(16).' Datum des Unfalls')
                                                         , 3),
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentHour]', 'Stunde',
-                                                            new Sup(15).' Stunde Unfallzeitpunkt')
+                                                            new Sup(16).' Stunde Unfallzeitpunkt')
                                                         , 3),
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentMinute]', 'Minute',
-                                                            new Sup(15).' Minute Unfallzeitpunkt')
+                                                            new Sup(16).' Minute Unfallzeitpunkt')
                                                         , 3),
                                                 )),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentPlace]', 'Ort',
-                                                            new Sup(16).' Unfallort')
+                                                            new Sup(17).' Unfallort')
                                                         , 6),
                                                     new LayoutColumn(
                                                         new TextField('Data[WorkAtAccident]', 'Beschäftigung',
-                                                            new Sup(17).' Zum Unfallzeitpunkt beschäftigt als:')
+                                                            new Sup(18).' Zum Unfallzeitpunkt beschäftigt als:')
                                                         , 3),
                                                     new LayoutColumn(
                                                         new TextField('Data[LocationSince]', 'Tätigkeit',
-                                                            new Sup(18).' Seit wann in dieser Tätigkeit?')
+                                                            new Sup(19).' Seit wann in dieser Tätigkeit?')
                                                         , 3),
                                                 )),
                                                 new LayoutRow(
                                                     new LayoutColumn(
                                                         new TextField('Data[WorkArea]', 'Teil des Unternehmens',
-                                                            new Sup(19).' In welchem Teil des Unternehmens tätig')
+                                                            new Sup(20).' In welchem Teil des Unternehmens tätig')
                                                     , 6),
                                                 ),
                                                 new LayoutRow(
                                                     new LayoutColumn(
                                                         new TextArea('Data[AccidentDescription]', 'Beschreibung',
-                                                            new Sup(20).' Ausführliche Beschreibung des Unfallhergangs')
+                                                            new Sup(21).' Ausführliche Beschreibung des Unfallhergangs')
                                                     )
                                                 ),
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        new PullLeft(new Header(new Bold(new Sup(20).' Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;')))
+                                                        new PullLeft(new Header(new Bold(new Sup(21).' Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;')))
                                                         .new Container(
                                                             new PullLeft(new CheckBox('Data[DescriptionActive]',
                                                                 'des Versicherten &nbsp;&nbsp;&nbsp;&nbsp;'
@@ -486,11 +490,11 @@ class StaffAccidentReport extends Extension
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentBodyParts]',
                                                             'Kopf, Bein, Arm, etc.',
-                                                            new Sup(21).' Verletzte Körperteile')
+                                                            new Sup(22).' Verletzte Körperteile')
                                                         , 6),
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentType]', 'Art',
-                                                            new Sup(22).' Art der Verletzung')
+                                                            new Sup(23).' Art der Verletzung')
                                                         , 6),
                                                 )),
                                                 new LayoutRow(
@@ -500,7 +504,7 @@ class StaffAccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Bold(new Sup(23).' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
+                                                        new Bold(new Sup(24).' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
                                                         .new PullClear(
                                                             new PullLeft(new CheckBox('Data[BreakNo]',
                                                                 'nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
@@ -527,7 +531,7 @@ class StaffAccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Bold(new Sup(24).' Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
+                                                        new Bold(new Sup(25).' Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
                                                         .new PullClear(
                                                             new PullLeft(new CheckBox('Data[ReturnNo]',
                                                                 'nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
@@ -538,7 +542,7 @@ class StaffAccidentReport extends Extension
                                                     new LayoutColumn(
                                                         new TextField('Data[ReturnDate]',
                                                             (new DateTime())->format('d.m.Y'),
-                                                            new Sup(25).' Datum der Wiederaufnahme')
+                                                            new Sup(26).' Datum der Wiederaufnahme')
                                                         , 3),
                                                 )),
                                                 new LayoutRow(
@@ -549,10 +553,10 @@ class StaffAccidentReport extends Extension
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         new TextField('Data[WitnessInfo]', 'Name, Vorname Adresse',
-                                                            new Sup(26).' Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift von Zeugen)')
+                                                            new Sup(27).' Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift von Zeugen)')
                                                         , 9),
                                                     new LayoutColumn(
-                                                        new Bold( new Sup(27).' War diese Person Augenzeuge?')
+                                                        new Bold( new Sup(28).' War diese Person Augenzeuge?')
                                                         .new PullClear(
                                                             new PullLeft(new CheckBox('Data[EyeWitnessYes]',
                                                                 'ja &nbsp;&nbsp;&nbsp;&nbsp;', true))
@@ -569,17 +573,17 @@ class StaffAccidentReport extends Extension
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         new TextField('Data[Doctor]', 'Name',
-                                                            new Sup(28).' Name des erstbehandelnden Arztes / Krankenhaus')
+                                                            new Sup(29).' Name des erstbehandelnden Arztes / Krankenhaus')
                                                         .new TextField('Data[DoctorAddress]', 'Adresse',
-                                                            new Sup(28).' Adresse des erstbehandelnden Arztes / Krankenhaus')
+                                                            new Sup(29).' Adresse des erstbehandelnden Arztes / Krankenhaus')
                                                         , 6),
                                                     new LayoutColumn(
-                                                        new Header(new Bold(new Sup(29).' Beginn des Besuchs der Einrichtung'))
+                                                        new Header(new Bold(new Sup(30).' Beginn des Besuchs der Einrichtung'))
                                                         .new TextField('Data[LocalStartHour]', 'Stunde', 'Stunde')
                                                         .new TextField('Data[LocalStartMinute]', 'Minute', 'Minute')
                                                         , 3),
                                                     new LayoutColumn(
-                                                        new Header(new Bold(new Sup(30).' Ende des Besuchs der Einrichtung'))
+                                                        new Header(new Bold(new Sup(31).' Ende des Besuchs der Einrichtung'))
                                                         .new TextField('Data[LocalEndHour]', 'Stunde', 'Stunde')
                                                         .new TextField('Data[LocalEndMinute]', 'Minute', 'Minute')
                                                         , 3),

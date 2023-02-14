@@ -122,6 +122,7 @@ class StaffAccidentReport extends AbstractDocument
         $this->FieldValue['WorkAtAccident'] = (isset($DataPost['WorkAtAccident']) && $DataPost['WorkAtAccident'] != '' ? $DataPost['WorkAtAccident'] : '&nbsp;');
         $this->FieldValue['LocationSince'] = (isset($DataPost['LocationSince']) && $DataPost['LocationSince'] != '' ? $DataPost['LocationSince'] : '&nbsp;');
         $this->FieldValue['WorkArea'] = (isset($DataPost['WorkArea']) && $DataPost['WorkArea'] != '' ? $DataPost['WorkArea'] : '&nbsp;');
+        $this->FieldValue['HealthInsurance'] = (isset($DataPost['HealthInsurance']) && $DataPost['HealthInsurance'] != '' ? $DataPost['HealthInsurance'] : '&nbsp;');
         // last line
         $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
         $this->FieldValue['LocalLeader'] = (isset($DataPost['LocalLeader']) && $DataPost['LocalLeader'] != '' ? $DataPost['LocalLeader'] : '&nbsp;');
@@ -185,7 +186,7 @@ class StaffAccidentReport extends AbstractDocument
             ->addPage((new Page())
                 ->addSlice((new Slice())
                     ->styleBorderAll()
-                    ->styleHeight('932px')
+                    ->styleHeight('1000px')
                     ->addSection((new Section())
                         ->addSliceColumn((new Slice())
                             ->addElement((new Element())
@@ -605,7 +606,7 @@ class StaffAccidentReport extends AbstractDocument
                             , '35%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent($this->FieldValue['AddressPLZ'])
+                            ->setContent($this->FieldValue['HealthInsurance'])
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             ->styleBorderBottom()
