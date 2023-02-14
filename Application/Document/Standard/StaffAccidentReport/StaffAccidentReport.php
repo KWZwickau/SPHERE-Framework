@@ -185,108 +185,6 @@ class StaffAccidentReport extends Extension
                 }
             }
 
-            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-            if ($tblStudent) {
-                // Schuldaten der Schule des Schülers
-                $tblCompanySchool = Student::useService()->getCurrentSchoolByPerson($tblPerson);
-                $tblType = false;
-
-                // Schulart über Klasse in der der Schüler aktuell ist
-                $tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson);
-                if($tblDivision && ($tblLevel = $tblDivision->getTblLevel())){
-                    $tblType = $tblLevel->getServiceTblType();
-                }
-                // Unternehmensnummer wird sofern möglich und vorhanden aus den Mandantenschulen gezogen
-                // und überschreibt damit die Unternehmensnummer der Schulträger
-                if($tblType){
-                    // Schule aus Mandanteneinstellung mit Schulart
-                    if(($tblSchoolList = School::useService()->getSchoolByType($tblType))){
-                        // bei einer Schule kann diese genommen werden. (Normalfall)
-                        if(count($tblSchoolList) == 1){
-                            $tblSchool = current($tblSchoolList);
-                            // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
-                            if($tblSchool->getCompanyNumber() != ''){
-                                $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
-                            }
-                        } else {
-                            // mehr als eine Schule mit gleicher Schulart
-                            if(($tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompanySchool, $tblType))){
-                                if($tblSchool){
-                                    // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
-                                    if($tblSchool->getCompanyNumber() != '') {
-                                        $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                if ($tblCompanySchool) {
-                    $Global->POST['Data']['School'] = $tblCompanySchool->getName();
-                    $Global->POST['Data']['SchoolExtended'] = $tblCompanySchool->getExtendedName();
-                    $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
-                    if ($tblAddressSchool) {
-                        $Global->POST['Data']['SchoolAddressStreet'] = $tblAddressSchool->getStreetName().', '.$tblAddressSchool->getStreetNumber();
-                        $tblCitySchool = $tblAddressSchool->getTblCity();
-                        if ($tblCitySchool) {
-                            $Global->POST['Data']['SchoolAddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
-                        }
-                    }
-
-                    $tblToPersonList = Phone::useService()->getPhoneAllByCompany($tblCompanySchool);
-                    $tblToPersonPhoneList = array();
-                    $tblToPersonFaxList = array();
-                    if ($tblToPersonList) {
-                        foreach ($tblToPersonList as $tblToPerson) {
-                            if ($tblType = $tblToPerson->getTblType()) {
-                                $TypeName = $tblType->getName();
-                                $TypeDescription = $tblType->getDescription();
-                                if (($TypeName == 'Privat' || $TypeName == 'Geschäftlich') && $TypeDescription == 'Festnetz') {
-                                    $tblToPersonPhoneList[] = $tblToPerson;
-                                }
-                                if ($TypeName == 'Fax') {
-                                    $tblToPersonFaxList[] = $tblToPerson;
-                                }
-                            }
-                        }
-                        if (!empty($tblToPersonPhoneList)) {
-                            /** @var TblToPersonPhone $tblPersonToPhone */
-                            $tblPersonToPhone = current($tblToPersonPhoneList);
-                            $tblPhone = $tblPersonToPhone->getTblPhone();
-                            if ($tblPhone) {
-                                $Global->POST['Data']['Phone'] = $tblPhone->getNumber();
-                            }
-                        }
-                        if (!empty($tblToPersonFaxList)) {
-                            /** @var TblToPersonPhone $tblPersonToFax */
-                            $tblPersonToFax = current($tblToPersonFaxList);
-                            $tblPhoneFax = $tblPersonToFax->getTblPhone();
-                            if ($tblPhoneFax) {
-                                $Global->POST['Data']['Fax'] = $tblPhoneFax->getNumber();
-                            }
-                        }
-                    }
-                }
-                // Datum Aufnahme
-                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
-                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                    $tblStudentTransferType);
-                if ($tblStudentTransfer) {
-                    $EntryDate = $tblStudentTransfer->getTransferDate();
-                    $Global->POST['Data']['SchoolEntry'] = $EntryDate;
-                    if ($EntryDate != '') {
-                        $tblYearList = Term::useService()->getYearAllByDate(new DateTime($EntryDate));
-                        if ($tblYearList) {
-                            foreach ($tblYearList as $tblYear) {
-                                $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
-                                if ($tblDivision && $tblDivision->getTblLevel()) {
-                                    $Global->POST['Data']['SchoolEntryDivision'] = $tblDivision->getTblLevel()->getName();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
 
             // Hauptadresse Schüler
             $ChildAddressId = false;
@@ -301,81 +199,6 @@ class StaffAccidentReport extends Extension
                 $ChildAddressId = $tblAddress->getId();
             }
 
-            // Sorgeberechtigte
-            $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
-            $tblToPersonCustodyList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
-                $tblRelationshipType);
-            if ($tblToPersonCustodyList) {
-                // female preferred (first run)
-                $PersonCustodySameAddress = array();
-                $PersonCustodyDifferentAddress = array();
-                $AddressString = '';
-                foreach ($tblToPersonCustodyList as $tblToPersonCustody) {
-                    $tblPersonCustody = $tblToPersonCustody->getServiceTblPersonFrom();
-
-                    $tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonCustody);
-                    if ($ChildAddressId
-                        && $tblAddressCustody
-                        && $ChildAddressId == $tblAddressCustody->getId()) {
-                        $AddressString = $tblAddressCustody->getGuiString(false);
-                        $PersonCustodySameAddress[] = $tblPersonCustody;
-                        continue;
-                    } else {
-                        $PersonCustodyDifferentAddress[] = $tblPersonCustody;
-                    }
-                }
-                if (!empty($PersonCustodySameAddress)) {
-                    /** @var TblPerson $PersonCustody */
-                    $ParentList = array();
-                    foreach ($PersonCustodySameAddress as $PersonCustody) {
-                        $ParentList[] = $PersonCustody->getSalutation().' '.
-                            ($PersonCustody->getTitle()
-                                ? $PersonCustody->getTitle().' '
-                                : '')
-                            .$PersonCustody->getFirstName().' '.$PersonCustody->getLastName();
-                    }
-                    if (!empty($ParentList)) {
-                        $Global->POST['Data']['Custody'] = implode(', ', $ParentList);
-                        $Global->POST['Data']['CustodyAddress'] = $AddressString;
-                    }
-                } elseif (!empty($PersonCustodyDifferentAddress)) {
-                    foreach ($PersonCustodyDifferentAddress as $PersonCustody) {
-                        /** @var TblCommon $tblCommonCustody */
-                        if (($tblCommonCustody = $PersonCustody->getCommon())) {
-                            if (($tblBirthdates = $tblCommonCustody->getTblCommonBirthDates())) {
-                                if (($tblGenderCustody = $tblBirthdates->getTblCommonGender())) {
-                                    if ($tblGenderCustody->getName() == 'Weiblich') {
-                                        if (!isset($Global->POST['Data']['Custody'])) {
-                                            $tblAddressCustody = Address::useService()->getAddressByPerson($PersonCustody);
-                                            if ($tblAddressCustody) {
-                                                $Global->POST['Data']['CustodyAddress'] = $tblAddressCustody->getGuiString();
-                                            }
-                                            $Global->POST['Data']['Custody'] = $PersonCustody->getSalutation().' '.
-                                                ($PersonCustody->getTitle()
-                                                    ? $PersonCustody->getTitle().' '
-                                                    : '')
-                                                .$PersonCustody->getFirstName().' '.$PersonCustody->getLastName();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (!isset($Global->POST['Data']['Custody'])) {
-                            $tblAddressCustody = Address::useService()->getAddressByPerson($PersonCustody);
-                            if ($tblAddressCustody) {
-                                $Global->POST['Data']['CustodyAddress'] = $tblAddressCustody->getGuiString();
-                            }
-
-                            $Global->POST['Data']['Custody'] = $PersonCustody->getSalutation().' '.
-                                ($PersonCustody->getTitle()
-                                    ? $PersonCustody->getTitle().' '
-                                    : '')
-                                .$PersonCustody->getFirstName().' '.$PersonCustody->getLastName();
-                        }
-                    }
-                }
-            }
         }
         $Global->savePost();
 
@@ -542,44 +365,46 @@ class StaffAccidentReport extends Extension
                                                         ))
                                                         , 3),
                                                     new LayoutColumn(
-                                                        new Bold(new Sup(8).' Versicherte Person ist:').
+                                                        new Bold(new Sup(9).' Versicherte Person ist:').
                                                         new Listing(array(
-                                                            new RadioBox('Data[MartialStatus]', 'Unternehmer',
+                                                            new RadioBox('Data[MartialStatusEmployer]', 'Unternehmer',
                                                                 'Unternehmer'),
-                                                            new RadioBox('Data[MartialStatus]', 'mit Unternehmer verwandt',
+                                                            new RadioBox('Data[MartialStatusFamily]', 'mit Unternehmer verwandt',
                                                                 'mit Unternehmer verwandt'),
-                                                            new RadioBox('Data[MartialStatus]', 'Ehegatte des Unternehmers',
+                                                            new RadioBox('Data[MartialStatusSpouse]', 'Ehegatte des Unternehmers',
                                                                 'Ehegatte des Unternehmers'),
-                                                            new RadioBox('Data[MartialStatus]', 'Gesellschafter oder Geschäftsführer',
+                                                            new RadioBox('Data[MartialStatusManager]', 'Gesellschafter oder Geschäftsführer',
                                                                 'Gesellschafter/Geschäftsführer'),
                                                         ))
                                                         , 3),
                                                     new LayoutColumn(
                                                         new TextField('Data[Nationality]', 'Staatsangehörigkeit',
-                                                            new Sup(9).' Staatsangehörigkeit')
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Apprentice]', 'Auszubildender',
-                                                            new Sup(9).' Auszubildender')
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Custody]', 'Vertreter',
-                                                            new Sup(10).' Vertreter')
+                                                            new Sup(10).' Staatsangehörigkeit')
                                                         , 6),
+                                                    new LayoutColumn(
+                                                        new PullClear(new Bold(new Sup(11).' Leiharbeitnehmer/in?')).
+                                                        new PullLeft(new CheckBox('Data[TemporaryWorkYes]',
+                                                            'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true)).
+                                                        new PullLeft(new CheckBox('Data[TemporaryWorkNo]',
+                                                            'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
+                                                        , 3),
+                                                    new LayoutColumn(
+                                                        new PullClear(new Bold(new Sup(12).' Auszubildender?')).
+                                                        new PullLeft(new CheckBox('Data[ApprenticeYes]',
+                                                            'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true)).
+                                                        new PullLeft(new CheckBox('Data[ApprenticeNo]',
+                                                            'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
+                                                        , 3),
                                                 )),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         '&nbsp;'
                                                         , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[CustodyAddress]', 'Str Nr. PLZ Ort',
-                                                            new Sup(10).' Anschrift Vertreter')
-                                                        , 6),
                                                 )),
                                                 new LayoutRow(
                                                     new LayoutColumn(
                                                         new TextField('Data[ContinuePayment]', '',
-                                                        new Sup(10). ' Anspruch auf Entgeltfortzahlung in Wochen:')
+                                                        new Sup(13). ' Anspruch auf Entgeltfortzahlung in Wochen:')
                                                     , 6),
                                                 )
                                             ))
@@ -593,7 +418,7 @@ class StaffAccidentReport extends Extension
                                             new LayoutGroup(array(
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new PullClear(new Bold(new Sup(11).' Tödlicher Unfall?')).
+                                                        new PullClear(new Bold(new Sup(14).' Tödlicher Unfall?')).
                                                         new PullLeft(new CheckBox('Data[DeathAccidentYes]',
                                                             'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true)).
                                                         new PullLeft(new CheckBox('Data[DeathAccidentNo]',
@@ -602,46 +427,46 @@ class StaffAccidentReport extends Extension
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentDate]',
                                                             (new DateTime())->format('d.m.Y'),
-                                                            new Sup(12).' Datum des Unfalls')
+                                                            new Sup(15).' Datum des Unfalls')
                                                         , 3),
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentHour]', 'Stunde',
-                                                            new Sup(12).' Stunde Unfallzeitpunkt')
+                                                            new Sup(15).' Stunde Unfallzeitpunkt')
                                                         , 3),
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentMinute]', 'Minute',
-                                                            new Sup(12).' Minute Unfallzeitpunkt')
+                                                            new Sup(15).' Minute Unfallzeitpunkt')
                                                         , 3),
                                                 )),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentPlace]', 'Ort',
-                                                            new Sup(13).' Unfallort')
+                                                            new Sup(16).' Unfallort')
                                                         , 6),
                                                     new LayoutColumn(
-                                                        new TextField('Data[LocationSince]', 'Tätigkeit',
-                                                            new Sup(13).' Seit wann in dieser Tätigkeit?')
+                                                        new TextField('Data[WorkAtAccident]', 'Beschäftigung',
+                                                            new Sup(17).' Zum Unfallzeitpunkt beschäftigt als:')
                                                         , 3),
                                                     new LayoutColumn(
-                                                        new TextField('Data[WorkAtAccident]', 'Beschäftigung',
-                                                            new Sup(14).' Zum Unfallzeitpunkt beschäftigt als:')
+                                                        new TextField('Data[LocationSince]', 'Tätigkeit',
+                                                            new Sup(18).' Seit wann in dieser Tätigkeit?')
                                                         , 3),
                                                 )),
                                                 new LayoutRow(
                                                     new LayoutColumn(
                                                         new TextField('Data[WorkArea]', 'Teil des Unternehmens',
-                                                            new Sup(14).' In welchem Teil des Unternehmens tätig')
+                                                            new Sup(19).' In welchem Teil des Unternehmens tätig')
                                                     , 6),
                                                 ),
                                                 new LayoutRow(
                                                     new LayoutColumn(
                                                         new TextArea('Data[AccidentDescription]', 'Beschreibung',
-                                                            new Sup(14).' Ausführliche Beschreibung des Unfallhergangs')
+                                                            new Sup(20).' Ausführliche Beschreibung des Unfallhergangs')
                                                     )
                                                 ),
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        new PullLeft(new Header(new Bold(new Sup(14).' Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;')))
+                                                        new PullLeft(new Header(new Bold(new Sup(20).' Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;')))
                                                         .new Container(
                                                             new PullLeft(new CheckBox('Data[DescriptionActive]',
                                                                 'des Versicherten &nbsp;&nbsp;&nbsp;&nbsp;'
@@ -661,11 +486,11 @@ class StaffAccidentReport extends Extension
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentBodyParts]',
                                                             'Kopf, Bein, Arm, etc.',
-                                                            new Sup(15).' Verletzte Körperteile')
+                                                            new Sup(21).' Verletzte Körperteile')
                                                         , 6),
                                                     new LayoutColumn(
                                                         new TextField('Data[AccidentType]', 'Art',
-                                                            new Sup(16).' Art der Verletzung')
+                                                            new Sup(22).' Art der Verletzung')
                                                         , 6),
                                                 )),
                                                 new LayoutRow(
@@ -675,7 +500,7 @@ class StaffAccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Bold(new Sup(17).' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
+                                                        new Bold(new Sup(23).' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
                                                         .new PullClear(
                                                             new PullLeft(new CheckBox('Data[BreakNo]',
                                                                 'nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
@@ -702,7 +527,7 @@ class StaffAccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Bold(new Sup(18).' Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
+                                                        new Bold(new Sup(24).' Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
                                                         .new PullClear(
                                                             new PullLeft(new CheckBox('Data[ReturnNo]',
                                                                 'nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
@@ -713,7 +538,7 @@ class StaffAccidentReport extends Extension
                                                     new LayoutColumn(
                                                         new TextField('Data[ReturnDate]',
                                                             (new DateTime())->format('d.m.Y'),
-                                                            new Sup(18).' Datum der Wiederaufnahme')
+                                                            new Sup(25).' Datum der Wiederaufnahme')
                                                         , 3),
                                                 )),
                                                 new LayoutRow(
@@ -724,10 +549,10 @@ class StaffAccidentReport extends Extension
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         new TextField('Data[WitnessInfo]', 'Name, Vorname Adresse',
-                                                            new Sup(19).' Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift von Zeugen)')
+                                                            new Sup(26).' Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift von Zeugen)')
                                                         , 9),
                                                     new LayoutColumn(
-                                                        new Bold('War diese Person Augenzeuge?')
+                                                        new Bold( new Sup(27).' War diese Person Augenzeuge?')
                                                         .new PullClear(
                                                             new PullLeft(new CheckBox('Data[EyeWitnessYes]',
                                                                 'ja &nbsp;&nbsp;&nbsp;&nbsp;', true))
@@ -744,17 +569,17 @@ class StaffAccidentReport extends Extension
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         new TextField('Data[Doctor]', 'Name',
-                                                            new Sup(20).' Name des erstbehandelnden Arztes / Krankenhaus')
+                                                            new Sup(28).' Name des erstbehandelnden Arztes / Krankenhaus')
                                                         .new TextField('Data[DoctorAddress]', 'Adresse',
-                                                            new Sup(20).' Adresse des erstbehandelnden Arztes / Krankenhaus')
+                                                            new Sup(28).' Adresse des erstbehandelnden Arztes / Krankenhaus')
                                                         , 6),
                                                     new LayoutColumn(
-                                                        new Header(new Bold(new Sup(21).' Beginn des Besuchs der Einrichtung'))
+                                                        new Header(new Bold(new Sup(29).' Beginn des Besuchs der Einrichtung'))
                                                         .new TextField('Data[LocalStartHour]', 'Stunde', 'Stunde')
                                                         .new TextField('Data[LocalStartMinute]', 'Minute', 'Minute')
                                                         , 3),
                                                     new LayoutColumn(
-                                                        new Header(new Bold(new Sup(21).' Ende des Besuchs der Einrichtung'))
+                                                        new Header(new Bold(new Sup(30).' Ende des Besuchs der Einrichtung'))
                                                         .new TextField('Data[LocalEndHour]', 'Stunde', 'Stunde')
                                                         .new TextField('Data[LocalEndMinute]', 'Minute', 'Minute')
                                                         , 3),

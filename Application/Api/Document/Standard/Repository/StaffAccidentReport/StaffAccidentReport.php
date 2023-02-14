@@ -106,6 +106,22 @@ class StaffAccidentReport extends AbstractDocument
         $this->FieldValue['LocalStartMinute'] = (isset($DataPost['LocalStartMinute']) && $DataPost['LocalStartMinute'] != '' ? $DataPost['LocalStartMinute'] : '&nbsp;');
         $this->FieldValue['LocalEndHour'] = (isset($DataPost['LocalEndHour']) && $DataPost['LocalEndHour'] != '' ? $DataPost['LocalEndHour'] : '&nbsp;');
         $this->FieldValue['LocalEndMinute'] = (isset($DataPost['LocalEndMinute']) && $DataPost['LocalEndMinute'] != '' ? $DataPost['LocalEndMinute'] : '&nbsp;');
+        // worker
+        $this->FieldValue['TemporaryWorkYes'] = (isset($DataPost['TemporaryWorkYes']) && $DataPost['TemporaryWorkYes'] != '' ? 'X' : '');
+        $this->FieldValue['TemporaryWorkNo'] = (isset($DataPost['TemporaryWorkNo']) && $DataPost['TemporaryWorkNo'] != '' ? 'X' : '');
+        $this->FieldValue['ApprenticeYes'] = (isset($DataPost['ApprenticeYes']) && $DataPost['ApprenticeYes'] != '' ? 'X' : '');
+        $this->FieldValue['ApprenticeNo'] = (isset($DataPost['ApprenticeNo']) && $DataPost['ApprenticeNo'] != '' ? 'X' : '');
+
+        $this->FieldValue['MartialStatusEmployer'] = (isset($DataPost['MartialStatusEmployer']) && $DataPost['MartialStatusEmployer'] != '' ? 'X' : '');
+        $this->FieldValue['MartialStatusFamily'] = (isset($DataPost['MartialStatusFamily']) && $DataPost['MartialStatusFamily'] != '' ? 'X' : '');
+        $this->FieldValue['MartialStatusSpouse'] = (isset($DataPost['MartialStatusSpouse']) && $DataPost['MartialStatusSpouse'] != '' ? 'X' : '');
+        $this->FieldValue['MartialStatusManager'] = (isset($DataPost['MartialStatusManager']) && $DataPost['MartialStatusManager'] != '' ? 'X' : '');
+
+        $this->FieldValue['ContinuePayment'] = (isset($DataPost['ContinuePayment']) && $DataPost['ContinuePayment'] != '' ? $DataPost['ContinuePayment'] : '&nbsp;');
+
+        $this->FieldValue['WorkAtAccident'] = (isset($DataPost['WorkAtAccident']) && $DataPost['WorkAtAccident'] != '' ? $DataPost['WorkAtAccident'] : '&nbsp;');
+        $this->FieldValue['LocationSince'] = (isset($DataPost['LocationSince']) && $DataPost['LocationSince'] != '' ? $DataPost['LocationSince'] : '&nbsp;');
+        $this->FieldValue['WorkArea'] = (isset($DataPost['WorkArea']) && $DataPost['WorkArea'] != '' ? $DataPost['WorkArea'] : '&nbsp;');
         // last line
         $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
         $this->FieldValue['LocalLeader'] = (isset($DataPost['LocalLeader']) && $DataPost['LocalLeader'] != '' ? $DataPost['LocalLeader'] : '&nbsp;');
@@ -329,14 +345,14 @@ class StaffAccidentReport extends AbstractDocument
                             , '40%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Postleitzahl')
+                            ->setContent('8 Postleitzahl')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             , '15%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Ort')
+                            ->setContent('9 Ort')
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             , '45%'
@@ -367,24 +383,24 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Meta & gesetzlicher Vertreter
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('8 Geschlecht')
+                            ->setContent('10 Geschlecht')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             , '22%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('9 Staatsangehörigkeit')
+                            ->setContent('11 Staatsangehörigkeit')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
-                            , '18%'
+                            , '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('10 Name und Anschrift der gesetzlich Vertretungsberechtigten')
+                            ->setContent('12 Leiharbeitnehmer/in')
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
-                            , '60%'
+                            , '28%'
                         )
                     )
                     ->addSection((new Section())
@@ -424,40 +440,202 @@ class StaffAccidentReport extends AbstractDocument
                             ->stylePaddingTop()
                             ->styleBorderRight()
                             ->styleBorderBottom()
-                            , '18%'
+                            , '50%'
+                        )
+                        ->addSliceColumn(
+                            $this->setCheckBox((isset($this->FieldValue['TemporaryWorkYes']) && $this->FieldValue['TemporaryWorkYes'] ? 'X' : ''))
+                                ->styleBorderBottom()
+                                ->styleHeight('29px')
+                            , '4%'
                         )
                         ->addElementColumn((new Element())
-                            // (Content.Person.Parent.Father.Address|length >= 38) Zählen der Länge entfällt
-                            ->setContent($this->FieldValue['Custody']
-                                .'<br/>'.$this->FieldValue['CustodyAddress'])
-                            ->stylePaddingLeft('5px')
-                            ->styleTextSize('11px')
-                            ->stylePaddingTop()
+                            ->setContent('Ja')
+                            ->styleTextSize('12px')
+                            ->styleHeight('25px')
+                            ->stylePaddingTop('4px')
                             ->styleBorderBottom()
-                            ->styleHeight('27px')
-                            , '60%'
+                            , '10%'
+                        )
+                        ->addSliceColumn(
+                            $this->setCheckBox((isset($this->FieldValue['TemporaryWorkNo']) && $this->FieldValue['TemporaryWorkNo'] ? 'X' : ''))
+                                ->styleBorderBottom()
+                                ->styleHeight('29px')
+                            , '4%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Nein')
+                            ->styleTextSize('12px')
+                            ->styleHeight('25px')
+                            ->stylePaddingTop('4px')
+                            ->styleBorderRight()
+                            ->styleBorderBottom()
+                            , '10%'
                         )
                     )
+
+                    // Neue Reihe
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('13 Auszubildende/-r')
+                            ->styleTextSize('11px')
+                            ->styleHeight('20px')
+                            ->stylePaddingLeft('5px')
+                            , '24%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('14 Die versicherte Person ist')
+                            ->styleTextSize('11px')
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderRight()
+                            ->styleBorderLeft()
+                            , '76%'
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->styleHeight('32px')
+                            , '2%'
+                        )
+                        ->addSliceColumn(
+                            $this->setCheckBox(($this->FieldValue['ApprenticeYes'] ? 'X' : ''))
+                                ->stylePaddingTop('3px')
+                                ->styleHeight('25px')
+                            , '4%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('ja')
+                            ->styleTextSize('12px')
+                            ->styleHeight('24px')
+                            ->stylePaddingTop('8px')
+                            , '7%'
+                        )
+                        ->addSliceColumn(
+                            $this->setCheckBox(($this->FieldValue['ApprenticeNo'] ? 'X' : ''))
+                                ->stylePaddingTop('3px')
+                                ->styleHeight('29px')
+                            , '4%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('nein')
+                            ->styleTextSize('12px')
+                            ->styleHeight('24px')
+                            ->stylePaddingTop('8px')
+                            , '7%'
+                        )
+                        ->addSliceColumn(
+                            $this->setCheckBox(($this->FieldValue['MartialStatusEmployer'] ? 'X' : ''))
+                                ->stylePaddingTop('3px')
+                                ->styleHeight('40px')
+                                ->styleBorderLeft()
+                            ,
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Unternehmer')
+                            ->styleTextSize('12px')
+                            ->stylePaddingTop('8px')
+                            ,
+                        )
+                        ->addSliceColumn(
+                            $this->setCheckBox(($this->FieldValue['MartialStatusFamily'] ? 'X' : ''))
+                                ->stylePaddingTop('3px')
+                                ->styleHeight('29px')
+                            ,
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('mit Unternehmer verwandt')
+                            ->styleTextSize('12px')
+                            ->styleHeight('24px')
+                            ->stylePaddingTop('8px')
+
+                            ,
+                        )
+                        ->addSliceColumn(
+                            $this->setCheckBox(($this->FieldValue['MartialStatusSpouse'] ? 'X' : ''))
+                                ->stylePaddingTop('3px')
+                                ->styleHeight('29px')
+                            ,
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Ehegatte des Unternehmers')
+                            ->styleTextSize('12px')
+                            ->styleHeight('24px')
+                            ->stylePaddingTop('8px')
+
+                            ,
+                        )
+                        ->addSliceColumn(
+                            $this->setCheckBox(($this->FieldValue['MartialStatusManager'] ? 'X' : ''))
+                                ->stylePaddingTop('3px')
+                                ->styleHeight('29px')
+                            ,
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Gesellschafter oder Geschäftsführer')
+                            ->styleTextSize('12px')
+                            ->styleHeight('24px')
+                            ->stylePaddingTop('8px')
+
+                            ,
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('15 Anspruch auf Entgeltfortzahlung in Wochen:')
+                            ->styleTextSize('11px')
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderRight()
+                            ->styleBorderTop()
+                            , '35%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('16 Krankenkasse (Name, PLZ, Ort)')
+                            ->styleTextSize('11px')
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderRight()
+                            ->styleBorderTop()
+                            , '65%'
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent($this->FieldValue['ContinuePayment'])
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderRight()
+                            ->styleBorderBottom()
+                            , '35%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent($this->FieldValue['AddressPLZ'])
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderRight()
+                            ->styleBorderBottom()
+                            , '65%'
+                            )
+                        )
+
                     /////// Unfall Infos
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('11 Tödlicher Unfall')
+                            ->setContent('17 Tödlicher Unfall')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
+                            ->styleBorderTop()
                             ->styleBorderRight()
                             , '20%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('12 Unfallzeitpunkt')
+                            ->setContent('18 Unfallzeitpunkt')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
+                            ->styleBorderTop()
                             ->styleBorderRight()
                             , '35%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('13 Unfallort (genaue Orts- und Straßenangabe mit PLZ)')
+                            ->setContent('19 Unfallort (genaue Orts- und Straßenangabe mit PLZ)')
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
+                            ->styleBorderTop()
                             , '45%'
                         )
                     )
@@ -571,7 +749,7 @@ class StaffAccidentReport extends AbstractDocument
                     ////// Schilderung des Unfallhergangs
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('14 Ausführliche Schilderung des Unfallhergangs (insbesondere Art der Veranstalltung,
+                            ->setContent('20 Ausführliche Schilderung des Unfallhergangs (insbesondere Art der Veranstalltung,
                             bei Sportunfällen auch Sportart)')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
@@ -580,7 +758,7 @@ class StaffAccidentReport extends AbstractDocument
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent(nl2br($this->FieldValue['AccidentDescription']))
-                            ->styleHeight('200px')
+                            ->styleHeight('130px')
                             ->stylePaddingLeft('20px')
                         )
                     )
@@ -630,14 +808,14 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Verletzungen
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('15 Verletzte Körperteile')
+                            ->setContent('21 Verletzte Körperteile')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             , '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('16 Art der Verletzung')
+                            ->setContent('22 Art der Verletzung')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '50%'
@@ -658,10 +836,58 @@ class StaffAccidentReport extends AbstractDocument
                             , '50%'
                         )
                     )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('23 Zum Unfallzeitpunkt beschäftigt/tätig als')
+                            ->styleTextSize('11px')
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderRight()
+                            , '50%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('24 Seit wann bei dieser Tätigkeit?')
+                            ->styleTextSize('11px')
+                            ->stylePaddingLeft('5px')
+                            , '50%'
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent($this->FieldValue['WorkAtAccident'])
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderRight()
+                            ->styleBorderBottom()
+                            , '50%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent($this->FieldValue['LocationSince'])
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderBottom()
+                            , '50%'
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('25 In welchem Teil des Unternehmens ist die versicherte Person ständig tätig?')
+                            ->styleTextSize('11px')
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderRight()
+                            , '100%'
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent($this->FieldValue['WorkArea'])
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderRight()
+                            ->styleBorderBottom()
+                            , '100%'
+                        )
+                    )
                     /////// Unterbrechung
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('17 Hat die Versicherte Person den <br/> Besuch der Einrichtung unterbrochen?')
+                            ->setContent('26 Hat die Versicherte Person den <br/> Besuch der Einrichtung unterbrochen?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleHeight('27px')
@@ -735,7 +961,7 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Vortsetzung
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('18 hat die Versicherte Person den Besuch <br/> der Einrichtung wieder aufgenommen?')
+                            ->setContent('27 hat die Versicherte Person den Besuch <br/> der Einrichtung wieder aufgenommen?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleHeight('27px')
@@ -797,7 +1023,7 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Kenntnis
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('19 Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift)')
+                            ->setContent('28 Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift)')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '70%'
@@ -848,7 +1074,7 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Kenntnis
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('20 Erstbehandlung: <br/>
+                            ->setContent('29 Erstbehandlung: <br/>
                                 Name und Anschrift der Ärztin/des Arztes oder des Krankenhauses')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
@@ -858,7 +1084,7 @@ class StaffAccidentReport extends AbstractDocument
                         )
                         ->addSliceColumn((new Slice())
                             ->addElement((new Element())
-                                ->setContent('21 Beginn und Ende des Besuchs der Einrichtung')
+                                ->setContent('30 Beginn und Ende des Besuchs der Einrichtung')
                                 ->styleTextSize('11px')
                                 ->stylePaddingLeft('5px')
                             )
