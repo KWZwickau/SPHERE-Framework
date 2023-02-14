@@ -26,6 +26,7 @@ class ApiStudentOverview extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewStudentOverviewCourseSelect');
         $Dispatcher->registerMethod('loadStudentOverviewSelectCourseFilterContent');
         $Dispatcher->registerMethod('loadViewStudentOverviewCourseContent');
+        $Dispatcher->registerMethod('loadViewStudentOverviewStudentContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -135,5 +136,42 @@ class ApiStudentOverview extends Extension implements IApiInterface
     public function loadViewStudentOverviewCourseContent($DivisionCourseId, $Filter): string
     {
         return Grade::useFrontend()->loadViewStudentOverviewCourseContent($DivisionCourseId, $Filter);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewStudentOverviewStudentContent($DivisionCourseId, $PersonId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewStudentOverviewStudentContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId,
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $Filter
+     *
+     * @return string
+     */
+    public function loadViewStudentOverviewStudentContent($DivisionCourseId, $PersonId, $Filter): string
+    {
+        return Grade::useFrontend()->loadViewStudentOverviewStudentContent($DivisionCourseId, $PersonId, $Filter);
     }
 }

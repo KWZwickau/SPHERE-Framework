@@ -110,12 +110,13 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
     /**
      * @param string $content
      * @param string|null $backgroundColor
+     * @param string $width
      *
      * @return TableColumn
      */
-    public function getTableColumnBody(string $content, ?string $backgroundColor = null): TableColumn
+    public function getTableColumnBody(string $content, ?string $backgroundColor = null, string $width = 'auto'): TableColumn
     {
-        return (new TableColumn(new Center($content)))
+        return (new TableColumn(new Center($content), 1, $width))
             ->setBackgroundColor($backgroundColor)
             ->setMinHeight(self::MIN_HEIGHT_BODY)
             ->setVerticalAlign('middle')

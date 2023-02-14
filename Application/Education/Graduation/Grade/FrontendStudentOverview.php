@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -21,6 +22,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -226,6 +228,7 @@ abstract class FrontendStudentOverview extends FrontendScoreType
             } else {
                 $tblSubjectList = array();
             }
+            $headerList['Option'] = $this->getTableColumnHead('');
 
             $bodyList = array();
             $averageSumList = array();
@@ -262,7 +265,8 @@ abstract class FrontendStudentOverview extends FrontendScoreType
                         $bodyList[$tblPerson->getId()][$tblSubject->getId()] = $this->getTableColumnBody($contentSubject);
                     }
 
-                    // todo option
+                    $bodyList[$tblPerson->getId()]['Option'] = $this->getTableColumnBody((new Standard("", ApiStudentOverview::getEndpoint(), new EyeOpen(), array(), "Schülerübersicht anzeigen"))
+                        ->ajaxPipelineOnClick(ApiStudentOverview::pipelineLoadViewStudentOverviewStudentContent($tblDivisionCourse->getId(), $tblPerson->getId(), $Filter)));
                 }
             }
 
@@ -293,6 +297,52 @@ abstract class FrontendStudentOverview extends FrontendScoreType
             )
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
+            . $content;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $Filter
+     * @param string $View
+     *
+     * @return string
+     */
+    public function loadViewStudentOverviewStudentContent($DivisionCourseId, $PersonId, $Filter, string $View = 'All'): string
+    {
+        $textCourse = "";
+        $personName = "";
+        $content = "";
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+        ) {
+            // todo Anzeige Klasse + Stammgruppe
+            $textCourse = $tblDivisionCourse->getTypeName() . ' ' . $tblDivisionCourse->getDisplayName();
+            $personName = $tblPerson->getLastFirstName();
+
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                $content = Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, $tblDivisionCourse, $View != 'All');
+            }
+
+            // todo Integrationsbutton
+//            if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+//                $Stage->addButton((new Standard('Integration', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+//                    ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId())));
+//            }
+
+
+        } else {
+            $content = new Danger("Kurs oder Person nicht gefunden.", new Exclamation());
+        }
+
+        return new Title(
+                (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
+                    ->ajaxPipelineOnClick(ApiStudentOverview::pipelineLoadViewStudentOverviewCourseContent($DivisionCourseId, $Filter))
+                . "&nbsp;&nbsp;&nbsp;&nbsp;" . $personName . " "
+                . new Muted(new Small($textCourse))
+            )
+            . ApiSupportReadOnly::receiverOverViewModal()
             . $content;
     }
 }
