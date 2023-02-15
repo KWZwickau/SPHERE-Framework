@@ -483,6 +483,41 @@ class Person
     }
 
     /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     *
+     * @return bool|string
+     */
+    public function downloadClassRegisterAbsenceMonthly($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
+    {
+        $tblDivision = false;
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+            $name = 'Fehlzeiten des Kurses '
+                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
+        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+            $name = 'Fehlzeiten der Klasse ' . $tblDivision->getDisplayName();
+        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
+            $tblPersonList = $tblGroup->getStudentOnlyList();
+            $name = 'Fehlzeiten der Stammgruppe ' . $tblGroup->getName();
+        } else {
+            return false;
+        }
+
+        if ($tblPersonList
+            && ($DataList = ReportingPerson::useService()->createAbsenceContentList($tblPersonList, $tblDivision ?: null))
+        ) {
+            $fileLocation = ReportingPerson::useService()->createAbsenceMonthlyContentExcel($DataList);
+
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return false;
+    }
+
+    /**
      * @param int $View
      *
      * @return string

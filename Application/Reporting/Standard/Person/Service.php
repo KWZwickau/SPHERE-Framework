@@ -44,6 +44,7 @@ use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
@@ -4798,6 +4799,69 @@ class Service extends Extension
             $export->setStyle($export->getCell($AbsenceUE++, 0), $export->getCell($AbsenceUE, 0))->mergeCells();
             // with and type of cells
             $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(5)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
+//            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(30);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(15)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column, $row))->setColumnWidth(15)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $dataList
+     *
+     * @return bool|FilePointer
+     */
+    public function createAbsenceMonthlyContentExcel(array $PersonList):?FilePointer
+    {
+        if (!empty($PersonList)) {
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $column = 0;
+            $export->setValue($export->getCell($column++, 1), 'Schüler');
+            $export->setValue($export->getCell($column++, 1), '');
+            $studentsHeader = 0;
+            $export->setValue($export->getCell($column, 0), 'Fehlzeiten Tage');
+            $AbsenceDays = $column;
+            $export->setValue($export->getCell($column++, 1), 'Entschuldigte');
+            $export->setValue($export->getCell($column++, 1), 'Unentschuldigte');
+            $AbsenceUE = $column;
+            $export->setValue($export->getCell($column, 0), 'Fehlzeiten Unterrichtseinheiten');
+            $export->setValue($export->getCell($column++, 1), 'Entschuldigte');
+            $export->setValue($export->getCell($column, 1), 'Unentschuldigte');
+
+            $row = 2;
+            foreach ($PersonList as $PersonData) {
+                $column = 0;
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
+//                $export->setValue($export->getCell($column++, $row), $PersonData['Address']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['ExcusedDays']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['unExcusedDays']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['ExcusedLessons']);
+                $export->setValue($export->getCell($column, $row), $PersonData['unExcusedLessons']);
+                $row++;
+            }
+            $column = 0;
+            // Merge Student header
+            $export->setStyle($export->getCell($studentsHeader++, 1), $export->getCell($studentsHeader, 1))->mergeCells();
+            // A4 Querformat|landscape
+            $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
+            // header with merged cells
+            $export->setStyle($export->getCell($AbsenceDays++, 0), $export->getCell($AbsenceDays, 0))->mergeCells();
+            $export->setStyle($export->getCell($AbsenceUE++, 0), $export->getCell($AbsenceUE, 0))->mergeCells();
+            // with and type of cells
             $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
             $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
 //            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(30);

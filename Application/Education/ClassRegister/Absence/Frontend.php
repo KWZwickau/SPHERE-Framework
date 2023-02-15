@@ -32,6 +32,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -47,6 +48,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
@@ -163,6 +165,8 @@ class Frontend extends Extension implements IFrontendInterface
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten (Kalenderansicht)');
+        $stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
@@ -186,7 +190,6 @@ class Frontend extends Extension implements IFrontendInterface
                 'Zurück', $BasicRoute, new ChevronLeft()
             ));
         }
-
         if ($tblDivision) {
             $currentDate = new DateTime('now');
             // wenn der aktuelle Tag im Schuljahr ist dann diesen Anzeigen, ansonsten erster Tag des Schuljahres
@@ -204,6 +207,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow(
                             $tblDivision , null, $tblYear, $tblDivisionSubject ?: null
+                        ), $stage->addButton(
+                            new Primary('Herunterladen',
+                                '/Api/Reporting/Standard/Person/ClassRegister/AbsenceMonthly/Download', new Download(),
+                                array('DivisionId' => $tblDivision->getId()))
                         ),
                         $tblDivisionSubject
                             ? Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
