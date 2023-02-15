@@ -26,8 +26,10 @@ use SPHERE\Application\People\Group\Group as GroupPerson;
 use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
@@ -416,10 +418,18 @@ class Service extends ServiceTeacher
             $error = true;
         }
         if (isset($Data['Name']) && $Data['Name'] != '') {
-            // Name Zeicheneingrenzung für Klassen und Stammgruppen, falls diese an angeschlossene Systeme übertragen werden müssen
-            if ($tblType && ($tblType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
-                if (!preg_match('!^[\w\-,\/ ]+$!', $Data['Name'])) {
-                    $form->setError('Data[Name]', 'Erlaubte Zeichen [a-zA-Z0-9, -_/]');
+            // ist ein UCS Mandant?
+            $IsUCSMandant = false;
+            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())
+                && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)
+            ){
+                $IsUCSMandant = true;
+            }
+            // Name Zeicheneingrenzung für Klassen und Stammgruppen, falls diese an angeschlossene Systeme übertragen werden müssen (UCS)
+            if ($IsUCSMandant && $tblType && ($tblType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
+                // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
+                if (!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Data['Name'])) {
+                    $form->setError('Data[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
                     $error = true;
                 }
             }
