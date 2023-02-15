@@ -23,6 +23,8 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -58,6 +60,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -1784,6 +1787,18 @@ class Frontend extends Extension implements IFrontendInterface
                 new Standard('Zurück', $Route, new ChevronLeft())
             );
             if (!$Confirm) {
+                $IsUCSMandant = false;
+                if ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
+                && ($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())) {
+                    if (ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)) {
+                        $IsUCSMandant = true;
+                    }
+                }
+                $UcsRemark = '';
+                if($IsUCSMandant){
+                    $UcsRemark = new WellReadOnly('Nach dem Löschen des Accounts in der Schulsoftware wird dieser auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
+                }
+
                 $UserName = '';
                 if($tblAccount){
                     $UserName = $tblAccount->getUserName();
@@ -1797,7 +1812,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             Panel::PANEL_TYPE_SUCCESS
                         ),
-                        new Panel(new Question().' Diesen Benutzer wirklich löschen?', '',
+                        new Panel(new Question().' Diesen Benutzer wirklich löschen?', $UcsRemark,
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/User/Account/Destroy', new Ok(),
