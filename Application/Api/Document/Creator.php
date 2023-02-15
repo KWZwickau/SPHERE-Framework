@@ -948,7 +948,6 @@ class Creator extends Extension
             if (!empty($PriceList)) {
                 $Data['CompanyAddress'] = $Data['CompanyStreet'] . '<br/>' . $Data['CompanyCity']
                     . ($Data['CompanyDistrict'] ? '  OT ' . $Data['CompanyDistrict'] : '');
-
                 $template = new Billing($tblItem, $Data);
                 $pageList = array();
 
@@ -984,40 +983,17 @@ class Creator extends Extension
                                     } else {
                                         $TotalPrice = '0,00 €';
                                     }
+                                    $InvoiceNumber = '';
+                                    if(isset($Value['InvoiceNumber'])){
+                                        $InvoiceNumber = $Value['InvoiceNumber'];
+                                    }
 
-                                    $pageList[] = $template->buildPage($tblPersonDebtor, $tblPersonCauser, $TotalPrice);
-//                                    $Content = $template->createSingleDocument(
-//                                        $tblPersonDebtor, $tblPersonCauser, $TotalPrice
-//                                    );
-                                    // Create Tmp
-//                                    $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary-short', false);
-//                                    $clone[] = clone $File;
-//                                    // build before const is set (picture)
-//                                    /** @var DomPdf $Document */
-//                                    $Document = PdfDocument::getPdfDocument($File->getFileLocation());
-//                                    $Document->setContent($Content);
-//                                    $Document->saveFile(new FileParameter($File->getFileLocation()));
-//                                    // hinzufügen für das mergen
-//                                    $PdfMerger->addPDF($File);
-//                                    // speichern der Files zum nachträglichem bereinigen
-//                                    $FileList[] = $File;
+                                    $pageList[] = $template->buildPage($tblPersonDebtor, $tblPersonCauser, $TotalPrice, $InvoiceNumber);
                                 }
                             }
                         }
                     }
                 }
-
-//                $MergeFile = Storage::createFilePointer('pdf');
-//                // mergen aller hinzugefügten PDF-Datein
-//                $PdfMerger->mergePdf($MergeFile);
-
-//                if (!empty($FileList)) {
-//                    // aufräumen der Temp-Files
-//                    /** @var FilePointer $File */
-//                    foreach ($FileList as $File) {
-//                        $File->setDestruct();
-//                    }
-//                }
 
                 $File = self::buildDummyFile($template, array(), $pageList);
                 $FileName = 'Bescheinigung_' . $tblItem->getName() . ($isList ? '_Liste_' . ($list + 1) : '') . '_' . date("Y-m-d") . ".pdf";

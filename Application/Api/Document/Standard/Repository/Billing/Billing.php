@@ -103,6 +103,7 @@ class Billing extends AbstractDocument
     /**
      * @param string $Text
      * @param string $ItemName
+     * @param string $InvoiceNumber
      * @param string $Year
      * @param string $TotalPrice
      * @param string $DebtorSalutation
@@ -123,10 +124,11 @@ class Billing extends AbstractDocument
      *
      * @return string
      */
-    private function setPlaceholders($Text, $ItemName, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
-        $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date, $Location,
-        $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier)
+    private function setPlaceholders($Text, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
+                                     $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date, $Location,
+                                     $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier)
     {
+        $Text = str_replace('[Rechnungsnummer]', $InvoiceNumber, $Text);
         $Text = str_replace('[Jahr]', $Year, $Text);
         $Text = str_replace('[Zeitraum von]', $From, $Text);
         $Text = str_replace('[Zeitraum bis]', $To, $Text);
@@ -154,14 +156,16 @@ class Billing extends AbstractDocument
     /**
      * @param TblPerson $tblPersonDebtor
      * @param TblPerson $tblPersonCauser
-     * @param $TotalPrice
+     * @param string $TotalPrice
+     * @param string $InvoiceNumber
      *
      * @return Page
      */
     public function buildPage(
         TblPerson $tblPersonDebtor,
         TblPerson $tblPersonCauser,
-        $TotalPrice
+        string $TotalPrice = '',
+        string $InvoiceNumber = ''
     ) {
         $Data = $this->Data;
         $CompanyName = $Data['CompanyName'];
@@ -208,11 +212,11 @@ class Billing extends AbstractDocument
 
 
 
-        $Subject = $this->setPlaceholders($Subject, $ItemName, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
+        $Subject = $this->setPlaceholders($Subject, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
             $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date,
             $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier);
 
-        $Content = $this->setPlaceholders($Content, $ItemName, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
+        $Content = $this->setPlaceholders($Content, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
             $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date,
             $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier);
 

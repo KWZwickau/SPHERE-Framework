@@ -133,7 +133,7 @@ class Data extends AbstractData
         $tblBasket = new TblBasket();
         $tblBasketType = new TblBasketType();
 
-        $queryBuilder->select('i.Year, i.Month, i.serviceTblPersonCauser as PeronCauserId, iid.Value,
+        $queryBuilder->select('i.InvoiceNumber, i.Year, i.Month, i.serviceTblPersonCauser as PeronCauserId, iid.Value,
              iid.Quantity, iid.IsPaid, iid.serviceTblPersonDebtor as PersonDebtorId, bt.Id as BasketTypeId')
             ->from($tblInvoice->getEntityFullName(), 'i')
             ->leftJoin($tblInvoiceItemDebtor->getEntityFullName(), 'iid',
@@ -192,7 +192,7 @@ class Data extends AbstractData
         $tblBasket = new TblBasket();
         $tblBasketType = new TblBasketType();
 
-        $queryBuilder->select('i.Year, i.Month, i.serviceTblPersonCauser as PeronCauserId, iid.Value,
+        $queryBuilder->select('i.InvoiceNumber, i.Year, i.Month, i.serviceTblPersonCauser as PeronCauserId, iid.Value,
              iid.Quantity, iid.IsPaid, iid.serviceTblPersonDebtor as PersonDebtorId, bt.Id as BasketTypeId')
             ->from($tblInvoice->getEntityFullName(), 'i')
             ->leftJoin($tblInvoiceItemDebtor->getEntityFullName(), 'iid',

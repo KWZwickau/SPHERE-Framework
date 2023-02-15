@@ -172,6 +172,13 @@ class Service extends AbstractService
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
                     }
+
+                    // Rechnungsnummer Liste
+                    if(!isset($PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])
+                        || !in_array($RowContent['InvoiceNumber'], $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])){
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'][] = $RowContent['InvoiceNumber'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumber'] = implode('; ', $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList']);
+                    }
                 }
             }
         }
@@ -556,6 +563,12 @@ class Service extends AbstractService
                         }
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
+                    }
+                    // Rechnungsnummer Liste
+                    if(!isset($PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])
+                        || !in_array($RowContent['InvoiceNumber'], $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])){
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'][] = $RowContent['InvoiceNumber'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumber'] = implode('; ', $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList']);
                     }
                 }
             }
