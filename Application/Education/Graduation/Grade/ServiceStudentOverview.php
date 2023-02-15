@@ -5,7 +5,6 @@ namespace SPHERE\Application\Education\Graduation\Grade;
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
 use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -118,13 +117,11 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblStudentEducation $tblStudentEducation
-     * @param TblDivisionCourse $tblDivisionCourse
      * @param bool $IsParentView
      *
      * @return void
      */
-    public function getStudentOverviewDataByPerson(TblPerson $tblPerson, TblYear $tblYear, TblStudentEducation $tblStudentEducation,
-        TblDivisionCourse $tblDivisionCourse, bool $IsParentView): string
+    public function getStudentOverviewDataByPerson(TblPerson $tblPerson, TblYear $tblYear, TblStudentEducation $tblStudentEducation, bool $IsParentView): string
     {
         $headerList = array();
         $bodyList = array();
@@ -167,7 +164,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
         $tblTaskList = Grade::useService()->getTaskListByStudentAndYear($tblPerson, $tblYear);
         $taskDate = null;
         // automatische Bekanntgabe durch den Stichtagsnotenauftrag
-        if ($IsParentView) {
+        if ($IsParentView && $tblTaskList) {
             foreach ($tblTaskList as $tblTask) {
                 if ($tblTask->getIsTypeBehavior()) {
                     continue;
@@ -276,7 +273,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
         if (!empty($virtualTestTaskList)) {
             foreach($virtualTestTaskList as $subjectId => $list) {
                 if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
-                    $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
+                    $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
                     $tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
 
                     $data = array();
@@ -304,7 +301,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                                         $tblTest = $virtualTestTask->getTblTest();
                                         $testId = $tblTest->getId();
                                         $tblTestGrade = $tblTestGradeList[$testId] ?? null;
-                                        $dateItem = $tblTestGrade && $tblTestGrade->getDate() ? $tblTestGrade->getGrade() : $virtualTestTask->getDate();
+                                        $dateItem = $tblTestGrade && $tblTestGrade->getDate() ? $tblTestGrade->getDate() : $virtualTestTask->getDate();
                                         $isBold = $tblTest->getTblGradeType()->getIsHighlighted();
                                         $toolTip = '';
                                         if ($tblTest->getDescription()) {
@@ -320,7 +317,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                                         }
                                         $contentTemp = $virtualTestTask->getTblTest()->getTblGradeType()->getCode() . '<br>'
                                             . ($tblTestGrade ? $tblTestGrade->getGrade() : '&nbsp;');
-                                        $contentTest = $dateItem->format('d.m.') . '<br>'
+                                        $contentTest = ($dateItem ? $dateItem->format('d.m.') : '&nbsp;') . '<br>'
                                             . ($isBold ? new Bold($contentTemp) : $contentTemp);
 
                                         $publicComment = $tblTestGrade && $tblTestGrade->getPublicComment() ? $tblTestGrade->getPublicComment() : '';

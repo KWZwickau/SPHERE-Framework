@@ -329,7 +329,7 @@ abstract class FrontendStudentOverview extends FrontendScoreType
             $personName = $tblPerson->getLastFirstName();
 
             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
-                $content = Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, $tblDivisionCourse, $isParentView);
+                $content = Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, $isParentView);
             }
 
             // Integrationsbutton

@@ -4,7 +4,7 @@ namespace SPHERE\Application\Api\ParentStudentAccess;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\ParentStudentAccess\OnlineGradebook\OnlineGradebook;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -81,7 +81,7 @@ class ApiOnlineGradebook extends Extension implements IApiInterface
      */
     public function openScoreRuleModal($ScoreRuleId = null)
     {
-        $tblScoreRule = Gradebook::useService()->getScoreRuleById($ScoreRuleId);
+        $tblScoreRule = Grade::useService()->getScoreRuleById($ScoreRuleId);
 
         if (!($tblScoreRule)) {
             return new Danger('Die Berechnungsvorschrift wurde nicht gefunden', new Exclamation());

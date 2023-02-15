@@ -1132,21 +1132,51 @@ class Service extends ServiceTeacher
      *
      * @return string
      */
-    public function getCurrentMainCoursesByPerson(TblPerson $tblPerson, string $date = 'now'): string
+    public function getCurrentMainCoursesByPersonAndDate(TblPerson $tblPerson, string $date = 'now'): string
     {
         $result = '';
         if (($tblStudentEducation = $this->getStudentEducationByPersonAndDate($tblPerson, $date)))
         {
-            if (($tblDivision = $tblStudentEducation->getTblDivision())
-                && ($displayDivision = $tblDivision->getName())
-            ) {
-                $result = 'Klasse: ' . $displayDivision;
-            }
-            if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
-                && ($displayCoreGroup = $tblCoreGroup->getName())
-            ) {
-                $result .= ($result ? ', ': '') . 'Stammgruppe: ' . $displayCoreGroup;
-            }
+            $result = $this->getCurrentMainCoursesByStudentEducation($tblStudentEducation);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return string
+     */
+    public function getCurrentMainCoursesByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear): string
+    {
+        $result = '';
+        if (($tblStudentEducation = $this->getStudentEducationByPersonAndYear($tblPerson, $tblYear)))
+        {
+            $result = $this->getCurrentMainCoursesByStudentEducation($tblStudentEducation);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param TblStudentEducation $tblStudentEducation
+     *
+     * @return string
+     */
+    public function getCurrentMainCoursesByStudentEducation(TblStudentEducation $tblStudentEducation): string
+    {
+        $result = '';
+        if (($tblDivision = $tblStudentEducation->getTblDivision())
+            && ($displayDivision = $tblDivision->getName())
+        ) {
+            $result = 'Klasse: ' . $displayDivision;
+        }
+        if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+            && ($displayCoreGroup = $tblCoreGroup->getName())
+        ) {
+            $result .= ($result ? ', ': '') . 'Stammgruppe: ' . $displayCoreGroup;
         }
 
         return $result;
