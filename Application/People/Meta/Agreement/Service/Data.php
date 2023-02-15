@@ -118,17 +118,19 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string $Name
+     * @param string                     $Name
+     * @param TblPersonAgreementCategory $tblPersonAgreementCategory
      *
      * @return bool|TblPersonAgreementType
      */
-    public function getPersonAgreementTypeByName($Name)
+    public function getPersonAgreementTypeByNameAndCategory($Name, TblPersonAgreementCategory $tblPersonAgreementCategory)
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblPersonAgreementType',
             array(
-                TblPersonAgreementType::ATTR_NAME => $Name
+                TblPersonAgreementType::ATTR_NAME => $Name,
+                TblPersonAgreementType::ATTR_TBL_PERSON_AGREEMENT_CATEGORY => $tblPersonAgreementCategory->getId()
             )
         );
     }

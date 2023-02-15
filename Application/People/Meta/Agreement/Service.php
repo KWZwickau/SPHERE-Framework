@@ -96,14 +96,15 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Name
+     * @param string                     $Name
+     * @param TblPersonAgreementCategory $tblPersonAgreementCategory
      *
      * @return bool|TblPersonAgreementType
      */
-    public function getPersonAgreementTypeByName($Name)
+    public function getPersonAgreementTypeByNameAndCategory($Name, TblPersonAgreementCategory $tblPersonAgreementCategory)
     {
 
-        return (new Data($this->getBinding()))->getPersonAgreementTypeByName($Name);
+        return (new Data($this->getBinding()))->getPersonAgreementTypeByNameAndCategory($Name, $tblPersonAgreementCategory);
     }
 
     /**
