@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade\Service\Entity;
 
+use DateInterval;
 use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
@@ -361,5 +362,54 @@ class TblTest extends Element
         }
 
         return '';
+    }
+
+    /**
+     * @param TblTestGrade|null $tblTestGrade
+     * @param DateTime|null $taskDate
+     * @param int $AutoPublicationOfTestsAfterXDays
+     *
+     * @return bool
+     */
+    public function getIsShownInParentView(?TblTestGrade $tblTestGrade, ?DateTime $taskDate, int $AutoPublicationOfTestsAfterXDays): bool
+    {
+        $isAddTest = false;
+        $today = (new DateTime('today'));
+        // fortlaufendes Datum
+        if ($this->getIsContinues()) {
+            if ($tblTestGrade && $tblTestGrade->getDate()) {
+                if ($tblTestGrade->getDate() <= $today) {
+                    $isAddTest = true;
+                }
+            } elseif ($this->getFinishDate()) {
+                // continues grades without date can be view if finish date is arrived
+                if ($this->getFinishDate() <= $today) {
+                    $isAddTest = true;
+                }
+            }
+        // Bekanntgabedatum gesetzt
+        } elseif ($this->getReturnDate()) {
+            if ($this->getReturnDate() <= $today) {
+                $isAddTest = true;
+            }
+        // automatische Bekanntgabe durch den Stichtagsnotenauftrag
+        } elseif ($taskDate) {
+            if ($taskDate <= $today
+                && $this->getDate()
+                && $this->getDate() <= $taskDate
+            ) {
+                $isAddTest = true;
+            }
+        }
+
+        // automatische Bekanntgabe nach X Tagen
+        if (!$isAddTest && $this->getDate()) {
+            $autoReturnDate = (new DateTime($this->getDateString()))->add(new DateInterval('P' . $AutoPublicationOfTestsAfterXDays . 'D'));
+            if ($autoReturnDate <= $today) {
+                $isAddTest = true;
+            }
+        }
+
+        return $isAddTest;
     }
 }

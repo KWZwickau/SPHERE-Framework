@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
 use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -12,8 +13,11 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
@@ -87,13 +91,34 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
             $isScoreRuleShown = false;
         }
 
-        return array($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown);
+        // fettmarkierte Tests wie Klassenarbeiten anzeigen
+        if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Gradebook', 'ShowHighlightedTestsInGradeOverview'))
+            && $tblSetting->getValue()
+        ) {
+            $showHighlightedTestsInGradeOverview = true;
+        } else {
+            $showHighlightedTestsInGradeOverview = false;
+        }
+
+        // automatische Bekanntgabe nach X Tagen
+        if (($tblSetting = Consumer::useService()->getSetting(
+            'Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays'))
+        ) {
+            $AutoPublicationOfTestsAfterXDays = intval($tblSetting->getValue());
+        } else {
+            $AutoPublicationOfTestsAfterXDays = 28;
+        }
+
+        return array($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown,
+            $showHighlightedTestsInGradeOverview, $AutoPublicationOfTestsAfterXDays);
     }
 
     /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblStudentEducation $tblStudentEducation
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param bool $IsParentView
      *
      * @return void
@@ -105,7 +130,8 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
         $bodyList = array();
         $countMaxColumn = 5;
         if ($IsParentView) {
-            list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown)
+            list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown,
+                $showHighlightedTestsInGradeOverview, $AutoPublicationOfTestsAfterXDays)
                 = $this->getConsumerSettingsForGradeOverview();
             $isShownAppointedDateGrade = false;
         } else {
@@ -116,6 +142,8 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
             $tblSchoolTypeList = false;
             $startYear = '';
             $isScoreRuleShown = false;
+            $showHighlightedTestsInGradeOverview = true;
+            $AutoPublicationOfTestsAfterXDays = 28;
         }
 
         if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
@@ -136,8 +164,19 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
             }
         }
 
-        if (($tblTaskList = Grade::useService()->getTaskListByStudentAndYear($tblPerson, $tblYear))) {
+        $tblTaskList = Grade::useService()->getTaskListByStudentAndYear($tblPerson, $tblYear);
+        $taskDate = null;
+        // automatische Bekanntgabe durch den Stichtagsnotenauftrag
+        if ($IsParentView) {
+            foreach ($tblTaskList as $tblTask) {
+                if ($tblTask->getIsTypeBehavior()) {
+                    continue;
+                }
 
+                if (Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson)) {
+                    $taskDate = $tblTask->getDate();
+                }
+            }
         }
         $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentAndYear($tblPerson, $tblYear);
 
@@ -154,6 +193,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
 
         $virtualTestTaskList = array();
         $tblTestGradeList = array();
+        $hideTestInfoList = array();
         if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear))) {
             $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
             /** @var TblSubject $tblSubject */
@@ -165,28 +205,36 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                     foreach ($tblDivisionCourseList as $tblDivisionCourse) {
                         if (($tblTestList = Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject))) {
                             foreach ($tblTestList as $tblTest) {
-                                // todo is add
-
-                                // todo zukünftige Große Noten bei entsprechender Einstellung
-
-                                if (($tblTestGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson))) {
-                                    // nicht teilgenommen
-                                    if ($tblTestGrade->getGrade() === null) {
-                                        continue;
+                                $tblTestGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson);
+                                $isAddTest = false;
+                                if (!$IsParentView || $tblTest->getIsShownInParentView($tblTestGrade ?: null, $taskDate ?: null, $AutoPublicationOfTestsAfterXDays)) {
+                                    $isAddTest = true;
+                                    if ($tblTestGrade) {
+                                        // nicht teilgenommen
+                                        if ($tblTestGrade->getGrade() === null) {
+                                            continue;
+                                        }
+                                        $tblTestGradeList[$tblTest->getId()] = $tblTestGrade;
                                     }
-                                    $tblTestGradeList[$tblTest->getId()] = $tblTestGrade;
+                                // zukünftige große Noten bei entsprechender Einstellung
+                                } elseif ($showHighlightedTestsInGradeOverview && $tblTest->getTblGradeType()->getIsHighlighted()) {
+                                    $isAddTest = true;
+                                    // notenspiegel und co darf nicht angezeigt werden
+                                    $hideTestInfoList[$tblTest->getId()] = $tblTest;
                                 }
 
-                                $date = $tblTest->getDate() ?: $tblTest->getFinishDate();
-                                $periodNumber = $date > $halfYearDate ? 2 : 1;
-                                $countColumns[$periodNumber]++;
-                                $virtualTestTaskList[$tblSubject->getId()][$periodNumber][] = new VirtualTestTask($date, $tblTest);
+                                if($isAddTest) {
+                                    $date = $tblTest->getDate() ?: $tblTest->getFinishDate();
+                                    $periodNumber = $date > $halfYearDate ? 2 : 1;
+                                    $countColumns[$periodNumber]++;
+                                    $virtualTestTaskList[$tblSubject->getId()][$periodNumber][] = new VirtualTestTask($date, $tblTest);
+                                }
                             }
                         }
                     }
                 }
 
-                if ($tblTaskList) {
+                if ($isShownAppointedDateGrade && $tblTaskList) {
                     foreach ($tblTaskList as $tblTask) {
                         // Kopfnoten werden nicht mit angezeigt
                         if ($tblTask->getIsTypeBehavior()) {
@@ -209,13 +257,17 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
         }
 
         // für Durchschnitt des Halbjahres
-        $countMaxColumn++;
+        if ($isShownAverage) {
+            $countMaxColumn++;
+        }
 
         if ($tblPeriodList) {
             foreach($tblPeriodList as $tblPeriod) {
                 $headerList[$tblPeriod->getId()] = $frontend->getTableColumnHead($tblPeriod->getDisplayName(), true, null, $countMaxColumn);
             }
-            $headerList['Average'] = $frontend->getTableColumnHead('&#216;');
+            if ($isShownAverage) {
+                $headerList['Average'] = $frontend->getTableColumnHead('&#216;');
+            }
         }
 
         $widthAcronym = '10%';
@@ -224,29 +276,57 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
         if (!empty($virtualTestTaskList)) {
             foreach($virtualTestTaskList as $subjectId => $list) {
                 if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                    $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
+                    $tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+
                     $data = array();
-                    $data['Subject'] = $frontend->getTableColumnBody($tblSubject->getAcronym(), $frontend::BACKGROUND_COLOR, $widthAcronym);
+                    $data['Subject'] = $frontend->getTableColumnBody(
+                        new Bold($tblSubject->getName())
+                        . ($isScoreRuleShown && $tblScoreRule
+                            ? (new Link('', ApiOnlineGradebook::getEndpoint(), new Info(), array(),
+                                'Berechnungsvorschrift für dieses Fach anzeigen'))
+                                ->ajaxPipelineOnClick(ApiOnlineGradebook::pipelineOpenScoreRuleModal($tblScoreRule->getId()))
+                            : ''),
+                        $frontend::BACKGROUND_COLOR, $widthAcronym
+                    );
                     $testGrades = array();
                     $testGrades['All'] = array();
-                    $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
 
                     for ($i = 1; $i < 3; $i++) {
                         $count = 0;
                         if (isset($list[$i])) {
-                            // todo tooltip thema, Notenspiegel Fach-klassendurchschnitt
                             $tempList = $this->getSorter($list[$i])->sortObjectBy('Date', new DateTimeSorter());
                             /** @var VirtualTestTask $virtualTestTask */
                             foreach ($tempList as $virtualTestTask) {
                                 $count++;
                                 switch ($virtualTestTask->getType()) {
                                     case VirtualTestTask::TYPE_TEST:
-                                        $testId = $virtualTestTask->getTblTest()->getId();
+                                        $tblTest = $virtualTestTask->getTblTest();
+                                        $testId = $tblTest->getId();
                                         $tblTestGrade = $tblTestGradeList[$testId] ?? null;
                                         $dateItem = $tblTestGrade && $tblTestGrade->getDate() ? $tblTestGrade->getGrade() : $virtualTestTask->getDate();
+                                        $isBold = $tblTest->getTblGradeType()->getIsHighlighted();
+                                        $toolTip = '';
+                                        if ($tblTest->getDescription()) {
+                                            $toolTip .= 'Thema: ' . $tblTest->getDescription();
+                                        }
+                                        if (!isset($hideTestInfoList[$testId])) {
+                                            if ($isShownGradeMirror && $tblScoreType && ($gradeMirror = Grade::useService()->getGradeMirrorForToolTipByTest($tblTest, $tblScoreType))) {
+                                                $toolTip .= ($toolTip ? '<br />' : '') . $gradeMirror;
+                                            }
+                                            if ($isShownDivisionSubjectScore && ($averageTest = Grade::useService()->getGradeAverageByTest($tblTest))) {
+                                                $toolTip .= ($toolTip ? '<br />' : '') . '&#216; ' . $averageTest;
+                                            }
+                                        }
+                                        $contentTemp = $virtualTestTask->getTblTest()->getTblGradeType()->getCode() . '<br>'
+                                            . ($tblTestGrade ? $tblTestGrade->getGrade() : '&nbsp;');
+                                        $contentTest = $dateItem->format('d.m.') . '<br>'
+                                            . ($isBold ? new Bold($contentTemp) : $contentTemp);
+
+                                        $publicComment = $tblTestGrade && $tblTestGrade->getPublicComment() ? $tblTestGrade->getPublicComment() : '';
                                         $data[] = $frontend->getTableColumnBody(
-                                            $dateItem->format('d.m.') . '<br>'
-                                            . $virtualTestTask->getTblTest()->getTblGradeType()->getCode() . '<br>'
-                                            . ($tblTestGrade ? $tblTestGrade->getGrade() : '&nbsp;'),
+                                            ($toolTip ? (new ToolTip($contentTest, htmlspecialchars($toolTip)))->enableHtml() : $contentTest)
+                                                . ($publicComment ?  ' ' . new ToolTip(new Info(), $publicComment) : ''),
                                             null,
                                             $widthGrade
                                         );
@@ -270,48 +350,54 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                         }
 
                         // leere Spalten
-                        while ($count < $countMaxColumn - 1) {
+                        while ($count < $countMaxColumn - ($isShownAverage ? 1 : 0)) {
                             $count++;
                             $data[] = $frontend->getTableColumnBody('&nbsp;');
                         }
 
-                        if (isset($testGrades[$i])) {
-                            list ($average, $scoreRuleText, $error) = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $testGrades[$i], $tblScoreRule ?? null);
-                            $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
+                        // Notendurchschnitt pro Halbjahr
+                        if ($isShownAverage) {
+                            if (isset($testGrades[$i])) {
+                                list ($average, $scoreRuleText, $error) = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $testGrades[$i],
+                                    $tblScoreRule ?? null);
+                                $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
 
-                            $testGrades['All'] = array_merge($testGrades['All'], $testGrades[$i]);
+                                $testGrades['All'] = array_merge($testGrades['All'], $testGrades[$i]);
+                            } else {
+                                $toolTip = '';
+                            }
+
+                            $data[] = $frontend->getTableColumnBody(
+                                new Bold(
+                                    '&nbsp;' . '<br>'
+                                    . '&#216;' . '<br>'
+                                    . $toolTip
+                                ),
+                                $frontend::BACKGROUND_COLOR,
+                                $widthGrade
+                            );
+                        }
+                    }
+
+                    // Gesamt-Notendurchschnitt
+                    if ($isShownAverage) {
+                        if (!empty($testGrades['All'])) {
+                            list ($average, $scoreRuleText, $error) = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $testGrades['All'],
+                                $tblScoreRule ?? null);
+                            $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
                         } else {
                             $toolTip = '';
                         }
-
-                        // Notendurchschnitt pro Halbjahr
                         $data[] = $frontend->getTableColumnBody(
                             new Bold(
                                 '&nbsp;' . '<br>'
-                                . '&#216;' . '<br>'
+                                . '&nbsp;' . '<br>'
                                 . $toolTip
                             ),
                             $frontend::BACKGROUND_COLOR,
                             $widthGrade
                         );
                     }
-
-                    // Gesamt-Notendurchschnitt
-                    if (!empty($testGrades['All'])) {
-                        list ($average, $scoreRuleText, $error) = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $testGrades['All'], $tblScoreRule ?? null);
-                        $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
-                    } else {
-                        $toolTip = '';
-                    }
-                    $data[] = $frontend->getTableColumnBody(
-                        new Bold(
-                            '&nbsp;' . '<br>'
-                            . '&nbsp;' . '<br>'
-                            . $toolTip
-                        ),
-                        $frontend::BACKGROUND_COLOR,
-                        $widthGrade
-                    );
 
                     $bodyList[] = $data;
                 }
