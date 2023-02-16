@@ -84,7 +84,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'ESDi Leistungsbeschreibung'))->setPictureHeight()
+                                , 'ESDi Leistungsbeschreibung', 'Stand 26.01.2023'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'ESDi'))
                         , 2),
                     )),
