@@ -219,7 +219,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ));
 
                             $rowList[] = new LayoutRow(new LayoutColumn(
-                                Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, true)
+                                Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, true, false)
                             ));
                         }
                     }

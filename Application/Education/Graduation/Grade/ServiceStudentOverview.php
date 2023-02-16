@@ -2,7 +2,10 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview\GradebookOverview;
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
+use SPHERE\Application\Document\Generator\Repository\Section;
+use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
@@ -118,14 +121,23 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
      * @param TblYear $tblYear
      * @param TblStudentEducation $tblStudentEducation
      * @param bool $IsParentView
+     * @param bool $IsPdf
      *
-     * @return void
+     * @return string|Slice
      */
-    public function getStudentOverviewDataByPerson(TblPerson $tblPerson, TblYear $tblYear, TblStudentEducation $tblStudentEducation, bool $IsParentView): string
+    public function getStudentOverviewDataByPerson(TblPerson $tblPerson, TblYear $tblYear, TblStudentEducation $tblStudentEducation,
+        bool $IsParentView, bool $IsPdf)
     {
-        $headerList = array();
-        $bodyList = array();
         $countMaxColumn = 5;
+        $withSubjectNumber = $IsPdf ? 5 : 10;
+        $widthSubject = $withSubjectNumber . '%';
+
+        $headerList = array();
+        $headerPdfSection = new Section();
+
+        $bodyList = array();
+        $bodyPdfSectionList = array();
+
         if ($IsParentView) {
             list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown,
                 $showHighlightedTestsInGradeOverview, $AutoPublicationOfTestsAfterXDays)
@@ -179,6 +191,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
 
         $frontend = Grade::useFrontend();
         $headerList['Subject'] = $frontend->getTableColumnHead('Fach');
+        $headerPdfSection->addElementColumn(GradebookOverview::getHeaderElement('Fach', true), $widthSubject);
         $halfYearDate = false;
         if (($tblPeriodList = Term::useService()->getPeriodListByYear($tblYear, $isShortYear))) {
             foreach($tblPeriodList as $tblPeriod) {
@@ -258,17 +271,21 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
             $countMaxColumn++;
         }
 
+        // Berechnung der breite für eine Note
+        $widthGradeNumber = (100 - $withSubjectNumber) / (2 * $countMaxColumn + ($isShownAverage ? 1 : 0));
+        $widthGrade = $widthGradeNumber . '%';
+
         if ($tblPeriodList) {
             foreach($tblPeriodList as $tblPeriod) {
                 $headerList[$tblPeriod->getId()] = $frontend->getTableColumnHead($tblPeriod->getDisplayName(), true, null, $countMaxColumn);
+                $headerPdfSection->addElementColumn(GradebookOverview::getHeaderElement($tblPeriod->getDisplayName()), ($countMaxColumn * $widthGradeNumber) . '%');
             }
             if ($isShownAverage) {
                 $headerList['Average'] = $frontend->getTableColumnHead('&#216;');
+                $headerPdfSection->addElementColumn(GradebookOverview::getHeaderElement('&#216;'), $widthGrade);
             }
         }
 
-        $widthAcronym = '10%';
-        $widthGrade = (45 / $countMaxColumn) . '%';
 
         if (!empty($virtualTestTaskList)) {
             foreach($virtualTestTaskList as $subjectId => $list) {
@@ -277,6 +294,8 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                     $tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
 
                     $data = array();
+                    $dataPdfSection = new Section();
+
                     $data['Subject'] = $frontend->getTableColumnBody(
                         new Bold($tblSubject->getName())
                         . ($isScoreRuleShown && $tblScoreRule
@@ -284,8 +303,10 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                                 'Berechnungsvorschrift für dieses Fach anzeigen'))
                                 ->ajaxPipelineOnClick(ApiOnlineGradebook::pipelineOpenScoreRuleModal($tblScoreRule->getId()))
                             : ''),
-                        $frontend::BACKGROUND_COLOR, $widthAcronym
+                        $frontend::BACKGROUND_COLOR, $widthSubject
                     );
+                    $dataPdfSection->addElementColumn(GradebookOverview::getHeaderElement($tblSubject->getAcronym(), true), $widthSubject);
+
                     $testGrades = array();
                     $testGrades['All'] = array();
 
@@ -304,15 +325,19 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                                         $dateItem = $tblTestGrade && $tblTestGrade->getDate() ? $tblTestGrade->getDate() : $virtualTestTask->getDate();
                                         $isBold = $tblTest->getTblGradeType()->getIsHighlighted();
                                         $toolTip = '';
-                                        if ($tblTest->getDescription()) {
-                                            $toolTip .= 'Thema: ' . $tblTest->getDescription();
-                                        }
-                                        if (!isset($hideTestInfoList[$testId])) {
-                                            if ($isShownGradeMirror && $tblScoreType && ($gradeMirror = Grade::useService()->getGradeMirrorForToolTipByTest($tblTest, $tblScoreType))) {
-                                                $toolTip .= ($toolTip ? '<br />' : '') . $gradeMirror;
+                                        if (!$IsPdf) {
+                                            if ($tblTest->getDescription()) {
+                                                $toolTip .= 'Thema: ' . $tblTest->getDescription();
                                             }
-                                            if ($isShownDivisionSubjectScore && ($averageTest = Grade::useService()->getGradeAverageByTest($tblTest))) {
-                                                $toolTip .= ($toolTip ? '<br />' : '') . '&#216; ' . $averageTest;
+                                            if (!isset($hideTestInfoList[$testId])) {
+                                                if ($isShownGradeMirror && $tblScoreType
+                                                    && ($gradeMirror = Grade::useService()->getGradeMirrorForToolTipByTest($tblTest, $tblScoreType))
+                                                ) {
+                                                    $toolTip .= ($toolTip ? '<br />' : '') . $gradeMirror;
+                                                }
+                                                if ($isShownDivisionSubjectScore && ($averageTest = Grade::useService()->getGradeAverageByTest($tblTest))) {
+                                                    $toolTip .= ($toolTip ? '<br />' : '') . '&#216; ' . $averageTest;
+                                                }
                                             }
                                         }
                                         $contentTemp = $virtualTestTask->getTblTest()->getTblGradeType()->getCode() . '<br>'
@@ -321,27 +346,27 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                                             . ($isBold ? new Bold($contentTemp) : $contentTemp);
 
                                         $publicComment = $tblTestGrade && $tblTestGrade->getPublicComment() ? $tblTestGrade->getPublicComment() : '';
+
                                         $data[] = $frontend->getTableColumnBody(
                                             ($toolTip ? (new ToolTip($contentTest, htmlspecialchars($toolTip)))->enableHtml() : $contentTest)
                                                 . ($publicComment ?  ' ' . new ToolTip(new Info(), $publicComment) : ''),
                                             null,
                                             $widthGrade
                                         );
+                                        $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement($contentTest), $widthGrade);
+
                                         if ($tblTestGrade) {
                                             $testGrades[$i][] = $tblTestGrade;
                                         }
                                         break;
                                     case VirtualTestTask::TYPE_TASK:
-                                        $data[] = $frontend->getTableColumnBody(
-                                            new Bold(
-                                                $virtualTestTask->getDate()->format('d.m.') . '<br>'
-                                                . 'SN' . '<br>'
-                                                . (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $virtualTestTask->getTblTask(), $tblSubject))
-                                                    ? $tblTaskGrade->getGrade() : '&nbsp;')
-                                            ),
-                                            $frontend::BACKGROUND_COLOR,
-                                            $widthGrade
-                                        );
+                                        $contentTask = $virtualTestTask->getDate()->format('d.m.') . '<br>'
+                                            . 'SN' . '<br>'
+                                            . (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $virtualTestTask->getTblTask(), $tblSubject))
+                                                && $tblTaskGrade->getGrade() ? $tblTaskGrade->getGrade() : '&nbsp;');
+
+                                        $data[] = $frontend->getTableColumnBody(new Bold($contentTask), $frontend::BACKGROUND_COLOR, $widthGrade);
+                                        $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement($contentTask, true, true), $widthGrade);
                                 }
                             }
                         }
@@ -349,7 +374,9 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                         // leere Spalten
                         while ($count < $countMaxColumn - ($isShownAverage ? 1 : 0)) {
                             $count++;
+
                             $data[] = $frontend->getTableColumnBody('&nbsp;');
+                            $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement('&nbsp;<br>&nbsp;<br>&nbsp;'), $widthGrade);
                         }
 
                         // Notendurchschnitt pro Halbjahr
@@ -361,18 +388,16 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
 
                                 $testGrades['All'] = array_merge($testGrades['All'], $testGrades[$i]);
                             } else {
+                                $average = '&nbsp;';
                                 $toolTip = '';
                             }
 
                             $data[] = $frontend->getTableColumnBody(
-                                new Bold(
-                                    '&nbsp;' . '<br>'
-                                    . '&#216;' . '<br>'
-                                    . $toolTip
-                                ),
+                                new Bold('&nbsp;' . '<br>' . '&#216;' . '<br>' . $toolTip),
                                 $frontend::BACKGROUND_COLOR,
                                 $widthGrade
                             );
+                            $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement('&nbsp;' . '<br>' . '&#216;' . '<br>' . $average, true, true), $widthGrade);
                         }
                     }
 
@@ -383,26 +408,33 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                                 $tblScoreRule ?? null);
                             $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
                         } else {
+                            $average = '&nbsp;';
                             $toolTip = '';
                         }
+
                         $data[] = $frontend->getTableColumnBody(
-                            new Bold(
-                                '&nbsp;' . '<br>'
-                                . '&nbsp;' . '<br>'
-                                . $toolTip
-                            ),
+                            new Bold('&nbsp;' . '<br>' . '&nbsp;' . '<br>' . $toolTip),
                             $frontend::BACKGROUND_COLOR,
                             $widthGrade
                         );
+                        $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement('&nbsp;' . '<br>' . '&nbsp;' . '<br>' . $average, true, true), $widthGrade);
                     }
 
                     $bodyList[] = $data;
+                    $bodyPdfSectionList[] = $dataPdfSection;
                 }
             }
         }
 
-        $content = $frontend->getTableCustom($headerList, $bodyList);
+        if ($IsPdf) {
+            $slice = (new Slice())->addSection($headerPdfSection);
+            if (!empty($bodyPdfSectionList)) {
+                $slice->addSectionList($bodyPdfSectionList);
+            }
 
-        return $content;
+            return $slice->styleBorderBottom();
+        } else {
+            return ($frontend->getTableCustom($headerList, $bodyList))->__toString();
+        }
     }
 }

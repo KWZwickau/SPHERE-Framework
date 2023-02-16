@@ -35,6 +35,7 @@ use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
@@ -110,18 +111,19 @@ class Creator extends Extension
     }
 
     /**
-     * @param null $PersonId
-     * @param null $DivisionId
+     * @param $PersonId
+     * @param $YearId
      * @param string $paperOrientation
      *
      * @return Stage|string
      */
-    public static function createGradebookOverviewPdf($PersonId, $DivisionId, $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE) {
+    public static function createGradebookOverviewPdf($PersonId, $YearId, string $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE)
+    {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
-            && ($tblDivision = Division::useService()->getDivisionById($DivisionId))
+            && ($tblYear = Term::useService()->getYearById($YearId))
         ) {
             $Document = new GradebookOverview\GradebookOverview();
-            $pageList[] = $Document->buildPage($tblPerson, $tblDivision);
+            $pageList[] = $Document->buildPage($tblPerson, $tblYear);
 
             $File = self::buildDummyFile($Document, array(), $pageList, $paperOrientation);
 

@@ -13,7 +13,6 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -24,12 +23,15 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -315,8 +317,6 @@ abstract class FrontendStudentOverview extends FrontendScoreType
      */
     public function loadViewStudentOverviewStudentContent($DivisionCourseId, $PersonId, $Filter, string $View = 'Parent'): string
     {
-        $textCourse = "";
-        $personName = "";
         $content = "";
         $supportButton = "";
         $isParentView = $View != 'All';
@@ -324,12 +324,12 @@ abstract class FrontendStudentOverview extends FrontendScoreType
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
             && ($tblPerson = Person::useService()->getPersonById($PersonId))
         ) {
-            // Anzeige Klasse + Stammgruppe
-            $textCourse = FrontendReadOnly::getDivisionString($tblPerson);
-            $personName = $tblPerson->getLastFirstName();
-
             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
-                $content = Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, $isParentView);
+                $content = Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, $isParentView, false);
+                // Anzeige Klasse + Stammgruppe
+                $textCourse = DivisionCourse::useService()->getCurrentMainCoursesByStudentEducation($tblStudentEducation);
+            } else {
+                $textCourse = $tblDivisionCourse->getDisplayName();
             }
 
             // Integrationsbutton
@@ -337,14 +337,11 @@ abstract class FrontendStudentOverview extends FrontendScoreType
                 $supportButton = (new Standard('Integration', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                     ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
             }
-        } else {
-            $content = new Danger("Kurs oder Person nicht gefunden.", new Exclamation());
-        }
 
-        $textAll = !$isParentView ? new Info(new Edit() . new Bold(' Ansicht: Alle Zensuren')) : 'Ansicht: Alle Zensuren';
-        $textParent = $isParentView ? new Info(new Edit() . new Bold(' Ansicht: Eltern/Schüler')) : 'Ansicht: Eltern/Schüler';
+            $textAll = !$isParentView ? new Info(new Edit() . new Bold(' Ansicht: Alle Zensuren')) : 'Ansicht: Alle Zensuren';
+            $textParent = $isParentView ? new Info(new Edit() . new Bold(' Ansicht: Eltern/Schüler')) : 'Ansicht: Eltern/Schüler';
 
-        return new Title(
+            return
                 (new Standard("Zurück", ApiStudentOverview::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiStudentOverview::pipelineLoadViewStudentOverviewCourseContent($DivisionCourseId, $Filter))
                 . (new Standard($textAll, ApiStudentOverview::getEndpoint()))
@@ -352,11 +349,17 @@ abstract class FrontendStudentOverview extends FrontendScoreType
                 . (new Standard($textParent, ApiStudentOverview::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiStudentOverview::pipelineLoadViewStudentOverviewStudentContent($DivisionCourseId, $PersonId, $Filter, 'Parent'))
                 . $supportButton
-                . "&nbsp;&nbsp;&nbsp;&nbsp;" . $personName . " "
-                . new Muted(new Small($textCourse))
-            )
-            . ApiOnlineGradebook::receiverModal()
-            . ApiSupportReadOnly::receiverOverViewModal()
-            . $content;
+                . new PullRight(new External(
+                    'Schülerübersicht herunterladen', 'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
+                    new Download(), array('PersonId' => $PersonId, 'YearId' => $tblYear->getId(), 'Notenübersicht herunterladen')
+                    , false
+                ))
+                . new Title($tblPerson->getLastFirstName() . " " . new Muted(new Small($textCourse)))
+                . ApiOnlineGradebook::receiverModal()
+                . ApiSupportReadOnly::receiverOverViewModal()
+                . $content;
+        } else {
+            return new Danger("Kurs oder Person nicht gefunden.", new Exclamation());
+        }
     }
 }
