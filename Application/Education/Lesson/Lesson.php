@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson;
 
+use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -10,6 +11,7 @@ use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Lesson
@@ -44,6 +46,10 @@ class Lesson implements IApplicationInterface
     {
 
         $Stage = new Stage('Dashboard', 'Unterricht');
+
+        Debugger::devDump('Test');
+
+        Debugger::screenDump(Absence::useService()->getMonthlyAbsence(44));
 
         return $Stage;
     }

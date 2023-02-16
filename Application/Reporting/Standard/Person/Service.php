@@ -4834,12 +4834,12 @@ class Service extends Extension
             $studentsHeader = 0;
             $export->setValue($export->getCell($column, 0), 'Fehlzeiten Tage');
             $AbsenceDays = $column;
-            $export->setValue($export->getCell($column++, 1), 'Entschuldigte');
-            $export->setValue($export->getCell($column++, 1), 'Unentschuldigte');
+            $export->setValue($export->getCell($column++, 1), 'E');
+            $export->setValue($export->getCell($column++, 1), 'U');
             $AbsenceUE = $column;
             $export->setValue($export->getCell($column, 0), 'Fehlzeiten Unterrichtseinheiten');
-            $export->setValue($export->getCell($column++, 1), 'Entschuldigte');
-            $export->setValue($export->getCell($column, 1), 'Unentschuldigte');
+            $export->setValue($export->getCell($column++, 1), 'E');
+            $export->setValue($export->getCell($column, 1), 'U');
 
             $row = 2;
             foreach ($PersonList as $PersonData) {

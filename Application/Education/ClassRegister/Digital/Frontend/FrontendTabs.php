@@ -256,6 +256,15 @@ class FrontendTabs extends FrontendCourseContent
                                 ))
                             , 2),
                         new LayoutColumn(
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' Monatliche Fehlzeiten'))->setPictureHeight(),
+                                '/Api/Reporting/Standard/Person/ClassRegister/AbsenceMonthly/Download', null, array(
+                                    'DivisionId' => $DivisionId,
+                                    'GroupId'    => $GroupId,
+                                    'DivisionSubjectId' => $DivisionSubjectId
+                                ))
+                            , 2),
+                        new LayoutColumn(
                             $printLink
                             , 2),
                     )), new Title(new Download() . ' Download')),

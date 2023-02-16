@@ -165,8 +165,6 @@ class Frontend extends Extension implements IFrontendInterface
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten (Kalenderansicht)');
-        $stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
@@ -207,10 +205,6 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow(
                             $tblDivision , null, $tblYear, $tblDivisionSubject ?: null
-                        ), $stage->addButton(
-                            new Primary('Herunterladen',
-                                '/Api/Reporting/Standard/Person/ClassRegister/AbsenceMonthly/Download', new Download(),
-                                array('DivisionId' => $tblDivision->getId()))
                         ),
                         $tblDivisionSubject
                             ? Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
