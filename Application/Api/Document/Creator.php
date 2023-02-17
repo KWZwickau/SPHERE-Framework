@@ -39,7 +39,6 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
@@ -136,66 +135,49 @@ class Creator extends Extension
     }
 
     /**
-     * @param $DivisionId
-     * @param $GroupId
-     * @param $paperOrientation
+     * @param $DivisionCourseId
+     * @param string $paperOrientation
      * @param $Redirect
      *
      * @return Display|Stage|string
      */
-    public static function createMultiGradebookOverviewPdf($DivisionId, $GroupId, $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE, $Redirect = true)
+    public static function createMultiGradebookOverviewPdf($DivisionCourseId, $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE, $Redirect = true)
     {
-
         // Warteseite
         if ($Redirect) {
             return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
                 '/Api/Document/Standard/MultiGradebookOverview/Create',
                 array(
-                    'DivisionId' => $DivisionId,
-                    'GroupId' => $GroupId,
+                    'DivisionCourseId' => $DivisionCourseId,
                     'paperOrientation' => $paperOrientation,
                     'Redirect' => 0
                 )
             );
         }
 
-        $tblPersonList = false;
-        $text ='';
-        $tblGroup = false;
-        $tblDivisionStudent = false;
-        if ($DivisionId && ($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            $text = ' Klasse ' . $tblDivision->getDisplayName();
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-            $tblDivisionStudent = $tblDivision;
-        } elseif ($GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $text = ' Stammgruppe ' . $tblGroup->getName();
-            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-        }
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                $pageList = array();
+                $documentName = '';
+                foreach($tblPersonList as $tblPerson){
+                    $Document = new GradebookOverview\GradebookOverview();
+                    $documentName = $Document->getName();
 
-        if ($tblPersonList) {
-            $pageList = array();
-            $documentName = '';
-            foreach($tblPersonList as $tblPerson){
-                $Document = new GradebookOverview\GradebookOverview();
-                $documentName = $Document->getName();
-                if ($tblGroup) {
-                    $tblDivisionStudent = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+                    $pageList[] = $Document->buildPage($tblPerson, $tblYear);
                 }
 
-                if ($tblDivisionStudent) {
-                    $pageList[] = $Document->buildPage($tblPerson, $tblDivisionStudent);
+                if(!empty($pageList)){
+                    $template = new GradebookOverview\GradebookOverview();
+                    $File = self::buildDummyFile($template, array(), $pageList, $paperOrientation);
                 }
-            }
 
-            if(!empty($pageList)){
-                $template = new GradebookOverview\GradebookOverview();
-                $File = self::buildDummyFile($template, array(), $pageList, $paperOrientation);
-            }
+                $FileName = $documentName . $tblDivisionCourse->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
 
-            $FileName = $documentName . $text . ' ' . date("Y-m-d") . ".pdf";
-
-            if(isset($File)){
-                return self::buildDownloadFile($File, $FileName);
+                if(isset($File)){
+                    return self::buildDownloadFile($File, $FileName);
+                }
             }
         }
 
