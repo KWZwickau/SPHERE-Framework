@@ -26,8 +26,10 @@ use SPHERE\Application\People\Group\Group as GroupPerson;
 use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
@@ -136,14 +138,35 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * $isSubjectCourseIgnore ignoriert Lerngruppen und SEKII-Kurse
+     *
      * @param TblYear|null $tblYear
      * @param string|null $TypeIdentifier
+     * @param bool $isSubjectCourseIgnore
      *
      * @return false|TblDivisionCourse[]
      */
-    public function getDivisionCourseListBy(TblYear $tblYear = null, ?string $TypeIdentifier = '')
+    public function getDivisionCourseListBy(TblYear $tblYear = null, ?string $TypeIdentifier = '', bool $isSubjectCourseIgnore = false)
     {
-        return (new Data($this->getBinding()))->getDivisionCourseListBy($tblYear, $TypeIdentifier);
+        $list = (new Data($this->getBinding()))->getDivisionCourseListBy($tblYear, $TypeIdentifier);
+        if ($isSubjectCourseIgnore && $list) {
+            $dataList = array();
+            foreach($list as $tblDivisionCourse) {
+                if (($identifier = $tblDivisionCourse->getType()->getIdentifier())
+                    && ($identifier == TblDivisionCourseType::TYPE_TEACHER_GROUP
+                        || $identifier == TblDivisionCourseType::TYPE_BASIC_COURSE
+                        || $identifier == TblDivisionCourseType::TYPE_ADVANCED_COURSE
+                    )
+                ) {
+                    continue;
+                }
+                $dataList[] = $tblDivisionCourse;
+            }
+
+            return empty($dataList) ? false : $dataList;
+        } else {
+            return $list;
+        }
     }
 
     /**
@@ -395,10 +418,18 @@ class Service extends ServiceTeacher
             $error = true;
         }
         if (isset($Data['Name']) && $Data['Name'] != '') {
-            // Name Zeicheneingrenzung für Klassen und Stammgruppen, falls diese an angeschlossene Systeme übertragen werden müssen
-            if ($tblType && ($tblType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
-                if (!preg_match('!^[\w\-,\/ ]+$!', $Data['Name'])) {
-                    $form->setError('Data[Name]', 'Erlaubte Zeichen [a-zA-Z0-9, -_/]');
+            // ist ein UCS Mandant?
+            $IsUCSMandant = false;
+            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())
+                && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)
+            ){
+                $IsUCSMandant = true;
+            }
+            // Name Zeicheneingrenzung für Klassen und Stammgruppen, falls diese an angeschlossene Systeme übertragen werden müssen (UCS)
+            if ($IsUCSMandant && $tblType && ($tblType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
+                // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
+                if (!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Data['Name'])) {
+                    $form->setError('Data[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
                     $error = true;
                 }
             }
@@ -759,10 +790,11 @@ class Service extends ServiceTeacher
     /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
+     * @param bool $withTeacherGroup
      *
      * @return TblDivisionCourse[]|false
      */
-    public function getDivisionCourseListByDivisionTeacher(TblPerson $tblPerson, TblYear $tblYear)
+    public function getDivisionCourseListByDivisionTeacher(TblPerson $tblPerson, TblYear $tblYear, bool $withTeacherGroup = false)
     {
         $resultList = array();
         if (($tblMemberType = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
@@ -772,6 +804,10 @@ class Service extends ServiceTeacher
         ) {
             foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
                 if (($tblDivisionCourse = $tblDivisionCourseMember->getTblDivisionCourse())) {
+                    if (!$withTeacherGroup && $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
+                        continue;
+                    }
+
                     $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
                 }
             }
@@ -1106,21 +1142,51 @@ class Service extends ServiceTeacher
      *
      * @return string
      */
-    public function getCurrentMainCoursesByPerson(TblPerson $tblPerson, string $date = 'now'): string
+    public function getCurrentMainCoursesByPersonAndDate(TblPerson $tblPerson, string $date = 'now'): string
     {
         $result = '';
         if (($tblStudentEducation = $this->getStudentEducationByPersonAndDate($tblPerson, $date)))
         {
-            if (($tblDivision = $tblStudentEducation->getTblDivision())
-                && ($displayDivision = $tblDivision->getName())
-            ) {
-                $result = 'Klasse: ' . $displayDivision;
-            }
-            if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
-                && ($displayCoreGroup = $tblCoreGroup->getName())
-            ) {
-                $result .= ($result ? ', ': '') . 'Stammgruppe: ' . $displayCoreGroup;
-            }
+            $result = $this->getCurrentMainCoursesByStudentEducation($tblStudentEducation);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return string
+     */
+    public function getCurrentMainCoursesByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear): string
+    {
+        $result = '';
+        if (($tblStudentEducation = $this->getStudentEducationByPersonAndYear($tblPerson, $tblYear)))
+        {
+            $result = $this->getCurrentMainCoursesByStudentEducation($tblStudentEducation);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param TblStudentEducation $tblStudentEducation
+     *
+     * @return string
+     */
+    public function getCurrentMainCoursesByStudentEducation(TblStudentEducation $tblStudentEducation): string
+    {
+        $result = '';
+        if (($tblDivision = $tblStudentEducation->getTblDivision())
+            && ($displayDivision = $tblDivision->getName())
+        ) {
+            $result = 'Klasse: ' . $displayDivision;
+        }
+        if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+            && ($displayCoreGroup = $tblCoreGroup->getName())
+        ) {
+            $result .= ($result ? ', ': '') . 'Stammgruppe: ' . $displayCoreGroup;
         }
 
         return $result;

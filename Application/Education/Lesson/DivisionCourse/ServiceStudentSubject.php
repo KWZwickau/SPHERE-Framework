@@ -531,7 +531,7 @@ abstract class ServiceStudentSubject extends AbstractService
         // Fach hängt direkt am Kurs (SekII-Kurse, Lerngruppen)
         if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
             $tblSubjectList[$tblSubject->getId()] = $tblSubject;
-        } elseif (($tblPersonList = $tblDivisionCourse->getStudents())
+        } elseif (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
             if (!($tblSubjectList = $this->getSubjectListByPersonListAndYear($tblPersonList, $tblYear, $hasGrading))) {

@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Graduation\Grade;
 
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiStudentOverview;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -26,6 +27,9 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
     const VIEW_GRADE_BOOK_SELECT = "VIEW_GRADE_BOOK_SELECT";
     const VIEW_GRADE_BOOK_CONTENT = "VIEW_GRADE_BOOK_CONTENT";
     const VIEW_TEACHER_GROUP = "VIEW_TEACHER_GROUP";
+    const VIEW_STUDENT_OVERVIEW_COURSE_SELECT = 'VIEW_STUDENT_OVERVIEW_COURSE_SELECT';
+    const VIEW_STUDENT_OVERVIEW_STUDENT_SELECT = 'VIEW_STUDENT_OVERVIEW_STUDENT_SELECT';
+    const VIEW_STUDENT_OVERVIEW_STUDENT_CONTENT = 'VIEW_STUDENT_OVERVIEW_STUDENT_CONTENT';
 
     const BACKGROUND_COLOR = '#D8EDF7';
 //    const BACKGROUND_COLOR_TASK_HEADER = '#EEEEEE';
@@ -54,6 +58,12 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
             ? new Info(new Edit() . new Bold(" Notenbuch"))
             : "Notenbuch";
 
+        $textStudentOverview = $View == self::VIEW_STUDENT_OVERVIEW_COURSE_SELECT
+            || $View == self::VIEW_STUDENT_OVERVIEW_STUDENT_SELECT
+            || $View == self::VIEW_STUDENT_OVERVIEW_STUDENT_CONTENT
+                ? new Info(new Edit() . new Bold(" Schülerübersicht"))
+                : "Schülerübersicht";
+
         $textTeacherGroup = $View == self::VIEW_TEACHER_GROUP
             ? new Info(new Edit() . new Bold(" Lerngruppen"))
             : "Lerngruppen";
@@ -63,6 +73,11 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(array(
                     ApiGradeBook::pipelineLoadHeader(self::VIEW_GRADE_BOOK_SELECT),
                     ApiGradeBook::pipelineLoadViewGradeBookSelect()
+                ))
+            . (new Standard($textStudentOverview, ApiGradeBook::getEndpoint()))
+                ->ajaxPipelineOnClick(array(
+                    ApiGradeBook::pipelineLoadHeader(self::VIEW_STUDENT_OVERVIEW_COURSE_SELECT),
+                    ApiStudentOverview::pipelineLoadViewStudentOverviewCourseSelect()
                 ))
             . ($role == "Teacher"
                 ? (new Standard($textTeacherGroup, ApiTeacherGroup::getEndpoint()))
@@ -95,12 +110,13 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
     /**
      * @param string $content
      * @param string|null $backgroundColor
+     * @param string $width
      *
      * @return TableColumn
      */
-    public function getTableColumnBody(string $content, ?string $backgroundColor = null): TableColumn
+    public function getTableColumnBody(string $content, ?string $backgroundColor = null, string $width = 'auto'): TableColumn
     {
-        return (new TableColumn(new Center($content)))
+        return (new TableColumn(new Center($content), 1, $width))
             ->setBackgroundColor($backgroundColor)
             ->setMinHeight(self::MIN_HEIGHT_BODY)
             ->setVerticalAlign('middle')

@@ -161,13 +161,13 @@ class Frontend extends FrontendTest
         $isEdit = Grade::useService()->getIsEdit($DivisionCourseId, $SubjectId);
         $isCheckTeacherLectureship = $isEdit && (Grade::useService()->getRole() == 'Teacher');
 
-        $textKurs = "";
+        $textCourse = "";
         $textSubject = "";
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
-            $textKurs = new Bold($tblDivisionCourse->getDisplayName());
+            $textCourse = new Bold($tblDivisionCourse->getDisplayName());
             $textSubject = new Bold($tblSubject->getDisplayName());
             $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
 
@@ -290,7 +290,7 @@ class Frontend extends FrontendTest
                 (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookSelect($Filter))
                     . "&nbsp;&nbsp;&nbsp;&nbsp;Notenbuch"
-                    . new Muted(new Small(" für Kurs: ")) . $textKurs
+                    . new Muted(new Small(" für Kurs: ")) . $textCourse
                     . new Muted(new Small(" im Fach: ")) . $textSubject
                     . "&nbsp;&nbsp;&nbsp;"
                     . (new Link('Mindestnotenanzahl anzeigen', ApiGradeBook::getEndpoint()))

@@ -9,6 +9,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
@@ -737,5 +738,70 @@ class Service extends ServiceTask
         }
 
         return $virtualTestTaskList;
+    }
+
+    public function getGradeMirrorForToolTipByTest(TblTest $tblTest, TblScoreType $tblScoreType): string
+    {
+        $result = '';
+        $gradeMirrorList = array();
+        if ($tblScoreType->getIdentifier() !== 'VERBAL') {
+            $hasMirror = false;
+            if ($tblScoreType->getIdentifier() == 'GRADES'
+                || $tblScoreType->getIdentifier() == 'GRADES_COMMA'
+            ) {
+                $hasMirror = true;
+                for ($i = 1; $i < 7; $i++) {
+                    $gradeMirrorList[$i] = 0;
+                }
+            } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
+                $hasMirror = true;
+                for ($i = 0; $i < 16; $i++) {
+                    $gradeMirrorList[$i] = 0;
+                }
+            }
+            if ($hasMirror && ($tblTestGradeList = $tblTest->getGrades())) {
+                foreach ($tblTestGradeList as $tblTestGrade) {
+                    if (($gradeValue = $tblTestGrade->getGradeNumberValue()) !== null) {
+                        // auf ganze Note runden
+                        $gradeValue = intval(round($gradeValue));
+                        $gradeMirrorList[$gradeValue]++;
+                    }
+                }
+
+                $line[0] = '';
+                $line[1] = '';
+                foreach ($gradeMirrorList as $key => $value) {
+                    $space = ($value > 9 && $key < 10) ? '&nbsp;&nbsp;&nbsp;' : '&nbsp;';
+                    $line[0] .= $space . $key;
+                    $space = ($value < 9 && $key > 9) ? '&nbsp;&nbsp;&nbsp;' : '&nbsp;';
+                    $line[1] .= $space . $value;
+                }
+
+                $result = $line[0] . '<br />' . $line[1];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param TblTest $tblTest
+     *
+     * @return false|string
+     */
+    public function getGradeAverageByTest(TblTest $tblTest)
+    {
+        $count = 0;
+        $sum = floatval(0);
+        if (($tblTestGradeList = $tblTest->getGrades())) {
+            foreach ($tblTestGradeList as $tblTestGrade) {
+                if ($tblTestGrade->getIsGradeNumeric()) {
+                    $count++;
+                    $sum += $tblTestGrade->getGradeNumberValue();
+                }
+            }
+        }
+
+        return $count > 0 ? $this->getGradeAverage($sum, $count) : false;
     }
 }

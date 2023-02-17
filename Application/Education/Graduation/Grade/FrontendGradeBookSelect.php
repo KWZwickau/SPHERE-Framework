@@ -180,7 +180,7 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
             }
 
             // Klassenlehrer aus den Lehraufträgen der Lehrer
-            if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear))) {
+            if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear, true))) {
                 foreach ($tblDivisionCourseList as $tblDivisionCourse) {
                     $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, $tblPersonLogin);
                 }

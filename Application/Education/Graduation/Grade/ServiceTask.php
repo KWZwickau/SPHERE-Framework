@@ -33,7 +33,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 
-abstract class ServiceTask extends ServiceScoreCalc
+abstract class ServiceTask extends ServiceStudentOverview
 {
     /**
      * @param TblYear $tblYear
@@ -465,6 +465,30 @@ abstract class ServiceTask extends ServiceScoreCalc
     {
         $tblTaskList = array();
         if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))) {
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (($tempList = $this->getTaskListByDivisionCourse($tblDivisionCourse))) {
+                    foreach ($tempList as $temp) {
+                        if (!isset($tblTaskList[$temp->getId()])) {
+                            $tblTaskList[$temp->getId()] = $temp;
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($tblTaskList) ? false : $tblTaskList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return TblTask[]|false
+     */
+    public function getTaskListByStudentAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        $tblTaskList = array();
+        if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentAndYear($tblPerson, $tblYear))) {
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
                 if (($tempList = $this->getTaskListByDivisionCourse($tblDivisionCourse))) {
                     foreach ($tempList as $temp) {

@@ -334,14 +334,16 @@ abstract class ServiceScoreCalc extends ServiceScore
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
-     * @param TblDivisionCourse $tblDivisionCourseItem
+     * @param TblDivisionCourse|null $tblDivisionCourseItem
      *
      * @return false|TblScoreRule
      */
-    public function getScoreRuleByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, TblDivisionCourse $tblDivisionCourseItem)
+    public function getScoreRuleByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject,
+        ?TblDivisionCourse $tblDivisionCourseItem = null)
     {
         // SekII-Kurse
-        if (($temp = $this->getScoreRuleSubjectDivisionCourseByDivisionCourseAndSubject($tblDivisionCourseItem, $tblSubject))
+        if ($tblDivisionCourseItem
+            && ($temp = $this->getScoreRuleSubjectDivisionCourseByDivisionCourseAndSubject($tblDivisionCourseItem, $tblSubject))
             && ($tblScoreRule = $temp->getTblScoreRule())
         ) {
             return $tblScoreRule;

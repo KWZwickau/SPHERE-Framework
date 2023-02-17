@@ -4,15 +4,12 @@ namespace SPHERE\Application\ParentStudentAccess\OnlineGradebook;
 
 use DateTime;
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -47,7 +44,9 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
@@ -70,12 +69,10 @@ class Frontend extends Extension implements IFrontendInterface
             .new Container('Der angemeldete Sorgeberechtigte sieht nur die Zensuren seiner Kinder.')
         );
 
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
         $rowList = array();
         $tblDisplayYearList = array();
         $data = array();
         $isStudent = false;
-//        $isCustody = false;
         $isEighteen = false;    // oder Älter
         $tblPersonSession = false;
 
@@ -87,9 +84,6 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($Type == TblUserAccount::VALUE_TYPE_STUDENT) {
                     $isStudent = true;
                 }
-//                if ($Type == TblUserAccount::VALUE_TYPE_CUSTODY) {
-//                    $isCustody = true;
-//                }
             }
             $UserList = Account::useService()->getUserAllByAccount($tblAccount);
             if ($UserList && $isStudent) {
@@ -98,16 +92,14 @@ class Frontend extends Extension implements IFrontendInterface
                 /** @var TblUser $tblUser */
                 if ($tblUser && $tblUser->getServiceTblPerson()) {
                     $tblPersonSession = $tblUser->getServiceTblPerson();
-                    if ($isStudent) {
-                        $tblCommon = Common::useService()->getCommonByPerson($tblPersonSession);
-                        if ($tblCommon && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                    $tblCommon = Common::useService()->getCommonByPerson($tblPersonSession);
+                    if ($tblCommon && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
 
-                            $Now = new DateTime();
-                            $Now->modify('-18 year');
+                        $Now = new DateTime();
+                        $Now->modify('-18 year');
 
-                            if ($Now >= new DateTime($tblCommonBirthDates->getBirthday())) {
-                                $isEighteen = true;
-                            }
+                        if ($Now >= new DateTime($tblCommonBirthDates->getBirthday())) {
+                            $isEighteen = true;
                         }
                     }
                 }
@@ -129,9 +121,25 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblPersonList = OnlineGradebook::useService()->getPersonListForStudent();
+        // erlaubte Schularten:
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
+        $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
+        if($tblSchoolTypeList){
+            // erzeuge eine Id Liste, wenn Schularten blockiert werden
+            foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
+                $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
+            }
+        }
 
-        list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown)
-            = Gradebook::useFrontend()->getConsumerSettingsForGradeOverview();
+        // Schuljahre Anzeigen ab:
+        $startYear = '';
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView');
+        if($tblSetting){
+            $YearTempId = $tblSetting->getValue();
+            if ($YearTempId && ($tblYearTemp = Term::useService()->getYearById($YearTempId))){
+                $startYear = ($tblYearTemp->getYear() ? $tblYearTemp->getYear() : $tblYearTemp->getName());
+            }
+        }
 
         $BlockedList = array();
         $dateTimeNow = new DateTime('now');
@@ -148,29 +156,27 @@ class Frontend extends Extension implements IFrontendInterface
                         continue;
                     }
                 }
-                $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-                if ($tblDivisionStudentList) {
+                if ($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson)) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        if ($tblStudentEducation->getLeaveDate()) {
+                            continue;
+                        }
 
-                    /** @var TblDivisionStudent $tblDivisionStudent */
-                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                        $tblDivision = $tblDivisionStudent->getTblDivision();
                         // Schulart Prüfung nur, wenn auch Schularten in den Einstellungen erlaubt werden.
-                        if($tblSchoolTypeList && ($tblLevel = $tblDivision->getTblLevel())){
-                            if(($tblSchoolType = $tblLevel->getServiceTblType())){
-                                if(!in_array($tblSchoolType->getId(), $tblSchoolTypeList)){
-                                    // Klassen werden nicht angezeigt, wenn die Schulart nicht freigeben ist.
-                                    continue;
-                                }
+                        if($tblSchoolTypeList){
+                            if(!($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) || !in_array($tblSchoolType->getId(), $tblSchoolTypeList)){
+                                // Klassen werden nicht angezeigt, wenn die Schulart nicht freigeben ist.
+                                continue;
                             }
                         }
-                        if ($tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
+                        if (($tblYear = $tblStudentEducation->getServiceTblYear())) {
                             // Anzeige nur für Schuljahre die nach dem "Startschuljahr"(Veröffentlichung) liegen
                             if($tblYear->getYear() >= $startYear){
-                                // keinen zukünftigen Schuljahre anzeigen SSWHD-1751
+                                // keine zukünftigen Schuljahre anzeigen SSWHD-1751
                                 list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
                                 if ($startDate < $dateTimeNow) {
                                     $tblDisplayYearList[$tblYear->getId()] = $tblYear;
-                                    $data[$tblYear->getId()][$tblPerson->getId()][$tblDivision->getId()] = $tblDivision;
+                                    $data[$tblYear->getId()][$tblPerson->getId()] = $tblStudentEducation;
                                 }
                             }
                         }
@@ -204,27 +210,17 @@ class Frontend extends Extension implements IFrontendInterface
         if (($tblYear = Term::useService()->getYearById($YearId))) {
             if (!empty($data)) {
                 if (isset($data[$tblYear->getId()])) {
-                    foreach ($data[$tblYear->getId()] as $personId => $divisionList) {
-                        $tblPerson = Person::useService()->getPersonById($personId);
-                        if ($tblPerson && is_array($divisionList)) {
-                            $tableHeaderList = array();
-                            $tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson, $tblYear);
+                    foreach ($data[$tblYear->getId()] as $personId => $tblStudentEducation) {
+                        if ($tblPerson = Person::useService()->getPersonById($personId)) {
+                            $courses = DivisionCourse::useService()->getCurrentMainCoursesByStudentEducation($tblStudentEducation);
+                            $rowList[] = new LayoutRow(new LayoutColumn(new Title(
+                                $tblPerson->getLastFirstName() . ' ' . new Small(new Muted($courses))),
+                                12
+                            ));
 
-                            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblMainDivision ? $tblMainDivision : null);
-                            if ($tblPeriodList) {
-                                $tableHeaderList['Subject'] = 'Fach';
-                                foreach ($tblPeriodList as $tblPeriod) {
-                                    $tableHeaderList['Period' . $tblPeriod->getId()] = new Bold($tblPeriod->getDisplayName());
-                                }
-
-                                if($isShownAverage) {
-                                    $tableHeaderList['Average'] = '&#216;';
-                                }
-                            }
-
-                            Gradebook::useFrontend()->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
-                                $tblTestType, $isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror,
-                                $tableHeaderList, true, false, $isScoreRuleShown);
+                            $rowList[] = new LayoutRow(new LayoutColumn(
+                                Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, true, false)
+                            ));
                         }
                     }
                 }
@@ -358,7 +354,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(new Well(
-                                Gradebook::useService()->setDisableParent($form, $ParentAccount, $tblAccount)
+                                OnlineGradebook::useService()->setDisableParent($form, $ParentAccount, $tblAccount)
                             ))
                         ))
                     )
@@ -380,7 +376,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblScoreRule->getDescriptionForExtern() != '') {
             $structure[] = str_replace("\n", '<br/>', $tblScoreRule->getDescriptionForExtern()) . '<br/>';
         } else {
-            $structure = Gradebook::useService()->getScoreRuleStructure($tblScoreRule, $structure);
+            $structure = Grade::useService()->getScoreRuleStructure($tblScoreRule, $structure);
         }
 
         return new Panel(
