@@ -1,39 +1,57 @@
 SELECT distinct
 
--- PersonId to match with all View's // tblDivisionStudent
-    tDS.serviceTblPerson AS TblPerson_Id,
--- tblLevel
-    tL.Id AS TblLevel_Id,
-    tL.Name AS TblLevel_Name,
-    tL.Description AS TblLevel_Description,
-    tL.IsChecked AS TblLevel_IsChecked,
--- tblDivision
-    tD.Name AS TblDivision_Name,
-    tD.Description AS TblDivision_Description,
-    concat(tL.Name, if(tD.Name REGEXP '^-?[0-9]+$', concat('-',tD.Name), tD.Name)) as TblDivision_Display,
+-- PersonId to match with all View's // tblLessonStudentEducation
+    tLSE.serviceTblPerson AS TblPerson_Id,
+-- tblLessonStudentEducation
+    tLSE.Level AS TblLessonStudentEducation_Level,
+--     tLSE.tblCompany_Name AS TblLessonStudentEducation_TblCompany_Name,
+--     tLSE.tblCompany_Name_ExtendedName AS TblLessonStudentEducation_TblCompany_Name_ExtendedName,
 -- tblCompany
     tC.Name as TblCompany_Name,
-    concat(tC.Name, ' ', tC.ExtendedName) as TblCompany_Name_ExtendedName,
+    concat(tC.Name, ' ', tC.ExtendedName) as TblCompany_ExtendedName,
+-- tblLessonDivisionCourse
+    tLDC_D.Id AS TblLessonDivisionCourse_Id_D,
+    tLDC_D.Name AS TblLessonDivisionCourse_Name_D,
+    tLDC_D.Description AS TblLessonDivisionCourse_Description_D,
+    (select group_concat(concat(tP.LastName) separator ', ')
+        from {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseMember tLDCM
+        left join {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseMemberType tLDCMT ON tLDCMT.Id = tLDCM.tblLessonDivisionCourseMemberType
+        left join {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP ON tP.Id = tLDCM.serviceTblPerson
+        where tLDCM.tblLessonDivisionCourse = TblLessonDivisionCourse_Id_D
+        and tLDCMT.Identifier = 'DIVISION_TEACHER'
+    ) as tblPerson_TeacherLastNameList,
+
+    tLDC_C.Id AS TblLessonDivisionCourse_Id_C,
+    tLDC_C.Name AS TblLessonDivisionCourse_Name_C,
+    tLDC_C.Description AS TblLessonDivisionCourse_Description_C,
+    (select group_concat(concat(tP.LastName) separator ', ')
+        from {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseMember tLDCM
+        left join {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseMemberType tLDCMT ON tLDCMT.Id = tLDCM.tblLessonDivisionCourseMemberType
+        left join {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP ON tP.Id = tLDCM.serviceTblPerson
+        where tLDCM.tblLessonDivisionCourse = TblLessonDivisionCourse_Id_C
+        and tLDCMT.Identifier = 'DIVISION_TEACHER'
+    ) as tblPerson_TutorLastNameList,
 -- tblType
     tT.Id AS TblType_Id,
     tT.Name AS TblType_Name,
     tT.Description AS TblType_Description,
+-- tblCourse
+    tCo.Name as TblCourse_Name,
 -- tblYear
     tY.Id as TblYear_Id,
     (CASE WHEN (ISNULL(tY.Year) OR (tY.Year = '')) THEN tY.Name ELSE tY.Year END) AS TblYear_Year,
     tY.Description AS TblYear_Description
 
-FROM {{ ConsumerAcronym }}_EducationLessonDivision.tblDivisionStudent tDS
-	LEFT JOIN {{ ConsumerAcronym }}_EducationLessonDivision.tblDivision tD ON tD.Id = tDS.tblDivision
-		AND tD.EntityRemove IS NULL
-	LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tC ON tC.Id = tD.serviceTblCompany
+FROM {{ ConsumerAcronym }}_EducationApplication.tblLessonStudentEducation tLSE
+	LEFT JOIN {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourse tLDC_D ON tLDC_D.Id = tLSE.tblDivision
+		AND tLDC_D.EntityRemove IS NULL
+	LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tC ON tC.Id = tLSE.serviceTblCompany
 		AND tC.EntityRemove IS NULL
-	LEFT JOIN {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL ON tL.Id = tD.tblLevel
-		AND tL.EntityRemove IS NULL
-	LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolType.tblType tT ON tT.Id = tL.serviceTblType
-	LEFT JOIN {{ ConsumerAcronym }}_EducationLessonTerm.tblYear tY ON tY.Id = tD.serviceTblYear
--- 	LEFT JOIN {{ ConsumerAcronym }}_EducationLessonTerm.tblYearPeriod tYP ON tYP.tblYear = tY.Id
--- 	LEFT JOIN {{ ConsumerAcronym }}_EducationLessonTerm.tblPeriod tP ON tP.Id = tYP.tblPeriod
-WHERE tDS.EntityRemove IS NULL and
-	(tDS.LeaveDate is null
-	or (tDS.LeaveDate is not null and CURRENT_TIMESTAMP() <= tDS.LeaveDate))
+	LEFT JOIN {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourse tLDC_C ON tLDC_C.Id = tLSE.tblCoreGroup
+		AND tLDC_C.EntityRemove IS NULL
+	LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolType.tblType tT ON tT.Id = tLSE.serviceTblSchoolType
+	LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolCourse.tblCourse tCo ON tCo.Id = tLSE.serviceTblCourse
+	LEFT JOIN {{ ConsumerAcronym }}_EducationLessonTerm.tblYear tY ON tY.Id = tLSE.serviceTblYear
+WHERE tLSE.EntityRemove IS NULL and
+	(tLSE.LeaveDate is null
+	or (tLSE.LeaveDate is not null and CURRENT_TIMESTAMP() <= tLSE.LeaveDate))
