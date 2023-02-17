@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 
 class UniventionUser
@@ -160,17 +161,23 @@ class UniventionUser
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
-        if(isset($StdClassArray['detail'])){
-            if(is_string($StdClassArray['detail'])){
-                $Error = new Bold($name.': ').$StdClassArray['detail'];
-            }elseif(is_array($StdClassArray['detail'])){
-                $Error = '';
-                foreach($StdClassArray['detail'] as $Detail){
-                    if($Detail['msg']){
-                        $Error .= new Bold($name.': ').$Detail['msg'];
+        try{
+            if(isset($StdClassArray['detail'])){
+                if(is_string($StdClassArray['detail'])){
+                    $Error = new Bold($name.': ').$StdClassArray['detail'];
+                }elseif(is_array($StdClassArray['detail'])){
+                    $Error = '';
+                    foreach($StdClassArray['detail'] as $Detail){
+                        if($Detail['msg']){
+                            $Error .= new Bold($name.'-> ').$Detail['loc'].':'.$Detail['msg'];
+                        }
                     }
                 }
             }
+        } catch (\Exception $e) {
+            $Error = $e;
+            $Error .= new Container($Json);
+            return $Error;
         }
 
         return $Error;
@@ -274,17 +281,23 @@ class UniventionUser
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
-        if(isset($StdClassArray['detail'])){
-            if(is_string($StdClassArray['detail'])){
-                $Error = new Bold($name.': ').$StdClassArray['detail'];
-            }elseif(is_array($StdClassArray['detail'])){
-                $Error = '';
-                foreach($StdClassArray['detail'] as $Detail){
-                    if($Detail['msg']){
-                        $Error .= new Bold($name.'-> ').$Detail['loc'].':'.$Detail['msg'];
+        try{
+            if(isset($StdClassArray['detail'])){
+                if(is_string($StdClassArray['detail'])){
+                    $Error = new Bold($name.': ').$StdClassArray['detail'];
+                }elseif(is_array($StdClassArray['detail'])){
+                    $Error = '';
+                    foreach($StdClassArray['detail'] as $Detail){
+                        if($Detail['msg']){
+                            $Error .= new Bold($name.'-> ').$Detail['loc'].':'.$Detail['msg'];
+                        }
                     }
                 }
             }
+        } catch (\Exception $e) {
+            $Error = $e;
+            $Error .= new Container($Json);
+            return $Error;
         }
 
         return $Error;
@@ -330,17 +343,23 @@ class UniventionUser
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
-        if(isset($StdClassArray['detail'])){
-            if(is_string($StdClassArray['detail'])){
-                $Error = new Bold($AccountName.': ').$StdClassArray['detail'];
-            }elseif(is_array($StdClassArray['detail'])){
-                $Error = '';
-                foreach($StdClassArray['detail'] as $Detail){
-                    if($Detail['msg']){
-                        $Error .= new Bold($AccountName.': ').$Detail['msg'];
+        try{
+            if(isset($StdClassArray['detail'])){
+                if(is_string($StdClassArray['detail'])){
+                    $Error = new Bold($AccountName.': ').$StdClassArray['detail'];
+                }elseif(is_array($StdClassArray['detail'])){
+                    $Error = '';
+                    foreach($StdClassArray['detail'] as $Detail){
+                        if($Detail['msg']){
+                            $Error .= new Bold($AccountName.'-> ').$Detail['loc'].':'.$Detail['msg'];
+                        }
                     }
                 }
             }
+        } catch (\Exception $e) {
+            $Error = $e;
+            $Error .= new Container($Json);
+            return $Error;
         }
 
         return $Error;
@@ -370,17 +389,23 @@ class UniventionUser
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
-        if(isset($StdClassArray['detail'])){
-            if(is_string($StdClassArray['detail'])){
-                $Error = $name.' - '.$StdClassArray['detail'];
-            }elseif(is_array($StdClassArray['detail'])){
-                $Error = '';
-                foreach($StdClassArray['detail'] as $Detail){
-                    if($Detail['msg']){
-                        $Error .= $name.' - '.$Detail['msg'];
+        try{
+            if(isset($StdClassArray['detail'])){
+                if(is_string($StdClassArray['detail'])){
+                    $Error = new Bold($name.': ').$StdClassArray['detail'];
+                }elseif(is_array($StdClassArray['detail'])){
+                    $Error = '';
+                    foreach($StdClassArray['detail'] as $Detail){
+                        if($Detail['msg']){
+                            $Error .= new Bold($name.'-> ').$Detail['loc'].':'.$Detail['msg'];
+                        }
                     }
                 }
             }
+        } catch (\Exception $e) {
+            $Error = $e;
+            $Error .= new Container($Json);
+            return $Error;
         }
 
         return $Error;
