@@ -195,6 +195,14 @@ class Frontend extends Extension implements IFrontendInterface
                 if(Consumer::useService()->getConsumerLoginListByConsumer($tblConsumer)){
                     $isConsumerLogin = true;
                 }
+                // Vidis temporär Login auf der Demo-Version
+                if( strtolower($this->getRequest()->getHost()) == 'demo.schulsoftware.schule'
+                    || $this->getRequest()->getHost() == '192.168.202.230'
+                ){
+                    if($tblConsumer->getAcronym() == 'DEMO'){
+                        $isConsumerLogin = true;
+                    }
+                }
             }
         }
 
@@ -387,24 +395,23 @@ class Frontend extends Extension implements IFrontendInterface
         // Create Form
         $Form = new Form(
             new FormGroup(array(
-                    new FormRow(
-                        new FormColumn(array(
-                            new Headline('Anmeldung Schulsoftware'),
-                            new Ruler(),
-                            new Listing(array(
-                                new Container($CredentialNameField) .
-                                new Container($CredentialLockField)
-                            )),
-                            $FormError
-                        ))
-                    ),
-                    new FormRow(
-                        new FormColumn(array(
-                            (new Primary('Login')),
-                        ))
-                    )
+                new FormRow(
+                    new FormColumn(array(
+                        new Headline('Anmeldung Schulsoftware'),
+                        new Ruler(),
+                        new Listing(array(
+                            new Container($CredentialNameField) .
+                            new Container($CredentialLockField)
+                        )),
+                        $FormError
+                    ))
+                ),
+                new FormRow(
+                    new FormColumn(array(
+                        (new Primary('Login')),
+                    ))
                 )
-            )
+            ))
         );
 
         // set depending information
@@ -422,14 +429,21 @@ class Frontend extends Extension implements IFrontendInterface
 
                 ))
             )));
-        } elseif(strtolower($this->getRequest()->getHost()) == 'www.demo.schulsoftware.schule'){
-//            $Form.= new Layout(new LayoutGroup(new LayoutRow(
-//                new LayoutColumn(array(
-//                    '<br/><br/><br/><br/>',
-//                    new Title('Anmeldung UCS Demo (Pilot)'),
-//                    new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\DLLPDemo')
-//                ))
-//            )));
+        } elseif( strtolower($this->getRequest()->getHost()) == 'demo.schulsoftware.schule'
+        || $this->getRequest()->getHost() == '192.168.202.230'
+        ){
+            // Vidis temporär Login auf der Demo-Version
+            $Form.= new Layout(new LayoutGroup(new LayoutRow(
+                new LayoutColumn(array(
+                    '<br/><br/><br/><br/>',
+                    new Title('Anmeldung Vidis Demo'),
+                        (new PrimaryLink('Login', '/Platform/Gatekeeper/OAuth2/OAuthSite'))->setExternal()
+                    .'<script src="https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js"></script>'
+//                    // size L/M/S
+//                    // cookie = "true" (zum testen erstmal false)
+                    .'<vidis-login Size = "L" cookie = "true" loginurl="http://demo.schulsoftware.schule/Platform/Gatekeeper/OAuth2/OAuthSite"></vidis-login>'
+                ))
+            )));
         }
 
         setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');

@@ -1105,6 +1105,8 @@ class Service extends AbstractService
                                 $remark = $teamChange . " \n " . $remark;
                             } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
                                 $remark = $teamChange . " \n " . $remark;
+                            } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'ESBD')) {
+                                $remark = $team . " \n " . $remark;
                             } else {
                                 $remark = $team . " \n\n " . $remark;
                             }

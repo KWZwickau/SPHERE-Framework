@@ -51,7 +51,7 @@ class EzshMsHj extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHSubjectLanes($personId)
+                            self::getEZSHSubjectLanes($personId, true, array(), false)
                         )
                     )
                     ->addElement((new Element())
@@ -65,17 +65,14 @@ class EzshMsHj extends EzshStyle
                     ->addElement((new Element())
                         ->styleMarginTop('15px')
                     )
-                    ->addSectionList(
-                        self::getEZSHPerformanceGroup($personId)
-                    )
                     ->addElement((new Element())
                         ->styleMarginTop('35px')
                     )
                     ->addSectionList(
-                        self::getEZSHGradeInfo()
+                        self::getEZSHGradeInfo(false)
                     )
                     ->addSectionList(
-                        self::getEZSHArrangement($personId, '80px')
+                        self::getEZSHArrangement($personId, '120px')
                     )
                     ->addSectionList(
                         self::getEZSHMissing($personId)

@@ -224,8 +224,8 @@ class Service extends AbstractService
             }
             // Gruppen Zeicheneingrenzung nur für UCS Mandanten
             if (isset($Group['Name']) && $Group['Name'] != '' && $IsUCSMandant) {
-                if(!preg_match('!^[\w]+[\w\-. _]*[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
-                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 .-_]');
+                if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
+                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
                     $Error = true;
                 }
             }
@@ -333,8 +333,8 @@ class Service extends AbstractService
             }
             // Gruppen Zeicheneingrenzung nur für UCS Mandanten
             if (isset($Group['Name']) && $Group['Name'] != '' && $IsUCSMandant) {
-                if(!preg_match('!^[\w]+[\w\-. _]?[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
-                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 .-_]');
+                if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
+                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
                     $Error = true;
                 }
             }

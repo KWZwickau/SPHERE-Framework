@@ -248,12 +248,6 @@ class SDataBerufsfachschule
             if ($Data->getTblSchoolTypeBerufsfachschule()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeBerufsfachschule(), null, false, true);
             }
-//            // Begrenzung Eingabefelder
-//            // Begrenzung RemarkWithoutTeam
-            $Var = 'RemarkWithoutTeam';
-            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
-                $Data->createCertificateField($tblCertificate, $Var, 300);
-            }
 
             // Informationen auf mehrere "Sonstige Informationen" aufgliedern
             // Seite 2
@@ -263,24 +257,28 @@ class SDataBerufsfachschule
             $Data->createCertificateInformation($tblCertificate, 'PracticalExam_Grade', 2);
             // Seite 3
             $Data->createCertificateInformation($tblCertificate, 'Subarea1', 3);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaTime1', 3);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaExcusedDays1', 3);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaUnexcusedDays1', 3);
+            $Data->createCertificateInformation($tblCertificate, 'SubareaTimeH1', 3);
+            $Data->createCertificateInformation($tblCertificate, 'SubareaTimeHDone1', 3);
             // Seite 4
             $Data->createCertificateInformation($tblCertificate, 'Subarea2', 4);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaTime2', 4);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaExcusedDays2', 4);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaUnexcusedDays2', 4);
+            $Data->createCertificateInformation($tblCertificate, 'SubareaTimeH2', 4);
+            $Data->createCertificateInformation($tblCertificate, 'SubareaTimeHDone2', 4);
             // Seite 5
             $Data->createCertificateInformation($tblCertificate, 'Subarea3', 5);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaTime3', 5);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaExcusedDays3', 5);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaUnexcusedDays3', 5);
+            $Data->createCertificateInformation($tblCertificate, 'SubareaTimeH3', 5);
+            $Data->createCertificateInformation($tblCertificate, 'SubareaTimeHDone3', 5);
             // Seite 6
             $Data->createCertificateInformation($tblCertificate, 'Subarea4', 6);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaTime4', 6);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaExcusedDays4', 6);
-            $Data->createCertificateInformation($tblCertificate, 'SubareaUnexcusedDays4', 6);
+            $Data->createCertificateInformation($tblCertificate, 'SubareaTimeH4', 6);
+            $Data->createCertificateInformation($tblCertificate, 'SubareaTimeHDone4', 6);
+
+            //            // Begrenzung Eingabefelder
+            //            // Begrenzung RemarkWithoutTeam
+            $Var = 'RemarkWithoutTeam';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $Var)) {
+                $Data->createCertificateField($tblCertificate, $Var, 300);
+            }
+            $Data->createCertificateInformation($tblCertificate, $Var, 7);
         }
     }
 }

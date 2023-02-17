@@ -4417,15 +4417,18 @@ class Service extends Extension
      */
     public function getContactDataFromPerson(TblPerson $tblPerson, array $Item): array
     {
+        $Item['PhoneFixed'] = '';
         $Item['Phone'] = '';
         $Item['ExcelPhone'] = '';
         $Item['Mail'] = '';
         $Item['ExcelMail'] = '';
         $Item['ExcelMailPrivate'] = '';
         $Item['ExcelMailBusiness'] = '';
+        $Item['MailFrontendListFixed'] = '';
 
         //Phone
         $tblPhoneList = array();
+        $tblPhoneListFixed = array();
         $tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
         if ($tblToPersonPhoneList) {
             $key = 'Sort_1_' . $tblPerson->getId();
@@ -4444,11 +4447,15 @@ class Service extends Extension
             if (isset($tblPhoneList[$key])) {
                 $tblPhoneList[$key] = $tblPhoneList[$key] . ')';
             }
+            if (isset($tblPhoneListFixed[$key])) {
+                $tblPhoneList[$key] = $tblPhoneList[$key] . ')';
+            }
         }
 
         //Mail
         $tblMailList = array();
         $tblMailFrontendList = array();
+        $tblMailFrontendListFixed = array();
         $mailBusinessList = array();
         $mailPrivateList = array();
         $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPerson);
@@ -4462,10 +4469,16 @@ class Service extends Extension
                         $tblMailList[$key] = $tblMailList[$key] . $preString . $tblMail->getAddress();
                         $tblMailFrontendList[$key] = $tblMailFrontendList[$key] . $preString .
                             new Mailto($tblMail->getAddress(), $tblMail->getAddress());
+                        $preString = ',&nbsp;';
+                        $tblMailFrontendListFixed[$key] = $tblMailFrontendListFixed[$key] . $preString .
+                            new Mailto($tblMail->getAddress(), $tblMail->getAddress());
                     } else {
                         $preString = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName() . ' (';
                         $tblMailList[$key] = $preString . $tblMail->getAddress();
                         $tblMailFrontendList[$key] = $preString .
+                            new Mailto($tblMail->getAddress(), $tblMail->getAddress());
+                        $preString = $tblPerson->getFirstName() . '&nbsp;' . $tblPerson->getLastName() . '</br>';
+                        $tblMailFrontendListFixed[$key] = $preString .
                             new Mailto($tblMail->getAddress(), $tblMail->getAddress());
                     }
 
@@ -4561,7 +4574,6 @@ class Service extends Extension
 
                     $tblPhoneList[$key] = $pre . $tblPersonGuardian->getFirstName() . ' ' .
                         $tblPersonGuardian->getLastName();
-
                     //Phone Guardian
                     $tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
                     if ($tblToPersonPhoneList) {
@@ -4582,6 +4594,9 @@ class Service extends Extension
                         if (isset($tblPhoneList[$key])) {
                             $tblPhoneList[$key] = $tblPhoneList[$key] . ')';
                         }
+                        if (isset($tblPhoneListFixed[$key])) {
+                            $tblPhoneListFixed[$key] = $tblPhoneListFixed[$key] . ')';
+                        }
                     }
 
                     //Mail Guardian
@@ -4596,11 +4611,18 @@ class Service extends Extension
                                     $tblMailList[$key] = $tblMailList[$key] . $preString . $tblMail->getAddress();
                                     $tblMailFrontendList[$key] = $tblMailFrontendList[$key] . $preString .
                                         new Mailto($tblMail->getAddress(), $tblMail->getAddress());
+                                    $preString = '&nbsp;';
+                                    $tblMailFrontendListFixed[$key] = $tblMailFrontendListFixed[$key] . $preString .
+                                        new Mailto($tblMail->getAddress(), $tblMail->getAddress());
                                 } else {
                                     $preString = $pre . $tblPersonGuardian->getFirstName() . ' ' .
                                         $tblPersonGuardian->getLastName() . ' (';
                                     $tblMailList[$key] = $preString . $tblMail->getAddress();
                                     $tblMailFrontendList[$key] = $preString . new Mailto($tblMail->getAddress(),
+                                            $tblMail->getAddress());
+                                    $preString = $pre . $tblPersonGuardian->getFirstName() . '&nbsp;' .
+                                        $tblPersonGuardian->getLastName() . '<br/>';
+                                    $tblMailFrontendListFixed[$key] = $preString . new Mailto($tblMail->getAddress(),
                                             $tblMail->getAddress());
                                 }
 
@@ -4620,24 +4642,33 @@ class Service extends Extension
                 }
             }
         }
-
         // Insert PhoneList
         if (!empty($tblPhoneList)) {
             ksort($tblPhoneList);
             $Item['Phone'] = $Item['Phone'] . implode('<br>', $tblPhoneList);
+            $Item['PhoneFixed'] = str_replace(' ', '&nbsp', $Item['Phone']);
             $Item['ExcelPhone'] = $tblPhoneList;
         }
+        if (!empty($tblPhoneListFixed)) {
+            ksort($tblPhoneListFixed);
+            $Item['PhoneFixed'] = $Item['PhoneFixed'] . implode('<br>', $tblPhoneListFixed);
+        }
+        #var_dump($tblMailFrontendListFixed);
         // Insert MailList
         if (!empty($tblMailList)) {
             ksort($tblMailList);
             $Item['ExcelMail'] = $tblMailList;
             $Item['Mail'] = $Item['Mail'] . implode('<br>', $tblMailFrontendList);
 
+            if (!empty($tblMailList)) {
+                ksort($tblMailList);
+                $Item['ExcelMail'] = $tblMailList;
+                $Item['MailFrontendListFixed'] = $Item['MailFrontendListFixed'] . implode('<br>', $tblMailFrontendListFixed);
+            }
             if (!empty($mailPrivateList)) {
                 ksort($mailPrivateList);
                 $Item['ExcelMailPrivate'] = implode('; ', $mailPrivateList);
             }
-
             if (!empty($mailBusinessList)) {
                 ksort($mailBusinessList);
                 $Item['ExcelMailBusiness'] = implode('; ', $mailBusinessList);
@@ -4645,7 +4676,6 @@ class Service extends Extension
         }
         return $Item;
     }
-
     /**
      * @param $tblPersonList
      * @param TblDivision|null $tblDivision
