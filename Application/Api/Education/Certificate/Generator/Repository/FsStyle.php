@@ -1104,7 +1104,9 @@ abstract class FsStyle extends Certificate
                     $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
                     $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
 
-                    if($tblCertificateSubject->getRanking() == 16) {
+                    if ($tblCertificateSubject->getRanking() == 15
+                        || $tblCertificateSubject->getRanking() == 16
+                    ) {
 
                         if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                             $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
