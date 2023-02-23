@@ -54,6 +54,7 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -700,52 +701,79 @@ class Service extends AbstractService
     {
         // Definitionen
         $currentDate = new DateTime('now');
+        $Month = (int)$currentDate->format('m');
+        $Year = (int)$currentDate->format('Y');
 
-        if ($Month == '') {
-            $Month = (int)$currentDate->format('m');
-        } else {
-            $Month = (int)$Month;
-        }
-        if ($Year == '') {
-            $Year = (int)$currentDate->format('Y');
-        } else {
-            $Year = (int)$Year;
-        }
 
         $headerListStatic = array();
         $bodyListStatic = array();
         $headerList = array();
         $bodyList = array();
 
-        $organizerBaseData = self::convertOrganizerBaseData();
-        $DayName = $organizerBaseData['dayName'];
-        $MonthName = $organizerBaseData['monthName'];
-
-        $MonthNext = (int)$Month + 1;
-        $MonthBefore = (int)$Month - 1;
-        $YearNext = (int)$Year;
-        $YearBefore = (int)$Year;
-        // falls Dezember -> Jahreswechsel erzeugen für Folgemonat
-        if ($Month == '12'){
-            $MonthNext = '1';
-            $YearNext = (int)$Year + 1;
-        }
-        // falls Januar -> Jahreswechsel erzeugen für vorherigen Monat
-        if ($Month == '1'){
-            $MonthBefore = '12';
-            $YearBefore = (int)$Year - 1;
-        }
-
         // Tagesanzahl im aktuellen Monat ermitteln
         $DayCounter = cal_days_in_month(CAL_GREGORIAN, $Month, $Year);
 
-        $startDateSchoolYear = new DateTime('01.' . $Month . '.' . $Year);
-        $endDateSchoolYear = new DateTime($DayCounter . '.' . $Month . '.' . $Year);
+        $StartDate = false;
+        $DateList = array();
 
+        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))){
+            if(($tblYear = $tblDivision->getServiceTblYear())){
+                if(($tblPeriodList = $tblYear->getTblPeriodAll())){
+                    foreach($tblPeriodList as $tblPeriod){
+                        if(!$StartDate || $StartDate > new DateTime($tblPeriod->getFromDate())){
+                            #Debugger::screenDump($StartDate.' > '.$tblPeriod->getFromDate());
+                            $StartDate = new DateTime($tblPeriod->getFromDate());
+                        }
+                    }
+                    $currentDate = new DateTime();
+                    $dateInterval = \DateInterval::createFromDateString('1 month');
+                    $datePeriod = new \DatePeriod($StartDate, $dateInterval, $currentDate);
+                    foreach($datePeriod as $date){
+                        $month = $date->format("F");
+                        $start = new DateTime($date->format("Y-m").'-1');
+                        $end = new DateTime($date->format("Y-m-t"));
+
+                        if(!isset($DateList[$month])){
+                            $DateList[$month] = array(
+                                'Start' => $start,
+                                'End' => $end
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        foreach($DateList as $Month => $periodOfTime) {
+            $tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByDivision($periodOfTime['Start'], $periodOfTime['End'], $tblDivision);
+            if($tblAbsenceList){
+                foreach($tblAbsenceList as $tblAbsence){
+                    $tblPerson = $tblAbsence->getServiceTblPerson();
+                    $fromDate = $tblAbsence->getFromDate('d');
+                    $toDate = $tblAbsence->getToDate();
+                    $statusDisplayShortName = $tblAbsence->getStatusDisplayShortName();
+
+                    // Falls die Fehlzeit ein Zeitraum ist, alle Tage zwischen Start- und Enddatum erfassen
+                    if($toDate){
+                        $currentDate = $tblAbsence->getFromDate();
+                        while($currentDate <= $toDate){
+                            $currentDateFormatted = $currentDate->format('d');
+                            $MonthAbsenceList[$Month][$tblPerson->getId()][$currentDateFormatted] = $statusDisplayShortName;
+                            $currentDate = $currentDate->modify('+1 day');
+                        }
+                    }
+                    else{
+                        // Falls die Fehlzeit nur ein Tag ist, nur das Startdatum erfassen
+                        $MonthAbsenceList[$Month][$tblPerson->getId()][$fromDate] = $statusDisplayShortName;
+                    }
+                }
+            }
+        }
+        exit;
         $dataList = array();
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
             && ($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByDivision($startDateSchoolYear, $endDateSchoolYear, $tblDivision))
         ) {
+
             foreach ($tblAbsenceList as $tblAbsence) {
                 if (($tblPersonItem = $tblAbsence->getServiceTblPerson())
                     && ($tblDivisionItem = $tblAbsence->getServiceTblDivision())
@@ -769,19 +797,8 @@ class Service extends AbstractService
             }
         }
 
-        $backgroundColor = '#E0F0FF';
-        $minHeightHeader = '44px';
-        $minHeightBody = '30px';
-        $padding = '3px';
-
         $hasMonthBefore = true;
         $hasMonthNext = true;
-
-        $headerListStatic['Person'] = (new TableColumn(new Center(new Bold(new PersonGroup() . 'Schüler'))))
-            ->setBackgroundColor($backgroundColor)
-            ->setVerticalAlign('middle')
-            ->setMinHeight($minHeightHeader)
-            ->setPadding($padding);
 
         // Einträge für alle ausgewählten Personen anzeigen
         if ($tblDivision
@@ -818,11 +835,7 @@ class Service extends AbstractService
                             ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(), $tblDivision->getId()))
                         , 'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' hinzufügen.'
                     )
-                ))))
-                    ->setBackgroundColor($backgroundColor)
-                    ->setVerticalAlign('middle')
-                    ->setMinHeight($minHeightBody)
-                    ->setPadding($padding);
+                ))));
 
                 if ($DayCounter) {
                     $Day = 1;
