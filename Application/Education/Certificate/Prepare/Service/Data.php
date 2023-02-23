@@ -26,12 +26,12 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareIn
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -97,12 +97,12 @@ class Data extends AbstractData
      */
     public function getPrepareAllByDivision(TblDivision $tblDivision, $IsGradeInformation = false)
     {
-
+        // todo
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblPrepareCertificate',
             array(
                 TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                TblPrepareCertificate::ATTR_IS_GRADE_INFORMATION => $IsGradeInformation
+//                TblPrepareCertificate::ATTR_IS_GRADE_INFORMATION => $IsGradeInformation
             )
         );
     }
@@ -378,43 +378,31 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblDivision $tblDivision
-     * @param $Date
-     * @param $Name
-     * @param bool $IsGradeInformation
-     * @param TblGenerateCertificate $tblGenerateCertificate
-     * @param TblTask $tblAppointedDateTask
-     * @param TblTask $tblBehaviorTask
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblGenerateCertificate|null $tblGenerateCertificate
+     * @param TblPerson|null $tblPersonSigner
      *
      * @return TblPrepareCertificate
      */
     public function createPrepare(
-        TblDivision $tblDivision,
-        $Date,
-        $Name,
-        $IsGradeInformation = false,
-        TblGenerateCertificate $tblGenerateCertificate = null,
-        TblTask $tblAppointedDateTask = null,
-        TblTask $tblBehaviorTask = null
-    ) {
+        TblDivisionCourse $tblDivisionCourse,
+        ?TblGenerateCertificate $tblGenerateCertificate,
+        ?TblPerson $tblPersonSigner
+    ): TblPrepareCertificate {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblPrepareCertificate $Entity */
         $Entity = $Manager->getEntity('TblPrepareCertificate')->findOneBy(array(
             TblPrepareCertificate::ATTR_SERVICE_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId(),
-            TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+            TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivisionCourse->getId()
         ));
 
         if ($Entity === null) {
             $Entity = new TblPrepareCertificate();
-            $Entity->setServiceTblGenerateCertificate($tblGenerateCertificate ? $tblGenerateCertificate : null);
-            $Entity->setServiceTblDivision($tblDivision);
-            $Entity->setDate($Date ? new \DateTime($Date) : null);
-            $Entity->setName($Name);
-            $Entity->setIsGradeInformation($IsGradeInformation);
-            $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask ? $tblAppointedDateTask : null);
-            $Entity->setServiceTblBehaviorTask($tblBehaviorTask ? $tblBehaviorTask : null);
+            $Entity->setServiceTblGenerateCertificate($tblGenerateCertificate);
+            $Entity->setServiceTblDivision($tblDivisionCourse);
+            $Entity->setServiceTblPersonSigner($tblPersonSigner);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -427,31 +415,20 @@ class Data extends AbstractData
      * @param TblPrepareCertificate $tblPrepare
      * @param $Date
      * @param $Name
-     * @param TblTask|null $tblAppointedDateTask
-     * @param TblTask|null $tblBehaviorTask
      * @param TblPerson|null $tblPersonSigner
      *
      * @return bool
      */
     public function updatePrepare(
         TblPrepareCertificate $tblPrepare,
-        $Date,
-        $Name,
-        TblTask $tblAppointedDateTask = null,
-        TblTask $tblBehaviorTask = null,
-        TblPerson $tblPersonSigner = null
-    ) {
-
+        ?TblPerson $tblPersonSigner
+    ): bool {
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblPrepareCertificate $Entity */
         $Entity = $Manager->getEntityById('TblPrepareCertificate', $tblPrepare->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setDate($Date ? new \DateTime($Date) : null);
-            $Entity->setName($Name);
-            $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask);
-            $Entity->setServiceTblBehaviorTask($tblBehaviorTask);
             $Entity->setServiceTblPersonSigner($tblPersonSigner);
 
             $Manager->saveEntity($Entity);
@@ -612,10 +589,8 @@ class Data extends AbstractData
     /**
      * @param array $Data
      */
-    public function createPrepareStudentSetBulkTemplates(
-        $Data
-    ) {
-
+    public function createPrepareStudentSetBulkTemplates(array $Data)
+    {
         $Manager = $this->getConnection()->getEntityManager();
 
         foreach ($Data as $prepareId => $personList) {

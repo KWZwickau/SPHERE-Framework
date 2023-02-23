@@ -22,6 +22,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblTask extends Element
 {
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
+    const ATTR_IS_TYPE_BEHAVIOR = 'IsTypeBehavior';
 
     /**
      * @Column(type="bigint")
@@ -34,7 +35,7 @@ class TblTask extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Name;
+    protected string $Name = '';
     /**
      * @Column(type="datetime")
      */

@@ -19,13 +19,17 @@ use SPHERE\Application\Education\Lesson\Term\Service\Setup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\BasicData\BasicData;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Service
@@ -1268,5 +1272,57 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param $Route
+     * @param $IsAllYears
+     * @param $YearId
+     * @param $tblYear
+     * @param bool $HasAllYears
+     *
+     * @return array
+     */
+    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear, bool $HasAllYears = true): array
+    {
+        $tblYear = false;
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($YearId) {
+            $tblYear = Term::useService()->getYearById($YearId);
+        } elseif (!$IsAllYears && $tblYearList) {
+            $tblYear = end($tblYearList);
+        }
+
+        $buttonList = array();
+        if ($tblYearList) {
+            $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('DisplayName');
+            /** @var TblYear $tblYearItem */
+            foreach ($tblYearList as $tblYearItem) {
+                if ($tblYear && $tblYear->getId() == $tblYearItem->getId()) {
+                    $buttonList[] = (new Standard(new Info(new Bold($tblYearItem->getDisplayName())),
+                        $Route, new Edit(), array('YearId' => $tblYearItem->getId())));
+                } else {
+                    $buttonList[] = (new Standard($tblYearItem->getDisplayName(), $Route,
+                        null, array('YearId' => $tblYearItem->getId())));
+                }
+            }
+        }
+
+        // Fachlehrer sollen nur Zugriff auf Leistungsüberprüfungen aller aktuellen Schuljahre haben
+        // #SSW-1169 Anlegen von Leistungsüberprüfung von noch nicht erreichten Schuljahren verhindern
+        if ($HasAllYears) {
+            if ($IsAllYears) {
+                $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
+                    $Route, new Edit(), array('IsAllYears' => true)));
+            } else {
+                $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
+                    array('IsAllYears' => true)));
+            }
+        }
+
+        // Abstandszeile
+        $buttonList[] = new Container('&nbsp;');
+
+        return $buttonList;
     }
 }

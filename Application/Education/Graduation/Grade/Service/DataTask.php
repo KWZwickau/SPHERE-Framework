@@ -38,6 +38,32 @@ abstract class DataTask extends DataScore
     }
 
     /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblTask[]
+     */
+    public function getBehaviorTaskListByYear(TblYear $tblYear)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTask', array(
+            TblTask::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
+            TblTask::ATTR_IS_TYPE_BEHAVIOR => 1
+        ));
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblTask[]
+     */
+    public function getAppointedDateTaskListByYear(TblYear $tblYear)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTask', array(
+            TblTask::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
+            TblTask::ATTR_IS_TYPE_BEHAVIOR => 0
+        ));
+    }
+
+    /**
      * @param TblTask $tblTask
      *
      * @return TblGradeType[]|false

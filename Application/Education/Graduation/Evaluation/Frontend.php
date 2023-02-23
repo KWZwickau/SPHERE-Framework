@@ -4304,6 +4304,8 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @deprecated use Term::useService()->setYearButtonList()
+     *
      * @param $Route
      * @param $IsAllYears
      * @param $YearId

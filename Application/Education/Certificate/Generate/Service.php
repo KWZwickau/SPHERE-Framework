@@ -19,12 +19,13 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -35,7 +36,6 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -51,7 +51,6 @@ class Service extends AbstractService
      */
     public function setupService($doSimulation, $withData, $UTF8)
     {
-
         $Protocol= '';
         if(!$withData){
             $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
@@ -69,7 +68,6 @@ class Service extends AbstractService
      */
     public function getGenerateCertificateById($Id)
     {
-
         return (new Data($this->getBinding()))->getGenerateCertificateById($Id);
     }
 
@@ -80,7 +78,6 @@ class Service extends AbstractService
      */
     public function getGenerateCertificateAllByYear(TblYear $tblYear)
     {
-
         return (new Data($this->getBinding()))->getGenerateCertificateAllByYear($tblYear);
     }
 
@@ -89,18 +86,7 @@ class Service extends AbstractService
      */
     public function getGenerateCertificateAll()
     {
-
         return (new Data($this->getBinding()))->getGenerateCertificateAll();
-    }
-
-    /**
-     * @param TblCertificateType $tblCertificateType
-     *
-     * @return false|TblGenerateCertificate[]
-     */
-    public function getGenerateCertificateAllByCertificateType(TblCertificateType $tblCertificateType)
-    {
-        return (new Data($this->getBinding()))->getGenerateCertificateAllByCertificateType($tblCertificateType);
     }
 
     /**
@@ -109,9 +95,8 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function createGenerateCertificate(IFormInterface $Form = null, $Data = null)
+    public function createGenerateCertificate(?IFormInterface $Form, $Data = null)
     {
-
         /**
          * Skip to Frontend
          */
@@ -141,24 +126,22 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $tblAppointedDateTask = Evaluation::useService()->getTaskById($Data['AppointedDateTask']);
-        $tblBehaviorTask = Evaluation::useService()->getTaskById($Data['BehaviorTask']);
+        $tblAppointedDateTask = Grade::useService()->getTaskById($Data['AppointedDateTask']);
+        $tblBehaviorTask = Grade::useService()->getTaskById($Data['BehaviorTask']);
 
         if ($tblGenerateCertificate = (new Data($this->getBinding()))->createGenerateCertificate(
             $tblYear,
             $Data['Date'],
             $Data['Name'],
             $tblCertificateType,
-            $tblAppointedDateTask ? $tblAppointedDateTask : null,
-            $tblBehaviorTask ? $tblBehaviorTask : null,
-            isset($Data['HeadmasterName']) ? $Data['HeadmasterName'] : '',
+            $tblAppointedDateTask ?: null,
+            $tblBehaviorTask ?: null,
+            $Data['HeadmasterName'] ?? '',
             isset($Data['IsTeacherAvailable']),
-            isset($Data['GenderHeadmaster'])
-            && ($tblCommonGender = Common::useService()->getCommonGenderById($Data['GenderHeadmaster']))
+            isset($Data['GenderHeadmaster']) && ($tblCommonGender = Common::useService()->getCommonGenderById($Data['GenderHeadmaster']))
                 ? $tblCommonGender : null,
             $Data['AppointedDateForAbsence']
-        )
-        ) {
+        )) {
             return new Success('Die Zeugniserstellung ist angelegt worden',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
                 . new Redirect('/Education/Certificate/Generate/Division/Select', Redirect::TIMEOUT_SUCCESS, array(
@@ -178,11 +161,10 @@ class Service extends AbstractService
      * @return IFormInterface|string
      */
     public function createPrepareCertificates(
-        IFormInterface $Form = null,
+        ?IFormInterface $Form,
         TblGenerateCertificate $tblGenerateCertificate,
         $Data = null
     ) {
-
         /**
          * Skip to Frontend
          */
@@ -190,45 +172,36 @@ class Service extends AbstractService
             return $Form;
         }
 
-        if ($Data !== null && isset($Data['Division'])) {
+        if (isset($Data['Division'])) {
             $saveCertificatesForStudents = array();
             $tblConsumerBySession = Consumer::useService()->getConsumerBySession();
             $tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType();
-            foreach ($Data['Division'] as $divisionId => $value) {
-                if (($tblDivision = Division::useService()->getDivisionById($divisionId))) {
+            foreach ($Data['Division'] as $divisionCourseId => $value) {
+                if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))) {
                     if (($tblPrepare = Prepare::useService()->createPrepareData(
-                        $tblDivision,
-                        $tblGenerateCertificate->getDate(),
-                        $tblGenerateCertificate->getName(),
-                        $tblCertificateType
-                            ? ($tblCertificateType->getIdentifier() == 'GRADE_INFORMATION' ? true : false)
-                            : false,
+                        $tblDivisionCourse,
                         $tblGenerateCertificate,
-                        $tblGenerateCertificate->getServiceTblAppointedDateTask()
-                            ? $tblGenerateCertificate->getServiceTblAppointedDateTask() : null,
-                        $tblGenerateCertificate->getServiceTblBehaviorTask()
-                            ? $tblGenerateCertificate->getServiceTblBehaviorTask() : null
-                    ))
-                    ) {
-
-                        if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
-                            if (($tblLevel = $tblDivision->getTblLevel())) {
-                                $tblType = $tblLevel->getServiceTblType();
-                            } else {
-                                $tblType = false;
-                            }
-
+                        $tblDivisionCourse->getFirstDivisionTeacher() ?: null
+                    ))) {
+                        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
                             foreach ($tblPersonList as $tblPerson) {
                                 // Template bereits gesetzt
-                                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                    $tblPerson))
+                                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                                    && $tblPrepareStudent->getServiceTblCertificate()
                                 ) {
-                                    if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
-                                        continue;
-                                    }
+                                    continue;
                                 }
 
-                                // bei Mittelschule und Primärer Förderschwerpunkt Lernen oder geistige Entwicklung soll keine
+                                if (($tblYear = $tblGenerateCertificate->getServiceTblYear())
+                                    && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                                ) {
+                                    $tblType = $tblStudentEducation->getServiceTblSchoolType();
+                                } else {
+                                    $tblStudentEducation = false;
+                                    $tblType = false;
+                                }
+
+                                // bei Mittelschule und primärer Förderschwerpunkt Lernen oder geistige Entwicklung soll keine
                                 // Zeugnisvorlage vorausgewählt werden
                                 // SSW-1647 Noteninformation soll unabhängig vom FS immer gesetzt werden
                                 if ($tblType && !$this->checkAutoSelect($tblPerson, $tblType)
@@ -238,18 +211,17 @@ class Service extends AbstractService
                                 }
 
                                 // Berufsfachschüler mit Fachrichtung "Generalistik" sollen das korrekte Zeugnis automatisch gesetzt bekommen
-                                if(($tblTechnicalCourse = Student::useService()->getTechnicalCourseByPerson($tblPerson))
-                                 && $tblTechnicalCourse->getName() == 'Generalistik') {
+                                if (($tblTechnicalCourse = Student::useService()->getTechnicalCourseByPerson($tblPerson))
+                                    && $tblTechnicalCourse->getName() == 'Generalistik'
+                                ) {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BfsPflegeJ');
                                     $saveCertificatesForStudents[$tblPrepare->getId()][$tblPerson->getId()] = $tblCertificate;
                                     continue;
                                 }
 
-                                if ($tblConsumerBySession) {
-                                    // Eigene Vorlage
-                                    if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson,
-                                        $tblConsumerBySession))
-                                    ) {
+                                if ($tblConsumerBySession && $tblCertificateType && $tblStudentEducation) {
+                                    // Eigene Vorlagen
+                                    if (($certificateList = $this->getPossibleCertificates($tblStudentEducation, $tblCertificateType, $tblConsumerBySession))) {
                                         if (count($certificateList) == 1) {
                                             /** @var TblCertificate $tblCertificate */
                                             $tblCertificate = current($certificateList);
@@ -270,18 +242,11 @@ class Service extends AbstractService
                                         } else {
                                             continue;
                                         }
-                                        // Standard Vorlagen
-                                    } elseif (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson))) {
+                                    // Standard Vorlagen
+                                    } elseif (($certificateList = $this->getPossibleCertificates($tblStudentEducation, $tblCertificateType))) {
                                         if (count($certificateList) == 1) {
                                             /** @var TblCertificate $tblCertificate */
                                             $tblCertificate = current($certificateList);
-                                            if (!isset($certificateNameList[$tblCertificate->getId()])) {
-                                                $tblConsumer = $tblCertificate->getServiceTblConsumer();
-                                                $certificateNameList[$tblCertificate->getId()]
-                                                    = ($tblConsumer ? $tblConsumer->getAcronym() . ' ' : '')
-                                                    . $tblCertificate->getName() . ($tblCertificate->getDescription()
-                                                        ? ' ' . $tblCertificate->getDescription() : '');
-                                            }
                                             $saveCertificatesForStudents[$tblPrepare->getId()][$tblPerson->getId()] = $tblCertificate;
                                         } elseif (count($certificateList) > 1) {
                                             /** @var TblCertificate $certificate */
@@ -312,7 +277,7 @@ class Service extends AbstractService
             }
         }
 
-        return new Success('Die Klassen wurden erfolgreich zugeordnet.',
+        return new Success('Die Kurse wurden erfolgreich zugeordnet.',
                 new \SPHERE\Common\Frontend\Icon\Repository\Success())
             . new Redirect('/Education/Certificate/Generate/Division', Redirect::TIMEOUT_SUCCESS,
                 array('GenerateCertificateId' => $tblGenerateCertificate->getId()));
@@ -327,10 +292,9 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    private function checkAutoSelect(TblPerson $tblPerson, TblType $tblType)
+    private function checkAutoSelect(TblPerson $tblPerson, TblType $tblType): bool
     {
-
-        if ($tblType->getName() == 'Mittelschule / Oberschule') {
+        if ($tblType->getShortName() == 'OS') {
             if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
                 && ($tblPrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport))
             ) {
@@ -348,88 +312,26 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param int $countStudents
-     * @param array $certificateNameList
-     * @param array $schoolNameList
-     *
-     * @return int
-     */
-    public function setCertificateTemplates(
-        TblPrepareCertificate $tblPrepare,
-        &$countStudents = 0,
-        &$certificateNameList = array(),
-        &$schoolNameList = array()
-    ) {
-
-        $countTemplates = 0;
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
-        ) {
-
-            $countStudents = count($tblPersonList);
-            foreach ($tblPersonList as $tblPerson) {
-                // Schulnamen
-                if (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $tblDivision))) {
-                    if (!array_search($tblCompany->getName(), $schoolNameList)) {
-                        $schoolNameList[$tblCompany->getId()] = $tblCompany->getName();
-                    }
-                } else {
-                    $schoolNameList[0] = new Warning(
-                        new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt'
-                    );
-                }
-
-                // Template bereits gesetzt
-                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                    if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
-                        $countTemplates++;
-                        if (!isset($certificateNameList[$tblCertificate->getId()])) {
-                            $tblConsumer = $tblCertificate->getServiceTblConsumer();
-                            $certificateNameList[$tblCertificate->getId()]
-                                = ($tblConsumer ? $tblConsumer->getAcronym() . ' ' : '')
-                                . $tblCertificate->getName() . ($tblCertificate->getDescription()
-                                    ? ' ' . $tblCertificate->getDescription() : '');
-                        }
-
-                        continue;
-                    }
-                }
-            }
-        }
-
-        return $countTemplates;
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
+     * @param TblStudentEducation $tblStudentEducation
+     * @param TblCertificateType $tblCertificateType
      * @param TblConsumer|null $tblConsumer
      *
      * @return array|bool
      */
     public function getPossibleCertificates(
-        TblPrepareCertificate $tblPrepare,
-        TblPerson $tblPerson,
+        TblStudentEducation $tblStudentEducation,
+        TblCertificateType $tblCertificateType,
         TblConsumer $tblConsumer = null
     ) {
-
         $certificateList = array();
-
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && ($tblSchoolType = $tblLevel->getServiceTblType())
-            && $tblPrepare->getServiceTblGenerateCertificate()
-            && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
-            && ($tblCertificateList = Generator::useService()->getCertificateAllForAutoSelect(
-                $tblConsumer ? $tblConsumer : null,
-                $tblCertificateType ? $tblCertificateType : null,
-                $tblSchoolType
-            ))
+        if (($level = $tblStudentEducation->getLevel())
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+            && ($tblCertificateList = Generator::useService()->getCertificateAllForAutoSelect($tblConsumer ?: null, $tblCertificateType, $tblSchoolType))
         ) {
+            $levelName = (string) $level;
             // SSW-939 - Noteninformation Zuweisung Vorlage
             if ($tblCertificateType->getIdentifier() == 'GRADE_INFORMATION'
-                && ($tblCertificate = Setting::useService()->getCertificateByCertificateClassName('GradeInformation'))
+                && Setting::useService()->getCertificateByCertificateClassName('GradeInformation')
             ) {
                 return $tblCertificateList;
             }
@@ -438,39 +340,29 @@ class Service extends AbstractService
             // Bildungsgang nur hier relevant sonst klappt es bei den anderen nicht korrekt
             // #SSW-1064 Automatische Zuordnung von Zeugnissen ist nicht korrekt in Coswig
             if ($this->getUseCourseForCertificateChoosing()) {
-                if (preg_match('!(Mittelschule|Oberschule)!is', $tblSchoolType->getName())
-                    && preg_match('!(0?(7|8|9)|10)!is', $tblLevel->getName())
+                if ($tblSchoolType->getShortName() == 'OS'
+                    && preg_match('!(0?(7|8|9)|10)!is', $levelName)
                 ) {
-                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                        && ($tblStudent = $tblPerson->getStudent())
-                    ) {
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                            $tblTransferType);
-                        if ($tblStudentTransfer) {
-                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                        }
-                    }
+                    $tblCourse = $tblStudentEducation->getServiceTblCourse();
                 }
             }
 
             foreach ($tblCertificateList as $tblCertificate) {
                 // Schüler hat keinen Bildungsgang
                 if (!$tblCourse) {
-                    $tblCertificateLevelList = Generator::useService()->getCertificateLevelAllByCertificate($tblCertificate);
-                    if ($tblCertificateLevelList) {
-                        if ($this->findLevel($tblCertificateLevelList, $tblDivision->getTblLevel())) {
+                    if (($tblCertificateLevelList = Generator::useService()->getCertificateLevelAllByCertificate($tblCertificate))) {
+                        if ($this->findLevel($tblCertificateLevelList, $level)) {
                             $certificateList[] = $tblCertificate;
                         }
                     } else {
                         $certificateList[] = $tblCertificate;
                     }
                     //  Schüler hat Bildungsgang der Vorlage
-                } elseif ($tblCourse
-                    && $tblCertificate->getServiceTblCourse()
+                } elseif ($tblCertificate->getServiceTblCourse()
                     && $tblCourse->getId() == $tblCertificate->getServiceTblCourse()->getId()
                 ) {
                     if (($tblCertificateLevelList = Generator::useService()->getCertificateLevelAllByCertificate($tblCertificate))) {
-                        if ($this->findLevel($tblCertificateLevelList, $tblDivision->getTblLevel())) {
+                        if ($this->findLevel($tblCertificateLevelList, $level)) {
                             $certificateList[] = $tblCertificate;
                         }
                     } else {
@@ -485,18 +377,19 @@ class Service extends AbstractService
 
     /**
      * @param $tblCertificateLevelList
-     * @param TblLevel $tblLevel
+     * @param int $level
      *
-     * @return bool|TblLevel
+     * @return bool
      */
-    private function findLevel($tblCertificateLevelList, TblLevel $tblLevel)
+    private function findLevel($tblCertificateLevelList, int $level): bool
     {
+        // todo
         /** @var TblCertificateLevel $tblCertificateLevel */
         foreach ($tblCertificateLevelList as $tblCertificateLevel) {
             if ($tblCertificateLevel->getServiceTblLevel()
-                && $tblCertificateLevel->getServiceTblLevel()->getId() == $tblLevel->getId()
+                && intval($tblCertificateLevel->getServiceTblLevel()->getName()) == $level
             ) {
-                return $tblLevel;
+                return true;
             }
         }
 
@@ -511,11 +404,10 @@ class Service extends AbstractService
      * @return IFormInterface|string
      */
     public function editCertificateTemplates(
-        IFormInterface $Form = null,
+        ?IFormInterface $Form,
         TblPrepareCertificate $tblPrepare,
         $Data = null
     ) {
-
         /**
          * Skip to Frontend
          */
@@ -523,12 +415,11 @@ class Service extends AbstractService
             return $Form;
         }
 
-        if ($Data !== null && !empty($Data)) {
+        if (!empty($Data)) {
             foreach ($Data as $personId => $value) {
                 if (($tblPerson = Person::useService()->getPersonById($personId))) {
                     $tblCertificate = Generator::useService()->getCertificateById($value);
-                    Prepare::useService()->updatePrepareStudentSetCertificate($tblPrepare, $tblPerson,
-                        $tblCertificate ? $tblCertificate : null);
+                    Prepare::useService()->updatePrepareStudentSetCertificate($tblPrepare, $tblPerson, $tblCertificate ?: null);
                 }
             }
         }
@@ -547,7 +438,7 @@ class Service extends AbstractService
      * @return IFormInterface|string
      */
     public function updateGenerateCertificate(
-        IFormInterface $Form = null,
+        ?IFormInterface $Form,
         TblGenerateCertificate $tblGenerateCertificate,
         $Data = null
     ) {
@@ -573,45 +464,21 @@ class Service extends AbstractService
             return $Form;
         }
 
-        if ($tblGenerateCertificate->isLocked()) {
-            $tblAppointedDateTask = $tblGenerateCertificate->getServiceTblAppointedDateTask();
-            $tblBehaviorTask = $tblGenerateCertificate->getServiceTblBehaviorTask();
-        } else {
-            $tblAppointedDateTask = isset($Data['AppointedDateTask'])
-                ? Evaluation::useService()->getTaskById($Data['AppointedDateTask']) : false;
-            $tblBehaviorTask = isset($Data['BehaviorTask'])
-                ? Evaluation::useService()->getTaskById($Data['BehaviorTask']) : false;
-        }
+        $tblAppointedDateTask = isset($Data['AppointedDateTask']) ? Grade::useService()->getTaskById($Data['AppointedDateTask']) : false;
+        $tblBehaviorTask = isset($Data['BehaviorTask']) ? Grade::useService()->getTaskById($Data['BehaviorTask']) : false;
 
         if ((new Data($this->getBinding()))->updateGenerateCertificate(
             $tblGenerateCertificate,
             $Data['Date'],
             isset($Data['IsTeacherAvailable']),
-            isset($Data['HeadmasterName']) ? $Data['HeadmasterName'] : '',
-            isset($Data['GenderHeadmaster'])
-            && ($tblCommonGender = Common::useService()->getCommonGenderById($Data['GenderHeadmaster']))
+            $Data['HeadmasterName'] ?? '',
+            isset($Data['GenderHeadmaster']) && ($tblCommonGender = Common::useService()->getCommonGenderById($Data['GenderHeadmaster']))
                 ? $tblCommonGender : null,
-            $tblAppointedDateTask ? $tblAppointedDateTask : null,
-            $tblBehaviorTask ? $tblBehaviorTask : null,
+            $tblAppointedDateTask ?: null,
+            $tblBehaviorTask ?: null,
             $Data['Name'],
             $Data['AppointedDateForAbsence']
-        )
-        ) {
-            if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
-                foreach ($tblPrepareList as $tblPrepare) {
-                    Prepare::useService()->updatePrepareData(
-                        $tblPrepare,
-                        $Data['Date'],
-                        $Data['Name'],
-                        $tblAppointedDateTask ? $tblAppointedDateTask : null,
-                        $tblBehaviorTask ? $tblBehaviorTask : null,
-                        isset($Data['IsTeacherAvailable'])
-                            ? ($tblPrepare->getServiceTblPersonSigner() ? $tblPrepare->getServiceTblPersonSigner() : null)
-                            : null
-                    );
-                }
-            }
-
+        )) {
             return new Success('Die Zeugniserstellung ist geändert worden',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
                 . new Redirect('/Education/Certificate/Generate', Redirect::TIMEOUT_SUCCESS, array(
@@ -626,7 +493,7 @@ class Service extends AbstractService
     /**
      * @return bool
      */
-    public function getUseCourseForCertificateChoosing()
+    public function getUseCourseForCertificateChoosing(): bool
     {
         if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
             'Education', 'Certificate', 'Generate', 'UseCourseForCertificateChoosing'))
@@ -639,25 +506,11 @@ class Service extends AbstractService
 
     /**
      * @param TblGenerateCertificate $tblGenerateCertificate
-     * @param bool $IsLocked
      *
      * @return bool
      */
-    public function lockGenerateCertificate(
-        TblGenerateCertificate $tblGenerateCertificate,
-        $IsLocked = true
-    ) {
-
-        return (new Data($this->getBinding()))->lockGenerateCertificate($tblGenerateCertificate, $IsLocked);
-    }
-
-    /**
-     * @param TblGenerateCertificate $tblGenerateCertificate
-     *
-     * @return bool
-     */
-    public function destroyGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate) {
-
+    public function destroyGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate): bool
+    {
         if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
             foreach ($tblPrepareList as $tblPrepare) {
                 Prepare::useService()->destroyPrepareCertificate($tblPrepare);
@@ -679,7 +532,6 @@ class Service extends AbstractService
         TblGenerateCertificate $tblGenerateCertificate,
         $Data
     ) {
-
         /**
          * Skip to Frontend
          */
@@ -689,44 +541,23 @@ class Service extends AbstractService
 
         $tblPersonLeader = Person::useService()->getPersonById($Data['Leader']);
         if (($tblGenerateCertificateSettingLeader = $this->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))) {
-            (new Data($this->getBinding()))->updateGenerateCertificateSetting(
-                $tblGenerateCertificateSettingLeader,
-                $tblPersonLeader
-            );
+            (new Data($this->getBinding()))->updateGenerateCertificateSetting($tblGenerateCertificateSettingLeader, $tblPersonLeader);
         } else {
-            (new Data($this->getBinding()))->createGenerateCertificateSetting(
-                $tblGenerateCertificate,
-                'Leader',
-                $tblPersonLeader
-            );
+            (new Data($this->getBinding()))->createGenerateCertificateSetting($tblGenerateCertificate, 'Leader', $tblPersonLeader);
         }
 
         $tblPersonFirstMember = Person::useService()->getPersonById($Data['FirstMember']);
         if (($tblGenerateCertificateSettingFirstMember = $this->getGenerateCertificateSettingBy($tblGenerateCertificate, 'FirstMember'))) {
-            (new Data($this->getBinding()))->updateGenerateCertificateSetting(
-                $tblGenerateCertificateSettingFirstMember,
-                $tblPersonFirstMember
-            );
+            (new Data($this->getBinding()))->updateGenerateCertificateSetting($tblGenerateCertificateSettingFirstMember, $tblPersonFirstMember);
         } else {
-            (new Data($this->getBinding()))->createGenerateCertificateSetting(
-                $tblGenerateCertificate,
-                'FirstMember',
-                $tblPersonFirstMember
-            );
+            (new Data($this->getBinding()))->createGenerateCertificateSetting($tblGenerateCertificate, 'FirstMember', $tblPersonFirstMember);
         }
 
         $tblPersonSecondMember = Person::useService()->getPersonById($Data['SecondMember']);
         if (($tblGenerateCertificateSettingSecondMember = $this->getGenerateCertificateSettingBy($tblGenerateCertificate, 'SecondMember'))) {
-            (new Data($this->getBinding()))->updateGenerateCertificateSetting(
-                $tblGenerateCertificateSettingSecondMember,
-                $tblPersonSecondMember
-            );
+            (new Data($this->getBinding()))->updateGenerateCertificateSetting($tblGenerateCertificateSettingSecondMember, $tblPersonSecondMember);
         } else {
-            (new Data($this->getBinding()))->createGenerateCertificateSetting(
-                $tblGenerateCertificate,
-                'SecondMember',
-                $tblPersonSecondMember
-            );
+            (new Data($this->getBinding()))->createGenerateCertificateSetting($tblGenerateCertificate, 'SecondMember', $tblPersonSecondMember);
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
@@ -740,11 +571,9 @@ class Service extends AbstractService
      * @param $Field
      *
      * @return false|TblGenerateCertificateSetting
-     * @throws \Exception
      */
     public function getGenerateCertificateSettingBy(TblGenerateCertificate $tblGenerateCertificate, $Field)
     {
-
         return (new Data($this->getBinding()))->getGenerateCertificateSettingBy($tblGenerateCertificate, $Field);
     }
 
@@ -752,11 +581,43 @@ class Service extends AbstractService
      * @param TblGenerateCertificate $tblGenerateCertificate
      *
      * @return false|TblGenerateCertificateSetting[]
-     * @throws \Exception
      */
     public function getGenerateCertificateSettingAllByGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate)
     {
-
         return (new Data($this->getBinding()))->getGenerateCertificateSettingAllByGenerateCertificate($tblGenerateCertificate);
+    }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param bool $isString
+     *
+     * @return false|Type[]|string
+     */
+    public function getSchoolTypeListFromGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate, bool $isString = false)
+    {
+        $resultList = array();
+        if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+            foreach ($tblPrepareList as $tblPrepare) {
+                if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+                    && ($tempList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                ) {
+                    $resultList = array_merge($resultList, $tempList);
+                }
+            }
+
+            $resultList = array_unique($resultList);
+        }
+
+        if (empty($resultList)) {
+            return false;
+        } elseif ($isString) {
+            $list = array();
+            foreach ($resultList as $item) {
+                $list[] = $item->getShortName() ?: $item->getName();
+            }
+            return implode(", ", $list);
+        } else {
+            return $resultList;
+        }
     }
 }

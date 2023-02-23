@@ -64,33 +64,31 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableCertificatePrepare(Schema &$Schema)
+    private function setTableCertificatePrepare(Schema &$Schema): Table
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblPrepareCertificate');
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblDivision')) {
-            $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'Date')) {
-            $Table->addColumn('Date', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblBehaviorTask')) {
-            $Table->addColumn('serviceTblBehaviorTask', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblAppointedDateTask')) {
-            $Table->addColumn('serviceTblAppointedDateTask', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblPersonSigner')) {
-            $Table->addColumn('serviceTblPersonSigner', 'bigint', array('notnull' => false));
-        }
-        if (!$Table->hasColumn('IsGradeInformation')){
-            $Table->addColumn('IsGradeInformation', 'boolean');
-        }
-
         $this->createColumn($Table, 'serviceTblGenerateCertificate', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPersonSigner', self::FIELD_TYPE_BIGINT, true);
+
+        // werden jetzt direkt über den Notenauftrag gezogen
+        if ($this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblBehaviorTask')) {
+            $Table->dropColumn('serviceTblBehaviorTask');
+        }
+        if ($this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblAppointedDateTask')) {
+            $Table->dropColumn('serviceTblAppointedDateTask');
+        }
+        // wird auch nicht mehr benötigt
+        if ($this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblAppointedDateTask')) {
+            $Table->dropColumn('IsGradeInformation');
+        }
+        if ($this->getConnection()->hasColumn('tblPrepareCertificate', 'Date')) {
+            $Table->dropColumn('Date');
+        }
+        if ($this->getConnection()->hasColumn('tblPrepareCertificate', 'Name')) {
+            $Table->dropColumn('Name');
+        }
 
         $this->createIndex($Table, array('serviceTblGenerateCertificate', 'serviceTblDivision'));
 

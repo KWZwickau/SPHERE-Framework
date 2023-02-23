@@ -66,7 +66,10 @@ class Setup extends AbstractSetup
         $this->createColumn( $Table, 'IsDivisionTeacherAvailable', self::FIELD_TYPE_BOOLEAN );
         $this->createColumn( $Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT );
         $this->createColumn( $Table, 'serviceTblCommonGenderHeadmaster', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn( $Table, 'IsLocked', self::FIELD_TYPE_BOOLEAN, false, true);
+
+        if ($this->getConnection()->hasColumn('tblGenerateCertificate', 'IsLocked')) {
+            $Table->dropColumn('IsLocked');
+        }
 
         return $Table;
     }

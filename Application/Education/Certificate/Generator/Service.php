@@ -415,8 +415,8 @@ class Service extends AbstractService
 
     /**
      * @param null|TblConsumer $tblConsumer
-     * @param TblCertificateType $tblCertificateType
-     * @param TblType $tblSchoolType
+     * @param null|TblCertificateType $tblCertificateType
+     * @param null|TblType $tblSchoolType
      *
      * @return bool|TblCertificate[]
      */
@@ -425,10 +425,9 @@ class Service extends AbstractService
         TblCertificateType $tblCertificateType = null,
         TblType $tblSchoolType = null
     ) {
-
         // SSW-939 - Noteninformation Zuweisung Vorlage
         // für die Noteninformation ist keine Schulart angegeben, deswegen wird keine Vorlage gefunden
-        if ($tblCertificateType->getIdentifier() == 'GRADE_INFORMATION'
+        if ($tblCertificateType && $tblCertificateType->getIdentifier() == 'GRADE_INFORMATION'
             && ($tblCertificate = Setting::useService()->getCertificateByCertificateClassName('GradeInformation'))
         ) {
             return array(0 => $tblCertificate);

@@ -1216,8 +1216,8 @@ class Data extends AbstractData
 
     /**
      * @param null|TblConsumer $tblConsumer
-     * @param TblCertificateType $tblCertificateType
-     * @param TblType $tblSchoolType
+     * @param null|TblCertificateType $tblCertificateType
+     * @param null|TblType $tblSchoolType
      *
      * @return bool|Entity\TblCertificate[]
      */

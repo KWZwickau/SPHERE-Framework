@@ -34,13 +34,13 @@ use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -120,7 +120,7 @@ class Service extends AbstractService
      */
     public function getPrepareAllByDivision(TblDivision $tblDivision, $IsGradeInformation = false)
     {
-
+        // todo
         return (new Data($this->getBinding()))->getPrepareAllByDivision($tblDivision, $IsGradeInformation);
     }
 
@@ -2060,52 +2060,33 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivision $tblDivision
-     * @param $Date
-     * @param $Name
-     * @param bool $IsGradeInformation
-     * @param TblGenerateCertificate $tblGenerateCertificate
-     * @param TblTask $tblAppointedDateTask
-     * @param TblTask $tblBehaviorTask
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblGenerateCertificate|null $tblGenerateCertificate
+     * @param TblPerson|null $tblPersonSigner
      *
      * @return TblPrepareCertificate
      */
     public function createPrepareData(
-        TblDivision $tblDivision,
-        $Date,
-        $Name,
-        $IsGradeInformation = false,
-        TblGenerateCertificate $tblGenerateCertificate = null,
-        TblTask $tblAppointedDateTask = null,
-        TblTask $tblBehaviorTask = null
-    ) {
-
-        return (new Data($this->getBinding()))->createPrepare(
-            $tblDivision, $Date, $Name, $IsGradeInformation, $tblGenerateCertificate, $tblAppointedDateTask,
-            $tblBehaviorTask);
+        TblDivisionCourse $tblDivisionCourse,
+        ?TblGenerateCertificate $tblGenerateCertificate,
+        ?TblPerson $tblPersonSigner
+    ): TblPrepareCertificate {
+        // todo find usage
+        return (new Data($this->getBinding()))->createPrepare($tblDivisionCourse, $tblGenerateCertificate, $tblPersonSigner);
     }
 
     /**
      * @param TblPrepareCertificate $tblPrepare
-     * @param $Date
-     * @param $Name
-     * @param TblTask|null $tblAppointedDateTask
-     * @param TblTask|null $tblBehaviorTask
      * @param TblPerson|null $tblPersonSigner
      *
      * @return bool
      */
     public function updatePrepareData(
         TblPrepareCertificate $tblPrepare,
-        $Date,
-        $Name,
-        TblTask $tblAppointedDateTask = null,
-        TblTask $tblBehaviorTask = null,
-        TblPerson $tblPersonSigner = null
-    ) {
-
-        return (new Data($this->getBinding()))->updatePrepare($tblPrepare, $Date, $Name, $tblAppointedDateTask,
-            $tblBehaviorTask, $tblPersonSigner);
+        ?TblPerson $tblPersonSigner
+    ): bool {
+        // todo find usage
+        return (new Data($this->getBinding()))->updatePrepare($tblPrepare, $tblPersonSigner);
     }
 
     /**
@@ -2170,10 +2151,8 @@ class Service extends AbstractService
     /**
      * @param $Data
      */
-    public function createPrepareStudentSetBulkTemplates(
-        $Data
-    ) {
-
+    public function createPrepareStudentSetBulkTemplates($Data)
+    {
         (new Data($this->getBinding()))->createPrepareStudentSetBulkTemplates($Data);
     }
 
@@ -3085,6 +3064,8 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated
+     *
      * @param TblPrepareCertificate $tblPrepare
      *
      * @return bool

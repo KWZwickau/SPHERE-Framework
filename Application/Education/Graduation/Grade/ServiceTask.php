@@ -66,6 +66,26 @@ abstract class ServiceTask extends ServiceStudentOverview
     }
 
     /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblTask[]
+     */
+    public function getBehaviorTaskListByYear(TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getBehaviorTaskListByYear($tblYear);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblTask[]
+     */
+    public function getAppointedDateTaskListByYear(TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getAppointedDateTaskListByYear($tblYear);
+    }
+
+    /**
      * @param TblTask $tblTask
      *
      * @return TblGradeType[]|false

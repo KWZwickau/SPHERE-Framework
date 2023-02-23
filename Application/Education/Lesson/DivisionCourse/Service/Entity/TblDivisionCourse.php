@@ -401,6 +401,26 @@ class TblDivisionCourse extends Element
     }
 
     /**
+     * @return false|TblPerson[]
+     */
+    public function getDivisionTeacherList()
+    {
+        return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
+    }
+
+    /**
+     * @return false|TblPerson
+     */
+    public function getFirstDivisionTeacher()
+    {
+        if (($tempList = $this->getDivisionTeacherList())) {
+            return current($tempList);
+        }
+
+        return false;
+    }
+
+    /**
      * @return string
      */
     public function getSubjectName(): string
