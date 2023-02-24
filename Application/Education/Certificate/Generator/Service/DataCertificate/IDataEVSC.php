@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate;
 
 use SPHERE\Application\Education\Certificate\Generator\Service\Data;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 
@@ -72,21 +71,11 @@ class IDataEVSC
                     $Data->getTblSchoolTypeSecondary(),
                     null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '5'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '6'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '7'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '8'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 5);
+                    $Data->createCertificateLevel($tblCertificate, 6);
+                    $Data->createCertificateLevel($tblCertificate, 7);
+                    $Data->createCertificateLevel($tblCertificate, 8);
+                    $Data->createCertificateLevel($tblCertificate, 9);
                 }
             }
         }
@@ -126,9 +115,7 @@ class IDataEVSC
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(),
                     $Data->getTblSchoolTypeSecondary());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '10'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 10);
                 }
             }
         }

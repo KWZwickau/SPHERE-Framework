@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate;
 
 use SPHERE\Application\Education\Certificate\Generator\Service\Data;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 
@@ -13,13 +12,6 @@ class IDataEMSP
     {
 
         $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('EMSP');
-
-        // set necessary Level for Certificate if not exist (important vor new Consumer without full level range on setup)
-        // maybe remove after update on live
-        Division::useService()->insertLevel($Data->getTblSchoolTypePrimary(), '1');
-        Division::useService()->insertLevel($Data->getTblSchoolTypePrimary(), '2');
-        Division::useService()->insertLevel($Data->getTblSchoolTypePrimary(), '3');
-        Division::useService()->insertLevel($Data->getTblSchoolTypePrimary(), '4');
 
         if ($tblConsumerCertificate){
             self::setEmspGsHj($Data, $tblConsumerCertificate);
@@ -47,15 +39,9 @@ class IDataEMSP
             if ($Data->getTblSchoolTypePrimary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypePrimary(), null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '1'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '2'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '3'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 1);
+                    $Data->createCertificateLevel($tblCertificate, 2);
+                    $Data->createCertificateLevel($tblCertificate, 3);
                 }
             }
         }
@@ -81,15 +67,9 @@ class IDataEMSP
             if ($Data->getTblSchoolTypePrimary()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypePrimary());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '1'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '2'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '3'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 1);
+                    $Data->createCertificateLevel($tblCertificate, 2);
+                    $Data->createCertificateLevel($tblCertificate, 3);
                 }
             }
         }

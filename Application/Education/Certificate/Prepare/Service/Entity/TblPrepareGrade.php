@@ -15,8 +15,8 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -190,20 +190,18 @@ class TblPrepareGrade extends Element
      */
     public function getServiceTblGradeType()
     {
-
         if (null === $this->serviceTblGradeType) {
             return false;
         } else {
-            return Gradebook::useService()->getGradeTypeById($this->serviceTblGradeType);
+            return Grade::useService()->getGradeTypeById($this->serviceTblGradeType);
         }
     }
 
     /**
      * @param TblGradeType|null $serviceTblGradeType
      */
-    public function setServiceTblGradeType($serviceTblGradeType)
+    public function setServiceTblGradeType(?TblGradeType $serviceTblGradeType)
     {
-
         $this->serviceTblGradeType = ( null === $serviceTblGradeType ? null : $serviceTblGradeType->getId() );
     }
 
@@ -222,5 +220,4 @@ class TblPrepareGrade extends Element
     {
         $this->Grade = $Grade;
     }
-
 }

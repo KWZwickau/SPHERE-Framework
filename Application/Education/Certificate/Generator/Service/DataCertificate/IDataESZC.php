@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate;
 
 use SPHERE\Application\Education\Certificate\Generator\Service\Data;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 
@@ -36,15 +35,9 @@ class IDataESZC
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(),
                     $Data->getTblSchoolTypePrimary());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '2'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '3'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '4'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 2);
+                    $Data->createCertificateLevel($tblCertificate, 3);
+                    $Data->createCertificateLevel($tblCertificate, 4);
                 }
             }
             // Begrenzung des Einschätzungfelds
@@ -90,9 +83,7 @@ class IDataESZC
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(),
                     $Data->getTblSchoolTypePrimary());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '1'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 1);
                 }
             }
 
@@ -119,15 +110,9 @@ class IDataESZC
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(),
                     $Data->getTblSchoolTypePrimary(), null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '2'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '3'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '4'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 2);
+                    $Data->createCertificateLevel($tblCertificate, 3);
+                    $Data->createCertificateLevel($tblCertificate, 4);
                 }
             }
 
@@ -170,9 +155,7 @@ class IDataESZC
                     $Data->getTblSchoolTypePrimary()
                     , null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '1'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 1);
                 }
             }
 

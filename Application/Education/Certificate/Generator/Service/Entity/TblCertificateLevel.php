@@ -27,6 +27,7 @@ class TblCertificateLevel extends Element
 
     const ATTR_TBL_CERTIFICATE = 'tblCertificate';
     const SERVICE_TBL_LEVEL = 'serviceTblLevel';
+    const ATTR_LEVEL = 'Level';
 
     /**
      * @Column(type="bigint")
@@ -37,6 +38,11 @@ class TblCertificateLevel extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblLevel;
+
+    /**
+     * @Column(type="integer")
+     */
+    protected ?int $Level;
     
     /**
      * @return bool|TblCertificate
@@ -61,6 +67,8 @@ class TblCertificateLevel extends Element
     }
     
     /**
+     * @deprecated
+     *
     * @return bool|TblLevel
     */
     public function getServiceTblLevel()
@@ -74,11 +82,29 @@ class TblCertificateLevel extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @param TblLevel|null $tblLevel
      */
     public function setServiceTblLevel(TblLevel $tblLevel = null)
     {
 
         $this->serviceTblLevel = (null === $tblLevel ? null : $tblLevel->getId());
+    }
+
+    /**
+     * @return int
+     */
+    public function getLevel(): int
+    {
+        return $this->Level !== null ? $this->Level : 0;
+    }
+
+    /**
+     * @param int $Level
+     */
+    public function setLevel(int $Level): void
+    {
+        $this->Level = $Level;
     }
 }

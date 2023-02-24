@@ -14,7 +14,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Person;
@@ -282,7 +282,7 @@ class Service
                         ) {
                             foreach ($personGrades as $gradeTypeId => $value) {
                                 if (trim($value) && trim($value) !== ''
-                                    && ($tblGradeType = Gradebook::useService()->getGradeTypeById($gradeTypeId))
+                                    && ($tblGradeType = Grade::useService()->getGradeTypeById($gradeTypeId))
                                 ) {
                                     Prepare::useService()->updatePrepareGradeForBehavior(
                                         $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,

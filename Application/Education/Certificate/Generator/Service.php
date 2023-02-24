@@ -11,8 +11,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Generator\Service\Setup;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -21,7 +20,6 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -195,7 +193,7 @@ class Service extends AbstractService
         // Kopf-Noten
         foreach ($GradeList as $LaneIndex => $FieldList) {
             foreach ($FieldList as $LaneRanking => $Field) {
-                if (($tblGradeType = Gradebook::useService()->getGradeTypeById($Field['GradeType']))) {
+                if (($tblGradeType = Grade::useService()->getGradeTypeById($Field['GradeType']))) {
                     $tblCertificateGrade = Generator::useService()->getCertificateGradeByIndex(
                         $tblCertificate, $LaneIndex, $LaneRanking
                     );
@@ -204,8 +202,7 @@ class Service extends AbstractService
                         (new Data($this->getBinding()))->updateCertificateGrade($tblCertificateGrade, $tblGradeType);
                     } else {
                         // Create
-                        (new Data($this->getBinding()))->createCertificateGrade($tblCertificate, $LaneIndex,
-                            $LaneRanking, $tblGradeType);
+                        (new Data($this->getBinding()))->createCertificateGrade($tblCertificate, $LaneIndex, $LaneRanking, $tblGradeType);
                     }
                 } else {
                     if ($Field['GradeType'] > 0) {

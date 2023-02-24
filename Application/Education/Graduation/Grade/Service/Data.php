@@ -61,6 +61,16 @@ class Data extends DataTask
     }
 
     /**
+     * @param string $Code
+     *
+     * @return bool|TblGradeType
+     */
+    public function getGradeTypeByCode(string $Code)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType', array(TblGradeType::ATTR_CODE => $Code));
+    }
+
+    /**
      * @param bool $withInActive
      *
      * @return false|TblGradeType[]

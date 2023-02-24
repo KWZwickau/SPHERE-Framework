@@ -6,8 +6,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Fitting\Element;
@@ -110,11 +110,10 @@ class TblCertificateGrade extends Element
      */
     public function getServiceTblGradeType()
     {
-
         if (null === $this->serviceTblGradeType) {
             return false;
         } else {
-            return Gradebook::useService()->getGradeTypeById($this->serviceTblGradeType);
+            return Grade::useService()->getGradeTypeById($this->serviceTblGradeType);
         }
     }
 
@@ -123,7 +122,6 @@ class TblCertificateGrade extends Element
      */
     public function setServiceTblGradeType(TblGradeType $tblGradeType = null)
     {
-
         $this->serviceTblGradeType = ( null === $tblGradeType ? null : $tblGradeType->getId() );
     }
 

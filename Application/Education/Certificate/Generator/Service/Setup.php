@@ -160,18 +160,16 @@ class Setup extends AbstractSetup
     /**
      * @param Schema $Schema
      * @param Table $tblCertificate
-     *
-     * @return Table
      */
     private function setTableCertificateLevel(Schema &$Schema, Table $tblCertificate)
     {
-
         $Table = $this->getConnection()->createTable($Schema, 'tblCertificateLevel');
+        // alt
         $this->createColumn($Table, 'serviceTblLevel', self::FIELD_TYPE_BIGINT, true);
+        // neu
+        $this->createColumn($Table, 'Level', self::FIELD_TYPE_INTEGER, true);
 
         $this->getConnection()->addForeignKey($Table, $tblCertificate, true);
-
-        return $Table;
     }
 
     /**

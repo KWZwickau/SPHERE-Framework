@@ -383,12 +383,9 @@ class Service extends AbstractService
      */
     private function findLevel($tblCertificateLevelList, int $level): bool
     {
-        // todo
         /** @var TblCertificateLevel $tblCertificateLevel */
         foreach ($tblCertificateLevelList as $tblCertificateLevel) {
-            if ($tblCertificateLevel->getServiceTblLevel()
-                && intval($tblCertificateLevel->getServiceTblLevel()->getName()) == $level
-            ) {
+            if ($tblCertificateLevel->getLevel() == $level) {
                 return true;
             }
         }

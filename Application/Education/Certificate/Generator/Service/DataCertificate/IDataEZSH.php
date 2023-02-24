@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate;
 
 use SPHERE\Application\Education\Certificate\Generator\Service\Data;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 
@@ -47,12 +46,8 @@ class IDataEZSH
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(),
                     $Data->getTblSchoolTypeSecondary(), null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '5'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '6'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 5);
+                    $Data->createCertificateLevel($tblCertificate, 6);
                 }
             }
             // Begrenzung der Einschätzung
@@ -100,15 +95,9 @@ class IDataEZSH
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(),
                     $Data->getTblSchoolTypeSecondary(), null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '7'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '8'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 7);
+                    $Data->createCertificateLevel($tblCertificate, 8);
+                    $Data->createCertificateLevel($tblCertificate, 9);
                 }
             }
             // Begrenzung der Einschätzung
@@ -157,9 +146,7 @@ class IDataEZSH
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(),
                     $Data->getTblSchoolTypeSecondary(), null, false);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 9);
                 }
             }
             // Begrenzung der Einschätzung
@@ -208,21 +195,11 @@ class IDataEZSH
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(),
                     $Data->getTblSchoolTypeGym(), null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '5'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '6'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '7'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '8'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '9'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 5);
+                    $Data->createCertificateLevel($tblCertificate, 6);
+                    $Data->createCertificateLevel($tblCertificate, 7);
+                    $Data->createCertificateLevel($tblCertificate, 8);
+                    $Data->createCertificateLevel($tblCertificate, 9);
                 }
             }
             // Begrenzung der Einschätzung
@@ -273,9 +250,7 @@ class IDataEZSH
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(),
                     $Data->getTblSchoolTypeGym());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '10'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 10);
                 }
             }
             // Begrenzung der Einschätzung
@@ -322,21 +297,11 @@ class IDataEZSH
             'EZSH\EzshGymJ', $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeGym());
         if ($tblCertificate) {
             if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '5'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '6'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '7'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '8'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '9'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 5);
+                $Data->createCertificateLevel($tblCertificate, 6);
+                $Data->createCertificateLevel($tblCertificate, 7);
+                $Data->createCertificateLevel($tblCertificate, 8);
+                $Data->createCertificateLevel($tblCertificate, 9);
             }
             // Begrenzung der Einschätzung
             $FieldName = 'Rating';
@@ -384,9 +349,7 @@ class IDataEZSH
             'EZSH\EzshGymJThreePages', $tblConsumerCertificate, false, false, true, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeGym());
         if ($tblCertificate) {
             if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '10'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 10);
             }
             // Begrenzung der Einschätzung
             $FieldName = 'Rating';
@@ -434,12 +397,8 @@ class IDataEZSH
             'EZSH\EzshMsJ', $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary());
         if ($tblCertificate) {
             if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '5'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '6'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 5);
+                $Data->createCertificateLevel($tblCertificate, 6);
             }
             // Begrenzung der Einschätzung
             $FieldName = 'Rating';
@@ -483,18 +442,10 @@ class IDataEZSH
             'EZSH\EzshMsCourseJ', $tblConsumerCertificate, false, false, true, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary());
         if ($tblCertificate) {
             if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '7'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '8'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '10'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 7);
+                $Data->createCertificateLevel($tblCertificate, 8);
+                $Data->createCertificateLevel($tblCertificate, 9);
+                $Data->createCertificateLevel($tblCertificate, 10);
             }
             // Begrenzung der Einschätzung
             $FieldName = 'Rating';
@@ -538,9 +489,7 @@ class IDataEZSH
             'EZSH\EzshGymAbg', $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeGym());
         if ($tblCertificate) {
             if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '10'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 10);
             }
             // Begrenzung Bemerkungsfeld
             $FieldName = 'RemarkWithoutTeam';
@@ -650,9 +599,7 @@ class IDataEZSH
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeSecondary(),
                     $Data->getTblCourseMain());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 9);
                 }
             }
         }
@@ -690,9 +637,7 @@ class IDataEZSH
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeSecondary(),
                     $Data->getTblCourseMain());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 9);
                 }
             }
         }
@@ -728,9 +673,7 @@ class IDataEZSH
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeSecondary(),
                     $Data->getTblCourseReal());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '10'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 10);
                 }
             }
         }
@@ -747,9 +690,7 @@ class IDataEZSH
             'EZSH\EzshMsAbg', $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeSecondary());
         if ($tblCertificate) {
             if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '10'))) {
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 10);
             }
             // Begrenzung Bemerkungsfeld
             $FieldName = 'RemarkWithoutTeam';

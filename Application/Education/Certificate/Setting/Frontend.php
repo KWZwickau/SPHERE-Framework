@@ -3,9 +3,8 @@ namespace SPHERE\Application\Education\Certificate\Setting;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
@@ -539,8 +538,7 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
 
                 // Kopf-Noten-Definition
-                $tblTestTypeBehavior = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
-                $tblGradeTypeBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestTypeBehavior);
+                $tblGradeTypeBehavior = Grade::useService()->getGradeTypeList(true);
 
                 // Fach-Noten-Definition
                 $tblSubjectAll = Subject::useService()->getSubjectAll();

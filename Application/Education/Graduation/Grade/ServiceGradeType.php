@@ -24,6 +24,16 @@ abstract class ServiceGradeType extends AbstractService
     }
 
     /**
+     * @param string $Code
+     *
+     * @return bool|TblGradeType
+     */
+    public function getGradeTypeByCode(string $Code)
+    {
+        return (new Data($this->getBinding()))->getGradeTypeByCode($Code);
+    }
+
+    /**
      * @param bool $withInActive
      *
      * @return false|TblGradeType[]

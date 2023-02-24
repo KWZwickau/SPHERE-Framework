@@ -32,9 +32,8 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateReferenceForLanguages;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
@@ -46,6 +45,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -230,6 +230,23 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
         $tblConsumer = $this->tblConsumer = Consumer::useService()->getConsumerBySession();
+
+        // migration TblCertificateLevel serviceTblLevel -> Level
+        // kann später wieder entfernt werden
+        if (($tblCertificateLevelList = $this->getCertificateLevelAllByLevelIsNull())) {
+            $updateList = array();
+            foreach ($tblCertificateLevelList as $tblCertificateLevel) {
+                if (($tblLevel = $tblCertificateLevel->getServiceTblLevel())) {
+                    $tblCertificateLevel->setLevel(intval($tblLevel->getName()));
+                    $updateList[] = $tblCertificateLevel;
+                } else {
+                    $this->destroyCertificateLevel($tblCertificateLevel);
+                }
+            }
+            if (!empty($updateList)) {
+                $this->updateEntityListBulk($updateList);
+            }
+        }
 
         if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
 
@@ -459,8 +476,8 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param int $LaneIndex
-     * @param int $LaneRanking
+     * @param $LaneIndex
+     * @param $LaneRanking
      * @param TblGradeType $tblGradeType
      *
      * @return null|object|TblCertificateGrade
@@ -497,9 +514,8 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function updateCertificateGrade(TblCertificateGrade $tblCertificateGrade, TblGradeType $tblGradeType)
+    public function updateCertificateGrade(TblCertificateGrade $tblCertificateGrade, TblGradeType $tblGradeType): bool
     {
-
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblCertificateGrade $Entity */
         $Entity = $Manager->getEntityById('TblCertificateGrade', $tblCertificateGrade->getId());
@@ -508,8 +524,10 @@ class Data extends AbstractData
             $Entity->setServiceTblGradeType($tblGradeType);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
             return true;
         }
+
         return false;
     }
 
@@ -881,8 +899,7 @@ class Data extends AbstractData
         $LaneIndex,
         $LaneRanking
     ) {
-
-        if (($tblGradeType = Gradebook::useService()->getGradeTypeByCode($GradeTypeAcronym))) {
+        if (($tblGradeType = Grade::useService()->getGradeTypeByCode($GradeTypeAcronym))) {
             $this->createCertificateGrade($tblCertificate, $LaneIndex, $LaneRanking, $tblGradeType);
         }
     }
@@ -1063,26 +1080,25 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param TblLevel $tblLevel
+     * @param int $Level
      *
      * @return TblCertificateLevel
      */
-    public function createCertificateLevel(TblCertificate $tblCertificate, TblLevel $tblLevel)
+    public function createCertificateLevel(TblCertificate $tblCertificate, int $Level): TblCertificateLevel
     {
-
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblCertificateLevel')
             ->findOneBy(array(
                     TblCertificateLevel::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
-                    TblCertificateLevel::SERVICE_TBL_LEVEL => $tblLevel->getId()
+                    TblCertificateLevel::ATTR_LEVEL => $Level
                 )
             );
 
         if (null === $Entity) {
             $Entity = new TblCertificateLevel();
             $Entity->setTblCertificate($tblCertificate);
-            $Entity->setServiceTblLevel($tblLevel);
+            $Entity->setLevel($Level);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -1451,21 +1467,6 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param TblLevel $tblLevel
-     *
-     * @return false|TblCertificateLevel
-     */
-    public function getCertificateLevelBy(TblCertificate $tblCertificate, TblLevel $tblLevel)
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblCertificateLevel', array(
-            TblCertificateLevel::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
-            TblCertificateLevel::SERVICE_TBL_LEVEL => $tblLevel->getId()
-        ));
-    }
-
-    /**
-     * @param TblCertificate $tblCertificate
      *
      * @return false|TblCertificateReferenceForLanguages[]
      */
@@ -1623,5 +1624,38 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblCertificateInformation', array(
             TblCertificateInformation::ATTR_TBL_CERTIFICATE => $tblCertificate->getId()
         ), array(TblCertificateInformation::ATTR_PAGE => self::ORDER_ASC));
+    }
+
+    /**
+     * @return false|TblCertificateLevel[]
+     */
+    private function getCertificateLevelAllByLevelIsNull()
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblCertificateLevel', array(
+            TblCertificateLevel::ATTR_LEVEL => null
+        ));
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function updateEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+            $Manager->bulkSaveEntity($tblElement);
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
     }
 }
