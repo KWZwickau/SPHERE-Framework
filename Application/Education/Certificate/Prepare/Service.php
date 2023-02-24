@@ -113,6 +113,8 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated
+     *
      * @param TblDivision $tblDivision
      * @param bool $IsGradeInformation
      *
@@ -120,9 +122,10 @@ class Service extends AbstractService
      */
     public function getPrepareAllByDivision(TblDivision $tblDivision, $IsGradeInformation = false)
     {
-        // todo
         return (new Data($this->getBinding()))->getPrepareAllByDivision($tblDivision, $IsGradeInformation);
     }
+
+
 
     /**
      *
@@ -3333,6 +3336,8 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated use Term::useService()->setYearButtonList()
+     *
      * @param $Route
      * @param $IsAllYears
      * @param $IsGroup
@@ -5506,5 +5511,15 @@ class Service extends AbstractService
         $Content['P' . $tblPerson->getId()]['Calc']['AddEducation_AverageInWord'] = Gradebook::useService()->getAverageInWord($calcValueFOS, ',');
 
         return $Content;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return false|TblPrepareCertificate[]
+     */
+    public function getPrepareAllByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getPrepareAllByDivisionCourse($tblDivisionCourse);
     }
 }

@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Generator\Service\Setup;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -684,9 +685,8 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    public function isGradeTypeUsed(TblGradeType $tblGradeType): bool
     {
-
         return (new Data($this->getBinding()))->isGradeTypeUsed($tblGradeType);
     }
 

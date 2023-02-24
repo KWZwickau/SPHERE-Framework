@@ -16,6 +16,8 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -290,5 +292,13 @@ class TblGenerateCertificate extends Element
     public function getSchoolTypes(bool $isString = false)
     {
         return Generate::useService()->getSchoolTypeListFromGenerateCertificate($this, $isString);
+    }
+
+    /**
+     * @return false|TblPrepareCertificate[]
+     */
+    public function getPrepareList()
+    {
+        return Prepare::useService()->getPrepareAllByGenerateCertificate($this);
     }
 }

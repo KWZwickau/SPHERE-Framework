@@ -1499,9 +1499,9 @@ class Service extends ServiceScoreRule
             return true;
         }
 
-        if (Generator::useService()->isGradeTypeUsed($tblGradeType)) {
-            return true;
-        }
+//        if (Generator::useService()->isGradeTypeUsed($tblGradeType)) {
+//            return true;
+//        }
 
         if (Prepare::useService()->isGradeTypeUsed($tblGradeType)) {
             return true;

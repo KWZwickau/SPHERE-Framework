@@ -90,6 +90,8 @@ class Data extends AbstractData
     }
 
     /**
+     * @deprecated
+     *
      * @param TblDivision $tblDivision
      * @param bool $IsGradeInformation
      *
@@ -97,7 +99,6 @@ class Data extends AbstractData
      */
     public function getPrepareAllByDivision(TblDivision $tblDivision, $IsGradeInformation = false)
     {
-        // todo
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblPrepareCertificate',
             array(
@@ -2292,5 +2293,17 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return false|TblPrepareCertificate[]
+     */
+    public function getPrepareAllByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblPrepareCertificate', array(
+            TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivisionCourse->getId()
+        ));
     }
 }

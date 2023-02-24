@@ -1279,11 +1279,11 @@ class Service extends AbstractService
      * @param $IsAllYears
      * @param $YearId
      * @param $tblYear
-     * @param bool $HasAllYears
+     * @param $HasAllYears
      *
      * @return array
      */
-    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear, bool $HasAllYears = true): array
+    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear, $HasAllYears): array
     {
         $tblYear = false;
         $tblYearList = Term::useService()->getYearByNow();

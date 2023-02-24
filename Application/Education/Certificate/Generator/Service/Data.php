@@ -1420,17 +1420,10 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    public function isGradeTypeUsed(TblGradeType $tblGradeType): bool
     {
-
-        return $this->getCachedEntityBy(
-            __METHOD__,
-            $this->getConnection()->getEntityManager(),
-            'TblCertificateGrade',
-            array(
-                TblCertificateGrade::SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId()
-            )
-        ) ? true : false;
+        return (bool) $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblCertificateGrade',
+            array(TblCertificateGrade::SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId()));
     }
 
     /**

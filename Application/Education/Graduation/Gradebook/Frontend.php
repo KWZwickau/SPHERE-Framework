@@ -1515,7 +1515,7 @@ class Frontend extends FrontendScoreRule
             new Standard('Zurück', '/Education/Graduation/Gradebook/Gradebook', new ChevronLeft())
         );
 
-        $buttonList = Prepare::useService()->setYearGroupButtonList('/Education/Graduation/Gradebook/Gradebook/Teacher/Division',
+        $buttonList = Prepare::useService()->setYearButtonList('/Education/Graduation/Gradebook/Gradebook/Teacher/Division',
             $IsAllYears, $IsGroup, $YearId, $tblYear);
 
         $tblPerson = false;
@@ -1641,7 +1641,7 @@ class Frontend extends FrontendScoreRule
             new Standard('Zurück', '/Education/Graduation/Gradebook/Gradebook/Headmaster', new ChevronLeft())
         );
 
-        $buttonList = Prepare::useService()->setYearGroupButtonList('/Education/Graduation/Gradebook/Gradebook/Headmaster/Division',
+        $buttonList = Prepare::useService()->setYearButtonList('/Education/Graduation/Gradebook/Gradebook/Headmaster/Division',
             $IsAllYears, $IsGroup, $YearId, $tblYear);
 
         $divisionTable = array();

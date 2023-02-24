@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -71,6 +72,9 @@ abstract class ServiceGradeType extends AbstractService
         }
 
         // todo weitere prüfen Zeugniseinstellungen, Zeugnisnote
+        if (Generator::useService()->isGradeTypeUsed($tblGradeType)) {
+            return true;
+        }
 
         return false;
     }

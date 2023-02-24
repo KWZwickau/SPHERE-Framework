@@ -91,7 +91,7 @@ class Frontend extends Extension
     public function frontendGenerate($IsAllYears = false, $YearId = null, $Data = null): Stage
     {
         $Stage = new Stage('Zeugnis generieren', 'Übersicht');
-        $buttonList = Term::useService()->setYearButtonList('/Education/Certificate/Generate', $IsAllYears, $YearId, $tblYear);
+        $buttonList = Term::useService()->setYearButtonList('/Education/Certificate/Generate', $IsAllYears, $YearId, $tblYear, true);
 
         $tableData = array();
         if (($tblGenerateCertificateList = $tblYear
