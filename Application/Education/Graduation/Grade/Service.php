@@ -80,6 +80,16 @@ class Service extends ServiceTask
     }
 
     /**
+     * @param string $name
+     *
+     * @return false|TblGradeText
+     */
+    public function getGradeTextByName(string $name)
+    {
+        return (new Data($this->getBinding()))->getGradeTextByName($name);
+    }
+
+    /**
      * @return false|TblGradeText[]
      */
     public function getGradeTextAll()

@@ -138,6 +138,16 @@ abstract class ServiceTask extends ServiceStudentOverview
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TblTask[]|false
+     */
+    public function getBehaviorTaskListByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getBehaviorTaskListByDivisionCourse($tblDivisionCourse);
+    }
+
+    /**
      * @param TblTask $tblTask
      *
      * @return false|TblTaskGrade[]

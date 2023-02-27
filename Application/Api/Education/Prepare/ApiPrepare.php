@@ -97,13 +97,12 @@ class ApiPrepare extends Extension implements IApiInterface
 
     /**
      * @param $PrepareId
-     * @param $GroupId
      * @param $Key
      * @param $CertificateName
      *
      * @return Pipeline
      */
-    public static function pipelineOpenInformationModal($PrepareId, $GroupId, $Key, $CertificateName)
+    public static function pipelineOpenInformationModal($PrepareId, $Key, $CertificateName): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -112,7 +111,6 @@ class ApiPrepare extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'PrepareId' => $PrepareId,
-            'GroupId' => $GroupId,
             'Key' => $Key,
             'CertificateName' => $CertificateName
         ));
@@ -122,14 +120,13 @@ class ApiPrepare extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PrepareId
-     * @param $GroupId
+     * @param $PrepareId
      * @param $Key
      * @param $CertificateName
      *
      * @return Pipeline
      */
-    public static function pipelineSetInformation($PrepareId, $GroupId, $Key, $CertificateName)
+    public static function pipelineSetInformation($PrepareId, $Key, $CertificateName): Pipeline
     {
         $pipeline = new Pipeline(false);
 
@@ -139,7 +136,6 @@ class ApiPrepare extends Extension implements IApiInterface
         ));
         $emitter->setPostPayload(array(
             'PrepareId' => $PrepareId,
-            'GroupId' => $GroupId,
             'Key' => $Key,
             'CertificateName' => $CertificateName
         ));
@@ -268,13 +264,12 @@ class ApiPrepare extends Extension implements IApiInterface
 
     /**
      * @param $PrepareId
-     * @param $GroupId
      * @param $Key
      * @param $CertificateName
      *
      * @return Danger|string
      */
-    public function setInformation($PrepareId, $GroupId, $Key, $CertificateName)
+    public function setInformation($PrepareId, $Key, $CertificateName)
     {
         if (!($tblPrepare = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareById($PrepareId))) {
             return new Danger('Zeugnisvorbereitung nicht gefunden', new Exclamation());
@@ -285,46 +280,20 @@ class ApiPrepare extends Extension implements IApiInterface
 
         $result = '';
 
-        if ($GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
-                && ($tblPrepareList = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))
-            ) {
-                foreach ($tblPrepareList as $tblPrepareItem) {
-                    if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
-                        && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
-                    ) {
-                        foreach ($tblStudentList as $tblPerson) {
-                            if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
-                                $tblPrepareStudent = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareStudentBy(
-                                    $tblPrepareItem, $tblPerson
-                                );
-                                $result .= self::pipelineChangeInformation(
-                                    $informationId,
-                                    $tblPerson->getId(),
-                                    $tblPrepareStudent ? $tblPrepareStudent->getId() : 0,
-                                    $Key,
-                                    $CertificateName
-                                );
-                            }
-                        }
-                    }
-                }
-            }
-        } elseif (($tblDivision = $tblPrepare->getServiceTblDivision())) {
-            $tblStudentAll = Division::useService()->getStudentAllByDivision($tblDivision, true);
-            if ($tblStudentAll) {
-                foreach ($tblStudentAll as $tblPerson) {
-                    $tblPrepareStudent = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareStudentBy(
-                        $tblPrepare, $tblPerson
-                    );
-                    $result .= self::pipelineChangeInformation(
-                        $informationId,
-                        $tblPerson->getId(),
-                        $tblPrepareStudent ? $tblPrepareStudent->getId() : 0,
-                        $Key,
-                        $CertificateName
-                    );
-                }
+        if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+            &&($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                $tblPrepareStudent = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareStudentBy(
+                    $tblPrepare, $tblPerson
+                );
+                $result .= self::pipelineChangeInformation(
+                    $informationId,
+                    $tblPerson->getId(),
+                    $tblPrepareStudent ? $tblPrepareStudent->getId() : 0,
+                    $Key,
+                    $CertificateName
+                );
             }
         }
 

@@ -66,6 +66,7 @@ abstract class Certificate extends Extension
     public function __construct(TblDivision $tblDivision = null, TblPrepareCertificate $tblPrepareCertificate = null, $IsSample = true, $pageList = array())
     {
 
+        // todo set DivisionCourse
         // Twig as string wouldn't be cached (used function getTwigTemplateString)
 //        $this->getCache(new TwigHandler())->clearCache();
 

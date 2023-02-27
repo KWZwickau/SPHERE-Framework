@@ -285,8 +285,7 @@ class Service
                                     && ($tblGradeType = Grade::useService()->getGradeTypeById($gradeTypeId))
                                 ) {
                                     Prepare::useService()->updatePrepareGradeForBehavior(
-                                        $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
-                                        trim($value)
+                                        $tblPrepare, $tblPerson, $tblTestType, $tblGradeType, trim($value)
                                     );
                                 }
                             }

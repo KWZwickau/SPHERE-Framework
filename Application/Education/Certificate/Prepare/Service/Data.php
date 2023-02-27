@@ -27,8 +27,8 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareSt
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -151,7 +151,6 @@ class Data extends AbstractData
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
      * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
      *
@@ -160,7 +159,6 @@ class Data extends AbstractData
     public function getPrepareGradeByGradeType(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblDivision $tblDivision,
         TblTestType $tblTestType,
         TblGradeType $tblGradeType
     ) {
@@ -169,7 +167,6 @@ class Data extends AbstractData
             array(
                 TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
             )
@@ -444,7 +441,6 @@ class Data extends AbstractData
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
      * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
      * @param $Grade
@@ -454,11 +450,10 @@ class Data extends AbstractData
     public function updatePrepareGradeForBehavior(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblDivision $tblDivision,
         TblTestType $tblTestType,
         TblGradeType $tblGradeType,
         $Grade
-    ) {
+    ): TblPrepareGrade {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -466,7 +461,6 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblPrepareGrade')->findOneBy(array(
             TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
             TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            TblPrepareGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
             TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
             TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
         ));
@@ -474,7 +468,6 @@ class Data extends AbstractData
             $Entity = new TblPrepareGrade();
             $Entity->setTblPrepareCertificate($tblPrepare);
             $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setServiceTblDivision($tblDivision);
             $Entity->setServiceTblTestType($tblTestType);
             $Entity->setServiceTblGradeType($tblGradeType);
             $Entity->setGrade($Grade);

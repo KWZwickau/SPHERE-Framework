@@ -36,8 +36,8 @@ use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -241,7 +241,6 @@ class Service extends AbstractService
      *
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
      * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
      *
@@ -250,13 +249,11 @@ class Service extends AbstractService
     public function getPrepareGradeByGradeType(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblDivision $tblDivision,
         TblTestType $tblTestType,
         TblGradeType $tblGradeType
     ) {
 
-        return (new Data($this->getBinding()))->getPrepareGradeByGradeType($tblPrepare, $tblPerson, $tblDivision,
-            $tblTestType, $tblGradeType);
+        return (new Data($this->getBinding()))->getPrepareGradeByGradeType($tblPrepare, $tblPerson, $tblTestType, $tblGradeType);
     }
 
     /**
@@ -565,7 +562,6 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
-     * @param TblGroup|null $tblGroup
      * @param string $Route
      * @param array $Data
      * @param array $CertificateList
@@ -574,15 +570,13 @@ class Service extends AbstractService
      * @return IFormInterface|string
      */
     public function updatePrepareInformationList(
-        IFormInterface $Stage = null,
+        ?IFormInterface $Stage,
         TblPrepareCertificate $tblPrepare,
-        TblGroup $tblGroup = null,
         $Route,
         $Data,
         $CertificateList,
         $nextPage = null
     ) {
-
         /**
          * Skip to Frontend
          */
@@ -593,13 +587,9 @@ class Service extends AbstractService
         foreach ($Data as $prepareStudentId => $array) {
             if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
                 && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
-                && ($tblDivision = $tblPrepareItem->getServiceTblDivision())
                 && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                 && is_array($array)
             ) {
-
-                $this->setSignerFromSignedInPerson($tblPrepareStudent);
-
                 if (isset($CertificateList[$tblPerson->getId()])) {
 
                     /** @var Certificate $Certificate */
@@ -631,11 +621,9 @@ class Service extends AbstractService
                                 $tblPrepareStudent->isApproved(),
                                 $tblPrepareStudent->isPrinted(),
                                 $tblPrepareStudent->getExcusedDays(),
-                                isset($array['ExcusedDaysFromLessons'])
-                                    ? $array['ExcusedDaysFromLessons'] : $tblPrepareStudent->getExcusedDaysFromLessons(),
+                                $array['ExcusedDaysFromLessons'] ?? $tblPrepareStudent->getExcusedDaysFromLessons(),
                                 $tblPrepareStudent->getUnexcusedDays(),
-                                isset($array['UnexcusedDaysFromLessons'])
-                                    ? $array['UnexcusedDaysFromLessons'] : $tblPrepareStudent->getUnexcusedDaysFromLessons(),
+                                $array['UnexcusedDaysFromLessons'] ?? $tblPrepareStudent->getUnexcusedDaysFromLessons(),
                                 $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
                             );
                         }
@@ -717,7 +705,6 @@ class Service extends AbstractService
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
                 . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
                     'PrepareId' => $tblPrepare->getId(),
-                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                     'Route' => $Route
                 ));
         } else {
@@ -726,7 +713,6 @@ class Service extends AbstractService
                     Redirect::TIMEOUT_SUCCESS,
                    array(
                         'PrepareId' => $tblPrepare->getId(),
-                        'GroupId' => $tblGroup ? $tblGroup : null,
                         'Route' => $Route,
                         'IsNotGradeType' => true,
                         'Page' => $nextPage
@@ -2095,7 +2081,6 @@ class Service extends AbstractService
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
      * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
      * @param $Grade
@@ -2105,14 +2090,12 @@ class Service extends AbstractService
     public function updatePrepareGradeForBehavior(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblDivision $tblDivision,
         TblTestType $tblTestType,
         TblGradeType $tblGradeType,
         $Grade
-    ) {
+    ): TblPrepareGrade {
 
-        return (new Data($this->getBinding()))->updatePrepareGradeForBehavior($tblPrepare, $tblPerson, $tblDivision,
-            $tblTestType, $tblGradeType, $Grade);
+        return (new Data($this->getBinding()))->updatePrepareGradeForBehavior($tblPrepare, $tblPerson, $tblTestType, $tblGradeType, $Grade);
     }
 
     /**
@@ -2223,31 +2206,28 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
+     * @param IFormInterface|null $form
      * @param TblPrepareCertificate $tblPrepare
-     * @param TblGroup|null $tblGroup
      * @param TblGradeType $tblGradeType
-     * @param TblGradeType $tblNextGradeType
-     * @param string $Route
+     * @param TblGradeType|null $tblNextGradeType
+     * @param $Route
      * @param $Data
      *
-     * @return IFormInterface|string
+     * @return IFormInterface|string|null
      */
     public function updatePrepareBehaviorGrades(
-        IFormInterface $Stage = null,
+        ?IFormInterface $form,
         TblPrepareCertificate $tblPrepare,
-        TblGroup $tblGroup = null,
-        TblGradeType $tblGradeType,
-        TblGradeType $tblNextGradeType = null,
+        ?TblGradeType $tblGradeType,
+        ?TblGradeType $tblNextGradeType,
         $Route,
         $Data
     ) {
-
         /**
          * Skip to Frontend
          */
         if ($Data === null) {
-            return $Stage;
+            return $form;
         }
 
         $error = false;
@@ -2262,69 +2242,61 @@ class Service extends AbstractService
         }
 
         if ($error) {
-            $Stage->prependGridGroup(
+            $form->prependGridGroup(
                 new FormGroup(new FormRow(new FormColumn(new Danger(
-                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1-5).
-                        Die Daten wurden nicht gespeichert.', new Exclamation())
+                    'Nicht alle eingegebenen Zensuren befinden sich im Wertebereich (1-5). Die Daten wurden nicht gespeichert.', new Exclamation())
                 ))));
 
-            return $Stage;
+            return $form;
         } else {
-            if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))) {
-                foreach ($Data as $prepareStudentId => $value) {
-                    if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
-                        && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
-                        && ($tblDivision = $tblPrepareItem->getServiceTblDivision())
-                        && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-                    ) {
+            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
+            foreach ($Data as $prepareStudentId => $value) {
+                if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
+                    && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
+                    && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                ) {
 
-                        $this->setSignerFromSignedInPerson($tblPrepareStudent);
-
-                        if ($value != -1) {
-                            if (trim($value) === '') {
-                                // keine leere Kopfnoten anlegen, nur falls eine Kopfnote vorhanden ist
-                                // direktes löschen ist ungünstig, da beim nächsten Speichern wieder der Durchschnitt eingetragen würde
-                                if (($tblPrepareGrade = $this->getPrepareGradeByGradeType(
-                                    $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType
-                                ))) {
-                                    Prepare::useService()->updatePrepareGradeForBehavior(
-                                        $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
-                                        trim($value)
-                                    );
-                                }
-                            } else {
+                    if ($value != -1) {
+                        if (trim($value) === '') {
+                            // keine leere Kopfnoten anlegen, nur falls eine Kopfnote vorhanden ist
+                            // direktes löschen ist ungünstig, da beim nächsten Speichern wieder der Durchschnitt eingetragen würde
+                            if (($tblPrepareGrade = $this->getPrepareGradeByGradeType(
+                                $tblPrepareItem, $tblPerson, $tblTestType, $tblGradeType
+                            ))) {
                                 Prepare::useService()->updatePrepareGradeForBehavior(
-                                    $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
-                                    trim($value)
+                                    $tblPrepareItem, $tblPerson, $tblTestType, $tblGradeType, trim($value)
                                 );
                             }
+                        } else {
+                            Prepare::useService()->updatePrepareGradeForBehavior(
+                                $tblPrepareItem, $tblPerson, $tblTestType, $tblGradeType, trim($value)
+                            );
                         }
                     }
                 }
+            }
 
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnoten wurden gespeichert.')
-                    . new Redirect('/Education/Certificate/Prepare/Prepare/Setting',
-                        Redirect::TIMEOUT_SUCCESS,
-                        $tblNextGradeType ? array(
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Kopfnoten wurden gespeichert.')
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Setting',
+                    Redirect::TIMEOUT_SUCCESS,
+                    $tblNextGradeType
+                        ? array(
                             'PrepareId' => $tblPrepare->getId(),
-                            'GroupId' => $tblGroup ? $tblGroup : null,
                             'Route' => $Route,
                             'GradeTypeId' => $tblNextGradeType->getId()
                         )
-                            : array(
+                        : array(
                             'PrepareId' => $tblPrepare->getId(),
-                            'GroupId' => $tblGroup ? $tblGroup : null,
                             'Route' => $Route,
                             'IsNotGradeType' => true
                         )
-                    );
-            }
+                );
         }
-
-        return $Stage;
     }
 
     /**
+     * @deprecated wird jetzt direkt beim Erstellen des Zeugnisauftrags gesetzt
+     *
      * Unterzeichner Klassenlehrer automatisch die angemeldete Person setzen
      *
      * @param TblPrepareStudent $tblPrepareStudent
@@ -2696,13 +2668,13 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblCurrentDivision
+     * @param TblYear $tblYear
      *
      * @return string[]|false
      */
-    public function getAutoDroppedSubjects(TblPerson $tblPerson, TblDivision $tblCurrentDivision)
+    public function getAutoDroppedSubjects(TblPerson $tblPerson, TblYear $tblYear)
     {
-
+        // todo
         $subjectList = array();
         $tblLastDivision = false;
         if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
@@ -5046,19 +5018,17 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $tblPrepareList
-     * @param $tblGroup
+     * @param TblPrepareCertificate $tblPrepare
      * @param $useClassRegisterForAbsence
      *
-     * @return array
+     * @return array[]
      */
-    public function getCertificateInformationPages($tblPrepareList, $tblGroup, $useClassRegisterForAbsence)
+    public function getCertificateInformationPages(TblPrepareCertificate $tblPrepare, $useClassRegisterForAbsence): array
     {
         $CertificateHasAbsenceList = [];
         $StudentHasAbsenceLessonsList = [];
-        $tblCertificateList = $this->getCertificateListByPrepareList(
-            $tblPrepareList,
-            $tblGroup,
+        $tblCertificateList = $this->getCertificateListByPrepare(
+            $tblPrepare,
             $useClassRegisterForAbsence,
             $CertificateHasAbsenceList,
             $StudentHasAbsenceLessonsList
@@ -5066,14 +5036,12 @@ class Service extends AbstractService
 
         $informationPageList = array();
         $pageList = array();
-        /** @var TblCertificate $tblCertificate */
         foreach ($tblCertificateList as $tblCertificate) {
             if (($tblCertificateInformationList = Generator::useService()->getCertificateInformationListByCertificate($tblCertificate))) {
                 foreach ($tblCertificateInformationList as $tblCertificateInformation) {
                     $page = $tblCertificateInformation->getPage();
                     if ($page > 1) {
-                        $informationPageList[$tblCertificate->getId()][$page][$tblCertificateInformation->getFieldName()]
-                            = $tblCertificateInformation->getFieldName();
+                        $informationPageList[$tblCertificate->getId()][$page][$tblCertificateInformation->getFieldName()] = $tblCertificateInformation->getFieldName();
                         $pageList[$page] = $page;
                     }
                 }
@@ -5094,50 +5062,44 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $tblPrepareList
-     * @param $tblGroup
+     * @param TblPrepareCertificate $tblPrepare
      * @param $useClassRegisterForAbsence
      * @param $CertificateHasAbsenceList
      * @param $StudentHasAbsenceLessonsList
      *
      * @return TblCertificate[]
      */
-    private function getCertificateListByPrepareList(
-        $tblPrepareList,
-        $tblGroup,
+    private function getCertificateListByPrepare(
+        TblPrepareCertificate $tblPrepare,
         $useClassRegisterForAbsence,
         &$CertificateHasAbsenceList,
         &$StudentHasAbsenceLessonsList
-    ) {
+    ): array {
         $tblCertificateList = array();
-        /** @var TblPrepareCertificate $tblPrepare */
-        foreach ($tblPrepareList as $tblPrepare) {
-            if (($tblDivisionItem = $tblPrepare->getServiceTblDivision())
-                && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
-            ) {
-                foreach ($tblStudentList as $tblPerson) {
-                    if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
-                        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
-                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                        ) {
-                            if (!isset($tblCertificateList[$tblCertificate->getId()])) {
-                                $tblCertificateList[$tblCertificate->getId()] = $tblCertificate;
+        if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+            && (($tblStudentList = $tblDivisionCourse->getStudentsWithSubCourses()))
+        ) {
+            foreach ($tblStudentList as $tblPerson) {
+                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                ) {
+                    if (!isset($tblCertificateList[$tblCertificate->getId()])) {
+                        $tblCertificateList[$tblCertificate->getId()] = $tblCertificate;
 
-                                // Zeugnis-Vorlage besitzt Fehlzeiten
-                                if ($this->hasCertificateAbsence($tblCertificate, $tblDivisionItem, $tblPerson)) {
-                                    $CertificateHasAbsenceList[$tblCertificate->getId()] = $tblCertificate;
-                                }
-                            }
+                        // Zeugnis-Vorlage besitzt Fehlzeiten
+                        if ($this->hasCertificateAbsence($tblCertificate, $tblPerson)) {
+                            $CertificateHasAbsenceList[$tblCertificate->getId()] = $tblCertificate;
+                        }
+                    }
 
-                            // Prüfung ob Fehlzeiten-Stunden erfasst wurden, nur erforderlich bei Pflege der Fehlzeiten im Klassenbuch
-                            if ($useClassRegisterForAbsence) {
-                                if (Absence::useService()->hasPersonAbsenceLessons($tblPerson, $tblDivisionItem, TblAbsence::VALUE_STATUS_EXCUSED)) {
-                                    $StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_EXCUSED] = true;
-                                }
-                                if (Absence::useService()->hasPersonAbsenceLessons($tblPerson, $tblDivisionItem, TblAbsence::VALUE_STATUS_UNEXCUSED)) {
-                                    $StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_UNEXCUSED] = true;
-                                }
-                            }
+                    // todo Anpassung nach Fehlzeiten Anpassung
+                    // Prüfung ob Fehlzeiten-Stunden erfasst wurden, nur erforderlich bei Pflege der Fehlzeiten im Klassenbuch
+                    if ($useClassRegisterForAbsence && false) {
+                        if (Absence::useService()->hasPersonAbsenceLessons($tblPerson, $tblDivisionCourse, TblAbsence::VALUE_STATUS_EXCUSED)) {
+                            $StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_EXCUSED] = true;
+                        }
+                        if (Absence::useService()->hasPersonAbsenceLessons($tblPerson, $tblDivisionCourse, TblAbsence::VALUE_STATUS_UNEXCUSED)) {
+                            $StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_UNEXCUSED] = true;
                         }
                     }
                 }
@@ -5149,17 +5111,16 @@ class Service extends AbstractService
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param TblDivision|null $tblDivision
      * @param TblPerson|null $tblPerson
      *
      * @return bool
      */
-    public function hasCertificateAbsence(TblCertificate $tblCertificate, TblDivision $tblDivision = null, TblPerson $tblPerson = null)
+    public function hasCertificateAbsence(TblCertificate $tblCertificate, TblPerson $tblPerson = null): bool
     {
         $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
         if (class_exists($CertificateClass)) {
             /** @var Certificate $Certificate */
-            $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
+            $Certificate = new $CertificateClass();
 
             // create Certificate with Placeholders
             $pageList[$tblPerson ? $tblPerson->getId() : 0] = $Certificate->buildPages($tblPerson);

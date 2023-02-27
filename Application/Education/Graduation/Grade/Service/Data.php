@@ -106,6 +106,18 @@ class Data extends DataTask
     }
 
     /**
+     * @param string $name
+     *
+     * @return false|TblGradeText
+     */
+    public function getGradeTextByName(string $name)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblGradeText', array(
+            TblGradeText::ATTR_NAME => $name
+        ));
+    }
+
+    /**
      * @return false|TblGradeText[]
      */
     public function getGradeTextAll()
