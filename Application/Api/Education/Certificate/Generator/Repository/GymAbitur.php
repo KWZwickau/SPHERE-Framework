@@ -1320,9 +1320,7 @@ class GymAbitur extends Certificate
         $schoolName = '';
         $extendedName = '';
         // get company name
-        if (($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
-        ) {
+        if (($tblCompany = $this->getTblCompany())) {
             $place = '';
             if (($tblAddress = $tblCompany->fetchMainAddress())
                 && ($tblCity = $tblAddress->getTblCity())
@@ -1413,9 +1411,10 @@ class GymAbitur extends Certificate
     private function setCourses(TblPerson $tblPerson = null)
     {
 
+        // todo SEKII-Kurse
         $advancedCourses = array();
         $basicCourses = array();
-        if ($tblPerson && ($tblDivision = $this->getTblDivision())
+        if ($tblPerson && ($tblDivision = $this->getTblStudentEducation())
             && ($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))
         ) {
             foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
@@ -1726,11 +1725,12 @@ class GymAbitur extends Certificate
                     ))) {
                         $value = $tblPrepareInformation->getValue();
                     } else {
+                        // todo
                         $value = Generator::useService()->getReferenceForLanguageByStudent(
                             $this->getCertificateEntity(),
                             $tblStudentSubject,
                             $tblPerson,
-                            $this->getTblDivision()
+                            $this->getTblStudentEducation()
                         );
                     }
                 }

@@ -397,7 +397,8 @@ class GradeInformation extends Certificate
                         $subjectList[$tblCertificateSubject->getRanking()] = $tblSubject;
 
                         // Überprüfen ob der Schüler dieses Fach im Unterricht hat --> dann anzeigen
-                    } elseif ($tblPerson && ($tblDivision = $this->getTblDivision())) {
+                    } elseif ($tblPerson && ($tblDivision = $this->getTblStudentEducation())) {
+                        // todo hat Schüler das Fach
                         // in Gruppe
                         if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
                             $tblDivision, $tblSubject

@@ -168,10 +168,10 @@ class GymKurshalbjahreszeugnis extends Certificate
      */
     private function setCourses(TblPerson $tblPerson = null)
     {
-
+        // todo SEKII-Kurse
         $advancedCourses = array();
         $basicCourses = array();
-        if ($tblPerson && ($tblDivision = $this->getTblDivision())
+        if ($tblPerson && ($tblDivision = $this->getTblStudentEducation())
             && ($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))
         ) {
             foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {

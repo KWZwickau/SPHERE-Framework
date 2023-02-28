@@ -149,17 +149,21 @@ class Frontend extends FrontendSetting // TechnicalSchool\Frontend implements IF
             $showTeamsInCertificateRemark = false;
         }
 
-        if ($tblCertificate && ($tblDivisionCourse = $tblPrepareCertificate->getServiceTblDivision())) {
+        if ($tblCertificate
+            && ($tblDivisionCourse = $tblPrepareCertificate->getServiceTblDivision())
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
             if ($tblCertificate) {
                 $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                 if (class_exists($CertificateClass)) {
+                    $tblSchoolType = $tblCertificate->getServiceTblSchoolType();
                     // Wahlbereich gibt es nur bei der Oberschule
                     $showOrientationsInCertificateRemark = $showOrientationsInCertificateRemark
-                        && ($tblSchoolType = $tblCertificate->getServiceTblSchoolType())
                         && ($tblSchoolType->getShortName() == 'OS');
 
+                    $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                    $Certificate = new $CertificateClass($tblDivisionCourse ? $tblDivisionCourse : null);
+                    $Certificate = new $CertificateClass($tblStudentEducation ?: null, $tblPrepareCertificate);
 
                     // create Certificate with Placeholders
                     $pageList[$tblPerson->getId()] = $Certificate->buildPages($tblPerson);
@@ -168,7 +172,7 @@ class Frontend extends FrontendSetting // TechnicalSchool\Frontend implements IF
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
                     $FormField = Generator::useService()->getFormField();
-                    $FormLabel = Generator::useService()->getFormLabel(($tblType = $tblDivisionCourse->getType()) ? $tblType : null);
+                    $FormLabel = Generator::useService()->getFormLabel($tblSchoolType ?: null);
 
                     $level = 0;
                     if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
@@ -1493,15 +1497,19 @@ class Frontend extends FrontendSetting // TechnicalSchool\Frontend implements IF
             $tblCertificate = false;
         }
 
-        if ($tblCertificate && ($tblDivision = $tblPrepareCertificate->getServiceTblDivision())) {
+        if ($tblCertificate
+            && ($tblDivisionCourse = $tblPrepareCertificate->getServiceTblDivision())
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
             $Certificate = null;
             if ($tblCertificate) {
                 $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
 
                 if (class_exists($CertificateClass)) {
-
+                    $tblSchoolType = $tblCertificate->getServiceTblSchoolType();
+                    $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                    $Certificate = new $CertificateClass($tblDivision);
+                    $Certificate = new $CertificateClass($tblStudentEducation ?: null, $tblPrepareCertificate);
 
                     // create Certificate with Placeholders
                     $pageList[$tblPerson->getId()] = $Certificate->buildPages($tblPerson);
@@ -1510,7 +1518,7 @@ class Frontend extends FrontendSetting // TechnicalSchool\Frontend implements IF
                     $CertificateList[$tblPerson->getId()] = $Certificate;
 
                     $FormField = Generator::useService()->getFormField();
-                    $FormLabel = Generator::useService()->getFormLabel(($tblType = $tblDivision->getType()) ? $tblType : null);
+                    $FormLabel = Generator::useService()->getFormLabel($tblSchoolType ?: null);
 
                     $PlaceholderList = $Certificate->getCertificate()->getPlaceholder();
 
@@ -1936,10 +1944,11 @@ class Frontend extends FrontendSetting // TechnicalSchool\Frontend implements IF
                     $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'
                         . $tblCertificate->getCertificate();
                     if (class_exists($CertificateClass)) {
-
+                        // todo
+                        $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
                         $tblDivision = $tblPrepare->getServiceTblDivision();
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                        $Template = new $CertificateClass($tblDivision ? $tblDivision : null, $tblPrepare);
+                        $Template = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare);
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);

@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Document;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
@@ -13,8 +14,9 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -30,12 +32,12 @@ abstract class Certificate extends Extension
     const BACKGROUND_GRADE_FIELD = '#CCC';
 
     /** @var null|Frame $Certificate */
-    private $Certificate = null;
+    private ?Frame $Certificate = null;
 
     /**
      * @var bool
      */
-    private $IsSample;
+    private bool $IsSample;
 
     /**
      * @var array|false
@@ -48,33 +50,31 @@ abstract class Certificate extends Extension
     private $AdditionalGrade;
 
     /**
-     * @var TblDivision|null
+     * @var ?TblStudentEducation
      */
-    private $tblDivision = null;
+    private ?TblStudentEducation $tblStudentEducation;
 
     /**
-     * @var TblPrepareCertificate|null
+     * @var ?TblPrepareCertificate
      */
-    private $tblPrepareCertificate = null;
+    private ?TblPrepareCertificate $tblPrepareCertificate;
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblStudentEducation|null $tblStudentEducation
      * @param TblPrepareCertificate|null $tblPrepareCertificate
-     * @param bool|true $IsSample
+     * @param bool $IsSample
      * @param array $pageList
      */
-    public function __construct(TblDivision $tblDivision = null, TblPrepareCertificate $tblPrepareCertificate = null, $IsSample = true, $pageList = array())
+    public function __construct(TblStudentEducation $tblStudentEducation = null, TblPrepareCertificate $tblPrepareCertificate = null, bool $IsSample = true,
+        array $pageList = array())
     {
 
-        // todo set DivisionCourse
-        // Twig as string wouldn't be cached (used function getTwigTemplateString)
-//        $this->getCache(new TwigHandler())->clearCache();
-
+        // todo find usage
         $this->setGrade(false);
         $this->setAdditionalGrade(false);
-        $this->tblDivision = $tblDivision;
+        $this->tblStudentEducation = $tblStudentEducation;
         $this->tblPrepareCertificate = $tblPrepareCertificate;
-        $this->IsSample = (bool)$IsSample;
+        $this->IsSample = $IsSample;
 
         // need for Preview frontend (getTemplateInformationForPreview)
         $this->Certificate = $this->buildCertificate($pageList);
@@ -252,15 +252,47 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @return false|TblDivision
+     * @return false|TblStudentEducation
      */
-    public function getTblDivision()
+    public function getTblStudentEducation()
     {
-        if (null === $this->tblDivision) {
+        if (null === $this->tblStudentEducation) {
             return false;
         } else {
-            return $this->tblDivision;
+            return $this->tblStudentEducation;
         }
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getLevel(): ?int
+    {
+        return $this->getTblStudentEducation() ? $this->getTblStudentEducation()->getLevel() : null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLevelName(): string
+    {
+        return $this->getLevel() ? (string) $this->getLevel() : '';
+    }
+
+    /**
+     * @return false|TblCompany
+     */
+    public function getTblCompany()
+    {
+        return $this->getTblStudentEducation() ? $this->getTblStudentEducation()->getServiceTblCompany() : false;
+    }
+
+    /**
+     * @return false|TblCourse
+     */
+    public function getTblCourse()
+    {
+        return $this->getTblStudentEducation() ? $this->getTblStudentEducation()->getServiceTblCourse() : false;
     }
 
     /**
@@ -420,7 +452,7 @@ abstract class Certificate extends Extension
         $name = '';
         // get company name
         if (($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
+            && ($tblCompany = $this->getTblCompany())
         ) {
            $name = $isSchoolExtendedNameDisplayed ? $tblCompany->getName() .
                ($separator ? ' ' . $separator . ' ' : ' ') . $tblCompany->getExtendedName() : $tblCompany->getName();
@@ -800,7 +832,7 @@ abstract class Certificate extends Extension
      * @param bool $hasSecondLanguageSecondarySchool
      * @param bool $hasSecondLanguageFoteNote
      *
-     * @return Section|Slice
+     * @return Section[]|Slice
      */
     protected function getSubjectLanes(
         $personId,
@@ -903,26 +935,20 @@ abstract class Certificate extends Extension
                                     // SSW-484
                                     $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
                                     $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
-                                    if (($tblDivision = $this->getTblDivision())
-                                        && ($tblLevel = $tblDivision->getTblLevel())
-                                    ) {
-                                        $levelName = $tblLevel->getName();
-                                    } else {
-                                        $levelName = false;
-                                    }
+                                    $level = $this->getLevel();
 
                                     if ($tillLevel && $fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= floatval($levelName)
-                                            && floatval($tillLevel->getName()) >= floatval($levelName)
+                                        if (floatval($fromLevel->getName()) <= $level
+                                            && floatval($tillLevel->getName()) >= $level
                                         ) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($tillLevel) {
-                                        if (floatval($tillLevel->getName()) >= floatval($levelName)) {
+                                        if (floatval($tillLevel->getName()) >= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= floatval($levelName)) {
+                                        if (floatval($fromLevel->getName()) <= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } else {
@@ -1292,26 +1318,20 @@ abstract class Certificate extends Extension
                                     // SSW-484
                                     $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
                                     $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
-                                    if (($tblDivision = $this->getTblDivision())
-                                        && ($tblLevel = $tblDivision->getTblLevel())
-                                    ) {
-                                        $levelName = $tblLevel->getName();
-                                    } else {
-                                        $levelName = false;
-                                    }
+                                    $level = $this->getLevel();
 
                                     if ($tillLevel && $fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= floatval($levelName)
-                                            && floatval($tillLevel->getName()) >= floatval($levelName)
+                                        if (floatval($fromLevel->getName()) <= $level
+                                            && floatval($tillLevel->getName()) >= $level
                                         ) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($tillLevel) {
-                                        if (floatval($tillLevel->getName()) >= floatval($levelName)) {
+                                        if (floatval($tillLevel->getName()) >= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= floatval($levelName)) {
+                                        if (floatval($fromLevel->getName()) <= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } else {
@@ -2739,18 +2759,13 @@ abstract class Certificate extends Extension
                 // Bei Chemnitz nur bei naturwissenschaftlichem Profil
                 if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC')) {
                     if (strpos(strtolower($tblSubject->getName()), 'naturwissen') !== false
-                        && $this->getTblDivision()
-                        && $this->getTblDivision()->getTblLevel()
-                        && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())
+                        && !preg_match('!(0?(8))!is', $this->getLevelName())
                     ) {
                         $profileAppendText = 'Profil mit informatischer Bildung';
                     }
                 // Bei Tarandt für alle Profilfe
                 } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'CSW')) {
-                    if ($this->getTblDivision()
-                        && $this->getTblDivision()->getTblLevel()
-                        && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())
-                    ) {
+                    if (!preg_match('!(0?(8))!is', $this->getLevelName())) {
                         $profileAppendText = 'Profil mit informatischer Bildung';
                     }
                 // Bei Annaberg bei keinem Profil (Youtrack: SSW-2355)
@@ -2758,9 +2773,7 @@ abstract class Certificate extends Extension
                 ) {
                     // keine Anpassung
                 } elseif (strpos(strtolower($tblSubject->getName()), 'wissen') !== false
-                    && $this->getTblDivision()
-                    && $this->getTblDivision()->getTblLevel()
-                    && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())
+                    && !preg_match('!(0?(8))!is', $this->getLevelName())
                 ) {
                     $profileAppendText = 'Profil mit informatischer Bildung';
                 }
@@ -3702,26 +3715,20 @@ abstract class Certificate extends Extension
                             // SSW-484
                             $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
                             $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
-                            if (($tblDivision = $this->getTblDivision())
-                                && ($tblLevel = $tblDivision->getTblLevel())
-                            ) {
-                                $levelName = $tblLevel->getName();
-                            } else {
-                                $levelName = false;
-                            }
+                            $level = $this->getLevel();
 
                             if ($tillLevel && $fromLevel) {
-                                if (floatval($fromLevel->getName()) <= floatval($levelName)
-                                    && floatval($tillLevel->getName()) >= floatval($levelName)
+                                if (floatval($fromLevel->getName()) <= $level
+                                    && floatval($tillLevel->getName()) >= $level
                                 ) {
                                     $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                 }
                             } elseif ($tillLevel) {
-                                if (floatval($tillLevel->getName()) >= floatval($levelName)) {
+                                if (floatval($tillLevel->getName()) >= $level) {
                                     $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                 }
                             } elseif ($fromLevel) {
-                                if (floatval($fromLevel->getName()) <= floatval($levelName)) {
+                                if (floatval($fromLevel->getName()) <= $level) {
                                     $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                 }
                             } else {

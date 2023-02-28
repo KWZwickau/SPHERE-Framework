@@ -23,8 +23,8 @@ class CmsMsHjZExt extends CmsStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new CmsMsHjExt(
-            $this->getTblDivision() ? $this->getTblDivision() : null,
-            $this->getTblPrepareCertificate() ? $this->getTblPrepareCertificate() : null,
+            $this->getTblStudentEducation() ?: null,
+            $this->getTblPrepareCertificate() ?: null,
             $this->isSample()
         ))->getCmsMsHjPageList($personId, 'Halbjahreszeugnis der Oberschule');
     }

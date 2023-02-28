@@ -34,10 +34,7 @@ abstract class BfsStyle extends Certificate
         $name = '';
         $secondLine = '';
         // get company name
-        if(($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson,
-                $this->getTblDivision() ? $this->getTblDivision() : null))
-        ){
+        if (($tblCompany = $this->getTblCompany())) {
             $name = $tblCompany->getName();
             $secondLine = $tblCompany->getExtendedName();
         }
@@ -136,9 +133,7 @@ abstract class BfsStyle extends Certificate
         $name = '';
         $secondLine = '';
         // get company name
-        if (($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
-        ) {
+        if (($tblCompany = $this->getTblCompany())) {
             $name = $tblCompany->getName();
             $secondLine = $tblCompany->getExtendedName();
         }
@@ -2198,10 +2193,7 @@ abstract class BfsStyle extends Certificate
      */
     protected function getOccupation($personId)
     {
-        if (($tblDivision = $this->getTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && intval ($tblLevel->getName()) == 3
-        ) {
+        if ($this->getLevel() == 3) {
             $content = 'Beruf' . ' {% if(Content.P' . $personId . '.Student.TechnicalCourse is not empty) %}
                     {{ Content.P' . $personId . '.Student.TechnicalCourse }}
                 {% else %}
@@ -2288,11 +2280,7 @@ abstract class BfsStyle extends Certificate
      */
     protected function getMidTerm($personId, $height = '100px')
     {
-        if (($tblDivision = $this->getTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && intval ($tblLevel->getName()) == 2
-        ) {
-
+        if ($this->getLevel() == 2) {
             return (new Slice)
                 ->styleHeight($height)
                 ->addSection((new Section())

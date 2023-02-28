@@ -37,12 +37,9 @@ class MsJRs extends Certificate
     /**
      * @return bool
      */
-    private function hasNoTransfer()
+    private function hasNoTransfer(): bool
     {
-        if  (($tblDivision = $this->getTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && intval($tblLevel->getName()) == 10
-        ) {
+        if  ($this->getLevel() == 10) {
             return true;
         } else {
             return false;

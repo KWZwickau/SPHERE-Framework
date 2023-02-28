@@ -37,12 +37,9 @@ class MsJHs extends Certificate
     /**
      * @return bool
      */
-    private function hasNoTransfer()
+    private function hasNoTransfer(): bool
     {
-        if  (($tblDivision = $this->getTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && intval($tblLevel->getName()) == 9
-        ) {
+        if  ($this->getLevel() == 9) {
             return true;
         } else {
             return false;

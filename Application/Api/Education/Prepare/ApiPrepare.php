@@ -6,9 +6,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -174,33 +172,30 @@ class ApiPrepare extends Extension implements IApiInterface
 
     /**
      * @param $PrepareId
-     * @param $GroupId
      * @param $Key
      * @param $CertificateName
      *
      * @return String
      */
-    public function openInformationModal($PrepareId, $GroupId, $Key, $CertificateName)
+    public function openInformationModal($PrepareId, $Key, $CertificateName): string
     {
         $panel = '';
         $FormField = Generator::useService()->getFormField();
         $KeyFullName = 'Content.Input.' . $Key;
         $label = '';
-        $fieldType = isset($FormField[$KeyFullName]) ? $FormField[$KeyFullName] : false;
+        $fieldType = $FormField[$KeyFullName] ?? false;
         $inputField = false;
         if (($tblPrepare = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareById($PrepareId))
-            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
         ) {
-            $FormLabel = Generator::useService()->getFormLabel(($tblType = $tblDivision->getType()) ? $tblType : null);
-            $label = isset($FormLabel[$KeyFullName]) ? $FormLabel[$KeyFullName] : '';
+            $FormLabel = Generator::useService()->getFormLabel();
+            $label = $FormLabel[$KeyFullName] ?? '';
 
             $panel = new Panel(
                 'Zeugnisvorbereitung',
                 array(
                     0 => $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
-                    1 => $GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId))
-                        ? 'Gruppe ' . $tblGroup->getName()
-                        : 'Klasse ' . $tblDivision->getDisplayName()
+                    1 => $tblDivisionCourse->getTypeName() . ' ' . $tblDivisionCourse->getDisplayName()
                 ),
                 Panel::PANEL_TYPE_INFO
             );
@@ -208,7 +203,7 @@ class ApiPrepare extends Extension implements IApiInterface
             $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $CertificateName;
             if (class_exists($CertificateClass)) {
                 /** @var Certificate $Certificate */
-                $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
+                $Certificate = new $CertificateClass();
 
                 if ($fieldType) {
                     $method = 'selectValues' . $Key;
@@ -250,12 +245,7 @@ class ApiPrepare extends Extension implements IApiInterface
                 ),
                 new FormRow(
                     new FormColumn(
-                        (new Primary('Übernehmen', self::getEndpoint()))->ajaxPipelineOnClick(self::pipelineSetInformation(
-                            $PrepareId,
-                            $GroupId,
-                            $Key,
-                            $CertificateName)
-                        )
+                        (new Primary('Übernehmen', self::getEndpoint()))->ajaxPipelineOnClick(self::pipelineSetInformation($PrepareId, $Key, $CertificateName))
                     )
                 )
             ))))->disableSubmitAction())
@@ -317,7 +307,7 @@ class ApiPrepare extends Extension implements IApiInterface
 
         $FormField = Generator::useService()->getFormField();
         $KeyFullName = 'Content.Input.' . $Key;
-        $fieldType = isset($FormField[$KeyFullName]) ? $FormField[$KeyFullName] : false;
+        $fieldType = $FormField[$KeyFullName] ?? false;
 
         $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $CertificateName;
         if (class_exists($CertificateClass)) {

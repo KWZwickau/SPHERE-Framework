@@ -100,8 +100,8 @@ class GsJThree extends Style
 
         // Textseite
         $pageList[] = (new GsJOneTwo(
-            ($tblDivision = $this->getTblDivision()) ? $tblDivision : null,
-            ($tblPrepare = $this->getTblPrepareCertificate()) ? $tblPrepare : null,
+            $this->getTblStudentEducation() ?: null,
+            $this->getTblPrepareCertificate() ?: null,
             $this->isSample()
         ))->buildPages($tblPerson);
 

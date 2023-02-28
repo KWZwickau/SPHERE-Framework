@@ -413,13 +413,7 @@ abstract class EzshStyle extends Certificate
                                     // SSW-484
                                     $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
                                     $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
-                                    if (($tblDivision = $this->getTblDivision())
-                                        && ($tblLevel = $tblDivision->getTblLevel())
-                                    ) {
-                                        $levelName = $tblLevel->getName();
-                                    } else {
-                                        $levelName = false;
-                                    }
+                                    $levelName = $this->getLevelName();
 
                                     if ($tillLevel && $fromLevel) {
                                         if (floatval($fromLevel->getName()) <= floatval($levelName)

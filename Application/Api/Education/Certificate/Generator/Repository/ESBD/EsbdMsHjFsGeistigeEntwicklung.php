@@ -23,8 +23,8 @@ class EsbdMsHjFsGeistigeEntwicklung extends EsbdStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $certificate = (new EsbdMsHjInfoFsGeistigeEntwicklung(
-            $this->getTblDivision() ? $this->getTblDivision() : null,
-            $this->getTblPrepareCertificate() ? $this->getTblPrepareCertificate() : null,
+            $this->getTblStudentEducation() ?: null,
+            $this->getTblPrepareCertificate() ?: null,
             $this->isSample()
         ));
 

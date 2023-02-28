@@ -31,10 +31,7 @@ class EzshGymJThreePages  extends EzshStyle
 
         $showThirdForeignLanguage = false;
         // bei der 10. Klasse soll die 3. FS statt der 2.FS angezeigt
-        if (($tblDivision = $this->getTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && intval($tblLevel->getName()) == 10
-        ) {
+        if ($this->getLevel() == 10) {
             $showThirdForeignLanguage = true;
         }
 

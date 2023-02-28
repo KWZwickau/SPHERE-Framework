@@ -31,10 +31,7 @@ abstract class FsStyle extends Certificate
         $name = '';
         $secondLine = '';
         // get company name
-        if(($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson,
-                $this->getTblDivision() ? $this->getTblDivision() : null))
-        ){
+        if (($tblCompany = $this->getTblCompany())) {
             $name = $tblCompany->getName();
             $secondLine = $tblCompany->getExtendedName();
         }
@@ -143,10 +140,7 @@ abstract class FsStyle extends Certificate
         $name = '';
         $secondLine = '';
         // get company name
-        if(($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson,
-                $this->getTblDivision() ? $this->getTblDivision() : null))
-        ){
+        if (($tblCompany = $this->getTblCompany())) {
             $name = $tblCompany->getName();
             $secondLine = $tblCompany->getExtendedName();
         }
@@ -235,9 +229,7 @@ abstract class FsStyle extends Certificate
         $name = '';
         $secondLine = '';
         // get company name
-        if (($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
-        ) {
+        if (($tblCompany = $this->getTblCompany())) {
             $name = $tblCompany->getName();
             $secondLine = $tblCompany->getExtendedName();
         }

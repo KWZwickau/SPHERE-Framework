@@ -460,7 +460,6 @@ abstract class FrontendSetting extends FrontendSelect
             }
         }
         $data['Course'] = $courseName;
-        // todo Anzeige Integration
         // Integration ReadOnlyButton
         if(Student::useService()->getIsSupportByPerson($tblPerson)) {
             $data['IntegrationButton'] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
@@ -965,9 +964,7 @@ abstract class FrontendSetting extends FrontendSelect
         $SpaceWithFalseTable = '';
         // if using false table, need to be space between buttons & table
         // same consumer as those who using Editor ad inputfield
-        if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVAB')
-            || Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'REF')
-        ) {
+        if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVAB')) {
             $Interactive = false;
             $SpaceWithFalseTable = new Container('&nbsp;');
         } else {
@@ -998,9 +995,7 @@ abstract class FrontendSetting extends FrontendSelect
             );
         }
 
-        $tableData = new TableData($studentTable, null, $columnTable,
-            $Interactive, true
-        );
+        $tableData = new TableData($studentTable, null, $columnTable, $Interactive, true);
 
         $formButtons[] = new Primary('Speichern', new Save());
         $form = new Form(

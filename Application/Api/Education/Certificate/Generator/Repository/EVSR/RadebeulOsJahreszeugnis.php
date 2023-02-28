@@ -224,12 +224,8 @@ class RadebeulOsJahreszeugnis extends Certificate
             );
 
         $course = 'nahm am Unterricht der Schulart Mittelschule teil.';
-        if (($tblDivision = $this->getTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && intval($tblLevel->getName()) > 6
-            && ($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblStudent = $tblPerson->getStudent())
-            && ($tblCourse = $tblStudent->getCourse())
+        if ($this->getLevel() > 6
+            && ($tblCourse = $this->getTblCourse())
         ) {
             if ($tblCourse->getName() == 'Realschule') {
                 $course = 'nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Realschulabschlusses teil.';

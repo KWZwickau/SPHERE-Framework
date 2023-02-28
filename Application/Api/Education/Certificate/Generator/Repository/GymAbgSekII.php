@@ -103,8 +103,9 @@ class GymAbgSekII extends Certificate
         $leaveTermWidth = '58%';
         $midTerm = '/';
 
+        // todo LeaveStudent
         if ($tblPerson
-            && ($tblDivision = $this->getTblDivision())
+            && ($tblDivision = $this->getTblStudentEducation())
             && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblDivision))
         ){
             if (($leaveTermInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'LeaveTerm'))) {
@@ -693,8 +694,9 @@ class GymAbgSekII extends Certificate
 
         $subjectName .= $postFix;
 
+        // todo LeaveStudent
         if ($tblPerson
-            && ($tblDivision = $this->getTblDivision())
+            && ($tblDivision = $this->getTblStudentEducation())
             && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblDivision))
             && $tblSubject
         ) {
@@ -965,8 +967,9 @@ class GymAbgSekII extends Certificate
     private function setCourses(TblPerson $tblPerson = null)
     {
 
+        // todo SEKII Course
         $advancedCourses = array();
-        if ($tblPerson && ($tblDivision = $this->getTblDivision())
+        if ($tblPerson && ($tblDivision = $this->getTblStudentEducation())
             && ($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))
         ) {
             foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
@@ -1028,9 +1031,7 @@ class GymAbgSekII extends Certificate
         $name = '&nbsp;';
         $address = '&nbsp;';
         // get company name
-        if (($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
-        ) {
+        if (($tblCompany = $this->getTblCompany())) {
             $name = $isSchoolExtendedNameDisplayed ? $tblCompany->getName() .
                 ($separator ? ' ' . $separator . ' ' : ' ') . $tblCompany->getExtendedName() : $tblCompany->getName();
 
