@@ -750,21 +750,28 @@ class Service extends AbstractService
                     $tblPerson = $tblAbsence->getServiceTblPerson();
                     $fromDate = $tblAbsence->getFromDate('d');
                     $toDate = $tblAbsence->getToDate();
-                    $statusDisplayShortName = $tblAbsence->getStatusDisplayShortName();
+                    $MonthAbsenceList[$Month][$tblPerson->getId()][$fromDate] = $tblAbsence->getStatusDisplayShortName();
 
-                    // Falls die Fehlzeit ein Zeitraum ist, alle Tage zwischen Start- und Enddatum erfassen
                     if($toDate){
-                        $currentDate = $tblAbsence->getFromDate();
-                        while($currentDate <= $toDate){
-                            $currentDateFormatted = $currentDate->format('d');
-                            $MonthAbsenceList[$Month][$tblPerson->getId()][$currentDateFormatted] = $statusDisplayShortName;
-                            $currentDate = $currentDate->modify('+1 day');
-                        }
+                        $startDate = new DateTime($tblAbsence->getFromDate());
+                        $endDate = new DateTime($tblAbsence->getToDate());
+                        $diff = $startDate->diff($endDate);
+                        $days = $diff->days;
+
+                        // Speichern des Zeitraums in der Variablen
+                        $absencePeriod = array(
+                            'start' => $startDate,
+                            'end' => $endDate,
+                            'days' => $days
+                        );Debugger::screenDump($absencePeriod);
+                    } else {
+                        $absencePeriod = null;
                     }
-                    else{
-                        // Falls die Fehlzeit nur ein Tag ist, nur das Startdatum erfassen
-                        $MonthAbsenceList[$Month][$tblPerson->getId()][$fromDate] = $statusDisplayShortName;
-                    }
+
+                    $MonthAbsenceList[$Month][$tblPerson->getId()][$fromDate] = array(
+                        'status' => $tblAbsence->getStatusDisplayShortName(),
+                        'period' => $absencePeriod
+                    );
                 }
             }
         }
