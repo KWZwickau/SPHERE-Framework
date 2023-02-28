@@ -40,6 +40,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -2674,78 +2675,33 @@ class Service extends AbstractService
      */
     public function getAutoDroppedSubjects(TblPerson $tblPerson, TblYear $tblYear)
     {
-        // todo
-        $subjectList = array();
-        $tblLastDivision = false;
-        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
-            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                if (($tblDivision = $tblDivisionStudent->getTblDivision())
-                    && ($tblLevel = $tblDivision->getTblLevel())
-                    && (!$tblLevel->getIsChecked())
-                    && ($tblLevel->getName() == '9' || $tblLevel->getName() == '09')
+        $resulList = array();
+        $tblYearPrevious = false;
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if ($tblStudentEducation->getLeaveDateTime() == null
+                    && $tblStudentEducation->getLevel() == 9
+                    && ($tblYearPrevious = $tblStudentEducation->getServiceTblYear())
                 ) {
-                    $tblLastDivision = $tblDivision;
                     break;
                 }
             }
         }
 
-        if ($tblLastDivision
-            && ($tblLastYear = $tblLastDivision->getServiceTblYear())
-            && ($tblCurrentYear = $tblCurrentDivision->getServiceTblYear())
-            && ($tblLastDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson,
-                $tblLastYear))
-            && ($tblCurrentDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson,
-                $tblCurrentYear))
+        if ($tblYearPrevious
+            && ($tblSubjectListPrevious = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYearPrevious))
+            && ($tblSubjectListCurrent = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear))
         ) {
-            $tblLastSubjectList = array();
-            foreach ($tblLastDivisionSubjectList as $tblLastDivisionSubject) {
-                if (($tblSubject = $tblLastDivisionSubject->getServiceTblSubject())) {
-                    $tblLastSubjectList[$tblSubject->getId()] = $tblSubject;
+            foreach ($tblSubjectListPrevious as $tblSubject) {
+                if (!isset($tblSubjectListCurrent[$tblSubject->getId()])) {
+                    $resulList[$tblSubject->getId()] = $tblSubject->getName();
                 }
             }
 
-            $tblCurrentSubjectList = array();
-            foreach ($tblCurrentDivisionSubjectList as $tblCurrentDivisionSubject) {
-                if (($tblSubject = $tblCurrentDivisionSubject->getServiceTblSubject())) {
-                    $tblCurrentSubjectList[$tblSubject->getId()] = $tblSubject;
-                }
-            }
-
-            $diffList = array();
-            foreach ($tblLastSubjectList as $tblLastSubject) {
-                if (!isset($tblCurrentSubjectList[$tblLastSubject->getId()])) {
-                    $diffList[$tblLastSubject->getAcronym()] = $tblLastSubject;
-                }
-            }
-
-            $tblLastPrepare = false;
-            if (($tblLastPrepareList = Prepare::useService()->getPrepareAllByDivision($tblLastDivision))) {
-                foreach ($tblLastPrepareList as $tblPrepareCertificate) {
-                    if (($tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate())
-                        && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
-                        && $tblCertificateType->getIdentifier() == 'YEAR'
-                    ) {
-                        $tblLastPrepare = $tblPrepareCertificate;
-                    }
-                }
-            }
-
-            if (empty($diffList)) {
-                return false;
-            } else {
-                /** @var TblSubject $item */
-                $count = 1;
-                ksort($diffList);
-                if ($tblLastPrepare) {
-                    foreach ($diffList as $item) {
-                        $subjectList[$item->getId()] = $item->getName();
-                    }
-                }
-            }
+            sort($resulList);
         }
 
-        return empty($subjectList) ? false : $subjectList;
+        return empty($resulList) ? false : $resulList;
     }
 
     /**
