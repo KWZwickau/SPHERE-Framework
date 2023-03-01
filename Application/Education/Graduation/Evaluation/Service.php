@@ -673,6 +673,7 @@ class Service extends AbstractService
             $export->getActiveSheet()->getStyle('A:A')
                 ->getFont()
                 ->setBold(true);
+            $maxCount++;
             // Befüllen der Tabelle
             foreach ($tableContent as $tableRow) {
                 $Row++;
@@ -682,14 +683,20 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($Column++, $Row), $tableRow['LastName']);
                 foreach ($tableRow as $subjectKey => $personGradeList) {
                     if (strpos($subjectKey, 'GradeType') !== false) {
+                        $countRows = 0;
                         $gradeTypeId = str_replace('GradeType', '', $subjectKey);
                         if (isset($tableRow['AverageExcel' . $gradeTypeId])) {
+                            $countRows++;
                             $export->setValue($export->getCell($Column++, $Row), $tableRow['AverageExcel' . $gradeTypeId]);
                             $export->setStyle($export->getCell($Column-1, $Row), $export->getCell($Column, $Row))
                                 ->setBorderLeft();
                         }
                         foreach ($personGradeList as $gradeText) {
+                            $countRows++;
                             $export->setValue($export->getCell($Column++, $Row), $gradeText);
+                        }
+                        if ($countRows < $maxCount) {
+                            $Column += $maxCount - $countRows;
                         }
                     }
                 }
