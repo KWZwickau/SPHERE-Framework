@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use DateTime;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -101,8 +102,7 @@ abstract class FrontendPreview extends Extension implements IFrontendInterface
                     'Name' => 'Name',
                     'IntegrationButton' => 'Inte&shy;gra&shy;tion',
                     'Course' => 'Bildungs&shy;gang',
-                    'SubjectGrades' => 'Fachnoten',
-                    'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
+                    'SubjectGrades' => 'Fachnoten'
                 );
             } else {
                 $columnTable = array(
@@ -254,13 +254,25 @@ abstract class FrontendPreview extends Extension implements IFrontendInterface
                             ? new WarningText(new Exclamation() . ' ' . $behaviorGradesText)
                             : new Success(new Enable() . ' ' . $behaviorGradesText);
 
+                    // Abitur Fächerprüfung ignorieren
+                    if ($tblCertificate->getCertificate() == 'GymAbitur') {
+                        $checkSubjectsString = new Success(
+                            new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Keine Fächerzuordnung erforderlich.'
+                        );
+                    } elseif (($checkSubjectList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson($tblPerson, $tblYear, $tblCertificate))) {
+                        $checkSubjectsString = new WarningText(new Ban() . ' '
+                            . implode(', ', $checkSubjectList)
+                            . (count($checkSubjectList) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');
+                    } else {
+                        $checkSubjectsString = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' alles ok');
+                    }
+
                     $studentTable[$tblPerson->getId()] = array_merge($data, array(
                         'ExcusedAbsence' => $excusedDays . ' ',
                         'UnexcusedAbsence' => $unexcusedDays . ' ',
                         'SubjectGrades' => $subjectGradesDisplayText,
                         'BehaviorGrades' => $behaviorGradesDisplayText,
-// todo Fächer auf dem Zeugnisprüfung
-//                        'CheckSubjects' => $checkSubjectsString,
+                        'CheckSubjects' => $checkSubjectsString,
                         'DroppedSubjects' => '',
                         'Option' =>
                             ($tblCertificate
@@ -340,6 +352,7 @@ abstract class FrontendPreview extends Extension implements IFrontendInterface
                 }
             }
 
+            $columnTable['CheckSubjects'] = 'Prüfung Fächer / Zeugnis';
             $columnTable['Option'] = '';
 
             // Unterzeichner

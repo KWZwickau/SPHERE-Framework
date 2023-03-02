@@ -12,6 +12,7 @@ use DateTime;
 use SPHERE\Application\Api\Education\Certificate\Generate\ApiGenerate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -43,6 +44,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -69,6 +71,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -648,37 +651,24 @@ class Frontend extends Extension
                             }
                         }
 
-                        // todo
                         $hasMissingForeignLanguage = false;
-                        $missingSubjectsString = '';
                         // check missing subjects on certificates
-//                        if (($missingSubjects = Prepare::useService()->checkCertificateSubjectsForDivision($tblPrepare, $certificateNameList, $hasMissingForeignLanguage))) {
-//                            ksort($missingSubjects);
-//                        }
-//                        if ($missingSubjects) {
-//                            $missingSubjectsString = new Warning(new Ban() .  ' ' . implode(', ',
-//                                $missingSubjects) . (count($missingSubjects) > 1 ? ' fehlen' : ' fehlt')
-//                                . ' auf Zeugnisvorlage(n)'
-//                                .($hasMissingForeignLanguage
-//                                    ? ' ' . new ToolTip(new \SPHERE\Common\Frontend\Icon\Repository\Info(),
-//                                        'Bei Fremdsprachen kann die Warnung unter Umständen ignoriert werden,
-//                                         bitte prüfen Sie die Detailansicht unter Bearbeiten.') : ''));
-//                        } else {
-//                            $missingSubjectsString = new Success(
-//                                new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Alle Fächer sind zugeordnet.'
-//                            );
-//                        }
-
-                        // todo
-                        // Abitur Fächerprüfung ignorieren
-//                        if ($tblCertificateType
-//                            && $tblCertificateType->getIdentifier() == 'DIPLOMA'
-//                            && $tblLevel->getName() == '12'
-//                        ) {
-//                            $missingSubjectsString = new Success(
-//                                new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Keine Fächerzuordnung erforderlich.'
-//                            );
-//                        }
+                        if (($missingSubjects = Setting::useService()->getCheckCertificateSubjectsForDivisionSubject($tblPrepare, $certificateNameList, $hasMissingForeignLanguage))) {
+                            ksort($missingSubjects);
+                        }
+                        if ($missingSubjects) {
+                            $missingSubjectsString = new Warning(new Ban() .  ' ' . implode(', ',
+                                $missingSubjects) . (count($missingSubjects) > 1 ? ' fehlen' : ' fehlt')
+                                . ' auf Zeugnisvorlage(n)'
+                                .($hasMissingForeignLanguage
+                                    ? ' ' . new ToolTip(new Info(),
+                                        'Bei Fremdsprachen kann die Warnung unter Umständen ignoriert werden,
+                                         bitte prüfen Sie die Detailansicht unter Bearbeiten.') : ''));
+                        } else {
+                            $missingSubjectsString = new Success(
+                                new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Alle Fächer sind zugeordnet.'
+                            );
+                        }
 
                         $tableData[] = array(
                             'SchoolType' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
@@ -761,7 +751,7 @@ class Frontend extends Extension
      * @param null $PrepareId
      * @param null $Data
      *
-     * @return Stage|string
+     * @return Stage|Danger
      */
     public function frontendSelectTemplate($PrepareId = null, $Data = null)
     {
@@ -778,9 +768,6 @@ class Frontend extends Extension
 
             $isDiploma = $tblCertificateType->getIdentifier() == 'DIPLOMA';
             $tableData = array();
-            // todo
-//            $checkSubjectList = Prepare::useService()->checkCertificateSubjectsForStudents($tblPrepare);
-
             if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
                 $count = 0;
                 foreach ($tblPersonList as $tblPerson) {
@@ -803,25 +790,52 @@ class Frontend extends Extension
                             && $tblCourse && $tblCourse->getName() != 'Hauptschule';
                     }
 
-                    // todo
-                    if (isset($checkSubjectList[$tblPerson->getId()])) {
-                        $checkSubjectsString = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban() . ' '
-                            . implode(', ', $checkSubjectList[$tblPerson->getId()])
-                            . (count($checkSubjectList[$tblPerson->getId()]) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');
-                    } elseif(($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
-                        && $tblPrepareStudent->getServiceTblCertificate()) {
-                        $checkSubjectsString = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
-                            ' alles ok');
-                    } else {
-                        $checkSubjectsString = '';
-                    }
-
                     // Primärer Förderschwerpunkt -> zur Hilfe für Auswahl des Zeugnisses
                     $primaryFocus = '';
                     if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
                         && ($tblPrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport))
                     ) {
                         $primaryFocus = $tblPrimaryFocus->getName();
+                    }
+
+                    $tblCertificate = false;
+                    if ($isMuted) {
+                        $template = '';
+                    } else {
+                        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                        ) {
+
+                        } else {
+                            // Noteninformation
+                            if ($tblPrepare->isGradeInformation()) {
+                                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation');
+                            }
+                        }
+
+                        $template = ApiGenerate::receiverContent(
+                            $this->getCertificateSelectBox(
+                                $tblPerson->getId(),
+                                $tblCertificate ? $tblCertificate->getId() : 0,
+                                $tblCertificateType->getId(),
+                            ), 'ChangeCertificate_' . $tblPerson->getId()
+                        );
+                    }
+
+                    $checkSubjectsString = '';
+                    if ($tblCertificate) {
+                        // Abitur Fächerprüfung ignorieren
+                        if ($tblCertificate->getCertificate() == 'GymAbitur') {
+                            $checkSubjectsString = new Success(
+                                new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Keine Fächerzuordnung erforderlich.'
+                            );
+                        } elseif (($checkSubjectList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson($tblPerson, $tblYear, $tblCertificate))) {
+                            $checkSubjectsString = new WarningText(new Ban() . ' '
+                                . implode(', ', $checkSubjectList)
+                                . (count($checkSubjectList) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');
+                        } else {
+                            $checkSubjectsString = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' alles ok');
+                        }
                     }
 
                     $count++;
@@ -834,31 +848,8 @@ class Frontend extends Extension
                         )),
                         'PrimaryFocus' => $isMuted ? new Muted($primaryFocus) : $primaryFocus,
                         'CheckSubjects' => $checkSubjectsString,
+                        'Template' => $template
                     );
-
-                    if ($isMuted) {
-                        $tableData[$tblPerson->getId()]['Template'] = '';
-                    } else {
-                        $tblCertificate = false;
-                        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
-                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                        ) {
-
-                        } else {
-                            // Noteninformation
-                            if ($tblPrepare->isGradeInformation()) {
-                                $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation');
-                            }
-                        }
-
-                        $tableData[$tblPerson->getId()]['Template'] = ApiGenerate::receiverContent(
-                            $this->getCertificateSelectBox(
-                                $tblPerson->getId(),
-                                $tblCertificate ? $tblCertificate->getId() : 0,
-                                $tblCertificateType->getId(),
-                            ), 'ChangeCertificate_' . $tblPerson->getId()
-                        );
-                    }
                 }
             }
 

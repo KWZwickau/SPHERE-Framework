@@ -47,7 +47,7 @@ class TblPrepareCertificate extends Element
     /**
      * @Column(type="boolean")
      */
-    protected bool $IsPrepared;
+    protected bool $IsPrepared = false;
 
     /**
      * @return string
