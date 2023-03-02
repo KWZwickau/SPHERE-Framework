@@ -193,6 +193,8 @@ class Data extends AbstractData
     }
 
     /**
+     * @deprecated use getBehaviorGradeAllByPrepareCertificateAndPerson
+     *
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblTestType $tblTestType
@@ -411,15 +413,15 @@ class Data extends AbstractData
 
     /**
      * @param TblPrepareCertificate $tblPrepare
-     * @param $Date
-     * @param $Name
      * @param TblPerson|null $tblPersonSigner
+     * @param bool IsPrepared
      *
      * @return bool
      */
     public function updatePrepare(
         TblPrepareCertificate $tblPrepare,
-        ?TblPerson $tblPersonSigner
+        ?TblPerson $tblPersonSigner,
+        bool $IsPrepared
     ): bool {
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -428,6 +430,7 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setServiceTblPersonSigner($tblPersonSigner);
+            $Entity->setIsPrepared($IsPrepared);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -2297,6 +2300,22 @@ class Data extends AbstractData
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblPrepareCertificate', array(
             TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivisionCourse->getId()
+        ));
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPrepareGrade[]
+     */
+    public function getBehaviorGradeAllByPrepareCertificateAndPerson(TblPrepareCertificate $tblPrepareCertificate, TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblPrepareGrade', array(
+            TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+            TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            // nur Kopfnoten
+            TblPrepareGrade::ATTR_SERVICE_TBL_SUBJECT => null
         ));
     }
 }

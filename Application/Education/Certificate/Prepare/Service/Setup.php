@@ -66,11 +66,11 @@ class Setup extends AbstractSetup
      */
     private function setTableCertificatePrepare(Schema &$Schema): Table
     {
-
         $Table = $this->getConnection()->createTable($Schema, 'tblPrepareCertificate');
         $this->createColumn($Table, 'serviceTblGenerateCertificate', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPersonSigner', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'IsPrepared', self::FIELD_TYPE_BOOLEAN, false, false);
 
         // werden jetzt direkt über den Notenauftrag gezogen
         if ($this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblBehaviorTask')) {

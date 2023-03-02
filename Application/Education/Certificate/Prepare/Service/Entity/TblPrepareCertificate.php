@@ -44,6 +44,10 @@ class TblPrepareCertificate extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPersonSigner;
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsPrepared;
 
     /**
      * @return string
@@ -155,5 +159,21 @@ class TblPrepareCertificate extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsPrepared() : bool
+    {
+        return $this->IsPrepared;
+    }
+
+    /**
+     * @param bool $IsPrepared
+     */
+    public function setIsPrepared(bool $IsPrepared) : void
+    {
+        $this->IsPrepared = $IsPrepared;
     }
 }

@@ -277,6 +277,8 @@ class TblPrepareStudent extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @return bool
      */
     public function getIsPrepared() : bool
@@ -285,6 +287,8 @@ class TblPrepareStudent extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @param bool $IsPrepared
      */
     public function setIsPrepared(bool $IsPrepared) : void

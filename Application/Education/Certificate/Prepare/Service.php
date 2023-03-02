@@ -271,6 +271,8 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated getBehaviorGradeAllByPrepareCertificateAndPerson
+     *
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblTestType $tblTestType
@@ -343,7 +345,6 @@ class Service extends AbstractService
     /**
      * @param IFormInterface $Stage
      * @param TblPrepareCertificate $tblPrepare
-     * @param TblGroup|null $tblGroup
      * @param $Data
      * @param $Route
      *
@@ -352,7 +353,6 @@ class Service extends AbstractService
     public function updatePrepareSetSigner(
         IFormInterface $Stage,
         TblPrepareCertificate $tblPrepare,
-        TblGroup $tblGroup = null,
         $Data,
         $Route
     ) {
@@ -366,56 +366,14 @@ class Service extends AbstractService
 
         $Error = false;
         $tblPerson = Person::useService()->getPersonById($Data);
-        if (!$tblPerson) {
-            $Stage->setError('Data', 'Bitte wählen Sie eine Person aus');
-            $Error = true;
-        }
 
-        if (!$Error) {
-            $tblPrepareList = false;
-            $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
-            if ($tblGroup) {
-                if (($tblGenerateCertificate)) {
-                    $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
-                }
-            } else {
-                $tblPrepareList = array(0 => $tblPrepare);
-            }
+        $this->updatePrepareData($tblPrepare, $tblPerson ?: null, $tblPrepare->getIsPrepared());
 
-            if ($tblPrepareList) {
-                foreach ($tblPrepareList as $tblPrepareItem) {
-                    if (($tblPrepareStudentList = $this->getPrepareStudentAllByPrepare($tblPrepareItem))) {
-                        foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                            if (!$tblGroup
-                                || (($tblPersonTemp = $tblPrepareStudent->getServiceTblPerson())
-                                    && Group::useService()->existsGroupPerson($tblGroup, $tblPersonTemp))
-                            ) {
-                                (new Data($this->getBinding()))->updatePrepareStudent(
-                                    $tblPrepareStudent,
-                                    $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate() : null,
-                                    $tblPrepareStudent->isApproved(),
-                                    $tblPrepareStudent->isPrinted(),
-                                    $tblPrepareStudent->getExcusedDays(),
-                                    $tblPrepareStudent->getExcusedDaysFromLessons(),
-                                    $tblPrepareStudent->getUnexcusedDays(),
-                                    $tblPrepareStudent->getUnexcusedDaysFromLessons(),
-                                    $tblPerson
-                                );
-                            }
-                        }
-                    }
-                }
-            }
-
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Unterzeichner wurde ausgewählt.')
-                . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
-                    'PrepareId' => $tblPrepare->getId(),
-                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
-                    'Route' => $Route
-                ));
-        }
-
-        return $Stage;
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Unterzeichner wurde ausgewählt.')
+            . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                'PrepareId' => $tblPrepare->getId(),
+                'Route' => $Route
+            ));
     }
 
     /**
@@ -2068,15 +2026,17 @@ class Service extends AbstractService
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson|null $tblPersonSigner
+     * @param bool $IsPrepared
      *
      * @return bool
      */
     public function updatePrepareData(
         TblPrepareCertificate $tblPrepare,
-        ?TblPerson $tblPersonSigner
+        ?TblPerson $tblPersonSigner,
+        bool $IsPrepared
     ): bool {
         // todo find usage
-        return (new Data($this->getBinding()))->updatePrepare($tblPrepare, $tblPersonSigner);
+        return (new Data($this->getBinding()))->updatePrepare($tblPrepare, $tblPersonSigner, $IsPrepared);
     }
 
     /**
@@ -3123,6 +3083,8 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated
+     *
      * @param TblPrepareCertificate $tblPrepare
      *
      * @return array
@@ -5377,42 +5339,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblGroup|null $tblGroup
-     * @param bool $IsPrepared
-     */
-    public function setIsPrepared(TblPrepareCertificate $tblPrepare, TblGroup $tblGroup = null, bool $IsPrepared = false)
-    {
-        $tblPrepareList = false;
-        $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
-        if ($tblGroup) {
-            if (($tblGenerateCertificate)) {
-                $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
-            }
-        } else {
-            $tblPrepareList = array(0 => $tblPrepare);
-        }
-
-        if ($tblPrepareList) {
-            foreach ($tblPrepareList as $tblPrepareItem) {
-                if (($tblPrepareStudentList = $this->getPrepareStudentAllByPrepare($tblPrepareItem))) {
-                    foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                        if (!$tblGroup
-                            || (($tblPersonTemp = $tblPrepareStudent->getServiceTblPerson())
-                                && Group::useService()->existsGroupPerson($tblGroup, $tblPersonTemp))
-                        ) {
-                            (new Data($this->getBinding()))->updatePrepareStudentSetIsPrepared(
-                                $tblPrepareStudent,
-                                $IsPrepared
-                            );
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * @param array $gradeListFOS
      * @param array $Content
      * @param TblPerson $tblPerson
@@ -5438,5 +5364,16 @@ class Service extends AbstractService
     public function getPrepareAllByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
     {
         return (new Data($this->getBinding()))->getPrepareAllByDivisionCourse($tblDivisionCourse);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPrepareGrade[]
+     */
+    public function getBehaviorGradeAllByPrepareCertificateAndPerson(TblPrepareCertificate $tblPrepareCertificate, TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getBehaviorGradeAllByPrepareCertificateAndPerson($tblPrepareCertificate, $tblPerson);
     }
 }

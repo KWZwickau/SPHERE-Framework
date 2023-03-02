@@ -58,9 +58,20 @@ use SPHERE\Common\Window\Stage;
 
 abstract class FrontendSetting extends FrontendSelect
 {
+    /**
+     * @param $PrepareId
+     * @param string $Route
+     * @param $GradeTypeId
+     * @param $IsNotGradeType
+     * @param $Data
+     * @param $CertificateList
+     * @param $Page
+     *
+     * @return Stage|string
+     */
     public function frontendPrepareSetting(
         $PrepareId = null,
-        $Route = 'Teacher',
+        string $Route = 'Teacher',
         $GradeTypeId = null,
         $IsNotGradeType = null,
         $Data = null,
@@ -135,9 +146,9 @@ abstract class FrontendSetting extends FrontendSelect
 
             $selectListWithTrend[-1] = '';
             for ($i = 1; $i < 5; $i++) {
-                $selectListWithTrend[$i . '+'] = (string)($i . '+');
+                $selectListWithTrend[$i . '+'] = ($i . '+');
                 $selectListWithTrend[$i] = (string)$i;
-                $selectListWithTrend[$i . '-'] = (string)($i . '-');
+                $selectListWithTrend[$i . '-'] = ($i . '-');
             }
             $selectListWithTrend[5] = "5";
 
@@ -152,10 +163,10 @@ abstract class FrontendSetting extends FrontendSelect
             if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
                 && ($tblYear = $tblDivisionCourse->getServiceTblYear())
             ) {
-                $count = 0;
+                $countPerson = 0;
                 foreach ($tblPersonList as $tblPerson) {
                     $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
-                    $studentTable[$tblPerson->getId()] = $this->getStudentBasicInformation($tblPerson, $tblYear, $tblPrepareStudent ?: null, $count);
+                    $studentTable[$tblPerson->getId()] = $this->getStudentBasicInformation($tblPerson, $tblYear, $tblPrepareStudent ?: null, $countPerson);
 
                     if ($tblCurrentGradeType) {
                         $subjectGradeList = array();
@@ -436,15 +447,29 @@ abstract class FrontendSetting extends FrontendSelect
         return $Stage;
     }
 
-    private function getStudentBasicInformation(TblPerson $tblPerson, TblYear $tblYear, ?TblPrepareStudent $tblPrepareStudent, int &$count): array
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblPrepareStudent|null $tblPrepareStudent
+     * @param int $count
+     * @param bool $hasEditToolTip
+     *
+     * @return array
+     */
+    public function getStudentBasicInformation(TblPerson $tblPerson, TblYear $tblYear, ?TblPrepareStudent $tblPrepareStudent, int &$count, bool $hasEditToolTip = true): array
     {
-        $data = array(
-            'Number' => ++$count . ' '
+        $temp = '';
+        $isMuted = !($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate());
+        if ($hasEditToolTip) {
+            $temp = ' '
                 . ($tblPrepareStudent && $tblPrepareStudent->isApproved()
                     ? new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban()),
                         'Das Zeugnis des Schülers wurde bereits freigegeben und kann nicht mehr bearbeitet werden.')
-                    : new ToolTip(new Success(new Edit()), 'Das Zeugnis des Schülers kann bearbeitet werden.')),
-            'Name' => $tblPerson->getLastFirstNameWithCallNameUnderline()
+                    : new ToolTip(new Success(new Edit()), 'Das Zeugnis des Schülers kann bearbeitet werden.'));
+        }
+        $data = array(
+            'Number' => $isMuted ? new Muted(++$count) : ++$count . $temp,
+            'Name' => $isMuted ? new Muted($tblPerson->getLastFirstNameWithCallNameUnderline()) : $tblPerson->getLastFirstNameWithCallNameUnderline()
         );
 
         // Bildungsgang
@@ -459,7 +484,7 @@ abstract class FrontendSetting extends FrontendSelect
                 $courseName = $tblCourse ? $tblCourse->getName() : '';
             }
         }
-        $data['Course'] = $courseName;
+        $data['Course'] = $isMuted ? new Muted($courseName) : $courseName;
         // Integration ReadOnlyButton
         if(Student::useService()->getIsSupportByPerson($tblPerson)) {
             $data['IntegrationButton'] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
@@ -569,7 +594,7 @@ abstract class FrontendSetting extends FrontendSelect
         return $Stage;
     }
 
-    public function getAbsenceContent(TblPrepareCertificate $tblPrepare, string $Route, $CertificateList, bool $useClassRegisterForAbsence, Stage &$Stage,
+    private function getAbsenceContent(TblPrepareCertificate $tblPrepare, string $Route, $CertificateList, bool $useClassRegisterForAbsence, Stage $Stage,
         $Data, array $buttonList, $nextPage)
     {
         $Stage->setDescription('Fehlzeiten festlegen');
@@ -916,7 +941,7 @@ abstract class FrontendSetting extends FrontendSelect
         );
     }
 
-    private function getInformationContent(TblPrepareCertificate $tblPrepare, string $Route, $CertificateList, Stage &$Stage, $Data, array $buttonList,
+    private function getInformationContent(TblPrepareCertificate $tblPrepare, string $Route, $CertificateList, Stage $Stage, $Data, array $buttonList,
         $nextPage, $Page, $informationPageList)
     {
         $columnTable = array(
