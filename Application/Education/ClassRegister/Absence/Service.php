@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\ClassRegister\Absence;
 
 use DateTime;
+use phpDocumentor\Reflection\Types\Array_;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
@@ -691,7 +692,6 @@ class Service extends AbstractService
 
         return false;
     }
-
     /**
      * @param $DivisionId
      *
@@ -751,31 +751,33 @@ class Service extends AbstractService
                     $fromDate = $tblAbsence->getFromDate('d');
                     $toDate = $tblAbsence->getToDate();
                     $MonthAbsenceList[$Month][$tblPerson->getId()][$fromDate] = $tblAbsence->getStatusDisplayShortName();
-
                     if($toDate){
                         $startDate = new DateTime($tblAbsence->getFromDate());
+                        $betweenDate = $tblAbsence->getDateSpan();
                         $endDate = new DateTime($tblAbsence->getToDate());
                         $diff = $startDate->diff($endDate);
                         $days = $diff->days;
-
-                        // Speichern des Zeitraums in der Variablen
+                        $interval = \DateInterval::createFromDateString('1 day');
+                        $fullEndDate = $endDate->modify(' + 1 day ');
+                        $dateRange = new \DatePeriod($startDate, $interval ,$endDate,);
+                        $dates = array();
+                        foreach ($dateRange as $date) {
+                            $dates[] = $date->format("Y-m-d");
+                        }
                         $absencePeriod = array(
                             'start' => $startDate,
-                            'end' => $endDate,
-                            'days' => $days
-                        );Debugger::screenDump($absencePeriod);
+                            'end' => $fullEndDate,
+                            'days' => $days + 1,
+                            'between' => $betweenDate,
+                            'dates' => $dates
+                        );
                     } else {
                         $absencePeriod = null;
                     }
-
-                    $MonthAbsenceList[$Month][$tblPerson->getId()][$fromDate] = array(
-                        'status' => $tblAbsence->getStatusDisplayShortName(),
-                        'period' => $absencePeriod
-                    );
                 }
             }
-        }
-        exit;
+        }exit;
+         // TODO array basteln was alle werte hat die ich brauch + Zwischenraum, wenn es einen gibt
         $dataList = array();
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
             && ($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByDivision($startDateSchoolYear, $endDateSchoolYear, $tblDivision))
