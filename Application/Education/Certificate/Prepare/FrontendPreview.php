@@ -7,6 +7,7 @@ use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -571,6 +572,168 @@ abstract class FrontendPreview extends Extension implements IFrontendInterface
                                     ? new Well(Prepare::useService()->updatePrepareSetSigner($form, $tblPrepare, $Data, $Route))
                                     : new Warning('Für diesen Kurs sind keine Klassenlehrer/Mentoren/Tutoren vorhanden.')
                             )),
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param $PrepareId
+     * @param $Route
+     *
+     * @return Stage|string
+     */
+    public function frontendPrepareShowSubjectGrades($PrepareId = null, $Route = null)
+    {
+        $Stage = new Stage('Zeugnisvorbereitung', 'Fachnoten-Übersicht');
+        $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Prepare/Prepare/Preview',
+                new ChevronLeft(),
+                array(
+                    'PrepareId' => $PrepareId,
+                    'Route' => $Route
+                )
+            )
+        );
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+        ) {
+            // todo Prüfungsnoten
+            $content = new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Panel(
+                                'Zeugnis',
+                                array(
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate()))
+                                ),
+                                Panel::PANEL_TYPE_INFO
+                            ),
+                        ), 6),
+                        new LayoutColumn(array(
+                            new Panel(
+                                $tblDivisionCourse->getTypeName(),
+                                $tblDivisionCourse->getDisplayName(),
+                                Panel::PANEL_TYPE_INFO
+                            ),
+                        ), 6),
+                    )),
+                ))
+            ));
+
+            if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())) {
+                $content .= Grade::useFrontend()->getTaskGradeViewByAppointedDateTask($tblTask, $tblDivisionCourse);
+            } else {
+                $content .= new Warning('Kein Stichtagsnotenauftrag hinterlegt.', new Exclamation());
+            }
+
+            return $Stage->setContent($content);
+        } else {
+
+            return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden', new Exclamation());
+        }
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $PersonId
+     * @param null $Route
+     *
+     * @return Stage|string
+     */
+    public function frontendShowCertificate(
+        $PrepareId = null,
+        $PersonId = null,
+        $Route = null
+    ) {
+        $Stage = new Stage('Zeugnisvorschau', 'Anzeigen');
+        $Stage->addButton(new Standard(
+            'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
+                'PrepareId' => $PrepareId,
+                'Route' => $Route
+            )
+        ));
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+        ) {
+            $ContentLayout = array();
+            $tblCertificate = false;
+            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            ) {
+                $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+                if (class_exists($CertificateClass)) {
+                    $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+                    $tblDivisionCourse = $tblPrepare->getServiceTblDivision();
+                    /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
+                    $Template = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare);
+
+                    // get Content
+                    $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                    $personId = $tblPerson->getId();
+                    if (isset($Content['P' . $personId]['Grade'])) {
+                        $Template->setGrade($Content['P' . $personId]['Grade']);
+                    }
+                    if (isset($Content['P' . $personId]['AdditionalGrade'])) {
+                        $Template->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
+                    }
+
+                    $pageList[$tblPerson->getId()] = $Template->buildPages($tblPerson);
+                    $bridge = $Template->createCertificate($Content, $pageList);
+
+                    $ContentLayout[] = $bridge->getContent();
+                }
+            }
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Zeugnisvorbereitung',
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    $tblDivisionCourse->getTypeName(),
+                                    $tblDivisionCourse->getDisplayName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Schüler',
+                                    $tblPerson->getLastFirstName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 4),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Zeugnisvorlage',
+                                    $tblCertificate
+                                        ? ($tblCertificate->getName() . ($tblCertificate->getDescription() ? ' - ' . $tblCertificate->getDescription() : ''))
+                                        : new WarningText(new Exclamation() . ' Keine Zeugnisvorlage hinterlegt'),
+                                    $tblCertificate
+                                        ? Panel::PANEL_TYPE_SUCCESS
+                                        : Panel::PANEL_TYPE_WARNING
+                                ),
+                            ), 12),
+                            new LayoutColumn(
+                                $ContentLayout
+                            ),
                         ))
                     ))
                 ))

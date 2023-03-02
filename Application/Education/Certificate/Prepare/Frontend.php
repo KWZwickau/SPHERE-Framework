@@ -928,9 +928,9 @@ class Frontend extends FrontendSetting // TechnicalSchool\Frontend implements IF
      *
      * @return Stage|string
      */
-    public function frontendPrepareShowSubjectGrades($PrepareId = null, $GroupId = null, $Route = null)
+    public function frontendOldPrepareShowSubjectGrades($PrepareId = null, $GroupId = null, $Route = null)
     {
-
+        // todo remove
         $Stage = new Stage('Zeugnisvorbereitung', 'Fachnoten-Übersicht');
 
         $description = '';
@@ -1239,119 +1239,6 @@ class Frontend extends FrontendSetting // TechnicalSchool\Frontend implements IF
                 new \SPHERE\Common\Frontend\Text\Repository\Warning('fehlt')
                 . (($average !== ' ' && $average) ? new Muted('&nbsp;&nbsp; &#216;' . $average) : '');
             return $studentList;
-        }
-    }
-
-    /**
-     * @param null $PrepareId
-     * @param null $GroupId
-     * @param null $PersonId
-     * @param null $Route
-     *
-     * @return Stage|string
-     */
-    public function frontendShowCertificate(
-        $PrepareId = null,
-        $GroupId = null,
-        $PersonId = null,
-        $Route = null
-    ) {
-        $Stage = new Stage('Zeugnisvorschau', 'Anzeigen');
-        $Stage->addButton(new Standard(
-            'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
-                'PrepareId' => $PrepareId,
-                'GroupId' => $GroupId,
-                'Route' => $Route
-            )
-        ));
-
-        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
-            && ($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblPerson = Person::useService()->getPersonById($PersonId))
-        ) {
-
-            $tblGroup = Group::useService()->getGroupById($GroupId);
-            $ContentLayout = array();
-
-            $tblCertificate = false;
-            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
-                    $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'
-                        . $tblCertificate->getCertificate();
-                    if (class_exists($CertificateClass)) {
-                        // todo
-                        $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
-                        $tblDivision = $tblPrepare->getServiceTblDivision();
-                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                        $Template = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare);
-
-                        // get Content
-                        $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
-                        $personId = $tblPerson->getId();
-                        if (isset($Content['P' . $personId]['Grade'])) {
-                            $Template->setGrade($Content['P' . $personId]['Grade']);
-                        }
-                        if (isset($Content['P' . $personId]['AdditionalGrade'])) {
-                            $Template->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
-                        }
-
-                        $pageList[$tblPerson->getId()] = $Template->buildPages($tblPerson);
-                        $bridge = $Template->createCertificate($Content, $pageList);
-
-                        $ContentLayout[] = $bridge->getContent();
-                    }
-                }
-            }
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(array(
-                                new Panel(
-                                    'Zeugnisvorbereitung',
-                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
-                                    Panel::PANEL_TYPE_INFO
-                                ),
-                            ), 4),
-                            new LayoutColumn(array(
-                                new Panel(
-                                    $tblGroup ? 'Gruppe' : 'Klasse',
-                                    $tblGroup ? $tblGroup->getName() : $tblDivision->getDisplayName(),
-                                    Panel::PANEL_TYPE_INFO
-                                ),
-                            ), 4),
-                            new LayoutColumn(array(
-                                new Panel(
-                                    'Schüler',
-                                    $tblPerson->getLastFirstName(),
-                                    Panel::PANEL_TYPE_INFO
-                                ),
-                            ), 4),
-                            new LayoutColumn(array(
-                                new Panel(
-                                    'Zeugnisvorlage',
-                                    $tblCertificate
-                                        ? ($tblCertificate->getName()
-                                        . ($tblCertificate->getDescription() ? ' - ' . $tblCertificate->getDescription() : ''))
-                                        : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
-                                        . ' Keine Zeugnisvorlage hinterlegt'),
-                                    $tblCertificate
-                                        ? Panel::PANEL_TYPE_SUCCESS
-                                        : Panel::PANEL_TYPE_WARNING
-                                ),
-                            ), 12),
-                            new LayoutColumn(
-                                $ContentLayout
-                            ),
-                        ))
-                    ))
-                ))
-            );
-
-            return $Stage;
-        } else {
-
-            return $Stage . new Danger('Zeugnisvorbereitung nicht gefunden.', new Ban());
         }
     }
 

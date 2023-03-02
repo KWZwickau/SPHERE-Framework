@@ -666,7 +666,7 @@ abstract class FrontendTask extends FrontendStudentOverview
      *
      * @return string
      */
-    private function getTaskGradeViewByAppointedDateTask(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): string
+    public function getTaskGradeViewByAppointedDateTask(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): string
     {
         $headerList['Number'] = $this->getTableColumnHead('#');
         $headerList['Person'] = $this->getTableColumnHead('Schüler');
