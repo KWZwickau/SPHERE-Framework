@@ -282,6 +282,8 @@ class Frontend
             '/Platform/Gatekeeper/Saml/Placeholder/MetaData',
             '/Platform/Gatekeeper/Saml/Login/Placeholder',
             '/Platform/Gatekeeper/Authentication/Saml/Placeholder',
+            '/Platform/Gatekeeper/OAuth2/Vidis',
+            '/Platform/Gatekeeper/OAuth2/OAuthSite',
         );
         if ($PublicRouteAll) {
             array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList, $publicRouteList) {
