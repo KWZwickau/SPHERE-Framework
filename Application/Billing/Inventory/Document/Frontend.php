@@ -328,6 +328,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
         return array(
+            '[Rechnungsnummer]',
             '[Jahr]',
             '[Zeitraum von]',
             '[Zeitraum bis]',
