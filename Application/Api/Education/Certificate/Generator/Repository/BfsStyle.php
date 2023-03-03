@@ -1518,7 +1518,6 @@ abstract class BfsStyle extends Certificate
                 , $isAbs ? '11%' : '9%'
             )
         );
-
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
                 ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation1 is not empty) %}
@@ -1535,7 +1534,6 @@ abstract class BfsStyle extends Certificate
                 ->stylePaddingLeft('5px')
             )
         );
-
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
                 ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation2 is not empty) %}
@@ -1545,6 +1543,22 @@ abstract class BfsStyle extends Certificate
                     {% endif %}</b>
                      {% if(Content.P' . $personId . '.Input.OperationTime2 is not empty) %}
                         (Dauer {{ Content.P' . $personId . '.Input.OperationTime2 }} Wochen)
+                    {% else %}
+                        &nbsp;
+                    {% endif %}')
+                ->stylePaddingTop('10px')
+                ->stylePaddingLeft('5px')
+            )
+        );
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation3 is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Operation3 }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}</b>
+                     {% if(Content.P' . $personId . '.Input.OperationTime3 is not empty) %}
+                        (Dauer {{ Content.P' . $personId . '.Input.OperationTime3 }} Wochen)
                     {% else %}
                         &nbsp;
                     {% endif %}')
@@ -1564,6 +1578,9 @@ abstract class BfsStyle extends Certificate
                     {% if(Content.P" . $personId . ".Input.OperationTime3 is not empty) %}
                         {%set WeekCount = WeekCount + Content.P" . $personId . ".Input.OperationTime3|replace({',' : '.'} ) %}
                     {% endif %}
+                    {% if(Content.P" . $personId . ".Input.OperationTime4 is not empty) %}
+                        {%set WeekCount = WeekCount + Content.P" . $personId . ".Input.OperationTime4|replace({',' : '.'} ) %}
+                    {% endif %}
                     {{ WeekCount|replace({'.' : ','}) }}
                   Wochen")
                 ->stylePaddingTop('10px')
@@ -1572,16 +1589,15 @@ abstract class BfsStyle extends Certificate
                 , '40%'
             )
         );
-
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
-                ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation3 is not empty) %}
-                        {{ Content.P' . $personId . '.Input.Operation3 }}
+                ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation4 is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Operation4 }}
                     {% else %}
                         &nbsp;
                     {% endif %}</b>
-                     {% if(Content.P' . $personId . '.Input.OperationTime3 is not empty) %}
-                        (Dauer {{ Content.P' . $personId . '.Input.OperationTime3 }} Wochen)
+                     {% if(Content.P' . $personId . '.Input.OperationTime4 is not empty) %}
+                        (Dauer {{ Content.P' . $personId . '.Input.OperationTime4 }} Wochen)
                     {% else %}
                         &nbsp;
                     {% endif %}')

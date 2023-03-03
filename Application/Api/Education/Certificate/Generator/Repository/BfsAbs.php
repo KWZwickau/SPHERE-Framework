@@ -31,6 +31,8 @@ class BfsAbs extends BfsStyle
             'OperationTime2' => 'Einsatzgebiet Dauer in Wochen 2',
             'Operation3' => 'Einsatzgebiet 3',
             'OperationTime3' => 'Einsatzgebiet Dauer in Wochen 3',
+            'Operation4' => 'Einsatzgebiet 4',
+            'OperationTime4' => 'Einsatzgebiet Dauer in Wochen 4',
         );
     }
 
@@ -67,7 +69,7 @@ class BfsAbs extends BfsStyle
                 ->setContent('&nbsp;')
                 ->stylePaddingTop('11px')
             ))
-            ->addSlice($this->getBsInfo('50px',
+            ->addSlice($this->getBsInfo('23px',
                 'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))
         ;
 
