@@ -14,8 +14,8 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -29,7 +29,6 @@ class TblLeaveStudent extends Element
 {
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
-    const ATTR_SERVICE_TBL_CERTIFICATE = 'serviceTblCertificate';
     const ATTR_IS_APPROVED = 'IsApproved';
     const ATTR_IS_PRINTED = 'IsPrinted';
 
@@ -51,19 +50,18 @@ class TblLeaveStudent extends Element
     /**
      * @Column(type="boolean")
      */
-    protected $IsApproved;
+    protected bool $IsApproved;
 
     /**
      * @Column(type="boolean")
      */
-    protected $IsPrinted;
+    protected bool $IsPrinted;
 
     /**
      * @return bool|TblPerson
      */
     public function getServiceTblPerson()
     {
-
         if (null === $this->serviceTblPerson) {
             return false;
         } else {
@@ -76,30 +74,27 @@ class TblLeaveStudent extends Element
      */
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
-
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
-     * @return bool|TblDivision
+     * @return bool|TblDivisionCourse
      */
     public function getServiceTblDivision()
     {
-
         if (null === $this->serviceTblDivision) {
             return false;
         } else {
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
+            return DivisionCourse::useService()->getDivisionCourseById($this->serviceTblDivision);
         }
     }
 
     /**
-     * @param TblDivision|null $tblDivision
+     * @param TblDivisionCourse|null $tblDivisionCourse
      */
-    public function setServiceTblDivision(TblDivision $tblDivision = null)
+    public function setServiceTblDivision(TblDivisionCourse $tblDivisionCourse = null)
     {
-
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
+        $this->serviceTblDivision = (null === $tblDivisionCourse ? null : $tblDivisionCourse->getId());
     }
 
     /**
@@ -107,7 +102,6 @@ class TblLeaveStudent extends Element
      */
     public function getServiceTblCertificate()
     {
-
         if (null === $this->serviceTblCertificate) {
             return false;
         } else {
@@ -120,44 +114,38 @@ class TblLeaveStudent extends Element
      */
     public function setServiceTblCertificate(TblCertificate $tblCertificate = null)
     {
-
         $this->serviceTblCertificate = (null === $tblCertificate ? null : $tblCertificate->getId());
     }
 
     /**
      * @return bool
      */
-    public function isApproved()
+    public function isApproved(): bool
     {
-
         return $this->IsApproved;
     }
 
     /**
      * @param bool $IsApproved
      */
-    public function setApproved($IsApproved)
+    public function setApproved(bool $IsApproved)
     {
-
-        $this->IsApproved = (bool)$IsApproved;
+        $this->IsApproved = $IsApproved;
     }
 
     /**
      * @return bool
      */
-    public function isPrinted()
+    public function isPrinted(): bool
     {
-
         return $this->IsPrinted;
     }
 
     /**
      * @param bool $IsPrinted
      */
-    public function setPrinted($IsPrinted)
+    public function setPrinted(bool $IsPrinted)
     {
-
-        $this->IsPrinted = (bool)$IsPrinted;
+        $this->IsPrinted = $IsPrinted;
     }
-
 }

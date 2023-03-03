@@ -30,7 +30,6 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGr
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Setup;
-use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
@@ -421,40 +420,6 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function updatePrepareStudentSetApproved(TblPrepareStudent $tblPrepareStudent)
-    {
-
-        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
-            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-            && ($tblDivision = $tblPrepareStudent->getTblPrepareCertificate()->getServiceTblDivision())
-        ) {
-
-//            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
-//                && !$tblGenerateCertificate->isLocked()
-//            ) {
-//                Generate::useService()->lockGenerateCertificate($tblGenerateCertificate, true);
-//            }
-
-            if (($tblCertificateType = $tblCertificate->getTblCertificateType())
-                && $tblCertificateType->getIdentifier() == 'DIPLOMA'
-            ) {
-                $isDiploma = true;
-            } else {
-                $isDiploma = false;
-            }
-
-            return (new Data($this->getBinding()))->copySubjectGradesByPerson($tblPrepare, $tblPerson, $isDiploma);
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @param TblPrepareStudent $tblPrepareStudent
-     *
-     * @return bool
-     */
     public function updatePrepareStudentSetPrinted(TblPrepareStudent $tblPrepareStudent)
     {
 
@@ -478,45 +443,6 @@ class Service extends AbstractService
             return false;
         }
     }
-
-    /**
-     * @param TblPrepareStudent $tblPrepareStudent
-     *
-     * @return bool
-     */
-    public function updatePrepareStudentResetApproved(TblPrepareStudent $tblPrepareStudent)
-    {
-
-        if (($tblSettingAbsence = ConsumerSetting::useService()->getSetting(
-            'Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
-        ) {
-            $useClassRegisterForAbsence = $tblSettingAbsence->getValue();
-        } else {
-            $useClassRegisterForAbsence = false;
-        }
-
-        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
-            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-            && ($tblDivision = $tblPrepareStudent->getTblPrepareCertificate()->getServiceTblDivision())
-        ) {
-            return (new Data($this->getBinding()))->updatePrepareStudent(
-                $tblPrepareStudent,
-                $tblCertificate,
-                false,
-                false,
-                // Fehlzeiten zurücksetzen, bei automatischer Übernahme der Fehlzeiten
-                $useClassRegisterForAbsence ? null : $tblPrepareStudent->getExcusedDays(),
-                $tblPrepareStudent->getExcusedDaysFromLessons(),
-                $useClassRegisterForAbsence ? null : $tblPrepareStudent->getUnexcusedDays(),
-                $tblPrepareStudent->getUnexcusedDaysFromLessons(),
-                $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
-            );
-        } else {
-            return false;
-        }
-    }
-
 
     /**
      * @param IFormInterface|null $Stage
@@ -2296,32 +2222,37 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPrepareStudent $tblPrepareStudent
      *
      * @return bool
      */
-    public function updatePrepareDivisionSetApproved(TblPrepareCertificate $tblPrepare)
+    public function updatePrepareStudentSetApproved(TblPrepareStudent $tblPrepareStudent): bool
     {
+        return (new Data($this->getBinding()))->updatePrepareStudentSetApproved($tblPrepareStudent);
+    }
 
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
-            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
-                && ($tblCertificateType =$tblGenerateCertificate->getServiceTblCertificateType())
-                && $tblCertificateType->getIdentifier() == 'DIPLOMA'
-            ) {
-                $isDiploma = true;
-            } else {
-                $isDiploma = false;
-            }
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     *
+     * @return bool
+     */
+    public function updatePrepareStudentResetApproved(TblPrepareStudent $tblPrepareStudent): bool
+    {
+        $useClassRegisterForAbsence = ($tblSettingAbsence = ConsumerSetting::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+            && $tblSettingAbsence->getValue();
 
-//            if (!$tblGenerateCertificate->isLocked()) {
-//
-//                Generate::useService()->lockGenerateCertificate($tblGenerateCertificate, true);
-//            }
-
-            return (new Data($this->getBinding()))->copySubjectGradesByPrepare($tblPrepare, $isDiploma);
-        } else {
-            return false;
-        }
+        return (new Data($this->getBinding()))->updatePrepareStudent(
+            $tblPrepareStudent,
+            $tblPrepareStudent->getServiceTblCertificate() ?: null,
+            false,
+            false,
+            // Fehlzeiten zurücksetzen, bei automatischer Übernahme der Fehlzeiten
+            $useClassRegisterForAbsence ? null : $tblPrepareStudent->getExcusedDays(),
+            $tblPrepareStudent->getExcusedDaysFromLessons(),
+            $useClassRegisterForAbsence ? null : $tblPrepareStudent->getUnexcusedDays(),
+            $tblPrepareStudent->getUnexcusedDaysFromLessons(),
+            $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
+        );
     }
 
     /**
@@ -2329,14 +2260,19 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function updatePrepareDivisionResetApproved(TblPrepareCertificate $tblPrepare)
+    public function updatePrepareStudentListSetApproved(TblPrepareCertificate $tblPrepare): bool
     {
+        return (new Data($this->getBinding()))->updatePrepareStudentListSetApproved($tblPrepare);
+    }
 
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
-            return (new Data($this->getBinding()))->updatePrepareStudentDivisionResetApproved($tblPrepare);
-        } else {
-            return false;
-        }
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     *
+     * @return bool
+     */
+    public function updatePrepareStudentListResetApproved(TblPrepareCertificate $tblPrepare): bool
+    {
+        return (new Data($this->getBinding()))->updatePrepareStudentListResetApproved($tblPrepare);
     }
 
     /**
@@ -3098,14 +3034,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return false|TblLeaveStudent[]
      */
-    public function  getLeaveStudentAllByDivision(TblDivision $tblDivision)
+    public function  getLeaveStudentAllByDivision(TblDivisionCourse $tblDivisionCourse)
     {
-
-        return (new Data($this->getBinding()))->getLeaveStudentAllByDivision($tblDivision);
+        // todo find usage
+        return (new Data($this->getBinding()))->getLeaveStudentAllByDivision($tblDivisionCourse);
     }
 
     /**
@@ -3364,10 +3300,9 @@ class Service extends AbstractService
      */
     public function updateLeaveStudent(
         TblLeaveStudent $tblLeaveStudent,
-        $IsApproved = false,
-        $IsPrinted = false
-    ) {
-
+        bool $IsApproved = false,
+        bool $IsPrinted = false
+    ): bool {
         return (new Data($this->getBinding()))->updateLeaveStudent($tblLeaveStudent, $IsApproved, $IsPrinted);
     }
 
