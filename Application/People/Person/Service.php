@@ -1481,7 +1481,7 @@ class Service extends AbstractService
                 $tblPersonList = array();
 
                 $tblType = Mail::useService()->getTypeById($item['Type']);
-                $address = $item['Address'];
+                $address = $this->validateMailAddress($item['Address']);
                 $remark = $item['Remark'];
                 $isAccountUserAlias = isset($item['IsAccountUserAlias']);
                 $isAccountRecoveryMail = isset($item['IsAccountRecoveryMail']);
@@ -1499,7 +1499,7 @@ class Service extends AbstractService
                 if ($tblType || $address || $remark) {
                     $isAdd = true;
                     $this->setMessage($tblType, $key, 'Type', 'Bitte wählen Sie einen Typ aus.', $Errors, $errorMail);
-                    $this->setMessage($address, $key, 'Address', 'Bitte geben Sie eine E-Mail Adresse ein.', $Errors, $errorMail);
+                    $this->setMessage($address, $key, 'Address', 'Bitte geben Sie eine gültige E-Mail Adresse an', $Errors, $errorMail);
 
                     if ($countPersons == 0) {
                         $errorMail = true;
