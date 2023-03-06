@@ -112,8 +112,8 @@ class TblAddress extends Element
             switch ($Value) {
                 case $this::VALUE_PLZ_ORT_OT_STR_NR:
                     $Return =
-                        $this->getTblCity()->getCode()
-                        .' '.$this->getTblCity()->getName()
+                        $this->getCodeString()
+                        .' '.$this->getCityString()
                         .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()).',' : ',')
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
@@ -129,8 +129,8 @@ class TblAddress extends Element
                         ($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()) : '')
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
-                        .', '.$this->getTblCity()->getCode()
-                        .' '.$this->getTblCity()->getName()
+                        .', '.$this->getCodeString()
+                        .' '.$this->getCityString()
                         .($Extended
                             ? ($this->getLocation()
                                 ? ' ('.$this->getLocation().')'
@@ -140,8 +140,8 @@ class TblAddress extends Element
                     break;
                 default:
                     $Return =
-                        $this->getTblCity()->getCode()
-                        .' '.$this->getTblCity()->getName()
+                        $this->getCodeString()
+                        .' '.$this->getCityString()
                         .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()).',' : ',')
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
@@ -344,5 +344,41 @@ class TblAddress extends Element
         }
 
         return empty($result) ? '' : implode(', ', $result);
+    }
+
+    /**
+     * @return string
+     */
+    public function getCityString()
+    {
+        $city = '';
+        if(($tblCity = $this->getTblCity())){
+            $city = $tblCity->getDisplayName();
+        }
+        return $city;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCodeString()
+    {
+        $code = '';
+        if(($tblCity = $this->getTblCity())){
+            $code = $tblCity->getCode();
+        }
+        return $code;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDistrictString()
+    {
+        $district = '';
+        if(($tblCity = $this->getTblCity())){
+            $district = $tblCity->getDistrict();
+        }
+        return $district;
     }
 }

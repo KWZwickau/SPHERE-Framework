@@ -387,4 +387,46 @@ class TblPerson extends Element
 
         return false;
     }
+
+    /**
+     * @return string
+     */
+    public function getBirthplaceString()
+    {
+        $birthplace = '';
+        if (($tblCommon = $this->getCommon())) {
+            if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                $birthplace = $tblCommonBirthDates->getBirthplace();
+            }
+        }
+        return $birthplace;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDenominationString()
+    {
+        $denomination = '';
+        if (($tblCommon = $this->getCommon())) {
+            if ($tblCommonInformation = $tblCommon->getTblCommonInformation()) {
+                $denomination = $tblCommonInformation->getDenomination();
+            }
+        }
+        return $denomination;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNationalityString()
+    {
+        $nationality = '';
+        if (($tblCommon = $this->getCommon())) {
+            if ($tblCommonInformation = $tblCommon->getTblCommonInformation()) {
+                $nationality = $tblCommonInformation->getNationality();
+            }
+        }
+        return $nationality;
+    }
 }
