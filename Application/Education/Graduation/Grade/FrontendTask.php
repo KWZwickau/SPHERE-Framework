@@ -840,7 +840,7 @@ abstract class FrontendTask extends FrontendStudentOverview
             ))
         ) {
             $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
-            list($result) = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $tblGradeList, $tblScoreRule ?: null, $tblPeriod ?: null);
+            list($result) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblGradeList, $tblScoreRule ?: null, $tblPeriod ?: null);
         }
 
         return $result;

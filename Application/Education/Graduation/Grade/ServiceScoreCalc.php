@@ -26,7 +26,7 @@ abstract class ServiceScoreCalc extends ServiceScore
      *
      * @return array
      */
-    public function calcStudentAverage(TblPerson $tblPerson, TblYear $tblYear, array $tblGradeList, ?TblScoreRule $tblScoreRule = null, ?TblPeriod $tblPeriod = null): array
+    public function getCalcStudentAverage(TblPerson $tblPerson, TblYear $tblYear, array $tblGradeList, ?TblScoreRule $tblScoreRule = null, ?TblPeriod $tblPeriod = null): array
     {
         $resultAverage = '';
         $scoreRuleText = '';
@@ -201,7 +201,7 @@ abstract class ServiceScoreCalc extends ServiceScore
     public function getCalcStudentAverageToolTip(TblPerson $tblPerson, TblYear $tblYear, array $tblGradeList, ?TblScoreRule $tblScoreRule = null,
         ?TblPeriod $tblPeriod = null): string
     {
-        list($average, $scoreRuleText, $error) = $this->calcStudentAverage($tblPerson, $tblYear, $tblGradeList, $tblScoreRule, $tblPeriod);
+        list($average, $scoreRuleText, $error) = $this->getCalcStudentAverage($tblPerson, $tblYear, $tblGradeList, $tblScoreRule, $tblPeriod);
 
         return $this->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
     }

@@ -237,9 +237,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($tblPrepareStudent->getServiceTblCertificate()) {
                                     $countStudents++;
                                     if (!$tblPrepare->getIsPrepared() && !$isInEdit
-                                        // todo Prüfung ob es kopfnoten gibt
-                                        && (Prepare::useService()->getPrepareGradeAllByPerson(
-                                                $tblPrepare, $tblPerson, Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
+                                        && (Prepare::useService()->getBehaviorGradeAllByPrepareCertificateAndPerson($tblPrepare, $tblPerson)
                                             || Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare, $tblPerson))
                                     ) {
                                         $isInEdit = true;
@@ -731,9 +729,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($tblPrepare->getIsPrepared()) {
                                     $prepareStatus = new Success('abgeschlossen');
                                 } else {
-                                    // todo Prüfung ob es kopfnoten gibt
-                                    if (Prepare::useService()->getPrepareGradeAllByPerson(
-                                            $tblPrepare, $tblPerson, Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
+                                    if (Prepare::useService()->getBehaviorGradeAllByPrepareCertificateAndPerson($tblPrepare, $tblPerson)
                                         || Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare, $tblPerson)
                                     ) {
                                         $prepareStatus = new Warning('in Bearbeitung');

@@ -47,9 +47,8 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Extension;
 
-abstract class FrontendPreview extends Extension implements IFrontendInterface
+abstract class FrontendPreview extends FrontendLeave
 {
     /**
      * @param $PrepareId

@@ -914,7 +914,7 @@ class Frontend extends FrontendTest
                         }
                     }
 
-                    list ($contentAverage, $scoreRuleText, $error) = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $tblTestGradeList[$tblPerson->getId()] ?? array(),
+                    list ($contentAverage, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblTestGradeList[$tblPerson->getId()] ?? array(),
                         $personScoreRuleList[$tblPerson->getId()] ?? null, $personPeriodList[$tblPerson->getId()] ?? null
                     );
                     $bodyList[$tblPerson->getId()]['Average'] = $this->getTableColumnBody(Grade::useService()->getCalcStudentAverageToolTipByAverage(

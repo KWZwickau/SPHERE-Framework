@@ -243,17 +243,23 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableLeaveStudent(Schema &$Schema)
+    private function setTableLeaveStudent(Schema &$Schema): Table
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblLeaveStudent');
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        // todo drop später
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT);
+
+        $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblCertificate', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'IsApproved', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'IsPrinted', self::FIELD_TYPE_BOOLEAN);
 
+        // todo drop später
         $this->createIndex($Table, array('serviceTblPerson' , 'serviceTblDivision'));
+
+        $this->createIndex($Table, array('serviceTblPerson' , 'serviceTblYear'));
 
         return $Table;
     }

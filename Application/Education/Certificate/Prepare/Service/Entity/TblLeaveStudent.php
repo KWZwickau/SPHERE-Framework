@@ -14,8 +14,10 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
-use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -29,6 +31,7 @@ class TblLeaveStudent extends Element
 {
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
+    const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_IS_APPROVED = 'IsApproved';
     const ATTR_IS_PRINTED = 'IsPrinted';
 
@@ -37,10 +40,16 @@ class TblLeaveStudent extends Element
      */
     protected $serviceTblPerson;
 
+    // ist nicht nullable
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblDivision;
+    protected $serviceTblDivision = -1;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblYear;
 
     /**
      * @Column(type="bigint")
@@ -78,23 +87,43 @@ class TblLeaveStudent extends Element
     }
 
     /**
-     * @return bool|TblDivisionCourse
+     * @return false|TblYear
+     */
+    public function getServiceTblYear()
+    {
+        return Term::useService()->getYearById($this->serviceTblYear);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     */
+    public function setServiceTblYear(TblYear $tblYear)
+    {
+        $this->serviceTblYear = $tblYear->getId();
+    }
+
+    /**
+     * @deprecated
+     *
+     * @return bool|TblDivision
      */
     public function getServiceTblDivision()
     {
         if (null === $this->serviceTblDivision) {
             return false;
         } else {
-            return DivisionCourse::useService()->getDivisionCourseById($this->serviceTblDivision);
+            return Division::useService()->getDivisionById($this->serviceTblDivision);
         }
     }
 
     /**
-     * @param TblDivisionCourse|null $tblDivisionCourse
+     * @deprecated
+     *
+     * @param TblDivision|null $tblDivision
      */
-    public function setServiceTblDivision(TblDivisionCourse $tblDivisionCourse = null)
+    public function setServiceTblDivision(TblDivision $tblDivision = null)
     {
-        $this->serviceTblDivision = (null === $tblDivisionCourse ? null : $tblDivisionCourse->getId());
+        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
     }
 
     /**

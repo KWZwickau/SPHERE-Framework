@@ -995,15 +995,11 @@ class Frontend extends Extension
             $message = '';
             if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
                 $countBehaviorGrades = 0;
-                // todo bereits eingetragene Kopfnoten zählen
-//                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
-//                foreach ($tblPrepareList as $tblPrepare) {
-//                    if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
-//                        if (($tblGradeList = Prepare::useService()->getPrepareGradesByPrepare($tblPrepare, $tblTestType))) {
-//                            $countBehaviorGrades += count($tblGradeList);
-//                        }
-//                    }
-//                }
+                foreach ($tblPrepareList as $tblPrepare) {
+                    if (($tblBehaviorGradeList = Prepare::useService()->getBehaviorGradeAllByPrepareCertificate($tblPrepare))) {
+                        $countBehaviorGrades += count($tblBehaviorGradeList);
+                    }
+                }
 
                 if ($countBehaviorGrades > 0) {
                     $message = new \SPHERE\Common\Frontend\Message\Repository\Warning(
@@ -1126,12 +1122,12 @@ class Frontend extends Extension
     }
 
     /**
-     * @param null $Id
+     * @param $Id
      * @param $Confirm
      *
      * @return Stage
      */
-    public function frontendDestroyGenerate($Id = null, $Confirm = false): Stage
+    public function frontendDestroyGenerate($Id = null, $Confirm = null): Stage
     {
         $Stage = new Stage('Zeugnisgenerierung', 'Löschen');
         if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($Id))) {
@@ -1154,11 +1150,10 @@ class Frontend extends Extension
                             $countBehaviorGrades = 0;
                             $hasPrepareInformation = false;
                             $countPrepareInformation = 0;
-                            // todo wurden schon Kopfnoten festgelegt
-//                            if (($tblGradeList = Prepare::useService()->getPrepareGradesByPrepare($tblPrepare, $tblTestType))) {
-//                                $hasBehaviorGrades = true;
-//                                $countBehaviorGrades = count($tblGradeList);
-//                            }
+                           if (($tblBehaviorGradeList = Prepare::useService()->getBehaviorGradeAllByPrepareCertificate($tblPrepare))) {
+                                $hasBehaviorGrades = true;
+                                $countBehaviorGrades = count($tblBehaviorGradeList);
+                            }
                             if (($tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPrepare($tblPrepare))) {
                                 $hasPrepareInformation = true;
                                 $countPrepareInformation = count($tblPrepareInformationList);

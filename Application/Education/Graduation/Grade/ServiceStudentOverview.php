@@ -382,7 +382,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                         // Notendurchschnitt pro Halbjahr
                         if ($isShownAverage) {
                             if (isset($testGrades[$i])) {
-                                list ($average, $scoreRuleText, $error) = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $testGrades[$i],
+                                list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $testGrades[$i],
                                     $tblScoreRule ?? null);
                                 $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
 
@@ -404,7 +404,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                     // Gesamt-Notendurchschnitt
                     if ($isShownAverage) {
                         if (!empty($testGrades['All'])) {
-                            list ($average, $scoreRuleText, $error) = Grade::useService()->calcStudentAverage($tblPerson, $tblYear, $testGrades['All'],
+                            list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $testGrades['All'],
                                 $tblScoreRule ?? null);
                             $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
                         } else {

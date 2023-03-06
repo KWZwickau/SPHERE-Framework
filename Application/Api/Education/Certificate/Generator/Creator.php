@@ -12,6 +12,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -200,7 +201,6 @@ class Creator extends Extension
      */
     public function previewLeavePdf($LeaveStudentId = null, $Name = 'Zeugnis Muster', $Redirect = true)
     {
-
         if ($Redirect) {
             return self::displayWaitingPage('/Api/Education/Certificate/Generator/PreviewLeave', array(
                 'LeaveStudentId' => $LeaveStudentId,
@@ -209,19 +209,21 @@ class Creator extends Extension
             ));
         }
 
-        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($LeaveStudentId))) {
+        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($LeaveStudentId))
+            && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+            && ($tblYear = $tblLeaveStudent->getServiceTblYear())
+        ) {
             if (($tblCertificate = $tblLeaveStudent->getServiceTblCertificate())) {
                 $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
 
                 if (class_exists($CertificateClass)) {
-                    $tblDivision = $tblLeaveStudent->getServiceTblDivision();
+                    $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                    $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
+                    $Certificate = new $CertificateClass($tblStudentEducation ?: null);
 
                     // get Content
                     $Content = Prepare::useService()->getLeaveCertificateContent($tblLeaveStudent);
-                    $tblPerson = $tblLeaveStudent->getServiceTblPerson();
-                    $personId = $tblPerson ? $tblPerson->getId() : 0;
+                    $personId = $tblPerson->getId();
                     if (isset($Content['P' . $personId]['Grade'])) {
                         $Certificate->setGrade($Content['P' . $personId]['Grade']);
                     }
