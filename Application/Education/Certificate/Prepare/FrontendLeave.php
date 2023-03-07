@@ -256,6 +256,7 @@ class FrontendLeave extends Extension implements IFrontendInterface
             }
 
             if ($tblCertificate && $tblCertificate->getCertificate() == 'GymAbgSekII') {
+                // todo
                 $layoutGroups = $this->setLeaveContentForSekTwo(
                     $tblCertificate,
                     $tblLeaveStudent ? $tblLeaveStudent : null,
@@ -272,15 +273,15 @@ class FrontendLeave extends Extension implements IFrontendInterface
             } elseif ($tblCertificate
                 && ($tblCertificate->getCertificate() == 'BfsAbg' || $tblCertificate->getCertificate() == 'FsAbg')
             ) {
-                $layoutGroups = $this->setLeaveContentForTechnicalSchool(
-                    $tblCertificate,
-                    $tblLeaveStudent ? $tblLeaveStudent : null,
-                    $tblDivision ? $tblDivision : null,
-                    $tblPerson ? $tblPerson : null,
-                    $Data,
+                $layoutGroups = Prepare::useFrontend()->setLeaveContentForTechnicalSchool(
+                    $tblPerson,
+                    $tblYear,
                     $stage,
+                    $Data,
                     $subjectData,
-                    $tblType ? $tblType : null,
+                    $tblCertificate,
+                    $tblLeaveStudent ?: null,
+                    $tblType ?: null,
                     $tblCertificate->getCertificate() == 'BfsAbg'
                 );
 
@@ -926,7 +927,7 @@ class FrontendLeave extends Extension implements IFrontendInterface
 
             // Facharbeit
             if ($tblCertificate->getCertificate() == 'HOGA\FosAbg') {
-                $frontend = (new \SPHERE\Application\Education\Certificate\Prepare\TechnicalSchool\Frontend());
+                $frontend = Prepare::useFrontend();
 //                $panelJob = $frontend->getPanelWithoutInput('Fachpraktischer Teil der Ausbildung', 'Job', $isApproved);
                 $selectBoxJob = new SelectBox('Data[InformationList][Job_Grade_Text]', 'Fachpraktischer Teil der Ausbildung', array(
                     1 => "bestanden",

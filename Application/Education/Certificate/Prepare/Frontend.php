@@ -104,7 +104,7 @@ use SPHERE\Common\Window\Stage;
  *
  * @package SPHERE\Application\Education\Certificate\Prepare
  */
-class Frontend extends FrontendSetting // TechnicalSchool\Frontend implements IFrontendInterface
+class Frontend extends FrontendTechnicalSchool
 {
     /**
      * @param TblPrepareCertificate $tblPrepareCertificate
