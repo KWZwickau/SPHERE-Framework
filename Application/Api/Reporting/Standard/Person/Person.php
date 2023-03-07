@@ -512,14 +512,13 @@ class Person extends Extension
      */
     public function downloadDivisionTeacherList()
     {
+
         list($TableContent, $headers) = ReportingPerson::useService()->createDivisionTeacherList();
-        if ($TableContent) {
+        if (!empty($TableContent)) {
             $fileLocation = ReportingPerson::useService()->createDivisionTeacherExcelList($TableContent, $headers);
-
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Klassenlehrer".date("Y-m-d H:i:s").".xlsx")->__toString();
+                "Klassenlehrer ".date("Y-m-d").".xlsx")->__toString();  // removed " H:i:s"
         }
-
         return false;
     }
 }

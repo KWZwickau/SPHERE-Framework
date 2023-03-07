@@ -42,6 +42,7 @@ use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson as TblToPe
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
@@ -4070,65 +4071,67 @@ class Service extends Extension
         $maxCountRepresentative = 0;
         if (($tblYearList = Term::useService()->getYearByNow())) {
             foreach ($tblYearList as $tblYear) {
-                if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
-                    $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
-                    foreach ($tblDivisionList as $tblDivision) {
+                if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByYear($tblYear, true))) {
+                    $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
+                    /** @var TblDivisionCourse $tblDivisionCourse */
+                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
                         $item = array();
-                        $item['Division'] = $tblDivision->getDisplayName();
+                        $item['DivisionCourse'] = $tblDivisionCourse->getDisplayName();
                         $TeacherColumn = 0;
-                        if (($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))){
-                            foreach($tblDivisionTeacherList as $tblDivisionTeacher) {
+                        if (($tblPersonTeacherList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
+                            $tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))){
+                            foreach($tblPersonTeacherList as $tblPersonTeacher) {
                                 $TeacherColumn++;
-                                $item['DivisionTeacher'.$TeacherColumn.'FirstName'] = $tblDivisionTeacher->getServiceTblPerson()->getFirstName();
-                                $item['DivisionTeacher'.$TeacherColumn.'Name'] = $tblDivisionTeacher->getServiceTblPerson()->getLastName();
+                                $item['DivisionCourseTeacher'.$TeacherColumn.'FirstName'] = $tblPersonTeacher->getFirstName();
+                                $item['DivisionCourseTeacher'.$TeacherColumn.'Name'] = $tblPersonTeacher->getLastName();
                             }
                             if ($TeacherColumn > $maxCountTeacher){
                                 $maxCountTeacher = $TeacherColumn;
                             }
                         }
                         $CustodyColumn = 0;
-                        if (($tblDivisionCustodyList = Division::useService()->getDivisionCustodyAllByDivision($tblDivision))){
-                            foreach($tblDivisionCustodyList as $tblDivisionCustody) {
+                        if (($tblPersonCustodyList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
+                            $tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY))){
+                            foreach($tblPersonCustodyList as $tblPersonCustody) {
                                 $CustodyColumn++;
-                                $item['DivisionCustody'.$CustodyColumn.'FirstName'] = $tblDivisionCustody->getServiceTblPerson()->getFirstName();
-                                $item['DivisionCustody'.$CustodyColumn.'Name'] = $tblDivisionCustody->getServiceTblPerson()->getLastName();
+                                $item['DivisionCourseCustody'.$CustodyColumn.'FirstName'] = $tblPersonCustody->getFirstName();
+                                $item['DivisionCourseCustody'.$CustodyColumn.'Name'] = $tblPersonCustody->getLastName();
                             }
                             if ($CustodyColumn > $maxCountCustody){
                                 $maxCountCustody = $CustodyColumn;
                             }
                         }
                         $RepresentativeColumn = 0;
-                        if (($tblDivisionRepresentativeList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))){
-                            foreach($tblDivisionRepresentativeList as $tblDivisionRepresentative) {
+                        if (($tblPersonRepresentativeList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
+                            $tblDivisionCourse, TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))){
+                            foreach($tblPersonRepresentativeList as $tblPersonRepresentative) {
                                 $RepresentativeColumn++;
-                                $item['DivisionRepresentative'.$RepresentativeColumn.'FirstName'] = $tblDivisionRepresentative->getServiceTblPerson()->getFirstName();
-                                $item['DivisionRepresentative'.$RepresentativeColumn.'Name'] = $tblDivisionRepresentative->getServiceTblPerson()->getLastName();
+                                $item['DivisionCourseRepresentative'.$RepresentativeColumn.'FirstName'] = $tblPersonRepresentative->getFirstName();
+                                $item['DivisionCourseRepresentative'.$RepresentativeColumn.'Name'] = $tblPersonRepresentative->getLastName();
                             }
                             if ($RepresentativeColumn > $maxCountRepresentative){
                                 $maxCountRepresentative = $RepresentativeColumn;
                             }
                         }
-
                         array_push($TableContent, $item);
                     }
                 }
             }
         }
 
-        $headers['Division'] = 'Klasse';
+        $headers['DivisionCourse'] = 'Klasse';
         for ($i = 1; $i <= $maxCountTeacher; $i++){
-            $headers['DivisionTeacher'.$i.'FirstName'] = 'Klassenlehrer&nbsp;'.$i.' - Vorname';
-            $headers['DivisionTeacher'.$i.'Name'] = 'Klassenlehrer&nbsp;'.$i.' - Nachname';
+            $headers['DivisionCourseTeacher'.$i.'FirstName'] = 'Klassenlehrer&nbsp;'.$i.' - Vorname';
+            $headers['DivisionCourseTeacher'.$i.'Name'] = 'Klassenlehrer&nbsp;'.$i.' - Nachname';
         }
         for ($l = 1; $l <= $maxCountRepresentative; $l++){
-            $headers['DivisionRepresentative'.$l.'FirstName'] = 'Klassensprecher&nbsp;'.$l.' - Vorname';
-            $headers['DivisionRepresentative'.$l.'Name'] = 'Klassensprecher&nbsp;'.$l.' Nachname';
+            $headers['DivisionCourseRepresentative'.$l.'FirstName'] = 'Klassensprecher&nbsp;'.$l.' - Vorname';
+            $headers['DivisionCourseRepresentative'.$l.'Name'] = 'Klassensprecher&nbsp;'.$l.' Nachname';
         }
         for ($j = 1; $j <= $maxCountCustody; $j++){
-            $headers['DivisionCustody'.$j.'FirstName'] = 'Elternvertreter&nbsp;'.$j.' - Vorname';
-            $headers['DivisionCustody'.$j.'Name'] = 'Elternvertreter&nbsp;'.$j.' - Nachname';
+            $headers['DivisionCourseCustody'.$j.'FirstName'] = 'Elternvertreter&nbsp;'.$j.' - Vorname';
+            $headers['DivisionCourseCustody'.$j.'Name'] = 'Elternvertreter&nbsp;'.$j.' - Nachname';
         }
-
         foreach($TableContent as &$contentItem) {
             foreach ($headers as $key => $header) {
                 if (!isset($contentItem[$key])) {
@@ -4136,7 +4139,6 @@ class Service extends Extension
                 }
             }
         }
-
         return array($TableContent, $headers);
     }
 
@@ -4152,14 +4154,12 @@ class Service extends Extension
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-
             $row = 0;
             $column = 0;
             foreach ($headers as $header) {
                 $export->setValue($export->getCell($column++, $row), str_replace('&nbsp;', ' ', $header));
             }
             $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
-
             foreach ($content as $item) {
                 $row++;
                 $column = 0;
@@ -4170,12 +4170,9 @@ class Service extends Extension
                     $column++;
                 }
             }
-
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
-
             return $fileLocation;
         }
-
         return false;
     }
 }

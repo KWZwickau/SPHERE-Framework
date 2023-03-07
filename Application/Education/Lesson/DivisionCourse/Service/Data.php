@@ -230,27 +230,6 @@ class Data extends DataTeacher
     }
 
     /**
-     * @param string|null $TypeIdentifier
-     *
-     * @return false|TblDivisionCourse[]
-     */
-    public function getDivisionCourseReportingAll(?string $TypeIdentifier = '', $isReporting = true)
-    {
-        if ($TypeIdentifier && ($tblType = $this->getDivisionCourseTypeByIdentifier($TypeIdentifier))) {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse',
-                array(
-                    TblDivisionCourse::ATTR_TBL_TYPE => $tblType->getId(),
-                    TblDivisionCourse::ATTR_IS_REPORTING => $isReporting
-                ));
-        } else {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse',
-                array(
-                    TblDivisionCourse::ATTR_IS_REPORTING => $isReporting
-                ));
-        }
-    }
-
-    /**
      * @param TblYear|null $tblYear
      * @param string|null $TypeIdentifier
      *
