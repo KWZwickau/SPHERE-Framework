@@ -1155,10 +1155,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param string|null $YearId
      * @return Stage
      */
-    public function frontendClassTeacher(?string $YearId = null): Stage
+    public function frontendClassTeacher(): Stage
     {
 
         $Stage = new Stage('Auswertung', 'Klassenlehrer');
