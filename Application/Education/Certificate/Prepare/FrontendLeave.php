@@ -256,19 +256,13 @@ class FrontendLeave extends Extension implements IFrontendInterface
             }
 
             if ($tblCertificate && $tblCertificate->getCertificate() == 'GymAbgSekII') {
-                // todo
-                $layoutGroups = $this->setLeaveContentForSekTwo(
-                    $tblCertificate,
-                    $tblLeaveStudent ? $tblLeaveStudent : null,
-                    $tblDivision ? $tblDivision : null,
-                    $tblPerson ? $tblPerson : null,
+                $layoutGroups = Prepare::useFrontend()->setLeaveContentForSekTwo(
+                    $tblPerson,
+                    $tblYear,
                     $stage,
-                    $tblType ? $tblType : null,
-                    $tblCourse ? $tblCourse : null
-                );
-
-                $stage->setContent(
-                    new Layout($layoutGroups)
+                    $tblCertificate,
+                    $tblLeaveStudent ?: null,
+                    $tblType ?: null
                 );
             } elseif ($tblCertificate
                 && ($tblCertificate->getCertificate() == 'BfsAbg' || $tblCertificate->getCertificate() == 'FsAbg')
@@ -284,10 +278,6 @@ class FrontendLeave extends Extension implements IFrontendInterface
                     $tblType ?: null,
                     $tblCertificate->getCertificate() == 'BfsAbg'
                 );
-
-                $stage->setContent(
-                    new Layout($layoutGroups)
-                );
             } else {
                 $layoutGroups = $this->setLeaveContentForSekOne(
                     $tblPerson,
@@ -300,11 +290,11 @@ class FrontendLeave extends Extension implements IFrontendInterface
                     $tblType ?: null,
                     $tblCourse ?: null
                 );
-
-                $stage->setContent(
-                    new Layout($layoutGroups)
-                );
             }
+
+            $stage->setContent(
+                new Layout($layoutGroups)
+            );
 
             return $stage;
         } else {

@@ -51,7 +51,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
-abstract class FrontendTechnicalSchool extends FrontendSetting
+abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwo
 {
     private array $subjectList = array();
     private array $selectListGrades = array();

@@ -15,7 +15,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -30,11 +30,10 @@ use SPHERE\Common\Frontend\Text\Repository\Sup;
  */
 class GymAbgSekII extends Certificate
 {
-
     /**
      * @return array
      */
-    public static function getLeaveTerms()
+    public static function getLeaveTerms(): array
     {
         return array(
             1 => "während des Kurshalbjahres",
@@ -45,7 +44,7 @@ class GymAbgSekII extends Certificate
     /**
      * @return array
      */
-    public static function getMidTerms()
+    public static function getMidTerms(): array
     {
         return array(
             1 => '11/1',
@@ -65,9 +64,8 @@ class GymAbgSekII extends Certificate
      *
      * @return Page[]
      */
-    public function buildPages(TblPerson $tblPerson = null)
+    public function buildPages(TblPerson $tblPerson = null): array
     {
-
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $pageList[] = (new Page());
@@ -103,11 +101,11 @@ class GymAbgSekII extends Certificate
         $leaveTermWidth = '58%';
         $midTerm = '/';
 
-        // todo LeaveStudent
         if ($tblPerson
-            && ($tblDivision = $this->getTblStudentEducation())
-            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblDivision))
-        ){
+            && ($tblStudentEducation = $this->getTblStudentEducation())
+            && ($tblYear = $tblStudentEducation->getServiceTblYear())
+            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblYear))
+        ) {
             if (($leaveTermInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'LeaveTerm'))) {
                 $leaveTerm = $leaveTermInformation->getValue();
                 $leaveTermWidth = '50%';
@@ -694,10 +692,10 @@ class GymAbgSekII extends Certificate
 
         $subjectName .= $postFix;
 
-        // todo LeaveStudent
         if ($tblPerson
-            && ($tblDivision = $this->getTblStudentEducation())
-            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblDivision))
+            && ($tblStudentEducation = $this->getTblStudentEducation())
+            && ($tblYear = $tblStudentEducation->getServiceTblYear())
+            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblYear))
             && $tblSubject
         ) {
             for ($level = 11; $level < 13; $level++) {
@@ -966,32 +964,20 @@ class GymAbgSekII extends Certificate
      */
     private function setCourses(TblPerson $tblPerson = null)
     {
-
-        // todo SEKII Course
         $advancedCourses = array();
-        if ($tblPerson && ($tblDivision = $this->getTblStudentEducation())
-            && ($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))
+        if ($tblPerson
+            && ($tblStudentEducation = $this->getTblStudentEducation())
+            && ($tblYear = $tblStudentEducation->getServiceTblYear())
+            && ($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, true))
         ) {
-            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
-                if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())) {
-
-                    if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject(
-                        $tblDivisionSubjectItem))
-                    ) {
-                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                            if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
-                                && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
-                                && $tblPerson->getId() == $tblPersonStudent->getId()
-                            ) {
-                                if ($tblSubjectGroup->isAdvancedCourse()) {
-                                    if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
-                                        $advancedCourses[0] = $tblSubject->getName();
-                                    } else {
-                                        $advancedCourses[1] = $tblSubject->getName();
-                                    }
-                                }
-                            }
-                        }
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                    && $tblStudentSubject->getIsAdvancedCourse()
+                ) {
+                    if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
+                        $advancedCourses[0] = $tblSubject->getName();
+                    } else {
+                        $advancedCourses[1] = $tblSubject->getName();
                     }
                 }
             }

@@ -224,4 +224,13 @@ class TblStudentSubject extends Element
     {
         return ($tblSubject = $this->getServiceTblSubject()) ? $tblSubject->getAcronym() : '';
     }
+
+    /**
+     * @return bool
+     */
+    public function getIsAdvancedCourse(): bool
+    {
+        return ($tblDivisionCourse = $this->getTblDivisionCourse())
+            && ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE);
+    }
 }

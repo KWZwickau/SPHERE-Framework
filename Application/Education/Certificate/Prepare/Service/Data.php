@@ -11,6 +11,7 @@ namespace SPHERE\Application\Education\Certificate\Prepare\Service;
 use DateTime;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
@@ -1518,5 +1519,35 @@ class Data extends DataLeave
         Protocol::useService()->flushBulkEntries();
 
         return true;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblCertificateType $tblCertificateType
+     *
+     * @return TblPrepareStudent[]|false
+     */
+    public function getPrepareStudentListByPersonAndCertificateType(TblPerson $tblPerson, TblCertificateType $tblCertificateType)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('ps')
+            ->from(TblPrepareStudent::class, 'ps')
+            ->leftJoin(TblPrepareCertificate::class, 'pc', 'WITH', 'ps.tblPrepareCertificate = pc.Id')
+            ->leftJoin(TblGenerateCertificate::class, 'gc', 'WITH', 'pc.serviceTblGenerateCertificate = gc.Id')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('ps.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('gc.serviceTblCertificateType', '?2')
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblCertificateType->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 }

@@ -342,8 +342,21 @@ class Service extends ServiceTeacher
      */
     public function getIsCourseSystemByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear): bool
     {
-        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
-            && ($level = $tblStudentEducation->getLevel())
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+            return $this->getIsCourseSystemByStudentEducation($tblStudentEducation);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblStudentEducation $tblStudentEducation
+     *
+     * @return bool
+     */
+    public function getIsCourseSystemByStudentEducation(TblStudentEducation $tblStudentEducation): bool
+    {
+        if (($level = $tblStudentEducation->getLevel())
             && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
         ) {
             return $this->getIsCourseSystemBySchoolTypeAndLevel($tblSchoolType, $level);

@@ -104,6 +104,14 @@ class TblGenerateCertificate extends Element
     }
 
     /**
+     * @return ?DateTime
+     */
+    public function getDateTime(): ?DateTime
+    {
+        return $this->Date;
+    }
+
+    /**
      * @param null|DateTime $Date
      */
     public function setDate(DateTime $Date = null)

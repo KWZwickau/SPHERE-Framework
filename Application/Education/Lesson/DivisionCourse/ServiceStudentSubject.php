@@ -16,9 +16,8 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\System\Database\Binding\AbstractService;
 
-abstract class ServiceStudentSubject extends AbstractService
+abstract class ServiceStudentSubject extends ServiceCourseSystem
 {
     /**
      * @param TblPerson $tblPerson
