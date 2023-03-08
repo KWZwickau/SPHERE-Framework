@@ -10,7 +10,6 @@ namespace SPHERE\Application\Education\Certificate\Approve;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -99,28 +98,25 @@ class Frontend extends Extension implements IFrontendInterface
 
         $content = false;
         $prepareList = array();
-        if (($tblLeaveStudentAll = Prepare::useService()->getLeaveStudentAll())) {
-            $leaveStudentDivisionList = array();
-            foreach ($tblLeaveStudentAll as $tblLeaveStudent) {
-                if (($tblDivisionCourse = $tblLeaveStudent->getServiceTblDivision())
-                    && (($tblYearDivision = $tblDivisionCourse->getServiceTblYear()))
-                ) {
-                    if ($IsAllYears) {
-                        // bei allen Schuljahren alle Abgangszeugnisse anzeigen
-                    } elseif ($tblYear && $tblYear->getId() != $tblYearDivision->getId()) {
-                        continue;
-                    } elseif($tblYearList){
-                        $keepEntry = false;
-                        foreach($tblYearList as $tblYearTemp){
-                            if($tblYearTemp->getId() == $tblYearDivision->getId()) {
-                                $keepEntry = true;
-                            }
-                        }
-                        if(!$keepEntry){
-                            continue;
-                        }
-                    }
+        $tblLeaveStudentList = array();
+        if ($IsAllYears) {
+            $tblLeaveStudentList = Prepare::useService()->getLeaveStudentAll();
+        } elseif ($tblYear) {
+            $tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByYear($tblYear);
+        } elseif ($tblYearList) {
+            foreach ($tblYearList as $tblYearTemp) {
+                if (($tempList = Prepare::useService()->getLeaveStudentAllByYear($tblYearTemp))) {
+                    $tblLeaveStudentList = array_merge($tblLeaveStudentList, $tempList);
+                }
+            }
+        }
 
+        if ($tblLeaveStudentList) {
+            $leaveStudentDivisionList = array();
+            foreach ($tblLeaveStudentList as $tblLeaveStudent) {
+                if (($tblYearLeave = $tblLeaveStudent->getServiceTblYear())
+                    && ($tblDivisionCourse = $tblLeaveStudent->getTblDivisionCourse())
+                ) {
                     if (($tblLeaveInformationCertificateDate = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'CertificateDate'))) {
                         $date = $tblLeaveInformationCertificateDate->getValue();
                     } else {
@@ -137,7 +133,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     } else {
                         $leaveStudentDivisionList[$tblDivisionCourse->getId()] = array(
-                            'Year' => $tblYearDivision->getDisplayName(),
+                            'Year' => $tblYearLeave->getDisplayName(),
                             'Date' => $date,
                             'CountTotalCertificates' => 1,
                             'CountApprovedCertificates' => $tblLeaveStudent->isApproved() ? 1 : 0,
@@ -536,9 +532,12 @@ class Frontend extends Extension implements IFrontendInterface
                 );
 
                 $studentTable = array();
-                if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByDivision($tblDivisionCourse))) {
+                if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByYear($tblYear))) {
                     foreach ($tblLeaveStudentList as $tblLeaveStudent) {
-                        if (($tblPerson = $tblLeaveStudent->getServiceTblPerson())) {
+                        if (($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+                            && ($tblDivisionCourseLeave = $tblLeaveStudent->getTblDivisionCourse())
+                            && $tblDivisionCourseLeave->getId() == $tblDivisionCourse->getId()
+                        ) {
                             $courseName = '';
                             // Bildungsgang
                             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
@@ -906,7 +905,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($IsLeave) {
             if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($LeaveStudentId))
                 && $tblLeaveStudent->getServiceTblPerson()
-                && ($tblDivisionCourse = $tblLeaveStudent->getServiceTblDivision())
+                && ($tblDivisionCourse = $tblLeaveStudent->getTblDivisionCourse())
             ) {
                 Prepare::useService()->updateLeaveStudent($tblLeaveStudent, true, $tblLeaveStudent->isPrinted());
 
@@ -1009,7 +1008,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Zeugnis', 'Freigabe entfernen');
         if ($IsLeave) {
             if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($LeaveStudentId))
-                && ($tblDivisionCourse = $tblLeaveStudent->getServiceTblDivision())
+                && ($tblDivisionCourse = $tblLeaveStudent->getTblDivisionCourse())
             ) {
                 Prepare::useService()->updateLeaveStudent($tblLeaveStudent, false, false);
 
@@ -1106,13 +1105,18 @@ class Frontend extends Extension implements IFrontendInterface
         string $Route = '/Education/Certificate/Approve/Prepare',
         $IsAllYears = null
     ): string {
-        $Stage = new Stage('Zeugnisse freigeben', 'Klasse freigeben');
+        $Stage = new Stage('Zeugnisse freigeben', 'Kurs freigeben');
 
         if ($IsLeave) {
-            if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId))) {
-                if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByDivision($tblDivisionCourse))) {
+            if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId))
+                && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            ) {
+                if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByYear($tblYear))) {
                     foreach ($tblLeaveStudentList as $tblLeaveStudent) {
-                        if (!$tblLeaveStudent->isApproved()) {
+                        if (($tblDivisionCourseLeave = $tblLeaveStudent->getTblDivisionCourse())
+                            && ($tblDivisionCourseLeave->getId() == $tblDivisionCourse->getId())
+                            && !$tblLeaveStudent->isApproved()
+                        ) {
                             Prepare::useService()->updateLeaveStudent($tblLeaveStudent, true, $tblLeaveStudent->isPrinted());
                         }
                     }
@@ -1193,13 +1197,18 @@ class Frontend extends Extension implements IFrontendInterface
         string $Route = '/Education/Certificate/Approve/Prepare',
         $IsAllYears = null
     ): string {
-        $Stage = new Stage('Zeugnisse freigeben', 'Klassen Freigabe entfernen');
+        $Stage = new Stage('Zeugnisse freigeben', 'Kurs Freigabe entfernen');
 
         if ($IsLeave) {
-            if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId))) {
-                if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByDivision($tblDivisionCourse))) {
+            if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId))
+                && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            ) {
+                if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByYear($tblYear))) {
                     foreach ($tblLeaveStudentList as $tblLeaveStudent) {
-                        if ($tblLeaveStudent->isApproved()) {
+                        if (($tblDivisionCourseLeave = $tblLeaveStudent->getTblDivisionCourse())
+                            && ($tblDivisionCourseLeave->getId() == $tblDivisionCourse->getId())
+                            && $tblLeaveStudent->isApproved()
+                        ) {
                             Prepare::useService()->updateLeaveStudent($tblLeaveStudent, false, false);
                         }
                     }

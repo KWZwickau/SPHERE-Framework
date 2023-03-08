@@ -68,6 +68,20 @@ abstract class DataLeave extends AbstractData
     }
 
     /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblLeaveStudent[]
+     */
+    public function getLeaveStudentAllByYear(TblYear $tblYear)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent',
+            array(
+                TblLeaveStudent::ATTR_SERVICE_TBL_YEAR => $tblYear->getId()
+            )
+        );
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblCertificate $tblCertificate

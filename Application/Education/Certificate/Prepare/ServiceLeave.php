@@ -49,7 +49,6 @@ abstract class ServiceLeave extends AbstractService
      */
     public  function getLeaveStudentBy(TblPerson $tblPerson, TblYear $tblYear)
     {
-        // todo find usage
         return (new Data($this->getBinding()))->getLeaveStudentBy($tblPerson, $tblYear);
     }
 
@@ -70,6 +69,16 @@ abstract class ServiceLeave extends AbstractService
     public function getLeaveStudentAllBy(bool $IsApproved = false, bool $IsPrinted = false)
     {
         return (new Data($this->getBinding()))->getLeaveStudentAllBy($IsApproved, $IsPrinted);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return false|TblLeaveStudent[]
+     */
+    public function getLeaveStudentAllByYear(TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getLeaveStudentAllByYear($tblYear);
     }
 
     /**
@@ -658,5 +667,37 @@ abstract class ServiceLeave extends AbstractService
         } else {
             return '&ndash;';
         }
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     *
+     * @return array
+     */
+    public function getLeaveCertificateContent(TblLeaveStudent $tblLeaveStudent): array
+    {
+        $Content = array();
+        if (($tblPerson = $tblLeaveStudent->getServiceTblPerson())) {
+            $Content = $this->createCertificateContent(null, $tblLeaveStudent, $tblPerson, $Content);
+        }
+
+        return $Content;
+    }
+
+    /**
+     * @param array $leaveList
+     *
+     * @return array
+     */
+    public function getCertificateMultiLeaveContent(array $leaveList): array
+    {
+        $Content = array();
+        foreach ($leaveList as $tblLeaveStudent) {
+            if (($tblPerson = $tblLeaveStudent->getServiceTblPerson())) {
+                $Content = $this->createCertificateContent(null, $tblLeaveStudent, $tblPerson, $Content);
+            }
+        }
+
+        return $Content;
     }
 }

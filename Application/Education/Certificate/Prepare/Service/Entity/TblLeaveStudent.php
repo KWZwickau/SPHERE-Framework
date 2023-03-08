@@ -16,6 +16,8 @@ use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
@@ -176,5 +178,24 @@ class TblLeaveStudent extends Element
     public function setPrinted(bool $IsPrinted)
     {
         $this->IsPrinted = $IsPrinted;
+    }
+
+    /**
+     * @return false|TblDivisionCourse
+     */
+    public function getTblDivisionCourse()
+    {
+        if (($tblPerson = $this->getServiceTblPerson())
+            && ($tblYear = $this->getServiceTblYear())
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+        ) {
+            if ($tblStudentEducation->getTblDivision()) {
+                return $tblStudentEducation->getTblDivision();
+            } elseif ($tblStudentEducation->getTblCoreGroup()) {
+                return $tblStudentEducation->getTblCoreGroup();
+            }
+        }
+
+        return false;
     }
 }

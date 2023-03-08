@@ -610,7 +610,7 @@ class Service extends ServiceLeave
      * @param array $Content
      * @return array
      */
-    private function createCertificateContent(
+    public function createCertificateContent(
         TblPrepareCertificate $tblPrepare = null,
         TblLeaveStudent $tblLeaveStudent = null,
         TblPerson $tblPerson,
@@ -1746,25 +1746,6 @@ class Service extends ServiceLeave
     }
 
     /**
-     * @param TblDivision $tblDivision
-     *
-     * @return array
-     */
-    public function getCertificateMultiLeaveContent(TblDivision $tblDivision) {
-        $Content = array();
-
-        if (($tblLeaveStudentList = $this->getLeaveStudentAllByDivision($tblDivision))) {
-            foreach ($tblLeaveStudentList as $tblLeaveStudent) {
-                if (($tblPerson = $tblLeaveStudent->getServiceTblPerson())) {
-                    $Content = $this->createCertificateContent(null, $tblLeaveStudent, $tblPerson, $Content);
-                }
-            }
-        }
-
-        return $Content;
-    }
-
-    /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      *
@@ -1778,15 +1759,6 @@ class Service extends ServiceLeave
             && ($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))
         ) {
             $Content = $this->createCertificateContent($tblPrepare, null, $tblPerson, $Content);
-        }
-
-        return $Content;
-    }
-
-    public function getLeaveCertificateContent(TblLeaveStudent $tblLeaveStudent) {
-        $Content = array();
-        if (($tblPerson = $tblLeaveStudent->getServiceTblPerson())) {
-            $Content = $this->createCertificateContent(null, $tblLeaveStudent, $tblPerson, $Content);
         }
 
         return $Content;
