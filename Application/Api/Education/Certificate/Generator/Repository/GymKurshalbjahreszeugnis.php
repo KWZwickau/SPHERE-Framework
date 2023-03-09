@@ -14,14 +14,13 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 class GymKurshalbjahreszeugnis extends Certificate
 {
-
     /**
      * @var array|false
      */
@@ -31,6 +30,36 @@ class GymKurshalbjahreszeugnis extends Certificate
      * @var array|false
      */
     private $BasicCourses = false;
+
+    /**
+     * @return false|TblSubject
+     */
+    protected function getFirstAdvancedCourse()
+    {
+        foreach ($this->AdvancedCourses as $tblSubject) {
+            $name = $tblSubject->getName();
+            if ($name == 'Deutsch' || $name == 'Mathematik') {
+                return $tblSubject;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return false|TblSubject
+     */
+    protected function getSecondAdvancedCourse()
+    {
+        foreach ($this->AdvancedCourses as $tblSubject) {
+            $name = $tblSubject->getName();
+            if ($name != 'Deutsch' && $name != 'Mathematik') {
+                return $tblSubject;
+            }
+        }
+
+        return false;
+    }
 
     /**
      * @param TblPerson|null $tblPerson
@@ -168,45 +197,7 @@ class GymKurshalbjahreszeugnis extends Certificate
      */
     private function setCourses(TblPerson $tblPerson = null)
     {
-        // todo SEKII-Kurse
-        $advancedCourses = array();
-        $basicCourses = array();
-        if ($tblPerson && ($tblDivision = $this->getTblStudentEducation())
-            && ($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))
-        ) {
-            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
-                if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())) {
-
-                    if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject(
-                        $tblDivisionSubjectItem))
-                    ) {
-                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                            if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
-                                && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
-                                && $tblPerson->getId() == $tblPersonStudent->getId()
-                            ) {
-                                if ($tblSubjectGroup->isAdvancedCourse()) {
-                                    if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
-                                        $advancedCourses[0] = $tblSubject->getAcronym();
-                                    } else {
-                                        $advancedCourses[1] = $tblSubject->getAcronym();
-                                    }
-                                } else {
-                                    $basicCourses[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!empty($advancedCourses)) {
-            $this->AdvancedCourses = $advancedCourses;
-        }
-        if (!empty($basicCourses)) {
-            $this->BasicCourses = $basicCourses;
-        }
+        list($this->AdvancedCourses, $this->BasicCourses) = DivisionCourse::useService()->getCoursesForStudent($tblPerson);
     }
 
     private function getAdvancedCourses(TblPerson $tblPerson = null, $IsGradeUnderlined = true)
@@ -216,9 +207,7 @@ class GymKurshalbjahreszeugnis extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $section = new Section();
-        if ($this->AdvancedCourses && isset($this->AdvancedCourses[0])
-            && ($tblSubject = Subject::useService()->getSubjectByAcronym($this->AdvancedCourses[0]))
-        ) {
+        if (($tblSubject = $this->getFirstAdvancedCourse())) {
             $this->setCourseSubject($tblSubject, $section, true, $IsGradeUnderlined, $personId);
         } else {
             $this->setCourseSubject(null, $section, true, $IsGradeUnderlined, $personId);
@@ -231,9 +220,7 @@ class GymKurshalbjahreszeugnis extends Certificate
         $slice->addSection($section);
 
         $section = new Section();
-        if ($this->AdvancedCourses && isset($this->AdvancedCourses[1])
-            && ($tblSubject = Subject::useService()->getSubjectByAcronym($this->AdvancedCourses[1]))
-        ) {
+        if (($tblSubject = $this->getSecondAdvancedCourse())) {
             $this->setCourseSubject($tblSubject, $section, true, $IsGradeUnderlined, $personId);
         } else {
             $this->setCourseSubject(null, $section, true, $IsGradeUnderlined, $personId);
@@ -268,7 +255,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                 if ($tblSubject) {
                     $isAddSubject = false;
                     // Student has basicCourse? => Add Subject to Certificate
-                    if (isset($this->BasicCourses[$tblSubject->getAcronym()])) {
+                    if (isset($this->BasicCourses[$tblSubject->getId()])) {
                         $isAddSubject = true;
                     } else {
                         // Grade Missing, But Subject Essential => Add Subject to Certificate
@@ -318,9 +305,7 @@ class GymKurshalbjahreszeugnis extends Certificate
 
             foreach ($SubjectList as $Lane => $Subject) {
                 if (($tblSubject = Subject::useService()->getSubjectByAcronym($Subject['SubjectAcronym']))) {
-                    if (isset($this->AdvancedCourses[0]) && $this->AdvancedCourses[0] == $tblSubject->getAcronym()) {
-                        $isAdvancedCourse = true;
-                    } elseif (isset($this->AdvancedCourses[1]) && $this->AdvancedCourses[1] == $tblSubject->getAcronym()) {
+                    if (isset($this->AdvancedCourses[$tblSubject->getId()])) {
                         $isAdvancedCourse = true;
                     } else {
                         $isAdvancedCourse = false;

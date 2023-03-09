@@ -73,7 +73,14 @@ abstract class AbstractBlock extends Extension
      */
     protected function getFirstAdvancedCourse()
     {
-        return $this->AdvancedCourses[0] ?? false;
+        foreach ($this->AdvancedCourses as $tblSubject) {
+            $name = $tblSubject->getName();
+            if ($name == 'Deutsch' || $name == 'Mathematik') {
+                return $tblSubject;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -81,6 +88,13 @@ abstract class AbstractBlock extends Extension
      */
     protected function getSecondAdvancedCourse()
     {
-        return $this->AdvancedCourses[1] ?? false;
+        foreach ($this->AdvancedCourses as $tblSubject) {
+            $name = $tblSubject->getName();
+            if ($name != 'Deutsch' && $name != 'Mathematik') {
+                return $tblSubject;
+            }
+        }
+
+        return false;
     }
 }

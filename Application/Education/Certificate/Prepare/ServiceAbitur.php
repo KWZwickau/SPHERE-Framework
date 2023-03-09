@@ -79,8 +79,11 @@ abstract class ServiceAbitur extends AbstractService
             $tblPrepare,
             $tblPerson
         ))) {
-            /** @noinspection PhpUnusedLocalVariableInspection */
-            list($advancedCourses, $basicCourses) = DivisionCourse::useService()->getCoursesForStudent($tblPerson);
+            if (($tblYear = $tblPrepare->getYear())) {
+                $advancedCourses = DivisionCourse::useService()->getAdvancedCoursesForStudent($tblPerson, $tblYear);
+            } else {
+                $advancedCourses = array();
+            }
 
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                 $identifier = $tblPrepareAdditionalGrade->getTblPrepareAdditionalGradeType()->getIdentifier();

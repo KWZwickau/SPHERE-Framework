@@ -937,18 +937,13 @@ class GymAbitur extends Certificate
         }
 
         // Leistungskurse markieren
-        if (isset($this->AdvancedCourses[0])) {
-            /** @var TblSubject $advancedSubject1 */
-            $advancedSubject1 = $this->AdvancedCourses[0];
-            if ($advancedSubject1->getName() == $subjectName) {
-                $isAdvancedSubject = true;
-            }
-        }
-        if (isset($this->AdvancedCourses[1])) {
-            /** @var TblSubject $advancedSubject2 */
-            $advancedSubject2 = $this->AdvancedCourses[1];
-            if ($advancedSubject2->getName() == $subjectName) {
-                $isAdvancedSubject = true;
+        if ($this->AdvancedCourses) {
+            /** @var TblSubject $tblSubjectAdvanced */
+            foreach ($this->AdvancedCourses as $tblSubjectAdvanced) {
+                if ($tblSubjectAdvanced->getName() == $subjectName) {
+                    $isAdvancedSubject = true;
+                    break;
+                }
             }
         }
 

@@ -32,11 +32,7 @@ abstract class ServiceCourseSystem extends AbstractService
                             }
                             if ($tblSubject) {
                                 if ($tblStudentSubject->getIsAdvancedCourse()) {
-                                    if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
-                                        $advancedCourses[0] = $tblSubject;
-                                    } else {
-                                        $advancedCourses[1] = $tblSubject;
-                                    }
+                                    $advancedCourses[$tblSubject->getId()] = $tblSubject;
                                 } else {
                                     $basicCourses[$tblSubject->getId()] = $tblSubject;
                                 }
@@ -45,10 +41,6 @@ abstract class ServiceCourseSystem extends AbstractService
                     }
                 }
             }
-        }
-
-        if (!empty($advancedCourses)) {
-            ksort($advancedCourses);
         }
 
         return array($advancedCourses, $basicCourses);
@@ -68,17 +60,9 @@ abstract class ServiceCourseSystem extends AbstractService
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
                     && $tblStudentSubject->getIsAdvancedCourse()
                 ) {
-                    if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
-                        $advancedCourses[0] = $tblSubject;
-                    } else {
-                        $advancedCourses[1] = $tblSubject;
-                    }
+                    $advancedCourses[$tblSubject->getId()] = $tblSubject;
                 }
             }
-        }
-
-        if (!empty($advancedCourses)) {
-            ksort($advancedCourses);
         }
 
         return $advancedCourses;
