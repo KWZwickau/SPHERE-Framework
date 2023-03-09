@@ -5,6 +5,7 @@ use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Certificate\Reporting\View;
+use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
@@ -506,9 +507,10 @@ class Person
         }
 
         if ($tblPersonList
-            && ($DataList = ReportingPerson::useService()->createAbsenceContentList($tblPersonList, $tblDivision ?: null))
+            && $tblDivision
+            && ($dataList = Absence::useService()->getAbsenceForExcelDownload($tblDivision))
         ) {
-            $fileLocation = ReportingPerson::useService()->createAbsenceMonthlyContentExcel($DataList);
+            $fileLocation = ReportingPerson::useService()->createAbsenceContentExcelMonthly($tblPersonList, $dataList);
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();

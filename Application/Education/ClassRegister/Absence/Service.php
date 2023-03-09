@@ -721,7 +721,6 @@ class Service extends AbstractService
                 if(($tblPeriodList = $tblYear->getTblPeriodAll())){
                     foreach($tblPeriodList as $tblPeriod){
                         if(!$StartDate || $StartDate > new DateTime($tblPeriod->getFromDate())){
-                            #Debugger::screenDump($StartDate.' > '.$tblPeriod->getFromDate());
                             $StartDate = new DateTime($tblPeriod->getFromDate());
                         }
                     }
@@ -743,15 +742,15 @@ class Service extends AbstractService
                 }
             }
         }
-        foreach($DateList as $Month => $periodOfTime) {
+        foreach ($DateList as $Month => $periodOfTime) {
             $tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByDivision($periodOfTime['Start'], $periodOfTime['End'], $tblDivision);
-            if($tblAbsenceList){
-                foreach($tblAbsenceList as $tblAbsence){
+            if ($tblAbsenceList) {
+                foreach ($tblAbsenceList as $tblAbsence) {
                     $tblPerson = $tblAbsence->getServiceTblPerson();
                     $fromDate = $tblAbsence->getFromDate('d');
                     $toDate = $tblAbsence->getToDate();
                     $MonthAbsenceList[$Month][$tblPerson->getId()][$fromDate] = $tblAbsence->getStatusDisplayShortName();
-                    if($toDate){
+                    if ($toDate) {
                         $startDate = new DateTime($tblAbsence->getFromDate());
                         $betweenDate = $tblAbsence->getDateSpan();
                         $endDate = new DateTime($tblAbsence->getToDate());
@@ -759,7 +758,7 @@ class Service extends AbstractService
                         $days = $diff->days;
                         $interval = \DateInterval::createFromDateString('1 day');
                         $fullEndDate = $endDate->modify(' + 1 day ');
-                        $dateRange = new \DatePeriod($startDate, $interval ,$endDate,);
+                        $dateRange = new \DatePeriod($startDate, $interval, $endDate,);
                         $dates = array();
                         foreach ($dateRange as $date) {
                             $dates[] = $date->format("Y-m-d");
@@ -770,7 +769,7 @@ class Service extends AbstractService
                             'days' => $days + 1,
                             'between' => $betweenDate,
                             'dates' => $dates
-                        );
+                        );Debugger::screenDump($absencePeriod);
                     } else {
                         $absencePeriod = null;
                     }
@@ -1186,5 +1185,65 @@ class Service extends AbstractService
     public function hasPersonAbsenceLessons(TblPerson $tblPerson, TblDivision $tblDivision, $Status)
     {
         return (new Data($this->getBinding()))->hasPersonAbsenceLessons($tblPerson, $tblDivision, $Status);
+    }
+
+    public function getAbsenceForExcelDownload(TblDivision $tblDivision): array
+    {
+        $data = array();
+        if (($tblYear = $tblDivision->getServiceTblYear())
+           && ($tblSchoolType = $tblDivision->getType())
+           && ($tblCompany = $tblDivision->getServiceTblCompany())
+        ) {
+            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if ($startDate && $endDate
+                && ($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByDivision($startDate, $endDate, $tblDivision))
+            ) {
+                $data = $this->setDataForExcel($tblAbsenceList); // todo übergeben $tblSchoolType und $tblCompany und tblYear
+            }
+        }
+        return $data;
+    }
+
+    private function setDataForExcel(array $tblAbsenceList)
+    {
+        $dataList = array();
+        $hasSaturdayLessons = Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType);
+        /** @var TblAbsence $tblAbsence */
+        foreach($tblAbsenceList as $tblAbsence) {
+            if (($tblPerson = $tblAbsence->getServiceTblPerson())) {
+                $fromDate = new DateTime($tblAbsence->getFromDate());
+                if ($tblAbsence->getToDate()) {
+                    $toDate = new DateTime($tblAbsence->getToDate());
+                    if ($toDate > $fromDate) {
+                        $date = $fromDate;
+                        while ($date <= $toDate) {
+                            $this->setData($dataList, $date, $tblPerson, $tblAbsence->getStatusDisplayShortName());
+                            $date = $date->modify('+1 day');
+                        }
+                    } elseif ($toDate == $fromDate) {
+                        $this->setData($dataList, $fromDate, $tblPerson, $tblAbsence->getStatusDisplayShortName());
+                    }
+                } else {
+                    $this->setData($dataList, $fromDate, $tblPerson, $tblAbsence->getStatusDisplayShortName());
+                }
+            }
+        }
+        return $dataList;
+    }
+
+    private function setData(array &$dataList, DateTime $dateTime, TblPerson $tblPerson, string $status) // todo Company übergeben, tblYear bool $hasSaturdayLessons
+    {
+        // todo prüfen ist Datum Wochenende oder Ferien
+        $DayAtWeek = $dateTime->format('w');
+
+        if ($hasSaturdayLessons) {
+            $isWeekend = $DayAtWeek == 0;
+        } else {
+            $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
+        }
+        $isHoliday = Term::useService()->getHolidayByDay($tblYear, $dateTime, $tblCompany);
+        if (!$isWeekend && !$isHoliday) {
+            $dataList[intval($dateTime->format('m'))][$tblPerson->getId()][$dateTime->format('d')] = $status;
+        }
     }
 }
