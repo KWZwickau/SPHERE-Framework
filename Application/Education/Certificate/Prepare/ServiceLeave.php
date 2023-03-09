@@ -27,9 +27,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Binding\AbstractService;
 
-abstract class ServiceLeave extends AbstractService
+abstract class ServiceLeave extends ServiceAbitur
 {
     /**
      * @param $Id
@@ -565,6 +564,10 @@ abstract class ServiceLeave extends AbstractService
                     && $tblTaskGrade->getGrade() !== ''
                     && $tblTaskGrade->getGrade() !== null
                 ) {
+                    if ($tblSubject->getAcronym() == 'EN2' && ($tblSubjectTemp = Subject::useService()->getSubjectByAcronym('EN'))) {
+                        $tblSubject = $tblSubjectTemp;
+                    }
+
                     if (($tblLeaveAdditionalGrade = Prepare::useService()->getLeaveAdditionalGradeBy(
                         $tblLeaveStudent,
                         $tblSubject,

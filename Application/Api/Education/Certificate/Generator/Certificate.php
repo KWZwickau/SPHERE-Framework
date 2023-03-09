@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -261,6 +262,14 @@ abstract class Certificate extends Extension
         } else {
             return $this->tblStudentEducation;
         }
+    }
+
+    /**
+     * @return false|TblYear
+     */
+    public function getYear()
+    {
+        return $this->getTblStudentEducation() ? $this->getTblStudentEducation()->getServiceTblYear() : false;
     }
 
     /**

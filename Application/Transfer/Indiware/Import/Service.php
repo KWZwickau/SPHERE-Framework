@@ -1038,7 +1038,7 @@ class Service extends AbstractService
 
                     if ($tblPerson && $tblPrepareStudent && $tblPrepare && $tblDivision) {
                         // Zensuren kopieren aus Zeugnissen und Stichtagsnotenauftrag
-                        $blockI = new BlockI($tblDivision, $tblPerson, $tblPrepare, BlockIView::PREVIEW);
+                        $blockI = new BlockI($tblPerson, $tblPrepare, BlockIView::PREVIEW);
 
                         // Fächer pro Schüler zuordnen
                         $studentSubjectList = array();

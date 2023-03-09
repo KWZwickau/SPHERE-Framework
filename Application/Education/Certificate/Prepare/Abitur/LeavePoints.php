@@ -40,7 +40,7 @@ class LeavePoints extends Extension
     /**
      * @var TblLeaveStudent|null
      */
-    protected $tblLeaveStudent = null;
+    protected ?TblLeaveStudent $tblLeaveStudent = null;
 
     /**
      * @var BlockIView
@@ -60,19 +60,19 @@ class LeavePoints extends Extension
     /**
      * @var TblSubject|null
      */
-    private $tblReligionSubject = null;
+    private ?TblSubject $tblReligionSubject = null;
 
-    private $count = 0;
+    private int $count = 0;
 
     /**
-     * @var TblPrepareStudent[]|array
+     * @var TblPrepareStudent[]
      */
-    private $tblPrepareStudentList = null;
+    private ?array $tblPrepareStudentList = null;
 
     /**
      * @var array
      */
-    protected $pointsList = array();
+    protected array $pointsList = array();
 
     protected function setPointList()
     {
@@ -85,7 +85,7 @@ class LeavePoints extends Extension
         $this->pointsList = $list;
     }
 
-    private $interactive = array(
+    private array $interactive = array(
         "paging" => false, // Deaktivieren Blättern
         "iDisplayLength" => -1,    // Alle Einträge zeigen
         "searching" => false, // Deaktivieren Suchen
@@ -100,7 +100,7 @@ class LeavePoints extends Extension
         'fixedHeader' => false
     );
 
-    private $columnDefinition = array(
+    private array $columnDefinition = array(
         'Subject' => 'Fach',
         'Course' => 'Kurs',
         '11-1' => '11/1',
@@ -206,28 +206,8 @@ class LeavePoints extends Extension
         // Zensuren von Kurshalbjahreszeugnissen
         if (($tblLeaveStudent = $this->tblLeaveStudent)
             && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
-            && ($tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('MID_TERM_COURSE'))
-            && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentListByPersonAndCertificateType($tblPerson, $tblCertificateType))
         ) {
-            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                if ($tblPrepareStudent->isApproved()
-                    && $tblPrepareStudent->isPrinted()
-                    && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
-                    && ($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
-                    && ($tblYear = $tblGenerateCertificate->getServiceTblYear())
-                    && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
-                ) {
-                    $midTerm = '-1';
-                    $month = $tblGenerateCertificate->getDateTime() ? intval($tblGenerateCertificate->getDateTime()->format('m')) : 0;
-                    if ($month > 3 && $month < 9) {
-                        $midTerm = '-2';
-                    }
-
-                    if (!isset($prepareStudentList[$tblStudentEducation->getLevel() . $midTerm])) {
-                        $prepareStudentList[$tblStudentEducation->getLevel() . $midTerm] = $tblPrepareStudent;
-                    }
-                }
-            }
+            $prepareStudentList = Prepare::useService()->getPrepareStudentListFromMidTermCertificatesByPerson($tblPerson);
         }
 
         $this->tblPrepareStudentList = $prepareStudentList;

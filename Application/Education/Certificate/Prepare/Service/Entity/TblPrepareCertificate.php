@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -175,5 +176,13 @@ class TblPrepareCertificate extends Element
     public function setIsPrepared(bool $IsPrepared) : void
     {
         $this->IsPrepared = $IsPrepared;
+    }
+
+    /**
+     * @return bool|TblYear
+     */
+    public function getYear()
+    {
+        return ($tblDivisionCourse = $this->getServiceTblDivision()) ? $tblDivisionCourse->getServiceTblYear() : false;
     }
 }

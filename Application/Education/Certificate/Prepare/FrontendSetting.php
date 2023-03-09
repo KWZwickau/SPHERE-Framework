@@ -964,7 +964,7 @@ abstract class FrontendSetting extends FrontendSelect
                 /*
                  * Sonstige Informationen der Zeugnisvorlage
                  */
-                $this->getTemplateInformation(
+                Prepare::useService()->getTemplateInformation(
                     $tblPrepare,
                     $tblPerson,
                     $studentTable,

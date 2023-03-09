@@ -14,8 +14,6 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCe
 use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -768,7 +766,7 @@ class Service extends AbstractService
      * @param TblCertificate $tblCertificate
      * @param TblStudentSubject $tblStudentSubject
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
+     * @param TblYear $tblYear
      *
      * @return string
      */
@@ -776,31 +774,16 @@ class Service extends AbstractService
         TblCertificate $tblCertificate,
         TblStudentSubject $tblStudentSubject,
         TblPerson $tblPerson,
-        TblDivision $tblDivision
+        TblYear $tblYear
     ): string {
         $reference = '';
         if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
             $identifier = 'ToLevel10';
             // bei z.B: EN2 kann in der Schülerakte trotzdem das normale EN eingestellt sein
             if (($tblSubjectList = Subject::useService()->getSubjectAllByName($tblSubject->getName()))) {
-                $foundSubject = false;
                 foreach ($tblSubjectList as $tblSubject) {
-                    if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
-                        $tblDivision, $tblSubject
-                    ))) {
-                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                            if (Division::useService()->exitsSubjectStudent($tblDivisionSubject,
-                                $tblPerson)
-                                && $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()
-                            ) {
-                                $identifier = $tblSubjectGroup->isAdvancedCourse() ? 'AfterAdvancedCourse' : 'AfterBasicCourse';
-                                $foundSubject = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if ($foundSubject) {
+                    if (($temp = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+                        $identifier = $temp->getIsAdvancedCourse() ? 'AfterAdvancedCourse' : 'AfterBasicCourse';
                         break;
                     }
                 }

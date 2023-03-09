@@ -310,7 +310,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                     ));
 
                     if (!$isDiploma) {
-                        Prepare::useFrontend()->getTemplateInformationForPreview($tblPrepare, $tblPerson, $studentTable, $columnTable);
+                        Prepare::useService()->getTemplateInformationForPreview($tblPrepare, $tblPerson, $studentTable, $columnTable);
                     }
 
                     // Noten vom Vorjahr ermitteln (abgeschlossene Fächer) und speichern

@@ -26,6 +26,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -1544,6 +1545,41 @@ class Data extends DataLeave
             )
             ->setParameter(1, $tblPerson->getId())
             ->setParameter(2, $tblCertificateType->getId())
+            ->orderBy('gc.Date', 'DESC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblCertificateType $tblCertificateType
+     * @param TblYear $tblYear
+     *
+     * @return TblPrepareStudent[]|false
+     */
+    public function getPrepareStudentListByPersonAndCertificateTypeAndYear(TblPerson $tblPerson, TblCertificateType $tblCertificateType, TblYear $tblYear)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('ps')
+            ->from(TblPrepareStudent::class, 'ps')
+            ->leftJoin(TblPrepareCertificate::class, 'pc', 'WITH', 'ps.tblPrepareCertificate = pc.Id')
+            ->leftJoin(TblGenerateCertificate::class, 'gc', 'WITH', 'pc.serviceTblGenerateCertificate = gc.Id')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('ps.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('gc.serviceTblCertificateType', '?2'),
+                    $queryBuilder->expr()->eq('gc.serviceTblYear', '?3')
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblCertificateType->getId())
+            ->setParameter(3, $tblYear->getId())
+            ->orderBy('gc.Date', 'DESC')
             ->getQuery();
 
         $resultList = $query->getResult();

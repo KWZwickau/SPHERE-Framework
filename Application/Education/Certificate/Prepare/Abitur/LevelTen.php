@@ -8,11 +8,11 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare\Abitur;
 
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -40,12 +40,10 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
  */
 class LevelTen extends AbstractBlock
 {
-
-    // todo Sind es alle Fächer, Profile?
     /**
      * @var array
      */
-    private $subjectList = array(
+    private array $subjectList = array(
         'DE' => 'Deutsch',
         'EN' => 'Englisch',
         '2FS' => '2. Fremdsprache',
@@ -65,7 +63,7 @@ class LevelTen extends AbstractBlock
         'INF' => 'Informatik'
     );
 
-    private $gradeTextList = array(
+    private array $gradeTextList = array(
         '1' => 'sehr gut',
         '2' => 'gut',
         '3' => 'befriedigend',
@@ -77,81 +75,72 @@ class LevelTen extends AbstractBlock
     /**
      * @var array
      */
-    protected $gradeList = array();
+    protected array $gradeList = array();
 
     /**
      * @var array|TblSubject[]
      */
-    private $availableSubjectList = array();
+    private array $availableSubjectList = array();
 
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     */
     public function __construct(
-        TblDivision $tblDivision,
         TblPerson $tblPerson,
         TblPrepareCertificate $tblPrepareCertificate
     ) {
-        $this->tblDivision = $tblDivision;
         $this->tblPerson = $tblPerson;
         $this->tblPrepareCertificate = $tblPrepareCertificate;
 
         $this->tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareCertificate, $tblPerson);
 
-        // todo automatische Ermittelung der abgewählten Pflichtfächer aus Klasse 10
-        // todo Sortierung?
         $this->setAvailableSubjects();
         $this->setGradeList();
 
         // Zensuren der Klasse 10 ermitteln
-        $tblPrepareStudentLevelTen = false;
-        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($this->tblPerson))) {
-            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                if (($tblDivision = $tblDivisionStudent->getTblDivision())
-                    && ($tblLevel = $tblDivision->getTblLevel())
-                    && ($tblLevel->getName() == '10')
-                    && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
+        $tblAppointedDateTaskLevelTen = false;
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if ($tblStudentEducation->getLevel() == 10
+                    && ($tblYear = $tblStudentEducation->getServiceTblYear())
+                    && ($tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('YEAR'))
+                    && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentListByPersonAndCertificateTypeAndYear($tblPerson, $tblCertificateType, $tblYear))
                 ) {
-                    foreach ($tblPrepareList as $tblPrepare) {
-                        if ($tblPrepare->getServiceTblGenerateCertificate()
-                            && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
-                            && ($tblCertificateType->getIdentifier() == 'YEAR')
-                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                $this->tblPerson))
-                            && $tblPrepareStudent->isApproved()
+                    foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                        if ($tblPrepareStudent->isApproved()
                             && $tblPrepareStudent->isPrinted()
+                            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                            && $tblPrepare->getServiceTblAppointedDateTask()
                         ) {
-                            $tblPrepareStudentLevelTen = $tblPrepareStudent;
+                            $tblAppointedDateTaskLevelTen = $tblPrepare->getServiceTblAppointedDateTask();
                             break;
                         }
                     }
 
-                    if ($tblPrepareStudentLevelTen) {
+                    if ($tblAppointedDateTaskLevelTen) {
                         break;
                     }
                 }
             }
         }
 
-        if ($tblPrepareStudentLevelTen
-            && $tblPrepareStudentLevelTen->getTblPrepareCertificate()
-            && $tblPrepareStudentLevelTen->getServiceTblPerson()
-            && $tblPrepareStudentLevelTen->getTblPrepareCertificate()->getServiceTblDivision()
-            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))
+        if ($tblAppointedDateTaskLevelTen
             && ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-10'))
         ) {
             $count = 1;
             foreach ($this->availableSubjectList as $tblSubject) {
-                if (($tblPrepareGradeLevelTen = Prepare::useService()->getPrepareGradeBySubject(
-                    $tblPrepareStudentLevelTen->getTblPrepareCertificate(),
-                    $tblPrepareStudentLevelTen->getServiceTblPerson(),
-                    $tblPrepareStudentLevelTen->getTblPrepareCertificate()->getServiceTblDivision(),
+                if (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject(
+                    $tblPerson,
+                    $tblAppointedDateTaskLevelTen,
                     $tblSubject,
-                    $tblTestType))
-                ) {
-                    if (($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
+                ))) {
+                    if (Prepare::useService()->getPrepareAdditionalGradeBy(
                         $tblPrepareCertificate,
                         $tblPerson,
                         $tblSubject,
                         $tblPrepareAdditionalGradeType
-                    ))) {
+                    )) {
                         // #SSW-132 Es sollen nicht immer alle Fächer ausgewiesen werden.
 //                        if ($tblPrepareAdditionalGrade->getGrade() !== $tblPrepareGradeLevelTen->getGrade()) {
 //                            Prepare::useService()->updatePrepareAdditionalGrade(
@@ -167,7 +156,7 @@ class LevelTen extends AbstractBlock
                             $tblSubject,
                             $tblPrepareAdditionalGradeType,
                             $count++,
-                            $tblPrepareGradeLevelTen->getGrade(),
+                            $tblTaskGrade->getGrade(),
                             false,
                             true
                         );
@@ -179,20 +168,18 @@ class LevelTen extends AbstractBlock
 
     /**
      * @param $Data
-     * @param $GroupId
      *
      * @return Layout
-     * @throws \Exception
      */
-    public function getContent($Data, $GroupId)
+    public function getContent($Data): Layout
     {
-
         if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-10'))
             && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
-            $this->tblPrepareCertificate,
-            $this->tblPerson,
-            $tblPrepareAdditionalGradeType
-        ))) {
+                $this->tblPrepareCertificate,
+                $this->tblPerson,
+                $tblPrepareAdditionalGradeType
+            ))
+        ) {
             $global = $this->getGlobal();
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                 if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
@@ -202,9 +189,9 @@ class LevelTen extends AbstractBlock
             $global->savePost();
         }
         if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
-            $this->tblPrepareCertificate,
-            $this->tblPerson,
-            'LevelTenGradesAreNotShown'
+                $this->tblPrepareCertificate,
+                $this->tblPerson,
+                'LevelTenGradesAreNotShown'
             ))
             && $tblPrepareInformation->getValue()
         ) {
@@ -212,7 +199,6 @@ class LevelTen extends AbstractBlock
             $global->POST['Data']['LevelTenGradesAreNotShown'] = 1;
             $global->savePost();
         }
-
 
         $dataList = $this->setData();
 
@@ -259,8 +245,12 @@ class LevelTen extends AbstractBlock
         ));
 
         if ($this->tblPrepareStudent && !$this->tblPrepareStudent->isApproved()) {
-            $content = new Well(Prepare::useService()->updateAbiturLevelTenGrades($form->appendFormButton(new Primary('Speichern', new Save())),
-                $this->tblPrepareCertificate, $this->tblPerson, $Data, $GroupId));
+            $content = new Well(Prepare::useService()->updateAbiturLevelTenGrades(
+                $form->appendFormButton(new Primary('Speichern', new Save())),
+                $this->tblPrepareCertificate,
+                $this->tblPerson,
+                $Data
+            ));
         } else {
             $content = $form;
         }
@@ -320,7 +310,7 @@ class LevelTen extends AbstractBlock
         $this->availableSubjectList = $list;
     }
 
-    private function setData()
+    private function setData(): array
     {
         $dataList = array();
         if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-10'))) {
@@ -357,7 +347,6 @@ class LevelTen extends AbstractBlock
 
     protected function setGradeList()
     {
-
         $list[-1] = '';
         for ($i = 1; $i < 7; $i++) {
             $list[$i] = (string)$i;

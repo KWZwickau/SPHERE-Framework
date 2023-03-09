@@ -56,7 +56,7 @@ class Creator extends Extension
                     if (class_exists($CertificateClass)) {
 
                         $tblDivision = $tblPrepare->getServiceTblDivision();
-                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                        /** @var Certificate $Certificate */
                         $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null, $tblPrepare, false);
 
                         // get Content
@@ -157,16 +157,16 @@ class Creator extends Extension
 
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
             && ($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblYear = $tblPrepare->getYear())
         ) {
 
             if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
                 if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
                     $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                     if (class_exists($CertificateClass)) {
-
-                        $tblDivision = $tblPrepare->getServiceTblDivision();
-                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                        $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null, $tblPrepare);
+                        $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+                        /** @var Certificate $Certificate */
+                        $Certificate = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare);
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
@@ -218,7 +218,7 @@ class Creator extends Extension
 
                 if (class_exists($CertificateClass)) {
                     $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
-                    /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                    /** @var Certificate $Certificate */
                     $Certificate = new $CertificateClass($tblStudentEducation ?: null);
 
                     // get Content
@@ -286,7 +286,7 @@ class Creator extends Extension
                         $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                         if (class_exists($CertificateClass)) {
 
-                            /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                            /** @var Certificate $Certificate */
                             $Certificate = new $CertificateClass($tblDivision, $tblPrepare);
 
                             // get Content
@@ -365,7 +365,7 @@ class Creator extends Extension
                         $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                         if (class_exists($CertificateClass)) {
 
-                            /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                            /** @var Certificate $Certificate */
                             $Certificate = new $CertificateClass($tblDivision, $tblPrepare, false);
 
                             // get Content
@@ -603,7 +603,7 @@ class Creator extends Extension
                                     . $tblCertificate->getCertificate();
                                 if (class_exists($CertificateClass)) {
 
-                                    /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                                    /** @var Certificate $Certificate */
                                     $Certificate = new $CertificateClass($tblDivision, $tblPrepare);
 
                                     // get Content
@@ -679,7 +679,7 @@ class Creator extends Extension
                     $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                     if (class_exists($CertificateClass)) {
                         $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
-                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                        /** @var Certificate $Certificate */
                         $Certificate = new $CertificateClass($tblStudentEducation ?: null);
 
                         // get Content
@@ -797,7 +797,7 @@ class Creator extends Extension
                                     $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                                     if (class_exists($CertificateClass)) {
 
-                                        /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                                        /** @var Certificate $Certificate */
                                         $Certificate = new $CertificateClass($tblDivision, $tblPrepare, false);
 
                                         // get Content
@@ -911,7 +911,7 @@ class Creator extends Extension
                         $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                         if (class_exists($CertificateClass)) {
                             $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
-                            /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                            /** @var Certificate $Certificate */
                             $Certificate = new $CertificateClass($tblStudentEducation ?: null, null, false);
 
                             // get Content

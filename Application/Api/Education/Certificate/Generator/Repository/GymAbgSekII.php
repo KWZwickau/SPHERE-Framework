@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -119,7 +120,12 @@ class GymAbgSekII extends Certificate
         if ($tblPerson) {
             $this->setCourses($tblPerson);
             if ($this->AdvancedCourses) {
-                $advancedSubjects = implode(', ', $this->AdvancedCourses);
+                $tempList = array();
+                /** @var TblSubject $tblSubject */
+                foreach ($this->AdvancedCourses as $tblSubject) {
+                    $tempList[] = $tblSubject->getName();
+                }
+                $advancedSubjects = implode(', ', $tempList);
             }
         }
 
@@ -964,28 +970,8 @@ class GymAbgSekII extends Certificate
      */
     private function setCourses(TblPerson $tblPerson = null)
     {
-        $advancedCourses = array();
-        if ($tblPerson
-            && ($tblStudentEducation = $this->getTblStudentEducation())
-            && ($tblYear = $tblStudentEducation->getServiceTblYear())
-            && ($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, true))
-        ) {
-            foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
-                    && $tblStudentSubject->getIsAdvancedCourse()
-                ) {
-                    if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
-                        $advancedCourses[0] = $tblSubject->getName();
-                    } else {
-                        $advancedCourses[1] = $tblSubject->getName();
-                    }
-                }
-            }
-        }
-
-        if (!empty($advancedCourses)) {
-            ksort($advancedCourses);
-            $this->AdvancedCourses = $advancedCourses;
+        if (($tblYear = $this->getYear())) {
+            $this->AdvancedCourses = DivisionCourse::useService()->getAdvancedCoursesForStudent($tblPerson, $tblYear);
         }
     }
 
