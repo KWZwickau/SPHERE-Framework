@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 12.07.2016
- * Time: 11:18
- */
-
 namespace SPHERE\Application\Education\Certificate\Prepare\Service;
 
 use DateTime;
@@ -39,7 +32,6 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class Data extends DataLeave
 {
-
     public function setupDatabaseContent()
     {
 
@@ -321,14 +313,13 @@ class Data extends DataLeave
     }
 
     /**
-     * @param bool|false $IsApproved
-     * @param bool|false $IsPrinted
+     * @param bool $IsApproved
+     * @param bool $IsPrinted
      *
      * @return false|TblPrepareStudent[]
      */
-    public function getPrepareStudentAllWhere($IsApproved = false, $IsPrinted = false)
+    public function getPrepareStudentAllWhere(bool $IsApproved = false, bool $IsPrinted = false)
     {
-
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
             array(
                 TblPrepareStudent::ATTR_IS_APPROVED => $IsApproved,

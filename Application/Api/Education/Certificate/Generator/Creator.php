@@ -516,14 +516,8 @@ class Creator extends Extension
                             $Document->setContent($Content);
                             $Document->saveFile(new FileParameter($File->getFileLocation()));
 
-                            // todo Revisionssicher speichern
-                            if (($tblDivision = $tblPrepare->getServiceTblDivision()) && !$tblPrepareStudent->isPrinted()) {
-                                if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivision,
-                                    $Certificate,
-                                    $File, $tblPrepare)
-                                ) {
-                                    Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
-                                }
+                            if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File, $tblPrepare)) {
+                                Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
                             }
                         }
                     }
@@ -620,13 +614,8 @@ class Creator extends Extension
                             $Document->setContent($Content);
                             $Document->saveFile(new FileParameter($File->getFileLocation()));
 
-                            // todo Revisionssicher speichern
-                            if (Storage::useService()->saveCertificateRevision(
-                                $tblPerson,
-                                $tblDivision,
-                                $Certificate,
-                                $File)
-                            ) {
+                            // Revisionssicher speichern
+                            if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File)) {
                                 Prepare::useService()->updateLeaveStudent($tblLeaveStudent, true, true);
                             }
                         }

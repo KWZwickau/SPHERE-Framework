@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 12.07.2016
- * Time: 10:42
- */
-
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
@@ -181,14 +174,13 @@ class Service extends ServiceTemplateInformation
     }
 
     /**
-     * @param bool|false $IsApproved
-     * @param bool|false $IsPrinted
+     * @param bool $IsApproved
+     * @param bool $IsPrinted
      *
      * @return false|TblPrepareStudent[]
      */
-    public function getPrepareStudentAllWhere($IsApproved = false, $IsPrinted = false)
+    public function getPrepareStudentAllWhere(bool $IsApproved = false, bool $IsPrinted = false)
     {
-
         return (new Data($this->getBinding()))->getPrepareStudentAllWhere($IsApproved, $IsPrinted);
     }
 

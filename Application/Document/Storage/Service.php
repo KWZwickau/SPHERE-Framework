@@ -13,7 +13,7 @@ use SPHERE\Application\Document\Storage\Service\Entity\TblPersonPicture;
 use SPHERE\Application\Document\Storage\Service\Entity\TblReferenceType;
 use SPHERE\Application\Document\Storage\Service\Setup;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -133,7 +133,7 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param Certificate $Certificate
      * @param FilePointer $File
      * @param TblPrepareCertificate|null $tblPrepareCertificate
@@ -142,7 +142,7 @@ class Service extends AbstractService
      */
     public function saveCertificateRevision(
         TblPerson $tblPerson,
-        TblDivision $tblDivision,
+        TblDivisionCourse $tblDivisionCourse,
         Certificate $Certificate,
         FilePointer $File,
         TblPrepareCertificate $tblPrepareCertificate = null
@@ -155,7 +155,7 @@ class Service extends AbstractService
             $tblPartition = $this->getPartitionByIdentifier(
                 TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
             );
-            $tblYear = $tblDivision->getServiceTblYear();
+            $tblYear = $tblDivisionCourse->getServiceTblYear();
             if ($tblYear) {
                 $tblDirectory = $this->createDirectory(
                     $tblPartition, $tblYear->getYear(), $tblYear->getDescription(), null, true,
@@ -172,7 +172,7 @@ class Service extends AbstractService
                     if ($tblBinary) {
                         $name = $tblYear->getYear() . ' - ' . $tblPerson->getLastFirstName() . ' - '
                             . $Certificate->getCertificateName() . ' - '
-                            . ($tblPrepareCertificate ? $tblPrepareCertificate->getId() : $tblDivision->getId());
+                            . ($tblPrepareCertificate ? $tblPrepareCertificate->getId() : $tblDivisionCourse->getId());
 
                         if (($tblFile = $this->exitsFile($tblDirectory, $tblFileType, $name))) {
                             $this->updateFile($tblFile, $tblBinary, 'Zuletzt erstellt: ' . date('d.m.Y H:i:s'));
