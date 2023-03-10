@@ -172,7 +172,7 @@ class CosHjSek extends Certificate
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '7%')
                                     ->addElementColumn((new Element())
-                                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                                         ->styleFontFamily('Trebuchet MS')
                                         ->styleAlignCenter()
                                         ->styleTextSize(self::TEXT_SIZE)

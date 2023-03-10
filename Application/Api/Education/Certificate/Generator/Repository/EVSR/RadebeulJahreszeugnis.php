@@ -186,7 +186,7 @@ class RadebeulJahreszeugnis extends Certificate
                                 ->styleMarginTop('16px')
                                 , '15%')
                             ->addElementColumn((new Element())
-                                ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }} {{ Content.P' . $personId . '.Division.Data.Name }}')
+                                ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                                 ->styleTextBold()
                                 ->styleTextColor($textColorBlue)
                                 ->styleTextSize($textSize)

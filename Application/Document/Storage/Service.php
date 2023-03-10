@@ -75,13 +75,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int $Id
+     * @param $Id
      *
      * @return false|TblFile
      */
     public function getFileById($Id)
     {
-
         return (new Data($this->getBinding()))->getFileById($Id);
     }
 

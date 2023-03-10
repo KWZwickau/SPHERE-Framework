@@ -671,36 +671,4 @@ abstract class ServiceLeave extends ServiceCertificateContent
             return '&ndash;';
         }
     }
-
-    /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     *
-     * @return array
-     */
-    public function getLeaveCertificateContent(TblLeaveStudent $tblLeaveStudent): array
-    {
-        $Content = array();
-        if (($tblPerson = $tblLeaveStudent->getServiceTblPerson())) {
-            $Content = $this->createCertificateContent(null, $tblLeaveStudent, $tblPerson, $Content);
-        }
-
-        return $Content;
-    }
-
-    /**
-     * @param array $leaveList
-     *
-     * @return array
-     */
-    public function getCertificateMultiLeaveContent(array $leaveList): array
-    {
-        $Content = array();
-        foreach ($leaveList as $tblLeaveStudent) {
-            if (($tblPerson = $tblLeaveStudent->getServiceTblPerson())) {
-                $Content = $this->createCertificateContent(null, $tblLeaveStudent, $tblPerson, $Content);
-            }
-        }
-
-        return $Content;
-    }
 }

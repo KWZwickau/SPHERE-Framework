@@ -691,7 +691,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                     $Template = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare);
 
                     // get Content
-                    $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                    $Content = Prepare::useService()->createCertificateContent($tblPerson, $tblPrepareStudent);
                     $personId = $tblPerson->getId();
                     if (isset($Content['P' . $personId]['Grade'])) {
                         $Template->setGrade($Content['P' . $personId]['Grade']);

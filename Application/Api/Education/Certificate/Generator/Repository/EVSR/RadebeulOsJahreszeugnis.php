@@ -196,7 +196,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     'Klasse:'
                 ), $width4)
                 ->addElementColumn(self::getBodyElement(
-                    '{{ Content.P' . $personId . '.Division.Data.Level.Name }} {{ Content.P' . $personId . '.Division.Data.Name }}'
+                    '{{ Content.P' . $personId . '.Division.Data.Name }}'
                     , true
                 ), $width5)
             )

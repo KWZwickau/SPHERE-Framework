@@ -759,7 +759,7 @@ abstract class Certificate extends Extension
                 ->setContent('Klasse:')
                 , '8%')
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                 ->styleBorderBottom()
                 ->styleAlignCenter()
                 , '10%')

@@ -58,7 +58,7 @@ abstract class Style extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                            ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Name }}')
                             ->styleMarginTop('20px')
                             ->stylePaddingLeft('8px')
                             ->stylePaddingBottom('4px')

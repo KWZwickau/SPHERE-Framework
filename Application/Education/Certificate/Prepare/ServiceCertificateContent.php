@@ -7,13 +7,11 @@ use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -27,73 +25,6 @@ use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 abstract class ServiceCertificateContent extends ServiceAbitur
 {
     /**
-     * @deprecated
-     *
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param TblStudentEducation|null $tblStudentEducation
-     *
-     * @return array
-     */
-    public function getCertificateContent(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, ?TblStudentEducation $tblStudentEducation)
-    {
-        // todo find usage
-        $Content = array();
-//        if (($tblDivision = $tblPrepare->getServiceTblDivision())
-//            && ($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))
-//        ) {
-//            $Content = $this->createCertificateContent($tblPrepare, null, $tblPerson, $Content);
-//        }
-
-        return $Content;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblGroup|null $tblGroup
-     *
-     * @return array
-     */
-    public function getCertificateMultiContent(TblPrepareCertificate $tblPrepare, TblGroup $tblGroup = null)
-    {
-        // todo find usage
-        $Content = array();
-
-//        $tblPrepareList = false;
-//
-//        $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
-//        if ($tblGroup) {
-//            if (($tblGenerateCertificate)) {
-//                $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
-//            }
-//        } else {
-//            if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
-//                $tblPrepareList = array(0 => $tblPrepare);
-//            }
-//        }
-//
-//        if ($tblPrepareList) {
-//            foreach ($tblPrepareList as $tblPrepareItem) {
-//                if (($tblDivision = $tblPrepareItem->getServiceTblDivision())
-//                    && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
-//                ) {
-//                    foreach ($tblStudentList as $tblPerson) {
-//                        if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
-//                            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem, $tblPerson))) {
-//                                $Content = $this->createCertificateContent($tblPrepareItem, null, $tblPerson, $Content);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
-        return $Content;
-    }
-
-    /**
      * @param TblPerson $tblPerson
      * @param TblPrepareStudent|null $tblPrepareStudent
      * @param TblLeaveStudent|null $tblLeaveStudent
@@ -105,7 +36,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
         TblPerson $tblPerson,
         ?TblPrepareStudent $tblPrepareStudent = null,
         ?TblLeaveStudent $tblLeaveStudent = null,
-        array $Content = array()
+        array &$Content = array()
     ): array {
         $personId = $tblPerson->getId();
         $tblStudent = $tblPerson->getStudent();
@@ -274,38 +205,35 @@ abstract class ServiceCertificateContent extends ServiceAbitur
             $Content['P' . $personId]['Division']['Data']['Year'] = $tblYear->getName();
         }
 
-        // todo Division
-//        if ($tblDivision && $tblLevel) {
-//            $Content['P' . $personId]['Division']['Id'] = $tblDivision->getId();
-//            $Content['P' . $personId]['Division']['Data']['Level']['Name'] = $tblLevel->getName();
-//            if(is_numeric($tblDivision->getName())){
-//                $Content['P' . $personId]['Division']['Data']['Name'] = '-'.$tblDivision->getName();
-//            } else {
-//                $Content['P' . $personId]['Division']['Data']['Name'] = $tblDivision->getName();
-//            }
-////            $Content['P' . $personId]['Division']['Data']['Name'] = $tblDivision->getName();
-//            // hänge ein e an die Beschreibung, wenn es noch nicht da ist (Mandant-ESS)
-//            $Description = $tblDivision->getDescription();
-//            if($Description != '' && substr($Description, -1) != 'e'){
-//                $Description .= 'e';
-//            }
-//            $Content['P' . $personId]['Division']['Data']['DescriptionWithE'] = $Description;
-//
-//            $course = $level;
-//            // html funktioniert, allerdings kann es der DOM-PDF nicht, enable utf-8 for domPdf? oder eventuell Schriftart ändern
-//            // $midTerm = '/&#x2160;';
-//            $midTerm = '/I';
-//            if ($tblPrepare
-//                && ($date = $tblPrepare->getDateTime())
-//                && ($month = intval($date->format('m')))
-//                && $month > 3 && $month < 9
-//            ) {
-//                // $midTerm = '/&#x2161;';
-//                $midTerm = '/II';
-//            }
-//            $course .= $midTerm;
-//            $Content['P' . $personId]['Division']['Data']['Course']['Name'] = $course;
-//        }
+        // Klasse bzw. Stammgruppe bzw Klassenstufe
+        $Content['P' . $personId]['Division']['Data']['Level']['Name'] = (string) $level;
+        if ($tblDivision) {
+            $Content['P' . $personId]['Division']['Data']['Name'] = $tblDivision->getName();
+            // hänge ein e an die Beschreibung, wenn es noch nicht da ist (Mandant-ESS)
+            $Description = $tblDivision->getDescription();
+            if($Description != '' && substr($Description, -1) != 'e'){
+                $Description .= 'e';
+            }
+            $Content['P' . $personId]['Division']['Data']['DescriptionWithE'] = $Description;
+        } elseif ($tblCoreGroup) {
+            $Content['P' . $personId]['Division']['Data']['Name'] = $tblCoreGroup->getName();
+        } else {
+            $Content['P' . $personId]['Division']['Data']['Name'] = '&nbsp;';
+        }
+        $course = $level;
+        // html funktioniert, allerdings kann es der DOM-PDF nicht, enable utf-8 for domPdf? oder eventuell Schriftart ändern
+        // $midTerm = '/&#x2160;';
+        $midTerm = '/I';
+        if ($tblPrepare
+            && ($date = $tblPrepare->getDateTime())
+            && ($month = intval($date->format('m')))
+            && $month > 3 && $month < 9
+        ) {
+            // $midTerm = '/&#x2161;';
+            $midTerm = '/II';
+        }
+        $course .= $midTerm;
+        $Content['P' . $personId]['Division']['Data']['Course']['Name'] = $course;
 
         $tblCertificate = false;
         $isGradeVerbal = false;

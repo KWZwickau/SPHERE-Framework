@@ -227,7 +227,7 @@ abstract class Style extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn($this->getElement('Klasse:')->stylePaddingTop($paddingTop), '20%')
                     ->addElementColumn($this->getElement(
-                        '{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}',
+                        '{{ Content.P' . $personId . '.Division.Data.Name }}',
                         self::TEXT_SIZE_LARGE
                     )->styleTextBold(), '20%')
                     ->addElementColumn($this->getElement('&nbsp;'))
@@ -1859,11 +1859,7 @@ abstract class Style extends Certificate
         if ($hasDivision) {
             $section
                 ->addElementColumn($this->getElement('Klasse:')->stylePaddingTop($paddingTop), '8%')
-                ->addElementColumn($this->getElement(
-                    '{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}'
-                    , self::TEXT_SIZE_LARGE
-                )
-                    ->styleTextBold()
+                ->addElementColumn($this->getElement('{{ Content.P' . $personId . '.Division.Data.Name }}', self::TEXT_SIZE_LARGE)->styleTextBold()
                 , '20%');
         }
 

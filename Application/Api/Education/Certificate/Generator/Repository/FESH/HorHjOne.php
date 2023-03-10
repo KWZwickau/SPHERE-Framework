@@ -115,7 +115,7 @@ class HorHjOne extends Certificate
                         ->styleMarginTop('40px')
                         , '8%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                         ->styleTextSize($TextSizeInput)
                         ->styleMarginTop('38px')
                         , '43%')

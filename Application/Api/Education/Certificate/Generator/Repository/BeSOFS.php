@@ -51,7 +51,7 @@ class BeSOFS extends Certificate
                     ->addElementColumn((new Element())
                         , '4%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                         ->stylePaddingTop()
                         ->stylePaddingLeft()
                         ->styleBorderBottom()

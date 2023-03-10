@@ -550,7 +550,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendShowTemplate($PrepareId = null, $PersonId = null, $Route = 'Teacher')
     {
-
+        // todo
         $Stage = new Stage('Noteninformation', 'Vorschau und Herunterladen');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/GradeInformation/Setting/Preview', new ChevronLeft(), array(
@@ -597,7 +597,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Template = new $CertificateClass($tblDivision);
 
                         // get Content
-                        $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
+                        $Content = Prepare::useService()->createCertificateContent($tblPerson, $tblPrepareStudent);
                         $personId = $tblPerson->getId();
                         if (isset($Content['P' . $personId]['Grade'])) {
                             $Template->setGrade($Content['P' . $personId]['Grade']);

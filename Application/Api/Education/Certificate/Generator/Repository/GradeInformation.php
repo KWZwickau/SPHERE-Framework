@@ -62,8 +62,7 @@ class GradeInformation extends Certificate
                         ->styleBorderBottom()
                         , '45%')
                     ->addElementColumn((new Element())
-                        ->setContent(', Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}
-                        {{ Content.P' . $personId . '.Division.Data.Name }}, {{ Content.P' . $personId . '.Input.Date }}')
+                        ->setContent(', Klasse {{ Content.P' . $personId . '.Division.Data.Name }}, {{ Content.P' . $personId . '.Input.Date }}')
                         ->styleTextItalic()
                         ->styleTextSize('15px')
                         ->stylePaddingLeft('4px')
