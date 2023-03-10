@@ -814,4 +814,57 @@ class Service extends ServiceTask
 
         return $count > 0 ? $this->getGradeAverage($sum, $count) : false;
     }
+
+    /**
+     * @param $average
+     * @param string $separator
+     *
+     * @return string
+     */
+    public function getAverageInWord($average, string $separator = ','): string
+    {
+        $array = explode($separator, $average);
+        $result = '';
+
+        if (isset($array[0])) {
+            if (($word1 = $this->getWordByNumber($array[0]))) {
+                $result .= $word1;
+            } else {
+                return '';
+            }
+        }
+        if (isset($array[1])) {
+            if (($word2 = $this->getWordByNumber($array[1]))) {
+                $result .= ' Komma ' . $word2;
+            } else {
+                return '';
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param $number
+     *
+     * @return false|string
+     */
+    private function getWordByNumber($number)
+    {
+        $number = intval($number);
+        switch ($number) {
+            case 0: return 'Null';
+            case 1: return 'Eins';
+            case 2: return 'Zwei';
+            case 3: return 'Drei';
+            case 4: return 'Vier';
+            case 5: return 'Fünf';
+            case 6: return 'Sechs';
+            case 7: return 'Sieben';
+            case 8: return 'Acht';
+            case 9: return 'Neun';
+        }
+
+        return false;
+    }
 }

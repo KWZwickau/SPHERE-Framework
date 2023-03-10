@@ -158,35 +158,31 @@ class Creator extends Extension
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
             && ($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblYear = $tblPrepare->getYear())
+            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
         ) {
+            $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+            if (class_exists($CertificateClass)) {
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+                /** @var Certificate $Certificate */
+                $Certificate = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare);
 
-            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
-                    $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
-                    if (class_exists($CertificateClass)) {
-                        $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
-                        /** @var Certificate $Certificate */
-                        $Certificate = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare);
-
-                        // get Content
-                        $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
-                        $personId = $tblPerson->getId();
-                        if (isset($Content['P' . $personId]['Grade'])) {
-                            $Certificate->setGrade($Content['P' . $personId]['Grade']);
-                        }
-                        if (isset($Content['P' . $personId]['AdditionalGrade'])) {
-                            $Certificate->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
-                        }
-
-                        $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
-
-                        $FileName = $Name . " " . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d H:i:s") . ".pdf";
-
-                        return $this->buildDownloadFile($File, $FileName);
-                    }
+                // get Content
+                $Content = Prepare::useService()->createCertificateContent($tblPerson, $tblPrepareStudent);
+                $personId = $tblPerson->getId();
+                if (isset($Content['P' . $personId]['Grade'])) {
+                    $Certificate->setGrade($Content['P' . $personId]['Grade']);
                 }
-            }
+                if (isset($Content['P' . $personId]['AdditionalGrade'])) {
+                    $Certificate->setAdditionalGrade($Content['P' . $personId]['AdditionalGrade']);
+                }
 
+                $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
+
+                $FileName = $Name . " " . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d H:i:s") . ".pdf";
+
+                return $this->buildDownloadFile($File, $FileName);
+            }
         }
 
         return new Stage($Name, 'Nicht gefunden');

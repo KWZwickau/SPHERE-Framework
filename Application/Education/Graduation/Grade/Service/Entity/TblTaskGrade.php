@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -126,14 +127,6 @@ class TblTaskGrade extends Element
     }
 
     /**
-     * @param TblTask $tblTask
-     */
-    public function setTblTask(TblTask $tblTask)
-    {
-        $this->tblGraduationTask = $tblTask->getId();
-    }
-
-    /**
      * @return TblGradeType|false
      */
     public function getTblGradeType()
@@ -234,15 +227,41 @@ class TblTaskGrade extends Element
     }
 
     /**
+     * bei Zeugnissen werden die Tendenzen entfernt
+     *
      * @param bool $isGradeTextShortName
+     * @param TblCertificate|null $tblCertificate
+     *
      * @return string
      */
-    public function getDisplayGrade(bool $isGradeTextShortName = true): string
+    public function getDisplayGrade(bool $isGradeTextShortName = true, ?TblCertificate $tblCertificate = null): string
     {
         if (($tblGradeText = $this->getTblGradeText())) {
             return $isGradeTextShortName ? $tblGradeText->getShortName() : $tblGradeText->getName();
         }
 
-        return $this->getGrade() ?: '';
+        $grade = $this->getGrade() ?: '';
+        if (!$tblCertificate->isInformation()) {
+            $grade = str_replace('+', '', $grade);
+            $grade = str_replace('-', '', $grade);
+        }
+
+        return $grade;
+    }
+
+    /**
+     * @return float|null
+     */
+    public function getGradeNumberValue(): ?float
+    {
+        return Grade::useService()->getGradeNumberValue($this->getGrade());
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsGradeNumeric(): bool
+    {
+        return $this->getGradeNumberValue() !== null;
     }
 }

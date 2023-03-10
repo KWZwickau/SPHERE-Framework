@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -56,6 +57,14 @@ class TblPrepareCertificate extends Element
     public function getDate(): string
     {
         return ($tblGenerateCertificate = $this->getServiceTblGenerateCertificate()) ? $tblGenerateCertificate->getDate() : '';
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getDateTime(): ?DateTime
+    {
+        return ($tblGenerateCertificate = $this->getServiceTblGenerateCertificate()) ? $tblGenerateCertificate->getDateTime() : null;
     }
 
     /**
