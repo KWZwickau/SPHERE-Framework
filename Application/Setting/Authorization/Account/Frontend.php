@@ -414,11 +414,14 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
             ), Panel::PANEL_TYPE_INFO);
         }
-
+        $MaxString = 20;
+        if($tblConsumer = Consumer::useService()->getConsumerBySession()){
+            $MaxString = $MaxString - strlen($tblConsumer->getAcronym().'-');
+        }
         // Username Panel
         if ($tblAccount) {
             $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', array(
-                (new TextField('Account[Name]', 'Benutzername (min. 5 Zeichen)', 'Benutzername',
+                (new TextField('Account[Name]', 'Benutzername (max. '.$MaxString.' Zeichen)', 'Benutzername',
                     new Person()))
                     ->setPrefixValue($tblConsumer->getAcronym())->setDisabled(),
                 new Danger('Die Passwort-Felder nur ausfüllen wenn das Passwort dieses Benutzers geändert werden soll'),
@@ -431,7 +434,7 @@ class Frontend extends Extension implements IFrontendInterface
             ), Panel::PANEL_TYPE_INFO);
         } else {
             $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', array(
-                (new TextField('Account[Name]', 'Benutzername (min. 5 Zeichen)', 'Benutzername',
+                (new TextField('Account[Name]', 'Benutzername (max. '.$MaxString.' Zeichen)', 'Benutzername',
                     new Person()))
                     ->setPrefixValue($tblConsumer->getAcronym()),
                 new PasswordField(
