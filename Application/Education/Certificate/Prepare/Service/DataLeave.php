@@ -13,9 +13,8 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Binding\AbstractData;
 
-abstract class DataLeave extends AbstractData
+abstract class DataLeave extends DataDiploma
 {
     /**
      * @param $Id

@@ -13,7 +13,6 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -53,7 +52,6 @@ use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwo
 {
-    private array $subjectList = array();
     private array $selectListGrades = array();
     private array $selectListGradeTexts = array();
 
@@ -677,24 +675,6 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwo
         }
 
         return $layoutGroups;
-    }
-
-    /**
-     * @param TblCertificate $tblCertificate
-     * @param TblTechnicalCourse|null $tblTechnicalCourse
-     */
-    private function setSubjectListByTechnicalCourse(TblCertificate $tblCertificate, TblTechnicalCourse $tblTechnicalCourse = null)
-    {
-        $this->subjectList = array();
-        if (($tblCertificateSubjectList = Generator::useService()->getCertificateSubjectAll($tblCertificate, $tblTechnicalCourse))) {
-            foreach ($tblCertificateSubjectList as $tblCertificateSubject) {
-                if (($tblSubject = $tblCertificateSubject->getServiceTblSubject())
-                    && $tblCertificateSubject->getRanking() > 4
-                ) {
-                    $this->subjectList[$tblSubject->getId()] = $tblSubject;
-                }
-            }
-        }
     }
 
     /**

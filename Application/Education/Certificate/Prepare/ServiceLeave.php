@@ -28,7 +28,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 
-abstract class ServiceLeave extends ServiceCertificateContent
+abstract class ServiceLeave extends ServiceDiploma
 {
     /**
      * @param $Id
