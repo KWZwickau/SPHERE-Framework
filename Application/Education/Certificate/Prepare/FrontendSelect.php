@@ -218,7 +218,7 @@ abstract class FrontendSelect extends FrontendPreview
             }
         }
 
-        $Stage->setContent($this->getSelectDivisionCourseContent($divisionTable, $buttonList, 'Es existieren keine Zeugnisaufträge für Ihre Kurs.'));
+        $Stage->setContent($this->getSelectDivisionCourseContent($divisionTable, $buttonList, 'Es existieren keine Zeugnisaufträge für Ihre Kurse.'));
 
         return $Stage;
     }

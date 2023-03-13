@@ -241,7 +241,7 @@ class TblTaskGrade extends Element
         }
 
         $grade = $this->getGrade() ?: '';
-        if (!$tblCertificate->isInformation()) {
+        if ($tblCertificate && !$tblCertificate->isInformation()) {
             $grade = str_replace('+', '', $grade);
             $grade = str_replace('-', '', $grade);
         }

@@ -629,44 +629,7 @@ class Service extends ServiceTemplateInformation
         TblGradeType $tblGradeType,
         $Grade
     ): TblPrepareGrade {
-
         return (new Data($this->getBinding()))->updatePrepareGradeForBehavior($tblPrepare, $tblPerson, $tblTestType, $tblGradeType, $Grade);
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param TblCertificate $tblCertificate
-     *
-     * @return bool|TblPrepareStudent
-     */
-    public function updatePrepareStudentSetTemplate(
-        TblPrepareCertificate $tblPrepare,
-        TblPerson $tblPerson,
-        TblCertificate $tblCertificate
-    ) {
-
-        if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-            (new Data($this->getBinding()))->updatePrepareStudent(
-                $tblPrepareStudent,
-                $tblCertificate,
-                $tblPrepareStudent->isApproved(),
-                $tblPrepareStudent->isPrinted(),
-                $tblPrepareStudent->getExcusedDays(),
-                $tblPrepareStudent->getExcusedDaysFromLessons(),
-                $tblPrepareStudent->getUnexcusedDays(),
-                $tblPrepareStudent->getUnexcusedDaysFromLessons(),
-                $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
-            );
-
-            return $tblPrepareStudent;
-        } else {
-            return (new Data($this->getBinding()))->createPrepareStudent(
-                $tblPrepare,
-                $tblPerson,
-                $tblCertificate
-            );
-        }
     }
 
     /**
@@ -790,7 +753,6 @@ class Service extends ServiceTemplateInformation
                     && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
                     && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                 ) {
-
                     if ($value != -1) {
                         if (trim($value) === '') {
                             // keine leere Kopfnoten anlegen, nur falls eine Kopfnote vorhanden ist
