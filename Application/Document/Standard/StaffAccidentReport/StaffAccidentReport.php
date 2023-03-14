@@ -365,7 +365,11 @@ class StaffAccidentReport extends Extension
                                                         ))
                                                         , 3),
                                                     new LayoutColumn(
-                                                        new Bold(new Sup(9).' Versicherte Person ist:').
+                                                        new TextField('Data[Nationality]', 'Staatsangehörigkeit',
+                                                            new Sup(9).' Staatsangehörigkeit')
+                                                        , 6),
+                                                    new LayoutColumn(
+                                                        new Bold(new Sup(12).' Versicherte Person ist:').
                                                         new Listing(array(
                                                             new RadioBox('Data[MartialStatusEmployer]', 'Unternehmer',
                                                                 'Unternehmer'),
@@ -378,22 +382,18 @@ class StaffAccidentReport extends Extension
                                                         ))
                                                         , 3),
                                                     new LayoutColumn(
-                                                        new TextField('Data[Nationality]', 'Staatsangehörigkeit',
-                                                            new Sup(10).' Staatsangehörigkeit')
+                                                        new TextField('Data[ContinuePayment]', '',
+                                                            new Sup(13). ' Anspruch auf Entgeltfortzahlung in Wochen:')
                                                         , 6),
                                                     new LayoutColumn(
-                                                        new TextField('Data[HealthInsurance]', 'Krankenkasse',
-                                                            new Sup(11).' Krankenkasse')
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new PullClear(new Bold(new Sup(12).' Leiharbeitnehmer/in?')).
+                                                        new PullClear(new Bold(new Sup(10).' Leiharbeitnehmer/in?')).
                                                         new PullLeft(new CheckBox('Data[TemporaryWorkYes]',
                                                             'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true)).
                                                         new PullLeft(new CheckBox('Data[TemporaryWorkNo]',
                                                             'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
                                                         , 3),
                                                     new LayoutColumn(
-                                                        new PullClear(new Bold(new Sup(13).' Auszubildender?')).
+                                                        new PullClear(new Bold(new Sup(11).' Auszubildender?')).
                                                         new PullLeft(new CheckBox('Data[ApprenticeYes]',
                                                             'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true)).
                                                         new PullLeft(new CheckBox('Data[ApprenticeNo]',
@@ -407,9 +407,9 @@ class StaffAccidentReport extends Extension
                                                 )),
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        new TextField('Data[ContinuePayment]', '',
-                                                        new Sup(14). ' Anspruch auf Entgeltfortzahlung in Wochen:')
-                                                    , 6),
+                                                        new TextField('Data[HealthInsurance]', 'Krankenkasse',
+                                                            new Sup(14).' Krankenkasse')
+                                                        , 6),
                                                 )
                                             ))
                                         )

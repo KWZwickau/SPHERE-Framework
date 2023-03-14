@@ -186,7 +186,6 @@ class StaffAccidentReport extends AbstractDocument
             ->addPage((new Page())
                 ->addSlice((new Slice())
                     ->styleBorderAll()
-                    ->styleHeight('1000px')
                     ->addSection((new Section())
                         ->addSliceColumn((new Slice())
                             ->addElement((new Element())
@@ -346,14 +345,14 @@ class StaffAccidentReport extends AbstractDocument
                             , '40%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('8 Postleitzahl')
+                            ->setContent('Postleitzahl')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             , '15%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('9 Ort')
+                            ->setContent('Ort')
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             , '45%'
@@ -384,21 +383,21 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Meta & gesetzlicher Vertreter
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('10 Geschlecht')
+                            ->setContent('8 Geschlecht')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             , '22%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('11 Staatsangehörigkeit')
+                            ->setContent('9 Staatsangehörigkeit')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             , '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('12 Leiharbeitnehmer/in')
+                            ->setContent('10 Leiharbeitnehmer/in')
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             , '28%'
@@ -468,7 +467,6 @@ class StaffAccidentReport extends AbstractDocument
                             ->styleTextSize('12px')
                             ->styleHeight('25px')
                             ->stylePaddingTop('4px')
-                            ->styleBorderRight()
                             ->styleBorderBottom()
                             , '10%'
                         )
@@ -477,17 +475,17 @@ class StaffAccidentReport extends AbstractDocument
                     // Neue Reihe
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('13 Auszubildende/-r')
+                            ->setContent('11 Auszubildende/-r')
                             ->styleTextSize('11px')
                             ->styleHeight('20px')
                             ->stylePaddingLeft('5px')
                             , '24%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('14 Die versicherte Person ist')
+                            ->setContent('12 Die versicherte Person ist')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
-                            ->styleBorderRight()
+                            ->styleHeight('20px')
                             ->styleBorderLeft()
                             , '76%'
                         )
@@ -513,7 +511,7 @@ class StaffAccidentReport extends AbstractDocument
                         ->addSliceColumn(
                             $this->setCheckBox(($this->FieldValue['ApprenticeNo'] ? 'X' : ''))
                                 ->stylePaddingTop('3px')
-                                ->styleHeight('29px')
+                                ->styleHeight('25px')
                             , '4%'
                         )
                         ->addElementColumn((new Element())
@@ -581,7 +579,7 @@ class StaffAccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('15 Anspruch auf Entgeltfortzahlung in Wochen:')
+                            ->setContent('13 Anspruch auf Entgeltfortzahlung in Wochen:')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
@@ -589,10 +587,9 @@ class StaffAccidentReport extends AbstractDocument
                             , '35%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('16 Krankenkasse (Name, PLZ, Ort)')
+                            ->setContent('14 Krankenkasse (Name, PLZ, Ort)')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
-                            ->styleBorderRight()
                             ->styleBorderTop()
                             , '65%'
                         )
@@ -608,7 +605,6 @@ class StaffAccidentReport extends AbstractDocument
                         ->addElementColumn((new Element())
                             ->setContent($this->FieldValue['HealthInsurance'])
                             ->stylePaddingLeft('5px')
-                            ->styleBorderRight()
                             ->styleBorderBottom()
                             , '65%'
                             )
@@ -617,26 +613,23 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Unfall Infos
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('17 Tödlicher Unfall')
+                            ->setContent('15 Tödlicher Unfall')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
-                            ->styleBorderTop()
                             ->styleBorderRight()
                             , '20%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('18 Unfallzeitpunkt')
+                            ->setContent('16 Unfallzeitpunkt')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
-                            ->styleBorderTop()
                             ->styleBorderRight()
                             , '35%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('19 Unfallort (genaue Orts- und Straßenangabe mit PLZ)')
+                            ->setContent('17 Unfallort (genaue Orts- und Straßenangabe mit PLZ)')
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
-                            ->styleBorderTop()
                             , '45%'
                         )
                     )
@@ -750,7 +743,7 @@ class StaffAccidentReport extends AbstractDocument
                     ////// Schilderung des Unfallhergangs
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('20 Ausführliche Schilderung des Unfallhergangs (insbesondere Art der Veranstalltung,
+                            ->setContent('18 Ausführliche Schilderung des Unfallhergangs (insbesondere Art der Veranstalltung,
                             bei Sportunfällen auch Sportart)')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
@@ -759,7 +752,7 @@ class StaffAccidentReport extends AbstractDocument
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent(nl2br($this->FieldValue['AccidentDescription']))
-                            ->styleHeight('130px')
+                            ->styleHeight('120px')
                             ->stylePaddingLeft('20px')
                         )
                     )
@@ -809,14 +802,14 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Verletzungen
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('21 Verletzte Körperteile')
+                            ->setContent('19 Verletzte Körperteile')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             , '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('22 Art der Verletzung')
+                            ->setContent('20 Art der Verletzung')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '50%'
@@ -839,14 +832,14 @@ class StaffAccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('23 Zum Unfallzeitpunkt beschäftigt/tätig als')
+                            ->setContent('21 Zum Unfallzeitpunkt beschäftigt/tätig als')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             , '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('24 Seit wann bei dieser Tätigkeit?')
+                            ->setContent('22 Seit wann bei dieser Tätigkeit?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '50%'
@@ -869,10 +862,9 @@ class StaffAccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('25 In welchem Teil des Unternehmens ist die versicherte Person ständig tätig?')
+                            ->setContent('23 In welchem Teil des Unternehmens ist die versicherte Person ständig tätig?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
-                            ->styleBorderRight()
                             , '100%'
                         )
                     )
@@ -880,7 +872,6 @@ class StaffAccidentReport extends AbstractDocument
                         ->addElementColumn((new Element())
                             ->setContent($this->FieldValue['WorkArea'])
                             ->stylePaddingLeft('5px')
-                            ->styleBorderRight()
                             ->styleBorderBottom()
                             , '100%'
                         )
@@ -888,7 +879,7 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Unterbrechung
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('26 Hat die Versicherte Person den <br/> Besuch der Einrichtung unterbrochen?')
+                            ->setContent('24 Hat die Versicherte Person den <br/> Besuch der Einrichtung unterbrochen?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleHeight('27px')
@@ -962,7 +953,7 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Vortsetzung
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('27 hat die Versicherte Person den Besuch <br/> der Einrichtung wieder aufgenommen?')
+                            ->setContent('25 hat die Versicherte Person den Besuch <br/> der Einrichtung wieder aufgenommen?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleHeight('27px')
@@ -1024,7 +1015,7 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Kenntnis
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('28 Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift)')
+                            ->setContent('26 Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift)')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '70%'
@@ -1075,7 +1066,7 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Kenntnis
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('29 Erstbehandlung: <br/>
+                            ->setContent('27 Erstbehandlung: <br/>
                                 Name und Anschrift der Ärztin/des Arztes oder des Krankenhauses')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
@@ -1085,7 +1076,7 @@ class StaffAccidentReport extends AbstractDocument
                         )
                         ->addSliceColumn((new Slice())
                             ->addElement((new Element())
-                                ->setContent('30 Beginn und Ende des Besuchs der Einrichtung')
+                                ->setContent('28 Beginn und Ende des Besuchs der Einrichtung')
                                 ->styleTextSize('11px')
                                 ->stylePaddingLeft('5px')
                             )
@@ -1190,7 +1181,7 @@ class StaffAccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('22 Datum')
+                            ->setContent('29 Datum')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '20%'
