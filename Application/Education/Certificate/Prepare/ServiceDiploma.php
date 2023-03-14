@@ -3,13 +3,19 @@
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 
@@ -235,5 +241,145 @@ abstract class ServiceDiploma extends ServiceCertificateContent
                     )
                 );
         }
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param $Data
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     * @param $Route
+     *
+     * @return IFormInterface|string
+     */
+    public function createPrepareAdditionalGradeForm(
+        IFormInterface $Form,
+        $Data,
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson,
+        $Route
+    ) {
+
+        /**
+         * Service
+         */
+        if ($Data === null) {
+            return $Form;
+        }
+
+        $Error = false;
+        $tblSubject = false;
+
+        if (!isset($Data['Subject']) || !(($tblSubject = Subject::useService()->getSubjectById($Data['Subject'])))) {
+            $Form->setError('Data[Subject]', 'Bitte wählen Sie ein Fach aus');
+            $Error = true;
+        }
+        if (!isset($Data['Grade']) || empty($Data['Grade'])) {
+            $Form->setError('Data[Grade]', 'Bitte geben Sie eine Zensur ein');
+            $Error = true;
+        }
+
+        if ($Error) {
+            return $Form . new Notify(
+                'Fach konnte nicht angelegt werden',
+                'Bitte füllen Sie die benötigten Felder korrekt aus',
+                Notify::TYPE_WARNING,
+                5000
+            );
+        } else {
+
+            if ($tblSubject
+                && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
+            ) {
+                if ($this->createPrepareAdditionalGrade(
+                    $tblPrepareCertificate,
+                    $tblPerson,
+                    $tblSubject,
+                    $tblPrepareAdditionalGradeType,
+                    $this->getMaxRanking($tblPrepareCertificate, $tblPerson),
+                    $Data['Grade'])
+                ) {
+                    return new Success('Das Fach wurde erfolgreich angelegt', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                        . new Redirect('/Education/Certificate/Prepare/DroppedSubjects', Redirect::TIMEOUT_SUCCESS,
+                            array(
+                                'PrepareId' => $tblPrepareCertificate->getId(),
+                                'PersonId' => $tblPerson->getId(),
+                                'Route' => $Route
+                            ));
+                }
+            }
+        }
+
+        return new Danger('Das Fach konnte nicht angelegt werden');
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return int
+     */
+    private function getMaxRanking(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson
+    ): int {
+
+        if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
+            && $list = (new Data($this->getBinding()))->getPrepareAdditionalGradeListBy($tblPrepareCertificate,
+                $tblPerson, $tblPrepareAdditionalGradeType)
+        ) {
+
+            $item = end($list);
+
+            return $item->getRanking() + 1;
+        }
+
+        return 1;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param array $droppedSubjectsCreateList
+     *
+     * @return string
+     */
+    public function setAutoDroppedSubjects(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, array &$droppedSubjectsCreateList): string
+    {
+        $gradeString = '';
+        if (($tblYear = $tblPrepare->getYear())
+            && ($tblSubjectList = Prepare::useService()->getAutoDroppedSubjects($tblPerson, $tblYear))
+            && ($tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('YEAR'))
+            && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentListByPersonAndCertificateType($tblPerson, $tblCertificateType))
+            && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
+        ) {
+            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                if ($tblPrepareStudent->isPrinted()
+                    && ($tblPrepareTemp = $tblPrepareStudent->getTblPrepareCertificate())
+                    && ($tblYear = $tblPrepareTemp->getYear())
+                    && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                    && $tblStudentEducation->getLevel() == 9
+                    && ($tblAppointedDateTask = $tblPrepareTemp->getServiceTblAppointedDateTask())
+                ) {
+                    $count = 1;
+                    foreach ($tblSubjectList as $tblSubject) {
+                        if (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblAppointedDateTask, $tblSubject))) {
+                            $tblPrepareAdditionalGrade = new TblPrepareAdditionalGrade();
+                            $tblPrepareAdditionalGrade->setTblPrepareCertificate($tblPrepare);
+                            $tblPrepareAdditionalGrade->setServiceTblPerson($tblPerson);
+                            $tblPrepareAdditionalGrade->setServiceTblSubject($tblSubject);
+                            $tblPrepareAdditionalGrade->setTblPrepareAdditionalGradeType($tblPrepareAdditionalGradeType);
+                            $tblPrepareAdditionalGrade->setRanking($count++);
+                            $tblPrepareAdditionalGrade->setGrade($tblTaskGrade->getDisplayGrade());
+                            $droppedSubjectsCreateList[] = $tblPrepareAdditionalGrade;
+
+                            $gradeString .= $tblSubject->getAcronym() . ':' . $tblPrepareAdditionalGrade->getGrade() . ' ';
+                        }
+                    }
+                }
+            }
+        }
+
+        return $gradeString;
     }
 }

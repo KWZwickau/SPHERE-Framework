@@ -28,7 +28,6 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -45,9 +44,8 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Extension;
 
-class FrontendDiplomaTechnicalSchool extends Extension implements IFrontendInterface
+class FrontendDiplomaTechnicalSchool extends FrontendDiploma
 {
     protected array $subjectList = array();
     private array $selectListGrades = array();
@@ -55,7 +53,6 @@ class FrontendDiplomaTechnicalSchool extends Extension implements IFrontendInter
 
     /**
      * @param null $PrepareId
-     * @param null $GroupId
      * @param null $CurrentTab
      * @param null $Data
      *

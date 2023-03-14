@@ -62,12 +62,12 @@ class TblPrepareAdditionalGrade extends Element
     /**
      * @Column(type="boolean")
      */
-    protected $IsSelected;
+    protected $IsSelected = false;
 
     /**
      * @Column(type="boolean")
      */
-    protected $IsLocked;
+    protected $IsLocked = false;
 
     /**
      * @Column(type="bigint")

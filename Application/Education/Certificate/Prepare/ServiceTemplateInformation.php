@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -246,8 +247,11 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                             } else {
                                 $countItem = 0;
                                 $text = '';
-                                foreach ($tblDroppedSubjectList as $name) {
+                                $tblDroppedSubjectList = $this->getSorter($tblDroppedSubjectList)->sortObjectBy('Name');
+                                /** @var TblSubject $tblSubject */
+                                foreach ($tblDroppedSubjectList as $tblSubject) {
                                     $countItem++;
+                                    $name = $tblSubject->getName();
                                     if ($countItem == 1) {
                                         $text .= $name;
                                     } elseif ($countItem == $countDroppedSubjects) {

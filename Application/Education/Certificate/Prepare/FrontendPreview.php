@@ -118,6 +118,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
             if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
                 $count = 0;
                 $certificateList = array();
+                $droppedSubjectsCreateList = array();
                 foreach ($tblPersonList as $tblPerson) {
                     $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
                     $data = Prepare::useFrontend()->getStudentBasicInformation($tblPerson, $tblYear, $tblPrepareStudent ?: null, $count, false);
@@ -315,21 +316,17 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
 
                     // Noten vom Vorjahr ermitteln (abgeschlossene Fächer) und speichern
                     // Mittelschule Abschlusszeugnis Realschule
-                    if ($tblCertificate && (strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false)
+                    if ((strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false)
                         && ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
                     ) {
                         if (!isset($columnTable['DroppedSubjects'])) {
                             $columnTable['DroppedSubjects'] = 'Abgewählte Fächer';
                         }
 
-                        // todo abgewählte Fächer automatisch vom letzten Schuljahr setzen
                         $gradeString = '';
-//                        if (!Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepare, $tblPerson,
-//                            $tblPrepareAdditionalGradeType)
-//                        ) {
-//                            $gradeString = Prepare::useService()->setAutoDroppedSubjects($tblPrepare,
-//                                $tblPerson);
-//                        }
+                        if (!Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType)) {
+                            $gradeString = Prepare::useService()->setAutoDroppedSubjects($tblPrepare, $tblPerson, $droppedSubjectsCreateList);
+                        }
 
                         if ($gradeString) {
                             $studentTable[$tblPerson->getId()]['DroppedSubjects'] = $gradeString;
@@ -347,6 +344,10 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                             $studentTable[$tblPerson->getId()]['DroppedSubjects'] = new WarningText(new Exclamation() . ' nicht erledigt');
                         }
                     }
+                }
+
+                if (!empty($droppedSubjectsCreateList)) {
+                    Prepare::useService()->createEntityListBulk($droppedSubjectsCreateList);
                 }
             }
 
