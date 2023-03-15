@@ -1606,9 +1606,7 @@ class Service
 
         if ($streetName !== '' && $streetNumber !== '' && $cityCode && $city
         ) {
-            Address::useService()->insertAddressToCompany(
-                $tblCompany, $streetName, $streetNumber, $cityCode, $city, $district, ''
-            );
+            Address::useService()->insertAddressToCompany($tblCompany, $streetName, $streetNumber, $cityCode, $city, $district);
         } else {
             $error[] = new DangerText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' '.$tblCompany->getDisplayName().' Adresse konnte nicht angelegt werden.';
         }

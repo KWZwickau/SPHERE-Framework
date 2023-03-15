@@ -135,22 +135,13 @@ class Setup extends AbstractSetup
     private function setTableAddress(Schema &$Schema, Table $tblCity, Table $tblState)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblAddress');
-        if (!$this->getConnection()->hasColumn('tblAddress', 'StreetName')) {
-            $Table->addColumn('StreetName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblAddress', 'StreetNumber')) {
-            $Table->addColumn('StreetNumber', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblAddress', 'PostOfficeBox')) {
-            $Table->addColumn('PostOfficeBox', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblAddress', 'County')) {
-            $Table->addColumn('County', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblAddress', 'Nation')) {
-            $Table->addColumn('Nation', 'string');
-        }
+        $Table = $this->createTable($Schema, 'tblAddress');
+        $this->createColumn($Table, 'StreetName', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'StreetNumber', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'PostOfficeBox', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Region', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'County', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Nation', self::FIELD_TYPE_STRING);
         $this->getConnection()->addForeignKey($Table, $tblCity);
         $this->getConnection()->addForeignKey($Table, $tblState, true);
         return $Table;
