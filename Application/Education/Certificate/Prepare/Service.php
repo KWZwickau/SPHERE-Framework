@@ -7,7 +7,6 @@ use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
@@ -29,10 +28,8 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -44,7 +41,6 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Redirect;
@@ -63,9 +59,8 @@ class Service extends ServiceTemplateInformation
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData, $UTF8)
+    public function setupService($doSimulation, $withData, $UTF8): string
     {
-
         $Protocol= '';
         if(!$withData){
             $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
@@ -73,6 +68,7 @@ class Service extends ServiceTemplateInformation
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
+
         return $Protocol;
     }
 
@@ -83,7 +79,6 @@ class Service extends ServiceTemplateInformation
      */
     public function getPrepareById($Id)
     {
-
         return (new Data($this->getBinding()))->getPrepareById($Id);
     }
 
@@ -95,12 +90,10 @@ class Service extends ServiceTemplateInformation
      *
      * @return false|Service\Entity\TblPrepareCertificate[]
      */
-    public function getPrepareAllByDivision(TblDivision $tblDivision, $IsGradeInformation = false)
+    public function getPrepareAllByDivision(TblDivision $tblDivision, bool $IsGradeInformation = false)
     {
         return (new Data($this->getBinding()))->getPrepareAllByDivision($tblDivision, $IsGradeInformation);
     }
-
-
 
     /**
      *
@@ -108,7 +101,6 @@ class Service extends ServiceTemplateInformation
      */
     public function getPrepareAll()
     {
-
         return (new Data($this->getBinding()))->getPrepareAll();
     }
 
@@ -119,7 +111,6 @@ class Service extends ServiceTemplateInformation
      */
     public function getPrepareAllByYear(TblYear $tblYear)
     {
-
         $resultList = array();
         $entityList = $this->getPrepareAll();
         if ($entityList) {
@@ -143,15 +134,14 @@ class Service extends ServiceTemplateInformation
      *
      * @return false|TblPrepareStudent
      */
-    public function getPrepareStudentBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, $isForced = false)
+    public function getPrepareStudentBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, bool $isForced = false)
     {
-
         return (new Data($this->getBinding()))->getPrepareStudentBy($tblPrepare, $tblPerson, $isForced);
     }
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblCertificate $tblCertificate
+     * @param TblCertificate|null $tblCertificate
      *
      * @return false|TblPrepareStudent[]
      */
@@ -167,7 +157,6 @@ class Service extends ServiceTemplateInformation
      */
     public function getPrepareStudentById($Id)
     {
-
         return (new Data($this->getBinding()))->getPrepareStudentById($Id);
     }
 
@@ -184,6 +173,7 @@ class Service extends ServiceTemplateInformation
 
     /**
      * Fach-Note
+     * @deprecated
      *
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
@@ -200,7 +190,6 @@ class Service extends ServiceTemplateInformation
         TblSubject $tblSubject,
         TblTestType $tblTestType
     ) {
-
         return (new Data($this->getBinding()))->getPrepareGradeBySubject(
             $tblPrepare,
             $tblPerson,
@@ -226,21 +215,7 @@ class Service extends ServiceTemplateInformation
         TblTestType $tblTestType,
         TblGradeType $tblGradeType
     ) {
-
         return (new Data($this->getBinding()))->getPrepareGradeByGradeType($tblPrepare, $tblPerson, $tblTestType, $tblGradeType);
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblTestType $tblTestType
-     *
-     * @return false|TblPrepareGrade[]
-     */
-    public function getPrepareGradesByPrepare(
-        TblPrepareCertificate $tblPrepare,
-        TblTestType $tblTestType
-    ) {
-        return (new Data($this->getBinding()))->getPrepareGradesByPrepare($tblPrepare, $tblTestType);
     }
 
     /**
@@ -252,32 +227,14 @@ class Service extends ServiceTemplateInformation
      * @param bool $IsForced
      *
      * @return false|TblPrepareGrade[]
-     * @throws \Exception
      */
     public function getPrepareGradeAllByPerson(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
         TblTestType $tblTestType,
-        $IsForced = false
+        bool $IsForced = false
     ) {
-
         return (new Data($this->getBinding()))->getPrepareGradeAllByPerson($tblPrepare, $tblPerson, $tblTestType, $IsForced);
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblTestType $tblTestType
-     *
-     * @return false|TblPrepareGrade[]
-     */
-    public function getPrepareGradeAllByPrepare(
-        TblPrepareCertificate $tblPrepare,
-        TblTestType $tblTestType
-    ) {
-
-        return (new Data($this->getBinding()))->getPrepareGradeAllByPrepare(
-            $tblPrepare, $tblTestType
-        );
     }
 
     /**
@@ -288,7 +245,6 @@ class Service extends ServiceTemplateInformation
      */
     public function getPrepareInformationAllByPerson(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
     {
-
         return (new Data($this->getBinding()))->getPrepareInformationAllByPerson($tblPrepare, $tblPerson);
     }
 
@@ -311,7 +267,6 @@ class Service extends ServiceTemplateInformation
      */
     public function getPrepareInformationBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, $Field)
     {
-
         return (new Data($this->getBinding()))->getPrepareInformationBy($tblPrepare, $tblPerson, $Field);
     }
 
@@ -329,7 +284,6 @@ class Service extends ServiceTemplateInformation
         $Data,
         $Route
     ) {
-
         /**
          * Skip to Frontend
          */
@@ -337,9 +291,7 @@ class Service extends ServiceTemplateInformation
             return $Stage;
         }
 
-        $Error = false;
         $tblPerson = Person::useService()->getPersonById($Data);
-
         $this->updatePrepareData($tblPrepare, $tblPerson ?: null, $tblPrepare->getIsPrepared());
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Unterzeichner wurde ausgewählt.')
@@ -360,12 +312,11 @@ class Service extends ServiceTemplateInformation
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
         TblCertificate $tblCertificate = null
-    ) {
-
+    ): string {
         if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
             (new Data($this->getBinding()))->updatePrepareStudent(
                 $tblPrepareStudent,
-                $tblCertificate ? $tblCertificate : null,
+                $tblCertificate ?: null,
                 $tblPrepareStudent->isApproved(),
                 $tblPrepareStudent->isPrinted(),
                 $tblPrepareStudent->getExcusedDays(),
@@ -378,7 +329,7 @@ class Service extends ServiceTemplateInformation
             (new Data($this->getBinding()))->createPrepareStudent(
                 $tblPrepare,
                 $tblPerson,
-                $tblCertificate ? $tblCertificate : null
+                $tblCertificate ?: null
             );
         }
 
@@ -394,14 +345,9 @@ class Service extends ServiceTemplateInformation
      *
      * @return bool
      */
-    public function updatePrepareStudentSetPrinted(TblPrepareStudent $tblPrepareStudent)
+    public function updatePrepareStudentSetPrinted(TblPrepareStudent $tblPrepareStudent): bool
     {
-
-        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
-            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-            && ($tblDivision = $tblPrepareStudent->getTblPrepareCertificate()->getServiceTblDivision())
-        ) {
+        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
             return (new Data($this->getBinding()))->updatePrepareStudent(
                 $tblPrepareStudent,
                 $tblCertificate,
@@ -592,7 +538,6 @@ class Service extends ServiceTemplateInformation
         ?TblGenerateCertificate $tblGenerateCertificate,
         ?TblPerson $tblPersonSigner
     ): TblPrepareCertificate {
-        // todo find usage
         return (new Data($this->getBinding()))->createPrepare($tblDivisionCourse, $tblGenerateCertificate, $tblPersonSigner);
     }
 
@@ -608,7 +553,6 @@ class Service extends ServiceTemplateInformation
         ?TblPerson $tblPersonSigner,
         bool $IsPrepared
     ): bool {
-        // todo find usage
         return (new Data($this->getBinding()))->updatePrepare($tblPrepare, $tblPersonSigner, $IsPrepared);
     }
 
@@ -643,7 +587,7 @@ class Service extends ServiceTemplateInformation
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param $Content
-     * @param Certificate $Certificate
+     * @param Certificate|null $Certificate
      */
     public function updatePrepareInformationDataList(
         TblPrepareCertificate $tblPrepare,
@@ -651,9 +595,7 @@ class Service extends ServiceTemplateInformation
         $Content,
         Certificate $Certificate = null
     ) {
-
         $personId = $tblPerson->getId();
-
         if (isset($Content['P' . $personId]['Input']) && is_array($Content['P' . $personId]['Input'])) {
             foreach ($Content['P' . $personId]['Input'] as $field => $value) {
                 if ($field == 'SchoolType'
@@ -698,14 +640,13 @@ class Service extends ServiceTemplateInformation
      */
     public function getPrepareAllByGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate)
     {
-
         return (new Data($this->getBinding()))->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
     }
 
     /**
      * @param IFormInterface|null $form
      * @param TblPrepareCertificate $tblPrepare
-     * @param TblGradeType $tblGradeType
+     * @param TblGradeType|null $tblGradeType
      * @param TblGradeType|null $tblNextGradeType
      * @param $Route
      * @param $Data
@@ -791,46 +732,6 @@ class Service extends ServiceTemplateInformation
     }
 
     /**
-     * @deprecated wird jetzt direkt beim Erstellen des Zeugnisauftrags gesetzt
-     *
-     * Unterzeichner Klassenlehrer automatisch die angemeldete Person setzen
-     *
-     * @param TblPrepareStudent $tblPrepareStudent
-     */
-    private function setSignerFromSignedInPerson(TblPrepareStudent $tblPrepareStudent)
-    {
-
-        if (!$tblPrepareStudent->getServiceTblPersonSigner()
-            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
-            && ($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
-            && $tblGenerateCertificate->isDivisionTeacherAvailable()
-        ) {
-            $tblPerson = false;
-            $tblAccount = Account::useService()->getAccountBySession();
-            if ($tblAccount) {
-                $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
-                if ($tblPersonAllByAccount) {
-                    $tblPerson = $tblPersonAllByAccount[0];
-                }
-            }
-
-            if ($tblPerson) {
-                (new Data($this->getBinding()))->updatePrepareStudent(
-                    $tblPrepareStudent,
-                    $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate() : null,
-                    $tblPrepareStudent->isApproved(),
-                    $tblPrepareStudent->isPrinted(),
-                    $tblPrepareStudent->getExcusedDays(),
-                    $tblPrepareStudent->getExcusedDaysFromLessons(),
-                    $tblPrepareStudent->getUnexcusedDays(),
-                    $tblPrepareStudent->getUnexcusedDaysFromLessons(),
-                    $tblPerson
-                );
-            }
-        }
-    }
-
-    /**
      * @param TblPrepareStudent $tblPrepareStudent
      *
      * @return bool
@@ -889,9 +790,8 @@ class Service extends ServiceTemplateInformation
      *
      * @return bool
      */
-    public function isPreparePrinted(TblPrepareCertificate $tblPrepareCertificate)
+    public function isPreparePrinted(TblPrepareCertificate $tblPrepareCertificate): bool
     {
-
         return (new Data($this->getBinding()))->isPreparePrinted($tblPrepareCertificate);
     }
 
@@ -902,7 +802,6 @@ class Service extends ServiceTemplateInformation
      */
     public function getPrepareStudentAllByPrepare(TblPrepareCertificate $tblPrepareCertificate)
     {
-
         return (new Data($this->getBinding()))->getPrepareStudentAllByPrepare($tblPrepareCertificate);
     }
 
@@ -911,9 +810,8 @@ class Service extends ServiceTemplateInformation
      *
      * @return bool
      */
-    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    public function isGradeTypeUsed(TblGradeType $tblGradeType): bool
     {
-
         return (new Data($this->getBinding()))->isGradeTypeUsed($tblGradeType);
     }
 
@@ -936,10 +834,9 @@ class Service extends ServiceTemplateInformation
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         $ranking,
         $grade,
-        $isSelected = false,
-        $isLocked = false
-    ) {
-
+        bool $isSelected = false,
+        bool $isLocked = false
+    ): TblPrepareAdditionalGrade {
         return (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepareCertificate, $tblPerson,
             $tblSubject, $tblPrepareAdditionalGradeType, $ranking, $grade, $isSelected, $isLocked);
     }
@@ -956,9 +853,7 @@ class Service extends ServiceTemplateInformation
         TblPerson $tblPerson,
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType = null
     ) {
-
-        return (new Data($this->getBinding()))->getPrepareAdditionalGradeListBy($tblPrepareCertificate,
-            $tblPerson, $tblPrepareAdditionalGradeType);
+        return (new Data($this->getBinding()))->getPrepareAdditionalGradeListBy($tblPrepareCertificate, $tblPerson, $tblPrepareAdditionalGradeType);
     }
 
     /**
@@ -1003,7 +898,6 @@ class Service extends ServiceTemplateInformation
      */
     public function getPrepareAdditionalGradeById($Id)
     {
-
         return (new Data($this->getBinding()))->getPrepareAdditionalGradeById($Id);
     }
 
@@ -1023,7 +917,6 @@ class Service extends ServiceTemplateInformation
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         bool $isForced = false
     ) {
-
         return (new Data($this->getBinding()))->getPrepareAdditionalGradeBy(
             $tblPrepareCertificate,
             $tblPerson,
@@ -1038,9 +931,8 @@ class Service extends ServiceTemplateInformation
      *
      * @return bool
      */
-    public function destroyPrepareAdditionalGrade(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade)
+    public function destroyPrepareAdditionalGrade(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade): bool
     {
-
         return (new Data($this->getBinding()))->destroyPrepareAdditionalGrade($tblPrepareAdditionalGrade);
     }
 
@@ -1050,33 +942,10 @@ class Service extends ServiceTemplateInformation
      *
      * @return bool
      */
-    public function updatePrepareAdditionalGradeRanking(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade, $Ranking)
+    public function updatePrepareAdditionalGradeRanking(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade, $Ranking): bool
     {
-
-        return (new Data($this->getBinding()))->updatePrepareAdditionalGradeRanking($tblPrepareAdditionalGrade,
-            $Ranking);
+        return (new Data($this->getBinding()))->updatePrepareAdditionalGradeRanking($tblPrepareAdditionalGrade, $Ranking);
     }
-
-//    /**
-//     * @param TblPrepareCertificate $tblPrepare
-//     */
-//    public function hasDiplomaCertificate(TblPrepareCertificate $tblPrepare)
-//    {
-//
-//        if (($tblDivision = $tblPrepare->getServiceTblDivision())
-//            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
-//        ) {
-//            foreach ($tblPersonList as $tblPerson) {
-//                if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))
-//                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-//                    && ($tblCertificateType = $tblCertificate->getTblCertificateType())
-//                    && $tblCertificateType->getIdentifier() == 'DIPLOMA'
-//                ) {
-//
-//                }
-//            }
-//        }
-//    }
 
     /**
      * @param $Identifier
@@ -1085,7 +954,6 @@ class Service extends ServiceTemplateInformation
      */
     public function getPrepareAdditionalGradeTypeByIdentifier($Identifier)
     {
-
         return (new Data($this->getBinding()))->getPrepareAdditionalGradeTypeByIdentifier($Identifier);
     }
 
@@ -1096,31 +964,7 @@ class Service extends ServiceTemplateInformation
      */
     public function getPrepareAdditionalGradeTypeById($Id)
     {
-
         return (new Data($this->getBinding()))->getPrepareAdditionalGradeTypeById($Id);
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblPrepareCertificate $tblPrepare
-     *
-     * @return bool
-     */
-    public function isCourseMainDiploma(TblPrepareCertificate $tblPrepare)
-    {
-
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && ($tblSchoolType = $tblLevel->getServiceTblType())
-            && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
-        ) {
-            if ($tblLevel->getName() == '9' || $tblLevel->getName() == '09') {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -1129,9 +973,8 @@ class Service extends ServiceTemplateInformation
      *
      * @return bool
      */
-    public function destroyPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate)
+    public function destroyPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate): bool
     {
-
         return (new Data($this->getBinding()))->destroyPrepareCertificate($tblPrepareCertificate);
     }
 
@@ -1200,19 +1043,6 @@ class Service extends ServiceTemplateInformation
     }
 
     /**
-     * @deprecated
-     *
-     * @param TblDivisionCourse $tblDivisionCourse
-     *
-     * @return false|TblLeaveStudent[]
-     */
-    public function  getLeaveStudentAllByDivision(TblDivisionCourse $tblDivisionCourse)
-    {
-        // todo find usage
-        return (new Data($this->getBinding()))->getLeaveStudentAllByDivision($tblDivisionCourse);
-    }
-
-    /**
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
      * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
@@ -1227,7 +1057,6 @@ class Service extends ServiceTemplateInformation
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         $ranking
     ) {
-
         return (new Data($this->getBinding()))->getPrepareAdditionalGradeByRanking(
             $tblPrepareCertificate,
             $tblPerson,
@@ -1283,158 +1112,17 @@ class Service extends ServiceTemplateInformation
     }
 
     /**
-     * @param $totalPoints
-     *
-     * @return string
-     */
-    public function  getResultForAbiturAverageGrade(
-        $totalPoints
-    ) {
-
-        // ist Formel korrekt?
-//        return str_replace('.',',', round((17/3) - ($totalPoints/180),1));
-        if ($totalPoints <= 900 && $totalPoints > 822) {
-            return '1,0';
-        } elseif ($totalPoints > 804) {
-            return '1,1';
-        } elseif ($totalPoints > 786) {
-            return '1,2';
-        } elseif ($totalPoints > 768) {
-            return '1,3';
-        } elseif ($totalPoints > 750) {
-            return '1,4';
-        } elseif ($totalPoints > 732) {
-            return '1,5';
-        } elseif ($totalPoints > 714) {
-            return '1,6';
-        } elseif ($totalPoints > 696) {
-            return '1,7';
-        } elseif ($totalPoints > 678) {
-            return '1,8';
-        } elseif ($totalPoints > 660) {
-            return '1,9';
-        } elseif ($totalPoints > 642) {
-            return '2,0';
-        } elseif ($totalPoints > 624) {
-            return '2,1';
-        } elseif ($totalPoints > 606) {
-            return '2,2';
-        } elseif ($totalPoints > 588) {
-            return '2,3';
-        } elseif ($totalPoints > 570) {
-            return '2,4';
-        } elseif ($totalPoints > 552) {
-            return '2,5';
-        } elseif ($totalPoints > 534) {
-            return '2,6';
-        } elseif ($totalPoints > 516) {
-            return '2,7';
-        } elseif ($totalPoints > 498) {
-            return '2,8';
-        } elseif ($totalPoints > 480) {
-            return '2,9';
-        } elseif ($totalPoints > 462) {
-            return '3,0';
-        } elseif ($totalPoints > 444) {
-            return '3,1';
-        } elseif ($totalPoints > 426) {
-            return '3,2';
-        } elseif ($totalPoints > 408) {
-            return '3,3';
-        } elseif ($totalPoints > 390) {
-            return '3,4';
-        } elseif ($totalPoints > 372) {
-            return '3,5';
-        } elseif ($totalPoints > 354) {
-            return '3,6';
-        } elseif ($totalPoints > 336) {
-            return '3,7';
-        } elseif ($totalPoints > 318) {
-            return '3,8';
-        } elseif ($totalPoints > 300) {
-            return '3,9';
-        } elseif ($totalPoints == 300) {
-            return '4,0';
-        } else {
-            return '&nbsp;';
-        }
-    }
-
-    /**
      * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
      * @param $grade
      * @param bool $isSelected
      *
      * @return bool
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    public function updatePrepareAdditionalGrade(
-        TblPrepareAdditionalGrade $tblPrepareAdditionalGrade,
-        $grade,
-        $isSelected = false
-    ) {
-
+    public function updatePrepareAdditionalGrade(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade, $grade, bool $isSelected = false): bool
+    {
         (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade, $grade, $isSelected);
 
         return false;
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepareCertificate
-     * @param TblPerson $tblPerson
-     * @return array|bool
-     * @throws \Exception
-     */
-    public function checkAbiturExams(TblPrepareCertificate $tblPrepareCertificate, TblPerson $tblPerson)
-    {
-
-        $warnings = false;
-        $exams = array();
-        $hasGerman = false;
-        $hasMathematics = false;
-        for ($i = 1; $i <6; $i++) {
-            $tblSubject = false;
-            $grade = false;
-            if ($i < 4) {
-                $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('WRITTEN_EXAM');
-            } else {
-                $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('VERBAL_EXAM');
-            }
-
-            if (($examGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
-                $tblPrepareCertificate,
-                $tblPerson,
-                $tblPrepareAdditionalGradeType,
-                $i))
-            ) {
-                $tblSubject = $examGrade->getServiceTblSubject();
-                if ($tblSubject) {
-                    if ($tblSubject->getName() == 'Deutsch'){
-                        $hasGerman = true;
-                    }
-                    if ($tblSubject->getName() == 'Mathematik') {
-                        $hasMathematics = true;
-                    }
-                }
-                $grade = $examGrade->getGrade();
-            }
-
-            $exams[$i] = array(
-                'Subject' => $tblSubject,
-                'Grade' => $grade
-            );
-        }
-
-        if (!$hasMathematics) {
-            $warnings[] = new Warning('Das Fach Mathematik muss sich unter den Prüfungsfächern befinden!', new Exclamation());
-        }
-        if (!$hasGerman) {
-            $warnings[] = new Warning('Das Fach Deutsch muss sich unter den Prüfungsfächern befinden!', new Exclamation());
-        }
-
-        return $warnings;
     }
 
     /**
@@ -1556,17 +1244,6 @@ class Service extends ServiceTemplateInformation
         }
 
         return false;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param bool|false $IsPrinted
-     *
-     * @return false|TblPrepareStudent[]
-     */
-    public function getPrepareStudentAllWherePrintedByPerson(TblPerson $tblPerson, $IsPrinted = false)
-    {
-        return (new Data($this->getBinding()))->getPrepareStudentAllWherePrintedByPerson($tblPerson, $IsPrinted);
     }
 
     /**

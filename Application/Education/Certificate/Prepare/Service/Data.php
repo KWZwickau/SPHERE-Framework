@@ -5,7 +5,6 @@ use DateTime;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
@@ -34,7 +33,6 @@ class Data extends DataLeave
 {
     public function setupDatabaseContent()
     {
-
         $this->createPrepareAdditionalGradeType('Vorjahres Note', 'PRIOR_YEAR_GRADE');
 
         // Realschulabschluss
@@ -88,9 +86,7 @@ class Data extends DataLeave
      */
     public function getPrepareById($Id)
     {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblPrepareCertificate', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareCertificate', $Id);
     }
 
     /**
@@ -113,18 +109,16 @@ class Data extends DataLeave
     }
 
     /**
-     *
      * @return false|TblPrepareCertificate[]
      */
     public function getPrepareAll()
     {
-
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblPrepareCertificate'
-        );
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareCertificate');
     }
 
     /**
+     * @deprecated
+     *
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
@@ -140,7 +134,6 @@ class Data extends DataLeave
         TblSubject $tblSubject,
         TblTestType $tblTestType
     ) {
-
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
             array(
                 TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
@@ -166,32 +159,12 @@ class Data extends DataLeave
         TblTestType $tblTestType,
         TblGradeType $tblGradeType
     ) {
-
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
             array(
                 TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
-            )
-        );
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblTestType $tblTestType
-     *
-     * @return false|TblPrepareGrade[]
-     */
-    public function getPrepareGradesByPrepare(
-        TblPrepareCertificate $tblPrepare,
-        TblTestType $tblTestType
-    ) {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
-            array(
-                TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
             )
         );
     }
@@ -213,7 +186,6 @@ class Data extends DataLeave
         TblTestType $tblTestType,
         $IsForced = false
     ) {
-
         if ($IsForced) {
             return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                 'TblPrepareGrade',
@@ -237,33 +209,13 @@ class Data extends DataLeave
 
     /**
      * @param TblPrepareCertificate $tblPrepare
-     * @param TblTestType $tblTestType
-     *
-     * @return false|TblPrepareGrade[]
-     */
-    public function getPrepareGradeAllByPrepare(
-        TblPrepareCertificate $tblPrepare,
-        TblTestType $tblTestType
-    ) {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
-            array(
-                TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
-            )
-        );
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param bool $isForced
      *
      * @return false|TblPrepareStudent
      */
-    public function getPrepareStudentBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, $isForced = false)
+    public function getPrepareStudentBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, bool $isForced = false)
     {
-
         if ($isForced) {
             return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
                 array(
@@ -308,7 +260,6 @@ class Data extends DataLeave
      */
     public function getPrepareStudentById($Id)
     {
-
         return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblPrepareStudent', $Id);
     }
 
@@ -337,7 +288,6 @@ class Data extends DataLeave
      */
     public function getPrepareInformationBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, $Field)
     {
-
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareInformation',
             array(
                 TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
@@ -355,14 +305,10 @@ class Data extends DataLeave
      */
     public function getPrepareInformationAllByPerson(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
     {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblPrepareInformation',
-            array(
-                TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                TblPrepareInformation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            )
-        );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareInformation', array(
+            TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
+            TblPrepareInformation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+        ));
     }
 
     /**
@@ -372,12 +318,9 @@ class Data extends DataLeave
      */
     public function getPrepareInformationAllByPrepare(TblPrepareCertificate $tblPrepare)
     {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblPrepareInformation',
-            array(
-                TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId()
-            )
-        );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareInformation', array(
+            TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId()
+        ));
     }
 
     /**
@@ -392,7 +335,6 @@ class Data extends DataLeave
         ?TblGenerateCertificate $tblGenerateCertificate,
         ?TblPerson $tblPersonSigner
     ): TblPrepareCertificate {
-
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblPrepareCertificate $Entity */
@@ -417,7 +359,7 @@ class Data extends DataLeave
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson|null $tblPersonSigner
-     * @param bool IsPrepared
+     * @param bool $IsPrepared
      *
      * @return bool
      */
@@ -506,12 +448,11 @@ class Data extends DataLeave
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
         TblCertificate $tblCertificate = null,
-        $IsApproved = false,
-        $IsPrinted = false,
+        bool $IsApproved = false,
+        bool $IsPrinted = false,
         $ExcusedDays = null,
         $UnexcusedDays = null
-    ) {
-
+    ): TblPrepareStudent {
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblPrepareStudent')->findOneBy(array(
@@ -522,7 +463,7 @@ class Data extends DataLeave
             $Entity = new TblPrepareStudent();
             $Entity->setTblPrepareCertificate($tblPrepare);
             $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setServiceTblCertificate($tblCertificate ? $tblCertificate : null);
+            $Entity->setServiceTblCertificate($tblCertificate ?: null);
             $Entity->setApproved($IsApproved);
             $Entity->setPrinted($IsPrinted);
             $Entity->setExcusedDays($ExcusedDays);
@@ -560,7 +501,6 @@ class Data extends DataLeave
         $UnexcusedDaysFromLessons = null,
         TblPerson $tblPersonSigner = null
     ): bool {
-
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblPrepareStudent $Entity */
@@ -636,8 +576,7 @@ class Data extends DataLeave
         TblPerson $tblPerson,
         $Field,
         $Value
-    ) {
-
+    ): TblPrepareInformation {
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblPrepareInformation')->findOneBy(array(
@@ -670,8 +609,7 @@ class Data extends DataLeave
         TblPrepareInformation $tblPrepareInformation,
         $Field,
         $Value
-    ) {
-
+    ): bool {
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblPrepareInformation $Entity */
@@ -697,7 +635,6 @@ class Data extends DataLeave
      */
     public function getPrepareAllByGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate)
     {
-
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblPrepareCertificate', array(
                 TblPrepareCertificate::ATTR_SERVICE_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId()
@@ -865,15 +802,13 @@ class Data extends DataLeave
      *
      * @return bool
      */
-    public function isPreparePrinted(TblPrepareCertificate $tblPrepareCertificate)
+    public function isPreparePrinted(TblPrepareCertificate $tblPrepareCertificate): bool
     {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
+        return (bool)$this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
             array(
                 TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
                 TblPrepareStudent::ATTR_IS_PRINTED => true
-            ))
-            ? true : false;
+            ));
     }
 
     /**
@@ -883,7 +818,6 @@ class Data extends DataLeave
      */
     public function getPrepareStudentAllByPrepare(TblPrepareCertificate $tblPrepareCertificate)
     {
-
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
             array(
                 TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
@@ -896,17 +830,13 @@ class Data extends DataLeave
      *
      * @return bool
      */
-    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    public function isGradeTypeUsed(TblGradeType $tblGradeType): bool
     {
-
-        return $this->getCachedEntityBy(
-            __METHOD__,
-            $this->getConnection()->getEntityManager(),
-            'TblPrepareGrade',
+        return (bool)$this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
             array(
                 TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId()
             )
-        ) ? true : false;
+        );
     }
 
     /**
@@ -928,10 +858,9 @@ class Data extends DataLeave
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         $ranking,
         $grade,
-        $isSelected = false,
-        $isLocked = false
-    ) {
-
+        bool $isSelected = false,
+        bool $isLocked = false
+    ): TblPrepareAdditionalGrade {
         $Manager = $this->getEntityManager();
 
         /** @var TblPrepareAdditionalGrade $Entity */
@@ -970,9 +899,8 @@ class Data extends DataLeave
     public function updatePrepareAdditionalGrade(
         TblPrepareAdditionalGrade $tblPrepareAdditionalGrade,
         $grade,
-        $isSelected = false
-    ) {
-
+        bool $isSelected = false
+    ): bool {
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblPrepareAdditionalGrade $Entity */
@@ -1003,8 +931,8 @@ class Data extends DataLeave
         TblPrepareAdditionalGrade $tblPrepareAdditionalGrade,
         TblSubject $tblSubject,
         $grade,
-        $isSelected = false
-    ) {
+        bool $isSelected = false
+    ): bool {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -1037,7 +965,6 @@ class Data extends DataLeave
         TblPerson $tblPerson,
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType = null
     ) {
-
         if ($tblPrepareAdditionalGradeType) {
             $parameters =  array(
                 TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
@@ -1051,13 +978,7 @@ class Data extends DataLeave
             );
         }
 
-        return $this->getCachedEntityListBy(
-            __METHOD__,
-            $this->getEntityManager(),
-            'TblPrepareAdditionalGrade',
-           $parameters,
-            array('Ranking' => self::ORDER_ASC)
-        );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblPrepareAdditionalGrade', $parameters, array('Ranking' => self::ORDER_ASC));
     }
 
     /**
@@ -1111,7 +1032,6 @@ class Data extends DataLeave
      * @param $ranking
      *
      * @return false|TblPrepareAdditionalGrade
-     * @throws \Exception
      */
     public function getPrepareAdditionalGradeByRanking(
         TblPrepareCertificate $tblPrepareCertificate,
@@ -1119,11 +1039,7 @@ class Data extends DataLeave
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         $ranking
     ) {
-
-        return $this->getCachedEntityBy(
-            __METHOD__,
-            $this->getEntityManager(),
-            'TblPrepareAdditionalGrade',
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblPrepareAdditionalGrade',
             array(
                 TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
                 TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
@@ -1135,17 +1051,12 @@ class Data extends DataLeave
 
     /**
      * @param $Id
+     *
      * @return false|TblPrepareAdditionalGrade
      */
     public function getPrepareAdditionalGradeById($Id)
     {
-
-        return $this->getCachedEntityById(
-            __METHOD__,
-            $this->getEntityManager(),
-            'TblPrepareAdditionalGrade',
-            $Id
-        );
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblPrepareAdditionalGrade', $Id);
     }
 
     /**
@@ -1153,18 +1064,18 @@ class Data extends DataLeave
      *
      * @return bool
      */
-    public function destroyPrepareAdditionalGrade(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade)
+    public function destroyPrepareAdditionalGrade(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade): bool
     {
-
         $Manager = $this->getEntityManager();
-
         /** @var TblPrepareAdditionalGrade $Entity */
         $Entity = $Manager->getEntityById('TblPrepareAdditionalGrade', $tblPrepareAdditionalGrade->getId());
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
+
             return true;
         }
+
         return false;
     }
 
@@ -1174,22 +1085,20 @@ class Data extends DataLeave
      *
      * @return bool
      */
-    public function updatePrepareAdditionalGradeRanking(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade, $Ranking)
+    public function updatePrepareAdditionalGradeRanking(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade, $Ranking): bool
     {
-
         $Manager = $this->getEntityManager();
-
         /** @var TblPrepareAdditionalGrade $Entity */
         $Entity = $Manager->getEntityById('TblPrepareAdditionalGrade', $tblPrepareAdditionalGrade->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setRanking($Ranking);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
-                $Protocol,
-                $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
             return true;
         }
+
         return false;
     }
 
@@ -1200,7 +1109,6 @@ class Data extends DataLeave
      */
     public function getPrepareAdditionalGradeTypeByIdentifier($Identifier)
     {
-
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareAdditionalGradeType',
             array(
                 TblPrepareAdditionalGradeType::ATTR_IDENTIFIER => strtoupper($Identifier)
@@ -1215,25 +1123,20 @@ class Data extends DataLeave
      */
     public function getPrepareAdditionalGradeTypeById($Id)
     {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareAdditionalGradeType',
-            $Id
-        );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareAdditionalGradeType', $Id);
     }
 
     /**
      * @param $Name
      * @param $Identifier
      *
-     * @return null|TblPrepareAdditionalGradeType
+     * @return false|TblPrepareAdditionalGradeType
      */
     public function createPrepareAdditionalGradeType($Name, $Identifier)
     {
-
         $Manager = $this->getEntityManager();
 
-        $Entity = $Manager->getEntity('TblPrepareAdditionalGradeType')
-            ->findOneBy(array(TblPrepareAdditionalGradeType::ATTR_IDENTIFIER => $Identifier));
+        $Entity = $Manager->getEntity('TblPrepareAdditionalGradeType')->findOneBy(array(TblPrepareAdditionalGradeType::ATTR_IDENTIFIER => $Identifier));
 
         if (null === $Entity) {
             $Entity = new TblPrepareAdditionalGradeType();
@@ -1253,11 +1156,9 @@ class Data extends DataLeave
      *
      * @return bool
      */
-    public function destroyPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate)
+    public function destroyPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate): bool
     {
-
         $Manager = $this->getEntityManager();
-
         /** @var TblPrepareCertificate $Entity */
         $Entity = $Manager->getEntityById('TblPrepareCertificate', $tblPrepareCertificate->getId());
         if (null !== $Entity) {
@@ -1266,20 +1167,8 @@ class Data extends DataLeave
 
             return true;
         }
-        return false;
-    }
 
-    /**
-     * @deprecated
-     *
-     * @param TblDivisionCourse $tblDivisionCourse
-     *
-     * @return false|TblLeaveStudent[]
-     */
-    public function  getLeaveStudentAllByDivision(TblDivisionCourse $tblDivisionCourse)
-    {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent',
-            array(TblLeaveStudent::ATTR_SERVICE_TBL_DIVISION => $tblDivisionCourse->getId()));
+        return false;
     }
 
     /**
@@ -1295,7 +1184,7 @@ class Data extends DataLeave
         $grade,
         TblSubject $tblFirstSubject = null,
         TblSubject $tblSecondSubject = null
-    ) {
+    ): bool {
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblPrepareComplexExam $Entity */
@@ -1332,10 +1221,8 @@ class Data extends DataLeave
         $grade,
         TblSubject $tblFirstSubject = null,
         TblSubject $tblSecondSubject = null
-    ) {
-
+    ): TblPrepareComplexExam {
         $Manager = $this->getEntityManager();
-
         /** @var TblPrepareComplexExam $Entity */
         $Entity = $Manager->getEntity('TblPrepareComplexExam')->findOneBy(array(
             TblPrepareComplexExam::ATTR_TBL_PREPARE_STUDENT => $tblPrepareStudent->getId(),
@@ -1357,51 +1244,6 @@ class Data extends DataLeave
         }
 
         return $Entity;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param bool|false $IsPrinted
-     *
-     * @return false|TblPrepareStudent[]
-     */
-    public function getPrepareStudentAllWherePrintedByPerson(TblPerson $tblPerson, $IsPrinted = false)
-    {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
-            array(
-                TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblPrepareStudent::ATTR_IS_PRINTED => $IsPrinted
-            )
-        );
-    }
-
-    /**
-     * @param TblPrepareStudent $tblPrepareStudent
-     * @param $IsPrepared
-     *
-     * @return bool
-     */
-    public function updatePrepareStudentSetIsPrepared(
-        TblPrepareStudent $tblPrepareStudent,
-        $IsPrepared
-    ) : bool
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        /** @var TblPrepareStudent $Entity */
-        $Entity = $Manager->getEntityById('TblPrepareStudent', $tblPrepareStudent->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setIsPrepared($IsPrepared);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -1454,7 +1296,6 @@ class Data extends DataLeave
     public function updateEntityListBulk(array $tblEntityList): bool
     {
         $Manager = $this->getEntityManager();
-
         /** @var Element $tblElement */
         foreach ($tblEntityList as $tblElement) {
             $Manager->bulkSaveEntity($tblElement);

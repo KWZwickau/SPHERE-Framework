@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 
 abstract class ServiceDiploma extends ServiceCertificateContent
@@ -562,5 +563,136 @@ abstract class ServiceDiploma extends ServiceCertificateContent
         } else {
             return (string) round($calc, 0, $round);
         }
+    }
+
+    /**
+     * @param $totalPoints
+     *
+     * @return string
+     */
+    public function  getResultForAbiturAverageGrade($totalPoints): string
+    {
+        // ist Formel korrekt?
+//        return str_replace('.',',', round((17/3) - ($totalPoints/180),1));
+        if ($totalPoints <= 900 && $totalPoints > 822) {
+            return '1,0';
+        } elseif ($totalPoints > 804) {
+            return '1,1';
+        } elseif ($totalPoints > 786) {
+            return '1,2';
+        } elseif ($totalPoints > 768) {
+            return '1,3';
+        } elseif ($totalPoints > 750) {
+            return '1,4';
+        } elseif ($totalPoints > 732) {
+            return '1,5';
+        } elseif ($totalPoints > 714) {
+            return '1,6';
+        } elseif ($totalPoints > 696) {
+            return '1,7';
+        } elseif ($totalPoints > 678) {
+            return '1,8';
+        } elseif ($totalPoints > 660) {
+            return '1,9';
+        } elseif ($totalPoints > 642) {
+            return '2,0';
+        } elseif ($totalPoints > 624) {
+            return '2,1';
+        } elseif ($totalPoints > 606) {
+            return '2,2';
+        } elseif ($totalPoints > 588) {
+            return '2,3';
+        } elseif ($totalPoints > 570) {
+            return '2,4';
+        } elseif ($totalPoints > 552) {
+            return '2,5';
+        } elseif ($totalPoints > 534) {
+            return '2,6';
+        } elseif ($totalPoints > 516) {
+            return '2,7';
+        } elseif ($totalPoints > 498) {
+            return '2,8';
+        } elseif ($totalPoints > 480) {
+            return '2,9';
+        } elseif ($totalPoints > 462) {
+            return '3,0';
+        } elseif ($totalPoints > 444) {
+            return '3,1';
+        } elseif ($totalPoints > 426) {
+            return '3,2';
+        } elseif ($totalPoints > 408) {
+            return '3,3';
+        } elseif ($totalPoints > 390) {
+            return '3,4';
+        } elseif ($totalPoints > 372) {
+            return '3,5';
+        } elseif ($totalPoints > 354) {
+            return '3,6';
+        } elseif ($totalPoints > 336) {
+            return '3,7';
+        } elseif ($totalPoints > 318) {
+            return '3,8';
+        } elseif ($totalPoints > 300) {
+            return '3,9';
+        } elseif ($totalPoints == 300) {
+            return '4,0';
+        } else {
+            return '&nbsp;';
+        }
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return array|bool
+     */
+    public function checkAbiturExams(TblPrepareCertificate $tblPrepareCertificate, TblPerson $tblPerson)
+    {
+        $warnings = false;
+        $exams = array();
+        $hasGerman = false;
+        $hasMathematics = false;
+        for ($i = 1; $i <6; $i++) {
+            $tblSubject = false;
+            $grade = false;
+            if ($i < 4) {
+                $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('WRITTEN_EXAM');
+            } else {
+                $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('VERBAL_EXAM');
+            }
+
+            if (($examGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                $tblPrepareCertificate,
+                $tblPerson,
+                $tblPrepareAdditionalGradeType,
+                $i))
+            ) {
+                $tblSubject = $examGrade->getServiceTblSubject();
+                if ($tblSubject) {
+                    if ($tblSubject->getName() == 'Deutsch'){
+                        $hasGerman = true;
+                    }
+                    if ($tblSubject->getName() == 'Mathematik') {
+                        $hasMathematics = true;
+                    }
+                }
+                $grade = $examGrade->getGrade();
+            }
+
+            $exams[$i] = array(
+                'Subject' => $tblSubject,
+                'Grade' => $grade
+            );
+        }
+
+        if (!$hasMathematics) {
+            $warnings[] = new Warning('Das Fach Mathematik muss sich unter den Prüfungsfächern befinden!', new Exclamation());
+        }
+        if (!$hasGerman) {
+            $warnings[] = new Warning('Das Fach Deutsch muss sich unter den Prüfungsfächern befinden!', new Exclamation());
+        }
+
+        return $warnings;
     }
 }
