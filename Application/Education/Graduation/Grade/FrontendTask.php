@@ -4,6 +4,8 @@ namespace SPHERE\Application\Education\Graduation\Grade;
 
 use DateTime;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -663,10 +665,12 @@ abstract class FrontendTask extends FrontendStudentOverview
     /**
      * @param TblTask $tblTask
      * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPrepareCertificate|null $tblPrepareCertificate
      *
      * @return string
      */
-    public function getTaskGradeViewByAppointedDateTask(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): string
+    public function getTaskGradeViewByAppointedDateTask(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse,
+        TblPrepareCertificate $tblPrepareCertificate = null): string
     {
         $headerList['Number'] = $this->getTableColumnHead('#');
         $headerList['Person'] = $this->getTableColumnHead('Schüler');
@@ -698,6 +702,7 @@ abstract class FrontendTask extends FrontendStudentOverview
         if (($tblYear = $tblTask->getServiceTblYear())
             && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
         ) {
+            $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN');
             foreach ($tblPersonList as $tblPerson) {
                 $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
                 $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
@@ -721,31 +726,42 @@ abstract class FrontendTask extends FrontendStudentOverview
                 if ($tblSubjectList) {
                     list($startDate, $tblPeriod) = $this->getStartDateAndPeriodByPerson($tblPerson, $tblYear, $tblTask);
                     foreach ($tblSubjectList as $tblSubject) {
-                        $gradeValue = null;
-                        if (isset($tblTaskGradeList[$tblSubject->getId()])) {
-                            $content = $tblTaskGradeList[$tblSubject->getId()];
-                            if (($gradeValue = Grade::useService()->getGradeNumberValue($content)) !== null) {
-                                $sum += $gradeValue;
-                                $countGrades++;
-
-                                $subjectListSum[$tblSubject->getId()] += $gradeValue;
-                                $subjectListGradesCount[$tblSubject->getId()]++;
-                            }
-                        } elseif (isset($tblTaskGradeTextList[$tblSubject->getId()])) {
-                            $content = $tblTaskGradeTextList[$tblSubject->getId()];
-                        } elseif ((DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
-                            $content = new WarningText(new Bold('f'));
+                        // Endnote anzeigen
+                        if ($tblPrepareCertificate
+                            && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy($tblPrepareCertificate, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType))
+                        ) {
+                            $average = '';
+                            $content = $tblPrepareAdditionalGrade->getGrade();
+                        // Stichtagsnote anzeigen
                         } else {
-                            $content = '&nbsp;';
-                        }
+                            $gradeValue = null;
+                            if (isset($tblTaskGradeList[$tblSubject->getId()])) {
+                                $content = $tblTaskGradeList[$tblSubject->getId()];
+                                if (($gradeValue = Grade::useService()->getGradeNumberValue($content)) !== null) {
+                                    $sum += $gradeValue;
+                                    $countGrades++;
 
-                        $average = $this->getAppointedTaskAverage($tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $tblTask, $startDate ?: null, $tblPeriod ?: null);
-                        if ($average && $gradeValue !== null) {
-                            $averageFloat = Grade::useService()->getGradeNumberValue($average);
-                            if (($gradeValue - 0.5) <= $averageFloat && ($gradeValue + 0.5) >= $averageFloat) {
-                                $content = new Success(new Bold($content));
+                                    $subjectListSum[$tblSubject->getId()] += $gradeValue;
+                                    $subjectListGradesCount[$tblSubject->getId()]++;
+                                }
+                            } elseif (isset($tblTaskGradeTextList[$tblSubject->getId()])) {
+                                $content = $tblTaskGradeTextList[$tblSubject->getId()];
+                            } elseif ((DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear,
+                                $tblSubject))) {
+                                $content = new WarningText(new Bold('f'));
                             } else {
-                                $content = new \SPHERE\Common\Frontend\Text\Repository\Danger(new Bold($content));
+                                $content = '&nbsp;';
+                            }
+
+                            $average = $this->getAppointedTaskAverage($tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $tblTask, $startDate ?: null,
+                                $tblPeriod ?: null);
+                            if ($average && $gradeValue !== null) {
+                                $averageFloat = Grade::useService()->getGradeNumberValue($average);
+                                if (($gradeValue - 0.5) <= $averageFloat && ($gradeValue + 0.5) >= $averageFloat) {
+                                    $content = new Success(new Bold($content));
+                                } else {
+                                    $content = new \SPHERE\Common\Frontend\Text\Repository\Danger(new Bold($content));
+                                }
                             }
                         }
 

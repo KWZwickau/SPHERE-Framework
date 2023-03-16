@@ -3,11 +3,13 @@
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use DateTime;
+use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -145,34 +147,16 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                     }
                     // Stichtagsnoten zählen
                     $countSubjectGrades = 0;
-                    // todo Fachnoten bei Abschlusszeugnissen OS und FOS
-                    if ($isDiploma) {
-//                        if ($isDiploma && ($tblType && ($tblType->getShortName() == 'OS' || $tblType->getShortName() == 'FOS' || $tblType->getShortName() == 'BFS'))) {
-//                            if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
-//                                && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
-//                                    $tblPrepare,
-//                                    $tblPerson,
-//                                    $tblPrepareAdditionalGradeType
-//                                ))
-//                            ) {
-//                                foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-//                                    if ($tblPrepareAdditionalGrade->getGrade() !== null && $tblPrepareAdditionalGrade->getGrade() !== '') {
-//                                        $countSubjectGrades++;
-//                                    }
-//                                }
-//                            }
-//                        }
-                    } else {
-                        if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
-                            && ($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblAppointedDateTask, $tblPerson))
-                        ) {
-                            foreach ($tblTaskGradeList as $tblTaskGrade) {
-                                if (($tblTaskGrade->getGrade() !== null && $tblTaskGrade->getGrade() !== '') || $tblTaskGrade->getTblGradeText()) {
-                                    $countSubjectGrades++;
-                                }
+                    if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
+                        && ($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblAppointedDateTask, $tblPerson))
+                    ) {
+                        foreach ($tblTaskGradeList as $tblTaskGrade) {
+                            if (($tblTaskGrade->getGrade() !== null && $tblTaskGrade->getGrade() !== '') || $tblTaskGrade->getTblGradeText()) {
+                                $countSubjectGrades++;
                             }
                         }
                     }
+
                     if ($tblPrepare->getServiceTblAppointedDateTask()) {
                         $subjectGradesText = $countSubjectGrades . ' von ' . $countSubjects; // . ' Zensuren&nbsp;';
                     } else {
@@ -617,7 +601,6 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
             && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
         ) {
-            // todo Prüfungsnoten
             $content = new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
@@ -642,7 +625,21 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
             ));
 
             if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())) {
-                $content .= Grade::useFrontend()->getTaskGradeViewByAppointedDateTask($tblTask, $tblDivisionCourse);
+                $showFinaleGrade = false;
+                if (($tblCertificateType = $tblPrepare->getCertificateType())
+                    && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                    && ($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                    && ($tblSchoolTypeOS = Type::useService()->getTypeByShortName('OS'))
+                    && ($tblSchoolTypeFOS = Type::useService()->getTypeByShortName('FOS'))
+                    && ($tblSchoolTypeBFS = Type::useService()->getTypeByShortName('BFS'))
+                    && (isset($tblSchoolTypeList[$tblSchoolTypeOS->getId()])
+                        || isset($tblSchoolTypeList[$tblSchoolTypeFOS->getId()])
+                        || isset($tblSchoolTypeList[$tblSchoolTypeBFS->getId()])
+                    )
+                ) {
+                    $showFinaleGrade = true;
+                }
+                $content .= Grade::useFrontend()->getTaskGradeViewByAppointedDateTask($tblTask, $tblDivisionCourse, $showFinaleGrade ? $tblPrepare : null);
             } else {
                 $content .= new Warning('Kein Stichtagsnotenauftrag hinterlegt.', new Exclamation());
             }
@@ -688,7 +685,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                 if (class_exists($CertificateClass)) {
                     $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
                     $tblDivisionCourse = $tblPrepare->getServiceTblDivision();
-                    /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
+                    /** @var Certificate $Template */
                     $Template = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare);
 
                     // get Content
