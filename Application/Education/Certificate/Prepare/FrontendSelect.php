@@ -367,6 +367,7 @@ abstract class FrontendSelect extends FrontendPreview
             $tblSchoolTypeBgj = Type::useService()->getTypeByShortName('BGJ');
             $tblSchoolTypeOS = Type::useService()->getTypeByShortName('OS');
             $tblSchoolTypeFOS = Type::useService()->getTypeByShortName('FOS');
+            $tblSchoolTypeBFS = Type::useService()->getTypeByShortName('BFS');
             $tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents();
             if (($tblPrepareList = Prepare::useService()->getPrepareAllByDivisionCourse($tblDivisionCourse))) {
                 foreach ($tblPrepareList as $tblPrepare) {
@@ -393,17 +394,17 @@ abstract class FrontendSelect extends FrontendPreview
                             }
                         }
 
+                        $parameters = array(
+                            'PrepareId' => $tblPrepare->getId(),
+                            'Route' => $Route
+                        );
+
                         if ($Route == 'Diploma'
                             && isset($tblSchoolTypeList[$tblSchoolTypeGy->getId()])
                         ) {
                             // Gymnasium, Abitur
                             $options = new Standard(
-                                '', '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/Preview', new EyeOpen(),
-                                array(
-                                    'PrepareId' => $tblPrepare->getId(),
-                                    'Route' => $Route
-                                ),
-                                'Einstellungen und Vorschau der Zeugnisse'
+                                '', '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/Preview', new EyeOpen(), $parameters, 'Einstellungen und Vorschau der Zeugnisse'
                             );
                         } else {
                             if ($tblCertificateType->getIdentifier() == 'DIPLOMA') {
@@ -413,26 +414,20 @@ abstract class FrontendSelect extends FrontendPreview
                                 } else {
                                     // Fachoberschule, Berufsfachschule ist wie Oberschule
                                     $routeDestination = '/Education/Certificate/Prepare/Prepare/Diploma/Setting';
+                                    if (isset($tblSchoolTypeList[$tblSchoolTypeOS->getId()])) {
+                                        $parameters['SchoolTypeShortName'] = $tblSchoolTypeOS->getShortName();
+                                    } elseif (isset($tblSchoolTypeList[$tblSchoolTypeFOS->getId()])) {
+                                        $parameters['SchoolTypeShortName'] = $tblSchoolTypeFOS->getShortName();
+                                    } elseif (isset($tblSchoolTypeList[$tblSchoolTypeBFS->getId()])) {
+                                        $parameters['SchoolTypeShortName'] = $tblSchoolTypeBFS->getShortName();
+                                    }
                                 }
                             } else {
                                 $routeDestination = '/Education/Certificate/Prepare/Prepare/Setting';
                             }
 
-                            $options = (new Standard('', $routeDestination, new Setup(),
-                                    array(
-                                        'PrepareId' => $tblPrepare->getId(),
-                                        'Route' => $Route
-                                    ),
-                                    'Einstellungen'
-                                ))
-                                . (new Standard(
-                                    '', '/Education/Certificate/Prepare/Prepare/Preview', new EyeOpen(),
-                                    array(
-                                        'PrepareId' => $tblPrepare->getId(),
-                                        'Route' => $Route
-                                    ),
-                                    'Vorschau der Zeugnisse'
-                                ));
+                            $options = (new Standard('', $routeDestination, new Setup(), $parameters, 'Einstellungen'))
+                                . (new Standard('', '/Education/Certificate/Prepare/Prepare/Preview', new EyeOpen(), $parameters, 'Vorschau der Zeugnisse'));
                         }
 
                         $tableData[] = array(

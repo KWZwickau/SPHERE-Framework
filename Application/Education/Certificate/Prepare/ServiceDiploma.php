@@ -11,10 +11,15 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCo
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -381,5 +386,181 @@ abstract class ServiceDiploma extends ServiceCertificateContent
         }
 
         return $gradeString;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return bool
+     */
+    public function getHasPrepareLevel9OS(TblPrepareCertificate $tblPrepareCertificate): bool
+    {
+        if (($tblDivisionCourse = $tblPrepareCertificate->getServiceTblDivision())
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                    && $tblStudentEducation->getLevel() == 9
+                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                    && $tblSchoolType->getShortName() == 'OS'
+                ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblSubject|null $tblSubject
+     * @param string $Route
+     * @param string $NextTab
+     * @param string $SchoolTypeShortName
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updatePrepareExamGrades(
+        IFormInterface $form,
+        TblPrepareCertificate $tblPrepare,
+        ?TblSubject $tblSubject,
+        string $Route,
+        string $NextTab,
+        string $SchoolTypeShortName,
+        $Data
+    ) {
+        /**
+         * Skip to Frontend
+         */
+        if ($Data === null) {
+            return $form;
+        }
+
+        $error = false;
+
+        if ($Data != null) {
+            foreach ($Data as $personGrades) {
+                if (is_array($personGrades)) {
+                    foreach ($personGrades as $identifier => $value) {
+                        if (trim($value) !== '' && $identifier !== 'Text') {
+                            if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
+                                $error = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($error) {
+            $form->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                    'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1-6). Die Daten wurden nicht gespeichert.', new Exclamation())
+                ))));
+
+            return $form;
+        } else {
+            if ($Data != null) {
+                foreach ($Data as $prepareStudentId => $personGrades) {
+                    if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
+                        && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
+                        && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                        && is_array($personGrades)
+                    ) {
+                        $hasGradeText = false;
+                        $gradeText = '';
+                        if ((isset($personGrades['Text']))
+                            && ($tblGradeText = Grade::useService()->getGradeTextById($personGrades['Text']))
+                        ) {
+                            $hasGradeText = true;
+                            $gradeText = $tblGradeText->getName();
+                        }
+
+                        foreach ($personGrades as $identifier => $value) {
+                            // GradeText als Endnote speichern
+                            if ($identifier == 'EN' && $hasGradeText) {
+                                $value = $gradeText;
+                            }
+
+                            if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {
+                                if ($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy($tblPrepareItem, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType)) {
+                                    (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade, trim($value));
+                                } elseif (trim($value) != '') {
+                                    (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepareItem, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType, 0, trim($value));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Noten wurden gespeichert.')
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Setting', Redirect::TIMEOUT_SUCCESS,
+                    array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'Route' => $Route,
+                        'SchoolTypeShortName' => $SchoolTypeShortName,
+                        'Tab' => $NextTab
+                    )
+                );
+        }
+    }
+
+    /**
+     * @param array $gradeList
+     * @param string $Key
+     * @param bool $isExamRound
+     *
+     * @return string
+     */
+    public function getCalcDiplomaGrade(array $gradeList, string $Key, bool $isExamRound): string
+    {
+        $calc = '';
+        $round = PHP_ROUND_HALF_UP;
+        if (isset($gradeList['JN'])) {
+            // Rest
+            if (isset($gradeList['PS']) && isset($gradeList['PM'])) {
+                $calc = ($gradeList['JN'] + $gradeList['PS'] + $gradeList['PM']) / 3;
+            } elseif (isset($gradeList['PS']) && isset($gradeList['PZ'])) {
+                $calc = ($gradeList['JN'] + $gradeList['PS'] + $gradeList['PZ']) / 3;
+            } elseif (isset($gradeList['PM']) && isset($gradeList['PZ'])) {
+                $calc = ($gradeList['JN'] + $gradeList['PM'] + $gradeList['PZ']) / 3;
+            } elseif (isset($gradeList['PS'])) {
+                $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
+            } elseif (isset($gradeList['PM'])) {
+                $calc = ($gradeList['JN'] + $gradeList['PM']) / 2;
+            } elseif (isset($gradeList['PZ'])) {
+                $calc = ($gradeList['JN'] + $gradeList['PZ']) / 2;
+            }
+            // Hauptschule Klasse 9OS
+            elseif (isset($gradeList['LS']) && isset($gradeList['LM'])) {
+                $calc = ($gradeList['JN'] + $gradeList['LS'] + $gradeList['LM']) / 3;
+            } elseif (isset($gradeList['LS'])) {
+                $calc = (2 * $gradeList['JN'] + $gradeList['LS']) / 3;
+            } elseif (isset($gradeList['LM'])) {
+                $calc = (2 * $gradeList['JN'] + $gradeList['LM']) / 3;
+            }
+
+            // bei ,5 entscheidet die Prüfungsnote bei FOS und BFS
+            if ($isExamRound
+                && strpos($calc, '.5') !== false
+                && $gradeList['JN'] > $calc
+            ) {
+                $round = PHP_ROUND_HALF_DOWN;
+            }
+        }
+
+        if (!$calc) {
+            return '';
+        } elseif ($Key == 'Average') {
+            return str_replace('.', ',', round($calc, 2, $round));
+        } else {
+            return (string) round($calc, 0, $round);
+        }
     }
 }

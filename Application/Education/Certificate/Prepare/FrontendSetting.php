@@ -941,7 +941,7 @@ abstract class FrontendSetting extends FrontendSelect
         );
     }
 
-    private function getInformationContent(TblPrepareCertificate $tblPrepare, string $Route, $CertificateList, Stage $Stage, $Data, array $buttonList,
+    public function getInformationContent(TblPrepareCertificate $tblPrepare, string $Route, $CertificateList, Stage $Stage, $Data, array $buttonList,
         $nextPage, $Page, $informationPageList)
     {
         $columnTable = array(

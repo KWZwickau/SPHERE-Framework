@@ -421,10 +421,10 @@ class Service extends ServiceTemplateInformation
     /**
      * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
-     * @param string $Route
-     * @param array $Data
-     * @param array $CertificateList
-     * @param null|integer $nextPage
+     * @param $Route
+     * @param $Data
+     * @param $CertificateList
+     * @param $nextPage
      *
      * @return IFormInterface|string
      */
@@ -1098,149 +1098,6 @@ class Service extends ServiceTemplateInformation
     {
 
         return (new Data($this->getBinding()))->getPrepareAdditionalGradeTypeById($Id);
-    }
-
-    /**
-     * @param IFormInterface|null $form
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblSubject $tblCurrentSubject
-     * @param TblSubject|null $tblNextSubject
-     * @param null|bool $IsFinalGrade
-     * @param $Route
-     * @param $Data
-     * @param TblGroup|null $tblGroup
-     *
-     * @return IFormInterface|string
-     */
-    public function updatePrepareExamGrades(
-        IFormInterface $form,
-        TblPrepareCertificate $tblPrepare,
-        TblSubject $tblCurrentSubject,
-        TblSubject $tblNextSubject = null,
-        $IsFinalGrade = null,
-        $Route,
-        $Data,
-        TblGroup $tblGroup = null
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if ($Data === null) {
-            return $form;
-        }
-
-        $error = false;
-
-        if ($Data != null) {
-            foreach ($Data as $personGrades) {
-                if (is_array($personGrades)) {
-                    foreach ($personGrades as $identifier => $value) {
-                        if (trim($value) !== '' && $identifier !== 'Text') {
-                            if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
-                                $error = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if ($error) {
-            $form->prependGridGroup(
-                new FormGroup(new FormRow(new FormColumn(new Danger(
-                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1-6).
-                        Die Daten wurden nicht gespeichert.', new Exclamation())
-                ))));
-
-            return $form;
-        } else {
-            if ($Data != null) {
-                foreach ($Data as $prepareStudentId => $personGrades) {
-                    if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
-                        && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
-                        && ($tblDivision = $tblPrepareItem->getServiceTblDivision())
-                        && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-                        && is_array($personGrades)
-                    ) {
-                        $this->setSignerFromSignedInPerson($tblPrepareStudent);
-
-                        $hasGradeText = false;
-                        $gradeText = '';
-                        if ((isset($personGrades['Text']))
-                            && ($tblGradeText = Gradebook::useService()->getGradeTextById($personGrades['Text']))
-                        ) {
-                            $hasGradeText = true;
-                            $gradeText = $tblGradeText->getName();
-                        }
-
-                        foreach ($personGrades as $identifier => $value) {
-                            // GradeText als Endnote speichern
-                            if ($identifier == 'EN' && $hasGradeText) {
-                                $value = $gradeText;
-                            }
-
-                            if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {
-                                if ($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
-                                    $tblPrepareItem, $tblPerson, $tblCurrentSubject, $tblPrepareAdditionalGradeType
-                                )
-                                ) {
-                                    (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade,
-                                        trim($value), false);
-                                } elseif (trim($value) != '') {
-                                    (new Data($this->getBinding()))->createPrepareAdditionalGrade(
-                                        $tblPrepareItem, $tblPerson, $tblCurrentSubject, $tblPrepareAdditionalGradeType,
-                                        0, trim($value), false, false
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if ($tblNextSubject) {
-                if ($IsFinalGrade) {
-                    $parameters = array(
-                        'PrepareId' => $tblPrepare->getId(),
-                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
-                        'Route' => $Route,
-                        'SubjectId' => $tblNextSubject->getId()
-                    );
-                } else {
-                    $parameters = array(
-                        'PrepareId' => $tblPrepare->getId(),
-                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
-                        'Route' => $Route,
-                        'SubjectId' => $tblCurrentSubject->getId(),
-                        'IsFinalGrade' => true
-                    );
-                }
-            } else {
-                if ($IsFinalGrade) {
-                    $parameters = array(
-                        'PrepareId' => $tblPrepare->getId(),
-                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
-                        'Route' => $Route,
-                        'IsNotSubject' => true
-                    );
-                } else {
-                    $parameters = array(
-                        'PrepareId' => $tblPrepare->getId(),
-                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
-                        'Route' => $Route,
-                        'SubjectId' => $tblCurrentSubject->getId(),
-                        'IsFinalGrade' => true
-                    );
-                }
-            }
-
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Noten wurden gespeichert.')
-                . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Setting',
-                    Redirect::TIMEOUT_SUCCESS,
-                    $parameters
-                );
-        }
     }
 
     /**

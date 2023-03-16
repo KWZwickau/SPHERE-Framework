@@ -59,6 +59,8 @@ class ApiPrepare extends Extension implements IApiInterface
         $Dispatcher->registerMethod('setInformation');
         $Dispatcher->registerMethod('changeInformation');
 
+        $Dispatcher->registerMethod('loadDiplomaAverage');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -332,5 +334,62 @@ class ApiPrepare extends Extension implements IApiInterface
         }
 
         return '';
+    }
+
+    /**
+     * @param $PrepareStudentId
+     * @param $Key
+     * @param $Jn
+     * @param $SchoolTypeShortName
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadDiplomaAverage($PrepareStudentId, $Key, $Jn, $SchoolTypeShortName): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverContent('', 'Diploma_' . $Key . '_' . $PrepareStudentId), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDiplomaAverage',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PrepareStudentId' => $PrepareStudentId,
+            'Key' => $Key,
+            'Jn' => $Jn,
+            'SchoolTypeShortName' => $SchoolTypeShortName
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PrepareStudentId
+     * @param $Key
+     * @param $Jn
+     * @param $SchoolTypeShortName
+     * @param $Data
+     * @return TextField|string
+     */
+    public function loadDiplomaAverage($PrepareStudentId, $Key, $Jn, $SchoolTypeShortName, $Data)
+    {
+        $calc = '';
+        if (isset($Data[$PrepareStudentId])) {
+            $gradeList['JN'] = intval($Jn);
+            foreach ($Data[$PrepareStudentId] as $identifier => $value) {
+                if ($value) {
+                    $gradeList[$identifier] = intval($value);
+                }
+            }
+            $calc = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getCalcDiplomaGrade($gradeList, $Key, $SchoolTypeShortName != 'OS');
+        }
+
+        if ($Key == 'Average')
+        {
+            return $calc;
+        } else {
+            return \SPHERE\Application\Education\Certificate\Prepare\Prepare::useFrontend()->getTextFieldCertificateGrade(
+                'Data[' . $PrepareStudentId . ']', $PrepareStudentId, $calc
+            );
+        }
     }
 }
