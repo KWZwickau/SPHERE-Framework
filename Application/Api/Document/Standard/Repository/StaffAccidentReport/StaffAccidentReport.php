@@ -123,6 +123,7 @@ class StaffAccidentReport extends AbstractDocument
         $this->FieldValue['LocationSince'] = (isset($DataPost['LocationSince']) && $DataPost['LocationSince'] != '' ? $DataPost['LocationSince'] : '&nbsp;');
         $this->FieldValue['WorkArea'] = (isset($DataPost['WorkArea']) && $DataPost['WorkArea'] != '' ? $DataPost['WorkArea'] : '&nbsp;');
         $this->FieldValue['HealthInsurance'] = (isset($DataPost['HealthInsurance']) && $DataPost['HealthInsurance'] != '' ? $DataPost['HealthInsurance'] : '&nbsp;');
+        $this->FieldValue['Council'] = (isset($DataPost['Council']) && $DataPost['Council'] != '' ? $DataPost['Council'] : '&nbsp;');
         // last line
         $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
         $this->FieldValue['LocalLeader'] = (isset($DataPost['LocalLeader']) && $DataPost['LocalLeader'] != '' ? $DataPost['LocalLeader'] : '&nbsp;');
@@ -574,6 +575,7 @@ class StaffAccidentReport extends AbstractDocument
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderTop()
+                            ->styleBorderRight()
                             , '30%'
                         )
                         ->addElementColumn((new Element())
@@ -581,7 +583,6 @@ class StaffAccidentReport extends AbstractDocument
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderTop()
-                            ->styleBorderLeft()
                             , '70%'
                         )
                     )
@@ -596,7 +597,6 @@ class StaffAccidentReport extends AbstractDocument
                         )
                         ->addElementColumn((new Element())
                             ->setContent($this->FieldValue['ContinuePayment'])
-                            ->stylePaddingLeft('3px')
                             ->styleTextSize('11px')
                             ->styleBorderBottom()
                             ->styleHeight('15px')
@@ -1176,7 +1176,15 @@ class StaffAccidentReport extends AbstractDocument
                             ->stylePaddingTop('22px')
                             ->styleHeight('18px')
                             ->styleBorderBottom()
-                            , '50%'
+                            , '25%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent($this->FieldValue['Council'])
+                            ->stylePaddingLeft('10px')
+                            ->stylePaddingTop('22px')
+                            ->styleHeight('18px')
+                            ->styleBorderBottom()
+                            , '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent($this->FieldValue['Recall'])

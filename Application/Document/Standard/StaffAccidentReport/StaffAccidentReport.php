@@ -603,9 +603,14 @@ class StaffAccidentReport extends Extension
                                                             'Leiter (Beauftragter) der Einrichtung')
                                                         , 4),
                                                     new LayoutColumn(
+                                                        new TextField('Data[Council]', 'Betriebsrat',
+                                                            'Betriebsrat (Personalrat)')
+                                                        , 3),
+                                                    new LayoutColumn(
                                                         new TextField('Data[Recall]', 'Telefonnummer',
                                                             'Telefon-Nr. für Rückfragen (Ansprechpartner)')
                                                         , 5),
+
                                                 )),
                                             ))
                                         )
