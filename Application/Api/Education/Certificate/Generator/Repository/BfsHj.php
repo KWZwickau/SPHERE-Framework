@@ -31,6 +31,8 @@ class BfsHj extends BfsStyle
             'OperationTime2' => 'Einsatzgebiet Dauer in Wochen 2',
             'Operation3' => 'Einsatzgebiet 3',
             'OperationTime3' => 'Einsatzgebiet Dauer in Wochen 3',
+            'Operation4' => 'Einsatzgebiet 4',
+            'OperationTime4' => 'Einsatzgebiet Dauer in Wochen 4',
         );
     }
 
@@ -57,11 +59,9 @@ class BfsHj extends BfsStyle
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich (Fortsetzung)', 11, 4, '220px'))
             ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity()))
             ->addSlice($this->getPraktika($personId, $this->getCertificateEntity()))
-            ->addSlice($this->getDescriptionBsContent($personId))
-            ->addSlice((new Slice())->addElement((new Element())
-                ->setContent('&nbsp;')
-                ->stylePaddingTop('11px')
-            ))
+            ->addSlice($this->getDescriptionBsContent($personId, '195px')
+                ->stylePaddingBottom('1px')
+            )
             ->addSlice($this->getIndividuallySignPart($personId))
             ->addSlice($this->getBsInfo('20px',
                 'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))

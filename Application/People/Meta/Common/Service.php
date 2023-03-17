@@ -170,6 +170,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblCommon $tblCommon
+     * @param string $Remark
+     */
+    public function insertUpdateCommon($tblCommon, $Remark)
+    {
+
+        (new Data($this->getBinding()))->updateCommon($tblCommon, $Remark);
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblCommon

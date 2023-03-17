@@ -172,6 +172,13 @@ class Service extends AbstractService
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
                     }
+
+                    // Rechnungsnummer Liste
+                    if(!isset($PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])
+                        || !in_array($RowContent['InvoiceNumber'], $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])){
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'][] = $RowContent['InvoiceNumber'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumber'] = implode('; ', $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList']);
+                    }
                 }
             }
         }
@@ -557,6 +564,12 @@ class Service extends AbstractService
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
                     }
+                    // Rechnungsnummer Liste
+                    if(!isset($PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])
+                        || !in_array($RowContent['InvoiceNumber'], $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])){
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'][] = $RowContent['InvoiceNumber'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumber'] = implode('; ', $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList']);
+                    }
                 }
             }
         }
@@ -640,20 +653,31 @@ class Service extends AbstractService
             $export = Document::getDocument($fileLocation->getFileLocation());
             // Auswahl des Trennzeichen's
             $export->setDelimiter(';');
-
-            $YearBegin = $tblBasket->getBillYear().'0101';
-            $BookingFrom = $tblBasket->getBillYearMonth();
-            $BookingTo = $tblBasket->getBillYearMonth(true);
-
-            if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
-                $BillDate = new \DateTime($tblBasket->getBillTime());
-                $Month = (int)$BillDate->format('m');
-                $Year = (int)$BillDate->format('Y');
-                if($Month < 8){
+            // Wirtschaftsjahr
+            // Standard sollte immer überschrieben werden
+            $EconomicDateString = '0101';
+            $BillDate = new \DateTime($tblBasket->getBillTime());
+            $Day = (int)$BillDate->format('d');
+            $Month = (int)$BillDate->format('m');
+            $Year = (int)$BillDate->format('Y');
+            // Start Datum aus den Einstellungen
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_ECONOMIC_DATE))){
+                $EconomicDate = new \DateTime($tblSetting->getValue());
+                // Rechnung vor Abrechnungsstart (Monat) dann geht datev auf das alte Jahr
+                if($Month < (int)$EconomicDate->format('m')){
                     $Year = $Year - 1;
                 }
-                $YearBegin = $Year.'0801';
+                // Bei gleichem Monat Tag-Prüfung
+                if($Month == (int)$EconomicDate->format('m')
+                && $Day < (int)$EconomicDate->format('d')){
+                    $Year = $Year - 1;
+                }
+                $EconomicDateString = $EconomicDate->format('md');
             }
+
+            $YearBegin = $EconomicDateString.$Year;
+            $BookingFrom = $tblBasket->getBillYearMonth();
+            $BookingTo = $tblBasket->getBillYearMonth(true);
 
             $ConsultNumber = '1';
             if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_CONSULT_NUMBER))){

@@ -43,6 +43,7 @@ use SPHERE\Application\Api\Education\Prepare\Prepare;
 use SPHERE\Application\Api\Education\School\ApiCourse;
 use SPHERE\Application\Api\Education\Term\YearHoliday;
 use SPHERE\Application\Api\Education\Term\YearPeriod;
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -85,6 +86,7 @@ class Education implements IApplicationInterface
         ApiDigital::registerApi();
         ApiInstructionSetting::registerApi();
         ApiInstructionItem::registerApi();
+        Evaluation::registerModule();
 
         ApiDivisionCourse::registerApi();
         ApiDivisionCourseMember::registerApi();

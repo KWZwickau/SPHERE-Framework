@@ -31,6 +31,8 @@ class BfsHjInfo extends BfsStyle
             'OperationTime2' => 'Einsatzgebiet Dauer in Wochen 2',
             'Operation3' => 'Einsatzgebiet 3',
             'OperationTime3' => 'Einsatzgebiet Dauer in Wochen 3',
+            'Operation4' => 'Einsatzgebiet 4',
+            'OperationTime4' => 'Einsatzgebiet Dauer in Wochen 4',
         );
     }
 
@@ -63,7 +65,7 @@ class BfsHjInfo extends BfsStyle
             ->addSlice($this->getDescriptionBsContent($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
-                ->stylePaddingTop('123px')
+                ->stylePaddingTop('96px')
             ))
             ->addSlice($this->getBottomInformation($personId))
             ->addSlice($this->getBsInfo('20px',

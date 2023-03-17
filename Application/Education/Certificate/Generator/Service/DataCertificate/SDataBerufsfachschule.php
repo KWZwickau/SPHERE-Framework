@@ -68,6 +68,8 @@ class SDataBerufsfachschule
         $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 3);
         $Data->createCertificateInformation($tblCertificate, 'Operation3', 3);
         $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 3);
+        $Data->createCertificateInformation($tblCertificate, 'Operation4', 3);
+        $Data->createCertificateInformation($tblCertificate, 'OperationTime4', 3);
     }
 
     /**
@@ -113,6 +115,8 @@ class SDataBerufsfachschule
             $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 3);
             $Data->createCertificateInformation($tblCertificate, 'Operation3', 3);
             $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 3);
+            $Data->createCertificateInformation($tblCertificate, 'Operation4', 3);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime4', 3);
         }
     }
 
@@ -158,6 +162,8 @@ class SDataBerufsfachschule
             $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 3);
             $Data->createCertificateInformation($tblCertificate, 'Operation3', 3);
             $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 3);
+            $Data->createCertificateInformation($tblCertificate, 'Operation4', 3);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime4', 3);
         }
     }
 
@@ -186,6 +192,8 @@ class SDataBerufsfachschule
             $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 2);
             $Data->createCertificateInformation($tblCertificate, 'Operation3', 2);
             $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation4', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime4', 2);
 
             $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 3);
         }
