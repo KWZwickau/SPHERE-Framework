@@ -64,6 +64,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -83,15 +84,14 @@ use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
  */
 class Frontend extends Extension
 {
-
     /**
-     * @param bool $IsAllYears
+     * @param null $IsAllYears
      * @param null $YearId
      * @param null $Data
      *
      * @return Stage
      */
-    public function frontendGenerate($IsAllYears = false, $YearId = null, $Data = null): Stage
+    public function frontendGenerate($IsAllYears = null, $YearId = null, $Data = null): Stage
     {
         $Stage = new Stage('Zeugnis generieren', 'Übersicht');
         $buttonList = Term::useService()->setYearButtonList('/Education/Certificate/Generate', $IsAllYears, $YearId, $tblYear, true);
@@ -347,11 +347,9 @@ class Frontend extends Extension
                                 new Small(new Bold('Geschlecht des/der Schulleiters/in')),
                                 array(
                                     (new RadioBox('Data[GenderHeadmaster]', 'Männlich',
-                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
-                                            ? $tblCommonGender->getId() : 0)),
+                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich')) ? $tblCommonGender->getId() : 0)),
                                     (new RadioBox('Data[GenderHeadmaster]', 'Weiblich',
-                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
-                                            ? $tblCommonGender->getId() : 0))
+                                        ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich')) ? $tblCommonGender->getId() : 0))
                                 ),
                                 Panel::PANEL_TYPE_DEFAULT
                             )
@@ -432,7 +430,7 @@ class Frontend extends Extension
 
                 $content = new Well(Generate::useService()->createPrepareCertificates($form, $tblGenerateCertificate, $Data));
             } else {
-                $content = new \SPHERE\Common\Frontend\Message\Repository\Warning('Keine entsprechenden Kurse gefunden.', new Exclamation());
+                $content = new WarningMessage('Keine entsprechenden Kurse gefunden.', new Exclamation());
             }
 
             $Stage->setContent(
@@ -465,13 +463,19 @@ class Frontend extends Extension
                             ), 3),
                         ))
                     )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new WarningMessage('Bitte beachten Sie, dass Zeugnisaufträge für Klassen und Stammgruppen sich für Schüler nicht überschneiden, 
+                                    da ansonsten für die Gruppenleiter 2 Zeugnisaufträge angelegt werden.', new Exclamation())
+                            ),
+                        ))
+                    )),
                     $hasPreSelectedDivisions
                         ? new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                new \SPHERE\Common\Frontend\Message\Repository\Warning(
-                                    'Die vorselektierten Kurse aus den Notenaufträgen wurden noch nicht gespeichert.',
-                                    new Exclamation())
+                                new WarningMessage('Die vorselektierten Kurse aus den Notenaufträgen wurden noch nicht gespeichert.', new Exclamation())
                             )),
                         ))
                     )) : null,
@@ -547,12 +551,12 @@ class Frontend extends Extension
                     foreach ($tblSchoolTypeList as $tblSchoolType) {
                         $name = "Data[Division][{$tblDivisionCourse->getId()}]";
                         $checkbox = new CheckBox($name, $tblDivisionCourse->getDisplayName(), 1);
-                        // bereits hinzugefügte kurse sollen nicht wieder entfernt werden können, da dann die Daten der Zeugnisvorbereitung gelöscht werden
-                        if (isset($divisionCourseExistsList[$tblDivisionCourse->getId()])) {
-                            $checkbox->setDisabled();
-                        } else {
-                            $toggleList[$tblSchoolType->getId()][$tblDivisionCourse->getId()] = $name;
-                        }
+//                        // bereits hinzugefügte kurse sollen nicht wieder entfernt werden können, da dann die Daten der Zeugnisvorbereitung gelöscht werden
+//                        if (isset($divisionCourseExistsList[$tblDivisionCourse->getId()])) {
+//                            $checkbox->setDisabled();
+//                        } else {
+                        $toggleList[$tblSchoolType->getId()][$tblDivisionCourse->getId()] = $name;
+//                        }
                         $contentPanelList[$tblSchoolType->getId()][$tblDivisionCourse->getId()] = $checkbox;
                         // erstmal die Kurse bei mehreren Schularten nur einmal anzeigen
                         break;
@@ -1002,7 +1006,7 @@ class Frontend extends Extension
                 }
 
                 if ($countBehaviorGrades > 0) {
-                    $message = new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                    $message = new WarningMessage(
                         'Es wurden bereits ' . $countBehaviorGrades . ' Kopfnoten festgelegt',
                         new Exclamation()
                     );

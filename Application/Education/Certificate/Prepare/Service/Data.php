@@ -350,6 +350,31 @@ class Data extends DataLeave
 
     /**
      * @param TblPrepareCertificate $tblPrepare
+     *
+     * @return bool
+     */
+    public function updatePrepareResetRemove(
+        TblPrepareCertificate $tblPrepare
+    ): bool {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPrepareCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareCertificate', $tblPrepare->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(false);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
@@ -1215,6 +1240,20 @@ class Data extends DataLeave
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblPrepareCertificate', array(
             TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivisionCourse->getId()
+        ));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     *
+     * @return false|TblPrepareCertificate
+     */
+    public function getForcedPrepareByDivisionCourseAndGenerateCertificate(TblDivisionCourse $tblDivisionCourse, TblGenerateCertificate $tblGenerateCertificate)
+    {
+        return $this->getForceEntityBy(__METHOD__, $this->getEntityManager(), 'TblPrepareCertificate', array(
+            TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivisionCourse->getId(),
+            TblPrepareCertificate::ATTR_SERVICE_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId()
         ));
     }
 

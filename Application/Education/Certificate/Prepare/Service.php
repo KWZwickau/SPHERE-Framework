@@ -539,6 +539,17 @@ class Service extends ServiceTemplateInformation
 
     /**
      * @param TblPrepareCertificate $tblPrepare
+     *
+     * @return bool
+     */
+    public function updatePrepareResetRemove(
+        TblPrepareCertificate $tblPrepare
+    ): bool {
+        return (new Data($this->getBinding()))->updatePrepareResetRemove($tblPrepare);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
@@ -1189,6 +1200,17 @@ class Service extends ServiceTemplateInformation
     public function getPrepareAllByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
     {
         return (new Data($this->getBinding()))->getPrepareAllByDivisionCourse($tblDivisionCourse);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     *
+     * @return false|TblPrepareCertificate
+     */
+    public function getForcedPrepareByDivisionCourseAndGenerateCertificate(TblDivisionCourse $tblDivisionCourse, TblGenerateCertificate $tblGenerateCertificate)
+    {
+        return (new Data($this->getBinding()))->getForcedPrepareByDivisionCourseAndGenerateCertificate($tblDivisionCourse, $tblGenerateCertificate);
     }
 
     /**

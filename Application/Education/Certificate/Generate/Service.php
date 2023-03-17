@@ -41,7 +41,6 @@ use SPHERE\System\Database\Binding\AbstractService;
 
 class Service extends AbstractService
 {
-
     /**
      * @param bool $doSimulation
      * @param bool $withData
@@ -49,7 +48,7 @@ class Service extends AbstractService
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData, $UTF8)
+    public function setupService($doSimulation, $withData, $UTF8): string
     {
         $Protocol= '';
         if(!$withData){
@@ -58,6 +57,7 @@ class Service extends AbstractService
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
+
         return $Protocol;
     }
 
@@ -172,13 +172,36 @@ class Service extends AbstractService
             return $Form;
         }
 
+        // Soft - Löschen
+        $existsDivisionCourseList = array();
+        if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+            foreach ($tblPrepareList as $tblPrepareTemp) {
+                if (($tblDivisionCourseTemp = $tblPrepareTemp->getServiceTblDivision())) {
+                    if (!isset($Data['Division'][$tblDivisionCourseTemp->getId()])) {
+                        Prepare::useService()->destroyPrepareCertificate($tblPrepareTemp);
+                    } else {
+                        $existsDivisionCourseList[$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTemp;
+                    }
+                }
+            }
+        }
+
         if (isset($Data['Division'])) {
             $saveCertificatesForStudents = array();
             $tblConsumerBySession = Consumer::useService()->getConsumerBySession();
             $tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType();
             foreach ($Data['Division'] as $divisionCourseId => $value) {
+                // existiert bereits
+                if (isset($existsDivisionCourseList[$divisionCourseId])) {
+                    continue;
+                }
+
                 if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))) {
-                    if (($tblPrepare = Prepare::useService()->createPrepareData(
+                    // gelöschte Zeugnisvorbereitung wieder herstellen, forced holen -> update RemoveDate
+                    if (($tblPrepareRemove = Prepare::useService()->getForcedPrepareByDivisionCourseAndGenerateCertificate($tblDivisionCourse, $tblGenerateCertificate))) {
+                        Prepare::useService()->updatePrepareResetRemove($tblPrepareRemove);
+                    // neue Zeugnisvorbereitung anlegen
+                    } elseif (($tblPrepare = Prepare::useService()->createPrepareData(
                         $tblDivisionCourse,
                         $tblGenerateCertificate,
                         $tblDivisionCourse->getFirstDivisionTeacher() ?: null
