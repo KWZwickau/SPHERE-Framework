@@ -170,44 +170,6 @@ class Data extends DataLeave
     }
 
     /**
-     * @deprecated use getBehaviorGradeAllByPrepareCertificateAndPerson
-     *
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param TblTestType $tblTestType
-     * @param bool $IsForced
-     *
-     * @return false|TblPrepareGrade[]
-     * @throws \Exception
-     */
-    public function getPrepareGradeAllByPerson(
-        TblPrepareCertificate $tblPrepare,
-        TblPerson $tblPerson,
-        TblTestType $tblTestType,
-        $IsForced = false
-    ) {
-        if ($IsForced) {
-            return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblPrepareGrade',
-                array(
-                    TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                    TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
-                )
-            );
-        } else {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblPrepareGrade',
-                array(
-                    TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                    TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
-                )
-            );
-        }
-    }
-
-    /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param bool $isForced
@@ -468,7 +430,6 @@ class Data extends DataLeave
             $Entity->setPrinted($IsPrinted);
             $Entity->setExcusedDays($ExcusedDays);
             $Entity->setUnexcusedDays($UnexcusedDays);
-            $Entity->setIsPrepared(false);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -549,7 +510,6 @@ class Data extends DataLeave
                             $Entity->setServiceTblCertificate($tblCertificate);
                             $Entity->setApproved(false);
                             $Entity->setPrinted(false);
-                            $Entity->setIsPrepared(false);
 
                             $Manager->bulkSaveEntity($Entity);
                             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);

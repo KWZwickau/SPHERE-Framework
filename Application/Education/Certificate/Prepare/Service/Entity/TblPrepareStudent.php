@@ -84,11 +84,6 @@ class TblPrepareStudent extends Element
     protected $serviceTblPersonSigner;
 
     /**
-     * @Column(type="boolean")
-     */
-    protected $IsPrepared;
-
-    /**
      * @return false|TblPrepareCertificate
      */
     public function getTblPrepareCertificate()
@@ -274,25 +269,5 @@ class TblPrepareStudent extends Element
     public function setUnexcusedDaysFromLessons($UnexcusedDaysFromLessons)
     {
         $this->UnexcusedDaysFromLessons = $UnexcusedDaysFromLessons;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @return bool
-     */
-    public function getIsPrepared() : bool
-    {
-        return $this->IsPrepared;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param bool $IsPrepared
-     */
-    public function setIsPrepared(bool $IsPrepared) : void
-    {
-        $this->IsPrepared = $IsPrepared;
     }
 }

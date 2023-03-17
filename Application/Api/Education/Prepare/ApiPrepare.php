@@ -374,7 +374,9 @@ class ApiPrepare extends Extension implements IApiInterface
     {
         $calc = '';
         if (isset($Data[$PrepareStudentId])) {
-            $gradeList['JN'] = intval($Jn);
+            if (is_numeric($Jn)) {
+                $gradeList['JN'] = intval($Jn);
+            }
             foreach ($Data[$PrepareStudentId] as $identifier => $value) {
                 if ($value) {
                     $gradeList[$identifier] = intval($value);

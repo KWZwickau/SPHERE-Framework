@@ -219,25 +219,6 @@ class Service extends ServiceTemplateInformation
     }
 
     /**
-     * @deprecated getBehaviorGradeAllByPrepareCertificateAndPerson
-     *
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param TblTestType $tblTestType
-     * @param bool $IsForced
-     *
-     * @return false|TblPrepareGrade[]
-     */
-    public function getPrepareGradeAllByPerson(
-        TblPrepareCertificate $tblPrepare,
-        TblPerson $tblPerson,
-        TblTestType $tblTestType,
-        bool $IsForced = false
-    ) {
-        return (new Data($this->getBinding()))->getPrepareGradeAllByPerson($tblPrepare, $tblPerson, $tblTestType, $IsForced);
-    }
-
-    /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      *
@@ -1063,52 +1044,6 @@ class Service extends ServiceTemplateInformation
             $tblPrepareAdditionalGradeType,
             $ranking
         );
-    }
-
-    /**
-     * @deprecated use DivisionCourse::useService()->getCoursesForStudent
-     *
-     * @param TblDivision $tblDivision
-     * @param TblPerson $tblPerson
-     *
-     * @return array
-     */
-    public function getCoursesForStudent(TblDivision $tblDivision, TblPerson $tblPerson)
-    {
-
-        $advancedCourses = array();
-        $basicCourses = array();
-        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
-            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
-                if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())) {
-
-                    if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject(
-                        $tblDivisionSubjectItem))
-                    ) {
-                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                            if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
-                                && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
-                                && $tblPerson->getId() == $tblPersonStudent->getId()
-                            ) {
-                                if ($tblSubject->getAcronym() == 'EN2') {
-                                    $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
-                                }
-
-                                if ($tblSubject) {
-                                    if ($tblSubjectGroup->isAdvancedCourse()) {
-                                        $advancedCourses[$tblSubject->getId()] = $tblSubject;
-                                    } else {
-                                        $basicCourses[$tblSubject->getId()] = $tblSubject;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return array($advancedCourses, $basicCourses);
     }
 
     /**

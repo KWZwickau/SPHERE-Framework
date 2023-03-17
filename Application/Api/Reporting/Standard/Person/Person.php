@@ -6,6 +6,7 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Certificate\Reporting\View;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
@@ -13,7 +14,6 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
-use SPHERE\System\Extension\Extension;
 
 /**
  * Class Person
@@ -554,12 +554,12 @@ class Person
      */
     public function downloadCourseGrades($DivisionId): string
     {
-        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))
-            && ($content = Reporting::useService()->getCourseGradesContent($tblDivision))
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId))
+            && ($content = Reporting::useService()->getCourseGradesContent($tblDivisionCourse))
             && ($fileLocation = Reporting::useService()->createCourseGradesContentExcel($content))
-        ){
+        ) {
             return FileSystem::getDownload($fileLocation->getRealPath(), 'Kursnoten '
-                . $tblDivision->getTypeName() . ' Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+                . $tblDivisionCourse->getTypeName() . ' ' . $tblDivisionCourse->getName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return 'Keine Daten vorhanden!';

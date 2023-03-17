@@ -547,7 +547,9 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
                         && ($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblTask, $tblSubject))
                     ) {
                         $jn = $tblTaskGrade->getDisplayGrade(true, $tblCertificate);
-                        $gradeList['JN']= $jn;
+                        if (is_numeric($jn)) {
+                            $gradeList['JN'] = $jn;
+                        }
                     }
                     $studentTable[$tblPerson->getId()]['JN'] = $jn;
 

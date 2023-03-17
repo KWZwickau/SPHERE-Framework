@@ -3,10 +3,10 @@
 namespace SPHERE\Application\Education\Certificate\Reporting;
 
 use SPHERE\Application\Education\Certificate\Generate\Generate;
-use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -146,38 +146,25 @@ class Frontend extends Extension implements IFrontendInterface
                 && ($tblSchoolTypeBGy = Type::useService()->getTypeByShortName('BGy'))
             ) {
                 foreach ($tblYearList as $tblYear) {
-                    $divisionList = array();
-                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGy, '11'))) {
-                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
-                            $divisionList = array_merge($divisionList, $tblDivisionList);
-                        }
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGy, '12'))) {
-                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
-                            $divisionList = array_merge($divisionList, $tblDivisionList);
-                        }
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeBGy, '12'))) {
-                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
-                            $divisionList = array_merge($divisionList, $tblDivisionList);
-                        }
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeBGy, '13'))) {
-                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
-                            $divisionList = array_merge($divisionList, $tblDivisionList);
-                        }
-                    }
+                    $tblDivisionCourseList = array();
 
-                    foreach ($divisionList as $tblDivision) {
-                        $courseItemList[] = $tblDivision->getTypeName() . ' Klasse ' . $tblDivision->getDisplayName() . new PullRight((new Standard(
-                                '',
-                                '/Api/Reporting/Standard/Person/Certificate/CourseGrades/Download',
-                                new Download(),
-                                array(
-                                    'DivisionId' => $tblDivision->getId(),
-                                ),
-                                'Kursnoten herunterladen'
-                            )));
+                    Reporting::useService()->setDivisionCourseList($tblDivisionCourseList, $tblYear, $tblSchoolTypeGy, 11);
+                    Reporting::useService()->setDivisionCourseList($tblDivisionCourseList, $tblYear, $tblSchoolTypeGy, 12);
+
+                    Reporting::useService()->setDivisionCourseList($tblDivisionCourseList, $tblYear, $tblSchoolTypeBGy, 12);
+                    Reporting::useService()->setDivisionCourseList($tblDivisionCourseList, $tblYear, $tblSchoolTypeBGy, 13);
+
+                    /** @var TblDivisionCourse $tblDivisionCourse */
+                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                        $courseItemList[] = $tblDivisionCourse->getTypeName() . ' ' . $tblDivisionCourse->getName() . new PullRight((new Standard(
+                            '',
+                            '/Api/Reporting/Standard/Person/Certificate/CourseGrades/Download',
+                            new Download(),
+                            array(
+                                'DivisionId' => $tblDivisionCourse->getId(),
+                            ),
+                            'Kursnoten herunterladen'
+                        )));
                     }
                 }
             }
@@ -235,11 +222,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblYearList = array();
         $generateList = array();
-        if (($tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('DIPLOMA'))
-            && ($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAll())
-        ) {
+        if (($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAll())) {
             foreach ($tblGenerateCertificateList as $tblGenerateCertificate) {
-                if (($tblGenerateYear = $tblGenerateCertificate->getServiceTblYear())) {
+                if (($tblGenerateYear = $tblGenerateCertificate->getServiceTblYear())
+                    && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                    && ($tblCertificateType->getIdentifier() == 'DIPLOMA')
+                ) {
                     $tblYearList[$tblGenerateYear->getId()] = $tblGenerateYear;
                     $generateList[$tblGenerateYear->getId()][] = $tblGenerateCertificate;
                 }
@@ -286,14 +274,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($View == View::ABI) {
                                             // Berechnung der Gesamtqualifikation und der Durchschnittsnote
                                             /** @noinspection PhpUnusedLocalVariableInspection */
-                                            list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI(
-                                                $tblPrepare,
-                                                $tblPerson
-                                            );
-                                            $resultBlockII = Prepare::useService()->getResultForAbiturBlockII(
-                                                $tblPrepare,
-                                                $tblPerson
-                                            );
+                                            list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI($tblPrepare, $tblPerson);
+                                            $resultBlockII = Prepare::useService()->getResultForAbiturBlockII($tblPrepare, $tblPerson);
                                             $resultPoints = $resultBlockI + $resultBlockII;
                                             if ($resultBlockI >= 200 && $resultBlockII >= 100) {
                                                 $average = Prepare::useService()->getResultForAbiturAverageGrade($resultPoints);
@@ -375,25 +357,40 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function calcDiplomaAverageGrade(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
     {
+        $gradeList = array();
         if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
             && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
                 $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
             ))
         ) {
-            $gradeList = array();
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                if ($tblPrepareAdditionalGrade->getGrade() != '') {
+                if ($tblPrepareAdditionalGrade->getGrade() != ''
+                    && ($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
+                ) {
                     $grade = str_replace('+', '', $tblPrepareAdditionalGrade->getGrade());
                     $grade = str_replace('-', '', $grade);
                     if (is_numeric($grade)) {
-                        $gradeList[] = $grade;
+                        $gradeList[$tblSubject->getId()] = $grade;
                     }
                 }
             }
+        }
 
-            if (!empty($gradeList)) {
-                return round(floatval(array_sum($gradeList) / count($gradeList)), 1);
+        if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
+            && ($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson))
+        ) {
+            foreach ($tblTaskGradeList as $tblTaskGrade) {
+                if (($tblSubject = $tblTaskGrade->getServiceTblSubject())
+                    && !isset($gradeList[$tblSubject->getId()])
+                    && $tblTaskGrade->getIsGradeNumeric()
+                ) {
+                    $gradeList[$tblSubject->getId()] = $tblTaskGrade->getGradeNumberValue();
+                }
             }
+        }
+
+        if (!empty($gradeList)) {
+            return round(floatval(array_sum($gradeList) / count($gradeList)), 1);
         }
 
         return false;
