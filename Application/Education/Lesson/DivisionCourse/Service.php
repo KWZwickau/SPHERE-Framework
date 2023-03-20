@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
 use DateInterval;
@@ -25,6 +24,7 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group as GroupPerson;
 use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
@@ -129,12 +129,14 @@ class Service extends ServiceTeacher
 
     /**
      * @param string|null $TypeIdentifier
+     * @param bool $isReporting
+     * @param bool $isShowInPersonData
      *
      * @return false|TblDivisionCourse[]
      */
-    public function getDivisionCourseAll(?string $TypeIdentifier = '')
+    public function getDivisionCourseAll(?string $TypeIdentifier = '', $isReporting = false, $isShowInPersonData = false)
     {
-        return (new Data($this->getBinding()))->getDivisionCourseAll($TypeIdentifier);
+        return (new Data($this->getBinding()))->getDivisionCourseAll($TypeIdentifier, $isReporting, $isShowInPersonData);
     }
 
     /**
@@ -189,6 +191,18 @@ class Service extends ServiceTeacher
     public function getDivisionCourseListByLikeName(string $name, ?array $tblYearList = null)
     {
         return (new Data($this->getBinding()))->getDivisionCourseListByLikeName($name, $tblYearList);
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param bool $isReporting
+     * @param bool $isShowInPersonData
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourseListByYear(TblYear $tblYear, $isReporting = false, $isShowInPersonData = false)
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseListByYear($tblYear, $isReporting, $isShowInPersonData);
     }
 
     /**
@@ -392,6 +406,92 @@ class Service extends ServiceTeacher
         }
 
         return false;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblDivisionCourse|null $tblDivisionCourse
+     * @param TblType|null $tblTypeSchool
+     * @param string $level
+     *
+     * @return array|tblPerson[]
+     */
+    public function getPersonListByYear(TblYear $tblYear, ?TblDivisionCourse $tblDivisionCourse = null,
+    ?TblType $tblTypeSchool = null, string $level = '')
+    {
+
+        $returnPersonList = array();
+        if($tblDivisionCourse &&
+            !($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+          || $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP
+          || $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE
+          || $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE)
+        ){
+            $this->getStudentListByDivisionCourseByFilter($returnPersonList, $tblYear, $tblDivisionCourse, $tblTypeSchool, $level);
+        } elseif ($tblDivisionCourse &&
+            ($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE
+                || $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE)
+        ) {
+            if(($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListBySubjectDivisionCourse($tblDivisionCourse))){
+                foreach($tblStudentSubjectList as $tblStudentSubject){
+                    if(($tblPersonSubject = $tblStudentSubject->getServiceTblPerson())){
+                        $returnPersonList[$tblPersonSubject->getId()] = $tblPersonSubject;
+                    }
+                }
+            }
+        } else {
+            $ResultList = (new Data($this->getBinding()))->getDivisionCourseListByYearAndDivisionCourseAndTypeAndLevel($tblYear, $tblDivisionCourse, $tblTypeSchool, $level);
+            if(!empty($ResultList)){
+                foreach($ResultList as $Row){
+                    if(($tblPersonResult = Person::useService()->getPersonById($Row['PersonId']))){
+                        $returnPersonList[$tblPersonResult->getId()] = $tblPersonResult;
+                    }
+                }
+            }
+            // Personen aus verlinkten Kursen hinzufügen
+            if($tblDivisionCourse){
+                $this->getStudentListByDivisionCourseByFilter($returnPersonList, $tblYear, $tblDivisionCourse, $tblTypeSchool, $level);
+            }
+        }
+        return $returnPersonList;
+    }
+
+    /**
+     * @param array             $returnPersonList
+     * @param TblYear           $tblYear
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblType|null      $tblTypeSchool
+     * @param string            $level
+     *
+     * @return void
+     */
+    private function getStudentListByDivisionCourseByFilter(&$returnPersonList, TblYear $tblYear, TblDivisionCourse $tblDivisionCourse, TblType $tblTypeSchool = null, $level = '')
+    {
+
+        if(($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())){
+            foreach($tblPersonList as $tblPerson){
+                if($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear)){
+                    if($tblTypeSchool){
+                        if(($tblStudentSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                            && $tblStudentSchoolType->getId() == $tblTypeSchool->getId()) {
+                            if($level) {
+                                if ($tblStudentEducation->getLevel() == $level) {
+                                    $returnPersonList[$tblPerson->getId()] = $tblPerson;
+                                }
+                            } else {
+                                $returnPersonList[$tblPerson->getId()] = $tblPerson;
+                            }
+                        }
+                    } elseif ($level){
+                        if($tblStudentEducation->getLevel() == $level) {
+                            $returnPersonList[$tblPerson->getId()] = $tblPerson;
+                        }
+                    } else {
+                        $returnPersonList[$tblPerson->getId()] = $tblPerson;
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -1104,6 +1204,33 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblStudentEducation[]
+     */
+    public function getStudentEducationListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getStudentEducationListByPersonAndYear($tblPerson, $tblYear);
+    }
+
+    /**
+     * @return array
+     */
+    public function getStudentEducationLevelListForSelectbox()
+    {
+
+        $LevelList = (new Data($this->getBinding()))->getStudentEducationLevelList();
+        $LevelListing[] = '-[ Nicht ausgewählt ]-';
+        if(!empty($LevelList)){
+            foreach($LevelList as $Level){
+                $LevelListing[] = current($Level);
+            }
+            sort($LevelListing);
+        }
+        return $LevelListing;
+    }
+
+    /**
      * @param TblYear $tblYear
      * @param TblType|null $tblSchoolType
      * @param null $level
@@ -1116,6 +1243,53 @@ class Service extends ServiceTeacher
         TblDivisionCourse $tblCoreGroup = null)
     {
         return (new Data($this->getBinding()))->getStudentEducationListBy($tblYear, $tblSchoolType, $level, $tblDivision, $tblCoreGroup);
+    }
+
+    /**
+     * @param TblYear $tblYearSelected
+     *
+     * @return array
+     */
+    public function getLeaveStudents(TblYear $tblYear): array
+    {
+
+        $personList = array();
+        $split = explode('/', $tblYear->getName());
+        $tblYearNextList = Term::useService()->getYearByName(
+            ((int) $split[0] + 1) . '/' . ((int) $split[1] + 1)
+        );
+        if (($tblYearList = Term::useService()->getYearsByYear($tblYear))
+            && ($tblYearNextList)
+        ) {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblStudentEducationList = $this->getStudentEducationListBy($tblYear))) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        if (($tblStudentEducation->getTblDivision() || $tblStudentEducation->getTblCoreGroup())
+                            && ($tblPerson = $tblStudentEducation->getServiceTblPerson())
+                        ) {
+                            $tblDivisionCourseDivision = $tblStudentEducation->getTblDivision();
+                            $tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup();
+                            $isAddPerson = false;
+                            foreach ($tblYearNextList as $tblYearNext) {
+                                $isAddPerson = $this->getStudentEducationListByPersonAndYear($tblPerson, $tblYearNext) == false;
+                                if ($isAddPerson) {
+                                    break;
+                                }
+                            }
+                            if ($isAddPerson) {
+                                $personList[$tblPerson->getId()] = array(
+                                    'tblPerson'                  => $tblPerson,
+                                    'tblDivisionCourseDivision'  => $tblDivisionCourseDivision ? $tblDivisionCourseDivision : null,
+                                    'tblDivisionCourseCoreGroup' => $tblDivisionCourseCoreGroup ? $tblDivisionCourseCoreGroup : null,
+                                    'tblStudentEducation'        => $tblStudentEducation,
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return $personList;
     }
 
     /**

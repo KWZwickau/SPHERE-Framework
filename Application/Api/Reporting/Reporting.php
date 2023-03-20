@@ -8,6 +8,7 @@ use SPHERE\Application\Api\Reporting\Individual\ApiIndividual;
 use SPHERE\Application\Api\Reporting\DeclarationBasis\DeclarationBasis;
 use SPHERE\Application\Api\Reporting\SerialLetter\ApiSerialLetter;
 use SPHERE\Application\Api\Reporting\SerialLetter\SerialLetter;
+use SPHERE\Application\Api\Reporting\Standard\ApiMetaDataComparison;
 use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
 use SPHERE\Application\Api\Reporting\Standard\Standard;
 use SPHERE\Application\Api\Reporting\Univention\Univention;
@@ -28,6 +29,7 @@ class Reporting implements IApplicationInterface
         CustomEKBO::registerModule();
         Standard::registerModule();
         ApiStandard::registerApi();
+        ApiMetaDataComparison::registerApi();
         CheckList::registerModule();
         ApiSerialLetter::registerApi();
         SerialLetter::registerModule();

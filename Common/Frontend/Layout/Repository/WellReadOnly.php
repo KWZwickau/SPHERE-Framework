@@ -15,6 +15,9 @@ class WellReadOnly extends Extension implements ITemplateInterface
     /** @var string $Content */
     private $Content = '';
 
+    /** @var string $Style */
+    private $Style = '';
+
     /**
      * @param string $Content
      */
@@ -36,12 +39,26 @@ class WellReadOnly extends Extension implements ITemplateInterface
         return $this->getContent();
     }
 
+    public function setPadding($padding = '5px')
+    {
+
+        $this->Style .= 'padding: '.$padding.';';
+        return $this;
+    }
+
+    public function setMarginBottom($MarginBottom = '0px')
+    {
+
+        $this->Style .= 'margin-bottom: '.$MarginBottom.';';
+        return $this;
+    }
+
     /**
      * @return string
      */
     public function getContent()
     {
 
-        return '<div class="wellReadOnly">'.$this->Content.'</div>';
+        return '<div class="wellReadOnly" style="'.$this->Style.'">'.$this->Content.'</div>';
     }
 }

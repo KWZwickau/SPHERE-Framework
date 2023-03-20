@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
 use DateTime;
@@ -204,13 +203,27 @@ class Data extends DataTeacher
 
     /**
      * @param string|null $TypeIdentifier
+     * @param bool $isReporting
+     * @param bool $isShowInPersonData
      *
      * @return false|TblDivisionCourse[]
      */
-    public function getDivisionCourseAll(?string $TypeIdentifier = '')
+    public function getDivisionCourseAll(?string $TypeIdentifier = '', $isReporting = false, $isShowInPersonData = false)
     {
+
+        $Parameter = array();
         if ($TypeIdentifier && ($tblType = $this->getDivisionCourseTypeByIdentifier($TypeIdentifier))) {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', array(TblDivisionCourse::ATTR_TBL_TYPE => $tblType->getId()));
+            $Parameter[TblDivisionCourse::ATTR_TBL_TYPE] = $tblType->getId();
+        }
+        if($isReporting){
+            $Parameter[TblDivisionCourse::ATTR_IS_REPORTING] = 1;
+        }
+        if($isShowInPersonData){
+            $Parameter[TblDivisionCourse::ATTR_IS_SHOWN_IN_PERSON_DATA] = 1;
+        }
+
+        if(!empty($Parameter)){
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', $Parameter);
         } else {
             return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse');
         }
@@ -303,6 +316,26 @@ class Data extends DataTeacher
     }
 
     /**
+     * @param TblYear $tblYear
+     * @param $isReporting
+     * @param $isShowInPersonData
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourseListByYear(TblYear $tblYear, $isReporting, $isShowInPersonData)
+    {
+
+        $Parameter[TblDivisionCourse::SERVICE_TBL_YEAR] = $tblYear->getId();
+        if($isReporting){
+            $Parameter[TblDivisionCourse::ATTR_IS_REPORTING] = 1;
+        }
+        if($isShowInPersonData){
+            $Parameter[TblDivisionCourse::ATTR_IS_SHOWN_IN_PERSON_DATA] = 1;
+        }
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse',$Parameter);
+    }
+
+    /**
      * @param $name
      * @param TblYear $tblYear
      *
@@ -314,6 +347,43 @@ class Data extends DataTeacher
             TblDivisionCourse::ATTR_NAME => $name,
             TblDivisionCourse::SERVICE_TBL_YEAR => $tblYear->getId()
         ));
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblDivisionCourse|null $tblDivisionCourse
+     * @param string $level
+     *
+     * @return array
+     */
+    public function getDivisionCourseListByYearAndDivisionCourseAndTypeAndLevel(TblYear $tblYear, ?TblDivisionCourse $tblDivisionCourse = null, ?TblType $tblTypeSchool = null,
+        string $level = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $tblEntityStudentEducation = new TblStudentEducation();
+
+        $query = $queryBuilder->select('tSE.serviceTblPerson as PersonId');
+        $query->from($tblEntityStudentEducation->getEntityFullName(), 'tSE');
+        $query->where($queryBuilder->expr()->eq('tSE.serviceTblYear', '?1'));
+        $query->setParameter(1, $tblYear->getId());
+        if($tblDivisionCourse){
+            $query->andWhere($queryBuilder->expr()->orX($queryBuilder->expr()->eq('tSE.tblDivision', '?2'),
+                $queryBuilder->expr()->eq('tSE.tblCoreGroup', '?3')));
+            $query->setParameter(2, $tblDivisionCourse->getId());
+            $query->setParameter(3, $tblDivisionCourse->getId());
+        }
+        if($tblTypeSchool){
+            $query->andWhere($queryBuilder->expr()->eq('tSE.serviceTblSchoolType', '?4'));
+            $query->setParameter(4, $tblTypeSchool->getId());
+        }
+        if($level){
+            $query->andWhere($queryBuilder->expr()->eq('tSE.Level', '?5'));
+            $query->setParameter(5, $level);
+        }
+
+        return $query->getQuery()->getResult();
     }
 
     /**
@@ -579,6 +649,36 @@ class Data extends DataTeacher
         return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
             TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear   $tblYear
+     *
+     * @return false|TblStudentEducation[]
+     */
+    public function getStudentEducationListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblStudentEducation::ATTR_SERVICE_TBL_YEAR => $tblYear->getId()
+        ));
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getStudentEducationLevelList()
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $tblEntityStudentEducation = new TblStudentEducation();
+        $query = $queryBuilder->select('tSE.Level as Level');
+        $query->from($tblEntityStudentEducation->getEntityFullName(), 'tSE');
+        $query->groupBy('tSE.Level');
+        return $query->getQuery()->getResult();
     }
 
     /**
