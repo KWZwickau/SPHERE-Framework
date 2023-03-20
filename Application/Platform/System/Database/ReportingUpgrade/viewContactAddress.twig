@@ -23,11 +23,12 @@ SELECT
     tC.District AS TblCity_District,
 -- tblState
     tS.Name AS TblState_Name,
-
-    (select group_concat(concat(tR.Name) separator ', ')
-        from {{ ConsumerAcronym }}_ContactAddress.tblRegion tR
-        where tR.Code = tC.Code
-    ) TblRegion_Region
+    IF(tA.Region = '',
+		(select group_concat(concat(tR.Name) separator ', ')
+			from {{ ConsumerAcronym }}_ContactAddress.tblRegion tR
+			where tR.Code = tC.Code
+		),
+        tA.Region) as TblAddress_Region
 
 FROM {{ ConsumerAcronym }}_ContactAddress.tblToPerson tTP
     LEFT JOIN {{ ConsumerAcronym }}_ContactAddress.tblAddress tA ON tA.Id = tTP.tblAddress

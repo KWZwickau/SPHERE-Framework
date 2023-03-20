@@ -38,11 +38,10 @@ SELECT
         where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblState_Name,
-
-    (select vCA.TblRegion_Region from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+    (select vCA.TblAddress_Region from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
-    ) TblRegion_Name,
+    ) TblAddress_Region,
 
     (select vCA.TblAddress_Nation from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id
@@ -95,11 +94,11 @@ SELECT
     ) TblState_Name2,
 
 
-    (select vCA.TblRegion_Region from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+    (select vCA.TblAddress_Region from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
         LIMIT 0, 1
-    ) TblRegion_Name2,
+    ) TblAddress_Region2,
 
     (select vCA.TblAddress_Nation from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id

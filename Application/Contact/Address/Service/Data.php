@@ -404,19 +404,21 @@ class Data extends AbstractData
      * @param string   $StreetName
      * @param string   $StreetNumber
      * @param string   $PostOfficeBox
-     * @param          $County
-     * @param          $Nation
+     * @param string   $Region
+     * @param string   $County
+     * @param string   $Nation
      *
      * @return TblAddress
      */
     public function createAddress(
         TblState $tblState = null,
         TblCity $tblCity,
-        $StreetName,
-        $StreetNumber,
-        $PostOfficeBox,
-        $County,
-        $Nation
+        string $StreetName,
+        string $StreetNumber,
+        string $PostOfficeBox,
+        string $Region = '',
+        string $County = '',
+        string $Nation = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -427,6 +429,7 @@ class Data extends AbstractData
                 TblAddress::ATTR_STREET_NAME     => $StreetName,
                 TblAddress::ATTR_STREET_NUMBER   => $StreetNumber,
                 TblAddress::ATTR_POST_OFFICE_BOX => $PostOfficeBox,
+                TblAddress::ATTR_REGION          => $Region,
                 TblAddress::ATTR_COUNTY          => $County,
                 TblAddress::ATTR_NATION          => $Nation,
             ));
@@ -448,6 +451,7 @@ class Data extends AbstractData
         $Entity->setStreetName($StreetName);
         $Entity->setStreetNumber($StreetNumber);
         $Entity->setPostOfficeBox($PostOfficeBox);
+        $Entity->setRegion($Region);
         $Entity->setTblState($tblState);
         $Entity->setTblCity($tblCity);
         $Entity->setCounty($County);
@@ -814,6 +818,7 @@ class Data extends AbstractData
                     $Entity->setCounty('');
                     $Entity->setNation('');
                     $Entity->setPostOfficeBox('');
+                    $Entity->setRegion('');
                     $Entity->setStreetNumber(rand(1,99));
                     $Entity->setTblState(null);
                     $Manager->bulkSaveEntity($Entity);
