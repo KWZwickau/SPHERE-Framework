@@ -1,12 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 11.07.2016
- * Time: 08:59
- */
 
-namespace SPHERE\Application\Education\ClassRegister\Absence\Service\Entity;
+namespace SPHERE\Application\Education\Absence\Service\Entity;
 
 use DateTime;
 use Doctrine\ORM\Mapping\Cache;
@@ -16,8 +10,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
@@ -45,7 +38,7 @@ class TblAbsence extends Element
     const VALUE_SOURCE_ONLINE_STUDENT = 2;
 
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
-    const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
+    const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_FROM_DATE = 'FromDate';
     const ATTR_TO_DATE = 'ToDate';
 
@@ -53,63 +46,81 @@ class TblAbsence extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPerson;
-
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblDivision;
-
+    protected $serviceTblYear;
     /**
      * @Column(type="datetime")
      */
-    protected $FromDate;
-
+    protected ?DateTime $FromDate;
     /**
      * @Column(type="datetime")
      */
-    protected $ToDate;
-
+    protected ?DateTime $ToDate;
     /**
      * @Column(type="string")
      */
-    protected $Remark;
-
+    protected string $Remark;
     /**
      * @Column(type="smallint")
      */
-    protected $Status;
-
+    protected int $Status;
     /**
      * @Column(type="smallint")
      */
-    protected $Type;
-
+    protected int $Type;
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsCertificateRelevant;
     /**
      * @Column(type="bigint")
      */
     protected $serviceTblPersonStaff;
-
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsCertificateRelevant;
-
     /**
      * @Column(type="bigint")
      */
     protected $serviceTblPersonCreator;
-
     /**
      * @Column(type="smallint")
      */
-    protected $Source;
+    protected int $Source;
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param DateTime|null $FromDate
+     * @param DateTime|null $ToDate
+     * @param string $Remark
+     * @param int $Status
+     * @param int $Type
+     * @param bool $IsCertificateRelevant
+     * @param TblPerson|null $serviceTblPersonStaff
+     * @param TblPerson|null $serviceTblPersonCreator
+     * @param int $Source
+     */
+    public function __construct(TblPerson $tblPerson, TblYear $tblYear, ?DateTime $FromDate, ?DateTime $ToDate, string $Remark, int $Status, int $Type,
+        bool $IsCertificateRelevant, ?TblPerson $serviceTblPersonStaff, ?TblPerson $serviceTblPersonCreator, int $Source)
+    {
+        $this->serviceTblPerson = $tblPerson->getId();
+        $this->serviceTblYear = $tblYear->getId();
+        $this->FromDate = $FromDate;
+        $this->ToDate = $ToDate;
+        $this->Remark = $Remark;
+        $this->Status = $Status;
+        $this->Type = $Type;
+        $this->IsCertificateRelevant = $IsCertificateRelevant;
+        $this->serviceTblPersonStaff = $serviceTblPersonStaff ? $serviceTblPersonStaff->getId() : null;
+        $this->serviceTblPersonCreator = $serviceTblPersonCreator ? $serviceTblPersonCreator->getId() : null;
+        $this->Source = $Source;
+    }
 
     /**
      * @return bool|TblPerson
      */
     public function getServiceTblPerson()
     {
-
         if (null === $this->serviceTblPerson) {
             return false;
         } else {
@@ -122,30 +133,27 @@ class TblAbsence extends Element
      */
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
-
         $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
     }
 
     /**
-     * @return bool|TblDivision
+     * @return bool|TblYear
      */
-    public function getServiceTblDivision()
+    public function getServiceTblYear()
     {
-
-        if (null === $this->serviceTblDivision) {
+        if (null === $this->serviceTblYear) {
             return false;
         } else {
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
+            return Term::useService()->getYearById($this->serviceTblYear);
         }
     }
 
     /**
-     * @param TblDivision|null $tblDivision
+     * @param TblYear|null $tblYear
      */
-    public function setServiceTblDivision(TblDivision $tblDivision = null)
+    public function setServiceTblYear(TblYear $tblYear = null)
     {
-
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
+        $this->serviceTblYear = (null === $tblYear ? null : $tblYear->getId());
     }
 
     /**
@@ -155,7 +163,6 @@ class TblAbsence extends Element
      */
     public function getFromDate(string $format = 'd.m.Y')
     {
-
         if (null === $this->FromDate) {
             return false;
         }
@@ -177,7 +184,6 @@ class TblAbsence extends Element
      */
     public function setFromDate(DateTime $Date = null)
     {
-
         $this->FromDate = $Date;
     }
 
@@ -186,7 +192,6 @@ class TblAbsence extends Element
      */
     public function getToDate()
     {
-
         if (null === $this->ToDate) {
             return false;
         }
@@ -208,7 +213,6 @@ class TblAbsence extends Element
      */
     public function setToDate(DateTime $Date = null)
     {
-
         $this->ToDate = $Date;
     }
 
@@ -246,12 +250,12 @@ class TblAbsence extends Element
 
     /**
      * @param DateTime|null $tillDate
-     * @param $countLessons
+     * @param int $countLessons
      * @param TblCompany|null $tblCompany
      *
      * @return int|string
      */
-    public function getDays(DateTime $tillDate = null, &$countLessons = 0, TblCompany $tblCompany = null)
+    public function getDays(DateTime $tillDate = null, int &$countLessons = 0, TblCompany $tblCompany = null)
     {
         $countDays = 0;
         $lessons = Absence::useService()->getLessonAllByAbsence($this);
@@ -319,8 +323,9 @@ class TblAbsence extends Element
      *
      * @return int
      */
-    private function countThisDay(DateTime $date, $countDays, TblCompany $tblCompany = null)
+    private function countThisDay(DateTime $date, $countDays, TblCompany $tblCompany = null): int
     {
+        // todo
         $tblDivision = $this->getServiceTblDivision();
         $DayAtWeek = $date->format('w');
         if ($tblDivision && ($tblSchoolType = $tblDivision->getType()) && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
@@ -343,9 +348,8 @@ class TblAbsence extends Element
     /**
      * @return bool
      */
-    public function isSingleDay()
+    public function isSingleDay(): bool
     {
-
         if ($this->getFromDate() && $this->getToDate()) {
             if ($this->getFromDate() == $this->getToDate()) {
                 return true;
@@ -360,7 +364,7 @@ class TblAbsence extends Element
     /**
      * @return string
      */
-    public function getStatusDisplayName()
+    public function getStatusDisplayName(): string
     {
         switch ($this->getStatus()) {
             case self::VALUE_STATUS_EXCUSED: return 'entschuldigt';
@@ -372,7 +376,7 @@ class TblAbsence extends Element
     /**
      * @return string
      */
-    public function getStatusDisplayShortName()
+    public function getStatusDisplayShortName(): string
     {
         switch ($this->getStatus()) {
             case self::VALUE_STATUS_EXCUSED: return 'E';
@@ -394,7 +398,7 @@ class TblAbsence extends Element
     }
 
     /**
-     * @return int
+     * @return integer
      */
     public function getType(): int
     {
@@ -404,7 +408,7 @@ class TblAbsence extends Element
     /**
      * @param int $Type
      */
-    public function setType($Type)
+    public function setType(int $Type)
     {
         $this->Type = $Type;
     }
@@ -414,7 +418,6 @@ class TblAbsence extends Element
      */
     public function getServiceTblPersonStaff()
     {
-
         if (null === $this->serviceTblPersonStaff) {
             return false;
         } else {
@@ -427,7 +430,6 @@ class TblAbsence extends Element
      */
     public function setServiceTblPersonStaff(TblPerson $tblPerson = null)
     {
-
         $this->serviceTblPersonStaff = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
@@ -454,7 +456,7 @@ class TblAbsence extends Element
     /**
      * @return string
      */
-    public function getTypeDisplayShortName()
+    public function getTypeDisplayShortName(): string
     {
         switch ($this->getType()) {
             case self::VALUE_TYPE_THEORY: return 'T';
@@ -466,7 +468,7 @@ class TblAbsence extends Element
     /**
      * @return string
      */
-    public function getTypeDisplayName()
+    public function getTypeDisplayName(): string
     {
         switch ($this->getType()) {
             case self::VALUE_TYPE_THEORY: return 'Theorie';
@@ -478,7 +480,7 @@ class TblAbsence extends Element
     /**
      * @return string
      */
-    public function getWeekDay()
+    public function getWeekDay(): string
     {
         /** @var DateTime $date */
         if (($date = $this->FromDate)) {
@@ -501,9 +503,8 @@ class TblAbsence extends Element
     /**
      * @return string
      */
-    public function getDisplayStaff()
+    public function getDisplayStaff(): string
     {
-
         if (($tblPerson = $this->getServiceTblPersonStaff())){
             if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))){
                 if ($tblTeacher->getAcronym()) {

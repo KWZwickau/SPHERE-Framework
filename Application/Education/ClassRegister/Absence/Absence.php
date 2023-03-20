@@ -14,6 +14,8 @@ use SPHERE\Common\Main;
 use SPHERE\System\Database\Link\Identifier;
 
 /**
+ * @deprecated
+ *
  * Class Absence
  *
  * @package SPHERE\Application\Education\ClassRegister\Absence
@@ -40,6 +42,8 @@ class Absence implements IModuleInterface
     }
 
     /**
+     * @deprecated
+     *
      * @return Service
      */
     public static function useService()
@@ -51,6 +55,8 @@ class Absence implements IModuleInterface
     }
 
     /**
+     * @deprecated
+     *
      * @return Frontend
      */
     public static function useFrontend()
