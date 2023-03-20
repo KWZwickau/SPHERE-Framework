@@ -19,6 +19,7 @@ use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -392,19 +393,19 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string              $Name
-     * @param string              $Description
-     * @param string              $Year
-     * @param string              $Month
-     * @param \DateTime           $TargetTime
-     * @param \DateTime|null      $BillTime
-     * @param TblBasketType       $tblBasketType
-     * @param TblCreditor|null    $tblCreditor
-     * @param TblDivision|null    $tblDivision
-     * @param TblType|null        $tblType
-     * @param TblDebtorPeriodType $tblDebtorPeriodType
-     * @param string              $FibuAccount
-     * @param string              $FibuToAccount
+     * @param string                 $Name
+     * @param string                 $Description
+     * @param string                 $Year
+     * @param string                 $Month
+     * @param \DateTime              $TargetTime
+     * @param \DateTime|null         $BillTime
+     * @param TblBasketType          $tblBasketType
+     * @param TblCreditor|null       $tblCreditor
+     * @param TblDivisionCourse|null $tblDivisionCourse
+     * @param TblType|null           $tblType
+     * @param TblDebtorPeriodType    $tblDebtorPeriodType
+     * @param string                 $FibuAccount
+     * @param string                 $FibuToAccount
      *
      * @return TblBasket
      */
@@ -417,7 +418,7 @@ class Data extends AbstractData
         $BillTime,
         $tblBasketType,
         TblCreditor $tblCreditor = null,
-        TblDivision $tblDivision = null,
+        TblDivisionCourse $tblDivisionCourse = null,
         TblType $tblType = null,
         TblDebtorPeriodType $tblDebtorPeriodType = null,
         $FibuAccount = '',
@@ -443,7 +444,7 @@ class Data extends AbstractData
             $Entity->setIsArchive(false);
             $Entity->setTblBasketType($tblBasketType);
             $Entity->setServiceTblCreditor($tblCreditor);
-            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblDivisionCourse($tblDivisionCourse);
             $Entity->setServiceTblType($tblType);
             $Entity->setServiceTblDebtorPeriodType($tblDebtorPeriodType);
             $Entity->setFibuAccount($FibuAccount);

@@ -10,6 +10,8 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
@@ -172,9 +174,26 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
                 $i = 0;
+                if(($tblYear = Term::useService()->getYearByNow())){
+                    $tblYear = current($tblYear);
+                } else {
+                    $tblYear = false;
+                }
                 array_walk($tblPersonList,
-                    function(TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed){
+                    function(TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed, $tblYear){
+                        $Item = array();
                         $Item['Name'] = $tblPerson->getLastFirstName();
+                        //ToDO der Block ist neu aber nicht effizient
+                        $tblDivisionCourseList = array();
+                        if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
+                            if($tblStudentEducation->getTblDivision()){
+                                $tblDivisionCourseList[] = $tblStudentEducation->getTblDivision()->getDisplayName();
+                            }
+                            if($tblStudentEducation->getTblCoreGroup()){
+                                $tblDivisionCourseList[] = $tblStudentEducation->getTblCoreGroup()->getDisplayName();
+                            }
+                        }
+                        $Item['DivisionCourse'] = implode(', ', $tblDivisionCourseList);
                         $Item['ContentRow'] = '';
 //                    $Item['Option'] = new Standard('', '', new Edit());
                         // Herraussuchen aller Beitragsarten die aktuell eingestellt werden müssen
@@ -284,9 +303,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new TableData($TableContent, null, array(
-            'Name'       => 'Person',
-            'ContentRow' => 'Zuordnung Beitragszahler',
-            'Option'     => '',
+            'Name'           => 'Person',
+            'DivisionCourse' => 'Klasse / Stammgruppe',
+            'ContentRow'     => 'Zuordnung Beitragszahler',
+            'Option'         => '',
         ), array(
             'columnDefs' => array(
                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),

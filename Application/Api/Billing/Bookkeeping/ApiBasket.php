@@ -16,12 +16,16 @@ use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
@@ -61,6 +65,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Window\RedirectScript;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class ApiBasket
@@ -551,12 +556,15 @@ class ApiBasket extends Extension implements IApiInterface
             if(empty($YearList)){
                 $YearList[] = new TblYear();
             }
+            $tblTypeList = School::useService()->getConsumerSchoolTypeAll();
             return array(
                 new Panel('Beitragsarten '.new DangerText('*'), $CheckboxList, Panel::PANEL_TYPE_INFO),
                 new Panel('Erweiterte Personenfilterung', array(
                     (new SelectBox('Basket[SchoolYear]', 'Schuljahr', array('{{ Year }} {{ Description }}' => $YearList)))
                         ->ajaxPipelineOnChange(ApiBasket::pipelineLoadPersonFilterSelect($receiverPersonFilter)),
-                    $receiverPersonFilter)
+                    $receiverPersonFilter,
+                    new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList))
+                        )
                     , Panel::PANEL_TYPE_INFO
                 ),
                 new Panel('Zahlungszeitraum '.new DangerText('*'), $PeriodRadioBox, Panel::PANEL_TYPE_INFO),
@@ -696,7 +704,7 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['TargetTime'] = $Basket['TargetTime'];
             $Global->POST['Basket']['BillTime'] = $Basket['BillTime'];
             $Global->POST['Basket']['Creditor'] = $Basket['Creditor'];
-            $Global->POST['Basket']['Division'] = (isset($Basket['Division']) ? $Basket['Division'] : '');
+            $Global->POST['Basket']['DivisionCourse'] = (isset($Basket['DivisionCourse']) ? $Basket['DivisionCourse'] : '');
             $Global->POST['Basket']['SchoolType'] = $Basket['SchoolType'];
             $Global->POST['Basket']['DebtorPeriodType'] = $Basket['DebtorPeriodType'];
             $Global->POST['Basket']['SchoolYear'] = $Basket['SchoolYear'];
@@ -717,10 +725,10 @@ class ApiBasket extends Extension implements IApiInterface
         }
 
         $tblBasketType = Basket::useService()->getBasketTypeByName($Type);
-        if(!isset($Basket['Division'])
-            || !$Basket['Division']
-            || !($tblDivision = Division::useService()->getDivisionById($Basket['Division']))){
-            $tblDivision = null;
+        if(!isset($Basket['DivisionCourse'])
+            || !$Basket['DivisionCourse']
+            || !($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Basket['DivisionCourse']))){
+            $tblDivisionCourse = null;
         }
         if(!isset($Basket['SchoolType'])
             || !$Basket['SchoolType']
@@ -742,7 +750,7 @@ class ApiBasket extends Extension implements IApiInterface
         }
 
         $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
-            , $Basket['Month'], $Basket['TargetTime'], $Basket['BillTime'], $tblBasketType, $Basket['Creditor'], $tblDivision, $tblType,
+            , $Basket['Month'], $Basket['TargetTime'], $Basket['BillTime'], $tblBasketType, $Basket['Creditor'], $tblDivisionCourse, $tblType,
             $tblDebtorPeriodType);
 
         foreach($Basket['Item'] as $ItemId) {
@@ -797,7 +805,7 @@ class ApiBasket extends Extension implements IApiInterface
 
             /** @var TblItem $tblItem */
             foreach($tblItemList as $tblItem) {
-                $VerificationResult = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivision,
+                $VerificationResult = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivisionCourse,
                     $tblType, $tblYear, $PeriodExtended);
                 if($isCreate == false){
                     $isCreate = $VerificationResult['IsCreate'];
@@ -1027,53 +1035,40 @@ class ApiBasket extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function reloadPersonFilterSelect($Basket = array())
+    public function reloadPersonFilterSelect(array $Basket = array())
     {
 
         $tblYearList = array();
-        $tblDivisionList = array();
-        $tblTypeList = array();
         if (isset($Basket['SchoolYear']) && 0 != $Basket['SchoolYear']) {
             if(($tblYear = Term::useService()->getYearById($Basket['SchoolYear']))){
                 $tblYearList[] = $tblYear;
-            } else {
-                $tblDivisionList = new TblDivision();
-                $tblTypeList = new TblType();
             }
         } else {
             if(($tblYearListTmp = Term::useService()->getYearByNow())){
                 $tblYearList = $tblYearListTmp;
             }
         }
-
-
+        $tblDivisionCourseList = array(0 => new TblDivisionCourse());
         if(!empty($tblYearList)){
             foreach($tblYearList as $tblYear){
-                if(($tblDivisionTempList = Division::useService()->getDivisionByYear($tblYear))){
-                    $tblDivisionList = array_merge($tblDivisionList, $tblDivisionTempList);
+                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'Klasse'))){
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
                 }
-            }
-            if(!empty($tblDivisionList)){
-                foreach($tblDivisionList as $tblDivision){
-                    $tblType = $tblDivision->getType();
-                    $tblTypeList[$tblType->getId()] = $tblType;
+                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'Stammgruppe'))){
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
+                }
+                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'BASIC_COURSE'))){
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
+                }
+                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'ADVANCED_COURSE'))){
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
                 }
             }
         }
-
         // gegen Preselect nach Auswahl entschieden
 //        if(isset($tblDivisionList[0]) && $IsYear){
 //            $_POST['Basket']['Division'] = $tblDivisionList[0];
 //        }
-
-        if(empty($tblDivisionList)){
-            $tblDivisionList[] = new TblDivision();
-        }
-        if(empty($tblTypeList)){
-            $tblTypeList[] = new TblType();
-        }
-
-        return new SelectBox('Basket[Division]', 'Klasse', array('{{ DisplayName }}' => $tblDivisionList)).
-        new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList));
+        return new SelectBox('Basket[DivisionCourse]', 'Klasse / Stammgruppe / Kurs', array('{{ DisplayName }}' => $tblDivisionCourseList));
     }
 }

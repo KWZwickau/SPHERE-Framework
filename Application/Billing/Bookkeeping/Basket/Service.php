@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
 use DateTime;
@@ -22,8 +21,9 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -252,25 +252,25 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string              $Name
-     * @param string              $Description
-     * @param string              $Year
-     * @param string              $Month
-     * @param string              $TargetTime
-     * @param string              $BillTime
-     * @param TblBasketType|null  $tblBasketType
-     * @param string              $CreditorId
-     * @param TblDivision|null    $tblDivision
-     * @param TblType|null        $tblType
-     * @param TblDebtorPeriodType $tblDebtorPeriodType
-     * @param string              $FibuAccount
-     * @param string              $FibuToAccount
+     * @param string                 $Name
+     * @param string                 $Description
+     * @param string                 $Year
+     * @param string                 $Month
+     * @param string                 $TargetTime
+     * @param string                 $BillTime
+     * @param TblBasketType|null     $tblBasketType
+     * @param string                 $CreditorId
+     * @param TblDivisionCourse|null $tblDivisionCourse
+     * @param TblType|null           $tblType
+     * @param TblDebtorPeriodType    $tblDebtorPeriodType
+     * @param string                 $FibuAccount
+     * @param string                 $FibuToAccount
      *
      * @return TblBasket
      * @throws \Exception
      */
     public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '', $BillTime = '',
-        TblBasketType $tblBasketType = null, $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null,
+        TblBasketType $tblBasketType = null, $CreditorId = '', TblDivisionCourse $tblDivisionCourse = null, TblType $tblType = null,
         TblDebtorPeriodType $tblDebtorPeriodType = null, $FibuAccount = '', $FibuToAccount = '')
     {
 
@@ -295,7 +295,7 @@ class Service extends AbstractService
             $tblCreditor = null;
         }
         return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime, $BillTime,
-            $tblBasketType, $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType, $FibuAccount, $FibuToAccount);
+            $tblBasketType, $tblCreditor, $tblDivisionCourse, $tblType, $tblDebtorPeriodType, $FibuAccount, $FibuToAccount);
     }
 
     /**
@@ -399,25 +399,25 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblBasket        $tblBasket
-     * @param TblItem          $tblItem
-     * @param TblDivision|null $tblDivision
-     * @param TblType|null     $tblType
-     * @param TblYear|null     $tblYear
-     * @param string           $PeriodExtended
+     * @param TblBasket              $tblBasket
+     * @param TblItem                $tblItem
+     * @param TblDivisionCourse|null $tblDivisionCoursel
+     * @param TblType|null           $tblType
+     * @param TblYear|null           $tblYear
+     * @param string                 $PeriodExtended
      *
      * @return array
      * @throws \Exception
      */
-    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, TblDivision $tblDivision = null,
-        TblType $tblType = null, TblYear $tblYear = null, string $PeriodExtended = '')
+    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, ?TblDivisionCourse $tblDivisionCourse,
+        ?TblType $tblType, ?TblYear $tblYear, string $PeriodExtended = '')
     {
 
         $tblGroupList = $this->getGroupListByItem($tblItem);
 
         $tblPersonList = $this->getPersonListByGroupList($tblGroupList);
-        if(null !== $tblDivision && $tblPersonList){
-            $tblPersonList = $this->filterPersonListByDivision($tblPersonList, $tblDivision);
+        if(null !== $tblDivisionCourse && $tblPersonList){
+            $tblPersonList = $this->filterPersonListByDivision($tblPersonList, $tblDivisionCourse);
         }
         if(null !== $tblType && $tblPersonList){
             $tblPersonList = $this->filterPersonListBySchoolType($tblPersonList, $tblType, $tblYear);
@@ -445,9 +445,6 @@ class Service extends AbstractService
                         if($tblDebtorPeriodTypeSelection
                         && $tblDebtorPeriodTypeBasket
                         && $tblDebtorPeriodTypeSelection->getId() != $tblDebtorPeriodTypeBasket->getId()){
-                            // unnötige Anzeige (wird deswegen erstmal entfernt)
-//                            $PersonExclude[$tblPerson->getId()][] = $tblItem->getName().' Zahlungszeitraum: '
-//                                .new Bold($tblDebtorPeriodTypeSelection->getName().' != '.$tblDebtorPeriodTypeBasket->getName());
                             continue;
                         }
 
@@ -630,17 +627,18 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson[] $tblPersonList
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return TblPerson[]|bool
      */
-    private function filterPersonListByDivision($tblPersonList, TblDivision $tblDivision)
+    private function filterPersonListByDivision(array $tblPersonList, TblDivisionCourse $tblDivisionCourse)
     {
 
         $resultPersonList = array();
         if(!empty($tblPersonList)){
             foreach($tblPersonList as $tblPerson){
-                if(Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson)){
+                $tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT);
+                if(DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPerson)){
                     $resultPersonList[] = $tblPerson;
                 }
             }
@@ -667,8 +665,8 @@ class Service extends AbstractService
             if(!empty($tblYearList)){
                 foreach($tblYearList as $tblYear){
                     foreach($tblPersonList as $tblPerson){
-                        if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
-                            if($tblType->getName() === $tblDivision->getTypeName()){
+                        if(($tblDivisionEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
+                            if($tblType->getId() === $tblDivisionEducation->getServiceTblSchoolType()->getId()){
                                 $resultPersonList[] = $tblPerson;
                             }
                         }
