@@ -924,7 +924,7 @@ class Creator extends Extension
                     $BasketTypeId,
                     $Data['From'],
                     $Data['To'],
-                    isset($Data['Division']) ? $Data['Division'] : '0',
+                    isset($Data['DivisionCourse']) ? $Data['DivisionCourse'] : '0',
                     isset($Data['Group']) ? $Data['Group'] : '0'
                 );
             }
