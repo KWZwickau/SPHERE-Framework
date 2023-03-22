@@ -5,16 +5,34 @@ namespace SPHERE\Application\Education\Absence;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -23,11 +41,15 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
+use SPHERE\Common\Frontend\Message\IMessageInterface;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\Table;
 use SPHERE\Common\Frontend\Table\Structure\TableBody;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -415,5 +437,314 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $data;
+    }
+
+    public function formAbsence(
+        $AbsenceId = null,
+        bool $hasSearch = false,
+        string $Search = '',
+        $Data = null,
+        $PersonId = null,
+        $DivisionCourseId = null,
+        IMessageInterface $messageSearch = null,
+        IMessageInterface $messageLesson = null,
+        $Date = null,
+        $Type = null,
+        $TypeId = null
+    ): Form {
+        if ($Data === null && $AbsenceId === null) {
+            $isFullDay = true;
+
+            $global = $this->getGlobal();
+            $global->POST['Data']['IsFullDay'] = $isFullDay;
+
+            if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence'))) {
+                $status = $tblSetting->getValue();
+            } else {
+                $status = \SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence::VALUE_STATUS_UNEXCUSED;
+            }
+            $global->POST['Data']['Status'] = $status;
+
+            $global->POST['Data']['IsCertificateRelevant'] = true;
+            if ($Date) {
+                $global->POST['Data']['FromDate'] = $Date;
+            }
+
+            $global->savePost();
+        } elseif ($Data === null && $AbsenceId && ($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
+            $global = $this->getGlobal();
+            if(($lessons = Absence::useService()->getLessonAllByAbsence($tblAbsence))) {
+                $isFullDay = false;
+                foreach($lessons as $lesson) {
+                    $global->POST['Data']['UE'][$lesson] = 1;
+                }
+            } else {
+                $isFullDay = true;
+            }
+
+            $global->POST['Data']['IsFullDay'] = $isFullDay;
+            $global->POST['Data']['FromDate'] = $tblAbsence->getFromDate();
+            $global->POST['Data']['ToDate'] = $tblAbsence->getToDate();
+            $global->POST['Data']['Remark'] = $tblAbsence->getRemark();
+            $global->POST['Data']['Type'] = $tblAbsence->getType();
+            $global->POST['Data']['Status'] = $tblAbsence->getStatus();
+            $global->POST['Data']['IsCertificateRelevant'] = $tblAbsence->getIsCertificateRelevant();
+
+            $global->savePost();
+        } else {
+            $isFullDay = $Data['IsFullDay'] ?? false;
+        }
+
+        if ($AbsenceId) {
+            $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineEditAbsenceSave($AbsenceId));
+        } else {
+            $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave($PersonId, $DivisionCourseId, $hasSearch, $Type, $TypeId));
+        }
+
+        $formRows = array();
+        if ($Type && $TypeId) {
+            $tblPersonList = false;
+            // todo
+            switch ($Type) {
+                case 'Division':
+                    if (($tblDivision = Division::useService()->getDivisionById($TypeId))) {
+                        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                    }
+                    break;
+                case 'Group':
+                    if (($tblGroup = Group::useService()->getGroupById($TypeId))) {
+                        $tblPersonList = $tblGroup->getStudentOnlyList();
+                    }
+                    break;
+                case 'DivisionSubject':
+                    if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($TypeId))) {
+                        $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+                    }
+                    break;
+            }
+
+            if ($tblPersonList) {
+                $formRows[] = new FormRow(new FormColumn(
+                    (new SelectBox('Data[PersonId]', 'Schüler', array('{{ LastFirstName }}' => $tblPersonList)))
+                        ->setRequired()
+                        ->ajaxPipelineOnChange(ApiAbsence::pipelineLoadType())
+                ));
+            }
+        } elseif ($hasSearch) {
+            $formRows[] = new FormRow(array(
+                new FormColumn(array(
+                    new Panel(
+                        'Schüler',
+                        (new TextField(
+                            'Search',
+                            '',
+                            'Suche',
+                            new Search()
+                        ))->ajaxPipelineOnKeyUp(ApiAbsence::pipelineSearchPerson())
+                        . ApiAbsence::receiverBlock($this->loadPersonSearch($Search, $messageSearch), 'SearchPerson')
+                        , Panel::PANEL_TYPE_INFO
+                    )
+                ))
+            ));
+        }
+
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()), 6
+            ),
+            new FormColumn(
+                new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar()), 6
+            ),
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(array(
+                (new CheckBox('Data[IsFullDay]', 'ganztägig', 1))->ajaxPipelineOnClick(ApiAbsence::pipelineLoadLesson()),
+                ApiAbsence::receiverBlock($this->loadLesson($isFullDay, $messageLesson), 'loadLesson')
+            ))
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                // todo $date übergeben, von Fehlzeit oder heute
+                ApiAbsence::receiverBlock($this->loadType($PersonId), 'loadType')
+            )
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                new TextField('Data[Remark]', '', 'Bemerkung'), 12
+            ),
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                new Panel(
+                    'Status',
+                    array(
+                        new RadioBox('Data[Status]', 'entschuldigt', TblAbsence::VALUE_STATUS_EXCUSED),
+                        new RadioBox('Data[Status]', 'unentschuldigt', TblAbsence::VALUE_STATUS_UNEXCUSED)
+                    ),
+                    Panel::PANEL_TYPE_INFO
+                )
+            ),
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                new CheckBox('Data[IsCertificateRelevant]', 'zeugnisrelevant', 1)
+            )
+        ));
+
+        $buttons = array();
+        $buttons[] = $saveButton;
+        if ($AbsenceId) {
+            $buttons[] = (new Danger(
+                'Löschen',
+                ApiAbsence::getEndpoint(),
+                new Remove(),
+                array(),
+                false
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenDeleteAbsenceModal($AbsenceId));
+        }
+
+        $formRows[] = new FormRow(array(
+            new FormColumn($buttons)
+        ));
+
+        return (new Form(new FormGroup(
+            $formRows
+        )))->disableSubmitAction();
+    }
+
+    /**
+     * @param $Search
+     * @param IMessageInterface|null $message
+     *
+     * @return string
+     */
+    public function loadPersonSearch($Search, IMessageInterface $message = null): string
+    {
+        if ($Search != '' && strlen($Search) > 2) {
+            $resultList = array();
+            $result = '';
+            if (($tblPersonList = Person::useService()->getPersonListLike($Search))) {
+                $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+                foreach ($tblPersonList as $tblPerson) {
+                    // nur nach Schülern suchen
+                    if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                        $radio = (new RadioBox('Data[PersonId]', '&nbsp;', $tblPerson->getId()))->ajaxPipelineOnClick(
+                            ApiAbsence::pipelineLoadType()
+                        );
+
+                        $resultList[] = array(
+                            'Select' => $radio,
+                            'FirstName' => $tblPerson->getFirstSecondName(),
+                            'LastName' => $tblPerson->getLastName(),
+                            'Division' => DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson)
+                        );
+                    }
+                }
+
+                $result = new TableData(
+                    $resultList,
+                    null,
+                    array(
+                        'Select' => '',
+                        'LastName' => 'Nachname',
+                        'FirstName' => 'Vorname',
+                        'Division' => 'Kurse'
+                    ),
+                    array(
+                        'order' => array(
+                            array(1, 'asc'),
+                        ),
+                        'pageLength' => -1,
+                        'paging' => false,
+                        'info' => false,
+                        'searching' => false,
+                        'responsive' => false
+                    )
+                );
+            }
+
+            if (empty($resultList)) {
+                $result = new Warning('Es wurden keine entsprechenden Schüler gefunden.', new Ban());
+            }
+        } else {
+            $result =  new Warning('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
+        }
+
+        return $result . ($message ?: '');
+    }
+
+    /**
+     * @param bool $IsFullDay
+     * @param IMessageInterface|null $message
+     *
+     * @return string
+     */
+    public function loadLesson(bool $IsFullDay, IMessageInterface $message = null): string
+    {
+        if ($IsFullDay) {
+            if ($message === null) {
+                return '';
+            } else {
+                return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($message))));
+            }
+
+        } else {
+            $left = array();
+            $right = array();
+            for ($i = 0; $i < 7; $i++) {
+                $left[] = $this->setCheckBoxLesson($i);
+                if ($i < 6) {
+                    $right[] = $this->setCheckBoxLesson($i + 7);
+                }
+            }
+
+            return new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn($left, 6),
+                    new LayoutColumn($right, 6)
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn($message)
+                )),
+            )));
+        }
+    }
+
+    /**
+     * @param $i
+     *
+     * @return CheckBox
+     */
+    private function setCheckBoxLesson($i): CheckBox
+    {
+        return new CheckBox('Data[UE][' . $i . ']', $i . '. Unterrichtseinheit', 1);
+    }
+
+    /**
+     * @param null $PersonId
+     * @param string $date
+     *
+     * @return string
+     */
+    public function loadType($PersonId = null, string $date = 'now'): string
+    {
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson, $date))
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+            && $tblSchoolType->isTechnical()
+        ) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Type'] = TblAbsence::VALUE_TYPE_THEORY;
+            $global->savePost();
+
+            return new SelectBox('Data[Type]', 'Typ', array(
+                TblAbsence::VALUE_TYPE_PRACTICE => 'Praxis',
+                TblAbsence::VALUE_TYPE_THEORY => 'Theorie'
+            ));
+        }
+
+        return '';
     }
 }

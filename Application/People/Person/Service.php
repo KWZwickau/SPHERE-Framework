@@ -5,7 +5,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
@@ -1010,7 +1010,7 @@ class Service extends AbstractService
             }
         }
         // Absence
-        if (($tblAbsenceList = Absence::useService()->getAbsenceAllByPerson($tblPerson, null, true))){
+        if (($tblAbsenceList = Absence::useService()->getAbsenceAllByPerson($tblPerson, true))){
             $result[] = array(
                 'Number' => $count,
                 'Type' => 'Fehlzeiten',

@@ -106,7 +106,6 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
      * @param $FromDate
      * @param $ToDate
      * @param $Status
@@ -336,7 +335,7 @@ class Data extends AbstractData
      *
      * @return array|bool
      */
-    public function getAbsenceAllBetweenByPerson(DateTime $fromDate, TblPerson $tblPerson, DateTime $toDate = null)
+    public function getAbsenceAllBetweenByPerson(TblPerson $tblPerson, DateTime $fromDate, DateTime $toDate = null)
     {
         $Manager = $this->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
@@ -362,7 +361,7 @@ class Data extends AbstractData
                 ->from(__NAMESPACE__ . '\Entity\TblAbsence', 't')
                 ->where($and)
                 ->setParameter(1, $fromDate)
-                ->setParameter(2, $toDate ? $toDate : $fromDate)
+                ->setParameter(2, $toDate ?: $fromDate)
                 ->setParameter(3, $tblPerson->getId())
                 ->getQuery();
 
@@ -413,9 +412,7 @@ class Data extends AbstractData
         ));
 
         if (null === $Entity) {
-            $Entity = new TblAbsenceLesson();
-            $Entity->setTblAbsence($tblAbsence);
-            $Entity->setLesson($lesson);
+            $Entity = new TblAbsenceLesson($tblAbsence, $lesson);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
