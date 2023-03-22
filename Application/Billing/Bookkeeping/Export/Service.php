@@ -14,6 +14,9 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType as TblTypePhone;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -140,22 +143,21 @@ class Service extends AbstractService
                 }
             }
             // muss für den else zweig gesetzt werden
-            $item['CreateUpdate'] = $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
-            $item['ItemName'] = $item['Division'] = $item['PaymentType'] = $item['Variant'] = '';
-            $item['VariantPrice'] = $item['Value'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
-            $item['ReferenceDate'] = $item['ReferenceNumber'] = $item['From'] = $item['To'] = '';
+            $item['CreateUpdate'] = $item['ItemName'] =$item['Value'] = $item['VariantPrice'] = '';
+            $item['DivisionCourse'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
+            $item['PaymentType'] = $item['ReferenceDate'] = $item['ReferenceNumber'] = '';
+            $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
+            $item['From'] = $item['To'] = '';
             if(($tblDerbtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonDebtor($tblPersonDebtor))){
                 $UsingBankAccountList = array();
+                $tblYearList = Term::useService()->getYearByNow();
                 foreach($tblDerbtorSelectionList as $tblDerbtorSelection){
                     // muss für jeden Schleifenaufruf erneut gesetzt werden
-                    $item['CreateUpdate'] = $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
-                    $item['ItemName'] = $item['Division'] = $item['PaymentType'] = $item['Variant'] = '';
-                    $item['VariantPrice'] = $item['Value'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
-                    $item['ReferenceDate'] = $item['ReferenceNumber'] = $item['From'] = $item['To'] = '';
-                    // für jede zeile neu Setzen
+                    $item['CreateUpdate'] = $item['ItemName'] =$item['Value'] = $item['VariantPrice'] = '';
+                    $item['DivisionCourse'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
+                    $item['PaymentType'] = $item['ReferenceDate'] = $item['ReferenceNumber'] = '';
                     $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
                     if(($tblBankAccount = $tblDerbtorSelection->getTblBankAccount())){
-                        $item['CreateUpdate'] = '';
                         if(($EntityUpdate = $tblBankAccount->getEntityUpdate())){
                             $item['CreateUpdate'] = $EntityUpdate->format('d.m.Y');
                         } else {
@@ -167,13 +169,11 @@ class Service extends AbstractService
                         $item['BIC'] = $tblBankAccount->getBIC();
                         $item['Owner'] = $tblBankAccount->getOwner();
                     }
-                    $item['ItemName'] = '';
                     if(($tblItem = $tblDerbtorSelection->getServiceTblItem())){
                         $item['ItemName'] = $tblItem->getName();
                     }
                     // Variant || Value
                     if($tblItemVariant = $tblDerbtorSelection->getServiceTblItemVariant()){
-                        $item['Value'] = $item['VariantPrice'] = $item['Value'] = '';
                         $VariantName = $tblItemVariant->getName().($tblItemVariant->getDescription() ? ' - '.$tblItemVariant->getDescription() : '');
                         if(($tblItemCalculationList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
                             foreach($tblItemCalculationList as $tblItemCalculation){
@@ -189,19 +189,27 @@ class Service extends AbstractService
                         $item['Variant'] = $item['VariantPrice'] = '';
                         $item['Value'] = $tblDerbtorSelection->getValuePriceString();
                     }
-                    $item['PaymentType'] = '';
                     if(($tblPaymentType = $tblDerbtorSelection->getServiceTblPaymentType())){
                         $item['PaymentType'] = $tblPaymentType->getName();
                     }
-                    $item['CauserFirstName'] = $item['CauserLastName'] = $item['Division'] = '';
                     if(($tblPersonCauser = $tblDerbtorSelection->getServiceTblPersonCauser())){
                         $item['CauserFirstName'] = $tblPersonCauser->getFirstName();
                         $item['CauserLastName'] = $tblPersonCauser->getLastName();
-                        if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPersonCauser))){
-                            $item['Division'] = $tblDivision->getDisplayName();
+                        if($tblYearList){
+                            $DivisionNameList = array();
+                            foreach($tblYearList as $tblYear){
+                                if(($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentAndYear($tblPersonCauser, $tblYear))){
+                                    foreach($tblDivisionCourseList as $tblDivisionCourse){
+                                        if($tblDivisionCourse->getType() == TblDivisionCourseType::TYPE_DIVISION
+                                        || $tblDivisionCourse->getType() == TblDivisionCourseType::TYPE_CORE_GROUP)
+                                        $DivisionNameList[] = $tblDivisionCourse->getDisplayName();
+                                    }
+                                }
+                            }
+                            sort($DivisionNameList);
+                            $item['DivisionCourse'] = implode(', ', $DivisionNameList);
                         }
                     }
-                    $item['ReferenceDate'] = $item['ReferenceNumber'] = '';
                     if(($tblBankReference = $tblDerbtorSelection->getTblBankReference())){
                         $item['ReferenceDate'] = $tblBankReference->getReferenceDate();
                         $item['ReferenceNumber'] = $tblBankReference->getReferenceNumber();
@@ -216,14 +224,14 @@ class Service extends AbstractService
                 // vorhandene Kontodaten zu denen keine Zahlungsinformation hinterlegt ist (Bar / Überweisung)
                 if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($tblPersonDebtor))){
                     // Werte für Datensatz nicht verfügbar
-                    $item['CreateUpdate'] = $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
-                    $item['ItemName'] = $item['Division'] = $item['PaymentType'] = $item['Variant'] = '';
-                    $item['VariantPrice'] = $item['Value'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
-                    $item['ReferenceDate'] = $item['ReferenceNumber'] = $item['From'] = $item['To'] = '';
+                    $item['CreateUpdate'] = $item['ItemName'] =$item['Value'] = $item['VariantPrice'] = '';
+                    $item['DivisionCourse'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
+                    $item['PaymentType'] = $item['ReferenceDate'] = $item['ReferenceNumber'] = '';
+                    $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
+                    $item['From'] = $item['To'] = '';
                     foreach($tblBankAccountList as $tblBankAccount){
                         // nicht verwendete Bankdaten hinzufügen
                         if(!in_array($tblBankAccount->getId(), $UsingBankAccountList)){
-                            $item['CreateUpdate'] = $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
                             $item['BankName'] = $tblBankAccount->getBankName();
                             $item['IBAN'] = $tblBankAccount->getIBAN();
                             $item['BIC'] = $tblBankAccount->getBIC();
@@ -247,7 +255,6 @@ class Service extends AbstractService
                         $item['IBAN'] = $tblBankAccount->getIBAN();
                         $item['BIC'] = $tblBankAccount->getBIC();
                         $item['Owner'] = $tblBankAccount->getOwner();
-                        $item['CreateUpdate'] = '';
                         if(($EntityUpdate = $tblBankAccount->getEntityUpdate())){
                             $item['CreateUpdate'] = $EntityUpdate->format('d.m.Y');
                         } else {
@@ -296,7 +303,7 @@ class Service extends AbstractService
         $export->setValue($export->getCell($Column++, $Row), "Debitoren-Nr.");
         $export->setValue($export->getCell($Column++, $Row), "Beitragsverursacher Vorname");
         $export->setValue($export->getCell($Column++, $Row), "Beitragsverursacher Nachname");
-        $export->setValue($export->getCell($Column++, $Row), "Klasse");
+        $export->setValue($export->getCell($Column++, $Row), "Klasse/Stammgruppe");
         $export->setValue($export->getCell($Column++, $Row), "Beitragsart");
         $export->setValue($export->getCell($Column++, $Row), "Individualpreis");
         $export->setValue($export->getCell($Column++, $Row), "Preisvariante");
@@ -330,7 +337,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($Column++, $Row), $Content['DebtorNumber']);
             $export->setValue($export->getCell($Column++, $Row), $Content['CauserFirstName']);
             $export->setValue($export->getCell($Column++, $Row), $Content['CauserLastName']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['Division']);
+            $export->setValue($export->getCell($Column++, $Row), $Content['DivisionCourse']);
             $export->setValue($export->getCell($Column++, $Row), $Content['ItemName']);
             $export->setValue($export->getCell($Column++, $Row), $Content['Value']);
             $export->setValue($export->getCell($Column++, $Row), $Content['Variant']);
