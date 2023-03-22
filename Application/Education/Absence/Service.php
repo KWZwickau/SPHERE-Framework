@@ -2,8 +2,10 @@
 
 namespace SPHERE\Application\Education\Absence;
 
+use DateTime;
 use SPHERE\Application\Education\Absence\Service\Data;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
+use SPHERE\Application\Education\Absence\Service\Entity\TblAbsenceLesson;
 use SPHERE\Application\Education\Absence\Service\Setup;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -43,14 +45,13 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblYear|null $tblYear
      * @param bool $isForced
      *
      * @return false|TblAbsence[]
      */
-    public function getAbsenceAllByPerson(TblPerson $tblPerson, TblYear $tblYear = null, bool $isForced = false)
+    public function getAbsenceAllByPerson(TblPerson $tblPerson, bool $isForced = false)
     {
-        return (new Data($this->getBinding()))->getAbsenceAllByPerson($tblPerson, $tblYear, $isForced);
+        return (new Data($this->getBinding()))->getAbsenceAllByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -69,5 +70,26 @@ class Service extends AbstractService
     public function getAbsenceAll()
     {
         return (new Data($this->getBinding()))->getAbsenceAll();
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblAbsence[]|bool
+     */
+    public function getAbsenceAllBetween(DateTime $fromDate, DateTime $toDate)
+    {
+        return (new Data($this->getBinding()))->getAbsenceAllBetween($fromDate, $toDate);
+    }
+
+    /**
+     * @param TblAbsence $tblAbsence
+     *
+     * @return false|TblAbsenceLesson[]
+     */
+    public function getAbsenceLessonAllByAbsence(TblAbsence $tblAbsence)
+    {
+        return (new Data($this->getBinding()))->getAbsenceLessonAllByAbsence($tblAbsence);
     }
 }

@@ -20,9 +20,9 @@ class Absence implements IApplicationInterface, IModuleInterface
         /**
          * Route
          */
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute('SPHERE\Application\Education\Absence', __NAMESPACE__ . '\Frontend::frontendAbsenceOverview')
-//        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('SPHERE\Application\Education\Absence', __NAMESPACE__ . '\Frontend::frontendAbsenceOverview')
+        );
 
 //        Main::getDispatcher()->registerRoute(
 //            Main::getDispatcher()->createRoute('SPHERE\Application\Education\ClassRegister\Digital\AbsenceMonth',

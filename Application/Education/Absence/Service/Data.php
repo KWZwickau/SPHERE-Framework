@@ -31,17 +31,15 @@ class Data extends AbstractData
         if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
             $Manager = $this->getEntityManager();
             foreach ($tblDivisionList as $tblDivision) {
-                if (($tblYear = $tblDivision->getServiceTblYear())
-                    && ($tblAbsenceOldList = AbsenceOld::useService()->getAbsenceAllByDivision($tblDivision))
-                ) {
+                if (($tblAbsenceOldList = AbsenceOld::useService()->getAbsenceAllByDivision($tblDivision))) {
                     $createEntityList = array();
                     // trennung nach mit Stunden und ohne Stunden
                     foreach ($tblAbsenceOldList as $tblAbsenceOld) {
                         if (($tblPerson = $tblAbsenceOld->getServiceTblPerson())) {
                             $count++;
                             $tblAbsence = new TblAbsence(
-                                $tblPerson, $tblYear, $tblAbsenceOld->getFromDateTime(), $tblAbsenceOld->getToDateTime(),
-                                $tblAbsenceOld->getRemark(), $tblAbsenceOld->getStatus(), $tblAbsenceOld->getType(), $tblAbsenceOld->getIsCertificateRelevant(),
+                                $tblPerson, $tblAbsenceOld->getFromDateTime(), $tblAbsenceOld->getToDateTime(),
+                                $tblAbsenceOld->getStatus(), $tblAbsenceOld->getType(), $tblAbsenceOld->getRemark(), $tblAbsenceOld->getIsCertificateRelevant(),
                                 $tblAbsenceOld->getServiceTblPersonStaff() ?: null, $tblAbsenceOld->getServiceTblPersonCreator() ?: null, $tblAbsenceOld->getSource()
                             );
 
@@ -73,23 +71,13 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblYear|null $tblYear
      * @param bool $isForced
      *
      * @return false|TblAbsence[]
      */
-    public function getAbsenceAllByPerson(TblPerson $tblPerson, TblYear $tblYear = null, bool $isForced = false)
+    public function getAbsenceAllByPerson(TblPerson $tblPerson, bool $isForced = false)
     {
-        if ($tblYear) {
-            $parameters = array(
-                TblAbsence::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblAbsence::ATTR_SERVICE_TBL_YEAR => $tblYear->getId()
-            );
-        } else {
-            $parameters = array(
-                TblAbsence::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-            );
-        }
+        $parameters = array(TblAbsence::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId());
 
         if ($isForced) {
             return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAbsence', $parameters);
@@ -133,7 +121,6 @@ class Data extends AbstractData
      */
     public function createAbsence(
         TblPerson $tblPerson,
-        TblYear $tblYear,
         $FromDate,
         $ToDate,
         $Status,
@@ -147,23 +134,22 @@ class Data extends AbstractData
         $Manager = $this->getEntityManager();
         $Entity = $Manager->getEntity('TblAbsence')->findOneBy(array(
             TblAbsence::ATTR_SERVICE_TBL_PERSON => $tblPerson,
-            TblAbsence::ATTR_SERVICE_TBL_YEAR => $tblYear,
             TblAbsence::ATTR_FROM_DATE => $FromDate ? new DateTime($FromDate) : null,
             TblAbsence::ATTR_TO_DATE => $ToDate ? new DateTime($ToDate) : null,
         ));
         if (null === $Entity) {
-            $Entity = new TblAbsence();
-            $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setServiceTblYear($tblYear);
-            $Entity->setFromDate($FromDate ? new DateTime($FromDate) : null);
-            $Entity->setToDate($ToDate ? new DateTime($ToDate) : null);
-            $Entity->setStatus($Status);
-            $Entity->setRemark($Remark);
-            $Entity->setType($Type);
-            $Entity->setServiceTblPersonStaff($tblPersonStaff);
-            $Entity->setIsCertificateRelevant($IsCertificateRelevant);
-            $Entity->setSource($Source);
-            $Entity->setServiceTblPersonCreator($tblPersonCreator);
+            $Entity = new TblAbsence(
+                $tblPerson,
+                $FromDate ? new DateTime($FromDate) : null,
+                $ToDate ? new DateTime($ToDate) : null,
+                $Status,
+                $Type,
+                $Remark,
+                $IsCertificateRelevant,
+                $tblPersonStaff,
+                $tblPersonCreator,
+                $Source
+            );
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

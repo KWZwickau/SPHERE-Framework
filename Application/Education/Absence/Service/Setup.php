@@ -46,7 +46,6 @@ class Setup extends AbstractSetup
     {
         $Table = $this->createTable($Schema, 'tblAbsence');
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
-        $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'FromDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'ToDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'Remark');
@@ -57,7 +56,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblPersonCreator', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'Source', self::FIELD_TYPE_SMALLINT);
 
-        $this->createIndex($Table, array('serviceTblPerson', 'serviceTblYear'), false);
+        $this->createIndex($Table, array('serviceTblPerson', 'FromDate', 'ToDate'), false);
 
         return $Table;
     }

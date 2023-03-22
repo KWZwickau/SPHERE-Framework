@@ -879,6 +879,24 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblYear $tblYear
+     * @param DateTime $date
+     * @param array $tblCompanyList
+     *
+     * @return bool|TblHoliday
+     */
+    public function getHolidayByDayAndCompanyList(TblYear $tblYear, DateTime $date, array $tblCompanyList)
+    {
+        foreach ($tblCompanyList as $tblCompany) {
+            if (($tblHoliday = (new Data($this->getBinding()))->getHolidayByDay($tblYear, $date, $tblCompany))) {
+                return $tblHoliday;
+            }
+        }
+
+        return (new Data($this->getBinding()))->getHolidayByDay($tblYear, $date, null);
+    }
+
+    /**
      * @return false|TblHoliday[]
      */
     public function getHolidayAll()

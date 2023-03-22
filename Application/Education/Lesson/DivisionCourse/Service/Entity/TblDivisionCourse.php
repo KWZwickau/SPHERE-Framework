@@ -436,4 +436,21 @@ class TblDivisionCourse extends Element
     {
         return DivisionCourse::useService()->getSchoolTypeListByDivisionCourse($this, $isString);
     }
+
+    /**
+     * @param bool $isString
+     * @return false|Type[]|string
+     */
+    public function getCompanyListFromStudents(bool $isString = false)
+    {
+        return DivisionCourse::useService()->getCompanyListByDivisionCourse($this, $isString);
+    }
+
+    /**
+     * @return bool
+     */
+    public function getHasSaturdayLessons(): bool
+    {
+        return DivisionCourse::useService()->getHasSaturdayLessonsByDivisionCourse($this);
+    }
 }

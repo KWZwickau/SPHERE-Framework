@@ -8,9 +8,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
@@ -47,10 +46,6 @@ class TblAbsence extends Element
      */
     protected $serviceTblPerson;
     /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblYear;
-    /**
      * @Column(type="datetime")
      */
     protected ?DateTime $FromDate;
@@ -59,10 +54,6 @@ class TblAbsence extends Element
      */
     protected ?DateTime $ToDate;
     /**
-     * @Column(type="string")
-     */
-    protected string $Remark;
-    /**
      * @Column(type="smallint")
      */
     protected int $Status;
@@ -70,6 +61,10 @@ class TblAbsence extends Element
      * @Column(type="smallint")
      */
     protected int $Type;
+    /**
+     * @Column(type="string")
+     */
+    protected string $Remark;
     /**
      * @Column(type="boolean")
      */
@@ -89,7 +84,6 @@ class TblAbsence extends Element
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
      * @param DateTime|null $FromDate
      * @param DateTime|null $ToDate
      * @param string $Remark
@@ -100,16 +94,15 @@ class TblAbsence extends Element
      * @param TblPerson|null $serviceTblPersonCreator
      * @param int $Source
      */
-    public function __construct(TblPerson $tblPerson, TblYear $tblYear, ?DateTime $FromDate, ?DateTime $ToDate, string $Remark, int $Status, int $Type,
+    public function __construct(TblPerson $tblPerson, ?DateTime $FromDate, ?DateTime $ToDate, int $Status, int $Type, string $Remark,
         bool $IsCertificateRelevant, ?TblPerson $serviceTblPersonStaff, ?TblPerson $serviceTblPersonCreator, int $Source)
     {
         $this->serviceTblPerson = $tblPerson->getId();
-        $this->serviceTblYear = $tblYear->getId();
         $this->FromDate = $FromDate;
         $this->ToDate = $ToDate;
-        $this->Remark = $Remark;
         $this->Status = $Status;
         $this->Type = $Type;
+        $this->Remark = $Remark;
         $this->IsCertificateRelevant = $IsCertificateRelevant;
         $this->serviceTblPersonStaff = $serviceTblPersonStaff ? $serviceTblPersonStaff->getId() : null;
         $this->serviceTblPersonCreator = $serviceTblPersonCreator ? $serviceTblPersonCreator->getId() : null;
@@ -137,26 +130,6 @@ class TblAbsence extends Element
     }
 
     /**
-     * @return bool|TblYear
-     */
-    public function getServiceTblYear()
-    {
-        if (null === $this->serviceTblYear) {
-            return false;
-        } else {
-            return Term::useService()->getYearById($this->serviceTblYear);
-        }
-    }
-
-    /**
-     * @param TblYear|null $tblYear
-     */
-    public function setServiceTblYear(TblYear $tblYear = null)
-    {
-        $this->serviceTblYear = (null === $tblYear ? null : $tblYear->getId());
-    }
-
-    /**
      * @param string $format
      *
      * @return false|string
@@ -174,7 +147,10 @@ class TblAbsence extends Element
         }
     }
 
-    public function getFromDateTime()
+    /**
+     * @return DateTime|null
+     */
+    public function getFromDateTime(): ?DateTime
     {
         return $this->FromDate;
     }
@@ -203,7 +179,10 @@ class TblAbsence extends Element
         }
     }
 
-    public function getToDateTime()
+    /**
+     * @return DateTime|null
+     */
+    public function getToDateTime(): ?DateTime
     {
         return $this->ToDate;
     }
@@ -217,9 +196,9 @@ class TblAbsence extends Element
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getRemark()
+    public function getRemark(): string
     {
         return $this->Remark;
     }
@@ -233,17 +212,17 @@ class TblAbsence extends Element
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getStatus()
+    public function getStatus(): int
     {
         return $this->Status;
     }
 
     /**
-     * @param mixed $Status
+     * @param int $Status
      */
-    public function setStatus($Status)
+    public function setStatus(int $Status)
     {
         $this->Status = $Status;
     }
@@ -398,7 +377,7 @@ class TblAbsence extends Element
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getType(): int
     {
