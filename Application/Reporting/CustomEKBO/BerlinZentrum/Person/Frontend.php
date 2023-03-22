@@ -54,6 +54,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 new TableData($TableContent, null,
                                     array(
+                                        'PersonId'             => 'PersonId',
                                         'StudentNumber'        => 'Schülernummer',
                                         'Division'             => 'JG',
                                         'PersonGroupKL'        => 'KL',
@@ -74,6 +75,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Nationality'          => 'Nationalität',
                                         'Denomination'         => 'Kirche',
                                         'LeavingSchool'        => 'Grundschule',
+                                        'PersonIdS2'           => 'PersonId_S2',
                                         'TitleS2'              => 'Akad. Titel_S2',
                                         'LastNameS2'           => 'Nachname_S2',
                                         'FirstNameS2'          => 'Vorname_S2',
@@ -84,6 +86,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'MailS2'               => 'Mail_S2',
                                         'Mail2S2'              => 'Mail_S2_Zwei',
                                         'RemarkS2'             => 'Bemerkung_S2',
+                                        'PersonIdS1'           => 'PersonId_S1',
                                         'TitleS1'              => 'Titel_S1',
                                         'LastNameS1'           => 'Nachname_S1',
                                         'FirstNameS1'          => 'Vorname_S1',
@@ -109,9 +112,13 @@ class Frontend extends Extension implements IFrontendInterface
                                         'MigrationBackground'  => 'Nicht dt. Herkunftssprache',
                                     ),
                                     array(
+                                        'order' => array(
+                                            array(6, 'asc'),
+                                            array(8, 'asc')
+                                        ),
                                         'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 6, 8),
+
                                         ),
                                         "pageLength" => -1,
                                         "responsive" => false
