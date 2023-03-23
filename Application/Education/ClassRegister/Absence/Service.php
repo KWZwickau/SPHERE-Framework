@@ -11,6 +11,7 @@ namespace SPHERE\Application\Education\ClassRegister\Absence;
 use DateTime;
 use phpDocumentor\Reflection\Types\Array_;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsenceLesson;
@@ -19,6 +20,7 @@ use SPHERE\Application\Education\ClassRegister\Absence\Service\Setup;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
@@ -692,324 +694,6 @@ class Service extends AbstractService
 
         return false;
     }
-    /**
-     * @param $DivisionId
-     *
-     * @return string
-     */
-    public static function getMonthlyAbsence($DivisionId)
-    {
-        // Definitionen
-        $currentDate = new DateTime('now');
-        $Month = (int)$currentDate->format('m');
-        $Year = (int)$currentDate->format('Y');
-
-
-        $headerListStatic = array();
-        $bodyListStatic = array();
-        $headerList = array();
-        $bodyList = array();
-
-        // Tagesanzahl im aktuellen Monat ermitteln
-        $DayCounter = cal_days_in_month(CAL_GREGORIAN, $Month, $Year);
-
-        $StartDate = false;
-        $DateList = array();
-
-        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))){
-            if(($tblYear = $tblDivision->getServiceTblYear())){
-                if(($tblPeriodList = $tblYear->getTblPeriodAll())){
-                    foreach($tblPeriodList as $tblPeriod){
-                        if(!$StartDate || $StartDate > new DateTime($tblPeriod->getFromDate())){
-                            $StartDate = new DateTime($tblPeriod->getFromDate());
-                        }
-                    }
-                    $currentDate = new DateTime();
-                    $dateInterval = \DateInterval::createFromDateString('1 month');
-                    $datePeriod = new \DatePeriod($StartDate, $dateInterval, $currentDate);
-                    foreach($datePeriod as $date){
-                        $month = $date->format("F");
-                        $start = new DateTime($date->format("Y-m").'-1');
-                        $end = new DateTime($date->format("Y-m-t"));
-
-                        if(!isset($DateList[$month])){
-                            $DateList[$month] = array(
-                                'Start' => $start,
-                                'End' => $end
-                            );
-                        }
-                    }
-                }
-            }
-        }
-        foreach ($DateList as $Month => $periodOfTime) {
-            $tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByDivision($periodOfTime['Start'], $periodOfTime['End'], $tblDivision);
-            if ($tblAbsenceList) {
-                foreach ($tblAbsenceList as $tblAbsence) {
-                    $tblPerson = $tblAbsence->getServiceTblPerson();
-                    $fromDate = $tblAbsence->getFromDate('d');
-                    $toDate = $tblAbsence->getToDate();
-                    $MonthAbsenceList[$Month][$tblPerson->getId()][$fromDate] = $tblAbsence->getStatusDisplayShortName();
-                    if ($toDate) {
-                        $startDate = new DateTime($tblAbsence->getFromDate());
-                        $betweenDate = $tblAbsence->getDateSpan();
-                        $endDate = new DateTime($tblAbsence->getToDate());
-                        $diff = $startDate->diff($endDate);
-                        $days = $diff->days;
-                        $interval = \DateInterval::createFromDateString('1 day');
-                        $fullEndDate = $endDate->modify(' + 1 day ');
-                        $dateRange = new \DatePeriod($startDate, $interval, $endDate,);
-                        $dates = array();
-                        foreach ($dateRange as $date) {
-                            $dates[] = $date->format("Y-m-d");
-                        }
-                        $absencePeriod = array(
-                            'start' => $startDate,
-                            'end' => $fullEndDate,
-                            'days' => $days + 1,
-                            'between' => $betweenDate,
-                            'dates' => $dates
-                        );Debugger::screenDump($absencePeriod);
-                    } else {
-                        $absencePeriod = null;
-                    }
-                }
-            }
-        }exit;
-         // TODO array basteln was alle werte hat die ich brauch + Zwischenraum, wenn es einen gibt
-        $dataList = array();
-        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
-            && ($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByDivision($startDateSchoolYear, $endDateSchoolYear, $tblDivision))
-        ) {
-
-            foreach ($tblAbsenceList as $tblAbsence) {
-                if (($tblPersonItem = $tblAbsence->getServiceTblPerson())
-                    && ($tblDivisionItem = $tblAbsence->getServiceTblDivision())
-                ) {
-                    $fromDate = new DateTime($tblAbsence->getFromDate());
-                    if ($tblAbsence->getToDate()) {
-                        $toDate = new DateTime($tblAbsence->getToDate());
-                        if ($toDate > $fromDate) {
-                            $date = $fromDate;
-                            while ($date <= $toDate) {
-                                self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $date->format('d.m.Y'));
-                                $date = $date->modify('+1 day');
-                            }
-                        } elseif ($toDate == $fromDate) {
-                            self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $tblAbsence->getFromDate());
-                        }
-                    } else {
-                        self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $tblAbsence->getFromDate());
-                    }
-                }
-            }
-        }
-
-        $hasMonthBefore = true;
-        $hasMonthNext = true;
-
-        // Einträge für alle ausgewählten Personen anzeigen
-        if ($tblDivision
-            && ($tblYear = $tblDivision->getServiceTblYear())
-            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
-        ) {
-            if (!($tblCompany = $tblDivision->getServiceTblCompany())) {
-                $tblCompany = null;
-            }
-
-            $hasSaturdayLessons = ($tblSchoolType = $tblDivision->getType()) && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType);
-
-            // Begrenzung auf den Zeitraum des aktuellen Schuljahres
-            list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-            /** @var DateTime $startDateSchoolYear */
-            if ($startDateSchoolYear && $endDateSchoolYear) {
-                $startDateSchoolYear = new DateTime('01.' . $startDateSchoolYear->format('m') . '.' . $startDateSchoolYear->format('Y'));
-                $startDateMonth = new DateTime('01.' . ($Month <= 9 ? '0'.$Month : $Month) . '.' . $Year);
-                if ($startDateMonth <= $startDateSchoolYear) {
-                    $hasMonthBefore = false;
-                }
-
-                $endDateSchoolYear = new DateTime('01.' . $endDateSchoolYear->format('m') . '.' . $endDateSchoolYear->format('Y'));
-                if ($startDateMonth >= $endDateSchoolYear) {
-                    $hasMonthNext = false;
-                }
-            }
-
-            /** @var TblPerson $tblPerson */
-            foreach ($tblPersonList as $tblPerson){
-                $bodyListStatic[$tblPerson->getId()]['Person'] = (new TableColumn(new Center(new Bold(
-                    new ToolTip(
-                        (new Link($tblPerson->getLastFirstName(), self::getEndpoint()))
-                            ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(), $tblDivision->getId()))
-                        , 'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' hinzufügen.'
-                    )
-                ))));
-
-                if ($DayCounter) {
-                    $Day = 1;
-                    while($Day <= $DayCounter){
-                        $fetchedDate = new DateTime($Day . '.' . ($Month <= 9 ? '0'.$Month : $Month) . '.' . $Year);
-                        $fetchedDateString = $fetchedDate->format('d.m.Y');
-                        $DayAtWeek = (new DateTime(($Day < 10 ? '0'.$Day : $Day).'.'.$Month.'.'.$Year))->format('w');
-
-                        if ($hasSaturdayLessons) {
-                            $isWeekend = $DayAtWeek == 0;
-                        } else {
-                            $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
-                        }
-                        $isHoliday = Term::useService()->getHolidayByDay($tblYear, $fetchedDate, $tblCompany);
-
-                        $isCurrentDate = false;
-                        if (!isset($headerList['Day' . $Day])) {
-                            if (($isCurrentDate = ((int)$currentDate->format('d') == $Day
-                                && (int)$currentDate->format('m') == $Month
-                                && $currentDate->format('Y') == $Year))
-                            ) {
-                                // scrollen zum aktuellen Tag
-                                $content = '<span id="OrganizerDay" style="color: darkorange;">'
-                                    . new Center ($DayName[$DayAtWeek] . new Container($Day))
-                                    . '</span>';
-                            } else {
-                                $content = new Center ($DayName[$DayAtWeek] . new Container($Day));
-                            }
-
-                            $columnHeader = (new TableColumn(new Center(
-                                $content
-                            )))
-                                ->setMinHeight($minHeightHeader)
-                                ->setPadding($padding);
-
-                            if ($isCurrentDate) {
-                                $columnHeader
-                                    ->setColor('darkorange');
-                            }
-                            if ($isWeekend || $isHoliday) {
-                                $columnHeader->setBackgroundColor('lightgray')
-                                    ->setOpacity(0.5);
-                            } else {
-                                $columnHeader->setBackgroundColor($backgroundColor);
-                            }
-
-                            $headerList['Day' . $Day] = $columnHeader;
-                        }
-
-                        if ($isWeekend || $isHoliday) {
-                            $columnBody = (new TableColumn(new Center($isWeekend ? new Muted(new Small('w')) : new Muted(new Small('f')))))
-                                ->setBackgroundColor('lightgrey')
-                                ->setVerticalAlign('middle')
-                                ->setOpacity(0.5)
-                                ->setPadding($padding);
-                        } elseif (isset($dataList[$tblPerson->getId()][$fetchedDateString])) {
-                            $columnBody = (new TableColumn(new Center(
-                                $dataList[$tblPerson->getId()][$fetchedDateString]['Content']
-                            )))
-                                ->setBackgroundColor($dataList[$tblPerson->getId()][$fetchedDateString]['BackgroundColor'])
-                                ->setPadding($padding);
-                        } else {
-                            $columnBody = (new TableColumn((new Link(
-                                '<div style="height: 28px"><span style="visibility: hidden">'.new Plus().'</span></div>',
-                                self::getEndpoint(),
-                                null,
-                                array(),
-                                'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' für den '
-                                . $fetchedDateString . ' hinzufügen.'))
-                                ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(), $tblDivision->getId(), $fetchedDateString))))
-                                ->setPadding('0');
-                        }
-
-                        $bodyList[$tblPerson->getId()]['Day' . $Day] = $columnBody
-                            ->setMinHeight($minHeightBody)
-                            ->setVerticalAlign('middle');
-
-                        $Day++;
-                    }
-                }
-            }
-        }
-
-        // table Static
-        $tableHeadStatic = new TableHead(new TableRow($headerListStatic));
-        $rowsStatic = array();
-        foreach ($bodyListStatic as $columnListStatic) {
-            $rowsStatic[] = new TableRow($columnListStatic);
-        }
-        $tableBodyStatic = new TableBody($rowsStatic);
-        $tableStatic = new Table($tableHeadStatic, $tableBodyStatic, null, false, null, 'TableCustom');
-
-        // table float
-        $tableHead = new TableHead(new TableRow($headerList));
-        $rows = array();
-        foreach ($bodyList as $columnList) {
-            $rows[] = new TableRow($columnList);
-        }
-        $tableBody = new TableBody($rows);
-        $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
-
-        $Content = new Layout(
-            new LayoutGroup(array(
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn('&nbsp;', 3),
-                            new LayoutColumn(
-                                $hasMonthBefore
-                                    ? new Center(
-                                    (new Link(new ChevronLeft(), self::getEndpoint(), null, array(), $MonthName[$MonthBefore] . ' ' . $YearBefore))
-                                        ->ajaxPipelineOnClick(self::pipelineChangeMonth($DivisionId, $MonthBefore, $YearBefore))
-                                )
-                                    : ''
-                                , 1),
-                            new LayoutColumn(
-                                new Center(new Bold($MonthName[$Month] . ' ' . $Year))
-                                , 4),
-                            new LayoutColumn(
-                                $hasMonthNext
-                                    ? new Center(
-                                    (new Link(new ChevronRight(), self::getEndpoint(), null, array(), $MonthName[$MonthNext].' '.$YearNext))
-                                        ->ajaxPipelineOnClick(self::pipelineChangeMonth($DivisionId, $MonthNext, $YearNext))
-                                )
-                                    : ''
-                                , 1),
-                            new LayoutColumn(
-                                '&nbsp;'
-//                                    new PullRight((new Link(' Download', self::getEndpoint(), new Download(), array(), 'Download der Daten vorbereiten'))
-//                                        ->ajaxPipelineOnClick(self::pipelineOpenDownloadEdit($DivisionId))
-//                                    )
-                                , 3)
-                        ))))
-                        . '<div style="height: 5px;"></div>'
-                        , 12)
-                ),
-                new LayoutRow(
-                    new LayoutColumn(
-                        '<div style="float: left;">'
-                        . $tableStatic
-                        .'</div>'
-                        . '<div id="OrganizerTable" style="overflow-x: auto;">'
-                        . $table
-                        . '</div>'
-                        . (($Month == (int)$currentDate->format('m') && $Year == (int)$currentDate->format('Y'))
-                            ? '<script>
-                                tableSelector = "div#OrganizerTable";
-                                $(tableSelector).scrollLeft( $("span#OrganizerDay").offset().left - ( $(tableSelector).offset().left + ( $(tableSelector).width() / 2 ) ) )
-                            </script>'
-                            : ''
-                        )
-                    )
-                )
-            ))
-        );
-
-        return new Panel(
-            new Calendar() . ' Kalender'
-            . new PullRight(
-                (new Link('Wochenansicht', self::getEndpoint(), null, array(), false, null, Link::TYPE_WHITE_LINK))
-                    ->ajaxPipelineOnClick(ApiAbsence::pipelineChangeWeekForDivision($DivisionId, '', ''))
-            ),
-            $Content,
-            Panel::PANEL_TYPE_PRIMARY
-        );
-    }
 
     /**
      * @param $Data
@@ -1189,52 +873,59 @@ class Service extends AbstractService
 
     public function getAbsenceForExcelDownload(TblDivision $tblDivision): array
     {
-        $data = array();
+        $dataList = array();
+        $countList = array();
         if (($tblYear = $tblDivision->getServiceTblYear())
            && ($tblSchoolType = $tblDivision->getType())
-           && ($tblCompany = $tblDivision->getServiceTblCompany())
         ) {
+            $tblCompany = $tblDivision->getServiceTblCompany();
             list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
             if ($startDate && $endDate
                 && ($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByDivision($startDate, $endDate, $tblDivision))
             ) {
-                $data = $this->setDataForExcel($tblAbsenceList); // todo übergeben $tblSchoolType und $tblCompany und tblYear
+                list($dataList, $countList) = $this->setDataForExcel($tblAbsenceList, $tblSchoolType, $tblYear, $tblCompany ?: null);
             }
         }
-        return $data;
+
+        return array($dataList, $countList);
     }
 
-    private function setDataForExcel(array $tblAbsenceList)
+    private function setDataForExcel(array $tblAbsenceList, $tblSchoolType, TblYear $tblYear, ?TblCompany $tblCompany): array
     {
         $dataList = array();
+        $countList = array();
         $hasSaturdayLessons = Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType);
+
         /** @var TblAbsence $tblAbsence */
         foreach($tblAbsenceList as $tblAbsence) {
             if (($tblPerson = $tblAbsence->getServiceTblPerson())) {
                 $fromDate = new DateTime($tblAbsence->getFromDate());
+                $countLessons = $tblAbsence->getCountLessons();
                 if ($tblAbsence->getToDate()) {
                     $toDate = new DateTime($tblAbsence->getToDate());
                     if ($toDate > $fromDate) {
                         $date = $fromDate;
                         while ($date <= $toDate) {
-                            $this->setData($dataList, $date, $tblPerson, $tblAbsence->getStatusDisplayShortName());
+                            $this->setData($dataList, $countList, $date, $tblPerson, $tblAbsence->getStatusDisplayShortName(), $countLessons, $tblYear, $hasSaturdayLessons, $tblCompany);
                             $date = $date->modify('+1 day');
                         }
                     } elseif ($toDate == $fromDate) {
-                        $this->setData($dataList, $fromDate, $tblPerson, $tblAbsence->getStatusDisplayShortName());
+                        $this->setData($dataList, $countList, $fromDate, $tblPerson, $tblAbsence->getStatusDisplayShortName(), $countLessons, $tblYear, $hasSaturdayLessons, $tblCompany);
                     }
                 } else {
-                    $this->setData($dataList, $fromDate, $tblPerson, $tblAbsence->getStatusDisplayShortName());
+                    $this->setData($dataList, $countList, $fromDate, $tblPerson, $tblAbsence->getStatusDisplayShortName(), $countLessons, $tblYear, $hasSaturdayLessons, $tblCompany);
                 }
             }
         }
-        return $dataList;
+
+        return array($dataList, $countList);
     }
 
-    private function setData(array &$dataList, DateTime $dateTime, TblPerson $tblPerson, string $status) // todo Company übergeben, tblYear bool $hasSaturdayLessons
+    private function setData(array &$dataList, array &$countList, DateTime $dateTime, TblPerson $tblPerson, string $status, int $countLessons,
+        TblYear $tblYear, bool $hasSaturdayLessons, ?TblCompany $tblCompany)
     {
-        // todo prüfen ist Datum Wochenende oder Ferien
         $DayAtWeek = $dateTime->format('w');
+        $month = intval($dateTime->format('m'));
 
         if ($hasSaturdayLessons) {
             $isWeekend = $DayAtWeek == 0;
@@ -1243,7 +934,12 @@ class Service extends AbstractService
         }
         $isHoliday = Term::useService()->getHolidayByDay($tblYear, $dateTime, $tblCompany);
         if (!$isWeekend && !$isHoliday) {
-            $dataList[intval($dateTime->format('m'))][$tblPerson->getId()][$dateTime->format('d')] = $status;
+            $dataList[$month][$tblPerson->getId()][$dateTime->format('d')] = $countLessons > 0 ? $countLessons : $status;
+            if (isset($countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status])) {
+                $countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] += $countLessons > 0 ? $countLessons : 1;
+            } else {
+                $countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] = $countLessons > 0 ? $countLessons : 1;
+            }
         }
     }
 }
