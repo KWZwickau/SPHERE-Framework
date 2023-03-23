@@ -24,6 +24,7 @@ class ViewStudentAuthorized extends AbstractView
     const TBL_PERSON_ID = 'TblPerson_Id';
 
     // S1
+    const TBL_PERSON_BEV_ID = 'TblPerson_Authorized_Id';
     const TBL_SALUTATION_SALUTATION_BEV = 'TblSalutation_Salutation_Bev';
     const TBL_PERSON_TITLE_BEV = 'TblPerson_Title_Bev';
     const TBL_PERSON_FIRST_NAME_BEV = 'TblPerson_FirstName_Bev';
@@ -67,6 +68,10 @@ class ViewStudentAuthorized extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_Id;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPerson_Authorized_Id;
     /**
      * @Column(type="string")
      */
@@ -193,6 +198,7 @@ class ViewStudentAuthorized extends AbstractView
     {
 
         // S1
+        $this->setNameDefinition(self::TBL_PERSON_BEV_ID, 'Bev: Id');
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_BEV, 'Bev: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE_BEV, 'Bev: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_BEV, 'Bev: Vorname');
@@ -226,6 +232,7 @@ class ViewStudentAuthorized extends AbstractView
         //GroupDefinition
 
         $this->setGroupDefinition('Bevollmächtigter (Zusatzinfo)', array(
+            self::TBL_PERSON_BEV_ID,
             self::TBL_SALUTATION_SALUTATION_BEV,
             self::TBL_PERSON_TITLE_BEV,
             self::TBL_PERSON_FIRST_NAME_BEV,
@@ -258,6 +265,7 @@ class ViewStudentAuthorized extends AbstractView
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
+        $this->setDisableDefinition(self::TBL_PERSON_BEV_ID);
         $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_BEV);
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_BEV);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_BEV);
