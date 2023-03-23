@@ -170,6 +170,7 @@ class ViewPerson extends AbstractView
     {
 
         //NameDefinition
+        $this->setNameDefinition(self::TBL_PERSON_ID, 'Person: Id');
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION, 'Person: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE, 'Person: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME, 'Person: Vorname');
@@ -199,6 +200,7 @@ class ViewPerson extends AbstractView
 
         //GroupDefinition
         $this->setGroupDefinition('Grunddaten', array(
+            self::TBL_PERSON_ID,
             self::TBL_SALUTATION_SALUTATION,
             self::TBL_PERSON_TITLE,
             self::TBL_PERSON_FIRST_NAME,
