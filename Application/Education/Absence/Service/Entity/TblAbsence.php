@@ -10,7 +10,9 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -228,32 +230,34 @@ class TblAbsence extends Element
     }
 
     /**
+     * @param TblYear $tblYear
      * @param DateTime|null $tillDate
-     * @param int $countLessons
      * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblSchoolType
+     * @param int $countLessons
      *
      * @return int|string
      */
-    public function getDays(DateTime $tillDate = null, int &$countLessons = 0, TblCompany $tblCompany = null)
+    public function getDays(TblYear $tblYear, ?DateTime $tillDate, ?TblCompany $tblCompany, ?TblType $tblSchoolType, int &$countLessons = 0)
     {
         $countDays = 0;
         $lessons = Absence::useService()->getLessonAllByAbsence($this);
 
-        $fromDate = new DateTime($this->getFromDate());
+        $fromDate = $this->getFromDateTime();
         if ($tillDate === null) {
-            if ($this->getToDate()) {
-                $toDate = new DateTime($this->getToDate());
+            if ($this->getToDateTime()) {
+                $toDate = $this->getToDateTime();
                 if ($toDate >= $fromDate) {
                     $date = $fromDate;
                     while ($date <= $toDate) {
 
-                        $countDays = $this->countThisDay($date, $countDays, $tblCompany);
+                        $countDays = $this->countThisDay($tblYear, $date, $countDays, $tblCompany, $tblSchoolType);
 
                         $date = $date->modify('+1 day');
                     }
                 }
             } else {
-                $countDays = $this->countThisDay($fromDate, $countDays, $tblCompany);
+                $countDays = $this->countThisDay($tblYear, $fromDate, $countDays, $tblCompany, $tblSchoolType);
             }
         } else {
             if ($tillDate >= $fromDate){
@@ -262,12 +266,12 @@ class TblAbsence extends Element
                     if ($toDate >= $fromDate) {
                         $date = $fromDate;
                         while ($date <= $toDate && $date <= $tillDate) {
-                            $countDays = $this->countThisDay($date, $countDays, $tblCompany);
+                            $countDays = $this->countThisDay($tblYear, $date, $countDays, $tblCompany, $tblSchoolType);
                             $date = $date->modify('+1 day');
                         }
                     }
                 } else {
-                    $countDays = $this->countThisDay($fromDate, $countDays, $tblCompany);
+                    $countDays = $this->countThisDay($tblYear, $fromDate, $countDays, $tblCompany, $tblSchoolType);
                 }
             }
         }
@@ -296,27 +300,25 @@ class TblAbsence extends Element
     }
 
     /**
+     * @param TblYear $tblYear
      * @param DateTime $date
      * @param $countDays
      * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblSchoolType
      *
      * @return int
      */
-    private function countThisDay(DateTime $date, $countDays, TblCompany $tblCompany = null): int
+    private function countThisDay(TblYear $tblYear, DateTime $date, $countDays, ?TblCompany $tblCompany, ?TblType $tblSchoolType): int
     {
-        // todo
-        $tblDivision = $this->getServiceTblDivision();
         $DayAtWeek = $date->format('w');
-        if ($tblDivision && ($tblSchoolType = $tblDivision->getType()) && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+        if ($tblSchoolType && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
             $isWeekend = $DayAtWeek == 0;
         } else {
             $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
         }
 
-        if ($tblDivision
-            && ($tblYear = $this->getServiceTblDivision()->getServiceTblYear())
+        if (!$isWeekend
             && !Term::useService()->getHolidayByDay($tblYear, $date, $tblCompany)
-            && !$isWeekend
         ) {
             $countDays++;
         }
@@ -502,7 +504,7 @@ class TblAbsence extends Element
      */
     public function getIsCertificateRelevant() : bool
     {
-        return (bool) $this->IsCertificateRelevant;
+        return $this->IsCertificateRelevant;
     }
 
     /**

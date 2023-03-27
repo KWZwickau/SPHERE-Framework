@@ -289,51 +289,10 @@ class Data extends AbstractData
 
     /**
      * @param DateTime $fromDate
-     * @param DateTime $toDate
-     * @param TblDivision $tblDivision
-     *
-     * @return TblAbsence[]|bool
-     */
-    public function getAbsenceAllBetweenByDivision(DateTime $fromDate, DateTime $toDate, TblDivision $tblDivision)
-    {
-        // todo
-        $Manager = $this->getEntityManager();
-        $queryBuilder = $Manager->getQueryBuilder();
-
-        $and = $queryBuilder->expr()->andX();
-        $and->add($queryBuilder->expr()->eq('t.serviceTblDivision', '?3'));
-
-        $or = $queryBuilder->expr()->orX();
-        $or->add($queryBuilder->expr()->between('t.FromDate', '?1', '?2'));
-        $or->add($queryBuilder->expr()->between('t.ToDate', '?1', '?2'));
-        $or->add(
-            $queryBuilder->expr()->andX(
-                $queryBuilder->expr()->lte('t.FromDate', '?1'),
-                $queryBuilder->expr()->gte('t.ToDate', '?2')
-            )
-        );
-
-        $and->add($or);
-
-        $query = $queryBuilder->select('t')
-            ->from(__NAMESPACE__ . '\Entity\TblAbsence', 't')
-            ->where($and)
-            ->setParameter(1, $fromDate)
-            ->setParameter(2, $toDate)
-            ->setParameter(3, $tblDivision->getId())
-            ->getQuery();
-
-        $resultList = $query->getResult();
-
-        return empty($resultList) ? false : $resultList;
-    }
-
-    /**
-     * @param DateTime $fromDate
      * @param TblPerson $tblPerson
      * @param DateTime|null $toDate
      *
-     * @return array|bool
+     * @return TblAbsence[]|bool
      */
     public function getAbsenceAllBetweenByPerson(TblPerson $tblPerson, DateTime $fromDate, DateTime $toDate = null)
     {

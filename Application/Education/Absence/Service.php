@@ -89,6 +89,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param DateTime $fromDate
+     * @param TblPerson $tblPerson
+     * @param DateTime|null $toDate
+     *
+     * @return TblAbsence[]|bool
+     */
+    public function getAbsenceAllBetweenByPerson(TblPerson $tblPerson, DateTime $fromDate, DateTime $toDate = null)
+    {
+        return (new Data($this->getBinding()))->getAbsenceAllBetweenByPerson($tblPerson, $fromDate, $toDate);
+    }
+
+    /**
      * @param TblAbsence $tblAbsence
      *
      * @return false|TblAbsenceLesson[]
@@ -117,7 +129,7 @@ class Service extends AbstractService
 
     /**
      * @param $Data
-     * @param string $Search
+     * @param $Search
      * @param TblAbsence|null $tblAbsence
      * @param null $PersonId
      * @param null $DivisionCourseId
@@ -129,7 +141,7 @@ class Service extends AbstractService
      */
     public function checkFormAbsence(
         $Data,
-        string $Search = '',
+        $Search,
         TblAbsence $tblAbsence = null,
         $PersonId = null,
         $DivisionCourseId = null,

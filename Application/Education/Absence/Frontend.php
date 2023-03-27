@@ -5,7 +5,6 @@ namespace SPHERE\Application\Education\Absence;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
@@ -33,7 +32,6 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -58,11 +56,10 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
-class Frontend extends Extension implements IFrontendInterface
+class Frontend extends FrontendClassRegister
 {
     /**
      * @return Stage
@@ -219,7 +216,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tempList);
                 }
 
-                $tblDivisionCourseList = (new Extension())->getSorter($tblDivisionCourseList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
+                $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
                 // Content der je Kurs erstellen
                 /** @var TblDivisionCourse $tblDivisionCourse */
                 foreach ($tblDivisionCourseList as $tblDivisionCourse) {
@@ -439,10 +436,25 @@ class Frontend extends Extension implements IFrontendInterface
         return $data;
     }
 
+    /**
+     * @param $AbsenceId
+     * @param bool $hasSearch
+     * @param $Search
+     * @param $Data
+     * @param $PersonId
+     * @param $DivisionCourseId
+     * @param IMessageInterface|null $messageSearch
+     * @param IMessageInterface|null $messageLesson
+     * @param $Date
+     * @param $Type
+     * @param $TypeId
+     *
+     * @return Form
+     */
     public function formAbsence(
         $AbsenceId = null,
         bool $hasSearch = false,
-        string $Search = '',
+        $Search = null,
         $Data = null,
         $PersonId = null,
         $DivisionCourseId = null,
@@ -507,22 +519,25 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Type && $TypeId) {
             $tblPersonList = false;
             // todo
-            switch ($Type) {
-                case 'Division':
-                    if (($tblDivision = Division::useService()->getDivisionById($TypeId))) {
-                        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                    }
-                    break;
-                case 'Group':
-                    if (($tblGroup = Group::useService()->getGroupById($TypeId))) {
-                        $tblPersonList = $tblGroup->getStudentOnlyList();
-                    }
-                    break;
-                case 'DivisionSubject':
-                    if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($TypeId))) {
-                        $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-                    }
-                    break;
+//            switch ($Type) {
+//                case 'Division':
+//                    if (($tblDivision = Division::useService()->getDivisionById($TypeId))) {
+//                        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+//                    }
+//                    break;
+//                case 'Group':
+//                    if (($tblGroup = Group::useService()->getGroupById($TypeId))) {
+//                        $tblPersonList = $tblGroup->getStudentOnlyList();
+//                    }
+//                    break;
+//                case 'DivisionSubject':
+//                    if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($TypeId))) {
+//                        $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+//                    }
+//                    break;
+//            }
+            if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
             }
 
             if ($tblPersonList) {

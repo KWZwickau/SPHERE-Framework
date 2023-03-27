@@ -22,7 +22,6 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
@@ -581,13 +580,12 @@ class ApiAbsence extends Extension implements IApiInterface
 
     /**
      * @param null $PersonId
-     * @param null $DivisionId
+     * @param null $DivisionCourseId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadAbsenceContent($PersonId = null, $DivisionId = null)
+    public static function pipelineLoadAbsenceContent($PersonId = null, $DivisionCourseId = null): Pipeline
     {
-        // todo
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'AbsenceContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
@@ -595,7 +593,7 @@ class ApiAbsence extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
-            'DivisionId' => $DivisionId
+            'DivisionCourseId' => $DivisionCourseId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -604,20 +602,20 @@ class ApiAbsence extends Extension implements IApiInterface
 
     /**
      * @param null $PersonId
-     * @param null $DivisionId
+     * @param null $DivisionCourseId
      *
      * @return string
      */
-    public function loadAbsenceContent($PersonId = null, $DivisionId = null)
+    public function loadAbsenceContent($PersonId = null, $DivisionCourseId = null)
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
         $tblPerson = Person::useService()->getPersonById($PersonId);
 
-        if (!($tblDivision && $tblPerson)) {
-            return new Danger('Die Klasse oder Person wurde nicht gefunden', new Exclamation());
+        if (!($tblDivisionCourse && $tblPerson)) {
+            return new Danger('Kurs oder Person wurde nicht gefunden', new Exclamation());
         }
 
-        return AbsenceOld::useFrontend()->loadAbsenceTable($tblPerson, $tblDivision);
+        return Absence::useFrontend()->loadAbsenceTable($tblPerson, $tblDivisionCourse);
     }
 
     /**
@@ -687,11 +685,11 @@ class ApiAbsence extends Extension implements IApiInterface
     }
 
     /**
-     * @return SelectBox|null
+     * @return string
      */
-    public function loadType()
+    public function loadType(): string
     {
-        return AbsenceOld::useFrontend()->loadType(isset($_POST['Data']['PersonId']) ? $_POST['Data']['PersonId'] : null);
+        return Absence::useFrontend()->loadType($_POST['Data']['PersonId'] ?? null);
     }
 
     /**

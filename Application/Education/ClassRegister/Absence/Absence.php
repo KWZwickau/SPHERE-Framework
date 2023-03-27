@@ -35,10 +35,10 @@ class Absence implements IModuleInterface
             Main::getDispatcher()->createRoute('SPHERE\Application\Education\ClassRegister\Digital\AbsenceMonth',
                 __NAMESPACE__ . '\Frontend::frontendAbsenceMonth')
         );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('SPHERE\Application\Education\ClassRegister\Digital\AbsenceStudent',
-                __NAMESPACE__ . '\Frontend::frontendAbsenceStudent')
-        );
+//        Main::getDispatcher()->registerRoute(
+//            Main::getDispatcher()->createRoute('SPHERE\Application\Education\ClassRegister\Digital\AbsenceStudent',
+//                __NAMESPACE__ . '\Frontend::frontendAbsenceStudent')
+//        );
     }
 
     /**
