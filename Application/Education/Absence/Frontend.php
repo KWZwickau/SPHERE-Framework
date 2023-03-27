@@ -446,8 +446,6 @@ class Frontend extends FrontendClassRegister
      * @param IMessageInterface|null $messageSearch
      * @param IMessageInterface|null $messageLesson
      * @param $Date
-     * @param $Type
-     * @param $TypeId
      *
      * @return Form
      */
@@ -460,9 +458,7 @@ class Frontend extends FrontendClassRegister
         $DivisionCourseId = null,
         IMessageInterface $messageSearch = null,
         IMessageInterface $messageLesson = null,
-        $Date = null,
-        $Type = null,
-        $TypeId = null
+        $Date = null
     ): Form {
         if ($Data === null && $AbsenceId === null) {
             $isFullDay = true;
@@ -509,44 +505,22 @@ class Frontend extends FrontendClassRegister
 
         if ($AbsenceId) {
             $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiAbsence::pipelineEditAbsenceSave($AbsenceId));
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineEditAbsenceSave($AbsenceId, $DivisionCourseId));
         } else {
             $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave($PersonId, $DivisionCourseId, $hasSearch, $Type, $TypeId));
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave($PersonId, $DivisionCourseId, $hasSearch));
         }
 
         $formRows = array();
-        if ($Type && $TypeId) {
-            $tblPersonList = false;
-            // todo
-//            switch ($Type) {
-//                case 'Division':
-//                    if (($tblDivision = Division::useService()->getDivisionById($TypeId))) {
-//                        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-//                    }
-//                    break;
-//                case 'Group':
-//                    if (($tblGroup = Group::useService()->getGroupById($TypeId))) {
-//                        $tblPersonList = $tblGroup->getStudentOnlyList();
-//                    }
-//                    break;
-//                case 'DivisionSubject':
-//                    if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($TypeId))) {
-//                        $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-//                    }
-//                    break;
-//            }
-            if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
-            }
-
-            if ($tblPersonList) {
-                $formRows[] = new FormRow(new FormColumn(
-                    (new SelectBox('Data[PersonId]', 'Schüler', array('{{ LastFirstName }}' => $tblPersonList)))
-                        ->setRequired()
-                        ->ajaxPipelineOnChange(ApiAbsence::pipelineLoadType())
-                ));
-            }
+        if (!$PersonId && !$AbsenceId && $DivisionCourseId
+            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            $formRows[] = new FormRow(new FormColumn(
+                (new SelectBox('Data[PersonId]', 'Schüler', array('{{ LastFirstName }}' => $tblPersonList)))
+                    ->setRequired()
+                    ->ajaxPipelineOnChange(ApiAbsence::pipelineLoadType())
+            ));
         } elseif ($hasSearch) {
             $formRows[] = new FormRow(array(
                 new FormColumn(array(
@@ -617,7 +591,7 @@ class Frontend extends FrontendClassRegister
                 new Remove(),
                 array(),
                 false
-            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenDeleteAbsenceModal($AbsenceId));
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenDeleteAbsenceModal($AbsenceId, $DivisionCourseId));
         }
 
         $formRows[] = new FormRow(array(

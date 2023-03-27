@@ -134,8 +134,6 @@ class Service extends AbstractService
      * @param null $PersonId
      * @param null $DivisionCourseId
      * @param bool $hasSearch
-     * @param null $Type
-     * @param null $TypeId
      *
      * @return bool|Form
      */
@@ -145,9 +143,7 @@ class Service extends AbstractService
         TblAbsence $tblAbsence = null,
         $PersonId = null,
         $DivisionCourseId = null,
-        bool $hasSearch = false,
-        $Type = null,
-        $TypeId = null
+        bool $hasSearch = false
     ) {
         $error = false;
         $messageSearch = null;
@@ -158,8 +154,6 @@ class Service extends AbstractService
             $tblPerson = Person::useService()->getPersonById($PersonId);
         } elseif ($tblAbsence) {
             $tblPerson = $tblAbsence->getServiceTblPerson();
-        } elseif ($Type) {
-            // Prüfung kann erst nach dem Erstellen des Forms erfolgen
         } else {
             if(!isset($Data['PersonId']) || !($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
                 $messageSearch = new Danger('Bitte wählen Sie einen Schüler aus.', new Exclamation());
@@ -181,10 +175,7 @@ class Service extends AbstractService
             $tblPerson ? $tblPerson->getId() : null,
             $DivisionCourseId,
             $messageSearch,
-            $messageLesson,
-            null,
-            $Type,
-            $TypeId
+            $messageLesson
         );
 
         if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
@@ -192,12 +183,12 @@ class Service extends AbstractService
             $error = true;
         }
 
-        if ($Type) {
-            if(!isset($Data['PersonId']) || !($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
-                $form->setError('Data[PersonId]', 'Bitte wählen Sie einen Schüler aus.');
-                $error = true;
-            }
-        }
+//        if ($Type) {
+//            if(!isset($Data['PersonId']) || !($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
+//                $form->setError('Data[PersonId]', 'Bitte wählen Sie einen Schüler aus.');
+//                $error = true;
+//            }
+//        }
 
         $fromDate = null;
         $toDate = null;

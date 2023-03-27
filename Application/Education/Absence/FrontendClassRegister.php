@@ -168,14 +168,14 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                             new Edit(),
                             array(),
                             'Bearbeiten'
-                        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()))
+                        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $tblDivisionCourse->getId()))
                         . (new Standard(
                             '',
                             ApiAbsence::getEndpoint(),
                             new Remove(),
                             array(),
                             'Löschen'
-                        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenDeleteAbsenceModal($tblAbsence->getId()))
+                        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenDeleteAbsenceModal($tblAbsence->getId(), $tblDivisionCourse->getId()))
                 );
 
                 if ($hasAbsenceTypeOptions) {
