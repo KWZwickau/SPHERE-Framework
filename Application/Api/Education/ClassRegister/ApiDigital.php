@@ -7,6 +7,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
@@ -1267,11 +1268,11 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionSubjectId
+     * @param $DivisionCourseId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadCourseMissingStudentContent(string $DivisionSubjectId = null): Pipeline
+    public static function pipelineLoadCourseMissingStudentContent($DivisionCourseId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CourseMissingStudentContent'), self::getEndpoint());
@@ -1279,7 +1280,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'loadCourseMissingStudentContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionSubjectId' => $DivisionSubjectId
+            'DivisionCourseId' => $DivisionCourseId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -1287,16 +1288,16 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionSubjectId
+     * @param $DivisionCourseId
      *
      * @return string
      */
-    public function loadCourseMissingStudentContent(string $DivisionSubjectId = null) : string
+    public function loadCourseMissingStudentContent($DivisionCourseId) : string
     {
-        if (!($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadCourseMissingStudentContent($tblDivisionSubject);
+        return Digital::useFrontend()->loadCourseMissingStudentContent($tblDivisionCourse);
     }
 }

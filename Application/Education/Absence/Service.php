@@ -328,9 +328,9 @@ class Service extends AbstractService
      * @param DateTime $fromDate
      * @param DateTime|null $toDate
      * @param TblType|null $tblSchoolType
-     * @param $tblDivisionCourseList
-     * @param $hasAbsenceTypeOptions
-     * @param $IsCertificateRelevant
+     * @param array $tblDivisionCourseList
+     * @param bool $hasAbsenceTypeOptions
+     * @param bool|null $IsCertificateRelevant
      * @param bool $IsOnlineAbsenceOnly
      *
      * @return array
@@ -339,9 +339,9 @@ class Service extends AbstractService
         DateTime $fromDate,
         DateTime $toDate = null,
         TblType $tblSchoolType = null,
-        $tblDivisionCourseList = array(),
-        &$hasAbsenceTypeOptions = false,
-        $IsCertificateRelevant = true,
+        array $tblDivisionCourseList = array(),
+        bool &$hasAbsenceTypeOptions = false,
+        ?bool $IsCertificateRelevant = true,
         bool $IsOnlineAbsenceOnly = false
     ): array {
         $resultList = array();

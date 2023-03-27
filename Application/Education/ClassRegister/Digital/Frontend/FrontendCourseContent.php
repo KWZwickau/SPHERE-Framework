@@ -6,13 +6,15 @@ use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -61,7 +63,6 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class FrontendCourseContent extends Extension implements IFrontendInterface
 {
@@ -187,6 +188,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         }
 
         $DivisionId = $tblDivision->getId();
+        $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId);
         $SubjectId = $tblSubject->getId();
         $SubjectGroupId = $tblSubjectGroup->getId();
         if ($GroupId) {
@@ -217,8 +219,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                     . (new Primary(
                         new Plus() . ' Fehlzeit hinzufügen',
                         ApiAbsence::getEndpoint()
-                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId, null,
-                        'DivisionSubject', $tblDivisionSubject->getId()))
+                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId))
                     , 8),
                 new LayoutColumn(
                     new PullRight(
@@ -249,7 +250,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            ApiDigital::receiverBlock($this->loadCourseMissingStudentContent($tblDivisionSubject), 'CourseMissingStudentContent')
+                            ApiDigital::receiverBlock($this->loadCourseMissingStudentContent($tblDivisionCourse), 'CourseMissingStudentContent')
                             . $this->getStudentPanel(null, null, $tblDivisionSubject)
                             , 2),
                         new LayoutColumn($layout, 10)
@@ -272,16 +273,18 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
     public function loadCourseContentTable(TblDivision $tblDivision, TblSubject $tblSubject, TblSubjectGroup $tblSubjectGroup, bool $IsControl = false): string
     {
         $dataList = array();
-        $divisionList = array('0' => $tblDivision);
+        $hasTypeOption = false;
+        $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($tblDivision->getId());
+        $divisionCourseList = array('0' => $tblDivisionCourse);
         if (($tblCourseContentList = Digital::useService()->getCourseContentListBy($tblDivision, $tblSubject, $tblSubjectGroup))
             && ($tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision, $tblSubject, $tblSubjectGroup))
         ) {
-            $coursePersonList = array();
-            if (($tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject))) {
-                foreach ($tblPersonList as $tblPersonStudent) {
-                    $coursePersonList[$tblPersonStudent->getId()] = $tblPersonStudent;
-                }
-            }
+//            $coursePersonList = array();
+//            if (($tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject))) {
+//                foreach ($tblPersonList as $tblPersonStudent) {
+//                    $coursePersonList[$tblPersonStudent->getId()] = $tblPersonStudent;
+//                }
+//            }
             foreach ($tblCourseContentList as $tblCourseContent) {
                 $absenceList = array();
                 $lessonArray = array();
@@ -292,15 +295,9 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                     $lessonArray[$lesson] = $lesson;
                 }
 
-                if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(new DateTime($tblCourseContent->getDate()),
-                    null, null, $divisionList, array(), $hasTypeOption, null))
-                ) {
+                if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(new DateTime($tblCourseContent->getDate()), null, null, $divisionCourseList, $hasTypeOption, null))) {
                     foreach ($AbsenceList as $Absence) {
-                        // auf kurs eingrenzen, schüler muss im kurs sein
-                        if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))
-                            && ($tblPersonAbsence = $tblAbsence->getServiceTblPerson())
-                            && isset($coursePersonList[$tblPersonAbsence->getId()])
-                        ) {
+                        if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
                             $isAdd = false;
                             if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
                                 foreach ($tblAbsenceLessonList as $tblAbsenceLesson) {
@@ -330,8 +327,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                                     $toolTip,
                                     null,
                                     $tblAbsence->getLinkType()
-                                ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), 'DivisionSubject',
-                                    $tblDivisionSubject ? $tblDivisionSubject->getId(): null)));
+                                ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $tblDivisionCourse ? $tblDivisionCourse->getId() : null)));
                             }
                         }
                     }
@@ -574,47 +570,34 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param TblDivisionSubject $tblDivisionSubject
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return string
      */
-    public function loadCourseMissingStudentContent(TblDivisionSubject $tblDivisionSubject): string
+    public function loadCourseMissingStudentContent(TblDivisionCourse $tblDivisionCourse): string
     {
+        $hasTypeOption = false;
         $absenceList = array();
-        if (($tblDivision = $tblDivisionSubject->getTblDivision())) {
-            $divisionList = array('0' => $tblDivision);
-            $coursePersonList = array();
-            if (($tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject))) {
-                foreach ($tblPersonList as $tblPersonStudent) {
-                    $coursePersonList[$tblPersonStudent->getId()] = $tblPersonStudent;
-                }
-            }
-            if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(new DateTime('today'),
-                null, null, $divisionList, array(), $hasTypeOption, null))
-            ) {
-                foreach ($AbsenceList as $Absence) {
-                    // auf kurs eingrenzen, schüler muss im kurs sein
-                    if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))
-                        && ($tblPersonAbsence = $tblAbsence->getServiceTblPerson())
-                        && isset($coursePersonList[$tblPersonAbsence->getId()])
-                    ) {
-                        $lessonString = $tblAbsence->getLessonStringByAbsence();
-                        $type = $tblAbsence->getTypeDisplayShortName();
-                        $remark = $tblAbsence->getRemark();
-                        $toolTip = ($lessonString ? $lessonString . ' / ' : '') . ($type ? $type . ' / ' : '') . $tblAbsence->getStatusDisplayShortName()
-                            . (($tblPersonStaff = $tblAbsence->getDisplayStaffToolTip()) ? ' - ' . $tblPersonStaff : '')
-                            . ($remark ? ' - ' . $remark : '');
+        $divisionCourseList = array('0' => $tblDivisionCourse);
+        if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(new DateTime('today'), null, null, $divisionCourseList, $hasTypeOption, null))) {
+            foreach ($AbsenceList as $Absence) {
+                if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
+                    $lessonString = $tblAbsence->getLessonStringByAbsence();
+                    $type = $tblAbsence->getTypeDisplayShortName();
+                    $remark = $tblAbsence->getRemark();
+                    $toolTip = ($lessonString ? $lessonString . ' / ' : '') . ($type ? $type . ' / ' : '') . $tblAbsence->getStatusDisplayShortName()
+                        . (($tblPersonStaff = $tblAbsence->getDisplayStaffToolTip()) ? ' - ' . $tblPersonStaff : '')
+                        . ($remark ? ' - ' . $remark : '');
 
-                        $absenceList[] = new Container((new Link(
-                            $Absence['Person'],
-                            ApiAbsence::getEndpoint(),
-                            null,
-                            array(),
-                            $toolTip,
-                            null,
-                            $tblAbsence->getLinkType()
-                        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), 'DivisionSubject', $tblDivisionSubject->getId())));
-                    }
+                    $absenceList[] = new Container((new Link(
+                        $Absence['Person'],
+                        ApiAbsence::getEndpoint(),
+                        null,
+                        array(),
+                        $toolTip,
+                        null,
+                        $tblAbsence->getLinkType()
+                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $tblDivisionCourse->getId())));
                 }
             }
         }

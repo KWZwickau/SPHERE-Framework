@@ -646,6 +646,7 @@ class Frontend extends FrontendTabs
             $divisionCourseList[] = $tblDivisionCourse;
         }
         $absenceContent = array();
+        $hasTypeOption = false;
         if (($AbsenceList = Absence::useService()->getAbsenceAllByDay($date, null, null, $divisionCourseList, $hasTypeOption, null))) {
             foreach ($AbsenceList as $Absence) {
                 if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
