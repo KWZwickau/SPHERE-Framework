@@ -10,8 +10,8 @@ use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreement;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Prepare\View;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContentLink;
@@ -23,6 +23,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -846,9 +847,16 @@ class Service extends AbstractService
     {
         $tblPersonList = false;
         $hasColumnCourse = false;
+        $tblYear = false;
+        $fromDate = null;
+        $tillDate = null;
         if ($tblDivisionSubject) {
             $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
         } elseif ($tblDivision) {
+            $tblYear = $tblDivision->getServiceTblYear();
+            if ($tblYear) {
+                list($fromDate, $tillDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            }
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
             if (($tblLevel = $tblDivision->getTblLevel())
                 && ($tblSchoolType = $tblLevel->getServiceTblType())
@@ -859,10 +867,22 @@ class Service extends AbstractService
             $tblPersonList = $tblGroup->getStudentOnlyList();
         }
 
-        if ($tblPersonList) {
+        if ($tblPersonList
+            && $tblYear
+            && $fromDate
+            && $tillDate
+        ) {
             $studentTable = array();
             $count = 0;
             foreach ($tblPersonList as $tblPerson) {
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                    $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                    $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                } else {
+                    $tblCompany = false;
+                    $tblSchoolType = false;
+                }
+
                 $birthday = '';
                 $Gender = '';
                 if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
@@ -934,10 +954,10 @@ class Service extends AbstractService
                 $unExcusedDays = 0;
                 $excusedDays = 0;
                 if ($tblMainDivision) {
-                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblMainDivision, null,
-                        $excusedLessons);
-                    $unExcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblMainDivision, null,
-                        $unExcusedLessons);
+                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                        $fromDate, $tillDate, $excusedLessons);
+                    $unExcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                        $fromDate, $tillDate, $unExcusedLessons);
                 }
                 $absenceDays = ($excusedDays + $unExcusedDays) . ' (' . new Success($excusedDays) . ', '
                     . new Danger($unExcusedDays) . ')';

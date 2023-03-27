@@ -6,16 +6,10 @@ use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Absence\Absence;
-use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence as AbsenceOld;
-use SPHERE\Application\Education\ClassRegister\Digital\Digital;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -23,17 +17,12 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
-use SPHERE\Common\Frontend\Icon\Repository\Calendar;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -42,22 +31,12 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
-use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Table\Structure\Table;
-use SPHERE\Common\Frontend\Table\Structure\TableBody;
-use SPHERE\Common\Frontend\Table\Structure\TableColumn;
-use SPHERE\Common\Frontend\Table\Structure\TableHead;
-use SPHERE\Common\Frontend\Table\Structure\TableRow;
-use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -666,7 +645,8 @@ class ApiAbsence extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineChangeWeek($WeekNumber, $Year){
+    public static function pipelineChangeWeek($WeekNumber, $Year): Pipeline
+    {
         $Pipeline = new Pipeline(false);
 
         $Emitter = new ServerEmitter(self::receiverBlock('', 'CalendarWeekContent'), self::getEndpoint());
@@ -698,7 +678,7 @@ class ApiAbsence extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineChangeMonth($DivisionId, $Month, $Year)
+    public static function pipelineChangeMonth($DivisionId, $Month, $Year): Pipeline
     {
         $Pipeline = new Pipeline(false);
 
@@ -722,7 +702,8 @@ class ApiAbsence extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineChangeWeekForDivision($DivisionId, $WeekNumber, $Year){
+    public static function pipelineChangeWeekForDivision($DivisionId, $WeekNumber, $Year): Pipeline
+    {
         $Pipeline = new Pipeline(false);
 
         $Emitter = new ServerEmitter(self::receiverBlock('', 'CalendarContent'), self::getEndpoint());
@@ -747,7 +728,7 @@ class ApiAbsence extends Extension implements IApiInterface
      *
      * @return string
      */
-    public static function generateOrganizerForDivision($DivisionId, $IsWeek, $Year = '', $WeekNumber = '', $Month = '')
+    public static function generateOrganizerForDivision($DivisionId, string $IsWeek, string $Year = '', string $WeekNumber = '', string $Month = ''): string
     {
         if ($IsWeek == 'true') {
             // View speichern
@@ -763,622 +744,26 @@ class ApiAbsence extends Extension implements IApiInterface
     }
 
     /**
-     * @param string $DivisionId
+     * @param $DivisionId
      * @param string $WeekNumber
      * @param string $Year
      *
      * @return string
      */
-    public static function generateOrganizerForDivisionWeekly($DivisionId, $WeekNumber = '', $Year = '')
+    public static function generateOrganizerForDivisionWeekly($DivisionId, string $WeekNumber = '', string $Year = ''): string
     {
-        // Definition
-        $currentDate = new DateTime('now');
-
-        if ($WeekNumber == '') {
-            $WeekNumber = (int)(new DateTime('now'))->format('W');
-        } else {
-            $WeekNumber = (int) $WeekNumber;
-        }
-
-        if ($Year == '') {
-            $Year = (int)$currentDate->format('Y');
-        } else {
-            $Year = (int) $Year;
-        }
-
-        $headerList = array();
-        $bodyList = array();
-
-        $organizerBaseData = Absence::useFrontend()->convertOrganizerBaseData();
-        $DayName = $organizerBaseData['dayName'];
-        $MonthName = $organizerBaseData['monthNameShort'];
-
-        // Kalenderwoche ermitteln
-        $WeekNext = $WeekNumber + 1;
-        $WeekBefore = $WeekNumber - 1;
-        $YearNext = $Year;
-        $YearBefore = $Year;
-        $lastWeek = date('W', strtotime("31.12." . $Year));
-        $countWeek = ($lastWeek == 1) ? 52 : $lastWeek;
-        if ($WeekNumber == $countWeek) {
-            $WeekNext = 1;
-            $YearNext = $Year + 1;
-        }
-        if ($WeekNumber == 1) {
-            $WeekBefore = $countWeek;
-            $YearBefore = $Year - 1;
-        }
-
-        // Start-/Endtag der Woche ermitteln
-        $Week = $WeekNumber;
-        if ($WeekNumber < 10) {
-            $Week = '0' . $WeekNumber;
-        }
-        $startDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
-        $endDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}-7")));
-
-//        $Month = $startDate->format('m');
-
-        $dataList = array();
-        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
-            && ($tblAbsenceList = AbsenceOld::useService()->getAbsenceAllBetweenByDivision($startDate, $endDate, $tblDivision))
-        ) {
-            foreach ($tblAbsenceList as $tblAbsence) {
-                if (($tblPersonItem = $tblAbsence->getServiceTblPerson())
-                    && ($tblDivisionItem = $tblAbsence->getServiceTblDivision())
-                ) {
-                    $fromDate = new DateTime($tblAbsence->getFromDate());
-                    if ($tblAbsence->getToDate()) {
-                        $toDate = new DateTime($tblAbsence->getToDate());
-                        if ($toDate > $fromDate) {
-                            $date = $fromDate;
-                            while ($date <= $toDate) {
-                                self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $date->format('d.m.Y'), false);
-                                $date = $date->modify('+1 day');
-                            }
-                        } elseif ($toDate == $fromDate) {
-                            self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $tblAbsence->getFromDate(), false);
-                        }
-                    } else {
-                        self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $tblAbsence->getFromDate(), false);
-                    }
-                }
-            }
-        }
-
-        $backgroundColor = '#E0F0FF';
-        $minHeightHeader = '56px';
-        $minHeightBody = '38px';
-        $padding = '3px';
-
-        $headerList['Person'] = (new TableColumn(new Center(new Bold(new PersonGroup() . 'Schüler'))))
-            ->setBackgroundColor($backgroundColor)
-            ->setVerticalAlign('middle')
-            ->setMinHeight($minHeightHeader)
-            ->setPadding($padding);
-
-        // Kalender-Inhalt erzeugen
-        if ($tblDivision
-            && ($tblYear = $tblDivision->getServiceTblYear())
-            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
-        ) {
-            if (!($tblCompany = $tblDivision->getServiceTblCompany())) {
-                $tblCompany = null;
-            }
-
-            $hasSaturdayLessons = ($tblSchoolType = $tblDivision->getType()) && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType);
-
-            /** @var TblPerson $tblPerson */
-            foreach ($tblPersonList as $tblPerson) {
-                $bodyList[$tblPerson->getId()]['Person'] = (new TableColumn(new Center(new Bold(
-                    new ToolTip(
-                        (new Link($tblPerson->getLastFirstName(), self::getEndpoint()))
-                            ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(),
-                                $tblDivision->getId()))
-                        , 'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' hinzufügen.'
-                    )
-                ))))
-                    ->setBackgroundColor($backgroundColor)
-                    ->setVerticalAlign('middle')
-                    ->setMinHeight($minHeightBody)
-                    ->setPadding($padding);
-                $startDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
-
-                if ($startDate && $endDate) {
-                    while ($startDate <= $endDate) {
-                        $DayAtWeek = $startDate->format('w');
-                        $Day = (int)$startDate->format('d');
-                        $Month = (int)$startDate->format('m');
-
-                        if ($hasSaturdayLessons) {
-                            $isWeekend = $DayAtWeek == 0;
-                        } else {
-                            $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
-                        }
-                        $isHoliday = Term::useService()->getHolidayByDay($tblYear, $startDate, $tblCompany);
-
-                        $fetchedDateString = $startDate->format('d.m.Y');
-
-                        if (!isset($headerList['Day' . $Day])) {
-                            $columnHeader = (new TableColumn(new Center(
-                                $DayName[$DayAtWeek] . new Container($Day) . new Container($MonthName[$Month])
-                            )))
-                                ->setMinHeight($minHeightHeader)
-                                ->setPadding($padding);
-
-                            if ((int)$currentDate->format('d') == $Day && (int)$currentDate->format('m') == $Month && $currentDate->format('Y') == $Year) {
-                                $columnHeader
-                                    ->setColor('darkorange');
-                            }
-                            if ($isWeekend || $isHoliday) {
-                                $columnHeader->setBackgroundColor('lightgray')
-                                    ->setOpacity(0.5);
-                            } else {
-                                $columnHeader->setBackgroundColor($backgroundColor);
-                            }
-
-                            $headerList['Day' . $Day] = $columnHeader;
-                        }
-
-                        if ($isWeekend || $isHoliday) {
-                            $columnBody = (new TableColumn(new Center($isWeekend ? new Muted(new Small('w')) : new Muted(new Small('f')))))
-                                ->setBackgroundColor('lightgrey')
-                                ->setVerticalAlign('middle')
-                                ->setOpacity(0.5)
-                                ->setPadding($padding);
-                        } elseif (isset($dataList[$tblPerson->getId()][$fetchedDateString])) {
-                            $columnBody = (new TableColumn(new Center(
-                                $dataList[$tblPerson->getId()][$fetchedDateString]['Content']
-                            )))
-                                ->setBackgroundColor($dataList[$tblPerson->getId()][$fetchedDateString]['BackgroundColor'])
-                                ->setPadding($padding);
-                        } else {
-                            $columnBody = (new TableColumn((new Link(
-                                '<div style="height: 28px"><span style="visibility: hidden">'.new Plus().'</span></div>',
-                                self::getEndpoint(),
-                                null,
-                                array(),
-                                'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' für den '
-                                . $fetchedDateString . ' hinzufügen.'))
-                                ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(), $tblDivision->getId(), $fetchedDateString))))
-                                ->setPadding('0');
-                        }
-
-
-                        $bodyList[$tblPerson->getId()]['Day' . $Day] = $columnBody
-                            ->setMinHeight($minHeightBody)
-                            ->setVerticalAlign('middle')
-                            ->setPadding($padding);
-
-                        $startDate->modify('+1 day');
-                    }
-                }
-            }
-        }
-
-        $tableHead = new TableHead(new TableRow($headerList));
-        $rows = array();
-        foreach ($bodyList as $columnList) {
-            $rows[] = new TableRow($columnList);
-        }
-        $tableBody = new TableBody($rows);
-        $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
-
-//        $startDate = new DateTime(date('d.m.Y', strtotime("$Year-W{$Week}")));
-
-        // Inhalt zusammenbasteln
-        $Content = new Layout(
-            new LayoutGroup(array(
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Layout(new LayoutGroup(new LayoutRow(array(
-                                new LayoutColumn('&nbsp;', 3),
-                                new LayoutColumn(
-                                    new Center(
-                                        (new Link(new ChevronLeft(), self::getEndpoint(), null, array(), 'KW' . $WeekBefore))
-                                            ->ajaxPipelineOnClick(self::pipelineChangeWeekForDivision($DivisionId, $WeekBefore, $YearBefore))
-                                    )
-                                    , 1),
-                                new LayoutColumn(
-                                    new ToolTip(new Center(new Bold('KW' . $WeekNumber. ' ')), $Year)
-                                    , 4),
-                                new LayoutColumn(
-                                    new Center(
-                                        (new Link(new ChevronRight(), self::getEndpoint(), null, array(), 'KW' . $WeekNext))
-                                            ->ajaxPipelineOnClick(self::pipelineChangeWeekForDivision($DivisionId, $WeekNext, $YearNext))
-                                    )
-                                    , 1),
-                                new LayoutColumn(
-                                    ''
-                                    , 3)
-                            )))
-                        )
-                        . '<div style="height: 5px;"></div>'
-                        , 12)
-                ),
-                new LayoutRow(
-                    new LayoutColumn(
-                        $table
-                    )
-                )
-            ))
-        );
-
-        return new Panel(
-            new Calendar() . ' Kalender'
-            . new PullRight(
-                (new Link('Monatsansicht', self::getEndpoint(), null, array(), false, null, Link::TYPE_WHITE_LINK))
-                    ->ajaxPipelineOnClick(ApiAbsence::pipelineChangeMonth($DivisionId, '', ''))
-            ),
-            $Content,
-            Panel::PANEL_TYPE_PRIMARY
-        );
+        return Absence::useFrontend()->generateOrganizerForDivisionWeekly($DivisionId, $WeekNumber, $Year);
     }
 
     /**
      * @param $DivisionId
-     * @param int $Month
-     * @param int $Year
+     * @param $Month
+     * @param $Year
      *
      * @return string
      */
-    public static function generateOrganizerMonthly($DivisionId, $Month, $Year)
+    public static function generateOrganizerMonthly($DivisionId, $Month, $Year): string
     {
-        // Definitionen
-        $currentDate = new DateTime('now');
-
-        if ($Month == '') {
-            $Month = (int)$currentDate->format('m');
-        } else {
-            $Month = (int)$Month;
-        }
-        if ($Year == '') {
-            $Year = (int)$currentDate->format('Y');
-        } else {
-            $Year = (int)$Year;
-        }
-
-        $headerListStatic = array();
-        $bodyListStatic = array();
-        $headerList = array();
-        $bodyList = array();
-
-        $organizerBaseData = Absence::useFrontend()->convertOrganizerBaseData();
-        $DayName = $organizerBaseData['dayName'];
-        $MonthName = $organizerBaseData['monthName'];
-
-        $MonthNext = (int)$Month + 1;
-        $MonthBefore = (int)$Month - 1;
-        $YearNext = (int)$Year;
-        $YearBefore = (int)$Year;
-        // falls Dezember -> Jahreswechsel erzeugen für Folgemonat
-        if ($Month == '12'){
-            $MonthNext = '1';
-            $YearNext = (int)$Year + 1;
-        }
-        // falls Januar -> Jahreswechsel erzeugen für vorherigen Monat
-        if ($Month == '1'){
-            $MonthBefore = '12';
-            $YearBefore = (int)$Year - 1;
-        }
-
-        // Tagesanzahl im aktuellen Monat ermitteln
-        $DayCounter = cal_days_in_month(CAL_GREGORIAN, $Month, $Year);
-
-        $startDateSchoolYear = new DateTime('01.' . $Month . '.' . $Year);
-        $endDateSchoolYear = new DateTime($DayCounter . '.' . $Month . '.' . $Year);
-
-        $dataList = array();
-        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
-            && ($tblAbsenceList = AbsenceOld::useService()->getAbsenceAllBetweenByDivision($startDateSchoolYear, $endDateSchoolYear, $tblDivision))
-        ) {
-            foreach ($tblAbsenceList as $tblAbsence) {
-                if (($tblPersonItem = $tblAbsence->getServiceTblPerson())
-                    && ($tblDivisionItem = $tblAbsence->getServiceTblDivision())
-                ) {
-                    $fromDate = new DateTime($tblAbsence->getFromDate());
-                    if ($tblAbsence->getToDate()) {
-                        $toDate = new DateTime($tblAbsence->getToDate());
-                        if ($toDate > $fromDate) {
-                            $date = $fromDate;
-                            while ($date <= $toDate) {
-                                self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $date->format('d.m.Y'));
-                                $date = $date->modify('+1 day');
-                            }
-                        } elseif ($toDate == $fromDate) {
-                            self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $tblAbsence->getFromDate());
-                        }
-                    } else {
-                        self::setAbsenceMonthContent($dataList, $tblPersonItem, $tblAbsence, $tblAbsence->getFromDate());
-                    }
-                }
-            }
-        }
-
-        $backgroundColor = '#E0F0FF';
-        $minHeightHeader = '44px';
-        $minHeightBody = '30px';
-        $padding = '3px';
-
-        $hasMonthBefore = true;
-        $hasMonthNext = true;
-
-        $headerListStatic['Person'] = (new TableColumn(new Center(new Bold(new PersonGroup() . 'Schüler'))))
-            ->setBackgroundColor($backgroundColor)
-            ->setVerticalAlign('middle')
-            ->setMinHeight($minHeightHeader)
-            ->setPadding($padding);
-
-        // Einträge für alle ausgewählten Personen anzeigen
-        if ($tblDivision
-            && ($tblYear = $tblDivision->getServiceTblYear())
-            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
-        ) {
-            if (!($tblCompany = $tblDivision->getServiceTblCompany())) {
-                $tblCompany = null;
-            }
-
-            $hasSaturdayLessons = ($tblSchoolType = $tblDivision->getType()) && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType);
-
-            // Begrenzung auf den Zeitraum des aktuellen Schuljahres
-            list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-            /** @var DateTime $startDateSchoolYear */
-            if ($startDateSchoolYear && $endDateSchoolYear) {
-                $startDateSchoolYear = new DateTime('01.' . $startDateSchoolYear->format('m') . '.' . $startDateSchoolYear->format('Y'));
-                $startDateMonth = new DateTime('01.' . ($Month <= 9 ? '0'.$Month : $Month) . '.' . $Year);
-                if ($startDateMonth <= $startDateSchoolYear) {
-                    $hasMonthBefore = false;
-                }
-
-                $endDateSchoolYear = new DateTime('01.' . $endDateSchoolYear->format('m') . '.' . $endDateSchoolYear->format('Y'));
-                if ($startDateMonth >= $endDateSchoolYear) {
-                    $hasMonthNext = false;
-                }
-            }
-
-            /** @var TblPerson $tblPerson */
-            foreach ($tblPersonList as $tblPerson){
-                $bodyListStatic[$tblPerson->getId()]['Person'] = (new TableColumn(new Center(new Bold(
-                    new ToolTip(
-                        (new Link($tblPerson->getLastFirstName(), self::getEndpoint()))
-                            ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(), $tblDivision->getId()))
-                                , 'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' hinzufügen.'
-                    )
-                ))))
-                    ->setBackgroundColor($backgroundColor)
-                    ->setVerticalAlign('middle')
-                    ->setMinHeight($minHeightBody)
-                    ->setPadding($padding);
-
-                if ($DayCounter) {
-                    $Day = 1;
-                    while($Day <= $DayCounter){
-                        $fetchedDate = new DateTime($Day . '.' . ($Month <= 9 ? '0'.$Month : $Month) . '.' . $Year);
-                        $fetchedDateString = $fetchedDate->format('d.m.Y');
-                        $DayAtWeek = (new DateTime(($Day < 10 ? '0'.$Day : $Day).'.'.$Month.'.'.$Year))->format('w');
-
-                        if ($hasSaturdayLessons) {
-                            $isWeekend = $DayAtWeek == 0;
-                        } else {
-                            $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
-                        }
-                        $isHoliday = Term::useService()->getHolidayByDay($tblYear, $fetchedDate, $tblCompany);
-
-                        $isCurrentDate = false;
-                        if (!isset($headerList['Day' . $Day])) {
-                            if (($isCurrentDate = ((int)$currentDate->format('d') == $Day
-                                && (int)$currentDate->format('m') == $Month
-                                && $currentDate->format('Y') == $Year))
-                            ) {
-                                // scrollen zum aktuellen Tag
-                                $content = '<span id="OrganizerDay" style="color: darkorange;">'
-                                    . new Center ($DayName[$DayAtWeek] . new Container($Day))
-                                    . '</span>';
-                            } else {
-                                $content = new Center ($DayName[$DayAtWeek] . new Container($Day));
-                            }
-
-                            $columnHeader = (new TableColumn(new Center(
-                                $content
-                            )))
-                                ->setMinHeight($minHeightHeader)
-                                ->setPadding($padding);
-
-                            if ($isCurrentDate) {
-                                $columnHeader
-                                    ->setColor('darkorange');
-                            }
-                            if ($isWeekend || $isHoliday) {
-                                $columnHeader->setBackgroundColor('lightgray')
-                                    ->setOpacity(0.5);
-                            } else {
-                                $columnHeader->setBackgroundColor($backgroundColor);
-                            }
-
-                            $headerList['Day' . $Day] = $columnHeader;
-                        }
-
-                        if ($isWeekend || $isHoliday) {
-                            $columnBody = (new TableColumn(new Center($isWeekend ? new Muted(new Small('w')) : new Muted(new Small('f')))))
-                                ->setBackgroundColor('lightgrey')
-                                ->setVerticalAlign('middle')
-                                ->setOpacity(0.5)
-                                ->setPadding($padding);
-                        } elseif (isset($dataList[$tblPerson->getId()][$fetchedDateString])) {
-                            $columnBody = (new TableColumn(new Center(
-                                $dataList[$tblPerson->getId()][$fetchedDateString]['Content']
-                            )))
-                                ->setBackgroundColor($dataList[$tblPerson->getId()][$fetchedDateString]['BackgroundColor'])
-                                ->setPadding($padding);
-                        } else {
-                            $columnBody = (new TableColumn((new Link(
-                                '<div style="height: 28px"><span style="visibility: hidden">'.new Plus().'</span></div>',
-                                self::getEndpoint(),
-                                null,
-                                array(),
-                                'Eine neue Fehlzeit für ' . $tblPerson->getFullName() . ' für den '
-                                    . $fetchedDateString . ' hinzufügen.'))
-                                ->ajaxPipelineOnClick(self::pipelineOpenCreateAbsenceModal($tblPerson->getId(), $tblDivision->getId(), $fetchedDateString))))
-                            ->setPadding('0');
-                        }
-
-                        $bodyList[$tblPerson->getId()]['Day' . $Day] = $columnBody
-                            ->setMinHeight($minHeightBody)
-                            ->setVerticalAlign('middle');
-
-                        $Day++;
-                    }
-                }
-            }
-        }
-
-        // table Static
-        $tableHeadStatic = new TableHead(new TableRow($headerListStatic));
-        $rowsStatic = array();
-        foreach ($bodyListStatic as $columnListStatic) {
-            $rowsStatic[] = new TableRow($columnListStatic);
-        }
-        $tableBodyStatic = new TableBody($rowsStatic);
-        $tableStatic = new Table($tableHeadStatic, $tableBodyStatic, null, false, null, 'TableCustom');
-
-        // table float
-        $tableHead = new TableHead(new TableRow($headerList));
-        $rows = array();
-        foreach ($bodyList as $columnList) {
-            $rows[] = new TableRow($columnList);
-        }
-        $tableBody = new TableBody($rows);
-        $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
-
-        $Content = new Layout(
-            new LayoutGroup(array(
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn('&nbsp;', 3),
-                            new LayoutColumn(
-                                $hasMonthBefore
-                                    ? new Center(
-                                        (new Link(new ChevronLeft(), self::getEndpoint(), null, array(), $MonthName[$MonthBefore] . ' ' . $YearBefore))
-                                            ->ajaxPipelineOnClick(self::pipelineChangeMonth($DivisionId, $MonthBefore, $YearBefore))
-                                        )
-                                    : ''
-                                , 1),
-                            new LayoutColumn(
-                                new Center(new Bold($MonthName[$Month] . ' ' . $Year))
-                                , 4),
-                            new LayoutColumn(
-                                $hasMonthNext
-                                    ? new Center(
-                                            (new Link(new ChevronRight(), self::getEndpoint(), null, array(), $MonthName[$MonthNext].' '.$YearNext))
-                                                ->ajaxPipelineOnClick(self::pipelineChangeMonth($DivisionId, $MonthNext, $YearNext))
-                                        )
-                                    : ''
-                                , 1),
-                            new LayoutColumn(
-                                '&nbsp;'
-//                                    new PullRight((new Link(' Download', self::getEndpoint(), new Download(), array(), 'Download der Daten vorbereiten'))
-//                                        ->ajaxPipelineOnClick(self::pipelineOpenDownloadEdit($DivisionId))
-//                                    )
-                                , 3)
-                        ))))
-                        . '<div style="height: 5px;"></div>'
-                        , 12)
-                ),
-                new LayoutRow(
-                    new LayoutColumn(
-                        '<div style="float: left;">'
-                        . $tableStatic
-                        .'</div>'
-                        . '<div id="OrganizerTable" style="overflow-x: auto;">'
-                        . $table
-                        . '</div>'
-                        . (($Month == (int)$currentDate->format('m') && $Year == (int)$currentDate->format('Y'))
-                            ? '<script>
-                                tableSelector = "div#OrganizerTable";
-                                $(tableSelector).scrollLeft( $("span#OrganizerDay").offset().left - ( $(tableSelector).offset().left + ( $(tableSelector).width() / 2 ) ) )
-                            </script>'
-                            : ''
-                        )
-                    )
-                )
-            ))
-        );
-
-        return new Panel(
-            new Calendar() . ' Kalender'
-            . new PullRight(
-                (new Link('Wochenansicht', self::getEndpoint(), null, array(), false, null, Link::TYPE_WHITE_LINK))
-                    ->ajaxPipelineOnClick(ApiAbsence::pipelineChangeWeekForDivision($DivisionId, '', ''))
-            ),
-            $Content,
-            Panel::PANEL_TYPE_PRIMARY
-        );
-    }
-
-    /**
-     * @param $dataList
-     * @param TblPerson $tblPerson
-     * @param TblAbsence $tblAbsence
-     * @param $date
-     * @param bool $hasToolTip
-     */
-    private static function setAbsenceMonthContent(
-        &$dataList,
-        TblPerson $tblPerson,
-        TblAbsence $tblAbsence,
-        $date,
-        $hasToolTip = true
-    ) {
-        $lesson = $tblAbsence->getLessonStringByAbsence();
-        $type = $tblAbsence->getTypeDisplayShortName();
-        $remark = $tblAbsence->getRemark();
-
-        $isWhiteLink = false;
-
-        if ($tblAbsence->getIsOnlineAbsence()) {
-            $backgroundColor = 'orange';
-            $isWhiteLink = true;
-        } elseif (($tblAbsenceType = $tblAbsence->getType())) {
-            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_THEORY) {
-                $backgroundColor = '#E0F0FF';
-            }
-            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_PRACTICE) {
-                $backgroundColor = '#337ab7';
-                $isWhiteLink = true;
-            }
-        } else {
-            if ($tblAbsence->getIsCertificateRelevant()) {
-                $backgroundColor = '#E0F0FF';
-            } else {
-                $backgroundColor = '#FFFFFF';
-            }
-        }
-
-        if ($hasToolTip) {
-            $toolTip = ($lesson ? $lesson . ' / ': '') . ($type ? $type . ' / ': '') . $tblAbsence->getStatusDisplayShortName()
-                . (($tblPersonStaff = $tblAbsence->getDisplayStaffToolTip()) ? ' - ' . $tblPersonStaff : '')
-                . ($remark ? ' - ' . $remark : '');
-            $name = $tblAbsence->getStatusDisplayShortName();
-        } else {
-            $toolTip = $remark ? $remark : false;
-            $name = $tblAbsence->getStatusDisplayShortName()
-                .($lesson ? ' - ' . $lesson : '') . ($type ? ' - ' . $type : '')
-                . (($tblPersonStaff = $tblAbsence->getDisplayStaff()) ? ' - ' . $tblPersonStaff : '');
-        }
-
-        $dataList[$tblPerson->getId()][$date]['Content'] = (new Link(
-            $name,
-            ApiAbsence::getEndpoint(),
-            null,
-            array(),
-            $toolTip,
-            null,
-            $isWhiteLink
-                ? AbstractLink::TYPE_WHITE_LINK
-                : ($tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK)
-        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId()));
-
-        $dataList[$tblPerson->getId()][$date]['BackgroundColor'] = $backgroundColor;
+        return Absence::useFrontend()->generateOrganizerMonthly($DivisionId, $Month, $Year);
     }
 }

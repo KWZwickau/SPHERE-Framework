@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Absence;
 
 use DateTime;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Absence\Service\Data;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsenceLesson;
@@ -458,5 +459,81 @@ class Service extends AbstractService
         );
 
         return $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblSchoolType
+     * @param DateTime $fromDate
+     * @param DateTime|null $tillDate
+     * @param int $countLessons
+     * @param bool|null $IsCertificateRelevant
+     *
+     * @return int
+     */
+    public function getExcusedDaysByPerson(
+        TblPerson $tblPerson,
+        TblYear $tblYear,
+        ?TblCompany $tblCompany,
+        ?TblType $tblSchoolType,
+        DateTime $fromDate,
+        DateTime $tillDate = null,
+        int &$countLessons = 0,
+        ?bool $IsCertificateRelevant = true
+    ): int {
+        $days = 0;
+        if (($tblAbsenceList = $this->getAbsenceAllBetweenByPerson($tblPerson, $fromDate, $tillDate))) {
+            foreach ($tblAbsenceList as $tblAbsence) {
+                if ($IsCertificateRelevant !== null && $tblAbsence->getIsCertificateRelevant() != $IsCertificateRelevant) {
+                    continue;
+                }
+
+                if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
+                    $days += intval($tblAbsence->getDays($tblYear, $tillDate, $tblCompany, $tblSchoolType, $countLessons));
+                }
+            }
+        }
+
+        return $days;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblSchoolType
+     * @param DateTime $fromDate
+     * @param DateTime|null $tillDate
+     * @param int $countLessons
+     * @param bool|null $IsCertificateRelevant
+     *
+     * @return int
+     */
+    public function getUnexcusedDaysByPerson(
+        TblPerson $tblPerson,
+        TblYear $tblYear,
+        ?TblCompany $tblCompany,
+        ?TblType $tblSchoolType,
+        DateTime $fromDate,
+        DateTime $tillDate = null,
+        int &$countLessons = 0,
+        ?bool $IsCertificateRelevant = true
+    ): int {
+        $days = 0;
+        if (($tblAbsenceList = $this->getAbsenceAllBetweenByPerson($tblPerson, $fromDate, $tillDate))) {
+            foreach ($tblAbsenceList as $tblAbsence) {
+                if ($IsCertificateRelevant !== null && $tblAbsence->getIsCertificateRelevant() != $IsCertificateRelevant) {
+                    continue;
+                }
+
+                if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
+                    $days += intval($tblAbsence->getDays($tblYear, $tillDate, $tblCompany, $tblSchoolType, $countLessons));
+                }
+            }
+        }
+
+        return $days;
     }
 }

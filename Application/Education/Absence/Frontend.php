@@ -555,8 +555,7 @@ class Frontend extends FrontendClassRegister
         ));
         $formRows[] = new FormRow(array(
             new FormColumn(
-                // todo $date übergeben, von Fehlzeit oder heute
-                ApiAbsence::receiverBlock($this->loadType($PersonId), 'loadType')
+                ApiAbsence::receiverBlock($this->loadType($PersonId, $Date ?: 'now'), 'loadType')
             )
         ));
         $formRows[] = new FormRow(array(

@@ -31,6 +31,8 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
+ * @deprecated
+ *
  * Class Service
  *
  * @package SPHERE\Application\Education\ClassRegister\Absence
