@@ -11,6 +11,7 @@ use SPHERE\Application\Education\ClassRegister\Absence\Absence as AbsenceOld;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
@@ -305,23 +306,21 @@ class ApiAbsence extends Extension implements IApiInterface
         if ($DivisionCourseId
             && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
         ) {
-            // todo kursbuch und Klassentagebuch neu laden
-//            $reloadDigital = ApiDigital::pipelineLoadLessonContentContent(
-//                $digitalDivisionId,
-//                $digitalGroupId,
-//                $date->format('d.m.Y'),
-//                ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day'
-//            );
-//            if ($digitalDivisionSubjectId
-//                && ($tblDivisionSubject = Division::useService()->getDivisionSubjectById($digitalDivisionSubjectId))
-//                && $tblDivisionSubject->getTblDivision()
-//                && $tblDivisionSubject->getServiceTblSubject()
-//                && $tblDivisionSubject->getTblSubjectGroup()
-//            ) {
-//                $reloadDigital .= ApiDigital::pipelineLoadCourseContentContent($tblDivisionSubject->getTblDivision(), $tblDivisionSubject->getServiceTblSubject(),
-//                        $tblDivisionSubject->getTblSubjectGroup())
-//                    . ApiDigital::pipelineLoadCourseMissingStudentContent($tblDivisionSubject->getId());
-//            }
+            // Kursheft
+            if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE
+                || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE
+            ) {
+                $reloadDigital = ApiDigital::pipelineLoadCourseContentContent($tblDivisionCourse->getId(), ($tblSubject = $tblDivisionCourse->getServiceTblSubject()) ? $tblSubject->getId() : null)
+                    . ApiDigital::pipelineLoadCourseMissingStudentContent($tblDivisionCourse->getId());
+            // Klassentagebuch
+            } else {
+                $reloadDigital = ApiDigital::pipelineLoadLessonContentContent(
+                    $tblDivisionCourse->getId(),
+                    null,
+                    $date->format('d.m.Y'),
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day'
+                );
+            }
         }
 
         return self::pipelineChangeWeek($date->format('W'), $date->format('Y'))

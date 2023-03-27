@@ -6,13 +6,14 @@ use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Prepare\View;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Frontend\FrontendTabs;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
@@ -466,22 +467,11 @@ class Frontend extends FrontendTabs
             ApiDigital::getEndpoint()
         ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $Date));
 
-        if ($tblDivision) {
-            $Type = 'Division';
-            $TypeId = $DivisionId;
-        } elseif ($tblGroup) {
-            $Type = 'Group';
-            $TypeId = $tblGroup->getId();
-        } else {
-            $Type = null;
-            $TypeId = null;
-        }
-
         if ($View == 'Day') {
             $buttons .= (new Primary(
                 new Plus() . ' Fehlzeit hinzufügen',
                 ApiAbsence::getEndpoint()
-            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, null, $Date, $Type, $TypeId));
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionId, $Date));
 
             $content = $this->getDayViewContent($DateString, $tblDivision, $tblGroup);
             $link = (new Link('Wochenansicht', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
@@ -556,20 +546,14 @@ class Frontend extends FrontendTabs
                 $tblCompanyList = array();
             }
             $tblSchoolType = $tblDivision->getType();
-            $Type = 'Division';
-            $TypeId = $DivisionId;
         } elseif ($tblGroup) {
             $tblYear = $tblGroup->getCurrentYear();
             $tblCompanyList = $tblGroup->getCurrentCompanyList();
             $tblSchoolType = $tblGroup->getCurrentSchoolTypeSingle();
-            $Type = 'Group';
-            $TypeId = $tblGroup->getId();
         } else {
             $tblYear = false;
             $tblCompanyList = array();
             $tblSchoolType = false;
-            $Type = null;
-            $TypeId = null;
         }
 
         $date = new DateTime($DateString);
@@ -657,12 +641,12 @@ class Frontend extends FrontendTabs
         }
         $bodyList = array();
         $bodyBackgroundList = array();
-        $divisionList = $tblDivision ? array('0' => $tblDivision) : array();
-        $groupList = $tblGroup ? array('0' => $tblGroup) : array();
+        $divisionCourseList = array();
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId))) {
+            $divisionCourseList[] = $tblDivisionCourse;
+        }
         $absenceContent = array();
-        if (($AbsenceList = Absence::useService()->getAbsenceAllByDay($date, null, null, $divisionList, $groupList,
-            $hasTypeOption, null)
-        )) {
+        if (($AbsenceList = Absence::useService()->getAbsenceAllByDay($date, null, null, $divisionCourseList, $hasTypeOption, null))) {
             foreach ($AbsenceList as $Absence) {
                 if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
                     $lesson = $tblAbsence->getLessonStringByAbsence();
@@ -680,7 +664,7 @@ class Frontend extends FrontendTabs
                         $toolTip,
                         null,
                         $tblAbsence->getLinkType()
-                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $Type, $TypeId));
+                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $DivisionId));
 
                     if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
                         foreach ($tblAbsenceLessonList as $tblAbsenceLesson) {

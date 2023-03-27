@@ -7,7 +7,10 @@ use SPHERE\Application\Education\Absence\Service\Data;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsenceLesson;
 use SPHERE\Application\Education\Absence\Service\Setup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -319,5 +322,141 @@ class Service extends AbstractService
     public function restoreAbsence(TblAbsence $tblAbsence): bool
     {
         return (new Data($this->getBinding()))->restoreAbsence($tblAbsence);
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime|null $toDate
+     * @param TblType|null $tblSchoolType
+     * @param $tblDivisionCourseList
+     * @param $hasAbsenceTypeOptions
+     * @param $IsCertificateRelevant
+     * @param bool $IsOnlineAbsenceOnly
+     *
+     * @return array
+     */
+    public function getAbsenceAllByDay(
+        DateTime $fromDate,
+        DateTime $toDate = null,
+        TblType $tblSchoolType = null,
+        $tblDivisionCourseList = array(),
+        &$hasAbsenceTypeOptions = false,
+        $IsCertificateRelevant = true,
+        bool $IsOnlineAbsenceOnly = false
+    ): array {
+        $resultList = array();
+        $tblAbsenceList = array();
+
+        if ($toDate == null) {
+            $toDate = $fromDate;
+        }
+
+        if (!empty($tblDivisionCourseList)) {
+            /** @var TblDivisionCourse $tblDivisionCourse */
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                    foreach ($tblPersonList as $tblPersonItem) {
+                        if (($tblAbsencePersonList = $this->getAbsenceAllBetweenByPerson($tblPersonItem, $fromDate, $toDate))) {
+                            $tblAbsenceList = array_merge($tblAbsenceList, $tblAbsencePersonList);
+                        }
+                    }
+                }
+            }
+        } else {
+            $tblAbsenceList = $this->getAbsenceAllBetween($fromDate, $toDate);
+        }
+
+        if ($tblAbsenceList) {
+            foreach ($tblAbsenceList as $tblAbsence) {
+                if (($tblPerson = $tblAbsence->getServiceTblPerson())) {
+                    // Zeugnisrelevant filtern
+                    if ($IsCertificateRelevant !== null && $IsCertificateRelevant !== $tblAbsence->getIsCertificateRelevant()) {
+                        continue;
+                    }
+
+                    // Nur Online Fehlzeiten filtern
+                    if ($IsOnlineAbsenceOnly && !$tblAbsence->getIsOnlineAbsence()) {
+                        continue;
+                    }
+
+                    $tblSchoolTypePerson = false;
+                    $tblDivisionCoursePerson = false;
+                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson, $tblAbsence->getFromDate()))) {
+                        $tblSchoolTypePerson = $tblStudentEducation->getServiceTblSchoolType();
+                        if ($tblStudentEducation->getTblDivision()) {
+                            $tblDivisionCoursePerson = $tblStudentEducation->getTblDivision();
+                        } elseif ($tblStudentEducation->getTblCoreGroup()) {
+                            $tblDivisionCoursePerson = $tblStudentEducation->getTblCoreGroup();
+                        }
+                    }
+
+                    if (!$tblSchoolType || ($tblSchoolTypePerson && $tblSchoolType->getId() == $tblSchoolTypePerson->getId())) {
+                        $resultList = $this->setAbsenceContent($tblSchoolTypePerson, $tblDivisionCoursePerson ?: null, $tblPerson, $tblAbsence, $resultList);
+                    }
+
+                    if (!$hasAbsenceTypeOptions && $tblSchoolTypePerson && $tblSchoolTypePerson->isTechnical()) {
+                        $hasAbsenceTypeOptions = true;
+                    }
+                }
+            }
+        }
+
+        // Liste sortieren
+        if (!empty($resultList)) {
+            $type = $division = $group = $person = array();
+            foreach ($resultList as $key => $row) {
+                $type[$key] = strtoupper($row['Type']);
+                $division[$key] = strtoupper($row['Division']);
+                $person[$key] = strtoupper($row['Person']);
+                $date[$key] = $row['DateSort'];
+            }
+
+            array_multisort($type, SORT_ASC, $division, SORT_NATURAL, $person, SORT_ASC, $date, SORT_ASC, $resultList);
+        }
+
+        return $resultList;
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param ?TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     * @param TblAbsence $tblAbsence
+     * @param array $resultList
+     *
+     * @return array
+     */
+    public function setAbsenceContent(
+        TblType $tblSchoolType,
+        ?TblDivisionCourse $tblDivisionCourse,
+        TblPerson $tblPerson,
+        TblAbsence $tblAbsence,
+        array $resultList
+    ): array {
+
+        $isOnlineAbsence = $tblAbsence->getIsOnlineAbsence();
+
+        $resultList[] = array(
+            'AbsenceId' => $tblAbsence->getId(),
+            'Type' => $tblSchoolType->getName(),
+            'TypeExcel' => $tblSchoolType->getShortName(),
+            'Division' => $tblDivisionCourse->getName(),
+            'Person' => $tblPerson->getLastFirstNameWithCallNameUnderline(),
+            'PersonExcel' => $tblPerson->getLastFirstName(),
+            'DateSpan' => $tblAbsence->getDateSpan(),
+            'DateSort' => $tblAbsence->getFromDate('Y.m.d'),
+            'DateFrom' => ($isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getFromDate() . '</span>' : $tblAbsence->getFromDate()),
+            'DateTo' => ($isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getToDate() . '</span>' : $tblAbsence->getToDate()),
+            'PersonCreator' => $tblAbsence->getDisplayPersonCreator(false),
+            'Status' => $tblAbsence->getStatusDisplayName(),
+            'StatusExcel' => $tblAbsence->getStatusDisplayShortName(),
+            'Remark' => $tblAbsence->getRemark(),
+            'AbsenceType' => $tblAbsence->getTypeDisplayName(),
+            'AbsenceTypeExcel' => $tblAbsence->getTypeDisplayShortName(),
+            'Lessons' => $tblAbsence->getLessonStringByAbsence(),
+            'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein'
+        );
+
+        return $resultList;
     }
 }
