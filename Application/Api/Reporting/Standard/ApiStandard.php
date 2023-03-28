@@ -5,16 +5,14 @@ namespace SPHERE\Application\Api\Reporting\Standard;
 use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Reporting\Standard\Person\Frontend;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
-use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -44,7 +42,7 @@ class ApiStandard extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function exportApi($Method = '')
+    public function exportApi($Method = ''): string
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('reloadAbsenceContent');
@@ -93,11 +91,10 @@ class ApiStandard extends Extension implements IApiInterface
             $Data['ToDate'] = '';
             $Data['Type'] = null;
             $Data['DivisionName'] = '';
-            $Data['GroupName'] = '';
         }
 
         if ($Data['Date'] == null) {
-            $date = (new DateTime('now'))->format('d.m.Y');
+            $date = (new DateTime('today'))->format('d.m.Y');
         } else {
             $date = $Data['Date'];
         }
@@ -109,11 +106,10 @@ class ApiStandard extends Extension implements IApiInterface
             $dateTimeTo = null;
         }
 
-
         if ($Data['Type'] != null) {
-            $tblType = Type::useService()->getTypeById($Data['Type']);
+            $tblSchoolType = Type::useService()->getTypeById($Data['Type']);
         } else {
-            $tblType = false;
+            $tblSchoolType = false;
         }
 
         if (isset($Data['IsCertificateRelevant'])) {
@@ -132,40 +128,21 @@ class ApiStandard extends Extension implements IApiInterface
         }
 
         $isAbsenceOnlineOnly = isset($Data['IsAbsenceOnline']);
-        $divisionName = $Data['DivisionName'];
-        $groupName = $Data['GroupName'];
-        $isGroup = false;
+        $divisionCourseName = $Data['DivisionName'];
         $hasAbsenceTypeOptions = false;
-        if ($divisionName != '') {
-            $divisionList = Division::useService()->getDivisionAllByName($divisionName);
-            if (empty($divisionList)) {
-                return new Warning('Klasse nicht gefunden', new Exclamation());
+        if ($divisionCourseName != '') {
+            $tblYearList = Term::useService()->getYearAllByDate($dateTimeFrom);
+            $divisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($divisionCourseName, $tblYearList ?: null, true);
+            if (empty($divisionCourseList)) {
+                return new Warning('Klasse/Stammgruppe nicht gefunden', new Exclamation());
             }
+
 
             $absenceList = Absence::useService()->getAbsenceAllByDay(
                 $dateTimeFrom,
                 $dateTimeTo,
-                $tblType ? $tblType : null,
-                $divisionList,
-                array(),
-                $hasAbsenceTypeOptions,
-                $isCertificateRelevant,
-                $isAbsenceOnlineOnly
-            );
-        } elseif ($groupName != '') {
-            $isGroup = true;
-            $groupList = Group::useService()->getGroupListLike($groupName);
-//            var_dump($groupList);
-            if (empty($groupList)) {
-                return new Warning('Gruppe nicht gefunden', new Exclamation());
-            }
-
-            $absenceList = Absence::useService()->getAbsenceAllByDay(
-                $dateTimeFrom,
-                $dateTimeTo,
-                $tblType ? $tblType : null,
-                array(),
-                $groupList,
+                $tblSchoolType ?: null,
+                $divisionCourseList,
                 $hasAbsenceTypeOptions,
                 $isCertificateRelevant,
                 $isAbsenceOnlineOnly
@@ -174,8 +151,7 @@ class ApiStandard extends Extension implements IApiInterface
             $absenceList = Absence::useService()->getAbsenceAllByDay(
                 $dateTimeFrom,
                 $dateTimeTo,
-                $tblType ? $tblType : null,
-                array(),
+                $tblSchoolType ?: null,
                 array(),
                 $hasAbsenceTypeOptions,
                 $isCertificateRelevant,
@@ -185,14 +161,13 @@ class ApiStandard extends Extension implements IApiInterface
 
         $title = new Title(
             'Fehlzeiten für den ' . $dateTimeFrom->format('d.m.Y')
-            . ($tblType ? ', Schulart: ' . $tblType->getName() : '')
+            . ($tblSchoolType ? ', Schulart: ' . $tblSchoolType->getName() : '')
         );
 
         if (!empty($absenceList)) {
             $columns = array(
                 'Type'                  => 'Schulart',
-                'Group'                 => 'Gruppe',
-                'Division'              => 'Klasse',
+                'Division'              => 'Kurs',
                 'Person'                => 'Schüler',
                 'DateFrom'              => 'Zeitraum von',
                 'DateTo'                => 'Zeitraum bis',
@@ -203,12 +178,6 @@ class ApiStandard extends Extension implements IApiInterface
                 'Status'                => 'Status',
                 'Remark'                => 'Bemerkung'
             );
-
-            if ($isGroup) {
-                unset($columns['Division']);
-            } else {
-                unset($columns['Group']);
-            }
 
             if (!$hasAbsenceTypeOptions) {
                 unset($columns['AbsenceType']);
@@ -225,8 +194,7 @@ class ApiStandard extends Extension implements IApiInterface
                                 'DateTo' => $Data['ToDate'],
                                 'Type' => $Data['Type'],
                                 'DivisionName' => $Data['DivisionName'],
-                                'GroupName' => $Data['GroupName'],
-                                'IsCertificateRelevant' => isset($Data['IsCertificateRelevant']) ? $Data['IsCertificateRelevant'] : 0,
+                                'IsCertificateRelevant' => $Data['IsCertificateRelevant'] ?? 0,
                                 'IsAbsenceOnlineOnly' => $isAbsenceOnlineOnly
                             )
                         )

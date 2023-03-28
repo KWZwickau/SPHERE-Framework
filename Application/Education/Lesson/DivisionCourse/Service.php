@@ -186,12 +186,27 @@ class Service extends ServiceTeacher
     /**
      * @param string $name
      * @param array|null $tblYearList
+     * @param bool $isOnlyTypeDivisionOrCoreGroup
      *
      * @return TblDivisionCourse[]|false
      */
-    public function getDivisionCourseListByLikeName(string $name, ?array $tblYearList = null)
+    public function getDivisionCourseListByLikeName(string $name, ?array $tblYearList = null, bool $isOnlyTypeDivisionOrCoreGroup = false)
     {
-        return (new Data($this->getBinding()))->getDivisionCourseListByLikeName($name, $tblYearList);
+        $tempList = (new Data($this->getBinding()))->getDivisionCourseListByLikeName($name, $tblYearList);
+        if ($isOnlyTypeDivisionOrCoreGroup && $tempList) {
+            $resultList = array();
+            foreach ($tempList as $tblDivisionCourse) {
+                if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+                    || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP
+                ) {
+                    $resultList[] = $tblDivisionCourse;
+                }
+            }
+
+            return empty($resultList) ? false : $resultList;
+        } else {
+            return $tempList;
+        }
     }
 
     /**

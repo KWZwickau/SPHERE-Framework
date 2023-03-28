@@ -17,13 +17,12 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType as TblSchoolType;
 use SPHERE\Application\Education\School\Type\Type;
@@ -42,7 +41,6 @@ use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson as TblToPe
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
@@ -3088,20 +3086,18 @@ class Service extends Extension
      * @param DateTime|null $dateTimeTo
      * @param null $Type
      * @param string $DivisionName
-     * @param string $GroupName
      * @param int $IsCertificateRelevant
      * @param bool $IsAbsenceOnlineOnly
      *
-     * @return false|FilePointer
+     * @return FilePointer
      */
-    public function createAbsenceListExcel(DateTime $dateTimeFrom, DateTime $dateTimeTo = null, $Type = null,
-        $DivisionName = '', $GroupName = '', int $IsCertificateRelevant = 0, bool $IsAbsenceOnlineOnly = false)
+    public function createAbsenceListExcel(DateTime $dateTimeFrom, DateTime $dateTimeTo = null, $Type = null, string $DivisionName = '',
+        int $IsCertificateRelevant = 0, bool $IsAbsenceOnlineOnly = false): FilePointer
     {
-
         if ($Type != null) {
-            $tblType = Type::useService()->getTypeById($Type);
+            $tblSchoolType = Type::useService()->getTypeById($Type);
         } else {
-            $tblType = false;
+            $tblSchoolType = false;
         }
 
         switch ($IsCertificateRelevant) {
@@ -3110,34 +3106,15 @@ class Service extends Extension
             default: $IsCertificateRelevant = null;
         }
 
-        $isGroup = false;
         $hasAbsenceTypeOptions = false;
         if ($DivisionName != '') {
-            $divisionList = Division::useService()->getDivisionAllByName($DivisionName);
-            if (!empty($divisionList)) {
+            $tblYearList = Term::useService()->getYearAllByDate($dateTimeFrom);
+            if (($divisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($DivisionName, $tblYearList ?: null, true))) {
                 $absenceList = Absence::useService()->getAbsenceAllByDay(
                     $dateTimeFrom,
                     $dateTimeTo,
-                    $tblType ? $tblType : null,
-                    $divisionList,
-                    array(),
-                    $hasAbsenceTypeOptions,
-                    $IsCertificateRelevant,
-                    $IsAbsenceOnlineOnly
-                );
-            } else {
-                $absenceList = array();
-            }
-        } elseif ($GroupName != '') {
-            $isGroup = true;
-            $groupList = Group::useService()->getGroupListLike($GroupName);
-            if (!empty($groupList)) {
-                $absenceList = Absence::useService()->getAbsenceAllByDay(
-                    $dateTimeFrom,
-                    $dateTimeTo,
-                    $tblType ? $tblType : null,
-                    array(),
-                    $groupList,
+                    $tblSchoolType ?: null,
+                    $divisionCourseList,
                     $hasAbsenceTypeOptions,
                     $IsCertificateRelevant,
                     $IsAbsenceOnlineOnly
@@ -3149,8 +3126,7 @@ class Service extends Extension
             $absenceList = Absence::useService()->getAbsenceAllByDay(
                 $dateTimeFrom,
                 $dateTimeTo,
-                $tblType ? $tblType : null,
-                array(),
+                $tblSchoolType ?: null,
                 array(),
                 $hasAbsenceTypeOptions,
                 $IsCertificateRelevant,
@@ -3158,45 +3134,12 @@ class Service extends Extension
             );
         }
 
-//        if (!empty($absenceList)) {
-            return $this->createExcelByAbsenceList($dateTimeFrom, $absenceList, $hasAbsenceTypeOptions, $isGroup);
-//        }
-//        return false;
+        return $this->createExcelByAbsenceList($dateTimeFrom, $dateTimeTo, $absenceList, $hasAbsenceTypeOptions);
     }
 
     /**
-     * @param DateTime $startDate
-     * @param DateTime $endDate
-     *
-     * @return bool|FilePointer
-     */
-    public function createAbsenceBetweenListExcel(DateTime $startDate, DateTime $endDate)
-    {
-        $hasAbsenceTypeOptions = false;
-        $resultList = [];
-        if (($tblAbsenceList = Absence::useService()->getAbsenceAllBetween($startDate, $endDate))) {
-            foreach ($tblAbsenceList as $tblAbsence) {
-                if (($tblPerson = $tblAbsence->getServiceTblPerson())
-                    && ($tblDivision = $tblAbsence->getServiceTblDivision())
-                    && ($tblLevel = $tblDivision->getTblLevel())
-                    && ($tblType = $tblLevel->getServiceTblType())
-                ) {
-                    $resultList = Absence::useService()->setAbsenceContent($tblType, $tblDivision, false, [],
-                        $tblPerson, $tblAbsence, $resultList);
-
-                    if (!$hasAbsenceTypeOptions) {
-                        $hasAbsenceTypeOptions = Absence::useService()->hasAbsenceTypeOptions($tblDivision);
-                    }
-                }
-            }
-        }
-        return $this->createExcelByAbsenceList($startDate, $resultList, $hasAbsenceTypeOptions, false, $endDate);
-    }
-
-    /**
-     * @param $absenceList
-     * @param $hasAbsenceTypeOptions
-     * @param $isGroup
+     * @param array $absenceList
+     * @param bool $hasAbsenceTypeOptions
      * @param DateTime $startDate
      * @param DateTime|null $endDate
      *
@@ -3204,24 +3147,22 @@ class Service extends Extension
      */
     private function createExcelByAbsenceList(
         DateTime $startDate,
-        $absenceList = array(),
-        $hasAbsenceTypeOptions = false,
-        $isGroup = false,
-        DateTime $endDate = null
+        ?DateTime $endDate,
+        array $absenceList,
+        bool $hasAbsenceTypeOptions
     ): FilePointer {
         $fileLocation = Storage::createFilePointer('xlsx');
         /** @var PhpExcel $export */
         $export = Document::getDocument($fileLocation->getFileLocation());
 
         $export->setValue($export->getCell(0, 0),
-            'Fehlzeitenübersicht vom ' . $startDate->format('d.m.Y')
-            . ($endDate ? ' bis ' . $endDate->format('d.m.Y') : '')
+            'Fehlzeitenübersicht vom ' . $startDate->format('d.m.Y') . ($endDate ? ' bis ' . $endDate->format('d.m.Y') : '')
         );
 
         $column = 0;
         $row = 1;
         $export->setValue($export->getCell($column++, $row), "Schulart");
-        $export->setValue($export->getCell($column++, $row), $isGroup ? "Gruppe" : "Klasse");
+        $export->setValue($export->getCell($column++, $row), "Kurs");
         $export->setValue($export->getCell($column++, $row), "Schüler");
         $export->setValue($export->getCell($column++, $row), "Zeitraum");
         $export->setValue($export->getCell($column++, $row), "Ersteller");
@@ -3245,7 +3186,7 @@ class Service extends Extension
                 $column = 0;
 
                 $export->setValue($export->getCell($column++, $row), $absence['TypeExcel']);
-                $export->setValue($export->getCell($column++, $row), $isGroup ? $absence['Group'] : $absence['Division']);
+                $export->setValue($export->getCell($column++, $row), $absence['Division']);
                 $export->setValue($export->getCell($column++, $row), $absence['PersonExcel']);
                 $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
                 $export->setValue($export->getCell($column++, $row), $absence['PersonCreator']);
@@ -3922,70 +3863,49 @@ class Service extends Extension
     }
     /**
      * @param $tblPersonList
-     * @param TblDivision|null $tblDivision
      *
      * @return array
      */
-    public function createAbsenceContentList($tblPersonList, TblDivision $tblDivision = null): array
+    public function createAbsenceContentList(array $tblPersonList, TblYear $tblYear): array
     {
         $dataList = array();
-        if($tblPersonList){
-            foreach($tblPersonList as $tblPerson) {
-                if ($tblDivision) {
-                    $tblStudentDivision = $tblDivision;
-                } else {
-                    $tblStudentDivision = false;
-                }
-                $birthday = '';
-                if(($tblCommon = Common::useService()->getCommonByPerson($tblPerson))){
-                    if($tblCommon->getTblCommonBirthDates()){
-                        $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
-                    }
-                }
-
-                if (!$tblStudentDivision) {
-                    $tblStudentDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
-                }
-                $course = '';
-                if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-
-                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                    if($tblTransferType){
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                            $tblTransferType);
-                        if($tblStudentTransfer){
-                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                            if($tblCourse){
-                                $course = $tblCourse->getName();
-                            }
-                        }
-                    }
-                }
-
-                // Fehlzeiten
-                $unExcusedLessons = 0;
-                $excusedLessons = 0;
-                $unExcusedDays = 0;
-                $excusedDays = 0;
-                if (($tblStudentDivision)) {
-                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblStudentDivision, null,
-                        $excusedLessons);
-                    $unExcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblStudentDivision, null,
-                        $unExcusedLessons);
-                }
-
-                $dataList[] = array(
-                    'Number'           => (count($dataList) + 1),
-                    'LastName'         => $tblPerson->getLastName(),
-                    'FirstName'        => $tblPerson->getFirstName(),
-                    'Birthday'         => $birthday,
-                    'Course'           => $course,
-                    'ExcusedDays'      => $excusedDays,
-                    'unExcusedDays'    => $unExcusedDays,
-                    'ExcusedLessons'   => $excusedLessons,
-                    'unExcusedLessons' => $unExcusedLessons
-                );
+        $count = 0;
+        /** @var TblPerson $tblPerson */
+        foreach ($tblPersonList as $tblPerson) {
+            $tblCompany = false;
+            $tblSchoolType = false;
+            $tblCourse = false;
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                $tblCourse = $tblStudentEducation->getServiceTblCourse();
             }
+
+            list($startDateAbsence, $tillDateAbsence) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+
+            // Fehlzeiten
+            $excusedLessons = 0;
+            $unexcusedLessons = 0;
+            $excusedDays = 0;
+            $unexcusedDays = 0;
+            if ($startDateAbsence && $tillDateAbsence) {
+                $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                    $startDateAbsence, $tillDateAbsence, $excusedLessons);
+                $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                    $startDateAbsence, $tillDateAbsence, $unexcusedLessons);
+            }
+
+            $dataList[] = array(
+                'Number'           => ++$count,
+                'LastName'         => $tblPerson->getLastName(),
+                'FirstName'        => $tblPerson->getFirstName(),
+                'Birthday'         => $tblPerson->getBirthday(),
+                'Course'           => $tblCourse ? $tblCourse->getName() : '',
+                'ExcusedDays'      => $excusedDays,
+                'unExcusedDays'    => $unexcusedDays,
+                'ExcusedLessons'   => $excusedLessons,
+                'unExcusedLessons' => $unexcusedLessons
+            );
         }
 
         return $dataList;

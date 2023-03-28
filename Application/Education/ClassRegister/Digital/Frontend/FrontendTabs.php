@@ -249,9 +249,7 @@ class FrontendTabs extends FrontendCourseContent
                             new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnis&shy;relevante Fehlzeiten'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
-                                    'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId,
-                                    'DivisionSubjectId' => $DivisionSubjectId
+                                    'DivisionCourseId' => $tblDivisionCourse->getId(),
                                 ))
                             , 2),
                         new LayoutColumn(

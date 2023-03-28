@@ -404,7 +404,7 @@ class Service extends AbstractService
 
         // Liste sortieren
         if (!empty($resultList)) {
-            $type = $division = $group = $person = array();
+            $type = $division = $person = array();
             foreach ($resultList as $key => $row) {
                 $type[$key] = strtoupper($row['Type']);
                 $division[$key] = strtoupper($row['Division']);
