@@ -4,14 +4,15 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use DateTime;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -734,24 +735,24 @@ abstract class ServiceCertificateContent extends ServiceAbitur
             $excusedDays = $tblPrepareStudent->getExcusedDays();
             $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
 
-            if ($useClassRegisterForAbsence) {
+            if ($useClassRegisterForAbsence && $tblYear) {
                 // Fehlzeiten werden im Klassenbuch gepflegt
                 if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
                     && $tblGenerateCertificate->getAppointedDateForAbsence()
                 ) {
-                    $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                    $tillDateAbsence = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
                 } else {
-                    $date = new DateTime($tblPrepare->getDate());
+                    $tillDateAbsence = new DateTime($tblPrepare->getDate());
                 }
+                list($startDateAbsence) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
 
-                // todo umbau Fehlzeiten
-                if (false) {
-                    if ($excusedDays === null) {
-                        $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision, $date);
-                    }
-                    if ($unexcusedDays === null) {
-                        $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision, $date);
-                    }
+                if ($excusedDays === null) {
+                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                        $startDateAbsence, $tillDateAbsence);
+                }
+                if ($unexcusedDays === null) {
+                    $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                        $startDateAbsence, $tillDateAbsence);
                 }
 
                 // Zusatztage für die fehlenden Unterrichtseinheiten addieren

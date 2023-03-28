@@ -419,17 +419,29 @@ class Data extends AbstractData
         );
     }
 
+
     /**
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
      * @param $Status
      *
      * @return bool
      */
-    public function hasPersonAbsenceLessons(TblPerson $tblPerson, TblDivision $tblDivision, $Status)
+    public function getHasPersonAbsenceLessons(TblPerson $tblPerson, DateTime $fromDate, DateTime $toDate, $Status): bool
     {
-        // todo
         $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        // Zeitraum überschneidet einen existierenden Zeitraum
+        $or = $queryBuilder->expr()->orX();
+        $or->add($queryBuilder->expr()->between('a.FromDate', '?1', '?2'));
+        $or->add($queryBuilder->expr()->between('a.ToDate', '?1', '?2'));
+
+        // Zeitraum liegt innerhalb eines existierenden Zeitraums
+        $subAnd = $queryBuilder->expr()->andX();
+        $subAnd->add($queryBuilder->expr()->lte('a.FromDate', '?1'));
+        $subAnd->add($queryBuilder->expr()->gte('a.ToDate', '?2'));
+        $or->add($subAnd);
 
         $query = $queryBuilder->select('l')
             ->from(__NAMESPACE__ . '\Entity\TblAbsence', 'a')
@@ -437,14 +449,16 @@ class Data extends AbstractData
             ->where(
                 $queryBuilder->expr()->andX(
                     $queryBuilder->expr()->eq('l.tblAbsence', 'a.Id'),
-                    $queryBuilder->expr()->eq('a.serviceTblPerson', '?1'),
-                    $queryBuilder->expr()->eq('a.serviceTblDivision', '?2'),
-                    $queryBuilder->expr()->eq('a.Status', '?3')
+                    $queryBuilder->expr()->eq('a.serviceTblPerson', '?3'),
+                    $queryBuilder->expr()->eq('a.Status', '?4'),
+                    $queryBuilder->expr()->eq('a.IsCertificateRelevant', 1),
+                    $or
                 )
             )
-            ->setParameter(1, $tblPerson->getId())
-            ->setParameter(2, $tblDivision->getId())
-            ->setParameter(3, $Status)
+            ->setParameter(1, $fromDate)
+            ->setParameter(2, $toDate)
+            ->setParameter(3, $tblPerson->getId())
+            ->setParameter(4, $Status)
             ->getQuery();
 
         $resultList = $query->getResult();

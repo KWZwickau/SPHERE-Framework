@@ -536,4 +536,17 @@ class Service extends AbstractService
 
         return $days;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     * @param $Status
+     *
+     * @return bool
+     */
+    public function getHasPersonAbsenceLessons(TblPerson $tblPerson, DateTime $fromDate, DateTime $toDate, $Status): bool
+    {
+        return (new Data($this->getBinding()))->getHasPersonAbsenceLessons($tblPerson, $fromDate, $toDate, $Status);
+    }
 }
