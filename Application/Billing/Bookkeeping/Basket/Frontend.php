@@ -191,14 +191,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Datev'] = new Small($tblBasket->getDatevUser().' - ('.$tblBasket->getDatevDate().')');
                 }
                 $TypeName = '';
-                $DivisionName = '';
+                $DivisionCourseName = '';
                 if(($tblType = $tblBasket->getServiceTblType())){
                     $TypeName = $tblType->getName();
                 }
-                if(($tblDivision = $tblBasket->getServiceTblDivision())){
-                    $DivisionName = $tblDivision->getDisplayName();
+                if(($tblDivisionCourse = $tblBasket->getServiceTblDivisionCoures())){
+                    $DivisionCourseName = $tblDivisionCourse->getDisplayName();
                 }
-                $Item['Filter'] = ($TypeName ? $TypeName.' ': '').($DivisionName ? 'Klasse '.$DivisionName: '');
+                $Item['Filter'] = ($TypeName ? $TypeName.' ': '').($DivisionCourseName ? 'Klasse '.$DivisionCourseName: '');
 
 //                $tblBasketVerification = Basket::useService()->getBasketVerificationAllByBasket($tblBasket);
 

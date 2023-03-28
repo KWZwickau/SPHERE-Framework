@@ -113,17 +113,4 @@ class TblCity extends Element
         }
         return $district;
     }
-
-    /**
-     * @return string
-     */
-    public function getRegionString()
-    {
-
-        $RegionString = Address::useService()->getRegionStringByCode($this->Code);
-        if($RegionString){
-            $RegionString = 'Bezirk '.$RegionString;
-        }
-        return $RegionString;
-    }
 }

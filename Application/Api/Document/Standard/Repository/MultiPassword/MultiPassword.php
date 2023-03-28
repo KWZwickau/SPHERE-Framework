@@ -10,6 +10,8 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
@@ -20,7 +22,7 @@ use SPHERE\Application\Setting\User\Account\Account;
 class MultiPassword extends AbstractDocument
 {
 
-    const BLOCK_SPACE = '10px';
+    const BLOCK_SPACE = '20px';
     const PLACE_HOLDER = '#BBBB00';
 
     /**
@@ -114,6 +116,7 @@ class MultiPassword extends AbstractDocument
                         $this->FieldValue['UserAccountNameList'][$tblAccount->getId()] = $tblAccount->getUsername();
                         $this->FieldValue['Password'][$tblAccount->getId()] = $tblUserAccount->getUserPassword();
 
+                        $this->FieldValue['ChildList'][$tblAccount->getId()] = '';
 
                         // School choose
                         if(($tblPerson = $tblUserAccount->getServiceTblPerson())){
@@ -129,6 +132,18 @@ class MultiPassword extends AbstractDocument
                                     $this->FieldValue['City'][$tblAccount->getId()] = $tblCity->getCode().' '.$tblCity->getName();
                                 }
                             }
+                            $tblToPersonType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
+                            if(($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblToPersonType))){
+                                $PersonNameList = array();
+                                foreach($tblToPersonList as $tblToPerson){
+                                    if(($tblPersonTo = $tblToPerson->getServiceTblPersonTo())){
+                                        $PersonNameList[] = $tblPersonTo->getLastFirstName();
+                                    }
+                                }
+
+                                $this->FieldValue['ChildList'][$tblAccount->getId()] = implode('<br/>', $PersonNameList);
+                            }
+
                         }
 
                         $this->pageList[] = $this->buildPageOne($tblAccount->getId());
@@ -407,10 +422,9 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('ab sofort stellen wir eine elektronische Notenübersicht zur Nutzung bereit. 
-                    Dadurch erhalten Sie die Möglichkeit, sämtliche Noten Ihres Kindes einsehen und über seine 
-                    schulische Leistungsentwicklung mit unseren Lehrkräften gezielter kommunizieren zu können.')
-                    ->stylePaddingTop('12px')
+                    ->setContent('ab sofort stellen wir eine elektronische Notenübersicht zur Nutzung bereit. Dadurch erhalten Sie die Möglichkeit, sämtliche
+                     Noten Ihres Kindes einzusehen und über seine schulische Leistungsentwicklung mit unseren Lehrkräften gezielter austauschen zu können.')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleAlignJustify()
                 )
                 ->addElementColumn((new Element())
@@ -418,17 +432,15 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
             );
-
-            if($this->FieldValue['CompanyName'] === '&nbsp;'){
+            if ($this->FieldValue['CompanyName'] === '&nbsp;') {
                 $Slice->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine neue Schulsoftware 
-                    entwickeln lassen, die für alle evangelischen Schulen in Sachsen nutzbar ist. Auch wir als
-                    <span style="color: '.$this::PLACE_HOLDER.'"> >> Schulname << </span> nutzen diese im Alltag.')
+                        ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine Schulsoftware entwickeln lassen, die für alle evangelischen
+                         Schulen in Sachsen nutzbar ist. Auch wir als <span style="color: ' . $this::PLACE_HOLDER . '"> >> Schulname << </span> nutzen diese im Alltag.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -444,9 +456,8 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine neue Schulsoftware 
-                    entwickeln lassen, die für alle evangelischen Schulen in Sachsen nutzbar ist. Auch wir als
-                    '.$this->FieldValue['CompanyName'].' nutzen diese im Alltag.')
+                        ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine Schulsoftware entwickeln lassen, die für alle evangelischen
+                         Schulen in Sachsen nutzbar ist. Auch wir als ' . $this->FieldValue['CompanyName'] . ' nutzen diese im Alltag.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -456,16 +467,15 @@ class MultiPassword extends AbstractDocument
                     )
                 );
             }
-
             $Slice->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Die neue Schulsoftware bietet eine elektronische Notenübersicht für alle Schüler 
-                        und deren Sorgeberechtigte, zu deren Nutzung Sie hiermit die notwendigen 
-                        Sicherheitsinformationen und Zugangsdaten erhalten.')
+                        ->setContent('Die Schulsoftware bietet eine elektronische Notenübersicht für alle Schüler und deren Sorgeberechtigte, zu deren Nutzung
+                            Sie hiermit die notwendigen Sicherheitsinformationen und Zugangsdaten erhalten. Zur Nutzung der Software erfolgt über einen gängigen
+                            Webbrowser.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -480,10 +490,9 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Die Entwicklung der neuen Softwarelösung erfolgte in enger Abstimmung mit dem 
-                        Datenschutzbeauftragten der Ev.-Luth. Landeskirche. Er hat die elektronische Notenübersicht 
-                        datenschutzrechtlich überprüft und zur Nutzung freigegeben. Die Kommunikation zwischen Ihrem 
-                        Internetbrowser und der Schulsoftware erfolgt ausschließlich über eine verschlüsselte HTTPS-Verbindung.')
+                        ->setContent('Die Entwicklung der Software erfolgte in enger Abstimmung mit dem Datenschutzbeauftragten der Ev.-Luth. Landeskirche. Er
+                         hat die elektronische Notenübersicht datenschutzrechtlich überprüft und zur Nutzung freigegeben. Die Kommunikation zwischen Ihrem
+                         Internetbrowser und der Schulsoftware erfolgt ausschließlich über eine verschlüsselte HTTPS-Verbindung.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -498,15 +507,12 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Der Betrieb der Softwarelösung erfolgt in einem zertifizierten deutschen 
-                        Rechenzentrum und wird durch die dortigen Mitarbeiter, sowie durch die mit der Entwicklung 
-                        beauftragte, Firma permanent überwacht und gewartet, um sie vor Cyberangriffen zu schützen. 
-                        Da hier personenbezogene vertrauliche Daten verarbeitet werden, gelten vergleichbar hohe 
-                        Sicherheitsanforderungen, wie beim Onlinebanking. Beispielsweise sind Änderungen an Stammdaten 
-                        oder die Eintragung von Benotungen nur für Mitarbeiter der Schule möglich, die über die 
-                        entsprechenden Zugriffsberechtigungen verfügen und sich per Zweifaktor-Authentifizierung 
-                        (Name, Passwort und Security-Token) anmelden müssen. Für die elektronische Notenübersicht 
-                        reicht hingegen die Anmeldung mit Name und Passwort aus.')
+                        ->setContent('Der Betrieb der Software erfolgt in einem zertifizierten deutschen Rechenzentrum und wird durch die dortigen Mitarbeiter,
+                        sowie durch die mit der Entwicklung beauftragten Firma permanent überwacht und gewartet, um sie vor Cyberangriffen zu schützen. Da hier
+                        personenbezogene vertrauliche Daten verarbeitet werden, gelten vergleichbar hohe Sicherheitsanforderungen, wie beim Onlinebanking.
+                        Beispielsweise sind Änderungen an Stammdaten oder die Eintragung von Benotungen nur für Mitarbeiter der Schule möglich, die über
+                        die entsprechenden Zugriffsberechtigungen verfügen und sich per Zweifaktor-Authentifizierung (Name, Passwort und Security-Token)
+                        anmelden sein müssen. Für die elektronische Notenübersicht reicht hingegen die Anmeldung mit Namen und Passwort aus.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -521,10 +527,10 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Für die Sicherheit Ihrer Daten ist es allerdings wichtig, ein möglichst gutes Passwort 
-                    mit einer Mindestlänge von 8 Zeichen und einer Mischung aus Großbuchstaben, Kleinbuchstaben, Ziffern 
-                    und evtl. auch noch Sonderzeichen zu verwenden. <u>Bitte geben Sie Ihre Zugangsdaten nicht weiter, denn es 
-                    erhält jeder Sorgeberechtigte und jeder Schüler einen eigenen personengebundenen Nutzerzugang.</u>')
+                        ->setContent('Für die Sicherheit Ihrer Daten ist es allerdings wichtig, ein möglichst gutes Passwort mit einer Mindestlänge von 8
+                         Zeichen und einer Mischung aus Großbuchstaben, Kleinbuchstaben, Ziffern und evtl. auch noch Sonderzeichen zu verwenden.
+                         <u>Bitte geben Sie Ihre Zugangsdaten nicht weiter, denn es erhält jeder Sorgeberechtigte und jeder Schüler einen eigenen
+                         personengebundenen Nutzerzugang.</u>')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -554,26 +560,8 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('ab sofort stellen wir eine elektronische Notenübersicht zur Nutzung bereit. Damit 
-                        können Eltern und Schüler per Internetzugang Benotungen einsehen und sich über den aktuellen 
-                        Leistungsstand informieren.')
-                        ->stylePaddingTop('12px')
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine neue Schulsoftware 
-                        entwickeln lassen, die für alle evangelischen Schulen in Sachsen nutzbar ist. Mit diesem Brief 
-                        möchten wir Euch über Eure Zugangsdaten und einige Sicherheitshinweise informieren.')
+                        ->setContent('ab sofort stellen wir eine elektronische Notenübersicht zur Nutzung bereit. Damit können Eltern und Schüler per 
+                        Internetzugang Benotungen einsehen und sich über den aktuellen Leistungsstand informieren.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -588,12 +576,27 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Die Entwicklung der neuen Softwarelösung erfolgte in enger Abstimmung mit dem 
-                        Datenschutzbeauftragten der Ev.-Luth. Landeskirche Sachsens. Er hat die elektronische 
-                        Notenübersicht datenschutzrechtlich überprüft und zur Nutzung freigegeben. Der Betrieb der 
-                        Softwarelösung erfolgt in einem zertifizierten deutschen Rechenzentrum und wird durch die 
-                        dortigen Mitarbeiter, sowie durch die mit der Entwicklung beauftragten Firma permanent überwacht 
-                        und gewartet, um sie vor Cyberangriffen zu schützen.')
+                        ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine Schulsoftware entwickeln lassen, die für alle evangelischen
+                         Schulen in Sachsen nutzbar ist. Mit diesem Brief möchten wir Euch über Eure Zugangsdaten und einige Sicherheitshinweise informieren.')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
+                        ->styleAlignJustify()
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Die Entwicklung der Softwarelösung erfolgte in enger Abstimmung mit dem Datenschutzbeauftragten der Ev.-Luth. Landeskirche
+                         Sachsens. Er hat die elektronische Notenübersicht datenschutzrechtlich überprüft und zur Nutzung freigegeben. Der Betrieb der 
+                         Softwarelösung erfolgt in einem zertifizierten deutschen Rechenzentrum und wird durch die dortigen Mitarbeiter, sowie durch die mit der
+                         Entwicklung beauftragten Firma permanent überwacht und gewartet, um sie vor Cyberangriffen zu schützen. Die Kommunikation zwischen 
+                         Eurem Internetbrowser und der Schulsoftware erfolgt ausschließlich über eine verschlüsselte HTTPS-Verbindung.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -624,11 +627,10 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Für die Sicherheit Eurer gespeicherten Daten ist es wichtig, ein möglichst gutes 
-                        Passwort mit einer Mindestlänge von 8 Zeichen und einer Mischung aus Großbuchstaben, 
-                        Kleinbuchstaben, Ziffern und evtl. auch noch Sonderzeichen zu verwenden. <u>Bitte gebt Eure 
-                        Zugangsdaten nicht weiter, denn es erhält jeder sorgeberechtigte Elternteil und jeder Schüler 
-                        einen eigenen personengebundenen Nutzerzugang.</u>')
+                        ->setContent('Für die Sicherheit Eurer gespeicherten Daten ist es wichtig, ein möglichst gutes Passwort mit einer Mindestlänge von 8 
+                         Zeichen und einer Mischung aus Großbuchstaben, Kleinbuchstaben, Ziffern und evtl. auch noch Sonderzeichen zu verwenden.
+                         <u>Bitte gebt Eure Zugangsdaten nicht weiter, denn es erhält jeder sorgeberechtigte Elternteil und jeder Schüler einen eigenen 
+                         personengebundenen Nutzerzugang.</u>')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -690,23 +692,8 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Neue Schulsoftware und neue elektronische Notenübersicht')
+                        ->setContent('Zugangsdaten und Sicherheitsinformationen zur Anmeldung für die Schulsoftware und der elektronischen Notenübersicht')
                         ->styleTextBold()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Sicherheitsinformationen und Zugangsdaten')
-                        ->styleTextBold()
-                        ->stylePaddingTop('5px')
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
@@ -745,7 +732,7 @@ class MultiPassword extends AbstractDocument
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Verwenden Sie bitte für den Zugriff auf die elektronische Notenübersicht folgende Zugangsdaten:')
-                    ->stylePaddingTop('12px')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleAlignJustify()
                 )
                 ->addElementColumn((new Element())
@@ -804,9 +791,8 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Lesen Sie sich die Datenschutzbestimmungen und Nutzungsbedingungen genau durch.
-                    Wenn Sie einverstanden sind und die elektronische Notenübersicht nutzen möchten, so vergeben Sie 
-                    bitte Ihr zukünftiges Passwort für den Zugang und bestätigen Sie Ihre Eingaben.')
+                    ->setContent('Lesen Sie sich die Datenschutzbestimmungen und Nutzungsbedingungen genau durch. Wenn Sie einverstanden sind und die 
+                    elektronische Notenübersicht nutzen möchten, so vergeben Sie bitte Ihr zukünftiges Passwort für den Zugang und bestätigen Sie Ihre Eingaben.')
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleAlignJustify()
                 )
@@ -843,9 +829,7 @@ class MultiPassword extends AbstractDocument
                 )
                 ->addElementColumn((new Element())
                     ->setContent('und <b>bewahren Sie bitte den Brief an sicherer Stelle und leicht zu finden auf</b>, 
-                    damit ihre Zugangsdaten verfügbar bleiben! Sie ersparen uns damit unnötige Arbeit, denn das 
-                    Zurücksetzen vergessener Passwörter und die Zusendung neuer Passwortbriefe verursachen nicht 
-                    unerhebliche Aufwände und Kosten.')
+                    damit ihre Zugangsdaten verfügbar bleiben!')
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleAlignJustify()
                 )
@@ -860,10 +844,39 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Nach Ihrer Bestätigung sollte Ihnen die Notenübersicht für alle Ihre Kinder an unserer 
-                    Schule angezeigt werden. Sofern Sie sich gegen die Nutzung der elektronischen Notenübersicht 
-                    entscheiden, bleibt Ihr Zugang deaktiviert. Falls Sie noch Rückfragen oder Probleme mit der 
-                    Anwendung haben, können Sie uns gerne kontaktieren.')
+                    ->setContent('Nach Ihrer Bestätigung sollte Ihnen die Notenübersicht für alle Ihre Kinder an unserer Schule angezeigt werden. Sofern Sie 
+                     sich gegen die Nutzung der elektronischen Notenübersicht entscheiden, bleibt Ihr Zugang deaktiviert. Falls Sie noch Rückfragen oder 
+                     Probleme mit der Anwendung haben, können Sie uns gerne kontaktieren.')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->styleAlignJustify()
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Namen der sorgeberechtigten Kinder:')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->styleAlignJustify()
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['ChildList'][$AccountId])
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleAlignJustify()
                 )
@@ -879,7 +892,7 @@ class MultiPassword extends AbstractDocument
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift rechtsgültig.')
-                    ->stylePaddingTop('12px')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -895,7 +908,7 @@ class MultiPassword extends AbstractDocument
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Verwendet bitte für den Zugriff auf die elektronische Notenübersicht folgende Zugangsdaten:')
-                        ->stylePaddingTop('12px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -954,9 +967,8 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Lies Dir bitte die Datenschutzbestimmungen und Nutzungsbedingungen genau durch. 
-                        Wenn Du einverstanden bist und die elektronische Notenübersicht nutzen möchtest, so gib Dein 
-                        zukünftiges Passwort für den Zugang ein und bestätige Deine Eingaben.')
+                        ->setContent('Lies Dir bitte die Datenschutzbestimmungen und Nutzungsbedingungen genau durch. Wenn Du einverstanden bist und die
+                         elektronische Notenübersicht nutzen möchtest, so gib Dein zukünftiges Passwort für den Zugang ein und bestätige Deine Eingaben.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -992,9 +1004,9 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('und <b>bewahre den Brief an sicherer Stelle und leicht zu finden auf</b>, 
-                    damit Deine Zugangsdaten verfügbar bleiben! Das Zurücksetzen vergessener Passwörter und die 
-                    Zusendung neuer Passwortbriefe verursachen nicht unerhebliche Aufwände und Kosten für die Schule.')
+                        ->setContent('und <b>bewahre den Brief an sicherer Stelle und leicht zu finden auf</b>, damit Deine Zugangsdaten verfügbar bleiben!
+                         Das Zurücksetzen vergessener Passwörter und die Zusendung neuer Passwortbriefe verursachen nicht unerhebliche Aufwände und Kosten
+                         für die Schule.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -1009,10 +1021,9 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Nach Deiner Bestätigung wird eine Startseite mit dem Verweis auf die Notenübersicht 
-                        angezeigt. Alternativ kann man auch die Menüleiste nutzen. Falls Du Dich gegen die Nutzung der 
-                        elektronischen Notenübersicht entscheidest, bleibt Dein Zugang deaktiviert. Falls Du Rückfragen 
-                        oder Probleme mit der Anwendung hast, wende Dich bitte an unser Sekretariat.')
+                        ->setContent('Nach Deiner Bestätigung wird eine Startseite mit dem Verweis auf die Notenübersicht angezeigt. Alternativ kann man auch
+                         die Menüleiste nutzen. Falls Du Dich gegen die Nutzung der elektronischen Notenübersicht entscheidest, bleibt Dein Zugang deaktiviert. 
+                         Falls Du Rückfragen oder Probleme mit der Anwendung hast, wende Dich bitte an unser Sekretariat.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -1028,7 +1039,7 @@ class MultiPassword extends AbstractDocument
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift rechtsgültig.')
-                        ->stylePaddingTop('12px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')

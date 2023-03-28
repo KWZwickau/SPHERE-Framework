@@ -10,6 +10,8 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
@@ -33,7 +35,6 @@ use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -45,6 +46,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
@@ -172,9 +174,26 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
                 $i = 0;
+                if(($tblYear = Term::useService()->getYearByNow())){
+                    $tblYear = current($tblYear);
+                } else {
+                    $tblYear = false;
+                }
                 array_walk($tblPersonList,
-                    function(TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed){
+                    function(TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed, $tblYear){
+                        $Item = array();
                         $Item['Name'] = $tblPerson->getLastFirstName();
+                        //ToDO der Block ist neu aber nicht effizient
+                        $tblDivisionCourseList = array();
+                        if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
+                            if($tblStudentEducation->getTblDivision()){
+                                $tblDivisionCourseList[] = $tblStudentEducation->getTblDivision()->getDisplayName();
+                            }
+                            if($tblStudentEducation->getTblCoreGroup()){
+                                $tblDivisionCourseList[] = $tblStudentEducation->getTblCoreGroup()->getDisplayName();
+                            }
+                        }
+                        $Item['DivisionCourse'] = implode(', ', $tblDivisionCourseList);
                         $Item['ContentRow'] = '';
 //                    $Item['Option'] = new Standard('', '', new Edit());
                         // Herraussuchen aller Beitragsarten die aktuell eingestellt werden müssen
@@ -284,9 +303,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new TableData($TableContent, null, array(
-            'Name'       => 'Person',
-            'ContentRow' => 'Zuordnung Beitragszahler',
-            'Option'     => '',
+            'Name'           => 'Person',
+            'DivisionCourse' => 'Klasse / Stammgruppe',
+            'ContentRow'     => 'Zuordnung Beitragszahler',
+            'Option'         => '',
         ), array(
             'columnDefs' => array(
                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
@@ -422,8 +442,8 @@ class Frontend extends Extension implements IFrontendInterface
         $LayoutRowHideList = $this->getFrontendPanelList($ColumnHideList);
 
         $UnusedItemAccordion = new Accordion();
-        $UnusedItemAccordion->addItem('Weitere mögliche Beitragsarten', new Layout(new LayoutGroup($LayoutRowHideList)));
-
+        $UnusedItemAccordion->addItem(new InfoText(new Edit().' Weitere mögliche '.new Bold('Beitragsarten')), '<div style="height: 11px;">&nbsp;</div>'.
+            new Layout(new LayoutGroup($LayoutRowHideList)), (count($ColumnList) > 1? false : true));
 
         $Stage->setContent(
             ApiBankReference::receiverModal('Hinzufügen einer Mandatsreferenznummer', 'addBankReference')
@@ -516,7 +536,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $PaymentType = 'Zahlungsart: ';
                     $BankAccount = 'Bank: ';
                     $Reference = 'Mandatsreferenznummer: ';
-                    $Debtor = 'Bezahler: ';
+                    $Debtor = new InfoText('Bezahler: ');
                     $PeriodPayType = 'Zahlungszeitraum: ';
                     $FromDate = 'Beitragspflicht ab: ';
                     $ToDate = 'Beitragspflicht bis: ';
@@ -535,8 +555,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $ToDate .= new Bold('kein Enddatum');
                     }
                     if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
-                        $Debtor .= $tblPersonDebtor->getSalutation().' '.substr($tblPersonDebtor->getFirstName(), 0, 1) .'. '
-                            .$tblPersonDebtor->getLastName();
+                        $Debtor .= new InfoText(new Bold($tblPersonDebtor->getSalutation().' '.substr($tblPersonDebtor->getFirstName(), 0, 1) .'. '
+                            .$tblPersonDebtor->getLastName())); // .new Link(new PersonIcon(), '') Wäre möglich aber Gruppenproblematik
                     }
 
                     $OptionButtons = new PullRight(

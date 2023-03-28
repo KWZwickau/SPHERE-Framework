@@ -1577,6 +1577,7 @@ class Service extends AbstractService
                     $address['CityCode'],
                     $address['CityName'],
                     $address['CityDistrict'],
+                    '',
                     $address['County'],
                     $address['Nation'],
                     $address['tblPersonList'],

@@ -157,7 +157,11 @@ class Service
                         }
                     }
                     $Item['AddressRemark'] = $RemarkToPerson;
-                    $Item['Region'] = Address::useService()->getRegionStringByCode($tblAdress->getTblCity()->getCode());
+                    if($tblAdress->getRegion()){
+                        $Item['Region'] = $tblAdress->getRegion();
+                    } else {
+                        $Item['Region'] = Address::useService()->getRegionStringByCode($tblAdress->getTblCity()->getCode());
+                    }
                 }
                 // Schülerakte
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){

@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Education\ClassRegister\Digital\Frontend;
 
 use DateInterval;
@@ -10,6 +9,7 @@ use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -124,10 +124,10 @@ class FrontendTabs extends FrontendCourseContent
         return $stage;
     }
 
-    /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param null $DivisionSubjectId
+    /** // ToDO DivisionCourse as Division and no Group or DivisionSubject
+     * @param null| int $DivisionId
+     * @param null| int $GroupId
+     * @param null| int $DivisionSubjectId
      * @param string $BasicRoute
      *
      * @return Stage|string
@@ -141,6 +141,7 @@ class FrontendTabs extends FrontendCourseContent
         $stage = new Stage('Digitales Klassenbuch', 'Download');
 
         $tblYear = null;
+        $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId);
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
         if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
@@ -241,9 +242,7 @@ class FrontendTabs extends FrontendCourseContent
                             new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste'))->setPictureHeight(),
                                 '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
-                                    'DivisionId' => $DivisionId,
-                                    'GroupId'    => $GroupId,
-                                    'DivisionSubjectId' => $DivisionSubjectId
+                                    'DivisionCourseId' => $tblDivisionCourse->getId()
                                 ))
                             , 2),
                         new LayoutColumn(
