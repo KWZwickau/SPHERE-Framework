@@ -3,7 +3,7 @@
 namespace SPHERE\Application\Setting\Consumer\Setting;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
-use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
+use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;

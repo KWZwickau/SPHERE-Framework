@@ -318,6 +318,19 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param bool $IsSoftRemove
+     */
+    public function destroyAbsenceAllByPerson(TblPerson $tblPerson, bool $IsSoftRemove = false)
+    {
+        if (($tblAbsenceList = $this->getAbsenceAllByPerson($tblPerson))){
+            foreach($tblAbsenceList as $tblAbsence){
+                $this->destroyAbsence($tblAbsence, $IsSoftRemove);
+            }
+        }
+    }
+
+    /**
      * @param TblAbsence $tblAbsence
      *
      * @return bool

@@ -4,7 +4,7 @@ namespace SPHERE\Application\People\Person\Service;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Club\Club;

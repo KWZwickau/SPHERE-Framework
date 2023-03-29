@@ -469,7 +469,7 @@ class Frontend extends FrontendClassRegister
             if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence'))) {
                 $status = $tblSetting->getValue();
             } else {
-                $status = \SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence::VALUE_STATUS_UNEXCUSED;
+                $status = TblAbsence::VALUE_STATUS_UNEXCUSED;
             }
             $global->POST['Data']['Status'] = $status;
 
