@@ -6,10 +6,10 @@ use DateTime;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Data;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Setup;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -53,8 +53,8 @@ class Service extends AbstractService
             && ($tblSetting = Consumer::useService()->getSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'OnlineContactDetailsAllowedForSchoolTypes'))
             && ($tblSchoolTypeAllowedList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
         ) {
-            if (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
-                && ($tblType = $tblDivision->getType())
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
+                && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
                 && isset($tblSchoolTypeAllowedList[$tblType->getId()])
                 && ($birthday = $tblPerson->getBirthday())
                 && (new DateTime($birthday)) <= ((new DateTime('now'))->modify('-18 year'))
@@ -104,8 +104,8 @@ class Service extends AbstractService
                             || $relationship->getTblType()->getName() == 'Vormund')
                     ) {
                         // prüfen: ob die Schulart freigeben ist
-                        if (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPersonChild))
-                            && ($tblType = $tblDivision->getType())
+                        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonChild))
+                            && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
                             && isset($tblSchoolTypeAllowedList[$tblType->getId()])
                         ) {
                             // eingeloggter Elternteil

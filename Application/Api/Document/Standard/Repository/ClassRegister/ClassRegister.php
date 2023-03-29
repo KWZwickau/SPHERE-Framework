@@ -12,13 +12,14 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstruction;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -890,12 +891,12 @@ class ClassRegister extends AbstractDocument
             $isHoliday = false;
 
             // Fehlzeiten für den Tag ermitteln
-            $divisionList = $this->tblDivision ? array('0' => $this->tblDivision) : array();
-            $groupList = $this->tblGroup ? array('0' => $this->tblGroup) : array();
+            $divisionCourseList = $this->tblDivision ? array('0' => DivisionCourse::useService()->getDivisionCourseById($this->tblDivision->getId())) : array();
             $absenceContent = array();
-            if (($AbsenceList = Absence::useService()->getAbsenceAllByDay($dateTime, null, null, $divisionList, $groupList,
-                $hasTypeOption, null)
-            )) {
+            $hasTypeOption = false;
+            if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(
+                $dateTime, null, null, $divisionCourseList, $hasTypeOption, null
+            ))) {
                 foreach ($AbsenceList as $Absence) {
                     if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
                         if (($tblPerson = $tblAbsence->getServiceTblPerson()) && isset($this->personNumberAbsenceList[$tblPerson->getId()])) {

@@ -7,7 +7,7 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\System\Extension\Extension;
@@ -276,7 +277,7 @@ class CourseContent extends ClassRegister
         $count = 0;
         $noticed = '';
         $sliceList = array();
-        $divisionList = array('0' => $this->tblDivision);
+        $divisionCourseList = array('0' => DivisionCourse::useService()->getDivisionCourseById($this->tblDivision->getId()));
         if (($tblCourseContentList = Digital::useService()->getCourseContentListBy($this->tblDivision, $this->tblSubject, $this->tblSubjectGroup))) {
             $tblCourseContentList = (new Extension())->getSorter($tblCourseContentList)->sortObjectBy(TblCourseContent::ATTR_DATE, new DateTimeSorter());
             foreach ($tblCourseContentList as $tblCourseContent) {
@@ -289,9 +290,10 @@ class CourseContent extends ClassRegister
                     $lessonArray[$lesson] = $lesson;
                 }
 
-                if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(new DateTime($tblCourseContent->getDate()),
-                    null, null, $divisionList, array(), $hasTypeOption, null))
-                ) {
+                $hasTypeOption = false;
+                if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(
+                    new DateTime($tblCourseContent->getDate()), null, null, $divisionCourseList, $hasTypeOption, null
+                ))) {
                     foreach ($AbsenceList as $Absence) {
                         if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
                             $isAdd = false;

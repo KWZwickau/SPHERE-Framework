@@ -26,6 +26,8 @@ use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
+ * @deprecated
+ *
  * @Entity()
  * @Table(name="tblAbsence")
  * @Cache(usage="READ_ONLY")

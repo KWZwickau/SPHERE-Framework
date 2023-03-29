@@ -716,7 +716,7 @@ class Frontend extends FrontendClassRegister
      *
      * @return string
      */
-    public function loadType($PersonId = null, string $date = 'now'): string
+    public function loadType($PersonId = null, string $date = 'today'): string
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson, $date))
