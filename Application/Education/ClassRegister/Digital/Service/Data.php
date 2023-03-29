@@ -7,8 +7,10 @@ use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseC
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContentLink;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -23,6 +25,49 @@ class Data  extends AbstractData
     public function setupDatabaseContent()
     {
 
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return array
+     */
+    public function migrateYear(TblYear $tblYear): array
+    {
+        $count = 0;
+        $start = hrtime(true);
+
+        // Kursbücher migrieren
+        if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
+            $Manager = $this->getEntityManager();
+            foreach ($tblDivisionList as $tblDivision) {
+                if (($tblCourseContentList = $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblCourseContent', array(
+                    TblCourseContent::ATTR_SERVICE_TBL_DIVISION_COURSE => null,
+                    TblCourseContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+                )))) {
+                    /** @var TblCourseContent $tblCourseContent */
+                    foreach($tblCourseContentList as $tblCourseContent) {
+                        if (($tblSubject = $tblCourseContent->getServiceTblSubject())
+                            && ($tblSubjectGroup = $tblCourseContent->getServiceTblSubjectGroup())
+                            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByMigrateSekCourse(
+                                Division::useService()->getMigrateSekCourseString($tblDivision, $tblSubject, $tblSubjectGroup
+                                )))
+                        ) {
+                            $count++;
+                            $tblCourseContent->setServiceTblDivisionCourse($tblDivisionCourse);
+                            $Manager->bulkSaveEntity($tblCourseContent);
+                        }
+                    }
+                }
+            }
+
+            $Manager->flushCache();
+        }
+
+
+        $end = hrtime(true);
+
+        return array($count, round(($end - $start) / 1000000000, 2));
     }
 
     /**

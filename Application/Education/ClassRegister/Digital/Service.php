@@ -100,6 +100,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblYear $tblYear
+     *
+     * @return array
+     */
+    public function migrateYear(TblYear $tblYear): array
+    {
+        return (new Data($this->getBinding()))->migrateYear($tblYear);
+    }
+
+    /**
      * @param Stage $Stage
      * @param $view
      * @param $Route

@@ -11,6 +11,8 @@ use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
@@ -28,6 +30,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblCourseContent extends Element
 {
+    const ATTR_SERVICE_TBL_DIVISION_COURSE = 'serviceTblDivisionCourse';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_SUBJECT_GROUP = 'serviceTblSubjectGroup';
@@ -36,17 +39,22 @@ class TblCourseContent extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblDivision;
+    protected $serviceTblDivisionCourse;
 
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblSubject;
+    protected $serviceTblDivision = null;
 
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblSubjectGroup;
+    protected $serviceTblSubject = null;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblSubjectGroup = null;
 
     /**
      * @Column(type="bigint")
@@ -99,6 +107,24 @@ class TblCourseContent extends Element
     protected $serviceTblPersonHeadmaster;
 
     /**
+     * @return false|TblDivisionCourse
+     */
+    public function getServiceTblDivisionCourse()
+    {
+        return DivisionCourse::useService()->getDivisionCourseById($this->serviceTblDivisionCourse);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     */
+    public function setServiceTblDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        $this->serviceTblDivisionCourse = $tblDivisionCourse->getId();
+    }
+
+    /**
+     * @deprecated
+     *
      * @return bool|TblDivision
      */
     public function getServiceTblDivision()
@@ -111,6 +137,8 @@ class TblCourseContent extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @param TblDivision|null $tblDivision
      */
     public function setServiceTblDivision(TblDivision $tblDivision = null)
@@ -119,6 +147,8 @@ class TblCourseContent extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @return bool|TblSubject
      */
     public function getServiceTblSubject()
@@ -131,6 +161,8 @@ class TblCourseContent extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @param TblSubject|null $tblSubject
      */
     public function setServiceTblSubject(TblSubject $tblSubject = null)
@@ -139,6 +171,8 @@ class TblCourseContent extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @return bool|TblSubjectGroup
      */
     public function getServiceTblSubjectGroup()
@@ -151,6 +185,8 @@ class TblCourseContent extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @param TblSubjectGroup|null $tblSubjectGroup
      */
     public function setServiceTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)

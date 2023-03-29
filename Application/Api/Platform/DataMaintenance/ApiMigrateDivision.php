@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\Platform\DataMaintenance;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -36,6 +37,7 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
     const TYPE_DIVISION_COURSE = 'DIVISION_COURSE';
     const TYPE_TEST = 'TEST';
     const TYPE_TASK = 'TASK';
+    const TYPE_COURSE_CONTENT = 'COURSE_CONTENT';
     const TYPE_ABSENCE = 'ABSENCE';
 
     const MAX_DIVISION_COUNT = 5;
@@ -248,6 +250,7 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
             $result = self::receiverBlock(new Warning('Bitte warten. Die Klassen-Inhalte werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_DIVISION_COURSE)
                 . self::receiverBlock(new Warning('Bitte warten. Die Leistungsüberprüfungen werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_TEST)
                 . self::receiverBlock(new Warning('Bitte warten. Die Notenaufträge werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_TASK)
+                . self::receiverBlock(new Warning('Bitte warten. Die Kursbücher-Einträge werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_COURSE_CONTENT)
                 . self::receiverBlock(new Warning('Bitte warten. Die Fehlzeiten werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_ABSENCE);
 
             return $result . self::pipelineMigrateYearItem($YearId, self::TYPE_DIVISION_COURSE);
@@ -303,6 +306,7 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
             case self::TYPE_DIVISION_COURSE: $message = 'Klasseninhalte'; break;
             case self::TYPE_TEST: $message = 'Leistungsüberprüfungen für Klassen ab Id=' . $StartId; break;
             case self::TYPE_TASK: $message = 'Notenaufträge'; break;
+            case self::TYPE_COURSE_CONTENT: $message = 'Kursbücher-Einträge'; break;
             case self::TYPE_ABSENCE: $message = 'Fehlzeiten'; break;
             default: $message = $Type;
         }
@@ -353,6 +357,10 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
                     }
                 case self::TYPE_TASK:
                     return new Success('Notenaufträge erfolgreich migriert' . new PullRight(Grade::useService()->migrateTasks($tblYear) . ' Sekunden'), new Check())
+                        . self::pipelineMigrateYearItem($YearId, self::TYPE_COURSE_CONTENT);
+                case self::TYPE_COURSE_CONTENT:
+                    list ($count, $time) = Digital::useService()->migrateYear($tblYear);
+                    return new Success($count . ' Kursbücher-Einträge erfolgreich migriert' . new PullRight($time . ' Sekunden'), new Check())
                         . self::pipelineMigrateYearItem($YearId, self::TYPE_ABSENCE);
                 case self::TYPE_ABSENCE:
                     list ($count, $time) = Absence::useService()->migrateYear($tblYear);
