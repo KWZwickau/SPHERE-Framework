@@ -396,6 +396,33 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return bool
+     */
+    public function getIsCourseSystemByStudentsInDivisionCourse(TblDivisionCourse $tblDivisionCourse): bool
+    {
+        // bei Stammgruppe und Klasse query direkt über datenbank
+        if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+            || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP
+        ) {
+            return  (new Data($this->getBinding()))->getIsCourseSystemByStudentsInDivisionOrCoreGroup($tblDivisionCourse);
+        }
+
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($this->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear))) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblType $tblSchoolType
      * @param int $level
      *
