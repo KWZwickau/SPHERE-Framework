@@ -2297,8 +2297,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                         if(($tblGradeList = Gradebook::useService()->getGradesAllByStudentAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblTestType))){
                                             /** @var TblGrade $tblGrade */
                                             foreach($tblGradeList as $tblGrade){
-                                                $GradeSum += (int)$tblGrade->getGrade();
-                                                $GradeSumCount++;
+                                                if($tblGrade->getGrade() !== null){
+                                                    $GradeSum += (int)$tblGrade->getGrade();
+                                                    $GradeSumCount++;
+                                                }
                                             }
                                         }
                                     } elseif(($tblSubject = $tblCertificateSubject->getServiceTblSubject())
@@ -2306,8 +2308,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                                         if(($tblGradeList = Gradebook::useService()->getGradesAllByStudentAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblTestType))){
                                             /** @var TblGrade $tblGrade */
                                             foreach($tblGradeList as $tblGrade){
-                                                $GradePracticalSum += (int)$tblGrade->getGrade();
-                                                $GradePracticalCount++;
+                                                if($tblGrade->getGrade() !== null) {
+                                                    $GradePracticalSum += (int)$tblGrade->getGrade();
+                                                    $GradePracticalCount++;
+                                                }
                                             }
                                         }
                                     }
