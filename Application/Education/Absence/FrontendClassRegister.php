@@ -6,7 +6,6 @@ use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -55,32 +54,27 @@ use SPHERE\System\Extension\Extension;
 class FrontendClassRegister extends Extension implements IFrontendInterface
 {
     /**
-     * @param null $DivisionId
+     * @param null $DivisionCourseId
      * @param null $PersonId
      * @param string $BasicRoute
      * @param string $ReturnRoute
-     * @param null $GroupId
-     * @param null $DivisionSubjectId
      *
      * @return string
      */
-    public function frontendAbsenceStudent($DivisionId = null, $PersonId = null, string $BasicRoute = '', string $ReturnRoute = '',
-        $GroupId = null, $DivisionSubjectId = null) : string
+    public function frontendAbsenceStudent($DivisionCourseId = null, $PersonId = null, string $BasicRoute = '', string $ReturnRoute = '') : string
     {
         $Stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten Übersicht des Schülers');
         if ($ReturnRoute) {
             $Stage->addButton(new Standard('Zurück', $ReturnRoute, new ChevronLeft(),
-                    array(
-                        'DivisionSubjectId' => $DivisionSubjectId,
-                        'DivisionId' => $GroupId ? null : $DivisionId,
-                        'GroupId'    => $GroupId,
-                        'BasicRoute' => $BasicRoute,
-                    ))
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'BasicRoute' => $BasicRoute,
+                ))
             );
         }
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
-            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId))
+            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
         ) {
             $Stage->setContent(
                 new Layout(array(
@@ -109,7 +103,7 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                                     . (new PrimaryLink(
                                         new Plus() . ' Fehlzeit hinzufügen',
                                         ApiAbsence::getEndpoint()
-                                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal($PersonId, $DivisionId)),
+                                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal($PersonId, $DivisionCourseId)),
                                     new Container('&nbsp;')
                                 ))
                             ))
@@ -262,48 +256,22 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param null $DivisionSubjectId
+     * @param null $DivisionCourseId
      * @param string $BasicRoute
      *
      * @return Stage|string
      */
     public function frontendAbsenceMonth(
-        $DivisionId = null,
-        $GroupId = null,
-        $DivisionSubjectId = null,
+        $DivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten (Kalenderansicht)');
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            if ($GroupId) {
-                $stage->addButton(new Standard(
-                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
-                        'GroupId' => $GroupId,
-                        'BasicRoute' => $BasicRoute
-                    )
-                ));
-            } else {
-                $stage->addButton(new Standard(
-                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
-                        'DivisionId' => $DivisionId,
-                        'BasicRoute' => $BasicRoute
-                    )
-                ));
-            }
-        } else {
-            $stage->addButton(new Standard(
-                'Zurück', $BasicRoute, new ChevronLeft()
-            ));
-        }
-
-        if ($tblDivision) {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $stage->addButton(Digital::useFrontend()->getBackButton($tblDivisionCourse, $DivisionCourseId, $BasicRoute));
             $currentDate = new DateTime('now');
             // wenn der aktuelle Tag im Schuljahr ist dann diesen Anzeigen, ansonsten erster Tag des Schuljahres
-            if (($tblYear = $tblDivision->getServiceTblYear())) {
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
                 list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
                 if ($startDate && $endDate
                     && ($currentDate < $startDate || $currentDate > $endDate)
@@ -315,21 +283,17 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
             $stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow(
-                            $tblDivision , null, $tblYear, $tblDivisionSubject ?: null
-                        ),
-                        $tblDivisionSubject
-                            ? Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
-                            '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivision, null,
-                            '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
+                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
+                        $tblDivisionCourse->getType()->getIsCourseSystem()
+                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
+                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
                         ApiAbsence::receiverModal()
                         . ApiAbsence::receiverBlock(
                             Consumer::useService()->getAccountSettingValue('AbsenceView') == 'Month'
-                                ? ApiAbsence::generateOrganizerMonthly($tblDivision->getId(), $currentDate->format('m'), $currentDate->format('Y'))
-                                : ApiAbsence::generateOrganizerForDivisionWeekly($tblDivision->getId(), $currentDate->format('W'), $currentDate->format('Y')),
+                                ? ApiAbsence::generateOrganizerMonthly($tblDivisionCourse->getId(), $currentDate->format('m'), $currentDate->format('Y'))
+                                : ApiAbsence::generateOrganizerForDivisionWeekly($tblDivisionCourse->getId(), $currentDate->format('W'), $currentDate->format('Y')),
                             'CalendarContent'
                         )
                     )), new Title(new Calendar() . ' Fehlzeiten (Kalenderansicht)'))
