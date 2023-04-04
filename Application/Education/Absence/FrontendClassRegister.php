@@ -257,18 +257,20 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
 
     /**
      * @param null $DivisionCourseId
+     * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
      * @return Stage|string
      */
     public function frontendAbsenceMonth(
         $DivisionCourseId = null,
+        $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten (Kalenderansicht)');
 
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton(Digital::useFrontend()->getBackButton($tblDivisionCourse, $DivisionCourseId, $BasicRoute));
+            $stage->addButton(Digital::useFrontend()->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
             $currentDate = new DateTime('now');
             // wenn der aktuelle Tag im Schuljahr ist dann diesen Anzeigen, ansonsten erster Tag des Schuljahres
             if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
@@ -285,7 +287,8 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
                         $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
+                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/AbsenceMonth',
+                                $BasicRoute, $BackDivisionCourseId)
                             : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(

@@ -58,25 +58,28 @@ class FrontendTabs extends FrontendCourseContent
 {
     /**
      * @param null $DivisionCourseId
+     * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
      * @return Stage|string
      */
     public function frontendStudentList(
         $DivisionCourseId = null,
+        $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Schülerliste');
 
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $DivisionCourseId, $BasicRoute));
+            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
 
             $stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
                         $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Student', $BasicRoute)
+                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Student',
+                                $BasicRoute, $BackDivisionCourseId)
                             : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Student', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -92,12 +95,12 @@ class FrontendTabs extends FrontendCourseContent
         return $stage;
     }
 
-    public function getBackButton(TblDivisionCourse $tblDivisionCourse, $DivisionCourseId, $BasicRoute): Standard
+    public function getBackButton(TblDivisionCourse $tblDivisionCourse, $BackDivisionCourseId, $BasicRoute): Standard
     {
         if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
             return new Standard(
                 'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
-                    'DivisionCourseId' => $DivisionCourseId,
+                    'DivisionCourseId' => $BackDivisionCourseId,
                     'BasicRoute' => $BasicRoute
                 )
             );
@@ -110,18 +113,20 @@ class FrontendTabs extends FrontendCourseContent
 
     /**
      * @param null $DivisionCourseId
+     * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
      * @return Stage|string
      */
     public function frontendDownload(
         $DivisionCourseId = null,
+        $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Download');
 
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $DivisionCourseId, $BasicRoute));
+            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
 
             if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
                 $name = 'Kursliste';
@@ -156,7 +161,8 @@ class FrontendTabs extends FrontendCourseContent
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
                         $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Download', $BasicRoute)
+                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Download',
+                                $BasicRoute, $BackDivisionCourseId)
                             : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Download', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(array(
@@ -301,18 +307,20 @@ class FrontendTabs extends FrontendCourseContent
 
     /**
      * @param null $DivisionCourseId
+     * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
      * @return Stage|string
      */
     public function frontendLectureship(
         $DivisionCourseId = null,
+        $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Unterrichtete Fächer / Lehrer');
 
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $DivisionCourseId, $BasicRoute));
+            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
 
             $content = Digital::useService()->getSubjectsAndLectureshipByDivisionCourse($tblDivisionCourse);
 
@@ -321,7 +329,8 @@ class FrontendTabs extends FrontendCourseContent
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
                         $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Lectureship', $BasicRoute)
+                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Lectureship',
+                                $BasicRoute, $BackDivisionCourseId)
                             : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Lectureship', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -350,7 +359,7 @@ class FrontendTabs extends FrontendCourseContent
         $stage = new Stage('Digitales Klassenbuch', 'Kontrolle');
 
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $DivisionCourseId, $BasicRoute));
+            $stage->addButton($this->getBackButton($tblDivisionCourse, null, $BasicRoute));
 
             $hasDivisionTeacherRight = (($tblPerson = Account::useService()->getPersonByLogin())
                 && ($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
@@ -563,12 +572,14 @@ class FrontendTabs extends FrontendCourseContent
 
     /**
      * @param null $DivisionCourseId
+     * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
      * @return Stage|string
      */
     public function frontendHoliday(
         $DivisionCourseId = null,
+        $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Ferien / Unterrichtsfreie Tage');
@@ -576,7 +587,7 @@ class FrontendTabs extends FrontendCourseContent
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $DivisionCourseId, $BasicRoute));
+            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
 
             $list = array();
             $dataList = array();
@@ -628,7 +639,8 @@ class FrontendTabs extends FrontendCourseContent
                     new LayoutGroup(array(
                         Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
                         $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Holiday', $BasicRoute)
+                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Holiday',
+                                $BasicRoute, $BackDivisionCourseId)
                             : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Holiday', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(

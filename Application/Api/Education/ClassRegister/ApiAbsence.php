@@ -295,7 +295,6 @@ class ApiAbsence extends Extension implements IApiInterface
             } else {
                 $reloadDigital = ApiDigital::pipelineLoadLessonContentContent(
                     $tblDivisionCourse->getId(),
-                    null,
                     $date->format('d.m.Y'),
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day'
                 );

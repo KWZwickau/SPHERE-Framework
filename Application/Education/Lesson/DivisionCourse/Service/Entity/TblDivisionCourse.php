@@ -453,4 +453,12 @@ class TblDivisionCourse extends Element
     {
         return DivisionCourse::useService()->getHasSaturdayLessonsByDivisionCourse($this);
     }
+
+    /**
+     * @return bool
+     */
+    public function getIsDivisionOrCoreGroup(): bool
+    {
+        return $this->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $this->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP;
+    }
 }

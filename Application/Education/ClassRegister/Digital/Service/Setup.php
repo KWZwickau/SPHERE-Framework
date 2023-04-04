@@ -48,6 +48,8 @@ class Setup  extends AbstractSetup
     {
         $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterLessonContent');
 
+        // todo serviceTblGroup und serviceTblYear löschen
+
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblGroup', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT, true);
@@ -87,6 +89,8 @@ class Setup  extends AbstractSetup
     private function setTableLessonWeek(Schema &$Schema)
     {
         $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterLessonWeek');
+
+        // todo serviceTblGroup und serviceTblYear löschen
 
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblGroup', self::FIELD_TYPE_BIGINT, true);

@@ -6,8 +6,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -449,13 +448,11 @@ class ApiInstructionSetting extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $SubjectId
-     * @param string|null $SubjectGroupId
+     * @param string|null $DivisionCourseId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveHeadmasterNoticed(string $DivisionId = null, string $SubjectId = null, string $SubjectGroupId = null): Pipeline
+    public static function pipelineSaveHeadmasterNoticed(string $DivisionCourseId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CourseContentContent'), self::getEndpoint());
@@ -463,9 +460,7 @@ class ApiInstructionSetting extends Extension implements IApiInterface
             self::API_TARGET => 'saveHeadmasterNoticed',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'SubjectId' => $SubjectId,
-            'SubjectGroupId' => $SubjectGroupId,
+            'DivisionCourseId' => $DivisionCourseId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -473,24 +468,18 @@ class ApiInstructionSetting extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $SubjectId
-     * @param string|null $SubjectGroupId
+     * @param string|null $DivisionCourseId
      *
      * @return Pipeline|Danger
      */
-    public function saveHeadmasterNoticed(string $DivisionId = null, string $SubjectId = null, string $SubjectGroupId = null)
+    public function saveHeadmasterNoticed(string $DivisionCourseId = null)
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblSubject = Subject::useService()->getSubjectById($SubjectId);
-        $tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId);
-
-        if (!($tblDivision || $tblSubjectGroup || $tblSubject)) {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        Digital::useService()->updateBulkCourseContentHeadmaster($tblDivision, $tblSubject, $tblSubjectGroup);
+        Digital::useService()->updateBulkCourseContentHeadmaster($tblDivisionCourse);
 
-        return ApiDigital::pipelineLoadCourseContentContent($DivisionId, $SubjectId, $SubjectGroupId, 'true');
+        return ApiDigital::pipelineLoadCourseContentContent($DivisionCourseId, 'true');
     }
 }

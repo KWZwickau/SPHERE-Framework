@@ -26,6 +26,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -225,8 +226,24 @@ class Service extends AbstractService
     {
         $content[] = $tblDivisionCourse->getTypeName() . ': ' . $tblDivisionCourse->getDisplayName();
 
-        if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
+        // SekII-Kurs
+        if ($tblDivisionCourse->getType()->getIsCourseSystem()
+            && ($tblSubject = $tblDivisionCourse->getServiceTblSubject())
+        ) {
             $content[] = 'Fach: ' . $tblSubject->getDisplayName();
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+                && ($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, null, $tblDivisionCourse, $tblSubject))
+            ) {
+                $subjectTeacherList = array();
+                foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                    if (($tblPersonTeacher = $tblTeacherLectureship->getServiceTblPerson())) {
+                        $subjectTeacherList[] = $tblPersonTeacher->getFullName();
+                    }
+                }
+                if ($subjectTeacherList) {
+                    $content[] = 'Fachlehrer: ' . implode(', ', $subjectTeacherList);
+                }
+            }
         }
 
         // Gruppenlehrer
@@ -367,37 +384,64 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $name
+     * @param string $route
+     * @param $icon
+     * @param $DivisionCourseId
+     * @param $BackDivisionCourseId
+     * @param $BasicRoute
+     * @param bool $isSelected
+     *
+     * @return Standard
+     */
+    private function getButtonCourseSystem(string $name, string $route, $icon, $DivisionCourseId, $BackDivisionCourseId,
+        $BasicRoute, bool $isSelected = false): Standard
+    {
+        return new Standard(
+            $isSelected ? new Info(new Bold($name)) : $name,
+            $route,
+            $icon,
+            array(
+                'DivisionCourseId' => $DivisionCourseId,
+                'BackDivisionCourseId' => $BackDivisionCourseId,
+                'BasicRoute' => $BasicRoute
+            )
+        );
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param string $Route
      * @param string $BasicRoute
+     * @param null $BackDivisionCourseId
      *
      * @return LayoutRow
      */
     public function getHeadButtonListLayoutRowForCourseSystem(TblDivisionCourse $tblDivisionCourse,
-        string $Route = '/Education/ClassRegister/Digital/CourseContent', string $BasicRoute = ''): LayoutRow
+        string $Route = '/Education/ClassRegister/Digital/CourseContent', string $BasicRoute = '', $BackDivisionCourseId = null): LayoutRow
     {
         $DivisionCourseId = $tblDivisionCourse->getId();
-        $buttonList[] = $this->getButton('Kursheft', '/Education/ClassRegister/Digital/CourseContent', new Book(),
-            $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/CourseContent');
+        $buttonList[] = $this->getButtonCourseSystem('Kursheft', '/Education/ClassRegister/Digital/CourseContent', new Book(),
+            $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/CourseContent');
 
         // Kursheft Kontrolle: nur für Schulleitung
         if (Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting')) {
-            $buttonList[] = $this->getButton('Kursheft Kontrolle', '/Education/ClassRegister/Digital/CourseControl', new Ok(),
-                $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/CourseControl');
+            $buttonList[] = $this->getButtonCourseSystem('Kursheft Kontrolle', '/Education/ClassRegister/Digital/CourseControl', new Ok(),
+                $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/CourseControl');
         }
 
-        $buttonList[] = $this->getButton('Schülerliste', '/Education/ClassRegister/Digital/Student', new PersonGroup(),
-            $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Student');
-        $buttonList[] = $this->getButton('Fehlzeiten (Kalenderansicht)', '/Education/ClassRegister/Digital/AbsenceMonth', new Calendar(),
-            $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
-        $buttonList[] = $this->getButton('Belehrungen', '/Education/ClassRegister/Digital/Instruction', new CommodityItem(),
-            $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Instruction');
-        $buttonList[] = $this->getButton('Unterrichtete Fächer / Lehrer', '/Education/ClassRegister/Digital/Lectureship', new Listing(),
-            $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
-        $buttonList[] = $this->getButton('Ferien', '/Education/ClassRegister/Digital/Holiday', new Holiday(),
-            $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Holiday');
-        $buttonList[] = $this->getButton('Download', '/Education/ClassRegister/Digital/Download', new Download(),
-            $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
+        $buttonList[] = $this->getButtonCourseSystem('Schülerliste', '/Education/ClassRegister/Digital/Student', new PersonGroup(),
+            $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Student');
+        $buttonList[] = $this->getButtonCourseSystem('Fehlzeiten (Kalenderansicht)', '/Education/ClassRegister/Digital/AbsenceMonth', new Calendar(),
+            $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
+        $buttonList[] = $this->getButtonCourseSystem('Belehrungen', '/Education/ClassRegister/Digital/Instruction', new CommodityItem(),
+            $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Instruction');
+//        $buttonList[] = $this->getButtonCourseSystem('Unterrichtete Fächer / Lehrer', '/Education/ClassRegister/Digital/Lectureship', new Listing(),
+//            $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
+        $buttonList[] = $this->getButtonCourseSystem('Ferien', '/Education/ClassRegister/Digital/Holiday', new Holiday(),
+            $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Holiday');
+        $buttonList[] = $this->getButtonCourseSystem('Download', '/Education/ClassRegister/Digital/Download', new Download(),
+            $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
 
         return new LayoutRow(new LayoutColumn($buttonList));
     }
@@ -924,32 +968,58 @@ class Service extends AbstractService
     public function getSubjectsAndLectureshipByDivisionCourse(TblDivisionCourse $tblDivisionCourse): string
     {
         $dataList = array();
-        if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByDivisionCourse($tblDivisionCourse, false))
-            && ($tblDivisionCourseListStudents = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))
-            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-        ) {
-            $tblDivisionCourseListStudents = $this->getSorter($tblDivisionCourseListStudents)->sortObjectBy('Name', new StringNaturalOrderSorter());
-            foreach ($tblSubjectList as $tblSubject) {
-                $listing = array();
-                /** @var TblDivisionCourse $tblDivisionCourseStudent */
-                foreach ($tblDivisionCourseListStudents as $tblDivisionCourseStudent) {
-                    if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, null, $tblDivisionCourseStudent, $tblSubject))) {
-                        $teacherList = array();
-                        foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
-                            if (($tblPersonTeacher = $tblTeacherLectureship->getServiceTblPerson())) {
-                                // Fach // Kurse -> Lehrer
-                                $teacherList[] = $tblPersonTeacher->getFullName();
-                            }
+        if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+                $tempList = array();
+                if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByStudentDivisionCourseAndPeriod($tblDivisionCourse, 1))) {
+                    foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                        if (($tblDivisionCourseSubject = $tblStudentSubject->getTblDivisionCourse())
+                            && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                            && !isset($tempList[$tblSubject->getId()][$tblDivisionCourseSubject->getId()])
+                        ) {
+                            $tempList[$tblSubject->getId()][$tblDivisionCourseSubject->getId()] = 1;
                         }
-
-                        $listing[] = new PullClear($tblDivisionCourseStudent->getDisplayName() . new PullRight(implode(', ', $teacherList)));
                     }
                 }
 
-                $dataList[] = array(
-                    'Subject' => $tblSubject->getDisplayName(),
-                    'Teacher' => empty($listing) ? '' : new \SPHERE\Common\Frontend\Layout\Repository\Listing($listing)
-                );
+                foreach ($tempList as $subjectId => $courseIdList) {
+                    if (($tblSubjectItem = Subject::useService()->getSubjectById($subjectId))) {
+                        $listing = array();
+                        foreach ($courseIdList as $courseId => $value) {
+                            if (($tblDivisionCourseItem = DivisionCourse::useService()->getDivisionCourseById($courseId))) {
+                                if (($listingItem = $this->getTeacherListingItemByDivisionCourse($tblDivisionCourseItem, $tblSubjectItem, $tblYear))) {
+                                    $listing[] = $listingItem;
+                                }
+                            }
+                        }
+
+                        $dataList[] = array(
+                            'Subject' => $tblSubjectItem->getDisplayName(),
+                            'Teacher' => empty($listing) ? '' : new \SPHERE\Common\Frontend\Layout\Repository\Listing($listing)
+                        );
+                    }
+                }
+            }
+        } else {
+            if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByDivisionCourse($tblDivisionCourse, false))
+                && ($tblDivisionCourseListStudents = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))
+                && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            ) {
+                $tblDivisionCourseListStudents = $this->getSorter($tblDivisionCourseListStudents)->sortObjectBy('Name', new StringNaturalOrderSorter());
+                foreach ($tblSubjectList as $tblSubject) {
+                    $listing = array();
+                    /** @var TblDivisionCourse $tblDivisionCourseStudent */
+                    foreach ($tblDivisionCourseListStudents as $tblDivisionCourseStudent) {
+                        if (($listingItem = $this->getTeacherListingItemByDivisionCourse($tblDivisionCourseStudent, $tblSubject, $tblYear))) {
+                            $listing[] = $listingItem;
+                        }
+                    }
+
+                    $dataList[] = array(
+                        'Subject' => $tblSubject->getDisplayName(),
+                        'Teacher' => empty($listing) ? '' : new \SPHERE\Common\Frontend\Layout\Repository\Listing($listing)
+                    );
+                }
             }
         }
 
@@ -960,6 +1030,36 @@ class Service extends AbstractService
 
         return (new TableData($dataList, new Title($tblDivisionCourse->getTypeName() . ' ' . $tblDivisionCourse->getDisplayName()), $columns, null))
             ->setHash('Table_Division_' . $tblDivisionCourse->getId());
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     * @param TblYear $tblYear
+     *
+     * @return string
+     */
+    private function getTeacherListingItemByDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject, TblYear $tblYear)
+    {
+        $teacherList = array();
+        if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP
+            && $tblDivisionCourse->getServiceTblSubject()
+            && $tblDivisionCourse->getServiceTblSubject()->getId() == $tblSubject->getId()
+            && ($tblPersonTeacher = $tblDivisionCourse->getFirstDivisionTeacher())
+        ) {
+            $teacherList[] = $tblPersonTeacher->getFullName();
+        } elseif (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, null, $tblDivisionCourse, $tblSubject))) {
+            foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                if (($tblPersonTeacher = $tblTeacherLectureship->getServiceTblPerson())) {
+                    // Fach // Kurse -> Lehrer
+                    $teacherList[] = $tblPersonTeacher->getFullName();
+                }
+            }
+        }
+
+        return empty($teacherList)
+            ? false
+            : new PullClear($tblDivisionCourse->getDisplayName() . new PullRight(implode(', ', $teacherList)));
     }
 
     /**
