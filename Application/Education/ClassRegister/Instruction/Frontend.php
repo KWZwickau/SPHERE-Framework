@@ -7,13 +7,11 @@ use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstruction;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -24,7 +22,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -85,7 +82,7 @@ class Frontend extends Extension implements IFrontendInterface
         $dataList = array();
         if (($tblInstructionList = Instruction::useService()->getInstructionAll(false))) {
             foreach ($tblInstructionList as $tblInstruction) {
-                $hasInstructionItems = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, null, null, null);
+                $hasInstructionItems = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction);
                 $dataList[] = array(
                     'Subject' => $tblInstruction->getSubject(),
                     'Content' => $tblInstruction->getContent(),
@@ -191,68 +188,34 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param null $DivisionSubjectId
+     * @param null $DivisionCourseId
+     * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
      * @return Stage|string
      */
     public function frontendInstruction(
-        $DivisionId = null,
-        $GroupId = null,
-        $DivisionSubjectId = null,
+        $DivisionCourseId = null,
+        $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Belehrungen');
 
-        $tblYear = null;
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            if ($GroupId) {
-                $stage->addButton(new Standard(
-                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
-                        'GroupId' => $GroupId,
-                        'BasicRoute' => $BasicRoute
-                    )
-                ));
-            } else {
-                $stage->addButton(new Standard(
-                    'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
-                        'DivisionId' => $DivisionId,
-                        'BasicRoute' => $BasicRoute
-                    )
-                ));
-            }
-        } else {
-            $stage->addButton(new Standard(
-                'Zurück', $BasicRoute, new ChevronLeft(), array('IsGroup' => $GroupId)
-            ));
-        }
-
-        if ($tblDivision || $tblGroup || $tblDivisionSubject) {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $stage->addButton(Digital::useFrontend()->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
             $stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow(
-                            $tblDivision ?: null, $tblGroup ?: null, $tblYear, $tblDivisionSubject ?: null
-                        ),
-                        $tblDivisionSubject
-                            ? Digital::useService()->getHeadButtonListLayoutRowForDivisionSubject($tblDivisionSubject, $DivisionId, $GroupId,
-                                '/Education/ClassRegister/Digital/Instruction', $BasicRoute)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                                '/Education/ClassRegister/Digital/Instruction', $BasicRoute)
-
+                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
+                        $tblDivisionCourse->getType()->getIsCourseSystem()
+                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Instruction',
+                                $BasicRoute, $BackDivisionCourseId)
+                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Instruction', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
                         ApiInstructionItem::receiverModal()
                         . ApiInstructionItem::receiverBlock(
-                            $this->loadInstructionItemTable(
-                                $tblDivision && !$tblDivisionSubject ? $tblDivision : null,
-                                $tblGroup && !$tblDivisionSubject ? $tblGroup : null,
-                                $tblDivisionSubject ?: null
-                            ),
+                            $this->loadInstructionItemTable($tblDivisionCourse),
                             'InstructionItemContent'
                         )
                     )), new Title(new CommodityItem() . ' Belehrungen'))
@@ -267,13 +230,11 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblDivisionSubject|null $tblDivisionSubject
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return string
      */
-    public function loadInstructionItemTable(?TblDivision $tblDivision, ?TblGroup $tblGroup, ?TblDivisionSubject $tblDivisionSubject): string
+    public function loadInstructionItemTable(TblDivisionCourse $tblDivisionCourse): string
     {
         $dataList = array();
         if (($tblInstructionList = Instruction::useService()->getInstructionAll())) {
@@ -282,7 +243,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $content = $tblInstruction->getContent();
                 $count = 0;
                 $sublist = array();
-                if (($tblInstructionItemList = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivision, $tblGroup, $tblDivisionSubject))) {
+                if (($tblInstructionItemList = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivisionCourse))) {
                     foreach ($tblInstructionItemList as $tblInstructionItem) {
                         if ($tblInstructionItem->getIsMain()) {
                             $content = $tblInstructionItem->getContent();
@@ -302,17 +263,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     . (count($missingStudents) == 1 ? 'r' : '') . ' Schüler'), htmlspecialchars(implode(' - ', $missingStudents))))->enableHtml() : '')
                             . ' - '. $tblInstructionItem->getTeacherString()
                             . new PullRight((new Standard('', ApiInstructionItem::getEndpoint(), new Edit(), array(), $pretext .  ' bearbeiten'))
-                                ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenEditInstructionItemModal(
-                                    $tblInstructionItem->getId()
-                                )));
+                                ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenEditInstructionItemModal($tblInstructionItem->getId())));
                     }
 
-                    if (($missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, $tblDivision, $tblGroup, $tblDivisionSubject))) {
+                    if (($missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, $tblDivisionCourse))) {
                         $sublist[] = (new Standard('', ApiInstructionItem::getEndpoint(), new Plus(), array(), 'Neue Nachbelehrung hinzufügen'))
-                            ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenCreateInstructionItemModal(
-                                $tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null,
-                                $tblDivisionSubject ? $tblDivisionSubject->getId() : null, $tblInstruction->getId()
-                            ));
+                            ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenCreateInstructionItemModal($tblDivisionCourse->getId(), $tblInstruction->getId()));
                         $panel = new Panel('Belehrung teilweise durchgeführt', $sublist, Panel::PANEL_TYPE_WARNING)
                             . new Panel('Fehlende Schüler', $missingPersonTotal, Panel::PANEL_TYPE_WARNING);
                     } else {
@@ -320,10 +276,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 } else {
                     $sublist[] = (new Standard('', ApiInstructionItem::getEndpoint(), new Plus(), array(), 'Neue Belehrung hinzufügen'))
-                        ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenCreateInstructionItemModal(
-                            $tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null,
-                            $tblDivisionSubject ? $tblDivisionSubject->getId() : null, $tblInstruction->getId()
-                        ));
+                        ->ajaxPipelineOnClick(ApiInstructionItem::pipelineOpenCreateInstructionItemModal($tblDivisionCourse->getId(), $tblInstruction->getId()));
                     $panel = new Panel(new Exclamation() . ' Keine Belehrung durchgeführt', $sublist, Panel::PANEL_TYPE_DANGER);
                 }
 
@@ -356,19 +309,16 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblDivisionSubject|null $tblDivisionSubject
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param TblInstruction $tblInstruction
      * @param null $InstructionItemId
      * @param bool $setPost
      *
      * @return Form
      */
-    public function formInstructionItem(?TblDivision $tblDivision, ?TblGroup $tblGroup, ?TblDivisionSubject $tblDivisionSubject, TblInstruction $tblInstruction,
-        $InstructionItemId = null, bool $setPost = false): Form
+    public function formInstructionItem(TblDivisionCourse $tblDivisionCourse, TblInstruction $tblInstruction, $InstructionItemId = null, bool $setPost = false): Form
     {
-        $tblMainInstructionItem = Instruction::useService()->getMainInstructionItemBy($tblInstruction, $tblDivision, $tblGroup, $tblDivisionSubject);
+        $tblMainInstructionItem = Instruction::useService()->getMainInstructionItemBy($tblInstruction, $tblDivisionCourse);
 
         $tblInstructionItem = false;
         if ($InstructionItemId) {
@@ -385,7 +335,6 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblInstructionItemStudents as $tblInstructionItemStudent) {
                     if (($tblPersonItem = $tblInstructionItemStudent->getServiceTblPerson())) {
                         $Global->POST['Data']['Students'][$tblPersonItem->getId()] = 1;
-                        $setStudents[$tblPersonItem->getId()] = $tblPersonItem;
                     }
                 }
             }
@@ -403,17 +352,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $columns = array();
-        if ($tblDivisionSubject) {
-            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-        } elseif ($tblDivision) {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-        } elseif ($tblGroup) {
-            $tblPersonList = $tblGroup->getStudentOnlyList();
-        } else {
-            $tblPersonList = false;
-        }
-        if ($tblPersonList) {
-            $missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, $tblDivision, $tblGroup, $tblDivisionSubject);
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+            $missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, $tblDivisionCourse);
             foreach ($tblPersonList as $tblPerson) {
                 // bei Nachbelehrung nur die fehlenden Schüler zur Auswahl anzeigen
                 if (!$missingPersonTotal || $InstructionItemId || isset($missingPersonTotal[$tblPerson->getId()])) {
@@ -429,9 +369,7 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $saveButton = (new Primary('Speichern', ApiInstructionItem::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiInstructionItem::pipelineCreateInstructionItemSave(
-                    $tblDivision ? $tblDivision->getId() : null,
-                    $tblGroup ? $tblGroup->getId() : null,
-                    $tblDivisionSubject ? $tblDivisionSubject->getId() : null,
+                    $tblDivisionCourse->getId(),
                     $tblInstruction->getId()
                 ));
         }
@@ -439,9 +377,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Belehrung löschen
         if ($InstructionItemId && $tblInstructionItem
-            // Hauptbelehrung erst löschen wenn alle Nachbelehrungen gelöscht wurden
+            // Hauptbelehrung erst löschen, wenn alle Nachbelehrungen gelöscht wurden
             && (!$tblInstructionItem->getIsMain()
-                || count(Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivision, $tblGroup, $tblDivisionSubject)) == 1)
+                || count(Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivisionCourse)) == 1)
         ) {
             $buttonList[] = (new \SPHERE\Common\Frontend\Link\Repository\Danger(
                 'Löschen',
@@ -474,7 +412,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInstructionReporting($Data = null)
+    public function frontendInstructionReporting($Data = null): Stage
     {
         $stage = new Stage('Belehrungen', 'Auswertung');
 
@@ -519,30 +457,44 @@ class Frontend extends Extension implements IFrontendInterface
         if (!($tblYear = Term::useService()->getYearById($Data['Year']))) {
             return new \SPHERE\Common\Frontend\Message\Repository\Warning('Bitte wählen Sie ein Schuljahr aus!', new Exclamation());
         }
-        if (($tblType = Type::useService()->getTypeById($Data['Type']))) {
-            $tblDivisionList = Division::useService()->getDivisionAllByYearAndType($tblYear, $tblType);
-        } else {
-            $tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear);
+
+        $tblSchoolType = Type::useService()->getTypeById($Data['Type']);
+
+        $tblDivisionCourseList = array();
+        if (($tblTempListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblTempListDivision);
+        }
+        if (($tblTempListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblTempListCoreGroup);
         }
 
-        $panelDivisionList = array();
+        $panelDivisionCourseList = array();
         $tblInstructionList = Instruction::useService()->getInstructionAll();
 
-        if ($tblDivisionList && $tblInstructionList) {
+        if ($tblDivisionCourseList && $tblInstructionList) {
             $tblInstructionList = $this->getSorter($tblInstructionList)->sortObjectBy('Subject');
-            $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
-            /** @var TblDivision $tblDivision */
-            foreach ($tblDivisionList as $tblDivision) {
-                if (Division::useService()->getIsDivisionCourseSystem($tblDivision)) {
+            $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
+            /** @var TblDivisionCourse $tblDivisionCourse */
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                //
+                if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
                     continue;
                 }
-                $tblTypeDivision = $tblDivision->getType();
+                if ($tblSchoolType) {
+                    if (!($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                        || !isset($tblSchoolTypeList[$tblSchoolType->getId()])
+                    ) {
+                        continue;
+                    }
+                }
+
+                $tblTypeDivision = $tblDivisionCourse->getType();
                 $contentPanel = array();
                 $isDivisionFulfilled = true;
                 foreach ($tblInstructionList as $tblInstruction) {
                     $student = '';
-                    if (Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivision, null, null)) {
-                        if (($missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, $tblDivision, null, null))) {
+                    if (Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivisionCourse)) {
+                        if (($missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, $tblDivisionCourse))) {
                             $status = new Warning('Belehrung teilweise durchgeführt');
                             $student = new ToolTip(new Warning(new Disable() . ' ' . count($missingPersonTotal) . ' fehlende' . (count($missingPersonTotal) == 1 ? 'r' : '')
                                 . ' Schüler'), implode(' - ', $missingPersonTotal));
@@ -562,8 +514,8 @@ class Frontend extends Extension implements IFrontendInterface
                     ))));
                 }
 
-                $panelDivisionList[] = new Panel(
-                    $tblDivision->getDisplayName() . ($tblTypeDivision ? new Small(' (' . $tblTypeDivision->getName() . ')') : ''),
+                $panelDivisionCourseList[] = new Panel(
+                    $tblDivisionCourse->getDisplayName() . ($tblTypeDivision ? new Small(' (' . $tblTypeDivision->getName() . ')') : ''),
                     $contentPanel,
                     $isDivisionFulfilled ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING
                 );
@@ -571,54 +523,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $layoutGroups = array();
-        if (!empty($panelDivisionList)) {
-            $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn($panelDivisionList)), new Title('Klassen'));
-        }
-
-        if (($tblGroupList = Group::useService()->getTudorGroupAll())
-            && $tblInstructionList
-        ) {
-            $tblGroupList = $this->getSorter($tblGroupList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
-            /** @var TblGroup $tblGroup */
-            foreach ($tblGroupList as $tblGroup) {
-                if ($tblGroup->getIsGroupCourseSystem()) {
-                    continue;
-                }
-                $contentPanel = array();
-                $isGroupFulfilled = true;
-                foreach ($tblInstructionList as $tblInstruction) {
-                    $student = '';
-                    if (Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, null, $tblGroup, null)) {
-                        if (($missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, null, $tblGroup, null))) {
-                            $status = new Warning('Belehrung teilweise durchgeführt');
-                            $student = new Warning(new Disable() . ' ' . count($missingPersonTotal) . ' fehlende' . (count($missingPersonTotal) == 1 ? 'r' : '')
-                                . ' Schüler');
-                            $isGroupFulfilled = false;
-                        } else {
-                            $status = new Success(new Check() . ' Belehrung vollständig durchgeführt');
-                        }
-                    } else {
-                        $status = new \SPHERE\Common\Frontend\Text\Repository\Danger(new Exclamation() . ' Keine Belehrung durchgeführt');
-                        $isGroupFulfilled = false;
-                    }
-
-                    $contentPanel[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn($tblInstruction->getSubject(), 6),
-                        new LayoutColumn($status, 3),
-                        new LayoutColumn($student, 3),
-                    ))));
-                }
-
-                $panelGroupList[] = new Panel(
-                    $tblGroup->getName(),
-                    $contentPanel,
-                    $isGroupFulfilled ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING
-                );
-            }
-        }
-
-        if (!empty($panelGroupList)) {
-            $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn($panelGroupList)), new Title('Stammgruppen'));
+        if (!empty($panelDivisionCourseList)) {
+            $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn($panelDivisionCourseList)), new Title('Kurse'));
         }
 
         if (!empty($layoutGroups)) {

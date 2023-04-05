@@ -7,9 +7,8 @@ use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblIns
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstructionItem;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstructionItemStudent;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Setup;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -34,6 +33,16 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return array
+     */
+    public function migrateYear(TblYear $tblYear): array
+    {
+        return (new Data($this->getBinding()))->migrateYear($tblYear);
     }
 
     /**
@@ -141,39 +150,29 @@ class Service extends AbstractService
 
     /**
      * @param TblInstruction $tblInstruction
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblDivisionSubject|null $tblDivisionSubject
+     * @param ?TblDivisionCourse $tblDivisionCourse
      *
      * @return false|TblInstructionItem[]
      */
-    public function getInstructionItemAllByInstruction(TblInstruction $tblInstruction, ?TblDivision $tblDivision, ?TblGroup $tblGroup,
-        ?TblDivisionSubject $tblDivisionSubject)
+    public function getInstructionItemAllByInstruction(TblInstruction $tblInstruction, ?TblDivisionCourse $tblDivisionCourse = null)
     {
-        $tblYear = $tblGroup ? $tblGroup->getCurrentYear() : null;
-        return (new Data($this->getBinding()))->getInstructionItemAllByInstruction($tblInstruction, $tblDivision, $tblGroup, $tblDivisionSubject, $tblYear ?: null);
+        return (new Data($this->getBinding()))->getInstructionItemAllByInstruction($tblInstruction, $tblDivisionCourse);
     }
-
 
     /**
      * @param TblInstruction $tblInstruction
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblDivisionSubject|null $tblDivisionSubject
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return false|TblInstructionItem
      */
-    public function getMainInstructionItemBy(TblInstruction $tblInstruction, ?TblDivision $tblDivision, ?TblGroup $tblGroup, ?TblDivisionSubject $tblDivisionSubject)
+    public function getMainInstructionItemBy(TblInstruction $tblInstruction, TblDivisionCourse $tblDivisionCourse)
     {
-        $tblYear = $tblGroup ? $tblGroup->getCurrentYear() : null;
-        return (new Data($this->getBinding()))->getMainInstructionItemBy($tblInstruction, $tblDivision, $tblGroup, $tblDivisionSubject, $tblYear ?: null);
+        return (new Data($this->getBinding()))->getMainInstructionItemBy($tblInstruction, $tblDivisionCourse);
     }
 
     /**
      * @param $Data
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblDivisionSubject|null $tblDivisionSubject
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param TblInstruction $tblInstruction
      * @param TblInstructionItem|null $tblInstructionItem
      *
@@ -181,18 +180,14 @@ class Service extends AbstractService
      */
     public function checkFormInstructionItem(
         $Data,
-        ?TblDivision $tblDivision,
-        ?TblGroup $tblGroup,
-        ?TblDivisionSubject $tblDivisionSubject,
+        TblDivisionCourse $tblDivisionCourse,
         TblInstruction $tblInstruction,
         ?TblInstructionItem $tblInstructionItem
     ) {
         $error = false;
 
         $form = Instruction::useFrontend()->formInstructionItem(
-            $tblDivision,
-            $tblGroup,
-            $tblDivisionSubject,
+            $tblDivisionCourse,
             $tblInstruction,
             $tblInstructionItem ? $tblInstructionItem->getId() : null
         );
@@ -212,34 +207,18 @@ class Service extends AbstractService
     /**
      * @param $Data
      * @param TblInstruction $tblInstruction
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblDivisionSubject|null $tblDivisionSubject
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return bool
      */
-    public function createInstructionItem($Data, TblInstruction $tblInstruction, ?TblDivision $tblDivision, ?TblGroup $tblGroup,
-        ?TblDivisionSubject $tblDivisionSubject): bool
+    public function createInstructionItem($Data, TblInstruction $tblInstruction, TblDivisionCourse $tblDivisionCourse): bool
     {
-        if ($tblDivisionSubject && $tblDivisionSubject->getTblDivision()) {
-            $tblYear = $tblDivisionSubject->getTblDivision()->getServiceTblYear();
-        } elseif ($tblDivision) {
-            $tblYear = $tblDivision->getServiceTblYear();
-        } elseif ($tblGroup) {
-            $tblYear = $tblGroup->getCurrentYear();
-        } else {
-            $tblYear = false;
-        }
-
         $tblPerson = Account::useService()->getPersonByLogin();
-        $tblMainInstructionItem = Instruction::useService()->getMainInstructionItemBy($tblInstruction, $tblDivision, $tblGroup, $tblDivisionSubject);
+        $tblMainInstructionItem = Instruction::useService()->getMainInstructionItemBy($tblInstruction, $tblDivisionCourse);
 
         if (($tblInstructionItem = (new Data($this->getBinding()))->createInstructionItem(
             $tblInstruction,
-            $tblDivision,
-            $tblGroup,
-            $tblDivisionSubject,
-            $tblYear ?: null,
+            $tblDivisionCourse,
             $tblPerson ?: null,
             $Data['Date'],
             !$tblMainInstructionItem ? $tblInstruction->getSubject() : '',
@@ -343,17 +322,14 @@ class Service extends AbstractService
 
     /**
      * @param TblInstruction $tblInstruction
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblDivisionSubject|null $tblDivisionSubject
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return false|array
      */
-    public function getMissingStudentsByInstruction(TblInstruction $tblInstruction, ?TblDivision $tblDivision, ?TblGroup $tblGroup,
-        ?TblDivisionSubject $tblDivisionSubject)
+    public function getMissingStudentsByInstruction(TblInstruction $tblInstruction, TblDivisionCourse $tblDivisionCourse)
     {
         $personList = array();
-        if (($tblInstructionItemList = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivision, $tblGroup, $tblDivisionSubject))) {
+        if (($tblInstructionItemList = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $tblDivisionCourse))) {
             foreach ($tblInstructionItemList as $tblInstructionItem) {
                 $missingList = $this->getMissingPersonNameListByInstructionItem($tblInstructionItem);
 

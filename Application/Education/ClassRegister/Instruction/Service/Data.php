@@ -6,10 +6,10 @@ use DateTime;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstruction;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstructionItem;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstructionItemStudent;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -30,6 +30,59 @@ class Data extends AbstractData
             $this->createInstruction('Verhalten bei Gefahren im Winter', '');
             $this->createInstruction('Verhalten im Straßenverkehr', '');
         }
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return array
+     */
+    public function migrateYear(TblYear $tblYear): array
+    {
+        $count = 0;
+        $start = hrtime(true);
+
+        // Belehrungen von Kursheften migrieren
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblInstructionItem', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.serviceTblYear', '?1'),
+                    $queryBuilder->expr()->isNotNull('t.serviceTblDivisionSubject')
+                )
+            )
+            ->setParameter(1, $tblYear->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        if ($resultList) {
+            /** @var TblInstructionItem $tblInstructionItem */
+            foreach ($resultList as $tblInstructionItem) {
+                if (($tblDivisionSubject = $tblInstructionItem->getServiceTblDivisionSubject())
+                    && ($tblDivision = $tblDivisionSubject->getTblDivision())
+                    && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                    && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+                    && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByMigrateSekCourse(
+                            Division::useService()->getMigrateSekCourseString($tblDivision, $tblSubject, $tblSubjectGroup
+                        )))
+                ) {
+                    $count++;
+                    $tblInstructionItem->setServiceTblDivisionCourse($tblDivisionCourse);
+                    $Manager->bulkSaveEntity($tblInstructionItem);
+                }
+            }
+
+            $Manager->flushCache();
+        }
+
+
+        $end = hrtime(true);
+
+        return array($count, round(($end - $start) / 1000000000, 2));
     }
 
     /**
@@ -168,81 +221,41 @@ class Data extends AbstractData
 
     /**
      * @param TblInstruction $tblInstruction
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblDivisionSubject|null $tblDivisionSubject
-     * @param TblYear|null $tblYear
+     * @param TblDivisionCourse|null $tblDivisionCourse
      *
      * @return false|TblInstructionItem[]
      */
-    public function getInstructionItemAllByInstruction(TblInstruction $tblInstruction, ?TblDivision $tblDivision, ?TblGroup $tblGroup,
-        ?TblDivisionSubject $tblDivisionSubject, ?TblYear $tblYear)
+    public function getInstructionItemAllByInstruction(TblInstruction $tblInstruction, ?TblDivisionCourse $tblDivisionCourse = null)
     {
-        if ($tblDivisionSubject) {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
-                TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
-                TblInstructionItem::ATTR_SERVICE_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
-            ), array(TblInstructionItem::ATTR_DATE => self::ORDER_ASC));
-        } elseif ($tblDivision) {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
-                TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
-                TblInstructionItem::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
-            ), array(TblInstructionItem::ATTR_DATE => self::ORDER_ASC));
-        } elseif ($tblGroup && $tblYear) {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
-                TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
-                TblInstructionItem::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId(),
-                TblInstructionItem::ATTR_SERVICE_TBL_YEAR => $tblYear->getId()
-            ), array(TblInstructionItem::ATTR_DATE => self::ORDER_ASC));
-        } else {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
-                TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
-            ), array(TblInstructionItem::ATTR_DATE => self::ORDER_ASC));
+        $parameters[TblInstructionItem::ATTR_TBL_INSTRUCTION] = $tblInstruction->getId();
+        if ($tblDivisionCourse) {
+            $parameters[TblInstructionItem::ATTR_SERVICE_TBL_DIVISION_COURSE] = $tblDivisionCourse->getId();
         }
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem',
+            $parameters,
+            array(TblInstructionItem::ATTR_DATE => self::ORDER_ASC)
+        );
     }
 
     /**
      * @param TblInstruction $tblInstruction
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblDivisionSubject|null $tblDivisionSubject
-     * @param TblYear|null $tblYear
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return false|TblInstructionItem
      */
-    public function getMainInstructionItemBy(TblInstruction $tblInstruction, ?TblDivision $tblDivision, ?TblGroup $tblGroup,
-        ?TblDivisionSubject $tblDivisionSubject, ?TblYear $tblYear)
+    public function getMainInstructionItemBy(TblInstruction $tblInstruction, TblDivisionCourse $tblDivisionCourse)
     {
-        if ($tblDivisionSubject) {
-            return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
-                TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
-                TblInstructionItem::ATTR_SERVICE_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
-                TblInstructionItem::ATTR_IS_MAIN => 1
-            ));
-        } elseif ($tblDivision) {
-            return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
-                TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
-                TblInstructionItem::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                TblInstructionItem::ATTR_IS_MAIN => 1
-            ));
-        } elseif ($tblGroup && $tblYear) {
-            return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
-                TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
-                TblInstructionItem::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId(),
-                TblInstructionItem::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
-                TblInstructionItem::ATTR_IS_MAIN => 1
-            ));
-        }
-
-        return false;
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblInstructionItem', array(
+            TblInstructionItem::ATTR_TBL_INSTRUCTION => $tblInstruction->getId(),
+            TblInstructionItem::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+            TblInstructionItem::ATTR_IS_MAIN => 1
+        ));
     }
 
     /**
      * @param TblInstruction $tblInstruction
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblDivisionSubject|null $tblDivisionSubject
-     * @param TblYear|null $tblYear
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param TblPerson|null $tblPerson
      * @param $Date
      * @param $Subject
@@ -253,10 +266,7 @@ class Data extends AbstractData
      */
     public function createInstructionItem(
         TblInstruction $tblInstruction,
-        ?TblDivision $tblDivision,
-        ?TblGroup $tblGroup,
-        ?TblDivisionSubject $tblDivisionSubject,
-        ?TblYear $tblYear,
+        TblDivisionCourse $tblDivisionCourse,
         ?TblPerson $tblPerson,
         $Date,
         $Subject,
@@ -265,12 +275,10 @@ class Data extends AbstractData
     ): TblInstructionItem {
 
         $Manager = $this->getEntityManager();
+
         $Entity = new TblInstructionItem();
         $Entity->setTblInstruction($tblInstruction);
-        $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setServiceTblGroup($tblGroup);
-        $Entity->setServiceTblDivisionSubject($tblDivisionSubject);
-        $Entity->setServiceTblYear($tblYear);
+        $Entity->setServiceTblDivisionCourse($tblDivisionCourse);
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setDate($Date ? new DateTime($Date) : null);
         $Entity->setSubject($Subject);
