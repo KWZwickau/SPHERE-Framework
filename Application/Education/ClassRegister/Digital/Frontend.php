@@ -9,6 +9,7 @@ use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Digital\Frontend\FrontendTabs;
+use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -70,7 +71,6 @@ use SPHERE\Common\Window\Stage;
 
 class Frontend extends FrontendTabs
 {
-
     /**
      * @return Stage
      */
@@ -628,22 +628,22 @@ class Frontend extends FrontendTabs
                     AbstractLink::TYPE_MUTED_LINK
                 ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $date->format('d.m.Y'), $i == 0 ? -1 : $i));
 
-                //  todo Fach aus dem importierten Stundenplan anzeigen
-//                if (!$isHoliday && $tblDivision && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
-//                    $tblDivision, $date, $i
-//                ))) {
-//                    $subject = $tblLessonContentTemp->getDisplaySubject(true);
-//                    $room = $tblLessonContentTemp->getRoom();
-                //  todo alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
-//                } elseif (!$isHoliday && ($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
-//                    $tblDivision ?: null, $tblGroup ?: null, $date, $i
-//                ))) {
-//                    $subject = $tblLessonContentTemp->getDisplaySubject(true);
-//                    $room = $tblLessonContentTemp->getRoom();
-//                } else {
+                //  Fach aus dem importierten Stundenplan anzeigen
+                if (!$isHoliday && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                    $tblDivisionCourse, $date, $i
+                ))) {
+                    $subject = $tblLessonContentTemp->getDisplaySubject(true);
+                    $room = $tblLessonContentTemp->getRoom();
+                //  alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
+                } elseif (!$isHoliday && ($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                    $tblDivisionCourse, $date, $i
+                ))) {
+                    $subject = $tblLessonContentTemp->getDisplaySubject(true);
+                    $room = $tblLessonContentTemp->getRoom();
+                } else {
                     $subject = '';
                     $room = '';
-//                }
+                }
 
                 $bodyList[$i * 10] = array(
                     'Lesson' => $linkLesson,
@@ -907,19 +907,19 @@ class Frontend extends FrontendTabs
                 } elseif ($isHoliday) {
                     $cell = new Center(new Muted('f'));
                 } elseif(!$isReadOnly) {
-//                    // todo Fach aus dem importierten Stundenplan anzeigen
-//                    if ($tblDivisionCourse && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
-//                        $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
-//                    ))) {
-//                        $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
-//                    //  todo alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
-//                    } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
-//                        $tblDivisionCourse ?: null, $tblGroup ?: null, new DateTime($dateStringList[$j]), $i
-//                    ))) {
-//                        $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
-//                    } else {
+                    // Fach aus dem importierten Stundenplan anzeigen
+                    if (($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                        $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
+                    ))) {
+                        $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+                    // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
+                    } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                        $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
+                    ))) {
+                        $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+                    } else {
                         $cellContent = '<div style="height: 22px"></div>';
-//                    }
+                    }
 
                     $cell = (new Link(
                         $cellContent,
@@ -1090,31 +1090,32 @@ class Frontend extends FrontendTabs
             $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiDigital::pipelineEditLessonContentSave($LessonContentId));
         } else {
-//            // todo befüllen bei neuen Einträge aus dem importierten Stundenplan
-//            if ($tblDivisionCourse && $Date && $Lesson
-//                && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
-//                    $tblDivisionCourse, new DateTime($Date), (int) $Lesson))
-//            ) {
-//                $Global = $this->getGlobal();
-//
-//                $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
-//                $Global->POST['Data']['serviceTblSubstituteSubject'] =
-//                    $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
-//                $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
-//                $Global->POST['Data']['IsCanceled'] = $tblLessonContentTemp->getIsCanceled() ? 1 : 0;
-//
-//                $Global->savePost();
-//            // todo alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
-//            } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
-//                $tblDivisionCourse ?: null, $tblGroup ?: null, new DateTime($Date), (int) $Lesson
-//            ))) {
-//                $Global = $this->getGlobal();
-//
-//                $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
-//                $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
-//
-//                $Global->savePost();
-//            }
+            // befüllen bei neuen Einträge aus dem importierten Stundenplan
+            if ($Date && $Lesson
+                && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                    $tblDivisionCourse, new DateTime($Date), (int) $Lesson
+                ))
+            ) {
+                $Global = $this->getGlobal();
+
+                $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+                $Global->POST['Data']['serviceTblSubstituteSubject'] =
+                    $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
+                $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
+                $Global->POST['Data']['IsCanceled'] = $tblLessonContentTemp->getIsCanceled() ? 1 : 0;
+
+                $Global->savePost();
+            // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
+            } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                $tblDivisionCourse, new DateTime($Date), (int) $Lesson
+            ))) {
+                $Global = $this->getGlobal();
+
+                $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+                $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
+
+                $Global->savePost();
+            }
 
             $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiDigital::pipelineCreateLessonContentSave($tblDivisionCourse->getId()));

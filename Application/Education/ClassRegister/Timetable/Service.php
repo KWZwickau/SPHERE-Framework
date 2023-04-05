@@ -10,8 +10,7 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimet
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Setup;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
@@ -272,13 +271,13 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param DateTime $dateTime
      * @param ?Int $lesson
      *
      * @return false|TblTimetableNode
      */
-    public function getTimeTableNodeBy(TblDivision $tblDivision, DateTime $dateTime, ?Int $lesson)
+    public function getTimeTableNodeBy(TblDivisionCourse $tblDivisionCourse, DateTime $dateTime, ?Int $lesson)
     {
         $day = (int) $dateTime->format('w');
         $tblPerson = Account::useService()->getPersonByLogin();
@@ -288,12 +287,12 @@ class Service extends AbstractService
 
         if (($tblTimeTableList = $this->getTimetableListByDateTime($dateTime))) {
             // Suche mit aktueller Person
-            if (($result = $this->searchTimeTableNode($tblTimeTableList, $tblDivision, $day, $lesson, $startDateOfWeek, $tblPerson ?: null))) {
+            if (($result = $this->searchTimeTableNode($tblTimeTableList, $tblDivisionCourse, $day, $lesson, $startDateOfWeek, $tblPerson ?: null))) {
                 return $result;
             }
 
             // Suche ohne aktuelle Person als Fallback
-            return $this->searchTimeTableNode($tblTimeTableList, $tblDivision, $day, $lesson, $startDateOfWeek, null);
+            return $this->searchTimeTableNode($tblTimeTableList, $tblDivisionCourse, $day, $lesson, $startDateOfWeek, null);
         }
 
         return false;
@@ -301,7 +300,7 @@ class Service extends AbstractService
 
     /**
      * @param array $tblTimeTableList
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param $day
      * @param int|null $lesson
      * @param DateTime $startDateOfWeek
@@ -309,10 +308,10 @@ class Service extends AbstractService
      *
      * @return false|TblTimetableNode|TblTimetableNode[]
      */
-    private function searchTimeTableNode(array $tblTimeTableList, TblDivision $tblDivision, $day, ?int $lesson, DateTime $startDateOfWeek, ?TblPerson $tblPerson)
+    private function searchTimeTableNode(array $tblTimeTableList, TblDivisionCourse $tblDivisionCourse, $day, ?int $lesson, DateTime $startDateOfWeek, ?TblPerson $tblPerson)
     {
         foreach ($tblTimeTableList as $tblTimetable) {
-            if (($tblTimeTableNodeList = (new Data($this->getBinding()))->getTimetableNodeListBy($tblTimetable, $tblDivision, $day, $lesson, $tblPerson))) {
+            if (($tblTimeTableNodeList = (new Data($this->getBinding()))->getTimetableNodeListBy($tblTimetable, $tblDivisionCourse, $day, $lesson, $tblPerson))) {
                 $resultList = array();
                 foreach ($tblTimeTableNodeList as $tblTimeTableNode) {
                     // Woche prüfen
@@ -340,18 +339,18 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param DateTime $dateTime
      * @param Int $lesson
      *
      * @return false|TblLessonContent
      */
-    public function getLessonContentFromTimeTableNodeWithReplacementBy(TblDivision $tblDivision, DateTime $dateTime, Int $lesson)
+    public function getLessonContentFromTimeTableNodeWithReplacementBy(TblDivisionCourse $tblDivisionCourse, DateTime $dateTime, Int $lesson)
     {
         $tblPerson = Account::useService()->getPersonByLogin();
-        if (!($replacementList = $this->getTimetableReplacementByTime($dateTime, $tblPerson ?: null, $tblDivision, $lesson))) {
+        if (!($replacementList = $this->getTimetableReplacementByTime($dateTime, $tblPerson ?: null, $tblDivisionCourse, $lesson))) {
             // Suche ohne aktuelle Person als Fallback
-            $replacementList = $this->getTimetableReplacementByTime($dateTime, null, $tblDivision, $lesson);
+            $replacementList = $this->getTimetableReplacementByTime($dateTime, null, $tblDivisionCourse, $lesson);
         }
 
         if ($replacementList) {
@@ -371,7 +370,7 @@ class Service extends AbstractService
             }
         } else {
             // kein Vertretungsplan -> normaler Stundenplan
-            if (($tblTimeTableNode = $this->getTimeTableNodeBy($tblDivision, $dateTime, $lesson))) {
+            if (($tblTimeTableNode = $this->getTimeTableNodeBy($tblDivisionCourse, $dateTime, $lesson))) {
                 $tblLessonContent = new TblLessonContent();
                 $tblLessonContent->setServiceTblSubject($tblTimeTableNode->getServiceTblSubject() ?: null);
                 $tblLessonContent->setRoom($tblTimeTableNode->getRoom());
@@ -400,8 +399,8 @@ class Service extends AbstractService
                     foreach ($tblTimeTableNodeList as $tblTimeTableNode) {
                         // aus dem Vertretungsplan wird ermittelt, ob die Stunde ausfällt
                         $isCanceled = false;
-                        if (($tblDivisionTemp = $tblTimeTableNode->getServiceTblCourse())
-                            && ($tblTimetableReplacementList = $this->getTimetableReplacementByTime($dateTime, null, $tblDivisionTemp, $tblTimeTableNode->getHour()))
+                        if (($tblDivisionCourseTemp = $tblTimeTableNode->getServiceTblCourse())
+                            && ($tblTimetableReplacementList = $this->getTimetableReplacementByTime($dateTime, null, $tblDivisionCourseTemp, $tblTimeTableNode->getHour()))
                         ) {
                             foreach ($tblTimetableReplacementList as $tblTimetableReplacement) {
                                 if ($tblTimeTableNode->getServiceTblSubject()
@@ -459,65 +458,35 @@ class Service extends AbstractService
             $dataList = array();
             $baseRoute = (Digital::useFrontend())::BASE_ROUTE;
             foreach ($resultList as $item) {
-                if (($tblDivision = $item->getServiceTblCourse()) && ($tblSubject = $item->getServiceTblSubject())) {
-                    // prüfen ob der Lehrer einen Lehrauftrag hat
-                    $option = '';
-                    if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision))) {
-                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                            if (Division::useService()->existsSubjectTeacher($tblPerson, $tblDivisionSubject)) {
-                                if (Division::useService()->getIsDivisionCourseSystem($tblDivision)) {
-                                    // Kurse müssen immer als Fachgruppen hinterlegt sein
-                                    if(!($SubjectGroup = $tblDivisionSubject->getTblSubjectGroup())){
-                                        continue;
-                                    }
-                                    // Kurs muss mit dem Kursnamen vom Import übereinstimmen
-                                    if(strtolower($item->getSubjectGroup()) != strtolower($SubjectGroup->getName())){
-                                        continue;
-                                    }
-                                    $option = new Standard(
-                                        '',
-                                        $baseRoute . '/CourseContent',
-                                        new Extern(),
-                                        array(
-                                            'DivisionSubjectId' => $tblDivisionSubject->getId(),
-                                            'BasicRoute' => $baseRoute . '/Teacher'
-                                        ),
-                                        'Zum Kursheft wechseln'
-                                    );
-                                } else {
-                                    $option = new Standard(
-                                        '',
-                                        $baseRoute . '/LessonContent',
-                                        new Extern(),
-                                        array(
-                                            'DivisionId' => $tblDivision->getId(),
-                                        ),
-                                        'Zum Klassenbuch wechseln'
-                                    );
-                                    break;
-                                }
-                            }
-                        }
+                /** @var TblDivisionCourse $tblDivisionCourse */
+                if (($tblDivisionCourse = $item->getServiceTblCourse()) && ($tblSubject = $item->getServiceTblSubject())) {
+                    if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                        $option = new Standard(
+                            '',
+                            $baseRoute . '/CourseContent',
+                            new Extern(),
+                            array(
+                                'DivisionCourseId' => $tblDivisionCourse->getId(),
+                                'BasicRoute' => $baseRoute . '/Teacher'
+                            ),
+                            'Zum Kursheft wechseln'
+                        );
                     } else {
-                        // Fach wird nicht in der Klasse unterrichtet SSW-1895
-                        if (!Division::useService()->getIsDivisionCourseSystem($tblDivision)
-                            && Division::useService()->existsSubjectTeacherInDivision($tblPerson, $tblDivision)
-                        ) {
-                            $option = new Standard(
-                                '',
-                                $baseRoute . '/LessonContent',
-                                new Extern(),
-                                array(
-                                    'DivisionId' => $tblDivision->getId(),
-                                ),
-                                'Zum Klassenbuch wechseln'
-                            );
-                        }
+                        $option = new Standard(
+                            '',
+                            $baseRoute . '/LessonContent',
+                            new Extern(),
+                            array(
+                                'DivisionCourseId' => $tblDivisionCourse->getId(),
+                                'BasicRoute' => $baseRoute . '/Teacher'
+                            ),
+                            'Zum Klassenbuch wechseln'
+                        );
                     }
 
                     $dataList[] = array(
                         'Lesson' => $item->getHour(),
-                        'Division' => $tblDivision->getDisplayName(),
+                        'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
                         'Subject' => $tblSubject->getDisplayName(),
                         'Room' => $item->getRoom(),
                         'Option' => $option
@@ -540,7 +509,7 @@ class Service extends AbstractService
                 'Stundenplan am ' . $dayName[$dayAtWeek] . ', den ' . $dateTime->format('d.m.Y'),
                 new TableData($dataList, null, array(
                     'Lesson' => 'UE',
-                    'Division' => 'Klasse',
+                    'DivisionCourse' => 'Kurs',
                     'Subject' => 'Fach',
                     'Room' => 'Raum',
                     'Option' => ''
@@ -569,11 +538,12 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $RemoveList
+     *
      * @return bool
      */
     public function destroyTimetableReplacementBulk($RemoveList): bool
     {
-
         return (new Data($this->getBinding()))->destroyTimetableReplacementBulk($RemoveList);
     }
 }

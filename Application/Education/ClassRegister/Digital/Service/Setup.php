@@ -5,6 +5,8 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 class Setup  extends AbstractSetup
@@ -48,11 +50,11 @@ class Setup  extends AbstractSetup
     {
         $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterLessonContent');
 
-        // todo serviceTblGroup und serviceTblYear löschen
-
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
+        // todo serviceTblGroup und serviceTblYear löschen nach Migration
         $this->createColumn($Table, 'serviceTblGroup', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT, true);
+        //
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblSubstituteSubject', self::FIELD_TYPE_BIGINT, true);
@@ -63,9 +65,8 @@ class Setup  extends AbstractSetup
         $this->createColumn($Table, 'Homework', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'Room', self::FIELD_TYPE_STRING);
 
-        // todo anlegen der Indexe nach dem Umbau von Klassen und Gruppen
-//        $this->createIndex($Table, array(TblLessonContent::ATTR_DATE, TblLessonContent::ATTR_LESSON, TblLessonContent::ATTR_SERVICE_TBL_DIVISION), false);
-//        $this->createIndex($Table, array(TblLessonContent::ATTR_DATE, TblLessonContent::ATTR_SERVICE_TBL_DIVISION), false);
+        $this->createIndex($Table, array(TblLessonContent::ATTR_DATE, TblLessonContent::ATTR_LESSON, TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE), false);
+        $this->createIndex($Table, array(TblLessonContent::ATTR_DATE, TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE), false);
 
         return $Table;
     }
@@ -90,11 +91,11 @@ class Setup  extends AbstractSetup
     {
         $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterLessonWeek');
 
-        // todo serviceTblGroup und serviceTblYear löschen
-
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
+        // todo serviceTblGroup und serviceTblYear löschen nach Migration
         $this->createColumn($Table, 'serviceTblGroup', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT, true);
+        //
         $this->createColumn($Table, 'Date', self::FIELD_TYPE_DATETIME);
         $this->createColumn($Table, 'Remark', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'DateDivisionTeacher', self::FIELD_TYPE_DATETIME, true);
@@ -102,8 +103,7 @@ class Setup  extends AbstractSetup
         $this->createColumn($Table, 'DateHeadmaster', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'serviceTblPersonHeadmaster', self::FIELD_TYPE_BIGINT, true);
 
-        // todo anlegen der Indexe nach dem Umbau von Klassen und Gruppen
-//        $this->createIndex($Table, array(TblLessonWeek::ATTR_DATE, TblLessonWeek::ATTR_SERVICE_TBL_DIVISION), false);
+        $this->createIndex($Table, array(TblLessonWeek::ATTR_DATE, TblLessonWeek::ATTR_SERVICE_TBL_DIVISION_COURSE), false);
     }
 
     /**

@@ -19,9 +19,6 @@ use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonW
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Setup;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
@@ -32,8 +29,6 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
@@ -702,8 +697,6 @@ class Service extends AbstractService
     /**
      * @param $Data
      * @param TblDivisionCourse $tblDivisionCourse
-     * @param TblSubject $tblSubject
-     * @param TblSubjectGroup $tblSubjectGroup
      *
      * @return bool
      */
@@ -1348,150 +1341,86 @@ class Service extends AbstractService
      */
     public function getDigitalClassRegisterPanelForTeacher(): string
     {
-        // todo
         $resultList = array();
-        $divisionList = array();
-        $divisionSubjectList = array();
         if (($tblPerson = Account::useService()->getPersonByLogin())) {
             $baseRoute = (Digital::useFrontend())::BASE_ROUTE;
-            $tblYearList = Term::useService()->getYearByNow();
-            // Fachlehrer in Klassen
-            if ($tblYearList && ($tblSubjectTeacherAllByTeacher = Division::useService()->getSubjectTeacherAllByTeacher($tblPerson))) {
-                foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
-                    if (($tblDivisionSubject = $tblSubjectTeacher->getTblDivisionSubject())
-                        && ($tblDivisionItem = $tblDivisionSubject->getTblDivision())
-                        && ($tblSubjectItem = $tblDivisionSubject->getServiceTblSubject())
-                        && ($tblYearItem = $tblDivisionItem->getServiceTblYear())
-                    ) {
-                        // nur aktuelles Schuljahre
-                        if (!isset($tblYearList[$tblYearItem->getId()])) {
-                            continue;
-                        }
 
-                        // Kurshefte
-                        if (Division::useService()->getIsDivisionCourseSystem($tblDivisionItem)) {
-                            $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
-                            if (!isset($divisionSubjectList[$tblDivisionSubject->getId()])) {
-                                if (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())) {
-                                    $divisionSubjectList[$tblDivisionSubject->getId()] = $tblDivisionSubject;
-                                    $resultList[] = array(
-                                        'Type' => $tblDivisionItem->getTypeName(),
-                                        'Name' => $tblDivisionItem->getDisplayName() . ' - ' . $tblSubjectGroup->getName(),
-                                        'Option' => new Standard(
-                                            '',
-                                            $baseRoute . '/CourseContent',
-                                            new Extern(),
-                                            array(
-                                                'DivisionSubjectId' => $tblDivisionSubject->getId(),
-                                                'BasicRoute' => $baseRoute . '/Teacher'
-                                            ),
-                                            'Zum Kursheft wechseln'
-                                        )
-                                    );
+            $tblDivisionCourseList = array();
+            $checkedDivisionCourseList = array();
+            // Lehraufträge -> dann alle Schüler des Lehrauftrags -> alle Klassen, Stammgruppen und SekII-Kurse der Schüler
+            if (($tblYearList = Term::useService()->getYearByNow())) {
+                foreach ($tblYearList as $tblYear) {
+                    if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPerson))) {
+                        foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                            if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
+                                && !isset($tblDivisionCourseList[$tblDivisionCourse->getId()])
+                                && !isset($checkedDivisionCourseList[$tblDivisionCourse->getId()])
+                            ) {
+                                // SekII-Kurse
+                                if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                                    $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                                    $checkedDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
                                 } else {
-                                    // Lehrauftrag kann an der Fachgruppe als auch an der Fachklasse (ohne Gruppe) sein
-                                    if (($tblDivisionSubjectWithGroupList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
-                                        $tblDivisionItem, $tblSubjectItem
+                                    if (($tblDivisionCourseListFromStudents = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse(
+                                        $tblDivisionCourse
                                     ))) {
-                                        foreach ($tblDivisionSubjectWithGroupList as $item) {
-                                            if (!isset($divisionSubjectList[$item->getId()]) && ($tblSubjectGroupItem = $item->getTblSubjectGroup())) {
-                                                $divisionSubjectList[$item->getId()] = $item;
-                                                $resultList[] = array(
-                                                    'Type' => $tblDivisionItem->getTypeName(),
-                                                    'Name' => $tblDivisionItem->getDisplayName() . ' - ' . $tblSubjectGroupItem->getName(),
-                                                    'Option' => new Standard(
-                                                        '',
-                                                        $baseRoute . '/CourseContent',
-                                                        new Extern(),
-                                                        array(
-                                                            'DivisionSubjectId' => $item->getId(),
-                                                            'BasicRoute' => $baseRoute . '/Teacher'
-                                                        ),
-                                                        'Zum Kursheft wechseln'
-                                                    )
-                                                );
+                                        foreach ($tblDivisionCourseListFromStudents as $tblDivisionCourseStudent) {
+                                            if (isset($checkedDivisionCourseList[$tblDivisionCourseStudent->getId()])) {
+                                                continue;
                                             }
+
+                                            if (!isset($tblDivisionCourseList[$tblDivisionCourseStudent->getId()])) {
+                                                $tblDivisionCourseList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
+                                            }
+
+                                            $checkedDivisionCourseList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
                                         }
                                     }
                                 }
+
+
                             }
-                            // Klassentagebuch
-                        } elseif (!isset($divisionList[$tblDivisionItem->getId()])) {
-                            $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
-                            $resultList[] = array(
-                                'Type' => $tblDivisionItem->getTypeName(),
-                                'Name' => $tblDivisionItem->getDisplayName(),
-                                'Option' => new Standard(
-                                    '',
-                                    $baseRoute . '/LessonContent',
-                                    new Extern(),
-                                    array(
-                                        'DivisionId' => $tblDivisionItem->getId(),
-                                        'BasicRoute' => $baseRoute . '/Teacher'
-                                    ),
-                                    'Zum Klassenbuch wechseln'
-                                )
-                            );
                         }
                     }
                 }
             }
 
-            // Fachlehrer in Gruppen
-            if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
-                foreach ($tblGroupAll as $tblGroup) {
-                    if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                        foreach ($tblPersonList as $tblPersonStudent) {
-                            if (($tblDivisionMain = Student::useService()->getCurrentMainDivisionByPerson($tblPersonStudent))
-                                && isset($divisionList[$tblDivisionMain->getId()])
-                            ) {
-                                // Kursheft sollen nicht extra für die Stammgruppen angezeigt werden SSWHD-1870
-                                // Kurshefte
-                                if (Division::useService()->getIsDivisionCourseSystem($tblDivisionMain)) {
-//                                    foreach ($divisionSubjectList as $tblDivisionSubjectTemp) {
-//                                        if (($tblDivisionTemp = $tblDivisionSubjectTemp->getTblDivision())
-//                                            && $tblDivisionMain->getId() == $tblDivisionTemp->getId()
-//                                            && ($tblSubjectGroupTemp = $tblDivisionSubjectTemp->getTblSubjectGroup())
-//                                        ) {
-//                                            $resultList[] = array(
-//                                                'Type' => $tblDivisionTemp->getTypeName(),
-//                                                'Name' => $tblGroup->getName() . ' - ' . $tblSubjectGroupTemp->getName(),
-//                                                'Option' => new Standard(
-//                                                    '',
-//                                                    $baseRoute . '/CourseContent',
-//                                                    new Extern(),
-//                                                    array(
-//                                                        'DivisionSubjectId' => $tblDivisionSubjectTemp->getId(),
-//                                                        'GroupId' => $tblGroup->getId(),
-//                                                        'BasicRoute' => $baseRoute . '/Teacher'
-//                                                    ),
-//                                                    'Zum Kursheft wechseln'
-//                                                )
-//                                            );
-//                                        }
-//                                    }
-                                    // Klassentagebuch
-                                } else {
-                                    $resultList[] = array(
-                                        'Type' => $tblDivisionMain->getTypeName(),
-                                        'Name' => $tblGroup->getName(),
-                                        'Option' => new Standard(
-                                            '',
-                                            $baseRoute . '/LessonContent',
-                                            new Extern(),
-                                            array(
-                                                'GroupId' => $tblGroup->getId(),
-                                                'BasicRoute' => $baseRoute . '/Teacher'
-                                            ),
-                                            'Zum Klassenbuch wechseln'
-                                        )
-                                    );
-                                }
-
-                                break;
-                            }
-                        }
-                    }
+            /** @var TblDivisionCourse $tblDivisionCourse */
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                // Klassentagebuch
+                if ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
+                    $resultList[] = array(
+                        'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                        'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
+                        'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                        'Option' => new Standard(
+                            '',
+                            $baseRoute . '/LessonContent',
+                            new Extern(),
+                            array(
+                                'DivisionCourseId' => $tblDivisionCourse->getId(),
+                                'BasicRoute' => $baseRoute . '/Teacher'
+                            ),
+                            'Zum Klassenbuch wechseln'
+                        )
+                    );
+                // Kursheft (SekII-Kurs)
+                } elseif ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                    $resultList[] = array(
+                        'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                        'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
+                        'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                        'Option' => new Standard(
+                            '',
+                            $baseRoute . '/CourseContent',
+                            new Extern(),
+                            array(
+                                'DivisionCourseId' => $tblDivisionCourse->getId(),
+                                'BasicRoute' => $baseRoute . '/Teacher'
+                            ),
+                            'Zum Kursheft wechseln'
+                        )
+                    );
                 }
             }
         }
@@ -1503,25 +1432,26 @@ class Service extends AbstractService
                     $resultList,
                     null,
                     array(
-                    'Type' => 'Schulart',
-                    'Name' => 'Klasse / Gruppe / Kurs',
-                    'Option' => ''
+                        'DivisionCourse' => 'Kurs',
+                        'DivisionCourseType' => 'Kurs-Typ',
+                        'SchoolTypes' => 'Schularten',
+                        'Option' => ''
+                    ),
+                    array(
+                        'order' => array(
+                            array('0', 'asc'),
+                        ),
+                        'columnDefs' => array(
+                            array('type' => 'natural', 'targets' => 0),
+                            array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                        ),
+                        'pageLength' => -1,
+                        'paging' => false,
+                        'info' => false,
+                        'searching' => false,
+                        'responsive' => false
+                    )
                 ),
-                array(
-                    'order' => array(
-                        array('0', 'asc'),
-                        array('1', 'asc'),
-                    ),
-                    'columnDefs' => array(
-                        array('type' => 'natural', 'targets' => 1),
-                        array('orderable' => false, 'width' => '1%', 'targets' => -1)
-                    ),
-                    'pageLength' => -1,
-                    'paging' => false,
-                    'info' => false,
-                    'searching' => false,
-                    'responsive' => false
-                )),
                 Panel::PANEL_TYPE_PRIMARY
             );
         }
@@ -1564,37 +1494,29 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param DateTime $dateTime
      * @param int $lesson
      *
      * @return false|TblLessonContent
      */
-    public function getTimetableFromLastLessonContent(?TblDivision $tblDivision, ?TblGroup $tblGroup, DateTime $dateTime, int $lesson)
+    public function getTimetableFromLastLessonContent(TblDivisionCourse $tblDivisionCourse, DateTime $dateTime, int $lesson)
     {
-        // todo kein importierter Stundenplan für den Tag vorhanden
-        if ($tblDivision && Timetable::useService()->getTimeTableNodeBy($tblDivision, $dateTime, null)) {
+        // kein importierter Stundenplan für den Tag vorhanden
+        if (Timetable::useService()->getTimeTableNodeBy($tblDivisionCourse, $dateTime, null)) {
             return false;
         }
 
         $lastDateTime = (new DateTime($dateTime->format('d.m.Y')))->sub(new DateInterval('P7D'));
-        if ($tblDivision) {
-            $tblYear = $tblDivision->getServiceTblYear();
-        } elseif ($tblGroup) {
-            $tblYear = $tblGroup->getCurrentYear();
-        } else {
-            $tblYear = false;
-        }
 
-        if ($tblYear) {
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
             list($startDateSchoolYear,) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
             if ($startDateSchoolYear) {
                 while ($lastDateTime > $startDateSchoolYear) {
                     // letzter Wochen Tag mit eingetragen Unterrichtseinheiten
-                    if ($this->getLessonContentAllByDateAndLesson($lastDateTime, null, $tblDivision ?: null, $tblGroup ?: null)) {
+                    if ($this->getLessonContentAllByDateAndLesson($lastDateTime, null, $tblDivisionCourse)) {
                         // Eintrag für die Stunde finden
-                        if (($tblLessonContentList = $this->getLessonContentAllByDateAndLesson($lastDateTime, $lesson, $tblDivision ?: null, $tblGroup ?: null))) {
+                        if (($tblLessonContentList = $this->getLessonContentAllByDateAndLesson($lastDateTime, $lesson, $tblDivisionCourse))) {
                             // es darf nur ein Eintrag gefunden werden
                             if (count($tblLessonContentList) == 1) {
                                 /** @var TblLessonContent $tblLessonContent */

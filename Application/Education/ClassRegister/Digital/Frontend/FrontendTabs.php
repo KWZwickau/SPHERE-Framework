@@ -95,9 +95,16 @@ class FrontendTabs extends FrontendCourseContent
         return $stage;
     }
 
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $BackDivisionCourseId
+     * @param $BasicRoute
+     *
+     * @return Standard
+     */
     public function getBackButton(TblDivisionCourse $tblDivisionCourse, $BackDivisionCourseId, $BasicRoute): Standard
     {
-        if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+        if ($tblDivisionCourse->getType()->getIsCourseSystem() && $BackDivisionCourseId) {
             return new Standard(
                 'Zurück', '/Education/ClassRegister/Digital/SelectCourse', new ChevronLeft(), array(
                     'DivisionCourseId' => $BackDivisionCourseId,

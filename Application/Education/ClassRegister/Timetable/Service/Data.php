@@ -6,10 +6,11 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimet
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -100,20 +101,20 @@ class Data extends AbstractData
 
     /**
      * @param TblTimetable $tblTimetable
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param Int $Day
      * @param int|null $lesson
      * @param TblPerson|null $tblPerson
      *
      * @return false|TblTimetableNode[]
      */
-    public function getTimetableNodeListBy(TblTimetable $tblTimetable, TblDivision $tblDivision, int $Day, ?int $lesson, ?TblPerson $tblPerson)
+    public function getTimetableNodeListBy(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, int $Day, ?int $lesson, ?TblPerson $tblPerson)
     {
         if ($lesson !== null) {
             if ($tblPerson) {
                 return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
                     TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
-                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivisionCourse->getId(),
                     TblTimetableNode::ATTR_DAY => $Day,
                     TblTimetableNode::ATTR_HOUR => $lesson,
                     TblTimetableNode::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
@@ -121,7 +122,7 @@ class Data extends AbstractData
             } else {
                 return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
                     TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
-                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivisionCourse->getId(),
                     TblTimetableNode::ATTR_DAY => $Day,
                     TblTimetableNode::ATTR_HOUR => $lesson
                 ));
@@ -130,14 +131,14 @@ class Data extends AbstractData
             if ($tblPerson) {
                 return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
                     TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
-                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivisionCourse->getId(),
                     TblTimetableNode::ATTR_DAY => $Day,
                     TblTimetableNode::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
                 ));
             } else {
                 return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
                     TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
-                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivisionCourse->getId(),
                     TblTimetableNode::ATTR_DAY => $Day,
                 ));
             }
@@ -205,8 +206,7 @@ class Data extends AbstractData
 
         $Search = array(TblTimetableReplacement::ATTR_DATE => $Date);
         if($tblCourse){
-            //ToDO Course
-            /** @var TblDivision $tblCourse */
+            /** @var Element $tblCourse */
             $Search[TblTimetableReplacement::ATTR_SERVICE_TBL_COURSE] = $tblCourse->getId();
         }
         if($Hour){
