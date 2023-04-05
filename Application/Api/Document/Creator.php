@@ -36,7 +36,6 @@ use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
@@ -1244,32 +1243,25 @@ class Creator extends Extension
     }
 
     /**
-     * @param $DivisionId
-     * @param $GroupId
-     * @param $YearId
+     * @param $DivisionCourseId
      * @param $Redirect
      *
      * @return string
      */
-    public static function createClassRegisterPdf($DivisionId, $GroupId, $YearId, $Redirect): string
+    public static function createClassRegisterPdf($DivisionCourseId, $Redirect): string
     {
         if ($Redirect) {
             return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
                 '/Api/Document/Standard/ClassRegister/Create',
                 array(
-                    'DivisionId' => $DivisionId,
-                    'GroupId' => $GroupId,
-                    'YearId' => $YearId,
+                    'DivisionCourseId' => $DivisionCourseId,
                     'Redirect' => 0
                 )
             );
         }
 
-        $tblGroup = false;
-        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
-            || ($tblGroup = Group::useService()->getGroupById($GroupId))
-        ) {
-            $Document = new ClassRegister($tblDivision ?: null, $tblGroup ?: null);
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $Document = new ClassRegister($tblDivisionCourse);
             $pageList[] = $Document->getPageList();
 
             $File = self::buildDummyFile($Document, array(), $pageList);
@@ -1279,36 +1271,29 @@ class Creator extends Extension
             return self::buildDownloadFile($File, $FileName);
         }
 
-        return "Kein Klassenbuch vorhanden!";
+        return "Kein Klassentagebuch vorhanden!";
     }
 
     /**
-     * @param $DivisionId
-     * @param $SubjectId
-     * @param $SubjectGroupId
+     * @param $DivisionCourseId
      * @param $Redirect
      *
      * @return string
      */
-    public static function createCourseContentPdf($DivisionId, $SubjectId, $SubjectGroupId, $Redirect): string
+    public static function createCourseContentPdf($DivisionCourseId, $Redirect): string
     {
         if ($Redirect) {
             return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
                 '/Api/Document/Standard/CourseContent/Create',
                 array(
-                    'DivisionId' => $DivisionId,
-                    'SubjectId' => $SubjectId,
-                    'SubjectGroupId' => $SubjectGroupId,
+                    'DivisionCourseId' => $DivisionCourseId,
                     'Redirect' => 0
                 )
             );
         }
 
-        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
-            && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
-            && ($tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId))
-        ) {
-            $Document = new CourseContent($tblDivision, $tblSubject, $tblSubjectGroup);
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $Document = new CourseContent($tblDivisionCourse);
             $pageList[] = $Document->getPageList();
 
             $File = self::buildDummyFile($Document, array(), $pageList);

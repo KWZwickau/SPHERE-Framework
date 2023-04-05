@@ -5,7 +5,6 @@ use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Certificate\Reporting\View;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
@@ -200,70 +199,58 @@ class Person extends Extension
     }
 
     /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param null $DivisionSubjectId
+     * @param null $DivisionCourseId
      *
      * @return false|string
      */
-    public function downloadMedicalRecordClassList($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
+    public function downloadMedicalRecordClassList($DivisionCourseId = null)
     {
-        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-            $name = 'Krankenakte_Kursliste '
-                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
-        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-            $name = 'Krankenakte_Klassenliste ' . $tblDivision->getDisplayName();
-        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $tblPersonList = $tblGroup->getStudentOnlyList();
-            $name = 'Krankenakte_Stammgruppenliste ' . $tblGroup->getName();
-        } else {
-            return false;
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return 'Der Kurs wurde nicht gefunden';
         }
 
-        if ($tblPersonList
+        switch ($tblDivisionCourse->getTypeIdentifier()) {
+            case TblDivisionCourseType::TYPE_DIVISION: $preName = 'Krankenakte_Klassenliste '; break;
+            case TblDivisionCourseType::TYPE_CORE_GROUP: $preName = 'Krankenakte_Stammgruppenliste '; break;
+            default: $preName = 'Krankenakte_Kursliste ';
+        }
+
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
             && ($dataList = ReportingPerson::useService()->createMedicalRecordClassList($tblPersonList))
         ) {
             $fileLocation = ReportingPerson::useService()->createMedicalRecordClassListExcel($dataList, $tblPersonList);
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+                $preName . $tblDivisionCourse->getName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;
     }
 
     /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param null $DivisionSubjectId
+     * @param null $DivisionCourseId
      *
      * @return false|string
      */
-    public function downloadAgreementClassList($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
+    public function downloadAgreementClassList($DivisionCourseId = null)
     {
-        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-            $name = 'Einverständniserklärung_Kursliste '
-                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
-        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-            $name = 'Einverständniserklärung_Klassenliste ' . $tblDivision->getDisplayName();
-        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $tblPersonList = $tblGroup->getStudentOnlyList();
-            $name = 'Einverständniserklärung_Stammgruppenliste ' . $tblGroup->getName();
-        } else {
-            return false;
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return 'Der Kurs wurde nicht gefunden';
         }
 
-        if ($tblPersonList
+        switch ($tblDivisionCourse->getTypeIdentifier()) {
+            case TblDivisionCourseType::TYPE_DIVISION: $preName = 'Einverständniserklärung_Klassenliste '; break;
+            case TblDivisionCourseType::TYPE_CORE_GROUP: $preName = 'Einverständniserklärung_Stammgruppenliste '; break;
+            default: $preName = 'Einverständniserklärung_Kursliste ';
+        }
+
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
             && ($dataList = ReportingPerson::useService()->createAgreementClassList($tblPersonList))
         ) {
             $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($dataList, $tblPersonList);
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+                $preName . $tblDivisionCourse->getName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;

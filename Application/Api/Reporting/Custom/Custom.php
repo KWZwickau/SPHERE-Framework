@@ -233,18 +233,18 @@ class Custom implements IModuleInterface
     }
 
     /**
-     * @param null $DivisionId
+     * @param null $DivisionCourseId
      * @param null $Type
      *
      * @return bool|string
      */
-    public function downloadCustomReporting($DivisionId = null, $Type = null)
+    public function downloadCustomReporting($DivisionCourseId = null, $Type = null)
     {
         switch ($Type) {
-            case 'downloadClassList': return (new Common())->downloadClassList($DivisionId);
-            case 'downloadSignList': return (new Common())->downloadSignList($DivisionId);
-            case 'downloadElectiveClassList': return (new Common())->downloadElectiveClassList($DivisionId);
-            case 'downloadClassPhoneList': return (new Common())->downloadClassPhoneList($DivisionId);
+            case 'downloadClassList': return (new Common())->downloadClassList($DivisionCourseId);
+            case 'downloadSignList': return (new Common())->downloadSignList($DivisionCourseId);
+            case 'downloadElectiveClassList': return (new Common())->downloadElectiveClassList($DivisionCourseId);
+            case 'downloadClassPhoneList': return (new Common())->downloadClassPhoneList($DivisionCourseId);
             default: return 'Keine entsprechende Auswertung gefunden';
         }
     }

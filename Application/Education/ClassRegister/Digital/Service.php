@@ -987,8 +987,8 @@ class Service extends AbstractService
                         $listing = array();
                         foreach ($courseIdList as $courseId => $value) {
                             if (($tblDivisionCourseItem = DivisionCourse::useService()->getDivisionCourseById($courseId))) {
-                                if (($listingItem = $this->getTeacherListingItemByDivisionCourse($tblDivisionCourseItem, $tblSubjectItem, $tblYear))) {
-                                    $listing[] = $listingItem;
+                                if (($teacherNameList = $this->getSubjectTeacherNameListByDivisionCourse($tblDivisionCourseItem, $tblSubjectItem, $tblYear))) {
+                                    $listing[] = new PullClear($tblDivisionCourseItem->getDisplayName() . new PullRight(implode(', ', $teacherNameList)));
                                 }
                             }
                         }
@@ -1010,8 +1010,8 @@ class Service extends AbstractService
                     $listing = array();
                     /** @var TblDivisionCourse $tblDivisionCourseStudent */
                     foreach ($tblDivisionCourseListStudents as $tblDivisionCourseStudent) {
-                        if (($listingItem = $this->getTeacherListingItemByDivisionCourse($tblDivisionCourseStudent, $tblSubject, $tblYear))) {
-                            $listing[] = $listingItem;
+                        if (($teacherNameList = $this->getSubjectTeacherNameListByDivisionCourse($tblDivisionCourseStudent, $tblSubject, $tblYear))) {
+                            $listing[] = new PullClear($tblDivisionCourseStudent->getDisplayName() . new PullRight(implode(', ', $teacherNameList)));
                         }
                     }
 
@@ -1037,9 +1037,9 @@ class Service extends AbstractService
      * @param TblSubject $tblSubject
      * @param TblYear $tblYear
      *
-     * @return string
+     * @return array
      */
-    private function getTeacherListingItemByDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject, TblYear $tblYear)
+    private function getSubjectTeacherNameListByDivisionCourse(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject, TblYear $tblYear): array
     {
         $teacherList = array();
         if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP
@@ -1052,53 +1052,45 @@ class Service extends AbstractService
             foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
                 if (($tblPersonTeacher = $tblTeacherLectureship->getServiceTblPerson())) {
                     // Fach // Kurse -> Lehrer
-                    $teacherList[] = $tblPersonTeacher->getFullName();
+                    $teacherList[$tblPersonTeacher->getId()] = $tblPersonTeacher->getFullName();
                 }
             }
         }
 
-        return empty($teacherList)
-            ? false
-            : new PullClear($tblDivisionCourse->getDisplayName() . new PullRight(implode(', ', $teacherList)));
+        return $teacherList;
     }
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return array
      */
-    public function getSubjectsAndLectureshipByDivisionForDownload(TblDivision $tblDivision): array
+    public function getSubjectsAndLectureshipByDivisionForDownload(TblDivisionCourse $tblDivisionCourse): array
     {
-        // todo auf DivisionCourse umbauen, am besten mit der Methode fürs frontend zusammenführen
         $dataList = array();
-        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false))) {
-            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
-                    $teacherList = array();
-                    if (($list = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
-                        $tblDivision, $tblSubject
-                    ))) {
-                        foreach ($list as $item) {
-                            if (($tblSubjectGroup = $item->getTblSubjectGroup())
-                                && ($subList = Division::useService()->getSubjectTeacherList($tblDivision, $tblSubject, $tblSubjectGroup))
-                            ) {
-                                foreach ($subList as $personId => $name) {
-                                    if (!isset($teacherList[$personId])) {
-                                        $teacherList[$personId] = $name;
-                                    }
-                                }
+
+        if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByDivisionCourse($tblDivisionCourse, false))
+            && ($tblDivisionCourseListStudents = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            $tblDivisionCourseListStudents = $this->getSorter($tblDivisionCourseListStudents)->sortObjectBy('Name', new StringNaturalOrderSorter());
+            foreach ($tblSubjectList as $tblSubject) {
+                $teacherNameList = array();
+                /** @var TblDivisionCourse $tblDivisionCourseStudent */
+                foreach ($tblDivisionCourseListStudents as $tblDivisionCourseStudent) {
+                    if (($tempList = $this->getSubjectTeacherNameListByDivisionCourse($tblDivisionCourseStudent, $tblSubject, $tblYear))) {
+                        foreach ($tempList as $personId => $name) {
+                            if (!isset($teacherNameList[$personId])) {
+                                $teacherNameList[$personId] = $name;
                             }
                         }
-                    } else {
-                        $teacherList = Division::useService()->getSubjectTeacherList($tblDivision, $tblSubject);
                     }
-
-                    $dataList[$tblSubject->getAcronym()] = array(
-                        'Subject' => $tblSubject->getDisplayName(),
-//                        'Teacher' => empty($teacherList) ? '&nbsp;' : implode(', ', $teacherList),
-                        'TeacherArray' => $teacherList
-                    );
                 }
+
+                $dataList[$tblSubject->getAcronym()] = array(
+                    'Subject' => $tblSubject->getDisplayName(),
+                    'TeacherArray' => $teacherNameList
+                );
             }
 
             ksort($dataList);
