@@ -1,106 +1,76 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 10.07.2019
- * Time: 08:43
- */
 
 namespace SPHERE\Application\Education\ClassRegister\Diary\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblDiary")
+ * @Table(name="tblClassRegisterDiary")
  * @Cache(usage="READ_ONLY")
  */
 class TblDiary extends Element
 {
-
-    const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
-    const ATTR_SERVICE_TBL_GROUP = 'serviceTblGroup';
-    const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
-    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_SERVICE_TBL_DIVISION_COURSE = 'serviceTblDivisionCourse';
 
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblDivision;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblGroup;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblYear;
-
+    protected $serviceTblDivisionCourse;
     /**
      * @Column(type="string")
      */
-    protected $Subject;
-
+    protected string $Subject;
     /**
      * @Column(type="string")
      */
-    protected $Content;
-
+    protected string $Content;
     /**
      * @Column(type="datetime")
      */
-    protected $Date;
-
+    protected ?DateTime $Date;
     /**
      * @Column(type="string")
      */
-    protected $Location;
-
+    protected string $Location;
     /**
      * @Column(type="bigint")
      */
     protected $serviceTblPerson;
 
     /**
-     * @return bool|TblDivision
+     * @return bool|TblDivisionCourse
      */
-    public function getServiceTblDivision()
+    public function getServiceTblDivisionCourse()
     {
-
-        if (null === $this->serviceTblDivision) {
+        if (null === $this->serviceTblDivisionCourse) {
             return false;
         } else {
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
+            return DivisionCourse::useService()->getDivisionCourseById($this->serviceTblDivisionCourse);
         }
     }
 
     /**
-     * @param TblDivision|null $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      */
-    public function setServiceTblDivision(TblDivision $tblDivision = null)
+    public function setServiceTblDivisionCourse(TblDivisionCourse $tblDivisionCourse)
     {
-
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
+        $this->serviceTblDivisionCourse = $tblDivisionCourse->getId();
     }
 
     /**
      * @return string
      */
-    public function getSubject()
+    public function getSubject(): string
     {
         return $this->Subject;
     }
@@ -108,7 +78,7 @@ class TblDiary extends Element
     /**
      * @param string $Subject
      */
-    public function setSubject($Subject)
+    public function setSubject(string $Subject): void
     {
         $this->Subject = $Subject;
     }
@@ -116,7 +86,7 @@ class TblDiary extends Element
     /**
      * @return string
      */
-    public function getContent()
+    public function getContent(): string
     {
         return $this->Content;
     }
@@ -124,9 +94,17 @@ class TblDiary extends Element
     /**
      * @param string $Content
      */
-    public function setContent($Content)
+    public function setContent(string $Content): void
     {
         $this->Content = $Content;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getDateTime(): ?DateTime
+    {
+        return $this->Date;
     }
 
     /**
@@ -134,32 +112,25 @@ class TblDiary extends Element
      */
     public function getDate()
     {
-
         if (null === $this->Date) {
             return false;
         }
-        /** @var \DateTime $Date */
-        $Date = $this->Date;
-        if ($Date instanceof \DateTime) {
-            return $Date->format('d.m.Y');
-        } else {
-            return (string)$Date;
-        }
+
+        return $this->Date->format('d.m.Y');
     }
 
     /**
-     * @param null|\DateTime $Date
+     * @param DateTime|null $Date
      */
-    public function setDate(\DateTime $Date = null)
+    public function setDate(?DateTime $Date): void
     {
-
         $this->Date = $Date;
     }
 
     /**
      * @return string
      */
-    public function getLocation()
+    public function getLocation(): string
     {
         return $this->Location;
     }
@@ -167,7 +138,7 @@ class TblDiary extends Element
     /**
      * @param string $Location
      */
-    public function setLocation($Location)
+    public function setLocation(string $Location): void
     {
         $this->Location = $Location;
     }
@@ -177,7 +148,6 @@ class TblDiary extends Element
      */
     public function getServiceTblPerson()
     {
-
         if (null === $this->serviceTblPerson) {
             return false;
         } else {
@@ -190,51 +160,6 @@ class TblDiary extends Element
      */
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
-
         $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
-    }
-
-    /**
-     * @return bool|TblGroup
-     */
-    public function getServiceTblGroup()
-    {
-
-        if(null === $this->serviceTblGroup){
-            return false;
-        } else {
-            return Group::useService()->getGroupById($this->serviceTblGroup);
-        }
-    }
-
-    /**
-     * @param null|TblGroup $serviceTblGroup
-     */
-    public function setServiceTblGroup(TblGroup $serviceTblGroup = null)
-    {
-
-        $this->serviceTblGroup = (null === $serviceTblGroup ? null : $serviceTblGroup->getId());
-    }
-
-    /**
-     * @return bool|TblYear
-     */
-    public function getServiceTblYear()
-    {
-
-        if (null === $this->serviceTblYear) {
-            return false;
-        } else {
-            return Term::useService()->getYearById($this->serviceTblYear);
-        }
-    }
-
-    /**
-     * @param TblYear|null $tblYear
-     */
-    public function setServiceTblYear(TblYear $tblYear = null)
-    {
-
-        $this->serviceTblYear = ( null === $tblYear ? null : $tblYear->getId() );
     }
 }

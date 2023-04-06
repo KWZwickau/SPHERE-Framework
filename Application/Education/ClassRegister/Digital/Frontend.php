@@ -98,7 +98,7 @@ class Frontend extends FrontendTabs
      */
     public function frontendTeacherSelectDivision(bool $IsAllYears = false, $YearId = null): Stage
     {
-        $Stage = new Stage('Digitales Klassenbuch', 'Klasse auswählen');
+        $Stage = new Stage('Digitales Klassenbuch', 'Kurs auswählen');
 
         Digital::useService()->setHeaderButtonList($Stage, View::TEACHER, self::BASE_ROUTE);
         $yearFilterList = array();
@@ -215,7 +215,7 @@ class Frontend extends FrontendTabs
      */
     public function frontendHeadmasterSelectDivision(bool $IsAllYears = false, $YearId = null): Stage
     {
-        $Stage = new Stage('Digitales Klassenbuch', 'Klasse auswählen');
+        $Stage = new Stage('Digitales Klassenbuch', 'Kurs auswählen');
         Digital::useService()->setHeaderButtonList($Stage, View::HEADMASTER, self::BASE_ROUTE);
 
         $yearFilterList = array();

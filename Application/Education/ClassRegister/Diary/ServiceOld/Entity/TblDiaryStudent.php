@@ -1,6 +1,12 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 10.07.2019
+ * Time: 14:59
+ */
 
-namespace SPHERE\Application\Education\ClassRegister\Diary\Service\Entity;
+namespace SPHERE\Application\Education\ClassRegister\Diary\ServiceOld\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
@@ -12,19 +18,22 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
+ * @deprecated
  * @Entity()
- * @Table(name="tblClassRegisterDiaryStudent")
+ * @Table(name="tblDiaryStudent")
  * @Cache(usage="READ_ONLY")
  */
 class TblDiaryStudent extends Element
 {
-    const ATTR_TBL_DIARY = 'tblClassRegisterDiary';
+
+    const ATTR_TBL_DIARY = 'tblDiary';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
 
     /**
      * @Column(type="bigint")
      */
-    protected $tblClassRegisterDiary;
+    protected $tblDiary;
+
     /**
      * @Column(type="bigint")
      */
@@ -35,19 +44,21 @@ class TblDiaryStudent extends Element
      */
     public function getTblDiary()
     {
-        if (null === $this->tblClassRegisterDiary) {
+
+        if (null === $this->tblDiary) {
             return false;
         } else {
-            return Diary::useService()->getDiaryById($this->tblClassRegisterDiary);
+            return Diary::useServiceOld()->getDiaryById($this->tblDiary);
         }
     }
 
     /**
-     * @param TblDiary|null $tblClassRegisterDiary
+     * @param TblDiary|null $tblDiary
      */
-    public function setTblDiary(TblDiary $tblClassRegisterDiary = null)
+    public function setTblDiary(TblDiary $tblDiary = null)
     {
-        $this->tblClassRegisterDiary = (null === $tblClassRegisterDiary ? null : $tblClassRegisterDiary->getId());
+
+        $this->tblDiary = (null === $tblDiary ? null : $tblDiary->getId());
     }
 
     /**
@@ -55,6 +66,7 @@ class TblDiaryStudent extends Element
      */
     public function getServiceTblPerson()
     {
+
         if (null === $this->serviceTblPerson) {
             return false;
         } else {
@@ -67,6 +79,7 @@ class TblDiaryStudent extends Element
      */
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
+
         $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
     }
 }

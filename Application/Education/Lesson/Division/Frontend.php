@@ -1990,7 +1990,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Die Einträge des pädagogischen Tagebuchs werden ins Kurssystem nicht mit übernommen.'
                 );
                 $copyDiary = false;
-            } elseif (($tblDiaryDivisionList = Diary::useService()->getDiaryAllByDivision($tblDivision, true))) {
+            } elseif (($tblDiaryDivisionList = Diary::useService()->getDiaryAllByDivisionCourse($tblDivision, true))) {
                 $contentDiary = 'Es werden ' . count($tblDiaryDivisionList) . ' Einträge übernommen.';
             }
         }

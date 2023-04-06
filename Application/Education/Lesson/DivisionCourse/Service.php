@@ -626,6 +626,23 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @param TblDivisionCourseType $tblType
+     * @param TblYear $tblYear
+     * @param string $name
+     * @param string $description
+     * @param bool $isShownInPersonData
+     * @param bool $isReporting
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblDivisionCourse
+     */
+    public function insertDivisionCourse(
+        TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description, bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject
+    ): TblDivisionCourse {
+        return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param array $Data
      *

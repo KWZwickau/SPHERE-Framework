@@ -4,19 +4,18 @@ namespace SPHERE\Application\Education\ClassRegister\Diary\Service;
 
 use DateTime;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
-use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryDivision;
+use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryPredecessorDivisionCourse;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryStudent;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Diary\Diary;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
-/**
- * Class Data
- * @package SPHERE\Application\Education\ClassRegister\Diary\Service\Entity
- */
 class Data extends AbstractData
 {
     public function setupDatabaseContent()
@@ -25,39 +24,140 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblYear $tblYear
+     *
+     * @return array
+     */
+    public function migrateYear(TblYear $tblYear): array
+    {
+        $count = 0;
+        $start = hrtime(true);
+
+        $isCurrentYear = false;
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            foreach ($tblYearList as $tblYearTemp) {
+                if ($tblYearTemp->getId() == $tblYear->getId()) {
+                    $isCurrentYear = true;
+                    break;
+                }
+            }
+        }
+
+        if (($tblDiaryOldList = Diary::useServiceOld()->getDiaryListByYear($tblYear))) {
+            $Manager = $this->getEntityManager();
+            $tblDivisionCourseGroupList = array();
+            $tblDivisionList = array();
+            $tblTypeCoreGroup = DivisionCourse::useService()->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_CORE_GROUP);
+            foreach ($tblDiaryOldList as $tblDiaryOld) {
+                $tblDivisionCourse = false;
+                // Klasse
+                if (($tblDivision = $tblDiaryOld->getServiceTblDivision())) {
+                    $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($tblDivision->getId());
+                    if (!isset($tblDivisionList[$tblDivision->getId()])) {
+                        $tblDivisionList[$tblDivision->getId()] = $tblDivision;
+                    }
+                // Stammgruppe
+                } elseif (($tblGroup = $tblDiaryOld->getServiceTblGroup())) {
+                    if (isset($tblDivisionCourseGroupList[$tblGroup->getId()])) {
+                        $tblDivisionCourse = $tblDivisionCourseGroupList[$tblGroup->getId()];
+                    } elseif ($isCurrentYear) {
+                        $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByMigrateGroupId($tblGroup->getId());
+                    } else {
+                        // für ältere Schuljahre muss die Personen-Stammgruppe noch als DivisionCourse angelegt werden
+                        if (($tblDivisionCourse = DivisionCourse::useService()->insertDivisionCourse(
+                            $tblTypeCoreGroup, $tblYear, $tblGroup->getName(), $tblGroup->getDescription(), true, true, null
+                        ))) {
+                            $tblDivisionCourseGroupList[$tblGroup->getId()] = $tblDivisionCourse;
+                        }
+                    }
+                }
+
+                if ($tblDivisionCourse) {
+                    $tblDiary = new TblDiary();
+                    $tblDiary->setServiceTblDivisionCourse($tblDivisionCourse);
+                    $tblDiary->setSubject($tblDiaryOld->getSubject());
+                    $tblDiary->setContent($tblDiaryOld->getContent());
+                    $tblDiary->setDate(($Date = $tblDiaryOld->getDate()) ? new DateTime($Date) : null);
+                    $tblDiary->setLocation($tblDiaryOld->getLocation());
+                    $tblDiary->setServiceTblPerson($tblDiaryOld->getServiceTblPerson() ?: null);
+
+                    $count++;
+                    // bei vorhandenen Schülern muss der Diary-Eintrag sofort gespeichert werden für die Id
+                    if (($tblDiaryStudentOldList = Diary::useServiceOld()->getDiaryStudentAllByDiary($tblDiaryOld))) {
+                        $Manager->saveEntity($tblDiary);
+
+                        foreach ($tblDiaryStudentOldList as $tblDiaryStudentOld) {
+                            if (($tblPersonStudent = $tblDiaryStudentOld->getServiceTblPerson())) {
+                                $tblDiaryStudent = new TblDiaryStudent();
+                                $tblDiaryStudent->setTblDiary($tblDiary);
+                                $tblDiaryStudent->setServiceTblPerson($tblPersonStudent);
+
+                                $Manager->bulkSaveEntity($tblDiaryStudent);
+                                $count++;
+                            }
+                        }
+                    } else {
+                        $Manager->bulkSaveEntity($tblDiary);
+                    }
+                }
+            }
+
+            if (!empty($tblDivisionList)) {
+                foreach ($tblDivisionList as $tblDivisionItem) {
+                    if (($tblDiaryDivisionOldList = Diary::useServiceOld()->getDiaryDivisionByDivision($tblDivisionItem))
+                        && ($tblDivisionCourseItem = DivisionCourse::useService()->getDivisionCourseById($tblDivisionItem->getId()))
+                    ) {
+                        foreach($tblDiaryDivisionOldList as $tblDiaryDivisionOld) {
+                            if (($tblPredecessorDivision = $tblDiaryDivisionOld->getServiceTblPredecessorDivision())
+                                && ($tblPredecessorDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($tblPredecessorDivision->getId()))
+                            ) {
+                                $tblDiaryPredecessorDivisionCourse = new TblDiaryPredecessorDivisionCourse();
+                                $tblDiaryPredecessorDivisionCourse->setServiceTblDivisionCourse($tblDivisionCourseItem);
+                                $tblDiaryPredecessorDivisionCourse->setServiceTblPredecessorDivisionCourse($tblPredecessorDivisionCourse);
+
+                                $Manager->bulkSaveEntity($tblDiaryPredecessorDivisionCourse);
+                                $count++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            $Manager->flushCache();
+        }
+
+        $end = hrtime(true);
+
+        return array($count, round(($end - $start) / 1000000000, 2));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param $Subject
      * @param $Content
      * @param $Date
      * @param $Location
-     * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param ?TblPerson $tblPerson
      *
      * @return TblDiary
      */
     public function createDiary(
+        TblDivisionCourse $tblDivisionCourse,
         $Subject,
         $Content,
         $Date,
         $Location,
-        TblPerson $tblPerson,
-        TblYear $tblYear = null,
-        TblDivision $tblDivision = null,
-        TblGroup $tblGroup = null
-    ) {
-
+        ?TblPerson $tblPerson
+    ): TblDiary {
         $Manager = $this->getEntityManager();
 
         $Entity = new TblDiary();
+        $Entity->setServiceTblDivisionCourse($tblDivisionCourse);
         $Entity->setSubject($Subject);
         $Entity->setContent($Content);
         $Entity->setDate($Date ? new DateTime($Date) : null);
         $Entity->setLocation($Location);
         $Entity->setServiceTblPerson($tblPerson);
-        $Entity->setServiceTblYear($tblYear);
-        $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setServiceTblGroup($tblGroup);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -71,10 +171,7 @@ class Data extends AbstractData
      * @param $Content
      * @param $Date
      * @param $Location
-     * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param ?TblPerson $tblPerson
      *
      * @return bool
      */
@@ -84,11 +181,8 @@ class Data extends AbstractData
         $Content,
         $Date,
         $Location,
-        TblPerson $tblPerson,
-        TblYear $tblYear = null,
-        TblDivision $tblDivision = null,
-        TblGroup $tblGroup = null
-    ) {
+        ?TblPerson $tblPerson
+    ): bool {
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblDiary $Entity */
         $Entity = $Manager->getEntityById('TblDiary', $tblDiary->getId());
@@ -99,9 +193,6 @@ class Data extends AbstractData
             $Entity->setDate($Date ? new DateTime($Date) : null);
             $Entity->setLocation($Location);
             $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setServiceTblYear($tblYear);
-            $Entity->setServiceTblDivision($tblDivision);
-            $Entity->setServiceTblGroup($tblGroup);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -117,7 +208,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function destroyDiary(TblDiary $tblDiary)
+    public function destroyDiary(TblDiary $tblDiary): bool
     {
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblDiary $Entity */
@@ -143,26 +234,14 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return false|TblDiary[]
      */
-    public function getDiaryAllByDivision(TblDivision $tblDivision)
+    public function getDiaryAllByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiary', array(
-            TblDiary::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
-        ));
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     *
-     * @return false|TblGroup[]
-     */
-    public function getDiaryAllByGroup(TblGroup $tblGroup)
-    {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiary', array(
-            TblDiary::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId()
+            TblDiary::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId()
         ));
     }
 
@@ -196,7 +275,7 @@ class Data extends AbstractData
      *
      * @return TblDiaryStudent
      */
-    public function addDiaryStudent(TblDiary $tblDiary, TblPerson $tblPerson)
+    public function addDiaryStudent(TblDiary $tblDiary, TblPerson $tblPerson): TblDiaryStudent
     {
         $Manager = $this->getEntityManager();
         $Entity = $Manager->getEntity('TblDiaryStudent')
@@ -221,7 +300,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function removeDiaryStudent(TblDiaryStudent $tblDiaryStudent)
+    public function removeDiaryStudent(TblDiaryStudent $tblDiaryStudent): bool
     {
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblDiaryStudent $Entity */
@@ -237,35 +316,35 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      *
-     * @return false|TblDiaryDivision[]
+     * @return false|TblDiaryPredecessorDivisionCourse[]
      */
-    public function getDiaryDivisionByDivision(TblDivision $tblDivision)
+    public function getDiaryPredecessorDivisionCourseListByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
     {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiaryDivision', array(
-            TblDiaryDivision::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDiaryPredecessorDivisionCourse', array(
+            TblDiaryPredecessorDivisionCourse::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId()
         ));
     }
 
     /**
-     * @param TblDivision $tblDivision
-     * @param TblDivision $tblPredecessorDivision
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourse $tblPredecessorDivisionCourse
      *
-     * @return TblDiaryDivision
+     * @return TblDiaryPredecessorDivisionCourse
      */
-    public function addDiaryDivision(TblDivision $tblDivision, TblDivision $tblPredecessorDivision)
+    public function addDiaryDivision(TblDivisionCourse $tblDivisionCourse, TblDivisionCourse $tblPredecessorDivisionCourse): TblDiaryPredecessorDivisionCourse
     {
         $Manager = $this->getEntityManager();
-        $Entity = $Manager->getEntity('TblDiaryDivision')
+        $Entity = $Manager->getEntity('TblDiaryPredecessorDivisionCourse')
             ->findOneBy(array(
-                TblDiaryDivision::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                TblDiaryDivision::ATTR_SERVICE_TBL_PREDECESSOR_DIVISION => $tblPredecessorDivision->getId(),
+                TblDiaryPredecessorDivisionCourse::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+                TblDiaryPredecessorDivisionCourse::ATTR_SERVICE_TBL_PREDECESSOR_DIVISION_COURSE => $tblPredecessorDivisionCourse->getId(),
             ));
         if (null === $Entity) {
-            $Entity = new TblDiaryDivision();
-            $Entity->setServiceTblDivision($tblDivision);
-            $Entity->setServiceTblPredecessorDivision($tblPredecessorDivision);
+            $Entity = new TblDiaryPredecessorDivisionCourse();
+            $Entity->setServiceTblDivisionCourse($tblDivisionCourse);
+            $Entity->setServiceTblPredecessorDivisionCourse($tblPredecessorDivisionCourse);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
