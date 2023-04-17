@@ -23,10 +23,7 @@ class TblStudentSubject extends Element
     const ATTR_TBL_STUDENT = 'tblStudent';
     const ATTR_TBL_STUDENT_SUBJECT_TYPE = 'tblStudentSubjectType';
     const ATTR_TBL_STUDENT_SUBJECT_RANKING = 'tblStudentSubjectRanking';
-    const SERVICE_TBL_SUBJECT = 'serviceTblSubject';
-    const SERVICE_TBL_LEVEL_FROM = 'serviceTblLevelFrom';
-    const SERVICE_TBL_LEVEL_TILL = 'serviceTblLevelTill';
-    
+
     /**
      * @Column(type="bigint")
      */
@@ -44,14 +41,26 @@ class TblStudentSubject extends Element
      */
     protected $serviceTblSubject;
     /**
+     * @deprecated
+     *
      * @Column(type="bigint")
      */
     protected $serviceTblLevelFrom;
     /**
+     * @deprecated
+     *
      * @Column(type="bigint")
      */
     protected $serviceTblLevelTill;
-    
+    /**
+     * @Column(type="integer")
+     */
+    protected ?int $LevelFrom = null;
+    /**
+     * @Column(type="integer")
+     */
+    protected ?int $LevelTill = null;
+
     /**
      * @return bool|TblStudent
      */
@@ -141,6 +150,8 @@ class TblStudentSubject extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @return bool|TblLevel
      */
     public function getServiceTblLevelFrom()
@@ -154,15 +165,8 @@ class TblStudentSubject extends Element
     }
 
     /**
-     * @param TblLevel|null $tblLevel
-     */
-    public function setServiceTblLevelFrom(TblLevel $tblLevel = null)
-    {
-
-        $this->serviceTblLevelFrom = ( null === $tblLevel ? null : $tblLevel->getId() );
-    }
-
-    /**
+     * @deprecated
+     *
      * @return bool|TblLevel
      */
     public function getServiceTblLevelTill()
@@ -176,11 +180,34 @@ class TblStudentSubject extends Element
     }
 
     /**
-     * @param TblLevel|null $tblLevel
+     * @return int|null
      */
-    public function setServiceTblLevelTill(TblLevel $tblLevel = null)
+    public function getLevelFrom(): ?int
     {
+        return $this->LevelFrom;
+    }
 
-        $this->serviceTblLevelTill = ( null === $tblLevel ? null : $tblLevel->getId() );
+    /**
+     * @param int|null $LevelFrom
+     */
+    public function setLevelFrom(?int $LevelFrom): void
+    {
+        $this->LevelFrom = $LevelFrom;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getLevelTill(): ?int
+    {
+        return $this->LevelTill;
+    }
+
+    /**
+     * @param int|null $LevelTill
+     */
+    public function setLevelTill(?int $LevelTill): void
+    {
+        $this->LevelTill = $LevelTill;
     }
 }

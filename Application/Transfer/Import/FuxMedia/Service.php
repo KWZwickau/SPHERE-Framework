@@ -834,37 +834,15 @@ class Service
                                     if ($subjectLanguage !== '') {
                                         $tblSubject = Subject::useService()->getSubjectByAcronym($subjectLanguage);
                                         if ($tblSubject) {
-                                            $levelFrom = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache'.$i.'_von'],
-                                                $RunY)));
-                                            $tblLevelFrom = false;
-                                            if ($levelFrom != '') {
-                                                $level = intval($levelFrom);
-                                                if ($tblType && $level > 0 && $level < 13) {
-                                                    $tblLevelFrom = Division::useService()->insertLevel($tblType, $level);
-                                                } else {
-                                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Fächer_Fremdsprache' . $i . '_von:' . $levelFrom . ' nicht gefunden.';
-                                                }
-                                            }
-
-                                            $levelTill = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache'.$i.'_bis'],
-                                                $RunY)));
-                                            $tblLevelTill = false;
-                                            if ($levelTill != '') {
-                                                $level = intval($levelTill);
-                                                if ($tblType && $level > 0 && $level < 13) {
-                                                    $tblLevelTill = Division::useService()->insertLevel($tblType, $level);
-                                                } else {
-                                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Fächer_Fremdsprache' . $i . '_bis:' . $levelTill . ' nicht gefunden.';
-                                                }
-                                            }
-
+                                            $levelFrom = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache'.$i.'_von'], $RunY)));
+                                            $levelTill = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache'.$i.'_bis'], $RunY)));
                                             Student::useService()->addStudentSubject(
                                                 $tblStudent,
                                                 Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'),
                                                 Student::useService()->getStudentSubjectRankingByIdentifier($i),
                                                 $tblSubject,
-                                                $tblLevelFrom ? $tblLevelFrom : null,
-                                                $tblLevelTill ? $tblLevelTill : null
+                                                $levelFrom ? intval($levelFrom) : null,
+                                                $levelTill ? intval($levelTill) : null
                                             );
                                         } else {
                                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Fächer_Fremdsprache' . $i . ':' . $subjectLanguage . ' nicht gefunden.';

@@ -161,7 +161,10 @@ class Frontend extends Extension implements IFrontendInterface
             if(!$tblPersonList){
                 return $Stage->setContent(new Warning('Keine Schüler hinterlegt.'));
             }
-            $TableContent = Person::useService()->createClassList($tblPersonList);
+            $TableContent = array();
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+                $TableContent = Person::useService()->createClassList($tblPersonList, $tblYear);
+            }
             if (!empty($TableContent)) {
                 $Stage->addButton(
                     new Primary('Herunterladen', '/Api/Reporting/Standard/Person/ClassList/Download', new Download(),
@@ -978,18 +981,16 @@ class Frontend extends Extension implements IFrontendInterface
             , array('{{ Name }} {{ Description }}' => DivisionCourse::useService()->getDivisionCourseListByYear($tblYear, true)));
     }
 
-    /** ToDO benötigt noch die neuen Fehlzeiten
+    /**
      * @param null $Data
      *
      * @return Stage
      */
-    public function frontendAbsence($Data = null)
+    public function frontendAbsence($Data = null): Stage
     {
         $stage = new Stage('Auswertung', 'Fehlzeiten');
 
-        $stage->setMessage(
-            new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation())
-        );
+        $stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
 
         if ($Data == null) {
             $global = $this->getGlobal();
@@ -997,20 +998,12 @@ class Frontend extends Extension implements IFrontendInterface
             $global->savePost();
         }
 
-        $receiverContent = ApiStandard::receiverBlock(
-            (new ApiStandard())->reloadAbsenceContent(), 'AbsenceContent'
-        );
+        $receiverContent = ApiStandard::receiverBlock((new ApiStandard())->reloadAbsenceContent(), 'AbsenceContent');
 
         $certificateRelevantList = array(0 => '', 1 => 'ja', 2 => 'nein');
         $tblDivisionCourseList = array();
         if(($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseAll(TblDivisionCourseType::TYPE_DIVISION, true))) {
             $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
-        }
-        if(($tblDivisionCourseListBasicCourse = DivisionCourse::useService()->getDivisionCourseAll(TblDivisionCourseType::TYPE_BASIC_COURSE, true))){
-            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListBasicCourse);
-        }
-        if(($tblDivisionCourseListAdvancedCourse = DivisionCourse::useService()->getDivisionCourseAll(TblDivisionCourseType::TYPE_ADVANCED_COURSE, true))){
-            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListAdvancedCourse);
         }
         if(($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseAll(TblDivisionCourseType::TYPE_CORE_GROUP, true))){
             $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);

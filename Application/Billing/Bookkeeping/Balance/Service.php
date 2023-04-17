@@ -673,7 +673,7 @@ class Service extends AbstractService
                 $EconomicDateString = $EconomicDate->format('md');
             }
 
-            $YearBegin = $EconomicDateString.$Year;
+            $YearBegin = $Year.$EconomicDateString;
             $BookingFrom = $tblBasket->getBillYearMonth();
             $BookingTo = $tblBasket->getBillYearMonth(true);
 

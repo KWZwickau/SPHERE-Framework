@@ -1,7 +1,10 @@
 <?php
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
+use DateTime;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
@@ -14,18 +17,14 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGr
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Setup;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
-use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
-use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
@@ -372,49 +371,46 @@ class Service extends ServiceTemplateInformation
 
         foreach ($Data as $prepareStudentId => $array) {
             if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
-                && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
                 && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                 && is_array($array)
             ) {
-                if (isset($CertificateList[$tblPerson->getId()])) {
+                /*
+                 * Fehlzeiten
+                 *
+                 * bei den Fehlzeiten ist CertificateList leer, da nicht die Template-Informationen gezogen werden
+                 *
+                 */
+                if (isset($array['ExcusedDays']) && isset($array['UnexcusedDays'])) {
+                    // Fehlzeiten werden in der Zeugnisvorbereitung gepflegt
+                    (new Data($this->getBinding()))->updatePrepareStudent(
+                        $tblPrepareStudent,
+                        $tblPrepareStudent->getServiceTblCertificate() ?: null,
+                        $tblPrepareStudent->isApproved(),
+                        $tblPrepareStudent->isPrinted(),
+                        $array['ExcusedDays'] === '' ? null : $array['ExcusedDays'],
+                        $tblPrepareStudent->getExcusedDaysFromLessons(),
+                        $array['UnexcusedDays'] === '' ? null : $array['UnexcusedDays'],
+                        $tblPrepareStudent->getUnexcusedDaysFromLessons(),
+                        $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
+                    );
+                } elseif (isset($array['ExcusedDaysFromLessons']) || isset($array['UnexcusedDaysFromLessons'])) {
+                    // Fehlzeiten werden im Klassenbuch gepflegt
+                    (new Data($this->getBinding()))->updatePrepareStudent(
+                        $tblPrepareStudent,
+                        $tblPrepareStudent->getServiceTblCertificate() ?: null,
+                        $tblPrepareStudent->isApproved(),
+                        $tblPrepareStudent->isPrinted(),
+                        $tblPrepareStudent->getExcusedDays(),
+                        $array['ExcusedDaysFromLessons'] ?? $tblPrepareStudent->getExcusedDaysFromLessons(),
+                        $tblPrepareStudent->getUnexcusedDays(),
+                        $array['UnexcusedDaysFromLessons'] ?? $tblPrepareStudent->getUnexcusedDaysFromLessons(),
+                        $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
+                    );
+                }
 
+                if (isset($CertificateList[$tblPerson->getId()])) {
                     /** @var Certificate $Certificate */
                     $Certificate = $CertificateList[$tblPerson->getId()];
-                    $tblCertificate = $Certificate->getCertificateEntity();
-
-                    /*
-                     * Fehlzeiten
-                     */
-                    if ($tblCertificate) {
-                        if (isset($array['ExcusedDays']) && isset($array['UnexcusedDays'])) {
-                            // Fehlzeiten werden in der Zeugnisvorbereitung gepflegt
-                            (new Data($this->getBinding()))->updatePrepareStudent(
-                                $tblPrepareStudent,
-                                $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate() : $tblCertificate,
-                                $tblPrepareStudent->isApproved(),
-                                $tblPrepareStudent->isPrinted(),
-                                $array['ExcusedDays'] === '' ? null : $array['ExcusedDays'],
-                                $tblPrepareStudent->getExcusedDaysFromLessons(),
-                                $array['UnexcusedDays'] === '' ? null : $array['UnexcusedDays'],
-                                $tblPrepareStudent->getUnexcusedDaysFromLessons(),
-                                $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
-                            );
-                        } elseif (isset($array['ExcusedDaysFromLessons']) || isset($array['UnexcusedDaysFromLessons'])) {
-                            // Fehlzeiten werden im Klassenbuch gepflegt
-                            (new Data($this->getBinding()))->updatePrepareStudent(
-                                $tblPrepareStudent,
-                                $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate() : $tblCertificate,
-                                $tblPrepareStudent->isApproved(),
-                                $tblPrepareStudent->isPrinted(),
-                                $tblPrepareStudent->getExcusedDays(),
-                                $array['ExcusedDaysFromLessons'] ?? $tblPrepareStudent->getExcusedDaysFromLessons(),
-                                $tblPrepareStudent->getUnexcusedDays(),
-                                $array['UnexcusedDaysFromLessons'] ?? $tblPrepareStudent->getUnexcusedDaysFromLessons(),
-                                $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
-                            );
-                        }
-                    }
-
                     /*
                      * Sonstige Informationen
                      */
@@ -461,25 +457,15 @@ class Service extends ServiceTemplateInformation
 
                             if (trim($value) != '') {
                                 $value = trim($value);
-                                if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
-                                    $field))
-                                ) {
-                                    (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation,
-                                        $field,
-                                        $value);
+                                if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $field))) {
+                                    (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, $field, $value);
                                 } else {
-                                    (new Data($this->getBinding()))->createPrepareInformation($tblPrepareItem, $tblPerson,
-                                        $field,
-                                        $value);
+                                    (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, $field, $value);
                                 }
 
-                            } elseif (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
-                                $field))
-                            ) {
+                            } elseif (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $field))) {
                                 // auf Leer zurücksetzen
-                                (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation,
-                                    $field,
-                                    $value);
+                                (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation, $field, $value);
                             }
                         }
                     }
@@ -689,9 +675,7 @@ class Service extends ServiceTemplateInformation
                         if (trim($value) === '') {
                             // keine leere Kopfnoten anlegen, nur falls eine Kopfnote vorhanden ist
                             // direktes löschen ist ungünstig, da beim nächsten Speichern wieder der Durchschnitt eingetragen würde
-                            if (($tblPrepareGrade = $this->getPrepareGradeByGradeType(
-                                $tblPrepareItem, $tblPerson, $tblTestType, $tblGradeType
-                            ))) {
+                            if ($this->getPrepareGradeByGradeType($tblPrepareItem, $tblPerson, $tblTestType, $tblGradeType)) {
                                 Prepare::useService()->updatePrepareGradeForBehavior(
                                     $tblPrepareItem, $tblPerson, $tblTestType, $tblGradeType, trim($value)
                                 );
@@ -1131,8 +1115,18 @@ class Service extends ServiceTemplateInformation
     ): array {
         $tblCertificateList = array();
         if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
             && (($tblStudentList = $tblDivisionCourse->getStudentsWithSubCourses()))
         ) {
+            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                && $tblGenerateCertificate->getAppointedDateForAbsence()
+            ) {
+                $tillDateAbsence = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+            } else {
+                $tillDateAbsence = new DateTime($tblPrepare->getDate());
+            }
+            list($startDateAbsence) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+
             foreach ($tblStudentList as $tblPerson) {
                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
                     && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
@@ -1146,13 +1140,12 @@ class Service extends ServiceTemplateInformation
                         }
                     }
 
-                    // todo Anpassung nach Fehlzeiten Anpassung
                     // Prüfung ob Fehlzeiten-Stunden erfasst wurden, nur erforderlich bei Pflege der Fehlzeiten im Klassenbuch
-                    if ($useClassRegisterForAbsence && false) {
-                        if (Absence::useService()->hasPersonAbsenceLessons($tblPerson, $tblDivisionCourse, TblAbsence::VALUE_STATUS_EXCUSED)) {
+                    if ($useClassRegisterForAbsence) {
+                        if (Absence::useService()->getHasPersonAbsenceLessons($tblPerson, $startDateAbsence, $tillDateAbsence, TblAbsence::VALUE_STATUS_EXCUSED)) {
                             $StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_EXCUSED] = true;
                         }
-                        if (Absence::useService()->hasPersonAbsenceLessons($tblPerson, $tblDivisionCourse, TblAbsence::VALUE_STATUS_UNEXCUSED)) {
+                        if (Absence::useService()->getHasPersonAbsenceLessons($tblPerson, $startDateAbsence, $tillDateAbsence, TblAbsence::VALUE_STATUS_UNEXCUSED)) {
                             $StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_UNEXCUSED] = true;
                         }
                     }

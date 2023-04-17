@@ -5,10 +5,11 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 use DateTime;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
@@ -117,6 +118,17 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                 );
             }
 
+            if ($useClassRegisterForAbsence) {
+                if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                    && $tblGenerateCertificate->getAppointedDateForAbsence()
+                ) {
+                    $tillDateAbsence = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                } else {
+                    $tillDateAbsence = new DateTime($tblPrepare->getDate());
+                }
+                list($startDateAbsence) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            }
+
             if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
                 $count = 0;
                 $certificateList = array();
@@ -191,22 +203,21 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                             $excusedDays = $tblPrepareStudent->getExcusedDays();
                             $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
                             if ($useClassRegisterForAbsence) {
-                                if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
-                                    && $tblGenerateCertificate->getAppointedDateForAbsence()
-                                ) {
-                                    $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
-                                } else {
-                                    $date = new DateTime($tblPrepare->getDate());
+                                $tblCompany = false;
+                                $tblSchoolType = false;
+                                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                                    $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                                    $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
                                 }
 
-                                // todo Fehlzeiten vom Schuljahr holen statt Klasse, nach Umbau Fehlzeiten
-                                if (false) {
-                                    if ($excusedDays === null) {
-                                        $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision, $date);
-                                    }
-                                    if ($unexcusedDays === null) {
-                                        $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision, $date);
-                                    }
+                                // Fehlzeiten aus dem Klassenbuch holen
+                                if ($excusedDays === null) {
+                                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                                        $startDateAbsence, $tillDateAbsence);
+                                }
+                                if ($unexcusedDays === null) {
+                                    $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                                        $startDateAbsence, $tillDateAbsence);
                                 }
                                 // Zusatz-Tage von fehlenden Unterrichtseinheiten
                                 $excusedDaysFromLessons = $tblPrepareStudent->getExcusedDaysFromLessons();
@@ -231,18 +242,22 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                     }
 
                     $subjectGradesDisplayText = $countSubjectGrades < $countSubjects || !$tblPrepare->getServiceTblAppointedDateTask()
-                            ? new WarningText(new Exclamation() . ' ' . $subjectGradesText)
-                            : new Success(new Enable() . ' ' . $subjectGradesText);
+                        ? new WarningText(new Exclamation() . ' ' . $subjectGradesText)
+                        : new Success(new Enable() . ' ' . $subjectGradesText);
                     $behaviorGradesDisplayText = $countBehaviorGrades < $countBehavior || !$tblBehaviorTask
-                            ? new WarningText(new Exclamation() . ' ' . $behaviorGradesText)
-                            : new Success(new Enable() . ' ' . $behaviorGradesText);
+                        ? new WarningText(new Exclamation() . ' ' . $behaviorGradesText)
+                        : new Success(new Enable() . ' ' . $behaviorGradesText);
 
                     // Abitur Fächerprüfung ignorieren
-                    if ($tblCertificate->getCertificate() == 'GymAbitur') {
+                    if ($tblCertificate
+                        && $tblCertificate->getCertificate() == 'GymAbitur'
+                    ) {
                         $checkSubjectsString = new Success(
                             new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Keine Fächerzuordnung erforderlich.'
                         );
-                    } elseif (($checkSubjectList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson($tblPerson, $tblYear, $tblCertificate))) {
+                    } elseif ($tblCertificate
+                        && ($checkSubjectList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson($tblPerson, $tblYear, $tblCertificate))
+                    ) {
                         $checkSubjectsString = new WarningText(new Ban() . ' '
                             . implode(', ', $checkSubjectList)
                             . (count($checkSubjectList) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');

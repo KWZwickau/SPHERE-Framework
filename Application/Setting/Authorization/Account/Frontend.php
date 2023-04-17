@@ -308,7 +308,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_unshift($tblTokenAll, new Danger('AKTUELL hinterlegter Hardware-Schlüssel, '));
         }
 
-        $PanelToken = new Panel(new Person() . ' mit folgender Authenfizierungsmethode anmelden', $tblTokenAll, Panel::PANEL_TYPE_INFO);
+        $PanelToken = new Panel(new Person() . ' mit folgender Authentifizierungsmethode anmelden', $tblTokenAll, Panel::PANEL_TYPE_INFO);
 
         // Person
         if ($tblAccount){

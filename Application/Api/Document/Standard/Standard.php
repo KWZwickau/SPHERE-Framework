@@ -264,29 +264,25 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param null $YearId
+     * @param null $DivisionCourseId
      * @param bool $Redirect
      *
      * @return string
      */
-    public static function createClassRegisterPdf($DivisionId = null, $GroupId = null, $YearId = null, bool $Redirect = true): string
+    public static function createClassRegisterPdf($DivisionCourseId = null, bool $Redirect = true): string
     {
-        return Creator::createClassRegisterPdf($DivisionId, $GroupId, $YearId, $Redirect);
+        return Creator::createClassRegisterPdf($DivisionCourseId, $Redirect);
     }
 
     /**
-     * @param null $DivisionId
-     * @param null $SubjectId
-     * @param null $SubjectGroupId
+     * @param null $DivisionCourseId
      * @param bool $Redirect
      *
      * @return string
      */
-    public static function createCourseContentPdf($DivisionId = null, $SubjectId = null, $SubjectGroupId = null, bool $Redirect = true): string
+    public static function createCourseContentPdf($DivisionCourseId = null, bool $Redirect = true): string
     {
-        return Creator::createCourseContentPdf($DivisionId, $SubjectId, $SubjectGroupId, $Redirect);
+        return Creator::createCourseContentPdf($DivisionCourseId, $Redirect);
     }
 
     /**

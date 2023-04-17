@@ -6,6 +6,7 @@ use DateTime;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -185,12 +186,27 @@ class Service extends ServiceTeacher
     /**
      * @param string $name
      * @param array|null $tblYearList
+     * @param bool $isOnlyTypeDivisionOrCoreGroup
      *
      * @return TblDivisionCourse[]|false
      */
-    public function getDivisionCourseListByLikeName(string $name, ?array $tblYearList = null)
+    public function getDivisionCourseListByLikeName(string $name, ?array $tblYearList = null, bool $isOnlyTypeDivisionOrCoreGroup = false)
     {
-        return (new Data($this->getBinding()))->getDivisionCourseListByLikeName($name, $tblYearList);
+        $tempList = (new Data($this->getBinding()))->getDivisionCourseListByLikeName($name, $tblYearList);
+        if ($isOnlyTypeDivisionOrCoreGroup && $tempList) {
+            $resultList = array();
+            foreach ($tempList as $tblDivisionCourse) {
+                if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+                    || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP
+                ) {
+                    $resultList[] = $tblDivisionCourse;
+                }
+            }
+
+            return empty($resultList) ? false : $resultList;
+        } else {
+            return $tempList;
+        }
     }
 
     /**
@@ -374,6 +390,33 @@ class Service extends ServiceTeacher
             && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
         ) {
             return $this->getIsCourseSystemBySchoolTypeAndLevel($tblSchoolType, $level);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return bool
+     */
+    public function getIsCourseSystemByStudentsInDivisionCourse(TblDivisionCourse $tblDivisionCourse): bool
+    {
+        // bei Stammgruppe und Klasse query direkt über datenbank
+        if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+            || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP
+        ) {
+            return  (new Data($this->getBinding()))->getIsCourseSystemByStudentsInDivisionOrCoreGroup($tblDivisionCourse);
+        }
+
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($this->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear))) {
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -580,6 +623,23 @@ class Service extends ServiceTeacher
         } else {
             return false;
         }
+    }
+
+    /**
+     * @param TblDivisionCourseType $tblType
+     * @param TblYear $tblYear
+     * @param string $name
+     * @param string $description
+     * @param bool $isShownInPersonData
+     * @param bool $isReporting
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblDivisionCourse
+     */
+    public function insertDivisionCourse(
+        TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description, bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject
+    ): TblDivisionCourse {
+        return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
     }
 
     /**
@@ -1857,6 +1917,47 @@ class Service extends ServiceTeacher
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param bool $isString
+     *
+     * @return Type[]|string|false
+     */
+    public function getCompanyListByDivisionCourse(TblDivisionCourse $tblDivisionCourse, bool $isString = false)
+    {
+        switch ($tblDivisionCourse->getTypeIdentifier()) {
+            case TblDivisionCourseType::TYPE_DIVISION:
+                $companyIdList = (new Data($this->getBinding()))->getCompanyIdListByTypeDivision($tblDivisionCourse);
+                break;
+            case TblDivisionCourseType::TYPE_CORE_GROUP:
+                $companyIdList = (new Data($this->getBinding()))->getCompanyIdListByTypeCoreGroup($tblDivisionCourse);
+                break;
+            case TblDivisionCourseType::TYPE_ADVANCED_COURSE:
+            case TblDivisionCourseType::TYPE_BASIC_COURSE:
+                $companyIdList = (new Data($this->getBinding()))->getCompanyIdListByStudentSubject($tblDivisionCourse);
+                break;
+            default:
+                $companyIdList = (new Data($this->getBinding()))->getCompanyIdListByDivisionCourseWithMember($tblDivisionCourse);
+        }
+
+        $resultList = array();
+        if ($companyIdList) {
+            foreach ($companyIdList as $item) {
+                if (isset($item['CompanyId']) && ($tblCompany = Company::useService()->getCompanyById($item['CompanyId']))) {
+                    if ($isString) {
+                        $resultList[$tblCompany->getId()] = $tblCompany->getName();
+                    } else {
+                        $resultList[$tblCompany->getId()] = $tblCompany;
+                    }
+                }
+            }
+        }
+
+        return empty($resultList)
+            ? false
+            : ($isString ? implode(", ", $resultList) : $resultList);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      *
@@ -1909,5 +2010,23 @@ class Service extends ServiceTeacher
         }
 
         return empty($tblDivisionCourseList) ? false : $tblDivisionCourseList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return bool
+     */
+    public function getHasSaturdayLessonsByDivisionCourse(TblDivisionCourse $tblDivisionCourse): bool
+    {
+        if (($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())) {
+            foreach ($tblSchoolTypeList as $tblSchoolType) {
+                if (Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

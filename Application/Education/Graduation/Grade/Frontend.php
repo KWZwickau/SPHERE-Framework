@@ -69,10 +69,11 @@ class Frontend extends FrontendTest
      * @param null $DivisionCourseId
      * @param null $SubjectId
      * @param null $TaskId
+     * @param null $IsDirectJump
      *
      * @return Stage
      */
-    public function frontendGradeBook($DivisionCourseId = null, $SubjectId = null, $TaskId = null): Stage
+    public function frontendGradeBook($DivisionCourseId = null, $SubjectId = null, $TaskId = null, $IsDirectJump = null): Stage
     {
         $stage = new Stage();
 
@@ -114,6 +115,16 @@ class Frontend extends FrontendTest
             $global->savePost();
         }
 
+        if ($TaskId) {
+            // von der Willkommensseite direkt zur Noteneingabe für Notenaufträge springen
+            $content = $this->loadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, array(), $TaskId);
+        } elseif ($IsDirectJump) {
+            // Direkt ins Notenbuch springen, von einer anderen Stelle in der Schulsoftware (Kursheft im digitalen Klassenbuch)
+            $content = $this->loadViewGradeBookContent($DivisionCourseId, $SubjectId, array());
+        } else {
+            $content = $this->loadViewGradeBookSelect();
+        }
+
         $stage->setContent(
             new Container("&nbsp;")
             . new Layout(new LayoutGroup(array(
@@ -134,13 +145,7 @@ class Frontend extends FrontendTest
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
-                        ApiGradeBook::receiverBlock(
-                            // von der Willkommensseite direkt zur Noteneingabe für Notenaufträge springen
-                            $TaskId
-                                ? $this->loadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, array(), $TaskId)
-                                : $this->loadViewGradeBookSelect(),
-                            'Content'
-                        )
+                        ApiGradeBook::receiverBlock($content, 'Content')
                     )
                 ))
             )))

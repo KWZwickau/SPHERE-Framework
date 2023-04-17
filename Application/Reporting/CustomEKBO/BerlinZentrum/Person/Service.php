@@ -39,6 +39,7 @@ class Service
         if (!empty( $tblPersonList )) {
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
                 // Content
+                $Item['PersonId'] = $tblPerson->getId();
                 $Item['StudentNumber'] = '';
                 $Item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
                 $Item['PersonGroupKL'] = '';
@@ -60,6 +61,7 @@ class Service
                 $Item['Denomination'] = '';
                 $Item['LeavingSchool'] = '';
                 for($i = 1; $i <= 2; $i++){
+                    $Item['PersonIdS'.$i] = '';
                     $Item['TitleS'.$i] = '';
                     $Item['LastNameS'.$i] = '';
                     $Item['FirstNameS'.$i] = '';
@@ -207,6 +209,7 @@ class Service
                         foreach($tbltoPersonList as $tbltoPerson){
                             if(($tblPersonS = $tbltoPerson->getServiceTblPersonFrom())){
                                 $Number = $tbltoPerson->getRanking();
+                                $Item['PersonIdS'.$Number] = $tblPersonS->getId();
                                 $Item['TitleS'.$Number] = $tblPersonS->getTitle();
                                 $Item['LastNameS'.$Number] = $tblPersonS->getLastName();
                                 $Item['FirstNameS'.$Number] = $tblPersonS->getFirstName();
@@ -286,6 +289,7 @@ class Service
 
             $column = 0;
             $row = 0;
+            $export->setValue($export->getCell($column++, $row), "PersonId");
             $export->setValue($export->getCell($column++, $row), "Schülernummer");
             $export->setValue($export->getCell($column++, $row), "JG");
             $export->setValue($export->getCell($column++, $row), "KL");
@@ -306,6 +310,7 @@ class Service
             $export->setValue($export->getCell($column++, $row), "Nationalität");
             $export->setValue($export->getCell($column++, $row), "Kirche");
             $export->setValue($export->getCell($column++, $row), "Grundschule");
+            $export->setValue($export->getCell($column++, $row), "PersonId_S2");
             $export->setValue($export->getCell($column++, $row), "Akad. Titel_S2");
             $export->setValue($export->getCell($column++, $row), "Nachname_S2");
             $export->setValue($export->getCell($column++, $row), "Vorname_S2");
@@ -316,6 +321,7 @@ class Service
             $export->setValue($export->getCell($column++, $row), "Mail_S2");
             $export->setValue($export->getCell($column++, $row), "Mail_S2_Zwei");
             $export->setValue($export->getCell($column++, $row), "Bemerkung_S2");
+            $export->setValue($export->getCell($column++, $row), "PersonId_S1");
             $export->setValue($export->getCell($column++, $row), "Titel_S1");
             $export->setValue($export->getCell($column++, $row), "Nachname_S1");
             $export->setValue($export->getCell($column++, $row), "Vorname_S1");
@@ -344,6 +350,7 @@ class Service
                 $column = 0;
                 $row++;
 
+                $export->setValue($export->getCell($column++, $row), $RowContent['PersonId']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['StudentNumber']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Division']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['PersonGroupKL']);
@@ -364,6 +371,7 @@ class Service
                 $export->setValue($export->getCell($column++, $row), $RowContent['Nationality']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Denomination']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['LeavingSchool']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['PersonIdS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['TitleS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['LastNameS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['FirstNameS2']);
@@ -374,6 +382,7 @@ class Service
                 $export->setValue($export->getCell($column++, $row), $RowContent['MailS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Mail2S2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['RemarkS2']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['PersonIdS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['TitleS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['LastNameS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['FirstNameS1']);

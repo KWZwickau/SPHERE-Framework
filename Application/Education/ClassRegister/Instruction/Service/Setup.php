@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\ClassRegister\Instruction\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstructionItem;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 class Setup extends AbstractSetup
@@ -64,9 +65,13 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterInstructionItem');
 
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
+
+        // todo nach migration löschen
         $this->createColumn($Table, 'serviceTblGroup', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblDivisionSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT, true);
+        //
+
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'Date', self::FIELD_TYPE_DATETIME);
         $this->createColumn($Table, 'Subject', self::FIELD_TYPE_STRING);
@@ -74,6 +79,8 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'IsMain', self::FIELD_TYPE_BOOLEAN);
 
         $this->createForeignKey($Table, $tblInstruction);
+
+        $this->createIndex($Table, array(TblInstructionItem::ATTR_TBL_INSTRUCTION, TblInstructionItem::ATTR_SERVICE_TBL_DIVISION_COURSE), false);
 
         return $Table;
     }

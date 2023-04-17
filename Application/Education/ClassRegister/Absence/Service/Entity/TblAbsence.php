@@ -13,7 +13,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use phpDocumentor\Reflection\Types\Integer;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
@@ -27,6 +26,8 @@ use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
+ * @deprecated
+ *
  * @Entity()
  * @Table(name="tblAbsence")
  * @Cache(usage="READ_ONLY")
@@ -168,6 +169,11 @@ class TblAbsence extends Element
         }
     }
 
+    public function getFromDateTime()
+    {
+        return $this->FromDate;
+    }
+
     /**
      * @param null|DateTime $Date
      */
@@ -192,6 +198,11 @@ class TblAbsence extends Element
         } else {
             return (string)$Date;
         }
+    }
+
+    public function getToDateTime()
+    {
+        return $this->ToDate;
     }
 
     /**
@@ -385,9 +396,9 @@ class TblAbsence extends Element
     }
 
     /**
-     * @return integer
+     * @return int
      */
-    public function getType()
+    public function getType(): int
     {
         return $this->Type;
     }

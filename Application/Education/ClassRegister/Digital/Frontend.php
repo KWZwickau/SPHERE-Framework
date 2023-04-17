@@ -6,18 +6,17 @@ use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Prepare\View;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Frontend\FrontendTabs;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
-use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -72,7 +71,6 @@ use SPHERE\Common\Window\Stage;
 
 class Frontend extends FrontendTabs
 {
-
     /**
      * @return Stage
      */
@@ -94,169 +92,100 @@ class Frontend extends FrontendTabs
 
     /**
      * @param bool $IsAllYears
-     * @param bool $IsGroup
      * @param null $YearId
      *
      * @return Stage
      */
-    public function frontendTeacherSelectDivision(bool $IsAllYears = false, bool $IsGroup = false, $YearId = null): Stage
+    public function frontendTeacherSelectDivision(bool $IsAllYears = false, $YearId = null): Stage
     {
+        $Stage = new Stage('Digitales Klassenbuch', 'Kurs auswählen');
 
-        $Stage = new Stage('Digitales Klassenbuch', 'Klasse auswählen');
         Digital::useService()->setHeaderButtonList($Stage, View::TEACHER, self::BASE_ROUTE);
-
-        $tblPerson = false;
-        $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount) {
-            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
-            if ($tblPersonAllByAccount) {
-                $tblPerson = $tblPersonAllByAccount[0];
-            }
-        }
-
         $yearFilterList = array();
-        $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Teacher',
-            $IsAllYears, $IsGroup, $YearId, false, true, $yearFilterList);
+        $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Teacher', $IsAllYears, $YearId, false, true, $yearFilterList);
 
         $table = false;
-        $divisionTable = array();
-        if ($tblPerson) {
-            $divisionList = array();
-
-            // Klassenlehrer
-            if (($tblDivisionList = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson))) {
-                foreach ($tblDivisionList as $tblDivisionTeacher) {
-                    if (($tblDivision = $tblDivisionTeacher->getTblDivision())
-                        && ($tblYear = $tblDivision->getServiceTblYear())
-                    ) {
-                        if ($yearFilterList && !isset($yearFilterList[$tblYear->getId()])) {
-                            continue;
+        if (($tblPerson = Account::useService()->getPersonByLogin())) {
+            $dataList = array();
+            $tblDivisionCourseList = array();
+            $checkedDivisionCourseList = array();
+            if ($yearFilterList) {
+                foreach ($yearFilterList as $tblYear) {
+                    // Klassenlehrer
+                    if (($tempList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPerson, $tblYear))) {
+                        foreach ($tempList as $temp) {
+                            if (!isset($tblDivisionCourseList[$temp->getId()])
+                                && $temp->getIsDivisionOrCoreGroup()
+                            ) {
+                                $tblDivisionCourseList[$temp->getId()] = $temp;
+                                $checkedDivisionCourseList[$temp->getId()] = $temp;
+                            }
                         }
-
-                        $divisionList[$tblDivision->getId()] = $tblDivision;
                     }
-                }
-            }
 
-            // Fachlehrer
-            if (($tblSubjectTeacherAllByTeacher = Division::useService()->getSubjectTeacherAllByTeacher($tblPerson))) {
-                foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
-                    if (($tblDivisionSubject = $tblSubjectTeacher->getTblDivisionSubject())
-                        && ($tblDivisionItem = $tblDivisionSubject->getTblDivision())
-                        && ($tblYearItem = $tblDivisionItem->getServiceTblYear())
-                    ) {
-                        if ($yearFilterList && !isset($yearFilterList[$tblYearItem->getId()])) {
-                            continue;
-                        }
-
-                        $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
-                    }
-                }
-            }
-
-            if ($IsGroup) {
-                if (($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
-                    && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
-                ) {
-                    $isTudor = true;
-                } else {
-                    $isTudor = false;
-                }
-
-                if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
-                    foreach ($tblGroupAll as $tblGroup) {
-                        // ist Tudor in Stammgruppe
-                        $addGroup = false;
-                        if ($isTudor && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
-                            $addGroup = true;
-                        // oder ist Klassenlehrer oder Fachlehrer
-                        } else {
-                            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                                foreach ($tblPersonList as $tblPersonStudent) {
-                                    if (($tblDivisionMain = Student::useService()->getCurrentMainDivisionByPerson($tblPersonStudent))
-                                        && isset($divisionList[$tblDivisionMain->getId()])
+                    // Lehraufträge -> dann alle Schüler des Lehrauftrags -> alle Klassen und Stammgruppen der Schüler
+                    if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPerson))) {
+                        foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                            if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
+                                && !isset($tblDivisionCourseList[$tblDivisionCourse->getId()])
+                                && !isset($checkedDivisionCourseList[$tblDivisionCourse->getId()])
+                                && ($tblDivisionCourseListFromStudents = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))
+                            ) {
+                                foreach ($tblDivisionCourseListFromStudents as $tblDivisionCourseStudent) {
+                                    if ($tblDivisionCourseStudent->getIsDivisionOrCoreGroup()
+                                        && !isset($tblDivisionCourseList[$tblDivisionCourseStudent->getId()])
                                     ) {
-                                        $addGroup = true;
-                                        break;
+                                        $tblDivisionCourseList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
+                                        $checkedDivisionCourseList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
                                     }
                                 }
                             }
                         }
-
-                        if ($addGroup) {
-                            $divisionTable[] = array(
-                                'Group' => $tblGroup->getName(),
-                                'Option' => new Standard(
-                                    '',
-                                    $tblGroup->getIsGroupCourseSystem() ? self::BASE_ROUTE . '/SelectCourse' : self::BASE_ROUTE . '/LessonContent',
-                                    new Select(),
-                                    array(
-                                        'GroupId' => $tblGroup->getId(),
-                                        'BasicRoute' => self::BASE_ROUTE . '/Teacher'
-                                    ),
-                                    'Auswählen'
-                                )
-                            );
-                        }
                     }
                 }
+            }
 
-                if (empty($divisionTable)) {
-                    $table = new Warning('Keine entsprechenden Lehraufträge vorhanden.', new Exclamation());
-                } else {
-                    $table = new TableData($divisionTable, null, array(
-                        'Group' => 'Gruppe',
-                        'Option' => ''
-                    ), array(
-                        'order' => array(
-                            array('0', 'asc'),
+            /** @var TblDivisionCourse $tblDivisionCourse */
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                $dataList[] = array(
+                    'Year' => $tblDivisionCourse->getYearName(),
+                    'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                    'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
+                    'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                    'Option' => new Standard(
+                        '',
+                        DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+                            ? self::BASE_ROUTE . '/SelectCourse'
+                            : self::BASE_ROUTE . '/LessonContent',
+                        new Select(),
+                        array(
+                            'DivisionCourseId' => $tblDivisionCourse->getId(),
+                            'BasicRoute' => self::BASE_ROUTE . '/Teacher'
                         ),
-                        'columnDefs' => array(
-                            array('type' => 'natural', 'targets' => 0),
-                            array('orderable' => false, 'width' => '1%', 'targets' => -1)
-                        ),
-                    ));
-                }
+                        'Auswählen'
+                    )
+                );
+            }
+
+            if (empty($dataList)) {
+                $table = new Warning('Keine entsprechenden Lehraufträge vorhanden.', new Exclamation());
             } else {
-                foreach ($divisionList as $item) {
-                    $divisionTable[] = array(
-                        'Year' => $item->getServiceTblYear() ? $item->getServiceTblYear()->getDisplayName() : '',
-                        'Type' => $item->getTypeName(),
-                        'Division' => $item->getDisplayName(),
-                        'Option' => new Standard(
-                            '',
-                            Division::useService()->getIsDivisionCourseSystem($item) ? self::BASE_ROUTE . '/SelectCourse' : self::BASE_ROUTE . '/LessonContent',
-                            new Select(),
-                            array(
-                                'DivisionId' => $item->getId(),
-                                'BasicRoute' => self::BASE_ROUTE . '/Teacher'
-                            ),
-                            'Auswählen'
-                        )
-                    );
-                }
-
-                if (empty($divisionTable)) {
-                    $table = new Warning('Keine entsprechenden Lehraufträge vorhanden.', new Exclamation());
-                } else {
-                    $table = new TableData($divisionTable, null, array(
-                        'Year' => 'Schuljahr',
-                        'Type' => 'Schulart',
-                        'Division' => 'Klasse',
-                        'Option' => ''
-                    ), array(
-                        'order' => array(
-                            array('0', 'desc'),
-                            array('1', 'asc'),
-                            array('2', 'asc'),
-                            array('3', 'asc'),
-                        ),
-                        'columnDefs' => array(
-                            array('type' => 'natural', 'targets' => 2),
-                            array('orderable' => false, 'width' => '1%', 'targets' => -1)
-                        ),
-                    ));
-                }
+                $table = new TableData($dataList, null, array(
+                    'Year' => 'Schuljahr',
+                    'DivisionCourse' => 'Kurs',
+                    'DivisionCourseType' => 'Kurs-Typ',
+                    'SchoolTypes' => 'Schularten',
+                    'Option' => ''
+                ), array(
+                    'order' => array(
+                        array('0', 'desc'),
+                        array('1', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'natural', 'targets' => 1),
+                        array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                    ),
+                ));
             }
         }
 
@@ -280,103 +209,79 @@ class Frontend extends FrontendTabs
 
     /**
      * @param bool $IsAllYears
-     * @param bool $IsGroup
      * @param null $YearId
      *
      * @return Stage
      */
-    public function frontendHeadmasterSelectDivision(bool $IsAllYears = false, bool $IsGroup = false, $YearId = null): Stage
+    public function frontendHeadmasterSelectDivision(bool $IsAllYears = false, $YearId = null): Stage
     {
-
-        $Stage = new Stage('Digitales Klassenbuch', 'Klasse auswählen');
+        $Stage = new Stage('Digitales Klassenbuch', 'Kurs auswählen');
         Digital::useService()->setHeaderButtonList($Stage, View::HEADMASTER, self::BASE_ROUTE);
-
-        $tblDivisionList = Division::useService()->getDivisionAll();
 
         $yearFilterList = array();
         // nur Schulleitung darf History (Alle Schuljahre) sehen
         $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Headmaster',
-            $IsAllYears, $IsGroup, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList);
+            $IsAllYears, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList);
 
-        $divisionTable = array();
-        if ($IsGroup) {
-            // tudorGroups
-            if (($tblGroupAll = Group::useService()->getTudorGroupAll())) {
-                foreach ($tblGroupAll as $tblGroup) {
-                    $divisionTable[] = array(
-                        'Group' => $tblGroup->getName(),
-                        'Option' => new Standard(
-                            '',
-                            $tblGroup->getIsGroupCourseSystem() ? self::BASE_ROUTE . '/SelectCourse' : self::BASE_ROUTE . '/LessonContent',
-                            new Select(),
-                            array(
-                                'GroupId' => $tblGroup->getId(),
-                                'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
-                            ),
-                            'Auswählen'
-                        )
-                    );
+        $dataList = array();
+        $tblDivisionCourseList = array();
+        if ($IsAllYears) {
+            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_DIVISION))) {
+                $tblDivisionCourseList = $tblDivisionCourseListDivision;
+            }
+            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+            }
+        } elseif ($yearFilterList) {
+            foreach ($yearFilterList as $tblYear) {
+                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                    $tblDivisionCourseList = $tblDivisionCourseListDivision;
+                }
+                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                    TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
                 }
             }
-
-            $table = new TableData($divisionTable, null, array(
-                'Group' => 'Gruppe',
-                'Option' => ''
-            ), array(
-                'order' => array(
-                    array('0', 'asc'),
-                ),
-                'columnDefs' => array(
-                    array('type' => 'natural', 'targets' => 0),
-                    array('orderable' => false, 'width' => '1%', 'targets' => -1)
-                ),
-            ));
-        } else {
-            if ($tblDivisionList) {
-                foreach ($tblDivisionList as $tblDivision) {
-                    if (($tblYear = $tblDivision->getServiceTblYear())) {
-                        // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
-                        if ($yearFilterList && !isset($yearFilterList[$tblYear->getId()])) {
-                            continue;
-                        }
-
-                        $divisionTable[] = array(
-                            'Year' => $tblYear->getDisplayName(),
-                            'Type' => $tblDivision->getTypeName(),
-                            'Division' => $tblDivision->getDisplayName(),
-                            'Option' => new Standard(
-                                '',
-                                Division::useService()->getIsDivisionCourseSystem($tblDivision) ? self::BASE_ROUTE . '/SelectCourse' : self::BASE_ROUTE . '/LessonContent',
-                                new Select(),
-                                array(
-                                    'DivisionId' => $tblDivision->getId(),
-                                    'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
-                                ),
-                                'Auswählen'
-                            )
-                        );
-                    }
-                }
-            }
-
-            $table = new TableData($divisionTable, null, array(
-                'Year' => 'Schuljahr',
-                'Type' => 'Schulart',
-                'Division' => 'Klasse',
-                'Option' => ''
-            ), array(
-                'order' => array(
-                    array('0', 'desc'),
-                    array('1', 'asc'),
-                    array('2', 'asc'),
-                    array('3', 'asc'),
-                ),
-                'columnDefs' => array(
-                    array('type' => 'natural', 'targets' => 2),
-                    array('orderable' => false, 'width' => '1%', 'targets' => -1)
-                ),
-            ));
         }
+
+        /** @var TblDivisionCourse $tblDivisionCourse */
+        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+            $dataList[] = array(
+                'Year' => $tblDivisionCourse->getYearName(),
+                'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
+                'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                'Option' => new Standard(
+                    '',
+                    DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+                        ? self::BASE_ROUTE . '/SelectCourse'
+                        : self::BASE_ROUTE . '/LessonContent',
+                    new Select(),
+                    array(
+                        'DivisionCourseId' => $tblDivisionCourse->getId(),
+                        'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
+                    ),
+                    'Auswählen'
+                )
+            );
+        }
+
+        $table = new TableData($dataList, null, array(
+            'Year' => 'Schuljahr',
+            'DivisionCourse' => 'Kurs',
+            'DivisionCourseType' => 'Kurs-Typ',
+            'SchoolTypes' => 'Schularten',
+            'Option' => ''
+        ), array(
+            'order' => array(
+                array('0', 'desc'),
+                array('1', 'asc'),
+            ),
+            'columnDefs' => array(
+                array('type' => 'natural', 'targets' => 1),
+                array('orderable' => false, 'width' => '1%', 'targets' => -1)
+            ),
+        ));
 
         $Stage->setContent(
             new Layout(array(
@@ -395,29 +300,20 @@ class Frontend extends FrontendTabs
     }
 
     /**
-     * @param null $DivisionId
-     * @param null $GroupId
+     * @param null $DivisionCourseId
      * @param string $BasicRoute
      *
      * @return Stage|string
      */
     public function frontendLessonContent(
-        $DivisionId = null,
-        $GroupId = null,
+        $DivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ) {
         $stage = new Stage('Digitales Klassenbuch', 'Klassentagebuch');
-
-        $stage->addButton(new Standard(
-            'Zurück', $BasicRoute, new ChevronLeft(), array('IsGroup' => $GroupId)
-        ));
-
-        $tblYear = null;
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
+        $stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft()));
 
         // Klassenbuch Ansicht
-        if ($tblDivision || $tblGroup) {
+        if ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)) {
             // View speichern
             Consumer::useService()->createAccountSetting('LessonContentView', 'Day');
 
@@ -426,19 +322,16 @@ class Frontend extends FrontendTabs
                 . ApiAbsence::receiverModal()
                 . new Layout(array(
                     new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow(
-                            $tblDivision ?: null, $tblGroup ?: null, $tblYear
-                        ),
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivision ?: null, $tblGroup ?: null,
-                            '/Education/ClassRegister/Digital/LessonContent', $BasicRoute)
+                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
+                        Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/LessonContent', $BasicRoute)
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null), 'LessonContentContent')
+                        ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivisionCourse), 'LessonContentContent')
                     )), new Title(new Book() . ' Klassentagebuch')),
                 ))
             );
         } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
+            return new Danger('Kurs nicht gefunden', new Exclamation())
                 . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
         }
 
@@ -446,55 +339,40 @@ class Frontend extends FrontendTabs
     }
 
     /**
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param string $DateString
      * @param string $View
      *
      * @return string
      */
-    public function loadLessonContentTable(TblDivision $tblDivision = null, TblGroup $tblGroup = null,
-        string $DateString = 'today', string $View = 'Day'): string
+    public function loadLessonContentTable(TblDivisionCourse $tblDivisionCourse, string $DateString = 'today', string $View = 'Day'): string
     {
-        $DivisionId = $tblDivision ? $tblDivision->getId() : null;
-        $GroupId = $tblGroup ? $tblGroup->getId() : null;
-
+        $DivisionCourseId = $tblDivisionCourse->getId();
         $Date = ($DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString);
 
         $buttons = (new Primary(
             new Plus() . ' Thema/Hausaufgaben hinzufügen',
             ApiDigital::getEndpoint()
-        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $Date));
-
-        if ($tblDivision) {
-            $Type = 'Division';
-            $TypeId = $DivisionId;
-        } elseif ($tblGroup) {
-            $Type = 'Group';
-            $TypeId = $tblGroup->getId();
-        } else {
-            $Type = null;
-            $TypeId = null;
-        }
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $Date));
 
         if ($View == 'Day') {
             $buttons .= (new Primary(
                 new Plus() . ' Fehlzeit hinzufügen',
                 ApiAbsence::getEndpoint()
-            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, null, $Date, $Type, $TypeId));
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId, $Date));
 
-            $content = $this->getDayViewContent($DateString, $tblDivision, $tblGroup);
+            $content = $this->getDayViewContent($DateString, $tblDivisionCourse);
             $link = (new Link('Wochenansicht', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
-                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Week'));
+                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $DateString, 'Week'));
         } else {
-            $content =  $this->getWeekViewContent($DateString, $tblDivision, $tblGroup);
+            $content =  $this->getWeekViewContent($DateString, $tblDivisionCourse);
             $link = (new Link('Tagesansicht', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
-                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, 'Day'));
+                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $DateString, 'Day'));
         }
 
         $datePicker = (new DatePicker('Data[Date]', $Date, '', new Calendar()))
             ->setAutoFocus()
-            ->ajaxPipelineOnChange(ApiDigital::pipelineLoadLessonContentContent($DivisionId, $GroupId, $DateString, $View));
+            ->ajaxPipelineOnChange(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $DateString, $View));
         $form = (new Form(new FormGroup(new FormRow(array(
             new FormColumn(
                 new PullRight(
@@ -525,7 +403,7 @@ class Frontend extends FrontendTabs
 
         if ($View == 'Day') {
             $layout = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($this->getStudentPanel($tblDivision, $tblGroup, null), 2),
+                new LayoutColumn($this->getStudentPanel($tblDivisionCourse), 2),
                 new LayoutColumn($layout, 10),
             ))));
         }
@@ -535,48 +413,34 @@ class Frontend extends FrontendTabs
 
     /**
      * @param string $DateString
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return string
      */
     private function getDayViewContent(
         string $DateString,
-        ?TblDivision $tblDivision,
-        ?TblGroup $tblGroup
+        TblDivisionCourse $tblDivisionCourse
     ): string {
-        $DivisionId = $tblDivision ? $tblDivision->getId() : null;
-        $GroupId = $tblGroup ? $tblGroup->getId() : null;
-
-        if ($tblDivision) {
-            $tblYear = $tblDivision->getServiceTblYear();
-            if ($tblDivision->getServiceTblCompany()) {
-                $tblCompanyList[] = $tblDivision->getServiceTblCompany();
-            } else {
-                $tblCompanyList = array();
-            }
-            $tblSchoolType = $tblDivision->getType();
-            $Type = 'Division';
-            $TypeId = $DivisionId;
-        } elseif ($tblGroup) {
-            $tblYear = $tblGroup->getCurrentYear();
-            $tblCompanyList = $tblGroup->getCurrentCompanyList();
-            $tblSchoolType = $tblGroup->getCurrentSchoolTypeSingle();
-            $Type = 'Group';
-            $TypeId = $tblGroup->getId();
-        } else {
-            $tblYear = false;
-            $tblCompanyList = array();
-            $tblSchoolType = false;
-            $Type = null;
-            $TypeId = null;
-        }
+        $DivisionCourseId = $tblDivisionCourse->getId();
+        $tblCompanyList = $tblDivisionCourse->getCompanyListFromStudents();
+        $tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents();
 
         $date = new DateTime($DateString);
         $dayAtWeek = $date->format('w');
         $addDays = 1;
         $subDays = 1;
-        if ($tblSchoolType && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+        $hasSaturdayLessons = false;
+        $hasTypeOption = false;
+        /** @var TblType $tblSchoolType */
+        foreach ($tblSchoolTypeList as $tblSchoolType) {
+            if (Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+                $hasSaturdayLessons = true;
+            }
+            if ($tblSchoolType->isTechnical()) {
+                $hasTypeOption = true;
+            }
+        }
+        if ($hasSaturdayLessons) {
             // nur zwischen Wochentagen springen
             switch ($dayAtWeek) {
                 case 1: $subDays = 2; break;
@@ -607,7 +471,7 @@ class Frontend extends FrontendTabs
 
         // Ferien, Feiertage
         $isHoliday = false;
-        if ($tblYear) {
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
             if ($tblCompanyList) {
                 foreach ($tblCompanyList as $tblCompany) {
                     if (($isHoliday = Term::useService()->getHolidayByDay($tblYear, $date, $tblCompany))) {
@@ -657,12 +521,9 @@ class Frontend extends FrontendTabs
         }
         $bodyList = array();
         $bodyBackgroundList = array();
-        $divisionList = $tblDivision ? array('0' => $tblDivision) : array();
-        $groupList = $tblGroup ? array('0' => $tblGroup) : array();
+        $divisionCourseList[] = $tblDivisionCourse;
         $absenceContent = array();
-        if (($AbsenceList = Absence::useService()->getAbsenceAllByDay($date, null, null, $divisionList, $groupList,
-            $hasTypeOption, null)
-        )) {
+        if (($AbsenceList = Absence::useService()->getAbsenceAllByDay($date, null, null, $divisionCourseList, $hasTypeOption, null))) {
             foreach ($AbsenceList as $Absence) {
                 if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
                     $lesson = $tblAbsence->getLessonStringByAbsence();
@@ -680,7 +541,7 @@ class Frontend extends FrontendTabs
                         $toolTip,
                         null,
                         $tblAbsence->getLinkType()
-                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $Type, $TypeId));
+                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $DivisionCourseId));
 
                     if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
                         foreach ($tblAbsenceLessonList as $tblAbsenceLesson) {
@@ -725,8 +586,7 @@ class Frontend extends FrontendTabs
             }
         }
 
-        if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($date, $tblDivision ?: null,
-            $tblGroup ?: null))) {
+        if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($date, $tblDivisionCourse))) {
             foreach ($tblLessonContentList as $tblLessonContent) {
                 $lesson = $tblLessonContent->getLesson();
                 if ($lesson > $maxLesson) {
@@ -766,17 +626,17 @@ class Frontend extends FrontendTabs
                     $i . '. Thema/Hausaufgaben hinzufügen',
                     null,
                     AbstractLink::TYPE_MUTED_LINK
-                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $date->format('d.m.Y'), $i == 0 ? -1 : $i));
+                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $date->format('d.m.Y'), $i == 0 ? -1 : $i));
 
-                // Fach aus dem importierten Stundenplan anzeigen
-                if (!$isHoliday && $tblDivision && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
-                    $tblDivision, $date, $i
+                //  Fach aus dem importierten Stundenplan anzeigen
+                if (!$isHoliday && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                    $tblDivisionCourse, $date, $i
                 ))) {
                     $subject = $tblLessonContentTemp->getDisplaySubject(true);
                     $room = $tblLessonContentTemp->getRoom();
-                // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
+                //  alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
                 } elseif (!$isHoliday && ($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
-                    $tblDivision ?: null, $tblGroup ?: null, $date, $i
+                    $tblDivisionCourse, $date, $i
                 ))) {
                     $subject = $tblLessonContentTemp->getDisplaySubject(true);
                     $room = $tblLessonContentTemp->getRoom();
@@ -787,11 +647,11 @@ class Frontend extends FrontendTabs
 
                 $bodyList[$i * 10] = array(
                     'Lesson' => $linkLesson,
-                    'Subject' => $this->getLessonsNewLink($subject, $date, $i, $DivisionId, $GroupId),
-                    'Room' => $this->getLessonsNewLink($room, $date, $i, $DivisionId, $GroupId),
-                    'Teacher' => $this->getLessonsNewLink('', $date, $i, $DivisionId, $GroupId),
-                    'Content' => $this->getLessonsNewLink('', $date, $i, $DivisionId, $GroupId),
-                    'Homework' => $this->getLessonsNewLink('', $date, $i, $DivisionId, $GroupId),
+                    'Subject' => $this->getLessonsNewLink($subject, $date, $i, $DivisionCourseId),
+                    'Room' => $this->getLessonsNewLink($room, $date, $i, $DivisionCourseId),
+                    'Teacher' => $this->getLessonsNewLink('', $date, $i, $DivisionCourseId),
+                    'Content' => $this->getLessonsNewLink('', $date, $i, $DivisionCourseId),
+                    'Homework' => $this->getLessonsNewLink('', $date, $i, $DivisionCourseId),
 
                     'Absence' => isset($absenceContent[$i]) ? implode(' - ', $absenceContent[$i]) : ''
                 );
@@ -837,8 +697,7 @@ class Frontend extends FrontendTabs
                                         $previewsDate
                                             ? (new Link(new ChevronLeft(), ApiDigital::getEndpoint(), null, array(),
                                                 $dayName[$previewsDate->format('w')] . ', den ' . $previewsDate->format('d.m.Y')))
-                                                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
-                                                    $DivisionId, $GroupId, $previewsDate->format('d.m.Y'), 'Day'))
+                                                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $previewsDate->format('d.m.Y')))
                                             : ''
                                     )
                                     , 1),
@@ -850,8 +709,7 @@ class Frontend extends FrontendTabs
                                         $nextDate
                                             ? (new Link(new ChevronRight(), ApiDigital::getEndpoint(), null, array(),
                                                 $dayName[$nextDate->format('w')] . ', den ' . $nextDate->format('d.m.Y')))
-                                                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
-                                                    $DivisionId, $GroupId, $nextDate->format('d.m.Y'), 'Day'))
+                                                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $nextDate->format('d.m.Y')))
                                             : ''
                                     )
                                     , 1),
@@ -869,13 +727,12 @@ class Frontend extends FrontendTabs
             ))
         );
 
-        return $content . Digital::useService()->getCanceledSubjectOverview($date, $tblDivision, $tblGroup) . ' ';
+        return $content . Digital::useService()->getCanceledSubjectOverview($date, $tblDivisionCourse) . ' ';
     }
 
     /**
      * @param string $DateString
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param bool $hasNavigation
      * @param bool $isReadOnly
      *
@@ -883,34 +740,24 @@ class Frontend extends FrontendTabs
      */
     public function getWeekViewContent(
         string $DateString,
-        ?TblDivision $tblDivision,
-        ?TblGroup $tblGroup,
+        TblDivisionCourse $tblDivisionCourse,
         bool $hasNavigation = true,
         bool $isReadOnly = false
     ): string {
-        $DivisionId = $tblDivision ? $tblDivision->getId() : null;
-        $GroupId = $tblGroup ? $tblGroup->getId() : null;
+        $DivisionCourseId = $tblDivisionCourse->getId();
         $date = new DateTime($DateString);
+        $tblCompanyList = $tblDivisionCourse->getCompanyListFromStudents();
+        $tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents();
 
-        if ($tblDivision) {
-            $tblYear = $tblDivision->getServiceTblYear();
-            if ($tblDivision->getServiceTblCompany()) {
-                $tblCompanyList[] = $tblDivision->getServiceTblCompany();
-            } else {
-                $tblCompanyList = array();
+        $hasSaturdayLessons = false;
+        /** @var TblType $tblSchoolType */
+        foreach ($tblSchoolTypeList as $tblSchoolType) {
+            if (Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+                $hasSaturdayLessons = true;
+                break;
             }
-            $tblSchoolType = $tblDivision->getType();
-        } elseif ($tblGroup) {
-            $tblYear = $tblGroup->getCurrentYear();
-            $tblCompanyList = $tblGroup->getCurrentCompanyList();
-            $tblSchoolType = $tblGroup->getCurrentSchoolTypeSingle();
-        } else {
-            $tblYear = false;
-            $tblCompanyList = array();
-            $tblSchoolType = false;
         }
-
-        if ($tblSchoolType && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+        if ($hasSaturdayLessons) {
             $daysInWeek = 6;
             $widthLesson =  '4%';
             $widthDay = '16%';
@@ -959,7 +806,7 @@ class Frontend extends FrontendTabs
         $startDate  = new DateTime(date('d.m.Y', strtotime("$year-W{$week}")));
 
         // Prüfung ob das Datum innerhalb des Schuljahres liegt.
-        if ($tblYear) {
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
             list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
             if ($startDateSchoolYear && $endDateSchoolYear) {
                 if ($date < $startDateSchoolYear || $date > $endDateSchoolYear) {
@@ -1004,9 +851,7 @@ class Frontend extends FrontendTabs
                 $isHoliday ? 'lightgray' : '#E0F0FF'
             );
             $dateStringList[$day] = $startDate->format('d.m.Y');
-            if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($startDate, $tblDivision ?: null,
-                $tblGroup ?: null))
-            ) {
+            if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($startDate, $tblDivisionCourse))) {
                 foreach ($tblLessonContentList as $tblLessonContent) {
                     $teacher = '';
                     if (($tblPerson = $tblLessonContent->getServiceTblPerson())) {
@@ -1063,13 +908,13 @@ class Frontend extends FrontendTabs
                     $cell = new Center(new Muted('f'));
                 } elseif(!$isReadOnly) {
                     // Fach aus dem importierten Stundenplan anzeigen
-                    if ($tblDivision && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
-                        $tblDivision, new DateTime($dateStringList[$j]), $i
+                    if (($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                        $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
                     ))) {
                         $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
                     // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
                     } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
-                        $tblDivision ?: null, $tblGroup ?: null, new DateTime($dateStringList[$j]), $i
+                        $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
                     ))) {
                         $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
                     } else {
@@ -1082,7 +927,7 @@ class Frontend extends FrontendTabs
                         null,
                         array(),
                         $i . '. Thema/Hausaufgaben hinzufügen'
-                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $dateStringList[$j], $i == 0 ? -1 : $i));
+                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $dateStringList[$j], $i == 0 ? -1 : $i));
                 } else {
                     $cell = '&nbsp;';
                 }
@@ -1108,8 +953,7 @@ class Frontend extends FrontendTabs
                                 new Center(
                                     $previewsWeekDate && $hasNavigation
                                         ? (new Link(new ChevronLeft(), ApiDigital::getEndpoint(), null, array(), 'KW' . $previewsWeek))
-                                            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
-                                                $DivisionId, $GroupId, $previewsWeekDate->format('d.m.Y'), 'Week'))
+                                            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $previewsWeekDate->format('d.m.Y'), 'Week'))
                                         : ''
                                 )
                                 , 1),
@@ -1120,8 +964,7 @@ class Frontend extends FrontendTabs
                                 new Center(
                                     $nextWeekDate && $hasNavigation
                                         ? (new Link(new ChevronRight(), ApiDigital::getEndpoint(), null, array(), 'KW' . $nextWeek))
-                                            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
-                                                $DivisionId, $GroupId, $nextWeekDate->format('d.m.Y'), 'Week'))
+                                            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $nextWeekDate->format('d.m.Y'), 'Week'))
                                         : ''
                                 )
                                 , 1),
@@ -1138,7 +981,7 @@ class Frontend extends FrontendTabs
             ))
         );
 
-        return $content . Digital::useService()->getCanceledSubjectOverview($date, $tblDivision, $tblGroup, !$isReadOnly) . ' ';
+        return $content . Digital::useService()->getCanceledSubjectOverview($date, $tblDivisionCourse, !$isReadOnly) . ' ';
     }
 
     /**
@@ -1163,12 +1006,11 @@ class Frontend extends FrontendTabs
      * @param string $name
      * @param DateTime $date
      * @param int $Lesson
-     * @param int|null $DivisionId
-     * @param int|null $GroupId
+     * @param int $DivisionCourseId
      *
      * @return Link
      */
-    private function getLessonsNewLink(string $name, DateTime $date, int $Lesson, ?int $DivisionId, ?int $GroupId): Link
+    private function getLessonsNewLink(string $name, DateTime $date, int $Lesson, int $DivisionCourseId): Link
     {
         return (new Link(
             $name ?: '<div style="height: 22px"></div>',
@@ -1176,7 +1018,7 @@ class Frontend extends FrontendTabs
             null,
             array(),
             $Lesson . '. Thema/Hausaufgaben hinzufügen'
-        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionId, $GroupId, $date->format('d.m.Y'), $Lesson == 0 ? -1 : $Lesson));
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $date->format('d.m.Y'), $Lesson == 0 ? -1 : $Lesson));
     }
 
     /**
@@ -1208,8 +1050,7 @@ class Frontend extends FrontendTabs
     }
 
     /**
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param null $LessonContentId
      * @param bool $setPost
      * @param string|null $Date
@@ -1217,8 +1058,7 @@ class Frontend extends FrontendTabs
      *
      * @return Form
      */
-    public function formLessonContent(TblDivision $tblDivision = null, TblGroup $tblGroup = null, $LessonContentId = null,
-        bool $setPost = false, string $Date = null, string $Lesson = null): Form
+    public function formLessonContent(TblDivisionCourse $tblDivisionCourse, $LessonContentId = null, bool $setPost = false, string $Date = null, string $Lesson = null): Form
     {
         $tblSubject = false;
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
@@ -1251,9 +1091,10 @@ class Frontend extends FrontendTabs
                 ->ajaxPipelineOnClick(ApiDigital::pipelineEditLessonContentSave($LessonContentId));
         } else {
             // befüllen bei neuen Einträge aus dem importierten Stundenplan
-            if ($tblDivision && $Date && $Lesson
+            if ($Date && $Lesson
                 && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
-                    $tblDivision, new DateTime($Date), (int) $Lesson))
+                    $tblDivisionCourse, new DateTime($Date), (int) $Lesson
+                ))
             ) {
                 $Global = $this->getGlobal();
 
@@ -1266,7 +1107,7 @@ class Frontend extends FrontendTabs
                 $Global->savePost();
             // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
             } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
-                $tblDivision ?: null, $tblGroup ?: null, new DateTime($Date), (int) $Lesson
+                $tblDivisionCourse, new DateTime($Date), (int) $Lesson
             ))) {
                 $Global = $this->getGlobal();
 
@@ -1277,10 +1118,7 @@ class Frontend extends FrontendTabs
             }
 
             $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiDigital::pipelineCreateLessonContentSave(
-                    $tblDivision ? $tblDivision->getId() : null,
-                    $tblGroup ? $tblGroup->getId() : null
-                ));
+                ->ajaxPipelineOnClick(ApiDigital::pipelineCreateLessonContentSave($tblDivisionCourse->getId()));
         }
         $buttonList[] = $saveButton;
 
@@ -1324,10 +1162,7 @@ class Frontend extends FrontendTabs
         $formRowList[] = new FormRow(array(
             new FormColumn(
                 (new SelectBox('Data[serviceTblSubject]', 'Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
-                    ->ajaxPipelineOnChange(ApiDigital::pipelineLoadLessonContentLinkPanel(
-                        $tblDivision ? $tblDivision->getId() : null,
-                        $tblGroup ? $tblGroup->getId() : null,
-                        $tblSubject ? $tblSubject->getId() : null
+                    ->ajaxPipelineOnChange(ApiDigital::pipelineLoadLessonContentLinkPanel($tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null
                     ))
                 , 6),
             new FormColumn(
@@ -1370,7 +1205,7 @@ class Frontend extends FrontendTabs
             $formRowList[] = new FormRow(array(
                 new FormColumn(
                     ApiDigital::receiverBlock(
-                        $tblSubject ? Digital::useService()->getLessonContentLinkPanel($tblDivision ?: null, $tblGroup ?: null, $tblSubject) : '',
+                        $tblSubject ? Digital::useService()->getLessonContentLinkPanel($tblDivisionCourse, $tblSubject) : '',
                         'LessonContentLinkPanel'
                     )
                 )

@@ -540,8 +540,8 @@ class Frontend extends Extension
                         $contentForeignLanguages[] = new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn($tblStudentSubject->getTblStudentSubjectRanking()->getName() . ' FS: ' . $tblSubject->getDisplayName(), 4),
                             new LayoutColumn(
-                                'von ' . ($tblStudentSubject->getServiceTblLevelFrom() ? $tblStudentSubject->getServiceTblLevelFrom()->getName() : '&ndash;')
-                                . ' bis ' . ($tblStudentSubject->getServiceTblLevelTill() ? $tblStudentSubject->getServiceTblLevelTill()->getName() : '12')
+                                'von ' . ($tblStudentSubject->getLevelFrom() ?: '&ndash;')
+                                . ' bis ' . ($tblStudentSubject->getLevelTill() ?: '12')
                                 , 4),
                             new LayoutColumn(new TextField('Data[ForeignLanguages][' . $tblStudentSubject->getTblStudentSubjectRanking()->getId() . ']'),
                                 4),

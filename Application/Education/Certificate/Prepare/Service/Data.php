@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Certificate\Prepare\Service;
 
 use DateTime;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
@@ -12,13 +13,14 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCo
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -639,17 +641,6 @@ class Data extends DataLeave
         $useClassRegisterForAbsence = ($tblSettingAbsence = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
             && $tblSettingAbsence->getValue();
 
-        $date = null;
-        if (($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())) {
-            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
-                && $tblGenerateCertificate->getAppointedDateForAbsence()
-            ) {
-                $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
-            } else {
-                $date = new DateTime($tblPrepare->getDate());
-            }
-        }
-
         // Update
         /** @var TblPrepareStudent $Entity */
         $Entity = $Manager->getEntityById('TblPrepareStudent', $tblPrepareStudent->getId());
@@ -659,18 +650,32 @@ class Data extends DataLeave
             $Entity->setPrinted(false);
 
             // Fehlzeiten aus dem Klassenbuch übernehmen
-            // todo Fehlzeiten aus dem Klassenbuch übernehmen
-            if ($useClassRegisterForAbsence && false) {
-                $Entity->setExcusedDays(Absence::useService()->getExcusedDaysByPerson(
-                    $tblPerson,
-                    $tblDivision,
-                    $date
-                ));
-                $Entity->setUnexcusedDays(Absence::useService()->getUnexcusedDaysByPerson(
-                    $tblPerson,
-                    $tblDivision,
-                    $date
-                ));
+            if ($useClassRegisterForAbsence) {
+                if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                    && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                    && ($tblYear = $tblPrepare->getYear())
+                ) {
+                    if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                        && $tblGenerateCertificate->getAppointedDateForAbsence()
+                    ) {
+                        $tillDateAbsence = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                    } else {
+                        $tillDateAbsence = new DateTime($tblPrepare->getDate());
+                    }
+                    list($startDateAbsence) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+
+                    $tblCompany = false;
+                    $tblSchoolType = false;
+                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                        $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                        $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                    }
+
+                    $Entity->setExcusedDays(Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                        $startDateAbsence, $tillDateAbsence));
+                    $Entity->setUnexcusedDays(Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                        $startDateAbsence, $tillDateAbsence));
+                }
             }
 
             $Manager->saveEntity($Entity);
@@ -692,14 +697,18 @@ class Data extends DataLeave
         $useClassRegisterForAbsence = ($tblSettingAbsence = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
             && $tblSettingAbsence->getValue();
 
-        if (($tblPrepareStudentList = $this->getPrepareStudentAllByPrepare($tblPrepare))) {
+        if (($tblPrepareStudentList = $this->getPrepareStudentAllByPrepare($tblPrepare))
+            && ($tblYear = $tblPrepare->getYear())
+        ) {
             if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
                 && $tblGenerateCertificate->getAppointedDateForAbsence()
             ) {
-                $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                $tillDateAbsence = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
             } else {
-                $date = new DateTime($tblPrepare->getDate());
+                $tillDateAbsence = new DateTime($tblPrepare->getDate());
             }
+            list($startDateAbsence) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+
             foreach ($tblPrepareStudentList as $tblPrepareStudent) {
                 if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                     && !$tblPrepareStudent->isApproved()
@@ -713,18 +722,18 @@ class Data extends DataLeave
                         $Entity->setPrinted(false);
 
                         // Fehlzeiten aus dem Klassenbuch übernehmen
-                        // todo Fehlzeiten aus dem Klassenbuch übernehmen
-                        if ($useClassRegisterForAbsence && false) {
-                            $Entity->setExcusedDays(Absence::useService()->getExcusedDaysByPerson(
-                                $tblPerson,
-                                $tblDivision,
-                                $date
-                            ));
-                            $Entity->setUnexcusedDays(Absence::useService()->getUnexcusedDaysByPerson(
-                                $tblPerson,
-                                $tblDivision,
-                                $date
-                            ));
+                        if ($useClassRegisterForAbsence) {
+                            $tblCompany = false;
+                            $tblSchoolType = false;
+                            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                                $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                                $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                            }
+
+                            $Entity->setExcusedDays(Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                                $startDateAbsence, $tillDateAbsence));
+                            $Entity->setUnexcusedDays(Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                                $startDateAbsence, $tillDateAbsence));
                         }
 
                         $Manager->bulkSaveEntity($Entity);

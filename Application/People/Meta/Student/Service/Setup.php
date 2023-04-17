@@ -555,12 +555,18 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentSubject', 'serviceTblSubject')) {
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
         }
+
+        $this->createColumn($Table, 'LevelFrom', self::FIELD_TYPE_INTEGER, true);
+        $this->createColumn($Table, 'LevelTill', self::FIELD_TYPE_INTEGER, true);
+
+        // todo drop nach Migration
         if (!$this->getConnection()->hasColumn('tblStudentSubject', 'serviceTblLevelFrom')) {
             $Table->addColumn('serviceTblLevelFrom', 'bigint', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblStudentSubject', 'serviceTblLevelTill')) {
             $Table->addColumn('serviceTblLevelTill', 'bigint', array('notnull' => false));
         }
+
         return $Table;
     }
 

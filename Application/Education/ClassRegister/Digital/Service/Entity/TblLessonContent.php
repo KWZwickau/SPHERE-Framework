@@ -8,14 +8,10 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
@@ -28,8 +24,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblLessonContent extends Element
 {
-    const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
-    const ATTR_SERVICE_TBL_GROUP = 'serviceTblGroup';
+    const ATTR_SERVICE_TBL_DIVISION_COURSE = 'serviceTblDivision';
     const ATTR_DATE = 'Date';
     const ATTR_LESSON = 'Lesson';
 
@@ -41,12 +36,12 @@ class TblLessonContent extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblGroup;
+    protected $serviceTblGroup = null;
 
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblYear;
+    protected $serviceTblYear = null;
 
     /**
      * @Column(type="bigint")
@@ -94,63 +89,23 @@ class TblLessonContent extends Element
     protected string $Room;
 
     /**
-     * @return bool|TblDivision
+     * @return bool|TblDivisionCourse
      */
-    public function getServiceTblDivision()
+    public function getServiceTblDivisionCourse()
     {
         if (null === $this->serviceTblDivision) {
             return false;
         } else {
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
+            return DivisionCourse::useService()->getDivisionCourseById($this->serviceTblDivision);
         }
     }
 
     /**
-     * @param TblDivision|null $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      */
-    public function setServiceTblDivision(TblDivision $tblDivision = null)
+    public function setServiceTblDivisionCourse(TblDivisionCourse $tblDivisionCourse)
     {
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
-    }
-
-    /**
-     * @return bool|TblGroup
-     */
-    public function getServiceTblGroup()
-    {
-        if(null === $this->serviceTblGroup){
-            return false;
-        } else {
-            return Group::useService()->getGroupById($this->serviceTblGroup);
-        }
-    }
-
-    /**
-     * @param null|TblGroup $serviceTblGroup
-     */
-    public function setServiceTblGroup(TblGroup $serviceTblGroup = null)
-    {
-        $this->serviceTblGroup = (null === $serviceTblGroup ? null : $serviceTblGroup->getId());
-    }
-
-    /**
-     * @return bool|TblYear
-     */
-    public function getServiceTblYear()
-    {
-        if (null === $this->serviceTblYear) {
-            return false;
-        } else {
-            return Term::useService()->getYearById($this->serviceTblYear);
-        }
-    }
-
-    /**
-     * @param TblYear|null $tblYear
-     */
-    public function setServiceTblYear(TblYear $tblYear = null)
-    {
-        $this->serviceTblYear = ( null === $tblYear ? null : $tblYear->getId() );
+        $this->serviceTblDivision = $tblDivisionCourse->getId();
     }
 
     /**

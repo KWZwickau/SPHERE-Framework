@@ -18,6 +18,8 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
 /**
+ * @deprecated
+ *
  * Class Data
  *
  * @package SPHERE\Application\Education\ClassRegister\Absence\Service

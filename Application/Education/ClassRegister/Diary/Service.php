@@ -6,27 +6,20 @@ use DateInterval;
 use DateTime;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
-use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryDivision;
+use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryPredecessorDivisionCourse;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryStudent;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Setup;
 use SPHERE\Application\Education\Diary\Diary;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
 
-/**
- * Class Service
- *
- * @package SPHERE\Application\Education\ClassRegister\Diary
- */
 class Service extends AbstractService
 {
-
     /**
      * @param bool $doSimulation
      * @param bool $withData
@@ -34,9 +27,8 @@ class Service extends AbstractService
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData, $UTF8)
+    public function setupService($doSimulation, $withData, $UTF8): string
     {
-
         $Protocol= '';
         if(!$withData){
             $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation, $UTF8);
@@ -44,7 +36,18 @@ class Service extends AbstractService
         if (!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
+
         return $Protocol;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return array
+     */
+    public function migrateYear(TblYear $tblYear): array
+    {
+        return (new Data($this->getBinding()))->migrateYear($tblYear);
     }
 
     /**
@@ -58,50 +61,40 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param bool $withPredecessorDivision
      *
      * @return false|TblDiary[]
      */
-    public function getDiaryAllByDivision(TblDivision $tblDivision, $withPredecessorDivision = false)
+    public function getDiaryAllByDivisionCourse(TblDivisionCourse $tblDivisionCourse, bool $withPredecessorDivision = false)
     {
         if ($withPredecessorDivision) {
             $divisionList = array();
             $resultList = array();
-            $this->getPredecessorDivisionList($tblDivision, $divisionList);
-            /** @var TblDivision $tblDivisionItem */
-            foreach ($divisionList as $tblDivisionItem) {
-                if (($list = $this->getDiaryAllByDivision($tblDivisionItem, false))) {
+            $this->getPredecessorDivisionCourseList($tblDivisionCourse, $divisionList);
+            /** @var TblDivisionCourse $tblDivisionCourseItem */
+            foreach ($divisionList as $tblDivisionCourseItem) {
+                if (($list = $this->getDiaryAllByDivisionCourse($tblDivisionCourseItem))) {
                     $resultList = array_merge($resultList, $list);
                 }
             }
 
             return $resultList;
         } else {
-            return (new Data($this->getBinding()))->getDiaryAllByDivision($tblDivision);
+            return (new Data($this->getBinding()))->getDiaryAllByDivisionCourse($tblDivisionCourse);
         }
     }
 
     /**
-     * @param TblGroup $tblGroup
-     *
-     * @return false|TblGroup[]
-     */
-    public function getDiaryAllByGroup(TblGroup $tblGroup)
-    {
-        return (new Data($this->getBinding()))->getDiaryAllByGroup($tblGroup);
-    }
-
-    /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param $resultList
      */
-    private function getPredecessorDivisionList(TblDivision $tblDivision, &$resultList) {
-        $resultList[$tblDivision->getId()] = $tblDivision;
-        if (($tblDiaryDivisionList = $this->getDiaryDivisionByDivision($tblDivision))) {
-            foreach ($tblDiaryDivisionList as $tblDiaryDivision) {
-                if (($tblPredecessorDivision = $tblDiaryDivision->getServiceTblPredecessorDivision())) {
-                    $this->getPredecessorDivisionList($tblPredecessorDivision, $resultList);
+    private function getPredecessorDivisionCourseList(TblDivisionCourse $tblDivisionCourse, &$resultList) {
+        $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+        if (($tblDiaryDivisionCourseList = $this->getDiaryPredecessorDivisionCourseListByDivisionCourse($tblDivisionCourse))) {
+            foreach ($tblDiaryDivisionCourseList as $tblDiaryDivisionCourse) {
+                if (($tblPredecessorDivision = $tblDiaryDivisionCourse->getServiceTblPredecessorDivisionCourse())) {
+                    $this->getPredecessorDivisionCourseList($tblPredecessorDivision, $resultList);
                 }
             }
         }
@@ -119,23 +112,20 @@ class Service extends AbstractService
 
     /**
      * @param $Data
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param TblDiary|null $tblDiary
      *
      * @return bool|Form
      */
     public function checkFormDiary(
         $Data,
-        TblDivision $tblDivision = null,
-        TblGroup $tblGroup = null,
+        TblDivisionCourse $tblDivisionCourse,
         TblDiary $tblDiary = null
     ) {
         $error = false;
 
-        $form = Diary::useFrontend()->formDiary(
-            $tblDivision ? $tblDivision : null, $tblGroup ? $tblGroup : null, $tblDiary ? $tblDiary->getId() : null
-        );
+        $form = Diary::useFrontend()->formDiary($tblDivisionCourse, $tblDiary ? $tblDiary->getId() : null);
+
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $error = true;
@@ -157,58 +147,32 @@ class Service extends AbstractService
 
     /**
      * @param $Data
-     * @param TblDivision $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return bool
      */
-    public function createDiary($Data, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function createDiary($Data, TblDivisionCourse $tblDivisionCourse): bool
     {
-        $tblPerson = false;
-        if (($tblAccount = Account::useService()->getAccountBySession())
-            && ($tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount))
-        ) {
-            $tblPerson = $tblPersonAllByAccount[0];
-        }
+        $tblPersonTeacher = Account::useService()->getPersonByLogin();
 
-        if ($tblPerson) {
-            if ($tblDivision) {
-                $tblYear = $tblDivision->getServiceTblYear();
-            } elseif ($tblGroup) {
-                if (($tblYearList = Term::useService()->getYearByNow())) {
-                    $tblYear = reset($tblYearList);
-                } else {
-                    $tblYear = false;
+        $tblDiary = (new Data($this->getBinding()))->createDiary(
+            $tblDivisionCourse,
+            $Data['Subject'],
+            $Data['Content'],
+            $Data['Date'],
+            $Data['Place'],
+            $tblPersonTeacher ?: null
+        );
+
+        if (isset($Data['Students'])) {
+            foreach($Data['Students'] as $personId => $value) {
+                if (($tblPersonItem = Person::useService()->getPersonById($personId))) {
+                    (new Data($this->getBinding()))->addDiaryStudent($tblDiary, $tblPersonItem);
                 }
-            } else {
-                $tblYear = false;
-            }
-
-            $tblDiary = (new Data($this->getBinding()))->createDiary(
-                $Data['Subject'],
-                $Data['Content'],
-                $Data['Date'],
-                $Data['Place'],
-                $tblPerson,
-                $tblYear ? $tblYear : null,
-                $tblDivision ? $tblDivision : null,
-                $tblGroup ? $tblGroup : null
-            );
-
-            if ($tblDiary) {
-                if (isset($Data['Students'])) {
-                    foreach($Data['Students'] as $personId => $value) {
-                        if (($tblPersonItem = Person::useService()->getPersonById($personId))) {
-                            (new Data($this->getBinding()))->addDiaryStudent($tblDiary, $tblPersonItem);
-                        }
-                    }
-                }
-
-                return true;
             }
         }
 
-        return false;
+        return true;
     }
 
     /**
@@ -217,54 +181,38 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function updateDiary(TblDiary $tblDiary, $Data)
+    public function updateDiary(TblDiary $tblDiary, $Data): bool
     {
-        $tblPerson = false;
-        if (($tblAccount = Account::useService()->getAccountBySession())
-            && ($tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount))
-        ) {
-            $tblPerson = $tblPersonAllByAccount[0];
-        }
+        $tblPersonTeacher = Account::useService()->getPersonByLogin();
 
-        if ($tblPerson) {
-            $tblDivision = $tblDiary->getServiceTblDivision();
-            $tblGroup = $tblDiary->getServiceTblGroup();
-            $tblYear = $tblDiary->getServiceTblYear();
+        (new Data($this->getBinding()))->updateDiary(
+            $tblDiary,
+            $Data['Subject'],
+            $Data['Content'],
+            $Data['Date'],
+            $Data['Place'],
+            $tblPersonTeacher ?: null
+        );
 
-            (new Data($this->getBinding()))->updateDiary(
-                $tblDiary,
-                $Data['Subject'],
-                $Data['Content'],
-                $Data['Date'],
-                $Data['Place'],
-                $tblPerson,
-                $tblYear ? $tblYear : null,
-                $tblDivision ? $tblDivision : null,
-                $tblGroup ? $tblGroup : null
-            );
-
-            if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
-                foreach ($tblDiaryStudentList as $tblDiaryStudent) {
-                    if (($tblPersonRemove = $tblDiaryStudent->getServiceTblPerson())
-                        && !isset($Data['Students'][$tblPersonRemove->getId()])
-                    ) {
-                        (new Data($this->getBinding()))->removeDiaryStudent($tblDiaryStudent);
-                    }
+        if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
+            foreach ($tblDiaryStudentList as $tblDiaryStudent) {
+                if (($tblPersonRemove = $tblDiaryStudent->getServiceTblPerson())
+                    && !isset($Data['Students'][$tblPersonRemove->getId()])
+                ) {
+                    (new Data($this->getBinding()))->removeDiaryStudent($tblDiaryStudent);
                 }
             }
-
-            if (isset($Data['Students'])) {
-                foreach($Data['Students'] as $personId => $value) {
-                    if (($tblPersonAdd = Person::useService()->getPersonById($personId))) {
-                        (new Data($this->getBinding()))->addDiaryStudent($tblDiary, $tblPersonAdd);
-                    }
-                }
-            }
-
-            return true;
         }
 
-        return false;
+        if (isset($Data['Students'])) {
+            foreach($Data['Students'] as $personId => $value) {
+                if (($tblPersonAdd = Person::useService()->getPersonById($personId))) {
+                    (new Data($this->getBinding()))->addDiaryStudent($tblDiary, $tblPersonAdd);
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -272,7 +220,7 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function destroyDiary(TblDiary $tblDiary)
+    public function destroyDiary(TblDiary $tblDiary): bool
     {
         if (($tblDiaryStudentList = Diary::useService()->getDiaryStudentAllByDiary($tblDiary))) {
             foreach ($tblDiaryStudentList as $tblDiaryStudent) {
@@ -284,24 +232,24 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivision $tblDivision
-     * @param TblDivision $tblPredecessorDivision
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblDivisionCourse $tblPredecessorDivision
      *
-     * @return TblDiaryDivision
+     * @return TblDiaryPredecessorDivisionCourse
      */
-    public function addDiaryDivision(TblDivision $tblDivision, TblDivision $tblPredecessorDivision)
+    public function addDiaryDivision(TblDivisionCourse $tblDivisionCourse, TblDivisionCourse $tblPredecessorDivision): TblDiaryPredecessorDivisionCourse
     {
-        return (new Data($this->getBinding()))->addDiaryDivision($tblDivision, $tblPredecessorDivision);
+        return (new Data($this->getBinding()))->addDiaryDivision($tblDivisionCourse, $tblPredecessorDivision);
     }
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      *
-     * @return false|TblDiaryDivision[]
+     * @return false|TblDiaryPredecessorDivisionCourse[]
      */
-    private function getDiaryDivisionByDivision(TblDivision $tblDivision)
+    private function getDiaryPredecessorDivisionCourseListByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
     {
-        return (new Data($this->getBinding()))->getDiaryDivisionByDivision($tblDivision);
+        return (new Data($this->getBinding()))->getDiaryPredecessorDivisionCourseListByDivisionCourse($tblDivisionCourse);
     }
 
     /**

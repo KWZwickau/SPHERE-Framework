@@ -4,12 +4,17 @@ namespace SPHERE\Application\Api\Platform\DataMaintenance;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
+use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -35,6 +40,10 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
     const TYPE_DIVISION_COURSE = 'DIVISION_COURSE';
     const TYPE_TEST = 'TEST';
     const TYPE_TASK = 'TASK';
+    const TYPE_COURSE_CONTENT = 'COURSE_CONTENT';
+    const TYPE_INSTRUCTION_ITEM = 'INSTRUCTION_ITEM';
+    const TYPE_DIARY = 'DIARY';
+    const TYPE_ABSENCE = 'ABSENCE';
 
     const MAX_DIVISION_COUNT = 5;
 
@@ -52,6 +61,7 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('migrateGroups');
         $Dispatcher->registerMethod('migrateScoreRules');
         $Dispatcher->registerMethod('migrateMinimumGradeCounts');
+        $Dispatcher->registerMethod('migrateStudentSubjectLevels');
         $Dispatcher->registerMethod('migrateYear');
         $Dispatcher->registerMethod('migrateYearItem');
 
@@ -209,6 +219,32 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
     {
         list($count, $time) = Grade::useService()->migrateMinimumGradeCounts();
         return new Success("$count Mindestnoten erfolgreich migriert." . new PullRight("$time Sekunden"))
+            . self::pipelineMigrateStudentSubjectLevels();
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineMigrateStudentSubjectLevels(): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'MigrateStudentSubjectLevels'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'migrateStudentSubjectLevels',
+        ));
+        $ModalEmitter->setLoadingMessage('Klassenstufen der Fremdsprachen werden migriert.');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return string
+     */
+    public function migrateStudentSubjectLevels(): string
+    {
+        list($count, $time) = Student::useService()->migrateStudentSubjectLevels();
+        return new Success("$count Klassenstufen der Fremdsprachen erfolgreich migriert." . new PullRight("$time Sekunden"))
             . (($tblNextYear = $this->getNextYear()) ? self::pipelineMigrateYear($tblNextYear->getId()) : '');
     }
 
@@ -245,7 +281,11 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
         if (Term::useService()->getYearById($YearId)) {
             $result = self::receiverBlock(new Warning('Bitte warten. Die Klassen-Inhalte werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_DIVISION_COURSE)
                 . self::receiverBlock(new Warning('Bitte warten. Die Leistungsüberprüfungen werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_TEST)
-                . self::receiverBlock(new Warning('Bitte warten. Die Notenaufträge werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_TASK);
+                . self::receiverBlock(new Warning('Bitte warten. Die Notenaufträge werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_TASK)
+                . self::receiverBlock(new Warning('Bitte warten. Die Kursbücher-Einträge werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_COURSE_CONTENT)
+                . self::receiverBlock(new Warning('Bitte warten. Die Belehrungseinträge werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_INSTRUCTION_ITEM)
+                . self::receiverBlock(new Warning('Bitte warten. Die Pädagogischen Tagebücher werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_DIARY)
+                . self::receiverBlock(new Warning('Bitte warten. Die Fehlzeiten werden migriert.', new History()), 'MigrateYearItem_' . $YearId . '_' . self::TYPE_ABSENCE);
 
             return $result . self::pipelineMigrateYearItem($YearId, self::TYPE_DIVISION_COURSE);
         }
@@ -300,6 +340,10 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
             case self::TYPE_DIVISION_COURSE: $message = 'Klasseninhalte'; break;
             case self::TYPE_TEST: $message = 'Leistungsüberprüfungen für Klassen ab Id=' . $StartId; break;
             case self::TYPE_TASK: $message = 'Notenaufträge'; break;
+            case self::TYPE_COURSE_CONTENT: $message = 'Kursbücher-Einträge'; break;
+            case self::TYPE_INSTRUCTION_ITEM: $message = 'Belehrungseinträge'; break;
+            case self::TYPE_DIARY: $message = 'Pädagogische Tagebücher Elemente'; break;
+            case self::TYPE_ABSENCE: $message = 'Fehlzeiten'; break;
             default: $message = $Type;
         }
 
@@ -349,6 +393,22 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
                     }
                 case self::TYPE_TASK:
                     return new Success('Notenaufträge erfolgreich migriert' . new PullRight(Grade::useService()->migrateTasks($tblYear) . ' Sekunden'), new Check())
+                        . self::pipelineMigrateYearItem($YearId, self::TYPE_COURSE_CONTENT);
+                case self::TYPE_COURSE_CONTENT:
+                    list ($count, $time) = Digital::useService()->migrateYear($tblYear);
+                    return new Success($count . ' Kursbücher-Einträge erfolgreich migriert' . new PullRight($time . ' Sekunden'), new Check())
+                        . self::pipelineMigrateYearItem($YearId, self::TYPE_INSTRUCTION_ITEM);
+                case self::TYPE_INSTRUCTION_ITEM:
+                    list ($count, $time) = Instruction::useService()->migrateYear($tblYear);
+                    return new Success($count . ' Belehrungseinträge erfolgreich migriert' . new PullRight($time . ' Sekunden'), new Check())
+                        . self::pipelineMigrateYearItem($YearId, self::TYPE_DIARY);
+                case self::TYPE_DIARY:
+                    list ($count, $time) = Diary::useService()->migrateYear($tblYear);
+                    return new Success($count . ' Pädagogische Tagebücher Elemente erfolgreich migriert' . new PullRight($time . ' Sekunden'), new Check())
+                        . self::pipelineMigrateYearItem($YearId, self::TYPE_ABSENCE);
+                case self::TYPE_ABSENCE:
+                    list ($count, $time) = Absence::useService()->migrateYear($tblYear);
+                    return new Success($count . ' Fehlzeiten erfolgreich migriert' . new PullRight($time . ' Sekunden'), new Check())
                         . new Success(new Bold($tblYear->getDisplayName()) . ' erfolgreich migriert. ')
                         . (($tblNextYear = $this->getNextYear($tblYear))
                             ? self::pipelineMigrateYear($tblNextYear->getId())

@@ -7,12 +7,12 @@ use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseC
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContentLink;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -26,14 +26,55 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param TblYear $tblYear
+     *
+     * @return array
+     */
+    public function migrateYear(TblYear $tblYear): array
+    {
+        $count = 0;
+        $start = hrtime(true);
+
+        // Kursbücher migrieren
+        if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
+            $Manager = $this->getEntityManager();
+            foreach ($tblDivisionList as $tblDivision) {
+                if (($tblCourseContentList = $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblCourseContent', array(
+                    TblCourseContent::ATTR_SERVICE_TBL_DIVISION_COURSE => null,
+                    TblCourseContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+                )))) {
+                    /** @var TblCourseContent $tblCourseContent */
+                    foreach($tblCourseContentList as $tblCourseContent) {
+                        if (($tblSubject = $tblCourseContent->getServiceTblSubject())
+                            && ($tblSubjectGroup = $tblCourseContent->getServiceTblSubjectGroup())
+                            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByMigrateSekCourse(
+                                Division::useService()->getMigrateSekCourseString($tblDivision, $tblSubject, $tblSubjectGroup
+                            )))
+                        ) {
+                            $count++;
+                            $tblCourseContent->setServiceTblDivisionCourse($tblDivisionCourse);
+                            $Manager->bulkSaveEntity($tblCourseContent);
+                        }
+                    }
+                }
+            }
+
+            $Manager->flushCache();
+        }
+
+
+        $end = hrtime(true);
+
+        return array($count, round(($end - $start) / 1000000000, 2));
+    }
+
+    /**
      * @param $Date
      * @param $Lesson
      * @param $Content
      * @param $Homework
      * @param $Room
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblYear|null $tblYear
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param TblPerson|null $tblPerson
      * @param TblSubject|null $tblSubject
      * @param TblSubject|null $tblSubstituteSubject
@@ -47,9 +88,7 @@ class Data  extends AbstractData
         $Content,
         $Homework,
         $Room,
-        TblDivision $tblDivision = null,
-        TblGroup $tblGroup = null,
-        TblYear $tblYear = null,
+        TblDivisionCourse $tblDivisionCourse,
         TblPerson $tblPerson = null,
         TblSubject $tblSubject = null,
         TblSubject $tblSubstituteSubject = null,
@@ -64,9 +103,7 @@ class Data  extends AbstractData
         $Entity->setContent($Content);
         $Entity->setHomework($Homework);
         $Entity->setRoom($Room);
-        $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setServiceTblGroup($tblGroup);
-        $Entity->setServiceTblYear($tblYear);
+        $Entity->setServiceTblDivisionCourse($tblDivisionCourse);
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setServiceTblSubject($tblSubject);
         $Entity->setServiceTblSubstituteSubject($tblSubstituteSubject);
@@ -160,42 +197,37 @@ class Data  extends AbstractData
 
     /**
      * @param DateTime $date
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return false|TblLessonContent[]
      */
-    public function getLessonContentAllByDate(DateTime $date, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function getLessonContentAllByDate(DateTime $date, TblDivisionCourse $tblDivisionCourse)
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', array(
             TblLessonContent::ATTR_DATE => $date,
-            TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
-            TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
+            TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
         ), array(TblLessonContent::ATTR_LESSON => self::ORDER_ASC) );
     }
 
     /**
      * @param DateTime $date
      * @param int|null $lesson
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return false|TblLessonContent[]
      */
-    public function getLessonContentAllByDateAndLesson(DateTime $date, ?int $lesson, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function getLessonContentAllByDateAndLesson(DateTime $date, ?int $lesson, TblDivisionCourse $tblDivisionCourse)
     {
         if ($lesson !== null) {
             return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', array(
                 TblLessonContent::ATTR_DATE => $date,
                 TblLessonContent::ATTR_LESSON => $lesson,
-                TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
-                TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
+                TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId()
             ), array(Element::ENTITY_CREATE => self::ORDER_ASC));
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', array(
                 TblLessonContent::ATTR_DATE => $date,
-                TblLessonContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
-                TblLessonContent::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null
+                TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId()
             ), array(Element::ENTITY_CREATE => self::ORDER_ASC));
         }
     }
@@ -203,43 +235,27 @@ class Data  extends AbstractData
     /**
      * @param DateTime $fromDate
      * @param DateTime $toDate
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return false|TblLessonContent[]
      */
-    public function getLessonContentAllByBetween(DateTime $fromDate, DateTime $toDate, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function getLessonContentAllByBetween(DateTime $fromDate, DateTime $toDate, TblDivisionCourse $tblDivisionCourse)
     {
         $Manager = $this->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
 
-        if ($tblDivision) {
-            $query = $queryBuilder->select('t')
-                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
-                ->where(
-                    $queryBuilder->expr()->andX(
-                        $queryBuilder->expr()->between('t.Date', '?1', '?2'),
-                        $queryBuilder->expr()->eq('t.serviceTblDivision', '?3')
-                    )
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->between('t.Date', '?1', '?2'),
+                    $queryBuilder->expr()->eq('t.serviceTblDivision', '?3')
                 )
-                ->setParameter(1, $fromDate)
-                ->setParameter(2, $toDate)
-                ->setParameter(3, $tblDivision->getId())
-                ->getQuery();
-        } else {
-            $query = $queryBuilder->select('t')
-                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
-                ->where(
-                    $queryBuilder->expr()->andX(
-                        $queryBuilder->expr()->between('t.Date', '?1', '?2'),
-                        $queryBuilder->expr()->eq('t.serviceTblGroup', '?3')
-                    )
-                )
-                ->setParameter(1, $fromDate)
-                ->setParameter(2, $toDate)
-                ->setParameter(3, $tblGroup->getId())
-                ->getQuery();
-        }
+            )
+            ->setParameter(1, $fromDate)
+            ->setParameter(2, $toDate)
+            ->setParameter(3, $tblDivisionCourse->getId())
+            ->getQuery();
 
         $resultList = $query->getResult();
 
@@ -248,51 +264,31 @@ class Data  extends AbstractData
 
     /**
      * @param DateTime $toDate
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return TblLessonContent[]|false
      */
-    public function getLessonContentCanceledAllByToDate(DateTime $toDate, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function getLessonContentCanceledAllByToDate(DateTime $toDate, TblDivisionCourse $tblDivisionCourse)
     {
         $Manager = $this->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
 
-        if ($tblDivision) {
-            $query = $queryBuilder->select('t')
-                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
-                ->where(
-                    $queryBuilder->expr()->andX(
-                        $queryBuilder->expr()->lte('t.Date', '?1'),
-                        $queryBuilder->expr()->eq('t.serviceTblDivision', '?2'),
-                        $queryBuilder->expr()->orX(
-                            $queryBuilder->expr()->eq('t.IsCanceled', '?3'),
-                            $queryBuilder->expr()->isNotNull('t.serviceTblSubstituteSubject'),
-                        )
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->lte('t.Date', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblDivision', '?2'),
+                    $queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->eq('t.IsCanceled', '?3'),
+                        $queryBuilder->expr()->isNotNull('t.serviceTblSubstituteSubject'),
                     )
                 )
-                ->setParameter(1, $toDate)
-                ->setParameter(2, $tblDivision->getId())
-                ->setParameter(3, 1)
-                ->getQuery();
-        } else {
-            $query = $queryBuilder->select('t')
-                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
-                ->where(
-                    $queryBuilder->expr()->andX(
-                        $queryBuilder->expr()->lte('t.Date', '?1'),
-                        $queryBuilder->expr()->eq('t.serviceTblGroup', '?2'),
-                        $queryBuilder->expr()->orX(
-                            $queryBuilder->expr()->eq('t.IsCanceled', '?3'),
-                            $queryBuilder->expr()->isNotNull('t.serviceTblSubstituteSubject'),
-                        )
-                    )
-                )
-                ->setParameter(1, $toDate)
-                ->setParameter(2, $tblGroup->getId())
-                ->setParameter(3, 1)
-                ->getQuery();
-        }
+            )
+            ->setParameter(1, $toDate)
+            ->setParameter(2, $tblDivisionCourse->getId())
+            ->setParameter(3, 1)
+            ->getQuery();
 
         $resultList = $query->getResult();
 
@@ -300,35 +296,23 @@ class Data  extends AbstractData
     }
 
     /**
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return TblSubject[]|false
      */
-    public function getSubjectListFromLessonContent(TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    public function getSubjectListFromLessonContent(TblDivisionCourse $tblDivisionCourse)
     {
         $Manager = $this->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
 
-        if ($tblDivision) {
-            $query = $queryBuilder->select('t.serviceTblSubject as SubjectId, t.serviceTblSubstituteSubject as SubstituteSubjectId')
-                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
-                ->where(
-                    $queryBuilder->expr()->eq('t.serviceTblDivision', '?1')
-                )
-                ->setParameter(1, $tblDivision->getId())
-                ->distinct()
-                ->getQuery();
-        } else {
-            $query = $queryBuilder->select('t.serviceTblSubject as SubjectId, t.serviceTblSubstituteSubject as SubstituteSubjectId')
-                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
-                ->where(
-                    $queryBuilder->expr()->eq('t.serviceTblGroup', '?1')
-                )
-                ->setParameter(1, $tblGroup->getId())
-                ->distinct()
-                ->getQuery();
-        }
+        $query = $queryBuilder->select('t.serviceTblSubject as SubjectId, t.serviceTblSubstituteSubject as SubstituteSubjectId')
+            ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
+            ->where(
+                $queryBuilder->expr()->eq('t.serviceTblDivision', '?1')
+            )
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->distinct()
+            ->getQuery();
 
         $resultList = $query->getResult();
 
@@ -350,9 +334,7 @@ class Data  extends AbstractData
     }
 
     /**
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param TblSubjectGroup $tblSubjectGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param $Date
      * @param $Lesson
      * @param $Content
@@ -365,9 +347,7 @@ class Data  extends AbstractData
      * @return TblCourseContent
      */
     public function createCourseContent(
-        TblDivision $tblDivision,
-        TblSubject $tblSubject,
-        TblSubjectGroup $tblSubjectGroup,
+        TblDivisionCourse $tblDivisionCourse,
         $Date,
         $Lesson,
         $Content,
@@ -377,13 +357,10 @@ class Data  extends AbstractData
         $IsDoubleLesson,
         TblPerson $tblPerson = null
     ): TblCourseContent {
-
         $Manager = $this->getEntityManager();
 
         $Entity = new TblCourseContent();
-        $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setServiceTblSubject($tblSubject);
-        $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
+        $Entity->setServiceTblDivisionCourse($tblDivisionCourse);
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setDate($Date ? new DateTime($Date) : null);
         $Entity->setLesson($Lesson);
@@ -502,25 +479,19 @@ class Data  extends AbstractData
     }
 
     /**
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param TblSubjectGroup $tblSubjectGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return false|TblCourseContent[]
      */
-    public function getCourseContentListBy(TblDivision $tblDivision, TblSubject $tblSubject,TblSubjectGroup $tblSubjectGroup)
+    public function getCourseContentListBy(TblDivisionCourse $tblDivisionCourse)
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblCourseContent', array(
-            TblCourseContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-            TblCourseContent::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-            TblCourseContent::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
+            TblCourseContent::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId()
         ));
     }
 
     /**
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
-     * @param TblYear|null $tblYear
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param $Date
      * @param $Remark
      * @param $DateDivisionTeacher
@@ -531,9 +502,7 @@ class Data  extends AbstractData
      * @return TblLessonWeek
      */
     public function createLessonWeek(
-        ?TblDivision $tblDivision,
-        ?TblGroup $tblGroup,
-        ?TblYear $tblYear,
+        TblDivisionCourse $tblDivisionCourse,
         $Date,
         $Remark,
         $DateDivisionTeacher,
@@ -545,9 +514,7 @@ class Data  extends AbstractData
         $Manager = $this->getEntityManager();
 
         $Entity = new TblLessonWeek();
-        $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setServiceTblGroup($tblGroup);
-        $Entity->setServiceTblYear($tblYear);
+        $Entity->setServiceTblDivisionCourse($tblDivisionCourse);
         $Entity->setDate($Date ? new DateTime($Date) : null);
         $Entity->setRemark($Remark);
         $Entity->setDateDivisionTeacher($DateDivisionTeacher ? new DateTime($DateDivisionTeacher) : null);
@@ -626,17 +593,15 @@ class Data  extends AbstractData
     }
 
     /**
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param DateTime $dateTime
      *
      * @return false|TblLessonWeek
      */
-    public function getLessonWeekAllByDate(?TblDivision $tblDivision, ?TblGroup $tblGroup, DateTime $dateTime)
+    public function getLessonWeekAllByDate(TblDivisionCourse $tblDivisionCourse, DateTime $dateTime)
     {
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLessonWeek', array(
-            TblLessonWeek::ATTR_SERVICE_TBL_DIVISION => $tblDivision ? $tblDivision->getId() : null,
-            TblLessonWeek::ATTR_SERVICE_TBL_GROUP => $tblGroup ? $tblGroup->getId() : null,
+            TblLessonWeek::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
             TblLessonWeek::ATTR_DATE => $dateTime
         ));
     }
@@ -708,8 +673,8 @@ class Data  extends AbstractData
         if ($tblLessonContentLink
             && ($LinkId = $tblLessonContentLink->getLinkId())
         ) {
-            $tblLessonContentLinkList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblLessonContentLink', array(
+            $tblLessonContentLinkList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLessonContentLink',
+                array(
                     TblLessonContentLink::ATTR_TBL_LINK_ID => $LinkId
                 )
             );

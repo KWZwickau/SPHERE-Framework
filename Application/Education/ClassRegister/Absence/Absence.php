@@ -14,6 +14,8 @@ use SPHERE\Common\Main;
 use SPHERE\System\Database\Link\Identifier;
 
 /**
+ * @deprecated
+ *
  * Class Absence
  *
  * @package SPHERE\Application\Education\ClassRegister\Absence
@@ -25,21 +27,23 @@ class Absence implements IModuleInterface
         /**
          * Route
          */
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('SPHERE\Application\Education\Absence', __NAMESPACE__ . '\Frontend::frontendAbsenceOverview')
-        );
+//        Main::getDispatcher()->registerRoute(
+//            Main::getDispatcher()->createRoute('SPHERE\Application\Education\Absence', __NAMESPACE__ . '\Frontend::frontendAbsenceOverview')
+//        );
 
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('SPHERE\Application\Education\ClassRegister\Digital\AbsenceMonth',
-                __NAMESPACE__ . '\Frontend::frontendAbsenceMonth')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('SPHERE\Application\Education\ClassRegister\Digital\AbsenceStudent',
-                __NAMESPACE__ . '\Frontend::frontendAbsenceStudent')
-        );
+//        Main::getDispatcher()->registerRoute(
+//            Main::getDispatcher()->createRoute('SPHERE\Application\Education\ClassRegister\Digital\AbsenceMonth',
+//                __NAMESPACE__ . '\Frontend::frontendAbsenceMonth')
+//        );
+//        Main::getDispatcher()->registerRoute(
+//            Main::getDispatcher()->createRoute('SPHERE\Application\Education\ClassRegister\Digital\AbsenceStudent',
+//                __NAMESPACE__ . '\Frontend::frontendAbsenceStudent')
+//        );
     }
 
     /**
+     * @deprecated
+     *
      * @return Service
      */
     public static function useService()
@@ -51,6 +55,8 @@ class Absence implements IModuleInterface
     }
 
     /**
+     * @deprecated
+     *
      * @return Frontend
      */
     public static function useFrontend()

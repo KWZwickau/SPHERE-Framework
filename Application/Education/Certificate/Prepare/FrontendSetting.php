@@ -5,9 +5,10 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 use DateTime;
 use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
@@ -16,6 +17,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -583,10 +585,12 @@ abstract class FrontendSetting extends FrontendSelect
         if (($tblTask = $tblPrepare->getServiceTblBehaviorTask())) {
             $tblGradeTypeList = Grade::useService()->getGradeTypeListByTask($tblTask);
         }
-        $buttonList = $this->getInformationButtonList($tblPrepare, $Route, $useClassRegisterForAbsence, $tblGradeTypeList ?: array(), $Page, $nextPage, $informationPageList);
+        $buttonList = $this->getInformationButtonList($tblPrepare, $Route, $useClassRegisterForAbsence, $tblGradeTypeList ?: array(), $Page, $nextPage,
+            $informationPageList, $CertificateHasAbsenceList, $StudentHasAbsenceLessonsList);
 
         if ($Page == 'Absence') {
-            $this->getAbsenceContent($tblPrepare, $Route, $CertificateList, $useClassRegisterForAbsence, $Stage, $Data, $buttonList, $nextPage);
+            $this->getAbsenceContent($tblPrepare, $Route, $CertificateList, $useClassRegisterForAbsence, $Stage, $Data, $buttonList, $nextPage,
+                $CertificateHasAbsenceList, $StudentHasAbsenceLessonsList);
         } else {
             $this->getInformationContent($tblPrepare, $Route, $CertificateList, $Stage, $Data, $buttonList, $nextPage, $Page, $informationPageList);
         }
@@ -595,7 +599,7 @@ abstract class FrontendSetting extends FrontendSelect
     }
 
     private function getAbsenceContent(TblPrepareCertificate $tblPrepare, string $Route, $CertificateList, bool $useClassRegisterForAbsence, Stage $Stage,
-        $Data, array $buttonList, $nextPage)
+        $Data, array $buttonList, $nextPage, $CertificateHasAbsenceList, $StudentHasAbsenceLessonsList)
     {
         $Stage->setDescription('Fehlzeiten festlegen');
         if ($useClassRegisterForAbsence) {
@@ -714,12 +718,25 @@ abstract class FrontendSetting extends FrontendSelect
 
         $studentTable = array();
         if ($tblPersonList && $tblYear) {
+            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                && $tblGenerateCertificate->getAppointedDateForAbsence()
+            ) {
+                $tillDateAbsence = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+            } else {
+                $tillDateAbsence = new DateTime($tblPrepare->getDate());
+            }
+            list($startDateAbsence) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+
             $count = 0;
-            $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
-            foreach ($tblPersonList as $tblPerson)
-            {
+            foreach ($tblPersonList as $tblPerson) {
                 $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
                 $studentTable[$tblPerson->getId()] = $this->getStudentBasicInformation($tblPerson, $tblYear, $tblPrepareStudent ?: null, $count);
+                $tblCompany = false;
+                $tblSchoolType = false;
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                    $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                    $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                }
 
                 $excusedDays = 0;
                 $excusedLessons = 0;
@@ -729,29 +746,13 @@ abstract class FrontendSetting extends FrontendSelect
                 $unexcusedDaysFromClassRegister = 0;
 
                 if ($tblPrepareStudent) {
-                    if ($tblGenerateCertificate && $tblGenerateCertificate->getAppointedDateForAbsence()) {
-                        $date = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
-                    } else {
-                        $date = new DateTime($tblPrepare->getDate());
-                    }
-
                     $excusedDays =  $tblPrepareStudent->getExcusedDays();
-                    // todo Umbau Fehlzeiten abhängig vom Schuljahr
-//                    $excusedDaysFromClassRegister = Absence::useService()->getExcusedDaysByPerson(
-//                        $tblPerson,
-//                        $tblDivisionItem,
-//                        $date,
-//                        $excusedLessons
-//                    );
+                    $excusedDaysFromClassRegister = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                        $startDateAbsence, $tillDateAbsence, $excusedLessons);
 
                     $unexcusedDays =  $tblPrepareStudent->getUnexcusedDays();
-                    // todo Umbau Fehlzeiten abhängig vom Schuljahr
-//                    $unexcusedDaysFromClassRegister = Absence::useService()->getUnexcusedDaysByPerson(
-//                        $tblPerson,
-//                        $tblDivisionItem,
-//                        $date,
-//                        $unexcusedLessons
-//                    );
+                    $unexcusedDaysFromClassRegister = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                        $startDateAbsence, $tillDateAbsence, $unexcusedLessons);
 
                     /*
                      * Post Fehlzeiten
@@ -760,15 +761,11 @@ abstract class FrontendSetting extends FrontendSelect
                         $Global = $this->getGlobal();
                         if ($Global) {
                             if ($useClassRegisterForAbsence) {
-                                $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDaysFromLessons']
-                                    = $tblPrepareStudent->getExcusedDaysFromLessons();
-                                $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDaysFromLessons']
-                                    = $tblPrepareStudent->getUnexcusedDaysFromLessons();
+                                $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDaysFromLessons'] = $tblPrepareStudent->getExcusedDaysFromLessons();
+                                $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDaysFromLessons'] = $tblPrepareStudent->getUnexcusedDaysFromLessons();
                             } else {
-                                $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDays']
-                                    = $excusedDays;
-                                $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDays']
-                                    = $unexcusedDays;
+                                $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDays'] = $excusedDays;
+                                $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDays'] = $unexcusedDays;
                             }
                         }
                         $Global->savePost();
@@ -846,6 +843,12 @@ abstract class FrontendSetting extends FrontendSelect
                         }
                         $studentTable[$tblPerson->getId()]['ExcusedDays'] = $inputExcusedDays;
                         $studentTable[$tblPerson->getId()]['UnexcusedDays'] = $inputUnexcusedDays;
+                    }
+                }
+
+                foreach ($columnTable as $keyColumn => $itemColumn) {
+                    if (!isset($studentTable[$tblPerson->getId()][$keyColumn])) {
+                        $studentTable[$tblPerson->getId()][$keyColumn] = '';
                     }
                 }
             }
@@ -1073,7 +1076,7 @@ abstract class FrontendSetting extends FrontendSelect
     }
 
     private function getInformationButtonList(TblPrepareCertificate $tblPrepare, string $Route, bool $useClassRegisterForAbsence, array $tblGradeTypeList,
-        $Page, &$nextPage, &$informationPageList): array
+        $Page, &$nextPage, &$informationPageList, &$CertificateHasAbsenceList, &$StudentHasAbsenceLessonsList): array
     {
         // Tabs für Zensuren-Typen
         $buttonList = array();
@@ -1089,7 +1092,6 @@ abstract class FrontendSetting extends FrontendSelect
         }
 
         // Erstellt zusätzliche "Tabs" für weitere Sonstige Informationen und die Fehlzeiten
-        /** @noinspection PhpUnusedLocalVariableInspection */
         list($informationPageList, $pageList, $CertificateHasAbsenceList, $StudentHasAbsenceLessonsList)
             = Prepare::useService()->getCertificateInformationPages($tblPrepare, $useClassRegisterForAbsence);
 

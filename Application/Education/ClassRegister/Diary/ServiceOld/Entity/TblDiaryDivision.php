@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Education\ClassRegister\Diary\Service\Entity;
+namespace SPHERE\Application\Education\ClassRegister\Diary\ServiceOld\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
+ * @deprecated
  * @Entity()
  * @Table(name="tblDiaryDivision")
  * @Cache(usage="READ_ONLY")

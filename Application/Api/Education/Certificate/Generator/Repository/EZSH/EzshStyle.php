@@ -411,22 +411,20 @@ abstract class EzshStyle extends Certificate
                                 // Mittelschulzeugnisse
                                 if ($hasSecondLanguageSecondarySchool)  {
                                     // SSW-484
-                                    $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
-                                    $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
-                                    $levelName = $this->getLevelName();
+                                    $tillLevel = $tblStudentSubject->getLevelTill();
+                                    $fromLevel = $tblStudentSubject->getLevelFrom();
+                                    $level = $this->getLevel();
 
                                     if ($tillLevel && $fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= floatval($levelName)
-                                            && floatval($tillLevel->getName()) >= floatval($levelName)
-                                        ) {
+                                        if ($fromLevel <= $level && $tillLevel >= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($tillLevel) {
-                                        if (floatval($tillLevel->getName()) >= floatval($levelName)) {
+                                        if ($tillLevel >= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= floatval($levelName)) {
+                                        if ($fromLevel <= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } else {
@@ -737,7 +735,6 @@ abstract class EzshStyle extends Certificate
         if ($tblPerson
             && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
         ) {
-            $Level = 'false';
             if ($isProfile) {
                 // Profil
                 if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
@@ -890,13 +887,6 @@ abstract class EzshStyle extends Certificate
                             && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
                             && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
                         ) {
-
-                            if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
-                                $Level = $tblLevelFrom->getName();
-                                if (!$Level) {
-                                    $Level = 'false';
-                                }
-                            }
 
                             $elementForeignLanguageName = new Element();
                             $elementForeignLanguageName

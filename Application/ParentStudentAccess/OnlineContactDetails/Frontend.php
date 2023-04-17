@@ -9,8 +9,8 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblMailToPerson;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblPhoneToPerson;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -112,10 +112,8 @@ class Frontend extends Extension implements IFrontendInterface
         return new LayoutGroup(array(
             new LayoutRow(new LayoutColumn(
                 new Title(
-                    $tblPerson->getLastFirstName()
-                    . (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
-                        ? ' ' . new Small(new Muted($tblDivision->getDisplayName()))
-                        : '')
+                    $tblPerson->getLastFirstName() . ' ' .
+                    new Small(new Muted(DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson)))
                 )
             )),
             new LayoutRow(new LayoutColumn(

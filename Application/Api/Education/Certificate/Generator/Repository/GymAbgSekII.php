@@ -744,12 +744,12 @@ class GymAbgSekII extends Certificate
                     if (($tblSubjectItem = $tblStudentSubject->getServiceTblSubject())
                         && $tblSubjectItem->getId() == $tblSubject->getId()
                     ) {
-                        if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
-                            $levelFrom = $tblLevelFrom->getName();
+                        if ($tblStudentSubject->getLevelFrom()) {
+                            $levelFrom = $tblStudentSubject->getLevelFrom();
                         }
 
-                        if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
-                            $levelTill = $tblLevelTill->getName();
+                        if ($tblStudentSubject->getLevelTill()) {
+                            $levelTill = $tblStudentSubject->getLevelTill();
                         }
 
                         break;
