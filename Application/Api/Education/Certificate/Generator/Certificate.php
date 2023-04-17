@@ -942,22 +942,20 @@ abstract class Certificate extends Extension
                                 // Mittelschulzeugnisse
                                 if ($hasSecondLanguageSecondarySchool)  {
                                     // SSW-484
-                                    $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
-                                    $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
+                                    $tillLevel = $tblStudentSubject->getLevelTill();
+                                    $fromLevel = $tblStudentSubject->getLevelFrom();
                                     $level = $this->getLevel();
 
                                     if ($tillLevel && $fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= $level
-                                            && floatval($tillLevel->getName()) >= $level
-                                        ) {
+                                        if ($fromLevel <= $level && $tillLevel >= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($tillLevel) {
-                                        if (floatval($tillLevel->getName()) >= $level) {
+                                        if ($tillLevel >= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= $level) {
+                                        if ($fromLevel <= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } else {
@@ -1325,22 +1323,20 @@ abstract class Certificate extends Extension
                                 // Mittelschulzeugnisse
                                 if ($hasSecondLanguageSecondarySchool)  {
                                     // SSW-484
-                                    $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
-                                    $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
+                                    $tillLevel = $tblStudentSubject->getLevelTill();
+                                    $fromLevel = $tblStudentSubject->getLevelFrom();
                                     $level = $this->getLevel();
 
                                     if ($tillLevel && $fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= $level
-                                            && floatval($tillLevel->getName()) >= $level
-                                        ) {
+                                        if ($fromLevel <= $level && $tillLevel >= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($tillLevel) {
-                                        if (floatval($tillLevel->getName()) >= $level) {
+                                        if ($tillLevel >= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= $level) {
+                                        if ($fromLevel <= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } else {
@@ -3722,22 +3718,20 @@ abstract class Certificate extends Extension
                         ) {
                             // Mittelschulzeugnisse
                             // SSW-484
-                            $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
-                            $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
+                            $tillLevel = $tblStudentSubject->getLevelTill();
+                            $fromLevel = $tblStudentSubject->getLevelFrom();
                             $level = $this->getLevel();
 
                             if ($tillLevel && $fromLevel) {
-                                if (floatval($fromLevel->getName()) <= $level
-                                    && floatval($tillLevel->getName()) >= $level
-                                ) {
+                                if ($fromLevel <= $level && $tillLevel >= $level) {
                                     $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                 }
                             } elseif ($tillLevel) {
-                                if (floatval($tillLevel->getName()) >= $level) {
+                                if ($tillLevel >= $level) {
                                     $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                 }
                             } elseif ($fromLevel) {
-                                if (floatval($fromLevel->getName()) <= $level) {
+                                if ($fromLevel <= $level) {
                                     $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                 }
                             } else {

@@ -1221,13 +1221,13 @@ class KamenzReportService
                         && ($tblStudentSubjectRanking = $tblStudentSubject->getTblStudentSubjectRanking())
                     ) {
                         // #SSW-1596 Abgeschlossene und noch nicht begonne Fremdsprachen ignorieren
-                        if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())
-                            && intval($tblLevelFrom->getName()) > intval($tblLevel->getName())
+                        if (($LevelFrom = $tblStudentSubject->getLevelFrom())
+                            && $LevelFrom > intval($tblLevel->getName())
                         ) {
                             continue;
                         }
-                        if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())
-                            && intval($tblLevelTill->getName()) < intval($tblLevel->getName())
+                        if (($LevelTill = $tblStudentSubject->getLevelTill())
+                            && $LevelTill < intval($tblLevel->getName())
                         ) {
                             continue;
                         }
@@ -3677,13 +3677,13 @@ class KamenzReportService
                     && ($tblStudentSubjectRanking = $tblStudentSubject->getTblStudentSubjectRanking())
                 ) {
                     // #SSW-1596 Abgeschlossene und noch nicht begonne Fremdsprachen ignorieren
-                    if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())
-                        && intval($tblLevelFrom->getName()) > intval($levelName)
+                    if (($LevelFrom = $tblStudentSubject->getLevelFrom())
+                        && $LevelFrom > intval($levelName)
                     ) {
                         continue;
                     }
-                    if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())
-                        && intval($tblLevelTill->getName()) < intval($levelName)
+                    if (($LevelTill = $tblStudentSubject->getLevelTill())
+                        && $LevelTill < intval($levelName)
                     ) {
                         continue;
                     }

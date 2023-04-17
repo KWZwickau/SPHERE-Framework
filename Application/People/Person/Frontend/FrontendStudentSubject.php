@@ -83,14 +83,14 @@ class FrontendStudentSubject  extends FrontendReadOnly
                         } else {
                             $text = $tblSubject->getDisplayName();
                         }
-                        $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
-                        $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
+                        $fromLevel = $tblStudentSubject->getLevelFrom();
+                        $tillLevel = $tblStudentSubject->getLevelTill();
                         if ($fromLevel || $tillLevel) {
                             $text .= new Container(
                                 '(ab '
-                                . ($fromLevel ? $fromLevel->getName() : '&ndash;')
+                                . ($fromLevel ?: '&ndash;')
                                 . '. bis '
-                                . ($tillLevel ? $tillLevel->getName() : '&ndash;')
+                                . ($tillLevel ?: '&ndash;')
                                 . '.)'
                             );
                         }
@@ -420,41 +420,27 @@ class FrontendStudentSubject  extends FrontendReadOnly
             }
             // Student FOREIGN_LANGUAGE: LevelFrom, LevelTill
             if ($tblStudentSubjectType->getIdentifier() == 'FOREIGN_LANGUAGE') {
-                $tblLevelAll = Division::useService()->getLevelAll();
-
-                // Gespeicherte Daten ergänzen wenn nicht bereits vorhanden
-                $useLevelFromList = $tblLevelAll;
-                $useLevelTillList = $tblLevelAll;
-                if ($tblStudentSubject && ($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
-                    if (!array_key_exists($tblLevelFrom->getId(), $tblLevelAll)) {
-                        $tblLevelFromList = array($tblLevelFrom->getId() => $tblLevelFrom);
-                        $useLevelFromList = array_merge($tblLevelAll, $tblLevelFromList);
-                    }
+                $levelList = array();
+                $levelList[0] = '-[ Nicht ausgewählt ]-';
+                for ($i = 1; $i < 14; $i++) {
+                    $levelList[$i] = $i;
                 }
-                if ($tblStudentSubject && ($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
-                    if (!array_key_exists($tblLevelTill->getId(), $tblLevelAll)) {
-                        $tblLevelTillList = array($tblLevelTill->getId() => $tblLevelTill);
-                        $useLevelTillList = array_merge($tblLevelAll, $tblLevelTillList);
-                    }
-                }
-
 
                 // Read StudentSubject Levels from DB
                 if ($tblStudent) {
-                    $tblStudentSubjectAll = Student::useService()
-                        ->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType);
+                    $tblStudentSubjectAll = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType);
                     if ($tblStudentSubjectAll) {
                         foreach ($tblStudentSubjectAll as $tblStudentSubject) {
                             // TblStudentSubject Rank == Panel Rank
                             if ($tblStudentSubject->getTblStudentSubjectRanking()->getId() == $Rank) {
                                 $Global = $this->getGlobal();
-                                if ($tblStudentSubject->getServiceTblLevelFrom()) {
+                                if ($tblStudentSubject->getLevelFrom()) {
                                     $Global->POST['Meta']['SubjectLevelFrom'][$tblStudentSubjectType->getId()][$tblStudentSubjectRanking->getId()]
-                                        = $tblStudentSubject->getServiceTblLevelFrom()->getId();
+                                        = $tblStudentSubject->getLevelFrom();
                                 }
-                                if ($tblStudentSubject->getServiceTblLevelTill()) {
+                                if ($tblStudentSubject->getLevelTill()) {
                                     $Global->POST['Meta']['SubjectLevelTill'][$tblStudentSubjectType->getId()][$tblStudentSubjectRanking->getId()]
-                                        = $tblStudentSubject->getServiceTblLevelTill()->getId();
+                                        = $tblStudentSubject->getLevelTill();
                                 }
                                 $Global->savePost();
                             }
@@ -466,7 +452,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
                     $Field = new SelectBox(
                         'Meta[SubjectLevelFrom]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                         new Muted(new Small($tblStudentSubjectRanking->getName() . ' Fremdsprache von Klasse')),
-                        array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelFromList),
+                        $levelList,
                         new Time())))
                     .ApiMassReplace::receiverModal($Field, $Node)
                     .new PullRight((new Link('Massen-Änderung',
@@ -485,7 +471,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
                     $Field = new SelectBox(
                         'Meta[SubjectLevelTill]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                         new Muted(new Small($tblStudentSubjectRanking->getName() . ' Fremdsprache bis Klasse')),
-                        array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelTillList),
+                        $levelList,
                         new Time())))
                     .ApiMassReplace::receiverModal($Field, $Node)
                     .new PullRight((new Link('Massen-Änderung',

@@ -6,7 +6,6 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -72,6 +71,14 @@ class Service extends Support
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
+    }
+
+    /**
+     * @return array
+     */
+    public function migrateStudentSubjectLevels(): array
+    {
+        return (new Data($this->getBinding()))->migrateStudentSubjectLevels();
     }
 
     /**
@@ -909,25 +916,26 @@ class Service extends Support
                             $tblSubject = Subject::useService()->getSubjectById($Type);
                             if ($tblSubject) {
                                 // From & Till
-                                $tblLevelFrom = null;
-                                $tblLevelTill = null;
+                                $LevelFrom = null;
+                                $LevelTill = null;
                                 if (isset( $Meta['SubjectLevelFrom'] ) && isset( $Meta['SubjectLevelFrom'][$Category][$Ranking] )) {
                                     if ($Meta['SubjectLevelFrom'][$Category][$Ranking]) {
-                                        $tblLevelFrom = Division::useService()->getLevelById($Meta['SubjectLevelFrom'][$Category][$Ranking]);
+                                        $LevelFrom = intval($Meta['SubjectLevelFrom'][$Category][$Ranking]);
                                     }
                                 }
                                 if (isset( $Meta['SubjectLevelTill'] ) && isset( $Meta['SubjectLevelTill'][$Category][$Ranking] )) {
                                     if ($Meta['SubjectLevelTill'][$Category][$Ranking]) {
-                                        $tblLevelTill = Division::useService()->getLevelById($Meta['SubjectLevelTill'][$Category][$Ranking]);
+                                        $LevelTill = intval($Meta['SubjectLevelTill'][$Category][$Ranking]);
                                     }
                                 }
 
                                 $this->addStudentSubject(
                                     $tblStudent,
                                     $tblStudentSubjectType,
-                                    $tblStudentSubjectRanking ? $tblStudentSubjectRanking : null,
+                                    $tblStudentSubjectRanking ?: null,
                                     $tblSubject,
-                                    $tblLevelFrom, $tblLevelTill
+                                    $LevelFrom,
+                                    $LevelTill
                                 );
                             }
                         }
@@ -1228,12 +1236,12 @@ class Service extends Support
     }
 
     /**
-     * @param TblStudent               $tblStudent
-     * @param TblStudentSubjectType    $tblStudentSubjectType
+     * @param TblStudent $tblStudent
+     * @param TblStudentSubjectType $tblStudentSubjectType
      * @param TblStudentSubjectRanking $tblStudentSubjectRanking
-     * @param TblSubject               $tblSubject
-     * @param TblLevel                 $tblLevelFrom
-     * @param TblLevel                 $tblLevelTill
+     * @param TblSubject $tblSubject
+     * @param int|null $LevelFrom
+     * @param int|null $LevelTill
      *
      * @return TblStudentSubject
      */
@@ -1242,17 +1250,17 @@ class Service extends Support
         TblStudentSubjectType $tblStudentSubjectType,
         TblStudentSubjectRanking $tblStudentSubjectRanking,
         TblSubject $tblSubject,
-        TblLevel $tblLevelFrom = null,
-        TblLevel $tblLevelTill = null
-    ) {
-
+        ?int $LevelFrom = null,
+        ?int $LevelTill = null
+    ): TblStudentSubject {
         return ( new Data($this->getBinding()) )->addStudentSubject(
             $tblStudent,
             $tblStudentSubjectType,
             $tblStudentSubjectRanking,
             $tblSubject,
-            $tblLevelFrom,
-            $tblLevelTill);
+            $LevelFrom,
+            $LevelTill
+        );
     }
 
     /**

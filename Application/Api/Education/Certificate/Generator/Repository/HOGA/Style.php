@@ -1127,22 +1127,20 @@ abstract class Style extends Certificate
                                 // Mittelschulzeugnisse
                                 if ($hasSecondLanguageSecondarySchool)  {
                                     // SSW-484
-                                    $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
-                                    $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
-                                    $levelName = $this->getLevelName();
+                                    $tillLevel = $tblStudentSubject->getLevelTill();
+                                    $fromLevel = $tblStudentSubject->getLevelFrom();
+                                    $level = $this->getLevel();
 
                                     if ($tillLevel && $fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= floatval($levelName)
-                                            && floatval($tillLevel->getName()) >= floatval($levelName)
-                                        ) {
+                                        if ($fromLevel <= $level && $tillLevel >= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($tillLevel) {
-                                        if (floatval($tillLevel->getName()) >= floatval($levelName)) {
+                                        if ($tillLevel >= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } elseif ($fromLevel) {
-                                        if (floatval($fromLevel->getName()) <= floatval($levelName)) {
+                                        if ($fromLevel <= $level) {
                                             $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                                         }
                                     } else {

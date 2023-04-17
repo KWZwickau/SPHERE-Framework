@@ -1654,13 +1654,11 @@ class GymAbitur extends Certificate
             ) {
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
                     $subject = $tblSubject->getName();
-                    if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
-                        $levelFrom = $tblLevelFrom->getName();
-                    } else {
-                        $levelFrom = '&ndash;';
+                    if ($tblStudentSubject->getLevelFrom()) {
+                        $levelFrom = $tblStudentSubject->getLevelFrom();
                     }
-                    if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
-                        $levelTill = $tblLevelTill->getName();
+                    if ($tblStudentSubject->getLevelTill()) {
+                        $levelTill = $tblStudentSubject->getLevelTill();
                     } else {
                         $levelTill = '12';
                     }

@@ -156,7 +156,10 @@ class Frontend extends Extension implements IFrontendInterface
             if(!$tblPersonList){
                 return $Stage->setContent(new Warning('Keine Schüler hinterlegt.'));
             }
-            $TableContent = Person::useService()->createClassList($tblPersonList);
+            $TableContent = array();
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+                $TableContent = Person::useService()->createClassList($tblPersonList, $tblYear);
+            }
             if (!empty($TableContent)) {
                 $Stage->addButton(
                     new Primary('Herunterladen', '/Api/Reporting/Standard/Person/ClassList/Download', new Download(),

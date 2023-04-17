@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -60,6 +61,7 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('migrateGroups');
         $Dispatcher->registerMethod('migrateScoreRules');
         $Dispatcher->registerMethod('migrateMinimumGradeCounts');
+        $Dispatcher->registerMethod('migrateStudentSubjectLevels');
         $Dispatcher->registerMethod('migrateYear');
         $Dispatcher->registerMethod('migrateYearItem');
 
@@ -217,6 +219,32 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
     {
         list($count, $time) = Grade::useService()->migrateMinimumGradeCounts();
         return new Success("$count Mindestnoten erfolgreich migriert." . new PullRight("$time Sekunden"))
+            . self::pipelineMigrateStudentSubjectLevels();
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineMigrateStudentSubjectLevels(): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'MigrateStudentSubjectLevels'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'migrateStudentSubjectLevels',
+        ));
+        $ModalEmitter->setLoadingMessage('Klassenstufen der Fremdsprachen werden migriert.');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return string
+     */
+    public function migrateStudentSubjectLevels(): string
+    {
+        list($count, $time) = Student::useService()->migrateStudentSubjectLevels();
+        return new Success("$count Klassenstufen der Fremdsprachen erfolgreich migriert." . new PullRight("$time Sekunden"))
             . (($tblNextYear = $this->getNextYear()) ? self::pipelineMigrateYear($tblNextYear->getId()) : '');
     }
 

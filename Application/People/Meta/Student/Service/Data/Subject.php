@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Data;
 
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -177,13 +176,12 @@ abstract class Subject extends Transfer
     /**
      * if already exists -> update entry
      *
-     * @param TblStudent               $tblStudent
-     * @param TblStudentSubjectType    $tblStudentSubjectType
+     * @param TblStudent $tblStudent
+     * @param TblStudentSubjectType $tblStudentSubjectType
      * @param TblStudentSubjectRanking $tblStudentSubjectRanking
-     * @param TblSubject               $tblSubject
-     *
-     * @param TblLevel                 $tblLevelFrom
-     * @param TblLevel                 $tblLevelTill
+     * @param TblSubject $tblSubject
+     * @param int|null $LevelFrom
+     * @param int|null $LevelTill
      *
      * @return TblStudentSubject
      */
@@ -192,9 +190,9 @@ abstract class Subject extends Transfer
         TblStudentSubjectType $tblStudentSubjectType,
         TblStudentSubjectRanking $tblStudentSubjectRanking,
         TblSubject $tblSubject,
-        TblLevel $tblLevelFrom = null,
-        TblLevel $tblLevelTill = null
-    ) {
+        ?int $LevelFrom = null,
+        ?int $LevelTill = null
+    ): TblStudentSubject {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -211,8 +209,8 @@ abstract class Subject extends Transfer
             $Entity->setTblStudentSubjectType($tblStudentSubjectType);
             $Entity->setTblStudentSubjectRanking($tblStudentSubjectRanking);
             $Entity->setServiceTblSubject($tblSubject);
-            $Entity->setServiceTblLevelFrom($tblLevelFrom);
-            $Entity->setServiceTblLevelTill($tblLevelTill);
+            $Entity->setLevelFrom($LevelFrom);
+            $Entity->setLevelTill($LevelTill);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -222,8 +220,8 @@ abstract class Subject extends Transfer
             $Entity->setTblStudentSubjectType($tblStudentSubjectType);
             $Entity->setTblStudentSubjectRanking($tblStudentSubjectRanking);
             $Entity->setServiceTblSubject($tblSubject);
-            $Entity->setServiceTblLevelFrom($tblLevelFrom);
-            $Entity->setServiceTblLevelTill($tblLevelTill);
+            $Entity->setLevelFrom($LevelFrom);
+            $Entity->setLevelTill($LevelTill);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

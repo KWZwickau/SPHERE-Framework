@@ -425,9 +425,7 @@ class BlockII extends AbstractBlock
             foreach ($tblStudentSubjectList as $tblStudentSubject) {
                 if (($tblSubjectItem = $tblStudentSubject->getServiceTblSubject())) {
                     // Eine in Klassenstufe 10 begonnene Fremdsprache kann kein Prüfungsfach sein
-                    if (!$tblStudentSubject->getServiceTblLevelFrom()
-                        || ($tblStudentSubject->getServiceTblLevelFrom() && $tblStudentSubject->getServiceTblLevelFrom()->getName() != '10')
-                    ) {
+                    if ($tblStudentSubject->getLevelFrom() != 10) {
                         $foreignLanguages[$tblSubjectItem->getId()] = $tblSubjectItem;
                         if ($tblSubjectItem->getName() == 'Englisch' && $tblSubjectEn2) {
                             $foreignLanguages[$tblSubjectEn2->getId()] = $tblSubjectEn2;

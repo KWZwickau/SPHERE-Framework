@@ -176,9 +176,9 @@ abstract class ServiceCertificateContent extends ServiceAbitur
         ) {
             foreach ($tblStudentSubjectList as $tblStudentSubject) {
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
-                    && ($levelFrom = $tblStudentSubject->getServiceTblLevelFrom())
+                    && ($levelFrom = $tblStudentSubject->getLevelFrom())
                 ) {
-                    $Content['P' . $personId]['Subject']['Level'][$tblSubject->getAcronym()] = $levelFrom->getName();
+                    $Content['P' . $personId]['Subject']['Level'][$tblSubject->getAcronym()] = $levelFrom;
                 }
             }
         }

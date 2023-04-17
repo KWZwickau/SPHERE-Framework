@@ -445,7 +445,7 @@ class StudentFilter extends Extension
                                     $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
                                         $tblStudentSubjectType, $tblStudentSubjectRanking);
                                     if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                                        $DataPerson['Edit'] = ($tblStudentSubject->getServiceTblLevelFrom() ? $tblStudentSubject->getServiceTblLevelFrom()->getName() . ' ' : '')
+                                        $DataPerson['Edit'] = ($tblStudentSubject->getLevelFrom() ? $tblStudentSubject->getLevelFrom() . ' ' : '')
                                             . new Muted('(' . $tblSubject->getAcronym() . ') ');
                                     }
                                 }
@@ -455,7 +455,7 @@ class StudentFilter extends Extension
                                     $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
                                         $tblStudentSubjectType, $tblStudentSubjectRanking);
                                     if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                                        $DataPerson['Edit'] = ($tblStudentSubject->getServiceTblLevelTill() ? $tblStudentSubject->getServiceTblLevelTill()->getName() . ' ' : '')
+                                        $DataPerson['Edit'] = ($tblStudentSubject->getLevelTill() ? $tblStudentSubject->getLevelTill() . ' ' : '')
                                             . new Muted('(' . $tblSubject->getAcronym() . ') ');
                                     }
                                 }

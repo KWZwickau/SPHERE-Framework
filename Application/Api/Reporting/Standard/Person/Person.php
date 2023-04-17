@@ -62,7 +62,8 @@ class Person extends Extension
             $name = $this->getDivisionCourseTypeNameList($tblDivisionCourse, $tblType);
         } else {return false;}
         if (($tblPersonList = $tblDivisionCourse->getStudents())
-            && ($dataList = ReportingPerson::useService()->createClassList($tblPersonList))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($dataList = ReportingPerson::useService()->createClassList($tblPersonList, $tblYear))
         ) {
             $fileLocation = ReportingPerson::useService()->createClassListExcel($dataList, $tblPersonList, $tblDivisionCourse);
             return FileSystem::getDownload($fileLocation->getRealPath(), $name . '_' . date("Y-m-d").".xlsx")->__toString();    // removed " H:i:s"

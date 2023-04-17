@@ -107,15 +107,16 @@ class Service extends Extension
 
     /**
      * @param false|array $tblPersonList
+     * @param TblYear $tblYear
      *
      * @return array
      */
-    public function createClassList($tblPersonList)
+    public function createClassList($tblPersonList, TblYear $tblYear): array
     {
         $TableContent = array();
         if ($tblPersonList) {
             $count = 1;
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count, $tblYear) {
                 $item['Number'] = $count++;
                 $this->setPersonData('', $item, $tblPerson);
                 $item['Gender'] = $tblPerson->getGenderString();
@@ -131,7 +132,12 @@ class Service extends Extension
                 $item = $this->getAddressDataFromPerson($tblPerson, $item);
                 // Mail, Phone,
                 $item = $this->getContactDataFromPerson($tblPerson, $item);
-                $tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+
+                $level = null;
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                    $level = $tblStudentEducation->getLevel();
+                }
+
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 // NK/Profil
                 if ($tblStudent) {
@@ -140,24 +146,20 @@ class Service extends Extension
                         $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
                         $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
                             $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking);
-                        if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject()) && $tblMainDivision
-                            && ($tblDivisionLevel = $tblMainDivision->getTblLevel())) {
+                        if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
                             $item['ForeignLanguage'. $i] = $tblSubject->getAcronym();
-                            // ToDO Level in der Schülerakte sind veraltet. Nach Umstellung kann das wieder korrigiert und aktiviert werden.
-//                            if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())
-//                                && ($LevelFrom = Division::useService()->getLevelById($tblLevelFrom->getId())->getName())
-//                                && (is_numeric($LevelFrom)) && (is_numeric($tblDivisionLevel->getName()))) {
-//                                if ($tblDivisionLevel->getName() < $LevelFrom) {
-//                                    $item['ForeignLanguage' . $i] = '';
-//                                }
-//                            }
-//                            if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill()) &&
-//                                ($LevelTill = Division::useService()->getLevelById($tblLevelTill->getId())->getName())
-//                                && (is_numeric($LevelTill)) && (is_numeric($tblDivisionLevel->getName()))) {
-//                                if ($tblDivisionLevel->getName() > $LevelTill) {
-//                                    $item['ForeignLanguage' . $i] = '';
-//                                }
-//                            }
+                            if (($levelFrom = $tblStudentSubject->getLevelFrom())
+                                && $level
+                                && $level < $levelFrom
+                            ) {
+                                $item['ForeignLanguage' . $i] = '';
+                            }
+                            if (($levelTill = $tblStudentSubject->getLevelTill())
+                                && $level
+                                && $level > $levelTill
+                            ) {
+                                $item['ForeignLanguage' . $i] = '';
+                            }
                         }
                     }
                     // Profil
@@ -639,10 +641,11 @@ class Service extends Extension
     {
 
         $tblPersonList = $tblDivisionCourse->getStudents();
+        $tblYear = $tblDivisionCourse->getServiceTblYear();
         $TableContent = array();
         if (!empty($tblPersonList)) {
             $count = 1;
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblDivisionCourse, &$count) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblDivisionCourse, &$count, $tblYear) {
                 $item['Number'] = $count++;
                 $item['Name'] = $tblPerson->getLastFirstName();
                 $item['Birthday'] = $tblPerson->getBirthday();
@@ -651,6 +654,12 @@ class Service extends Extension
                 $item['Profile'] = $item['Orientation'] = $item['Religion'] = $item['Elective'] = '';
                 $item['ExcelElective'] = array();
                 $item['Elective1'] = $item['Elective2'] = $item['Elective3'] = $item['Elective4'] = $item['Elective5'] = '';
+
+                $level = null;
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                    $level = $tblStudentEducation->getLevel();
+                }
+
                 // NK/Profil
                 if (($tblStudent = $tblPerson->getStudent())) {
                     for ($i = 1; $i <= 3; $i++) {
@@ -658,23 +667,20 @@ class Service extends Extension
                         $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
                         $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
                             $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking);
-                        if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())){ // && ($tblDivisionLevel = $tblDivision->getTblLevel())
+                        if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
                             $item['ForeignLanguage' . $i] = $tblSubject->getAcronym();
-                            // ToDO Level in der Schülerakte sind veraltet. Nach Umstellung kann das wieder korrigiert und aktiviert werden.
-//                            if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())
-//                                && ($LevelFrom = Division::useService()->getLevelById($tblLevelFrom->getId())->getName())
-//                                && (is_numeric($LevelFrom)) && (is_numeric($tblDivisionLevel->getName()))) {
-//                                if ($tblDivisionLevel->getName() < $LevelFrom) {
-//                                    $item['ForeignLanguage' . $i] = '';
-//                                }
-//                            }
-//                            if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill()) &&
-//                                ($LevelTill = Division::useService()->getLevelById($tblLevelTill->getId())->getName())
-//                                && (is_numeric($LevelTill)) && (is_numeric($tblDivisionLevel->getName()))) {
-//                                if ($tblDivisionLevel->getName() > $LevelTill) {
-//                                    $item['ForeignLanguage' . $i] = '';
-//                                }
-//                            }
+                            if (($levelFrom = $tblStudentSubject->getLevelFrom())
+                                && $level
+                                && $level < $levelFrom
+                            ) {
+                                $item['ForeignLanguage' . $i] = '';
+                            }
+                            if (($levelTill = $tblStudentSubject->getLevelTill())
+                                && $level
+                                && $level > $levelTill
+                            ) {
+                                $item['ForeignLanguage' . $i] = '';
+                            }
                         }
                     }
                     // Profil

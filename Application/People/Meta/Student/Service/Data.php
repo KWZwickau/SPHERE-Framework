@@ -17,6 +17,8 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTechnicalSchool;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
@@ -268,6 +270,42 @@ class Data extends Support
         $this->createStudentTenseOfLesson(TblStudentTenseOfLesson::PART_TIME, 'Teilzeitunterricht');
         $this->createStudentTrainingStatus(TblStudentTrainingStatus::STUDENT, 'Auszubildende/Schüler');
         $this->createStudentTrainingStatus(TblStudentTrainingStatus::CHANGE_STUDENT, 'Umschüler');
+    }
+
+    /**
+     * @return array
+     */
+    public function migrateStudentSubjectLevels(): array
+    {
+        $count = 0;
+        $start = hrtime(true);
+
+        $Manager = $this->getEntityManager();
+
+        $tblStudentSubjectType = $this->getStudentSubjectTypeByIdentifier(TblStudentSubjectType::TYPE_FOREIGN_LANGUAGE);
+        if (($tblStudentSubjectList = $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblStudentSubject', array(
+            TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_TYPE => $tblStudentSubjectType->getId()
+        )))) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
+                    $count++;
+                    $tblStudentSubject->setLevelFrom(intval($tblLevelFrom->getName()));
+                }
+                if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
+                    $count++;
+                    $tblStudentSubject->setLevelTill(intval($tblLevelTill->getName()));
+                }
+
+                $Manager->bulkSaveEntity($tblStudentSubject);
+            }
+        }
+
+        $Manager->flushCache();
+
+        $end = hrtime(true);
+
+        return array($count, round(($end - $start) / 1000000000, 2));
     }
 
     /**

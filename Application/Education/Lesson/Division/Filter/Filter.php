@@ -753,23 +753,23 @@ class Filter extends Extension
             /** @var TblStudentSubject $tblStudentSubject */
             foreach ($tblStudentSubjectList as $tblStudentSubject) {
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                    $from = $tblStudentSubject->getServiceTblLevelFrom();
-                    $till = $tblStudentSubject->getServiceTblLevelTill();
+                    $levelFrom = $tblStudentSubject->getLevelFrom();
+                    $levelTill = $tblStudentSubject->getLevelTill();
 
                     $fromName = ' ';
                     $tillName = ' ';
                     $hasLevel = false;
-                    if ($from) {
+                    if ($levelFrom) {
                         $hasLevel = true;
-                        $fromName = $from->getName();
-                        if (floatval($this->getLevelName()) < floatval($fromName)) {
+                        $fromName = $levelFrom;
+                        if (floatval($this->getLevelName()) < $levelFrom) {
                             continue;
                         }
                     }
-                    if ($till) {
+                    if ($levelTill) {
                         $hasLevel = true;
-                        $tillName = $till->getName();
-                        if (floatval($this->getLevelName()) > floatval($tillName)) {
+                        $tillName = $levelTill;
+                        if (floatval($this->getLevelName()) > $levelTill) {
                             continue;
                         }
                     }
