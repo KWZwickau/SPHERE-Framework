@@ -61,7 +61,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -71,6 +70,12 @@ use SPHERE\System\Extension\Repository\Debugger;
 class Frontend extends Extension implements IFrontendInterface
 {
 
+    /**
+     * @param $Route
+     * @param $All
+     *
+     * @return Layout
+     */
     public function getChooseDivisionCourse($Route = '', $All = null)
     {
 
@@ -137,7 +142,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Auswertung', 'Klassenlisten');
-
         if ($DivisionCourseId === null) {
             $Route = '/Reporting/Standard/Person/ClassList';
             if($All){
@@ -1247,7 +1251,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return LayoutGroup
      */
-    private function getDivisionHeadOverview(TblDivisionCourse $tblDivisionCourse)
+    public function getDivisionHeadOverview(TblDivisionCourse $tblDivisionCourse)
     {
 
         return new LayoutGroup(

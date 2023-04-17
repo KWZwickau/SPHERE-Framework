@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 12.09.2016
- * Time: 16:04
- */
-
 namespace SPHERE\Application\Reporting\Custom\Radebeul\Person;
 
 use SPHERE\Application\IModuleInterface;
@@ -20,7 +13,6 @@ use SPHERE\Common\Window\Navigation\Link;
  */
 class Person extends AbstractModule implements IModuleInterface
 {
-
     public static function registerModule()
     {
 
@@ -30,59 +22,30 @@ class Person extends AbstractModule implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/ParentTeacherConferenceList'), new Link\Name('Anwesenheitsliste für Elternabende'))
         );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/DenominationList'), new Link\Name('Religionszugehörigkeit'))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/PhoneList'), new Link\Name('Telefonliste'))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/KindergartenList'), new Link\Name('Kinderhausliste'))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/RegularSchoolList'), new Link\Name('Stammschulenliste'))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/DiseaseList'), new Link\Name('Allergieliste'))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Nursery'), new Link\Name('Stichtagsmeldung Hort'))
-        );
-
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/DenominationList'), new Link\Name('Religionszugehörigkeit')));
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/PhoneList'), new Link\Name('Telefonliste')));
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/KindergartenList'), new Link\Name('Kinderhausliste')));
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/RegularSchoolList'), new Link\Name('Stammschulenliste')));
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/DiseaseList'), new Link\Name('Allergieliste')));
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Nursery'), new Link\Name('Stichtagsmeldung Hort')));
         /*
          * Route
          */
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPerson'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/ParentTeacherConferenceList',
-            __NAMESPACE__.'\Frontend::frontendParentTeacherConferenceList'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/DenominationList',
-            __NAMESPACE__.'\Frontend::frontendDenominationList'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/PhoneList',
-            __NAMESPACE__.'\Frontend::frontendPhoneList'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/KindergartenList',
-            __NAMESPACE__.'\Frontend::frontendKindergartenList'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/RegularSchoolList',
-            __NAMESPACE__.'\Frontend::frontendRegularSchoolList'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/DiseaseList',
-            __NAMESPACE__.'\Frontend::frontendDiseaseList'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Nursery',
-            __NAMESPACE__.'\Frontend::frontendNursery'
-        ));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/ParentTeacherConferenceList', __NAMESPACE__.'\Frontend::frontendParentTeacherConferenceList')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/DenominationList', __NAMESPACE__.'\Frontend::frontendDenominationList')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__.'/PhoneList', __NAMESPACE__.'\Frontend::frontendPhoneList'));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/KindergartenList', __NAMESPACE__.'\Frontend::frontendKindergartenList')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/RegularSchoolList', __NAMESPACE__.'\Frontend::frontendRegularSchoolList')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__.'/DiseaseList', __NAMESPACE__.'\Frontend::frontendDiseaseList'));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__.'/Nursery', __NAMESPACE__.'\Frontend::frontendNursery'));
     }
 
     /**

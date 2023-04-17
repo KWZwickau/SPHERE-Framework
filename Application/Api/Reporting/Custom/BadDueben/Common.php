@@ -1,16 +1,7 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 18.12.2018
- * Time: 10:04
- */
-
 namespace SPHERE\Application\Api\Reporting\Custom\BadDueben;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Reporting\Custom\BadDueben\Person\Person;
 
 /**
@@ -22,35 +13,27 @@ class Common
 {
 
     /**
-     * @param null|string $LevelId
-     * @param null        $YearId
+     * @param string $level
      *
      * @return bool|string
      */
-    public function downloadClassList($LevelId = null, $YearId = null)
+    public function downloadClassList($level)
     {
 
-        // list of division by Year and Level
-        $tblLevel = Division::useService()->getLevelById($LevelId);
-        $tblYear = Term::useService()->getYearById($YearId);
-        $tblDivisionList = array();
-        if ($tblLevel && $tblYear) {
-            $tblDivisionList = Division::useService()->getDivisionAllByLevelNameAndYear($tblLevel, $tblYear);
+        // Sammeln Personenliste aus level
+        $tblPersonList = array();
+        if($level){
+            if (!empty($DivisionList = Person::useFrontend()->getDivisionListByLevel($level))) {
+                if(isset($DivisionList[$level]['Person'])){
+                    $tblPersonList = $DivisionList[$level]['Person'];
+                }
+            }
         }
-
-        // list of persons(students) by listed divisions
-        $tblPersonList = false;
-        if (!empty($tblDivisionList)) {
-            $tblPersonList = Division::useService()->getPersonAllByDivisionList($tblDivisionList);
-        }
-
-        $PersonList = Person::useService()->createClassList($tblDivisionList);
-        if (!empty($PersonList) && $tblPersonList) {
-            $fileLocation = Person::useService()->createClassListExcel($PersonList, $tblPersonList);
-
+        if(!empty($tblPersonList)
+            && !empty($TableContent = Person::useService()->createClassList($tblPersonList))){
+            $fileLocation = Person::useService()->createClassListExcel($TableContent, $tblPersonList);
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Bad Düben Stufenliste ".$tblLevel->getName()
-                ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                "Bad Düben Stufenliste ".$level." ".date("Y-m-d").".xlsx")->__toString();
         }
         return false;
     }

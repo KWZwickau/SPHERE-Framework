@@ -374,7 +374,7 @@ class TblAddress extends Element
     {
         $city = '';
         if(($tblCity = $this->getTblCity())){
-            $city = $tblCity->getDisplayName();
+            $city = $tblCity->getName();
         }
         return $city;
     }

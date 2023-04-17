@@ -135,6 +135,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDebtorNumber[]
+     */
+    public function getDebtorNumberStringByPerson(TblPerson $tblPerson)
+    {
+        $DebtorNumberString = '';
+        if(($tblDebtorNumberList = $this->getDebtorNumberByPerson($tblPerson))){
+            $DebtorNumberList = array();
+            foreach($tblDebtorNumberList as $tblDebtorNumber){
+                $DebtorNumberList[] = $tblDebtorNumber->getDebtorNumber();
+            }
+            if(!empty($DebtorNumberList)){
+                $DebtorNumberString = implode('; ', $DebtorNumberList);
+            }
+        }
+        return $DebtorNumberString;
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblBankAccount
