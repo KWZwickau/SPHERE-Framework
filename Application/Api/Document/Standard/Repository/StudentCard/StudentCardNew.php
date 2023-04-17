@@ -84,12 +84,18 @@ class StudentCardNew extends AbstractStudentCard
                                     , '7%')
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                            {% if( Content.Student.Company2 is not empty) %}
-                                                {{ Content.Student.Company }}
-                                                {{ Content.Student.Company2 }}
-                                            {% else %}
-                                                {{ Content.Student.Company }}
-                                            {% endif %}')
+                                    {% if( Content.Student.Company2 is not empty) %}
+                                        {{ Content.Student.Company }}
+                                        {{ Content.Student.Company2 }}
+                                    {% else %}
+                                        {{ Content.Student.Company }}
+                                    {% endif %}
+                                    
+                                    {% if( Content.Student.CompanyAddress is not empty) %}
+                                        <br/>
+                                        {{ Content.Student.CompanyAddress }}
+                                    {% endif %}
+                                    ')
                            , '93%')
                         )
                         ->stylePaddingBottom('50px')
@@ -397,8 +403,15 @@ class StudentCardNew extends AbstractStudentCard
                             , '20%')
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                            {{ Content.Person.Parent.S1.Phone.Festnetz }}
-                                            {{ Content.Person.Parent.S1.Phone.Mobil }}')
+                                {% if(Content.Person.Parent.S1.Phone.Festnetz) %}
+                                    {% if(Content.Person.Parent.S1.Phone.Mobil) %}
+                                        {{ Content.Person.Parent.S1.Phone.Festnetz }}, {{ Content.Person.Parent.S1.Phone.Mobil }}
+                                    {% else %}
+                                        {{ Content.Person.Parent.S1.Phone.Festnetz }}
+                                    {% endif %}
+                                {% else %}
+                                    {{ Content.Person.Parent.S1.Phone.Mobil }}
+                                {% endif %}')
                                 ->stylePaddingLeft('5px')
                                 ->stylePaddingTop('10px')
                                 ->styleBorderRight($InnerLines)

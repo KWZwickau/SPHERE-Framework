@@ -24,6 +24,7 @@ class ViewStudentCustody extends AbstractView
     const TBL_PERSON_ID = 'TblPerson_Id';
 
     // S1
+    const TBL_PERSON_ID_S1 = 'TblPerson_S1_Id';
     const TBL_SALUTATION_SALUTATION_S1 = 'TblSalutation_Salutation_S1';
     const TBL_PERSON_TITLE_S1 = 'TblPerson_Title_S1';
     const TBL_PERSON_FIRST_NAME_S1 = 'TblPerson_FirstName_S1';
@@ -58,6 +59,7 @@ class ViewStudentCustody extends AbstractView
     const TBL_CUSTODY_REMARK_S1 = 'TblCustody_Remark_S1';
 
     // S2
+    const TBL_PERSON_ID_S2 = 'TblPerson_S2_Id';
     const TBL_SALUTATION_SALUTATION_S2 = 'TblSalutation_Salutation_S2';
     const TBL_PERSON_TITLE_S2 = 'TblPerson_Title_S2';
     const TBL_PERSON_FIRST_NAME_S2 = 'TblPerson_FirstName_S2';
@@ -92,6 +94,7 @@ class ViewStudentCustody extends AbstractView
     const TBL_CUSTODY_REMARK_S2 = 'TblCustody_Remark_S2';
 
     // S3
+    const TBL_PERSON_ID_S3 = 'TblPerson_S3_Id';
     const TBL_SALUTATION_SALUTATION_S3 = 'TblSalutation_Salutation_S3';
     const TBL_PERSON_TITLE_S3 = 'TblPerson_Title_S3';
     const TBL_PERSON_FIRST_NAME_S3 = 'TblPerson_FirstName_S3';
@@ -138,6 +141,10 @@ class ViewStudentCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_Id;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPerson_S1_Id;
     /**
      * @Column(type="string")
      */
@@ -270,6 +277,10 @@ class ViewStudentCustody extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPerson_S2_Id;
+    /**
+     * @Column(type="string")
+     */
     protected $TblSalutation_Salutation_S2;
     /**
      * @Column(type="string")
@@ -396,6 +407,10 @@ class ViewStudentCustody extends AbstractView
      */
     protected $TblCustody_Remark_S2;
 
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPerson_S3_Id;
     /**
      * @Column(type="string")
      */
@@ -534,6 +549,7 @@ class ViewStudentCustody extends AbstractView
     {
 
         // S1
+        $this->setNameDefinition(self::TBL_PERSON_ID_S1, 'S1: Id');
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S1, 'S1: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S1, 'S1: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S1, 'S1: Vorname');
@@ -567,6 +583,7 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_CUSTODY_EMPLOYMENT_S1, 'S1: Arbeitsstelle');
         $this->setNameDefinition(self::TBL_CUSTODY_REMARK_S1, 'S1: Bemerkung');
         // S2
+        $this->setNameDefinition(self::TBL_PERSON_ID_S2, 'S2: Id');
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S2, 'S2: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S2, 'S2: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S2, 'S2: Vorname');
@@ -600,6 +617,7 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_CUSTODY_EMPLOYMENT_S2, 'S2: Arbeitsstelle');
         $this->setNameDefinition(self::TBL_CUSTODY_REMARK_S2, 'S2: Bemerkung');
         // S3
+        $this->setNameDefinition(self::TBL_PERSON_ID_S3, 'S3: Id');
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S3, 'S3: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S3, 'S3: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S3, 'S3: Vorname');
@@ -636,6 +654,7 @@ class ViewStudentCustody extends AbstractView
         //GroupDefinition
 
         $this->setGroupDefinition('Sorge. S1 (Zusatzinfo)', array(
+            self::TBL_PERSON_ID_S1,
             self::TBL_SALUTATION_SALUTATION_S1,
             self::TBL_PERSON_TITLE_S1,
             self::TBL_PERSON_FIRST_NAME_S1,
@@ -670,6 +689,7 @@ class ViewStudentCustody extends AbstractView
             self::TBL_CUSTODY_REMARK_S1
         ));
         $this->setGroupDefinition('Sorge. S2 (Zusatzinfo)', array(
+            self::TBL_PERSON_ID_S2,
             self::TBL_SALUTATION_SALUTATION_S2,
             self::TBL_PERSON_TITLE_S2,
             self::TBL_PERSON_FIRST_NAME_S2,
@@ -704,6 +724,7 @@ class ViewStudentCustody extends AbstractView
             self::TBL_CUSTODY_REMARK_S2
         ));
         $this->setGroupDefinition('Sorge. S3 (Zusatzinfo)', array(
+            self::TBL_PERSON_ID_S3,
             self::TBL_SALUTATION_SALUTATION_S3,
             self::TBL_PERSON_TITLE_S3,
             self::TBL_PERSON_FIRST_NAME_S3,
@@ -739,6 +760,7 @@ class ViewStudentCustody extends AbstractView
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
+        $this->setDisableDefinition(self::TBL_PERSON_ID_S1);
         $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S1);
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S1);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S1);
@@ -771,6 +793,7 @@ class ViewStudentCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_CUSTODY_OCCUPATION_S1);
         $this->setDisableDefinition(self::TBL_CUSTODY_EMPLOYMENT_S1);
         $this->setDisableDefinition(self::TBL_CUSTODY_REMARK_S1);
+        $this->setDisableDefinition(self::TBL_PERSON_ID_S2);
         $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S2);
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S2);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S2);
@@ -803,6 +826,7 @@ class ViewStudentCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_CUSTODY_OCCUPATION_S2);
         $this->setDisableDefinition(self::TBL_CUSTODY_EMPLOYMENT_S2);
         $this->setDisableDefinition(self::TBL_CUSTODY_REMARK_S2);
+        $this->setDisableDefinition(self::TBL_PERSON_ID_S3);
         $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S3);
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S3);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S3);

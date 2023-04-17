@@ -297,7 +297,8 @@ class TimetableService
                     foreach($unterricht['un_lehrer'] as $Teacher){
                         foreach($unterricht['un_klassen'] as $Division){
                             $item = array();
-                            $item['Hour'] = $plan['pl_stunde'];
+                            // Indiware händelt die Stunde +1, dies muss wieder angepasst werden, damit die ausgewählte Stunde stimmt
+                            $item['Hour'] = intval($plan['pl_stunde']) - 1;
                             $item['Day'] = $plan['pl_tag'];
                             $item['Week'] = $plan['pl_woche'];
                             $item['Room'] = $plan['pl_raum'];
