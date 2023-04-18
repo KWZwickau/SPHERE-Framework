@@ -420,14 +420,28 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Benutzername:')
+                    ->setContent('Adresse: https://schulsoftware.schule')
                     ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->stylePaddingLeft('35px')
+                    , '92%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Benutzername:')
                     ->stylePaddingLeft('35px')
                     , '22%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent($this->FieldValue['UserAccount'])
-                    ->stylePaddingTop(self::BLOCK_SPACE)
                     ->stylePaddingLeft('10px')
                     , '70%'
                 )
@@ -644,14 +658,28 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Benutzername:')
+                    ->setContent('Adresse: https://schulsoftware.schule')
                     ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->stylePaddingLeft('35px')
+                    , '92%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Benutzername:')
                     ->stylePaddingLeft('35px')
                     , '22%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent($this->FieldValue['UserAccount'])
-                    ->stylePaddingTop(self::BLOCK_SPACE)
                     ->stylePaddingLeft('10px')
                     , '70%'
                 )
