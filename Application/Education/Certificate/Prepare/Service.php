@@ -1259,4 +1259,35 @@ class Service extends ServiceTemplateInformation
     {
         return (new Data($this->getBinding()))->createEntityListBulk($tblEntityList);
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return bool
+     */
+    public function getIsLeaveOrDiplomaStudent(TblPerson $tblPerson, TblYear $tblYear): bool
+    {
+        // gedrucktes Abgangszeugnis vorhanden
+        if (($tblLeaveStudent = $this->getLeaveStudentBy($tblPerson, $tblYear))
+            && $tblLeaveStudent->isPrinted()
+        ) {
+            return true;
+        // gedrucktes Abschlusszeugnis vorhanden
+        } elseif (($tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('DIPLOMA'))
+            && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentListByPersonAndCertificateType($tblPerson, $tblCertificateType))
+        ) {
+            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                if ($tblPrepareStudent->isPrinted()
+                    && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                    && ($tblYearCertificate = $tblPrepare->getYear())
+                    && $tblYearCertificate->getId() == $tblYear->getId()
+                ) {
+                   return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }

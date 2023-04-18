@@ -119,7 +119,7 @@ class FrontendYearChange extends FrontendTeacher
                 $hasAddStudentEducationList, $dataSourceList, $dataTargetList,
                 $hasAddCoursesList, $dataCourseLeft, $dataCourseRight,
                 $hasAddTeacherLectureshipList, $dataTeacherLectureshipLeft, $dataTeacherLectureshipRight
-            ) = DivisionCourse::useService()->getYearChangeData($tblSchoolType, $tblYearSource, $tblYearTarget, $hasOptionTeacherLectureship, false);
+            ) = DivisionCourse::useService()->getYearChangeData($tblSchoolType, $tblYearSource, $tblYearTarget, $hasOptionTeacherLectureship);
 
             /**
              * Schüler-Bildung anzeigen
@@ -239,7 +239,7 @@ class FrontendYearChange extends FrontendTeacher
             && ($tblYearTarget = Term::useService()->getYearById($YearTargetId))
         ) {
 
-            DivisionCourse::useService()->getYearChangeData($tblSchoolType, $tblYearSource, $tblYearTarget, $hasOptionTeacherLectureship, true);
+            DivisionCourse::useService()->saveYearChangeData($tblSchoolType, $tblYearSource, $tblYearTarget, $hasOptionTeacherLectureship);
 
             return new Success(
                 'Die Schulart wurde erfolgreich ins neue Schuljahr übertragen.',

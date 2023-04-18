@@ -15,6 +15,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Extension\Extension;
 
 class Data extends DataTeacher
@@ -1687,6 +1688,29 @@ class Data extends DataTeacher
         foreach ($tblEntityList as $tblEntity) {
             $Manager->bulkSaveEntity($tblEntity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblEntity, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function updateEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+            $Manager->bulkSaveEntity($tblElement);
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
         }
 
         $Manager->flushCache();
