@@ -50,7 +50,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
-class Service extends ServiceTeacher
+class Service extends ServiceYearChange
 {
     /**
      * @param bool $doSimulation
