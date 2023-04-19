@@ -345,7 +345,7 @@ class Data extends DataTeacher
      */
     public function getDivisionCourseByNameAndYear($name, TblYear $tblYear)
     {
-        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', array(
+        return $this->getForceEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', array(
             TblDivisionCourse::ATTR_NAME => $name,
             TblDivisionCourse::SERVICE_TBL_YEAR => $tblYear->getId()
         ));
@@ -456,6 +456,32 @@ class Data extends DataTeacher
             foreach ($list as $tblDivisionCourseLink) {
                 if (($tblSubDivisionCourse = $tblDivisionCourseLink->getTblSubDivisionCourse())) {
                     $resultList[] = $tblSubDivisionCourse;
+                }
+            }
+        }
+
+        if ($resultList) {
+            return (new Extension())->getSorter($resultList)->sortObjectBy('Name');
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblSubDivisionCourse
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getAboveDivisionCourseListBySubDivisionCourse(TblDivisionCourse $tblSubDivisionCourse)
+    {
+        $resultList = array();
+        if (($list = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseLink',
+            array(TblDivisionCourseLink::ATTR_TBL_SUB_DIVISION_COURSE => $tblSubDivisionCourse->getId())))
+        ) {
+            /** @var TblDivisionCourseLink $tblDivisionCourseLink */
+            foreach ($list as $tblDivisionCourseLink) {
+                if (($tblDivisionCourse = $tblDivisionCourseLink->getTblDivisionCourse())) {
+                    $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
                 }
             }
         }

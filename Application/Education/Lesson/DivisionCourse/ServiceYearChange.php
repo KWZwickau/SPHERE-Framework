@@ -175,6 +175,7 @@ abstract class ServiceYearChange extends ServiceTeacher
         $divisionCourseSekTransitionList = array();
 
         $createStudentEducationList = array();
+        $updateStudentEducationList = array();
         $createMemberList = array();
         $createStudentSubjectList = array();
         $createTeacherLectureshipList = array();
@@ -194,21 +195,34 @@ abstract class ServiceYearChange extends ServiceTeacher
                         continue;
                     }
 
-                    // Schüler besitzt bereits eine SchülerBildung fürs neue Schuljahr → keine Übernahme beim Schuljahreswechsel
                     if (($tblStudentEducationTarget = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYearTarget))) {
+                        // Schüler besitzt bereits eine SchülerBildung mit Klasse oder Stammgruppe fürs neue Schuljahr → keine Übernahme beim Schuljahreswechsel
+                        if ($tblStudentEducationTarget->getTblDivision() || $tblStudentEducationTarget->getTblCoreGroup()
+                            // oder hat eine andere Schulart
+                            || (($tblSchoolTypeTarget = $tblStudentEducationTarget->getServiceTblSchoolType()) && $tblSchoolTypeTarget->getId() != $tblSchoolType->getId())
+                            // oder hat nicht die nächste Klassenstufe
+                            || ($tblStudentEducationTarget->getLevel() && $tblStudentEducationTarget->getLevel() != $level + 1)
+                        ) {
+                            continue;
+                        }
+                    }
 
-                    } elseif ($level < $tblSchoolType->getMaxLevel()) {
+                    if ($level < $tblSchoolType->getMaxLevel()) {
                         // Übergang ins SekII-Kurssystem Gy 10 oder BGy 11
                         $isSekTransition = ($level == 10 && $tblSchoolType->getShortName() == 'Gy')
                             || ($level == 11 && $tblSchoolType->getShortName() == 'BGy');
                         // Verknüpfung von pädagogischen Tagebüchern
                         $isLinkDiary = !$isSekTransition;
 
-                        $tblStudentEducationCreate = new TblStudentEducation();
-                        $tblStudentEducationCreate->setServiceTblPerson($tblPerson);
-                        $tblStudentEducationCreate->setServiceTblYear($tblYearTarget);
-                        $tblStudentEducationCreate->setServiceTblCompany($tblStudentEducationSource->getServiceTblCompany() ?: null);
-                        $tblStudentEducationCreate->setServiceTblSchoolType($tblStudentEducationSource->getServiceTblSchoolType() ?: null);
+                        if ($tblStudentEducationTarget) {
+                            $tblStudentEducationCreate = $tblStudentEducationTarget;
+                        } else {
+                            $tblStudentEducationCreate = new TblStudentEducation();
+                            $tblStudentEducationCreate->setServiceTblPerson($tblPerson);
+                            $tblStudentEducationCreate->setServiceTblYear($tblYearTarget);
+                            $tblStudentEducationCreate->setServiceTblCompany($tblStudentEducationSource->getServiceTblCompany() ?: null);
+                            $tblStudentEducationCreate->setServiceTblSchoolType($tblStudentEducationSource->getServiceTblSchoolType() ?: null);
+                        }
                         $tblStudentEducationCreate->setLevel($level + 1);
 
                         // Klasse
@@ -237,7 +251,11 @@ abstract class ServiceYearChange extends ServiceTeacher
                             $tblStudentEducationCreate->setTblCoreGroup($divisionCourseList[$tblCoreGroup->getId()] ?? null);
                         }
 
-                        $createStudentEducationList[] = $tblStudentEducationCreate;
+                        if ($tblStudentEducationTarget) {
+                            $updateStudentEducationList[] = $tblStudentEducationCreate;
+                        } else {
+                            $createStudentEducationList[] = $tblStudentEducationCreate;
+                        }
 
                         // weitere Kurse des Schülers ins neue Schuljahr übernehmen, falls nicht Übergang ins SekII-Kurssystem Gy 10 oder BGy 11
                         if (!$isSekTransition
@@ -250,7 +268,7 @@ abstract class ServiceYearChange extends ServiceTeacher
                                     && !$temp->getIsDivisionOrCoreGroup()
                                     && !$tblDivisionCourseMember->getLeaveDate()
                                     // keine Lehrer-Gruppen
-                                    && !$temp->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP
+                                    && $temp->getTypeIdentifier() != TblDivisionCourseType::TYPE_TEACHER_GROUP
                                 ) {
                                     if (!isset($divisionCourseList[$temp->getId()])) {
                                         $divisionCourseList[$temp->getId()] = $this->getFutureDivisionCourse($temp, $tblYearTarget, $createMemberList, false);
@@ -355,6 +373,9 @@ abstract class ServiceYearChange extends ServiceTeacher
             if (!empty($createStudentEducationList)) {
                 (new Data($this->getBinding()))->createEntityListBulk($createStudentEducationList);
             }
+            if (!empty($updateStudentEducationList)) {
+                (new Data($this->getBinding()))->updateEntityListBulk($updateStudentEducationList);
+            }
             if (!empty($createMemberList)) {
                 (new Data($this->getBinding()))->createEntityListBulk($createMemberList);
             }
@@ -406,6 +427,14 @@ abstract class ServiceYearChange extends ServiceTeacher
             // pädagogisches Tagebuch verknüpfen
             if ($isLinkDiary) {
                 Diary::useService()->addDiaryDivision($tblDivisionCourseFuture, $tblDivisionCourse);
+            }
+
+            // Kurs ist als Sub-Kurs verknüpft -> Ober-Kurs + Verknüpfung zum neuen Kurs anlegen
+            if (($tblAboveDivisionCourseList = DivisionCourse::useService()->getAboveDivisionCourseListBySubDivisionCourse($tblDivisionCourse))) {
+                foreach ($tblAboveDivisionCourseList as $tblAboveDivisionCourse) {
+                    $tblAboveDivisionCourseFuture = $this->getFutureDivisionCourse($tblAboveDivisionCourse, $tblYearTarget, $createMemberList, false);
+                    DivisionCourse::useService()->addSubDivisionCourseToDivisionCourse($tblAboveDivisionCourseFuture, $tblDivisionCourseFuture);
+                }
             }
         }
 

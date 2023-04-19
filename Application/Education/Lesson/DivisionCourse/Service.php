@@ -265,6 +265,16 @@ class Service extends ServiceYearChange
     }
 
     /**
+     * @param TblDivisionCourse $tblSubDivisionCourse
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getAboveDivisionCourseListBySubDivisionCourse(TblDivisionCourse $tblSubDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getAboveDivisionCourseListBySubDivisionCourse($tblSubDivisionCourse);
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param array $resultList
      *
