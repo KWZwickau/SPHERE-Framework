@@ -103,7 +103,10 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
                 }
 
                 if (!$isCanceled) {
-                    $WellFocus = new Title('Förderschwerpunkte:');
+                    $WellFocus = new Title('Förderbescheid:')
+                        .'Datum: '.$tblSupport->getDate()
+                        .new Container('&nbsp;')
+                        .new Title('Förderschwerpunkte:');
                     if (($tblFocusPrimary = Student::useService()->getPrimaryFocusBySupport($tblSupport))) {
                         $WellFocus .= new Container(new Bold($tblFocusPrimary->getName()));
                     }
