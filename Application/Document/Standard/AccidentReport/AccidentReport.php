@@ -7,19 +7,15 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblToPersonPhone;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\Document\Standard\EnrollmentDocument\Frontend;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
-use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -34,7 +30,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -50,7 +45,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Sup;
 use SPHERE\Common\Main;
@@ -65,7 +59,6 @@ use SPHERE\System\Extension\Extension;
  */
 class AccidentReport extends Extension
 {
-
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
@@ -82,72 +75,18 @@ class AccidentReport extends Extension
     }
 
     /**
-     * @return IServiceInterface
-     */
-    public static function useService()
-    {
-        // TODO: Implement useService() method.
-    }
-
-    /**
-     * @return IFrontendInterface
-     */
-    public static function useFrontend()
-    {
-        // TODO: Implement useFrontend() method.
-    }
-
-    /**
      * @return Stage
      */
-    public static function frontendSelectPerson()
+    public static function frontendSelectPerson(): Stage
     {
-
         $Stage = new Stage('Unfallanzeige', 'Schüler auswählen');
-
-        $dataList = array();
-        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$dataList) {
-                    $Data['PersonId'] = $tblPerson->getId();
-
-                    $tblAddress = $tblPerson->fetchMainAddress();
-                    $dataList[] = array(
-                        'Name'     => $tblPerson->getLastFirstName(),
-                        'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
-                        'Option'   => new Standard('Erstellen', __NAMESPACE__.'/Fill', null,
-                            array('Id' => $tblPerson->getId()))
-//                            .new External('Herunterladen',
-//                                'SPHERE\Application\Api\Document\Standard\StudentTransfer\Create',
-//                                new Download(), array('Data' => $Data),
-//                                'Schulbescheinigung herunterladen')
-                    );
-                });
-            }
-        }
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData(
-                                $dataList,
-                                null,
-                                array(
-                                    'Name'     => 'Name',
-                                    'Address'  => 'Adresse',
-                                    'Division' => 'Klasse',
-                                    'Option'   => ''
-                                ),
-                                array(
-                                    'columnDefs' => array(
-                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                                        array('width' => '1%', 'targets' => -1),
-                                    ),
-                                )
-                            )
+                            Frontend::getStudentSelectDataTable('/Document/Standard/AccidentReport/Fill')
                         )),
                     ))
                 )),
@@ -158,16 +97,15 @@ class AccidentReport extends Extension
     }
 
     /**
-     * @param null $Id
+     * @param null $PersonId
      *
      * @return Stage
      */
-    public function frontendFillAccidentReport($Id = null)
+    public function frontendFillAccidentReport($PersonId = null): Stage
     {
-
         $Stage = new Stage('Unfallanzeige', 'Erstellen');
         $Stage->addButton(new Standard('Zurück', '/Document/Standard/AccidentReport', new ChevronLeft()));
-        $tblPerson = Person::useService()->getPersonById($Id);
+        $tblPerson = Person::useService()->getPersonById($PersonId);
         $Global = $this->getGlobal();
 
         // Sachsen Standard
@@ -208,17 +146,10 @@ class AccidentReport extends Extension
                 }
             }
 
-            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-            if ($tblStudent) {
-                // Schuldaten der Schule des Schülers
-                $tblCompanySchool = Student::useService()->getCurrentSchoolByPerson($tblPerson);
-                $tblType = false;
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+                $tblCompanySchool = $tblStudentEducation->getServiceTblCompany();
+                $tblType = $tblStudentEducation->getServiceTblSchoolType();
 
-                // Schulart über Klasse in der der Schüler aktuell ist
-                $tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson);
-                if($tblDivision && ($tblLevel = $tblDivision->getTblLevel())){
-                    $tblType = $tblLevel->getServiceTblType();
-                }
                 // Unternehmensnummer wird sofern möglich und vorhanden aus den Mandantenschulen gezogen
                 // und überschreibt damit die Unternehmensnummer der Schulträger
                 if($tblType){
@@ -234,16 +165,15 @@ class AccidentReport extends Extension
                         } else {
                             // mehr als eine Schule mit gleicher Schulart
                             if(($tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompanySchool, $tblType))){
-                                if($tblSchool){
-                                    // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
-                                    if($tblSchool->getCompanyNumber() != '') {
-                                        $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
-                                    }
+                                // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
+                                if($tblSchool->getCompanyNumber() != '') {
+                                    $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
                                 }
                             }
                         }
                     }
                 }
+
                 if ($tblCompanySchool) {
                     $Global->POST['Data']['School'] = $tblCompanySchool->getName();
                     $Global->POST['Data']['SchoolExtended'] = $tblCompanySchool->getExtendedName();
@@ -290,25 +220,6 @@ class AccidentReport extends Extension
                         }
                     }
                 }
-                // Datum Aufnahme
-                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
-                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                    $tblStudentTransferType);
-                if ($tblStudentTransfer) {
-                    $EntryDate = $tblStudentTransfer->getTransferDate();
-                    $Global->POST['Data']['SchoolEntry'] = $EntryDate;
-                    if ($EntryDate != '') {
-                        $tblYearList = Term::useService()->getYearAllByDate(new DateTime($EntryDate));
-                        if ($tblYearList) {
-                            foreach ($tblYearList as $tblYear) {
-                                $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
-                                if ($tblDivision && $tblDivision->getTblLevel()) {
-                                    $Global->POST['Data']['SchoolEntryDivision'] = $tblDivision->getTblLevel()->getName();
-                                }
-                            }
-                        }
-                    }
-                }
             }
 
             // Hauptadresse Schüler
@@ -326,8 +237,7 @@ class AccidentReport extends Extension
 
             // Sorgeberechtigte
             $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
-            $tblToPersonCustodyList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
-                $tblRelationshipType);
+            $tblToPersonCustodyList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
             if ($tblToPersonCustodyList) {
                 // female preferred (first run)
                 $PersonCustodySameAddress = array();
@@ -339,7 +249,8 @@ class AccidentReport extends Extension
                     $tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonCustody);
                     if ($ChildAddressId
                         && $tblAddressCustody
-                        && $ChildAddressId == $tblAddressCustody->getId()) {
+                        && $ChildAddressId == $tblAddressCustody->getId()
+                    ) {
                         $AddressString = $tblAddressCustody->getGuiString(false);
                         $PersonCustodySameAddress[] = $tblPersonCustody;
                         continue;
@@ -402,7 +313,7 @@ class AccidentReport extends Extension
         }
         $Global->savePost();
 
-        $form = $this->formStudentTransfer();
+        $form = $this->formAccidentReport();
 
         $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
 
@@ -441,10 +352,8 @@ class AccidentReport extends Extension
     /**
      * @return Form
      */
-    private function formStudentTransfer()
+    private function formAccidentReport(): Form
     {
-//        $Data[] = 'BohrEy';
-
         return new Form(
             new FormGroup(array(
                 new FormRow(

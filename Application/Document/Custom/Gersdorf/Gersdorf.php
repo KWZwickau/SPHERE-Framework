@@ -5,12 +5,14 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType as TblTypePhone;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Document\Standard\EnrollmentDocument\Frontend;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -50,7 +52,6 @@ use SPHERE\System\Extension\Extension;
 
 class Gersdorf extends Extension implements IModuleInterface
 {
-
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
@@ -94,51 +95,16 @@ class Gersdorf extends Extension implements IModuleInterface
     /**
      * @return Stage
      */
-    public static function frontendEmergency()
+    public static function frontendEmergency(): Stage
     {
-
         $Stage = new Stage('Notarzt', 'Schüler auswählen');
-
-        $dataList = array();
-        if (($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                foreach ($tblPersonList as $tblPerson) {
-                    $tblAddress = $tblPerson->fetchMainAddress();
-                    $Division = '';
-                    if(($tblDivision =  Student::useService()->getCurrentDivisionByPerson($tblPerson))){
-                        $Division = $tblDivision->getDisplayName();
-                    }
-                    $dataList[] = array(
-                        'Name'     => $tblPerson->getLastFirstName(),
-                        'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Division' => $Division,
-                        'Option'   => new Standard('Erstellen', __NAMESPACE__.'/Emergency/Fill', null,
-                            array('PersonId' => $tblPerson->getId()))
-                    );
-                }
-            }
-        }
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData(
-                                $dataList,
-                                null,
-                                array(
-                                    'Name'     => 'Name',
-                                    'Address'  => 'Adresse',
-                                    'Division' => 'aktuelle Klasse',
-                                    'Option'   => ''
-                                ),
-                                array(
-                                    'columnDefs' => array(
-                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                                    ),
-                                )
-                            )
+                            Frontend::getStudentSelectDataTable('/Document/Custom/Gersdorf/Emergency/Fill')
                         )),
                     ))
                 )),
@@ -153,9 +119,8 @@ class Gersdorf extends Extension implements IModuleInterface
      *
      * @return Stage
      */
-    public function frontendFillEmergency($PersonId = null)
+    public function frontendFillEmergency($PersonId = null): Stage
     {
-
         $Stage = new Stage('Notarzt', 'Dokument erstellen');
         $tblPerson = Person::useService()->getPersonById($PersonId);
         $Global = $this->getGlobal();
@@ -239,10 +204,12 @@ class Gersdorf extends Extension implements IModuleInterface
 
         $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
 
-        $Stage->addButton(new External('Blanko Notarzt Dokument herunterladen',
+        $Stage->addButton(new External(
+            'Blanko Notarzt Dokument herunterladen',
             'SPHERE\Application\Api\Document\Custom\Gersdorf\Emergency\Create',
             new Download(), array('Data' => array('empty')),
-            'Notarzt Dokument herunterladen'));
+            'Notarzt Dokument herunterladen'
+        ));
 
         $Stage->setContent(
             new Layout(
@@ -276,7 +243,7 @@ class Gersdorf extends Extension implements IModuleInterface
      *
      * @return Form
      */
-    private function formEmergencyDocument($Gender)
+    private function formEmergencyDocument($Gender): Form
     {
         return new Form(
             new FormGroup(array(
@@ -390,15 +357,15 @@ class Gersdorf extends Extension implements IModuleInterface
      */
     private static function setButtonList(Stage $Stage)
     {
-        $Stage->addButton(new Standard('Schüler', '/Document/Custom/Gersdorf/MetaDataComparison', new \SPHERE\Common\Frontend\Icon\Repository\Person(), array(),
-            'Stammdatenabfrage eines Schülers'));
+        $Stage->addButton(new Standard('Schüler', '/Document/Custom/Gersdorf/MetaDataComparison', new \SPHERE\Common\Frontend\Icon\Repository\Person(),
+            array(), 'Stammdatenabfrage eines Schülers'));
         $Url = $_SERVER['REDIRECT_URL'];
         if(strpos($Url, '/EnrollmentDocument/Division')){
-            $Stage->addButton(new Standard(new Info(new Bold('Klasse')), '/Document/Custom/Gersdorf/MetaDataComparison/Division',
-                new PersonGroup(), array(), 'Stammdatenabfrage einer Klasse'));
+            $Stage->addButton(new Standard(new Info(new Bold('Kurs')), '/Document/Custom/Gersdorf/MetaDataComparison/Division', new PersonGroup(),
+                array(), 'Stammdatenabfrage eines Kurses'));
         } else {
-            $Stage->addButton(new Standard('Klasse', '/Document/Custom/Gersdorf/MetaDataComparison/Division', new PersonGroup(),
-                array(), 'Stammdatenabfrage einer Klasse'));
+            $Stage->addButton(new Standard('Kurs', '/Document/Custom/Gersdorf/MetaDataComparison/Division', new PersonGroup(),
+                array(), 'Stammdatenabfrage eines Kurses'));
         }
     }
 
@@ -407,25 +374,51 @@ class Gersdorf extends Extension implements IModuleInterface
      */
     public static function frontendMetaDataComparison(): Stage
     {
-
         $Stage = new Stage('Stammdatenabfrage', 'Schüler auswählen');
         self::setButtonList($Stage);
 
         $dataList = array();
-        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                foreach ($tblPersonList as $tblPerson) {
-                    $tblAddress = $tblPerson->fetchMainAddress();
-                    $dataList[] = array(
-                        'Name'     => $tblPerson->getLastFirstName(),
-                        'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
-                        'Option'   => new External('','/Api/Document/Custom/Gersdorf/MetaDataComparison/Create', new Download(),
-                            array('Data' => array('Person' => array('Id' => $tblPerson->getId()))), 'Stammdatenabfrage herunterladen')
-                    );
+        $showDivision = false;
+        $showCoreGroup = false;
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
+            && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                $displayDivision = '';
+                $displayCoreGroup = '';
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))){
+                    if (($tblDivision = $tblStudentEducation->getTblDivision())
+                        && ($displayDivision = $tblDivision->getName())
+                    ) {
+                        $showDivision = true;
+                    }
+                    if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                        && ($displayCoreGroup = $tblCoreGroup->getName())
+                    ) {
+                        $showCoreGroup = true;
+                    }
                 }
+                $tblAddress = $tblPerson->fetchMainAddress();
+                $dataList[] = array(
+                    'Name'     => $tblPerson->getLastFirstName(),
+                    'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
+                    'Division' => $displayDivision,
+                    'CoreGroup' => $displayCoreGroup,
+                    'Option'   => new External('','/Api/Document/Custom/Gersdorf/MetaDataComparison/Create', new Download(),
+                        array('Data' => array('Person' => array('Id' => $tblPerson->getId()))), 'Stammdatenabfrage herunterladen')
+                );
             }
         }
+
+        $columnList['Name'] = 'Name';
+        $columnList['Address'] = 'Adresse';
+        if ($showDivision) {
+            $columnList['Division'] = 'Klasse';
+        }
+        if ($showCoreGroup) {
+            $columnList['CoreGroup'] = 'Stammgruppe';
+        }
+        $columnList['Option'] = '';
 
         $Stage->setContent(
             new Layout(array(
@@ -435,15 +428,11 @@ class Gersdorf extends Extension implements IModuleInterface
                             new TableData(
                                 $dataList,
                                 null,
-                                array(
-                                    'Name'     => 'Name',
-                                    'Address'  => 'Adresse',
-                                    'Division' => 'Klasse',
-                                    'Option'   => ''
-                                ),
+                                $columnList,
                                 array(
                                     "columnDefs" => array(
                                         array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                        array('orderable' => false, 'width' => '30px', 'targets' => -1),
                                     ),
                                 )
                             )
@@ -457,14 +446,11 @@ class Gersdorf extends Extension implements IModuleInterface
     }
 
     /**
-     * @param bool $IsAllYears
-     * @param string|null $YearId
-     *
      * @return Stage
      */
     public static function frontendMetaDataComparisonDivision(): Stage
     {
-        $Stage = new Stage('Stammdatenabfrage', 'Klasse auswählen');
+        $Stage = new Stage('Stammdatenabfrage', 'Kurs auswählen');
         self::setButtonList($Stage);
 
         $Stage->setContent(
@@ -491,73 +477,63 @@ class Gersdorf extends Extension implements IModuleInterface
      */
     public static function loadDivisionTable()
     {
-        $TableContent = array();
+        $dataList = array();
+        $tblDivisionCourseList = array();
         $tblYearList = Term::useService()->getYearByNow();
         if(!$tblYearList){
             return new Warning('kein aktuelles Schuljahr verfügbar');
         }
-        $tblDivisionAll = array();
         foreach($tblYearList as $tblYear){
-            if(($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))){
-                foreach($tblDivisionList as $tblDivision){
-                    $tblDivisionAll[$tblDivision->getId()] = $tblDivision;
-                }
+            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                $tblDivisionCourseList = $tblDivisionCourseListDivision;
+            }
+            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
             }
         }
-        if(empty($tblDivisionAll)){
+        if(empty($tblDivisionCourseList)){
             return new Warning('aktuelles Schuljahr enthält keine Klassen');
         }
 
-        foreach ($tblDivisionAll as $tblDivision) {
-//            // Schuljahre filtern
-//            if (!empty($filterYearList)
-//                && ($tblYearDivision = $tblDivision->getServiceTblYear())
-//                && !isset($filterYearList[$tblYearDivision->getId()]))
-//            {
-//                continue;
-//            }
-            $count = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-            $Item['Year'] = '';
-            $Item['Division'] = $tblDivision->getDisplayName();
-            $Item['Type'] = $tblDivision->getTypeName();
-            if ($tblDivision->getServiceTblYear()) {
-                $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
-            }
-            $Item['Count'] = $count;
-
-            if ($count > 0) {
-                $Item['Option'] = (new External(
-                    '',
-                    '/Api/Document/Custom/Gersdorf/MetaDataComparison/Division/CreateMulti',
-                    new Download(),
-                    array(
-                        'DivisionId' => $tblDivision->getId()
-                    ),
-                    'Stammdatenabfrage herunterladen'
-                ))->__toString();
-            } else {
-                $Item['Option'] = '';
-            }
-
-            array_push($TableContent, $Item);
+        /** @var TblDivisionCourse $tblDivisionCourse */
+        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+            $count = $tblDivisionCourse->getCountStudents();
+            $dataList[] = array(
+                'Year' => $tblDivisionCourse->getYearName(),
+                'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
+                'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                'Count' => $count,
+                'Option' => $count > 0
+                    ? (new External(
+                        '',
+                        '/Api/Document/Custom/Gersdorf/MetaDataComparison/Division/CreateMulti',
+                        new Download(),
+                        array(
+                            'DivisionCourseId' => $tblDivisionCourse->getId()
+                        ),
+                        'Stammdatenabfrage herunterladen'
+                    ))->__toString()
+                    : ''
+            );
         }
 
-        return new TableData($TableContent, null,
+        return new TableData($dataList, null,
             array(
-                'Year' => 'Jahr',
-                'Division' => 'Klasse',
-                'Type' => 'Schulart',
+                'Year' => 'Schuljahr',
+                'DivisionCourse' => 'Kurs',
+                'DivisionCourseType' => 'Kurs-Typ',
+                'SchoolTypes' => 'Schularten',
                 'Count' => 'Schüler',
                 'Option' => '',
             ), array(
-                'columnDefs' => array(
-                    array('type' => 'natural', 'targets' => array(1,3)),
-                    array('orderable' => false, 'targets'   => -1),
-                ),
                 'order' => array(
-                    array(0, 'desc'),
-                    array(2, 'asc'),
-                    array(1, 'asc')
+                    array('0', 'desc'),
+                    array('1', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 1),
+                    array('orderable' => false, 'width' => '1%', 'targets' => -1)
                 ),
                 'responsive' => false
             ));

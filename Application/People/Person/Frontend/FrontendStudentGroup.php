@@ -108,7 +108,7 @@ class FrontendStudentGroup  extends FrontendReadOnly
                         'Erstellen und Herunterladen einer Schulbescheinigung')
                     .new External(
                         'Erstellen der Schülerüberweisung', '/Document/Standard/StudentTransfer/Fill',
-                        new Download(), array('Id' => $tblPerson->getId()),
+                        new Download(), array('PersonId' => $tblPerson->getId()),
                         'Erstellen und Herunterladen einer Schülerüberweisung ');
             }
 

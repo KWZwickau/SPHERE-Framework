@@ -1,69 +1,36 @@
 <?php
 namespace SPHERE\Application\Api\Document\Standard\Repository\StudentCard;
 
+use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
-use SPHERE\Application\Education\School\Type\Type;
 
 /**
  * Class StudentCardNew
  *
  * @package SPHERE\Application\Api\Document\Standard\Repository
  */
-class StudentCardNew extends AbstractStudentCard
+class StudentCardNew extends AbstractDocument
 {
-
     /**
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
-
-        return 'Schülerkartei - Grundschule';
-    }
-
-    /**
-     * @return int
-     */
-    public function getTypeId()
-    {
-
-        if (($tblType = Type::useService()->getTypeByName('Grundschule'))) {
-            return $tblType->getId();
-        } else {
-            return 0;
-        }
-    }
-
-    /**
-     * @return false|TblType
-     */
-    public function getType()
-    {
-
-        return Type::useService()->getTypeByName('Grundschule');
+        return 'Schülerkartei';
     }
 
     /**
      * @return Page
      */
-    public function buildPage()
+    public function buildPage(): Page
     {
-
-        $SmallTextSize = '7px';
-        $InputText = '12px';
         $OutLines = '1.2px';
         $InnerLines = '0.5px';
-        $padding = '4.7px';
-        $paddingSchoolLines = '3.7px';
-        $SpaceBetween = '15px';
-
-        $subjectPosition = array();
 
         return (new Page())
             ->addSlice((new Slice())
@@ -71,7 +38,7 @@ class StudentCardNew extends AbstractStudentCard
                     ->setContent('SCHÜLERKARTEI')
                         ->styleTextSize('16px')
                         ->stylePaddingBottom('10px')
-                        ->styleTextBold('bold')
+                        ->styleTextBold()
                 )
             )
             ->addSlice((new Slice())
@@ -105,15 +72,13 @@ class StudentCardNew extends AbstractStudentCard
                     )
                 )
             )
-
-
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addSliceColumn((new Slice())
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
                                 ->setContent('Name:')
-                                ->styleTextBold('bold')
+                                ->styleTextBold()
                                 ->styleMarginBottom('5px')
                                 ->styleBorderTop($OutLines)
                                 ->stylePaddingLeft('5px')
@@ -130,7 +95,7 @@ class StudentCardNew extends AbstractStudentCard
                             , '44%')
                             ->addElementColumn((new Element())
                                 ->setContent('Vorname:')
-                                ->styleTextBold('bold')
+                                ->styleTextBold()
                                 ->styleMarginBottom('5px')
                                 ->styleBorderTop($OutLines)
                             , '4%')
@@ -255,7 +220,7 @@ class StudentCardNew extends AbstractStudentCard
                                 ->stylePaddingTop('3px')
                                 ->styleBorderBottom($InnerLines)
                                 ->styleBorderRight($InnerLines)
-                                ->styleTextBold('bold')
+                                ->styleTextBold()
                             , '20%')
                             ->addElementColumn((new Element())
                                 ->setContent('1. Personensorgeberechtigter')
@@ -709,11 +674,10 @@ class StudentCardNew extends AbstractStudentCard
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $Part = '0')
+    public function buildDocument($pageList = array(), $Part = '0'): Frame
     {
         return (new Frame())->addDocument((new Document())
             ->addPage($this->buildPage())
-            ->addPage($this->buildRemarkPage($this->getType() ? $this->getType() : null))
         );
     }
 }

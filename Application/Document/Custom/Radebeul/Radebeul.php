@@ -2,13 +2,12 @@
 
 namespace SPHERE\Application\Document\Custom\Radebeul;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Reporting\AbstractModule;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -70,33 +69,59 @@ class Radebeul extends AbstractModule implements IModuleInterface
     /**
      * @return Stage
      */
-    public static function frontendSelectPerson()
+    public static function frontendSelectPerson(): Stage
     {
-
         $Stage = new Stage('Schülerbogen', 'Schüler auswählen');
 
         $dataList = array();
-        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                foreach ($tblPersonList as $tblPerson) {
-                    $tblAddress = $tblPerson->fetchMainAddress();
-                    $dataList[] = array(
-                        'Name'     => $tblPerson->getLastFirstName(),
-                        'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
-                        'Option'   => new External(
-                            'Herunterladen',
-                            'SPHERE\Application\Api\Document\Custom\Radebeul\StudentCard\Create',
-                            new Download(),
-                            array(
-                                'PersonId' => $tblPerson->getId(),
-                            ),
-                            'Notfallzettel herunterladen'
-                        )
-                    );
+        $showDivision = false;
+        $showCoreGroup = false;
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
+            && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                $displayDivision = '';
+                $displayCoreGroup = '';
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))){
+                    if (($tblDivision = $tblStudentEducation->getTblDivision())
+                        && ($displayDivision = $tblDivision->getName())
+                    ) {
+                        $showDivision = true;
+                    }
+                    if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                        && ($displayCoreGroup = $tblCoreGroup->getName())
+                    ) {
+                        $showCoreGroup = true;
+                    }
                 }
+                $tblAddress = $tblPerson->fetchMainAddress();
+                $dataList[] = array(
+                    'Name'     => $tblPerson->getLastFirstName(),
+                    'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
+                    'Division' => $displayDivision,
+                    'CoreGroup' => $displayCoreGroup,
+                    'Option'   => new External(
+                        'Herunterladen',
+                        'SPHERE\Application\Api\Document\Custom\Radebeul\StudentCard\Create',
+                        new Download(),
+                        array(
+                            'PersonId' => $tblPerson->getId(),
+                        ),
+                        'Schülerbogen herunterladen'
+                    )
+                );
             }
         }
+
+        $columnList['Name'] = 'Name';
+        $columnList['Address'] = 'Adresse';
+        if ($showDivision) {
+            $columnList['Division'] = 'Klasse';
+        }
+        if ($showCoreGroup) {
+            $columnList['CoreGroup'] = 'Stammgruppe';
+        }
+        $columnList['Option'] = '';
 
         $Stage->setContent(
             new Layout(array(
@@ -106,15 +131,11 @@ class Radebeul extends AbstractModule implements IModuleInterface
                             new TableData(
                                 $dataList,
                                 null,
+                                $columnList,
                                 array(
-                                    'Name'     => 'Name',
-                                    'Address'  => 'Adresse',
-                                    'Division' => 'Klasse',
-                                    'Option'   => ''
-                                ),
-                                array(
-                                    'columnDefs' => array(
+                                    "columnDefs" => array(
                                         array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                        array('orderable' => false, 'width' => '60px', 'targets' => -1),
                                     ),
                                 )
                             )
@@ -132,49 +153,36 @@ class Radebeul extends AbstractModule implements IModuleInterface
      */
     public static function getPersonListByRadebeul()
     {
-
         $StudentList = array();
-        $tblDivisionList = array();
-
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
+        if (($tblSchoolTypeGs = Type::useService()->getTypeByShortName('GS'))
+            && ($tblYearList = Term::useService()->getYearByNow())
+        ) {
             foreach ($tblYearList as $tblYear) {
-                $tblDivisionArray = Division::useService()->getDivisionByYear($tblYear);
-                if ($tblDivisionArray) {
-                    foreach ($tblDivisionArray as $tblDivision) {
-                        $tblDivisionList[$tblDivision->getId()] = $tblDivision;
-                    }
-                }
-            }
-        }
-
-        if (!empty($tblDivisionList)) {
-            /** @var TblDivision $tblDivision */
-            foreach ($tblDivisionList as $tblDivision) {
-                $tblPersonPrepareList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonPrepareList) {
-                    foreach ($tblPersonPrepareList as $tblPerson) {
-                        $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
-                        if ($tblGroupList) {
-                            foreach ($tblGroupList as $tblGroupSingle) {
-                                if ($tblGroupSingle->getName() == 'Frühling') {
-                                    $StudentList[$tblDivision->getTblLevel()->getName()]['Frühling'][$tblPerson->getId()] = $tblPerson->getLastFirstName();
-                                }
-                                if ($tblGroupSingle->getName() == 'Sommer') {
-                                    $StudentList[$tblDivision->getTblLevel()->getName()]['Sommer'][$tblPerson->getId()] = $tblPerson->getLastFirstName();
-                                }
-                                if ($tblGroupSingle->getName() == 'Herbst') {
-                                    $StudentList[$tblDivision->getTblLevel()->getName()]['Herbst'][$tblPerson->getId()] = $tblPerson->getLastFirstName();
-                                }
-                                if ($tblGroupSingle->getName() == 'Winter') {
-                                    $StudentList[$tblDivision->getTblLevel()->getName()]['Winter'][$tblPerson->getId()] = $tblPerson->getLastFirstName();
-                                }
+                if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear, $tblSchoolTypeGs))) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        if (!$tblStudentEducation->isInActive()
+                            && ($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                            && ($tblPerson = $tblStudentEducation->getServiceTblPerson())
+                            && ($level = $tblStudentEducation->getLevel())
+                        ) {
+                            if ($tblCoreGroup->getName() == 'Frühling' || $tblCoreGroup->getName() == 'Fruehling') {
+                                $StudentList[$level]['Frühling'][$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                            }
+                            if ($tblCoreGroup->getName() == 'Sommer') {
+                                $StudentList[$level]['Sommer'][$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                            }
+                            if ($tblCoreGroup->getName() == 'Herbst') {
+                                $StudentList[$level]['Herbst'][$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                            }
+                            if ($tblCoreGroup->getName() == 'Winter') {
+                                $StudentList[$level]['Winter'][$tblPerson->getId()] = $tblPerson->getLastFirstName();
                             }
                         }
                     }
                 }
             }
         }
+
         if (!empty($StudentList)) {
             ksort($StudentList);
             return $StudentList;
@@ -186,18 +194,16 @@ class Radebeul extends AbstractModule implements IModuleInterface
     /**
      * @return Stage
      */
-    public function frontendStudentList()
+    public function frontendStudentList(): Stage
     {
-
         $Stage = new Stage('SchülerListe');
 
         $StudentList = $this->getPersonListByRadebeul();
-//        Debugger::screenDump($StudentList);
         $columnList = array();
         if ($StudentList) {
             $Stage->addbutton(new External('Herunterladen',
                 'SPHERE\Application\Api\Document\Custom\Radebeul\StudentList\Create',
-                new Download(), array(), 'Schülerliste Herungerladen'));
+                new Download(), array(), 'Schülerliste herunterladen'));
 
             foreach ($StudentList as $LevelName => $GroupList) {
                 $GroupSpring = array();

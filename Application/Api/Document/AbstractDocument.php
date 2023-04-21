@@ -3,7 +3,6 @@ namespace SPHERE\Application\Api\Document;
 
 use DateTime;
 use MOC\V\Component\Template\Component\IBridgeInterface;
-use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
@@ -13,9 +12,10 @@ use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -38,7 +38,13 @@ abstract class AbstractDocument
     /**
      * @var TblPerson|null
      */
-    private $tblPerson = null;
+    private ?TblPerson $tblPerson = null;
+
+    /**
+     * @var TblYear|null
+     */
+    private ?TblYear $tblYear = null;
+
 
     /**
      * @var int
@@ -64,6 +70,38 @@ abstract class AbstractDocument
     {
 
         $this->tblPerson = $tblPerson;
+    }
+
+    /**
+     * @return TblYear|null
+     */
+    public function getTblYear(): ?TblYear
+    {
+        return $this->tblYear;
+    }
+
+    /**
+     * @param TblYear|null $tblYear
+     */
+    public function setTblYear(?TblYear $tblYear): void
+    {
+        $this->tblYear = $tblYear;
+    }
+
+    /**
+     * @return false|TblStudentEducation
+     */
+    public function getStudentEducation()
+    {
+        if (($tblPerson = $this->getTblPerson())) {
+            if (($tblYear = $this->getTblYear())) {
+                return DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+            } else {
+                return DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson);
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -206,12 +244,11 @@ abstract class AbstractDocument
     {
 
         if (($tblPerson = $this->getTblPerson())) {
-            if (($tblDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
-                foreach ($tblDivisionList as $tblDivision) {
-                    if (!$tblDivision->getTblLevel()->getIsChecked()) {
-                        $Data['Student']['Division']['Name'] = $tblDivision->getDisplayName();
-                        break;
-                    }
+            if (($tblStudentEducation = $this->getStudentEducation())) {
+                if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                    $Data['Student']['Division']['Name'] = $tblDivision->getName();
+                } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                    $Data['Student']['Division']['Name'] = $tblCoreGroup->getName();
                 }
             }
 
@@ -269,61 +306,49 @@ abstract class AbstractDocument
                     $Data['Student']['School']['Attendance']['Year'] = $Year;
                 }
 
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
-                    if (($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType))
-                    ) {
-                        if ($tblTransfer->getServiceTblType()) {
-                            $Data['Student']['School']['Type'] = $tblTransfer->getServiceTblType()->getName();
+                if ($tblStudentEducation) {
+                    if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
+                        $Data['Student']['School']['Type'] = $tblSchoolType->getName();
+                    }
+
+                    if (($tblCompany = $tblStudentEducation->getServiceTblCompany())) {
+                        if (($tblAddress = $tblCompany->fetchMainAddress())) {
+                            $Data['Document']['PlaceDate'] = $tblAddress->getTblCity()->getName() . ', '
+                                . date('d.m.Y');
+                            $Data['Document']['Date']['Now'] = date('d.m.Y');
+
+                            $Data['Student']['CompanyAddress'] = '';
+                            if ($tblAddress->getTblCity()->getDistrict())
+                            {
+                                $Data['Student']['CompanyAddress'] .= 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>';
+                                $this->tblAddressRowCount++;
+                            }
+                            if ($tblAddress->getStreetName())
+                            {
+                                $Data['Student']['CompanyAddress'] .= $tblAddress->getStreetName()
+                                    .' '.$tblAddress->getStreetNumber().'<br>';
+                                $this->tblAddressRowCount++;
+                            }
+                            if ($tblAddress->getTblCity()->getCode())
+                            {
+                                $Data['Student']['CompanyAddress'] .= $tblAddress->getTblCity()->getCode() .
+                                    ' ' . $tblAddress->getTblCity()->getName();
+                                $this->tblAddressRowCount++;
+                            }
                         }
 
-                        if (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson))) {
-                            if (($tblAddress = $tblCompany->fetchMainAddress())) {
-                                $Data['Document']['PlaceDate'] = $tblAddress->getTblCity()->getName() . ', '
-                                    . date('d.m.Y');
-                                $Data['Document']['Date']['Now'] = date('d.m.Y');
-
-                                $Data['Student']['CompanyAddress'] = '';
-                                if ($tblAddress->getTblCity()->getDistrict())
-                                {
-                                    $Data['Student']['CompanyAddress'] .= 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>';
-                                    $this->tblAddressRowCount++;
-                                }
-                                if ($tblAddress->getStreetName())
-                                {
-                                    $Data['Student']['CompanyAddress'] .= $tblAddress->getStreetName()
-                                        .' '.$tblAddress->getStreetNumber().'<br>';
-                                    $this->tblAddressRowCount++;
-                                }
-                                if ($tblAddress->getTblCity()->getCode())
-                                {
-                                    $Data['Student']['CompanyAddress'] .= $tblAddress->getTblCity()->getCode() .
-                                        ' ' . $tblAddress->getTblCity()->getName();
-                                    $this->tblAddressRowCount++;
-                                }
-
-//                                $Data['Student']['CompanyAddress'] = ($tblAddress->getTblCity()->getDistrict() ? 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>' : '')
-//                                    . $tblAddress->getStreetName()
-//                                    . ' ' . $tblAddress->getStreetNumber()
-//                                    . ',<br>' . $tblAddress->getTblCity()->getCode()
-//                                    . ' ' . $tblAddress->getTblCity()->getName();
-//
-//                                    $tblAddress->getGuiTwoRowString();
+                        // StudentCard - PrimarySchool
+                        if (($tblSetting = Consumer::useService()->getSetting(
+                                'Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName'))
+                            && $tblSetting->getValue()
+                        ) {
+                            if ($tblCompany->getName()) {
+                                $Data['Student']['Company'] = $tblCompany->getName();
+                                $this->tblAddressRowCount++;
                             }
-
-                            // StudentCard - PrimarySchool
-                            if (($tblSetting = Consumer::useService()->getSetting(
-                                    'Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName'))
-                                && $tblSetting->getValue()
-                            ) {
-                                if ($tblCompany->getName()) {
-                                    $Data['Student']['Company'] = $tblCompany->getName();
-                                    $this->tblAddressRowCount++;
-                                }
-                                if ($tblCompany->getExtendedName()) {
-                                    $Data['Student']['Company2'] = $tblCompany->getExtendedName();
-                                    $this->tblAddressRowCount++;
-                                }
+                            if ($tblCompany->getExtendedName()) {
+                                $Data['Student']['Company2'] = $tblCompany->getExtendedName();
+                                $this->tblAddressRowCount++;
                             }
                         }
                     }
@@ -372,22 +397,13 @@ abstract class AbstractDocument
         $Data['Responsibility']['Company']['Number'] = School::useService()->getCompanyNumber();
 
         if ($tblPerson) {
-            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-            if ($tblStudent) {
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
-                    if (($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType))
-                    ) {
-                        $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson);
-                        $tblSchoolType = $tblTransfer->getServiceTblType();
-                        if ($tblCompany && $tblSchoolType) {
-                            $tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblSchoolType);
-                            if ($tblSchool) {
-                                // fill found information (School)
-                                $Data['Responsibility']['Company']['Number'] = School::useService()->getCompanyNumber($tblSchool);
-                            }
-                        }
-                    }
+            if (($tblStudentEducation = $this->getStudentEducation())) {
+                if (($tblCompany = $tblStudentEducation->getServiceTblCompany())
+                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                    && ($tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblSchoolType))
+                ) {
+                    // fill found information (School)
+                    $Data['Responsibility']['Company']['Number'] = School::useService()->getCompanyNumber($tblSchool);
                 }
             }
         }
@@ -413,9 +429,6 @@ abstract class AbstractDocument
      */
     private function allocatePersonParents(&$Data)
     {
-        $tblPersonMother = false;
-        $tblPersonFather = false;
-
         if ($this->getTblPerson()) {
             if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($this->getTblPerson()))) {
                 foreach ($tblRelationshipList as $tblToPerson) {

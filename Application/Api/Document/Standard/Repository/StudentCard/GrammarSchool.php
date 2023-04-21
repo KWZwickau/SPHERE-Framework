@@ -368,6 +368,9 @@ class GrammarSchool extends AbstractStudentCard
                 $tblSubject = $tblSubjectList[$i];
                 if ($tblSubject) {
                     $text = $tblSubject->getName();
+                    if ($text == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
+                        $text = 'Gemeinschaftskunde / Rechtserziehung / Wirtschaft';
+                    }
                     $subjectPosition[$i] = $tblSubject;
 
                     if ($i == 0) {
