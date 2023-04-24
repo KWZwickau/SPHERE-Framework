@@ -9,7 +9,7 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
 
@@ -141,9 +141,12 @@ class EnrollmentDocument extends AbstractDocument
         $leaveDateLabel = 'und wird voraussichtlich bis zum';
 
         if (isset($this->FieldValue['DivisionId'])
-            && ($tblDivision = Division::useService()->getDivisionById($this->FieldValue['DivisionId']))
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && ($tblType = $tblLevel->getServiceTblType())
+            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($this->FieldValue['DivisionId']))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && isset($this->FieldValue['PersonId'])
+            && ($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
         ) {
             switch ($tblType->getShortName()) {
                 case 'Gy':
@@ -152,10 +155,7 @@ class EnrollmentDocument extends AbstractDocument
                     break;
                 case 'OS':
                     $leaveDateLabel = 'und wird diese voraussichtlich zum';
-                    if (($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))
-                        && ($tblStudent = $tblPerson->getStudent())
-                        && ($tblCourse = $tblStudent->getCourse())
-                    ) {
+                    if (($tblCourse = $tblStudentEducation->getServiceTblCourse())) {
                         $leaveDateLabel = 'und wird diese voraussichtlich zum';
                         if ($tblCourse->getName() == 'Realschule') {
                             $diploma = 'vorbehaltlich vorzeitiger Kündigung mit einem Realschulabschluss verlassen.';

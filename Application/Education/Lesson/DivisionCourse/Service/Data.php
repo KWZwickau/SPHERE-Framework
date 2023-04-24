@@ -15,6 +15,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Extension\Extension;
 
 class Data extends DataTeacher
@@ -344,7 +345,7 @@ class Data extends DataTeacher
      */
     public function getDivisionCourseByNameAndYear($name, TblYear $tblYear)
     {
-        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', array(
+        return $this->getForceEntityBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', array(
             TblDivisionCourse::ATTR_NAME => $name,
             TblDivisionCourse::SERVICE_TBL_YEAR => $tblYear->getId()
         ));
@@ -455,6 +456,32 @@ class Data extends DataTeacher
             foreach ($list as $tblDivisionCourseLink) {
                 if (($tblSubDivisionCourse = $tblDivisionCourseLink->getTblSubDivisionCourse())) {
                     $resultList[] = $tblSubDivisionCourse;
+                }
+            }
+        }
+
+        if ($resultList) {
+            return (new Extension())->getSorter($resultList)->sortObjectBy('Name');
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblSubDivisionCourse
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getAboveDivisionCourseListBySubDivisionCourse(TblDivisionCourse $tblSubDivisionCourse)
+    {
+        $resultList = array();
+        if (($list = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseLink',
+            array(TblDivisionCourseLink::ATTR_TBL_SUB_DIVISION_COURSE => $tblSubDivisionCourse->getId())))
+        ) {
+            /** @var TblDivisionCourseLink $tblDivisionCourseLink */
+            foreach ($list as $tblDivisionCourseLink) {
+                if (($tblDivisionCourse = $tblDivisionCourseLink->getTblDivisionCourse())) {
+                    $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
                 }
             }
         }
@@ -1673,5 +1700,48 @@ class Data extends DataTeacher
         $resultList = $query->getResult();
 
         return !empty($resultList);
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function createEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($tblEntityList as $tblEntity) {
+            $Manager->bulkSaveEntity($tblEntity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblEntity, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function updateEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+            $Manager->bulkSaveEntity($tblElement);
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
     }
 }

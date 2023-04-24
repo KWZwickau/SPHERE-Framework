@@ -24,6 +24,7 @@ class ApiYearChange extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('loadYearChangeContent');
+        $Dispatcher->registerMethod('saveYearChangeContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -63,5 +64,47 @@ class ApiYearChange extends Extension implements IApiInterface
     public function loadYearChangeContent($Data = null): string
     {
         return DivisionCourse::useFrontend()->loadYearChangeContent($Data);
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearSourceId
+     * @param $YearTargetId
+     * @param $hasOptionTeacherLectureship
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveYearChangeContent($SchoolTypeId, $YearSourceId, $YearTargetId, $hasOptionTeacherLectureship): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'YearChangeContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveYearChangeContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId,
+            'YearSourceId' => $YearSourceId,
+            'YearTargetId' => $YearTargetId,
+            'hasOptionTeacherLectureship' => $hasOptionTeacherLectureship
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden gespeichert');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearSourceId
+     * @param $YearTargetId
+     * @param $hasOptionTeacherLectureship
+     *
+     * @return string
+     */
+    public function saveYearChangeContent($SchoolTypeId, $YearSourceId, $YearTargetId, $hasOptionTeacherLectureship): string
+    {
+        return DivisionCourse::useFrontend()->saveYearChangeContent(
+            $SchoolTypeId, $YearSourceId, $YearTargetId, $hasOptionTeacherLectureship === 'true'
+        );
     }
 }

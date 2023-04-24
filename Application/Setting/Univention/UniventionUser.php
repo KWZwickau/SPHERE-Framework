@@ -288,8 +288,10 @@ class UniventionUser
                 }elseif(is_array($StdClassArray['detail'])){
                     $Error = '';
                     foreach($StdClassArray['detail'] as $Detail){
-                        if($Detail['msg']){
-                            $Error .= new Bold($name.'-> ').$Detail['loc'].':'.$Detail['msg'];
+                        if($Detail['msg'] && is_string($Detail['loc'])){
+                            $Error .= new Bold($name.' → ').$Detail['loc'].':'.$Detail['msg'];
+                        } elseif($Detail['msg'] && !empty($Detail['loc'])) {
+                            $Error .= new Bold($name.' → ').print_r($Detail['loc'], true).':'.$Detail['msg'];
                         }
                     }
                 }

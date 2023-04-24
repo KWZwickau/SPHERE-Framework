@@ -72,7 +72,7 @@ class Service extends AbstractService
     public function getPriceString($Value)
     {
 
-        return number_format($Value, 2, ',', '').' €';
+        return number_format($Value, 2, ',', '.').' €';
     }
 
     /**

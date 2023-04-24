@@ -19,27 +19,20 @@ use SPHERE\Application\Education\School\Type\Type;
 
 class SecondarySchool extends AbstractStudentCard
 {
-
     /**
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
-
         return 'Schülerkartei - Mittelschule';
     }
 
     /**
      * @return int
      */
-    public function getTypeId()
+    public function getTypeId(): int
     {
-
-        if (($tblType = Type::useService()->getTypeByName('Mittelschule / Oberschule'))) {
-            return $tblType->getId();
-        } else {
-            return 0;
-        }
+        return ($tblType = $this->getType()) ? $tblType->getId() : 0;
     }
 
     /**
@@ -47,16 +40,14 @@ class SecondarySchool extends AbstractStudentCard
      */
     public function getType()
     {
-
-        return Type::useService()->getTypeByName('Mittelschule / Oberschule');
+        return Type::useService()->getTypeByShortName('OS');
     }
 
     /**
      * @return Page
      */
-    public function buildPage()
+    public function buildPage(): Page
     {
-
         $SmallTextSize = '7px';
         $InputText = '12px';
         $thicknessOutLines = '1.2px';

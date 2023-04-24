@@ -50,7 +50,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
-class Service extends ServiceTeacher
+class Service extends ServiceYearChange
 {
     /**
      * @param bool $doSimulation
@@ -262,6 +262,16 @@ class Service extends ServiceTeacher
     public function getSubDivisionCourseListByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
     {
         return (new Data($this->getBinding()))->getSubDivisionCourseListByDivisionCourse($tblDivisionCourse);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblSubDivisionCourse
+     *
+     * @return TblDivisionCourse[]|false
+     */
+    public function getAboveDivisionCourseListBySubDivisionCourse(TblDivisionCourse $tblSubDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getAboveDivisionCourseListBySubDivisionCourse($tblSubDivisionCourse);
     }
 
     /**

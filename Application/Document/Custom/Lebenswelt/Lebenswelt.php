@@ -8,10 +8,10 @@
 
 namespace SPHERE\Application\Document\Custom\Lebenswelt;
 
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Reporting\AbstractModule;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -33,7 +33,6 @@ use SPHERE\Common\Window\Stage;
  */
 class Lebenswelt extends AbstractModule implements IModuleInterface
 {
-
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
@@ -50,7 +49,6 @@ class Lebenswelt extends AbstractModule implements IModuleInterface
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
     }
 
     /**
@@ -58,39 +56,64 @@ class Lebenswelt extends AbstractModule implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
     }
 
     /**
      * @return Stage
      */
-    public static function frontendSelectPerson()
+    public static function frontendSelectPerson(): Stage
     {
-
         $Stage = new Stage('Notfallzettel', 'Schüler auswählen');
 
         $dataList = array();
-        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                foreach ($tblPersonList as $tblPerson) {
-                    $tblAddress = $tblPerson->fetchMainAddress();
-                    $dataList[] = array(
-                        'Name' => $tblPerson->getLastFirstName(),
-                        'Address' => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
-                        'Option' => new External(
-                            'Herunterladen',
-                            'SPHERE\Application\Api\Document\Custom\Lebenswelt\EmergencyDocument\Create',
-                            new Download(),
-                            array(
-                                'PersonId' => $tblPerson->getId(),
-                            ),
-                            'Notfallzettel herunterladen'
-                        )
-                    );
+        $showDivision = false;
+        $showCoreGroup = false;
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
+            && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                $displayDivision = '';
+                $displayCoreGroup = '';
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))){
+                    if (($tblDivision = $tblStudentEducation->getTblDivision())
+                        && ($displayDivision = $tblDivision->getName())
+                    ) {
+                        $showDivision = true;
+                    }
+                    if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                        && ($displayCoreGroup = $tblCoreGroup->getName())
+                    ) {
+                        $showCoreGroup = true;
+                    }
                 }
+                $tblAddress = $tblPerson->fetchMainAddress();
+                $dataList[] = array(
+                    'Name'     => $tblPerson->getLastFirstName(),
+                    'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
+                    'Division' => $displayDivision,
+                    'CoreGroup' => $displayCoreGroup,
+                    'Option' => new External(
+                        'Herunterladen',
+                        'SPHERE\Application\Api\Document\Custom\Lebenswelt\EmergencyDocument\Create',
+                        new Download(),
+                        array(
+                            'PersonId' => $tblPerson->getId(),
+                        ),
+                        'Notfallzettel herunterladen'
+                    )
+                );
             }
         }
+
+        $columnList['Name'] = 'Name';
+        $columnList['Address'] = 'Adresse';
+        if ($showDivision) {
+            $columnList['Division'] = 'Klasse';
+        }
+        if ($showCoreGroup) {
+            $columnList['CoreGroup'] = 'Stammgruppe';
+        }
+        $columnList['Option'] = '';
 
         $Stage->setContent(
             new Layout(array(
@@ -100,15 +123,11 @@ class Lebenswelt extends AbstractModule implements IModuleInterface
                             new TableData(
                                 $dataList,
                                 null,
+                                $columnList,
                                 array(
-                                    'Name' => 'Name',
-                                    'Address' => 'Adresse',
-                                    'Division' => 'Klasse',
-                                    'Option' => ''
-                                ),
-                                array(
-                                    'columnDefs' => array(
+                                    "columnDefs" => array(
                                         array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                        array('orderable' => false, 'width' => '60px', 'targets' => -1),
                                     ),
                                 )
                             )

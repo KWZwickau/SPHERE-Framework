@@ -2,17 +2,15 @@
 
 namespace SPHERE\Application\Document\Standard\SignOutCertificate;
 
+use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Document\Standard\EnrollmentDocument\Frontend;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -22,7 +20,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -33,7 +30,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -57,72 +53,18 @@ class SignOutCertificate extends Extension
     }
 
     /**
-     * @return IServiceInterface
-     */
-    public static function useService()
-    {
-        // TODO: Implement useService() method.
-    }
-
-    /**
-     * @return IFrontendInterface
-     */
-    public static function useFrontend()
-    {
-        // TODO: Implement useFrontend() method.
-    }
-
-    /**
      * @return Stage
      */
-    public static function frontendSelectPerson()
+    public static function frontendSelectPerson(): Stage
     {
-
         $Stage = new Stage('Abmeldebescheinigung', 'Schüler auswählen');
-
-        $dataList = array();
-        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$dataList) {
-                    $Data['PersonId'] = $tblPerson->getId();
-
-                    $tblAddress = $tblPerson->fetchMainAddress();
-                    $dataList[] = array(
-                        'Name'     => $tblPerson->getLastFirstName(),
-                        'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
-                        'Option'   => new Standard('Erstellen', __NAMESPACE__.'/Fill', null,
-                            array('Id' => $tblPerson->getId()))
-//                            .new External('Herunterladen',
-//                                'SPHERE\Application\Api\Document\Standard\StudentTransfer\Create',
-//                                new Download(), array('Data' => $Data),
-//                                'Schulbescheinigung herunterladen')
-                    );
-                });
-            }
-        }
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData(
-                                $dataList,
-                                null,
-                                array(
-                                    'Name'     => 'Name',
-                                    'Address'  => 'Adresse',
-                                    'Division' => 'Klasse',
-                                    'Option'   => ''
-                                ),
-                                array(
-                                    'columnDefs' => array(
-                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                                        array('width' => '1%', 'targets' => -1),
-                                    ),
-                                )
-                            )
+                            Frontend::getStudentSelectDataTable('/Document/Standard/SignOutCertificate/Fill')
                         )),
                     ))
                 )),
@@ -133,21 +75,20 @@ class SignOutCertificate extends Extension
     }
 
     /**
-     * @param null $Id
+     * @param null $PersonId
      *
      * @return Stage
      */
-    public function frontendFillSignOutCertificate($Id = null)
+    public function frontendFillSignOutCertificate($PersonId = null): Stage
     {
-
         $Stage = new Stage('Schülerüberweisung', 'Erstellen');
         $Stage->addButton(new Standard('Zurück', '/Document/Standard/SignOutCertificate', new ChevronLeft()));
-        $tblPerson = Person::useService()->getPersonById($Id);
+        $tblPerson = Person::useService()->getPersonById($PersonId);
         $Global = $this->getGlobal();
         if ($tblPerson) {
-            $Global->POST['Data']['PersonId'] = $Id;
+            $Global->POST['Data']['PersonId'] = $PersonId;
             $Global->POST['Data']['FirstLastName'] = $tblPerson->getFirstSecondName().' '.$tblPerson->getLastName();
-            $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
+            $Global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');
             $Global->POST['Data']['BirthDate'] = '';
             $Global->POST['Data']['BirthPlace'] = '';
             $Global->POST['Data']['AddressStreet'] = '';
@@ -167,10 +108,8 @@ class SignOutCertificate extends Extension
                 }
             }
 
-            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-            if ($tblStudent) {
-                // Schuldaten der Schule des Schülers
-                if (($tblCompanySchool = Student::useService()->getCurrentSchoolByPerson($tblPerson))) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+                if (($tblCompanySchool = $tblStudentEducation->getServiceTblCompany())) {
                     $Global->POST['Data']['School1'] = $tblCompanySchool->getName();
                     $Global->POST['Data']['School2'] = $tblCompanySchool->getExtendedName();
                     $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
@@ -183,24 +122,24 @@ class SignOutCertificate extends Extension
                         }
                     }
                 }
+
+                if (($tblYear = $tblStudentEducation->getServiceTblYear())) {
+                    list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                    // Letztes Datum des aktuellen Schuljahres
+                    /** @var DateTime $endDate */
+                    if ($endDate) {
+                        $Global->POST['Data']['SchoolUntil'] = $endDate->format('d.m.Y');
+                    }
+                }
+            }
+
+            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
                 // Datum Aufnahme
                 $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
-                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                    $tblStudentTransferType);
+                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType);
                 if ($tblStudentTransfer) {
                     $EntryDate = $tblStudentTransfer->getTransferDate();
                     $Global->POST['Data']['SchoolEntry'] = $EntryDate;
-                    if ($EntryDate != '') {
-                        $tblYearList = Term::useService()->getYearAllByDate(new \DateTime($EntryDate));
-                        if ($tblYearList) {
-                            foreach ($tblYearList as $tblYear) {
-                                $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
-                                if ($tblDivision && $tblDivision->getTblLevel()) {
-                                    $Global->POST['Data']['SchoolEntryDivision'] = $tblDivision->getTblLevel()->getName();
-                                }
-                            }
-                        }
-                    }
                 }
             }
 
@@ -211,28 +150,6 @@ class SignOutCertificate extends Extension
             if ($tblAddress) {
                 $Global->POST['Data']['MainAddress'] = $tblAddress->getGuiString();
             }
-
-            // Letztes Datum des aktuellen Schuljahres
-            $tblYearList = Term::useService()->getYearByNow();
-            if ($tblYearList) {
-                $LastDate = '';
-                foreach ($tblYearList as $tblYear) {
-                    if (Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear)) {
-                        $tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
-                        $tblPeriodList = $tblYear->getTblPeriodAll($tblMainDivision ? $tblMainDivision : null);
-                        if ($tblPeriodList) {
-                            foreach ($tblPeriodList as $tblPeriod) {
-                                if ($LastDate && new \DateTime($LastDate) < new \DateTime($tblPeriod->getToDate())) {
-                                    $LastDate = $tblPeriod->getToDate();
-                                } elseif (!$LastDate) {
-                                    $LastDate = $tblPeriod->getToDate();
-                                }
-                            }
-                        }
-                    }
-                }
-                $Global->POST['Data']['SchoolUntil'] = $LastDate;
-            }
         }
         $Global->savePost();
 
@@ -240,10 +157,13 @@ class SignOutCertificate extends Extension
 
         $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
 
-        $Stage->addButton(new External('Blanko Abmeldebescheinigung herunterladen',
+        $Stage->addButton(new External(
+            'Blanko Abmeldebescheinigung herunterladen',
             'SPHERE\Application\Api\Document\Standard\SignOutCertificate\Create',
-            new Download(), array('Data' => array('empty')),
-            'Abmeldebescheinigung herunterladen'));
+            new Download(),
+            array('Data' => array('empty')),
+            'Abmeldebescheinigung herunterladen'
+        ));
 
         $Stage->setContent(
             new Layout(
@@ -275,9 +195,8 @@ class SignOutCertificate extends Extension
     /**
      * @return Form
      */
-    private function formSignOut()
+    private function formSignOut(): Form
     {
-
         return new Form(
             new FormGroup(array(
                 new FormRow(array(

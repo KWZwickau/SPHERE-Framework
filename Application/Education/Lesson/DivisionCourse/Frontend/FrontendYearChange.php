@@ -4,14 +4,13 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse\Frontend;
 
 use SPHERE\Application\Api\Education\DivisionCourse\ApiYearChange;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -22,15 +21,18 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 
 class FrontendYearChange extends FrontendTeacher
@@ -74,6 +76,12 @@ class FrontendYearChange extends FrontendTeacher
                         ->setRequired()
                     , 6),
             )),
+            new FormRow(array(
+                new FormColumn(
+                    (new CheckBox('Data[HasTeacherLectureship]', 'Lehraufträge werden mit ins neue Schuljahr übernommen.', 1))
+                        ->ajaxPipelineOnChange(ApiYearChange::pipelineLoadYearChangeContent())
+                )
+            ))
         )));
     }
 
@@ -97,6 +105,7 @@ class FrontendYearChange extends FrontendTeacher
         if (!isset($Data['YearTarget']) || !($tblYearTarget = Term::useService()->getYearById($Data['YearTarget']))) {
             $content .= new Warning('Bitte wählen Sie ein Ziel-Schuljahr aus.', new Exclamation());
         }
+        $hasOptionTeacherLectureship = isset($Data['HasTeacherLectureship']);
 
         if ($tblSchoolType && $tblYearSource && $tblYearTarget) {
             if ($tblYearTarget->getName() <= $tblYearSource->getName()) {
@@ -105,55 +114,12 @@ class FrontendYearChange extends FrontendTeacher
 
             $left = '';
             $right = '';
-            $dataSourceList = array();
-            $dataTargetList = array();
-            $courseSourceList = array();
-            $hasAddStudentEducationList = array();
-            $tblMemberTypeStudent = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT);
-            if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYearSource, $tblSchoolType))) {
-                $tblStudentEducationList = $this->getSorter($tblStudentEducationList)->sortObjectBy('Sort');
-                /** @var TblStudentEducation $tblStudentEducationSource */
-                foreach ($tblStudentEducationList as $tblStudentEducationSource) {
-                    if (($tblPerson = $tblStudentEducationSource->getServiceTblPerson())
-                        && !$tblStudentEducationSource->isInActive()
-                        && ($level = $tblStudentEducationSource->getLevel())
-                    ) {
-                        $dataSourceList[$level][$tblPerson->getId()] = $tblPerson->getLastFirstName();
-                        if (($tblStudentEducationTarget = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYearTarget))) {
-                            $dataTargetList[$tblStudentEducationTarget->getLevel() ?: 'keine'][$tblPerson->getId()] = $tblPerson->getLastFirstName();
-                        } elseif (!$tblSchoolType->getMaxLevel() || $level < $tblSchoolType->getMaxLevel()) {
-                            $hasAddStudentEducationList[$level + 1] = 1;
-                            $dataTargetList[$level + 1][$tblPerson->getId()] = new Success(new Plus() . ' ' . $tblPerson->getLastFirstName());
-                            if ((!$tblStudentEducationTarget || !$tblStudentEducationTarget->getTblDivision())
-                                && ($tblDivision = $tblStudentEducationSource->getTblDivision())
-                                && !isset($courseSourceList[$tblDivision->getId()])
-                            ) {
-                                $courseSourceList[$tblDivision->getId()] = $tblDivision->getName();
-                            }
-                            if ((!$tblStudentEducationTarget || !$tblStudentEducationTarget->getTblCoreGroup())
-                                && ($tblCoreGroup = $tblStudentEducationSource->getTblCoreGroup())
-                                && !isset($courseSourceList[$tblCoreGroup->getId()])
-                            ) {
-                                $courseSourceList[$tblCoreGroup->getId()] = $tblCoreGroup->getName();
-                            }
-                            if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseMemberListByPersonAndYearAndMemberType($tblPerson, $tblYearSource, $tblMemberTypeStudent))) {
-                                foreach ($tblDivisionCourseList as $tblDivisionCourseMember) {
-                                    if (($temp = $tblDivisionCourseMember->getTblDivisionCourse())
-                                        && !isset($courseSourceList[$temp->getId()])
-                                    ) {
-                                        $courseSourceList[$temp->getId()] = $temp->getName();
-                                    }
-                                }
-                            }
 
-
-                            // todo Fächer
-
-                            // todo sekII?
-                        }
-                    }
-                }
-            }
+            list(
+                $hasAddStudentEducationList, $dataSourceList, $dataTargetList,
+                $hasAddCoursesList, $dataCourseLeft, $dataCourseRight,
+                $hasAddTeacherLectureshipList, $dataTeacherLectureshipLeft, $dataTeacherLectureshipRight
+            ) = DivisionCourse::useService()->getYearChangeData($tblSchoolType, $tblYearSource, $tblYearTarget, $hasOptionTeacherLectureship);
 
             /**
              * Schüler-Bildung anzeigen
@@ -171,60 +137,6 @@ class FrontendYearChange extends FrontendTeacher
                 new LayoutColumn($left, 6),
                 new LayoutColumn($right, 6)
             )), new Title(new PersonGroup() . ' Schüler-Bildung')));
-
-            /**
-             * Kurse und Lehraufträge aufbereiten
-             */
-            asort($courseSourceList, SORT_NATURAL);
-            $dataCourseLeft = array();
-            $dataCourseRight = array();
-            $hasAddCoursesList = array();
-            $hasAddTeacherLectureshipList = array();
-            $dataTeacherLectureshipLeft = array();
-            $dataTeacherLectureshipRight = array();
-            foreach ($courseSourceList as $divisionCourseId => $name) {
-                if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))) {
-                    $dataCourseLeft[$tblDivisionCourse->getTypeIdentifier()][$tblDivisionCourse->getId()] = $tblDivisionCourse->getName();
-                    $newName = $tblDivisionCourse->getName();
-                    if (preg_match_all('!\d+!', $tblDivisionCourse->getName(), $matches)) {
-                        $pos = strpos($tblDivisionCourse->getName(), $matches[0][0]);
-                        if ($pos === 0) {
-                            $level = $matches[0][0];
-                            $newName = ($level + 1) . substr($newName, strlen($level));
-                        }
-                    }
-
-                    // prüfen, ob es den kurs im neuen schuljahr schon gibt
-                    if (($tblDivisionCourseFuture = DivisionCourse::useService()->getDivisionCourseByNameAndYear($newName, $tblYearTarget))) {
-                        $newName = $tblDivisionCourseFuture->getName();
-                        $isAdd = false;
-                    } else {
-                        $hasAddCoursesList[$tblDivisionCourse->getTypeIdentifier()] = 1;
-                        $isAdd = true;
-                    }
-                    $dataCourseRight[$tblDivisionCourse->getTypeIdentifier()][] = $isAdd ? new Success(new Plus() . ' ' . $newName) : $newName;
-
-                    // Lehraufträge
-                    if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYearSource, null, $tblDivisionCourse))) {
-                        foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
-                            if (($tblTeacher = $tblTeacherLectureship->getServiceTblPerson())
-                                && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
-                            ) {
-                                $dataTeacherLectureshipLeft[$tblTeacher->getId()][$tblSubject->getId()][$tblDivisionCourse->getId()] = $tblDivisionCourse->getName();
-                                // prüfen, ob der Lehrauftrag schon existiert
-                                if ($tblDivisionCourseFuture
-                                    && DivisionCourse::useService()->getTeacherLectureshipListBy($tblYearTarget, $tblTeacher, $tblDivisionCourseFuture, $tblSubject)
-                                ) {
-                                    $dataTeacherLectureshipRight[$tblTeacher->getId()][$tblSubject->getId()][$tblDivisionCourse->getId()] = $newName;
-                                } else {
-                                    $hasAddTeacherLectureshipList[$tblTeacher->getId()] = 1;
-                                    $dataTeacherLectureshipRight[$tblTeacher->getId()][$tblSubject->getId()][$tblDivisionCourse->getId()] = new Success(new Plus()  . $newName);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
 
             /*
              * Kurse anzeigen
@@ -257,51 +169,84 @@ class FrontendYearChange extends FrontendTeacher
             /*
              * Lehraufträge anzeigen
              */
-            $panelTeacherListLeft = array();
-            foreach ($dataTeacherLectureshipLeft as $teacherId => $subjectList) {
-                if (($tblTeacherPerson = Person::useService()->getPersonById($teacherId))) {
-                    $panelName = $tblTeacherPerson->getLastFirstName()
-                        . (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblTeacherPerson)) ? ' (' . $tblTeacher->getAcronym() . ')' : '');
-                    $panelData = array();
-                    foreach ($subjectList as $subjectId => $courseList) {
-                        if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
-                            $panelData[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                                new LayoutColumn($tblSubject->getDisplayName() . ':' , 6),
-                                new LayoutColumn(implode(', ', $courseList), 6),
-                            ))));
+            if ($hasOptionTeacherLectureship) {
+                $panelTeacherListLeft = array();
+                foreach ($dataTeacherLectureshipLeft as $teacherId => $subjectList) {
+                    if (($tblTeacherPerson = Person::useService()->getPersonById($teacherId))) {
+                        $panelName = $tblTeacherPerson->getLastFirstName()
+                            . (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblTeacherPerson)) ? ' (' . $tblTeacher->getAcronym() . ')' : '');
+                        $panelData = array();
+                        foreach ($subjectList as $subjectId => $courseList) {
+                            if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                                $panelData[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn($tblSubject->getDisplayName() . ':', 6),
+                                    new LayoutColumn(implode(', ', $courseList), 6),
+                                ))));
+                            }
                         }
+                        asort($panelData);
+                        $panelTeacherListLeft[] = new Panel($panelName, $panelData, Panel::PANEL_TYPE_DEFAULT);
                     }
-                    asort($panelData);
-                    $panelTeacherListLeft[] = new Panel($panelName, $panelData, Panel::PANEL_TYPE_DEFAULT);
                 }
-            }
-            $panelTeacherListRight = array();
-            foreach ($dataTeacherLectureshipRight as $teacherId => $subjectList) {
-                if (($tblTeacherPerson = Person::useService()->getPersonById($teacherId))) {
-                    $panelName = $tblTeacherPerson->getLastFirstName()
-                        . (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblTeacherPerson)) ? ' (' . $tblTeacher->getAcronym() . ')' : '');
-                    $panelData = array();
-                    foreach ($subjectList as $subjectId => $courseList) {
-                        if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
-                            $panelData[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                                new LayoutColumn($tblSubject->getDisplayName() . ':' , 6),
-                                new LayoutColumn(implode(', ', $courseList), 6),
-                            ))));
+                $panelTeacherListRight = array();
+                foreach ($dataTeacherLectureshipRight as $teacherId => $subjectList) {
+                    if (($tblTeacherPerson = Person::useService()->getPersonById($teacherId))) {
+                        $panelName = $tblTeacherPerson->getLastFirstName()
+                            . (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblTeacherPerson)) ? ' (' . $tblTeacher->getAcronym() . ')' : '');
+                        $panelData = array();
+                        foreach ($subjectList as $subjectId => $courseList) {
+                            if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                                $panelData[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn($tblSubject->getDisplayName() . ':', 6),
+                                    new LayoutColumn(implode(', ', $courseList), 6),
+                                ))));
+                            }
                         }
+                        asort($panelData);
+                        $panelTeacherListRight[] = new Panel($panelName, $panelData,
+                            isset($hasAddTeacherLectureshipList[$teacherId]) ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_DEFAULT);
                     }
-                    asort($panelData);
-                    $panelTeacherListRight[] = new Panel($panelName, $panelData,
-                        isset($hasAddTeacherLectureshipList[$teacherId]) ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_DEFAULT);
                 }
+                asort($panelTeacherListLeft);
+                asort($panelTeacherListRight);
+                $content .= new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(implode('<br/>', $panelTeacherListLeft), 6),
+                    new LayoutColumn(implode('<br/>', $panelTeacherListRight), 6)
+                )), new Title(new Education() . ' Lehraufräge')));
             }
-            asort($panelTeacherListLeft);
-            asort($panelTeacherListRight);
-            $content .= new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(implode('<br/>', $panelTeacherListLeft), 6),
-                new LayoutColumn(implode('<br/>', $panelTeacherListRight), 6)
-            )), new Title(new Education() . ' Lehraufräge')));
+
+            $content .= (new Primary('Speichern', ApiYearChange::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiYearChange::pipelineSaveYearChangeContent(
+                    $tblSchoolType->getId(), $tblYearSource->getId(), $tblYearTarget->getId(), $hasOptionTeacherLectureship
+                ));
         }
 
         return $content;
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearSourceId
+     * @param $YearTargetId
+     * @param $hasOptionTeacherLectureship
+     *
+     * @return string
+     */
+    public function saveYearChangeContent($SchoolTypeId, $YearSourceId, $YearTargetId, $hasOptionTeacherLectureship): string
+    {
+        if (($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))
+            && ($tblYearSource = Term::useService()->getYearById($YearSourceId))
+            && ($tblYearTarget = Term::useService()->getYearById($YearTargetId))
+        ) {
+
+            DivisionCourse::useService()->saveYearChangeData($tblSchoolType, $tblYearSource, $tblYearTarget, $hasOptionTeacherLectureship);
+
+            return new Success(
+                'Die Schulart wurde erfolgreich ins neue Schuljahr übertragen.',
+                new SuccessIcon()
+            );
+        }
+
+        return new Danger('Die Schulart konnte nicht ins neue Schuljahr übertragen werden');
     }
 }

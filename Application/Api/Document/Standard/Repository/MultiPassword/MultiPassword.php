@@ -718,9 +718,9 @@ class MultiPassword extends AbstractDocument
      */
     private function getSecondLetterContent($AccountId)
     {
-        $Live = 'Adresse: https://schulsoftware.schule';
+        $Live = 'https://schulsoftware.schule';
         if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
-            $Live = 'Adresse: https://ekbo.schulsoftware.schule';
+            $Live = 'https://ekbo.schulsoftware.schule';
         }
 
         $Slice = new Slice();
@@ -743,10 +743,48 @@ class MultiPassword extends AbstractDocument
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
-                    , '4%'
+                    , '9%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Adresse:')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    , '18%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent($Live)
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    , '69%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '9%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Benutzername:')
+                    , '18%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['UserAccountNameList'][$AccountId])
+                    , '69%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Für das erstmalige Login verwenden Sie bitte folgendes')
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     , '92%'
                 )
@@ -758,27 +796,17 @@ class MultiPassword extends AbstractDocument
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
-                    , '4%'
+                    , '9%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Benutzername: '. $this->FieldValue['UserAccountNameList'][$AccountId])
-                    , '92%'
+                    ->setContent('Passwort:')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    , '18%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Für das erstmalige Login verwenden Sie bitte folgendes Passwort: '
-                        .$this->FieldValue['Password'][$AccountId])
-                    ->stylePaddingTop()
-                    , '92%'
+                    ->setContent($this->FieldValue['Password'][$AccountId])
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    , '69%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -919,10 +947,48 @@ class MultiPassword extends AbstractDocument
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '4%'
+                        , '9%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Adresse:')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
+                        , '18%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent($Live)
+                        ->stylePaddingTop(self::BLOCK_SPACE)
+                        , '69%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '9%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Benutzername:')
+                        , '18%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent($this->FieldValue['UserAccountNameList'][$AccountId])
+                        , '69%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Für das erstmalige Login verwendet bitte folgendes')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         , '92%'
                     )
@@ -934,27 +1000,17 @@ class MultiPassword extends AbstractDocument
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '4%'
+                        , '9%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Benutzername: '. $this->FieldValue['UserAccountNameList'][$AccountId])
-                        , '92%'
+                        ->setContent('Passwort:')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
+                        , '18%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Für das erstmalige Login verwendet bitte folgendes Passwort: '
-                        .$this->FieldValue['Password'][$AccountId])
-                        ->stylePaddingTop()
-                        , '92%'
+                        ->setContent($this->FieldValue['Password'][$AccountId])
+                        ->stylePaddingTop(self::BLOCK_SPACE)
+                        , '69%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
