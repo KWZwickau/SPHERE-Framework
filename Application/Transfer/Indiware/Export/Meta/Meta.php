@@ -1,8 +1,6 @@
 <?php
 
-
 namespace SPHERE\Application\Transfer\Indiware\Export\Meta;
-
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -12,10 +10,8 @@ use SPHERE\System\Extension\Extension;
 
 class Meta extends Extension implements IModuleInterface
 {
-
     public static function registerModule()
     {
-
         /**
          * Register Route
          */
@@ -31,9 +27,8 @@ class Meta extends Extension implements IModuleInterface
     /**
      * @return Service
      */
-    public static function useService()
+    public static function useService(): Service
     {
-
         return new Service(new Identifier('Setting', 'Consumer', null, null,
             Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity',
@@ -44,9 +39,8 @@ class Meta extends Extension implements IModuleInterface
     /**
      * @return Frontend
      */
-    public static function useFrontend()
+    public static function useFrontend(): Frontend
     {
-
         return new Frontend();
     }
 }

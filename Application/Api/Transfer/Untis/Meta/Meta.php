@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Transfer\Untis\Meta;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Transfer\Untis\Export\Meta\Meta as MetaApp;
@@ -21,35 +22,29 @@ class Meta implements IModuleInterface
     }
 
     /**
-     * @return IServiceInterface
      */
     public static function useService()
     {
-        // Implement useService() method.
     }
 
     /**
-     * @return IFrontendInterface
      */
     public static function useFrontend()
     {
-        // Implement useFrontend() method.
     }
 
     /**
-     * @param string $DivisionId
+     * @param string $DivisionCourseId
      *
      * @return bool|string
      */
-    public function downloadMeta($DivisionId = '')
+    public function downloadMeta(string $DivisionCourseId = '')
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if($tblDivision){
-            $fileLocation = MetaApp::useService()->createCsv($DivisionId);
-            if ($fileLocation) {
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "GPU010_" . $tblDivision->getDisplayName() . ".txt")->__toString();
-            }
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($fileLocation = MetaApp::useService()->createCsv($DivisionCourseId))
+        ) {
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "GPU010_" . $tblDivisionCourse->getName() . ".txt")->__toString();
         }
 
         return false;

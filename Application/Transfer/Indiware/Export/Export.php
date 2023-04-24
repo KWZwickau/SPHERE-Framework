@@ -3,7 +3,7 @@
 namespace SPHERE\Application\Transfer\Indiware\Export;
 
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\Transfer\Indiware\Export\Meta\Frontend;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -38,11 +38,9 @@ class Export implements IModuleInterface
     }
 
     /**
-     * @return IServiceInterface
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
     }
 
     /**
@@ -50,7 +48,7 @@ class Export implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+        return (new Frontend());
     }
 
     /**

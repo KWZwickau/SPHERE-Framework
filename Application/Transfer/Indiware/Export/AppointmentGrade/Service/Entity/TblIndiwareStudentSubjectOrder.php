@@ -6,8 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -120,20 +120,18 @@ class TblIndiwareStudentSubjectOrder extends Element
      */
     public function getServiceTblTask()
     {
-
         if (null === $this->serviceTblTask) {
             return false;
         } else {
-            return Evaluation::useService()->getTaskById($this->serviceTblTask);
+            return Grade::useService()->getTaskById($this->serviceTblTask);
         }
     }
 
     /**
-     * @param TblTask $tblTask
+     * @param ?TblTask $tblTask
      */
-    public function setServiceTblTask($tblTask)
+    public function setServiceTblTask(?TblTask $tblTask)
     {
-
         $this->serviceTblTask = (null === $tblTask ? null : $tblTask->getId());
     }
 
