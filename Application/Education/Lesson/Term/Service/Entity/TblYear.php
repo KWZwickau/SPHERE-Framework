@@ -131,9 +131,13 @@ class TblYear extends Element
     /**
      * @return string
      */
-    public function getDisplayName()
+    public function getDisplayName($withStyle = true)
     {
 
-        return $this->getYear().' '.new Muted($this->getDescription());
+        if($withStyle){
+            return $this->getYear().' '.new Muted($this->getDescription());
+        } else {
+            return $this->getYear().' '.$this->getDescription();
+        }
     }
 }

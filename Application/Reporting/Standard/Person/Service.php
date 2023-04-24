@@ -702,18 +702,20 @@ class Service extends Extension
                         $item['Religion'] = $tblSubject->getAcronym();
                     }
                     // Bildungsgang
-                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                        && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType))
-                        && ($tblCourse = $tblStudentTransfer->getServiceTblCourse())) {
-                        if ($tblCourse->getName() == 'Gymnasium') {
-                            $item['Education'] = 'GY';
-                        } elseif ($tblCourse->getName() == 'Hauptschule') {
-                            $item['Education'] = 'HS';
-                        } elseif ($tblCourse->getName() == 'Realschule') {
-                            $item['Education'] = 'RS';
-                        } else {
-                            $item['Education'] = $tblCourse->getName();
-                        }
+                    $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                    $tblCourse = $tblStudentEducation->getServiceTblCourse();
+                    // berufsbildende Schulart
+                    if ($tblSchoolType && $tblSchoolType->isTechnical()) {
+                        $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                    } else {
+                        $courseName = $tblCourse ? $tblCourse->getName() : '';
+                    }
+                    // set Accronym for typical Course
+                    switch ($courseName) {
+                        case 'Gymnasium': $item['Education'] = 'GY'; break;
+                        case 'Hauptschule': $item['Education'] = 'HS'; break;
+                        case 'Realschule': $item['Education'] = 'RS'; break;
+                        default: $item['Education'] = $courseName; break;
                     }
                     // Wahlfach
                     $tblStudentSubjectElective = Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE');
@@ -1766,139 +1768,128 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param array $tblPersonList
-     * @param int   $GroupId
+     * @param array    $TableContent
+     * @param array    $tblPersonList
+     * @param TblGroup $GroupId
      *
-     * @return bool|FilePointer
-     * @throws TypeFileException
-     * @throws DocumentTypeException
+     * @return FilePointer
      */
-    public function createGroupListExcel($PersonList, $tblPersonList, $GroupId)
+    public function createGroupListExcel($TableContent, $tblPersonList, $tblGroup)
     {
 
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-        if (!empty($PersonList) && $tblGroup) {
-            $ColumnList['Number'] = 'lfd. Nr.';
-            $ColumnList['Salutation'] = 'Anrede';
-            $ColumnList['Title'] = 'Titel';
-            $ColumnList['FirstName'] = 'Vorname';
-            $ColumnList['LastName'] = 'Nachname';
-            $ColumnList['StreetName'] = 'Straße';
-            $ColumnList['StreetNumber'] = 'Str.Nr';
-            $ColumnList['Code'] = 'PLZ';
-            $ColumnList['City'] = 'Ort';
-            $ColumnList['District'] = 'Ortsteil';
-            $ColumnList['PhoneNumber'] = 'Telefon Festnetz';
-            $ColumnList['MobilPhoneNumber'] = 'Telefon Mobil';
-            $ColumnList['Mail'] = 'E-mail';
-            $ColumnList['Birthday'] = 'Geburtsdatum';
-            $ColumnList['BirthdaySort'] = 'Sortierung Geburtstag';
-            $ColumnList['BirthdayYearSort'] = 'Sortierung Geburtsdatum';
-            $ColumnList['BirthPlace'] = 'Geburtsort';
-            $ColumnList['Gender'] = 'Geschlecht';
-            $ColumnList['Nationality'] = 'Staatsangehörigkeit';
-            $ColumnList['Religion'] = 'Konfession';
+        $ColumnList['Number'] = 'lfd. Nr.';
+        $ColumnList['Salutation'] = 'Anrede';
+        $ColumnList['Title'] = 'Titel';
+        $ColumnList['FirstName'] = 'Vorname';
+        $ColumnList['LastName'] = 'Nachname';
+        $ColumnList['StreetName'] = 'Straße';
+        $ColumnList['StreetNumber'] = 'Str.Nr';
+        $ColumnList['Code'] = 'PLZ';
+        $ColumnList['City'] = 'Ort';
+        $ColumnList['District'] = 'Ortsteil';
+        $ColumnList['PhoneNumber'] = 'Telefon Festnetz';
+        $ColumnList['MobilPhoneNumber'] = 'Telefon Mobil';
+        $ColumnList['Mail'] = 'E-mail';
+        $ColumnList['Birthday'] = 'Geburtsdatum';
+        $ColumnList['BirthdaySort'] = 'Sortierung Geburtstag';
+        $ColumnList['BirthdayYearSort'] = 'Sortierung Geburtsdatum';
+        $ColumnList['BirthPlace'] = 'Geburtsort';
+        $ColumnList['Gender'] = 'Geschlecht';
+        $ColumnList['Nationality'] = 'Staatsangehörigkeit';
+        $ColumnList['Religion'] = 'Konfession';
+        $ColumnList['Division'] = 'aktuelle Klasse';
+        $ColumnList['ParticipationWillingness'] = 'Mitarbeitsbereitschaft';
+        $ColumnList['ParticipationActivities'] = 'Mitarbeitsbereitschaft - Tätigkeiten';
+        $ColumnList['RemarkExcel'] = 'Bemerkungen';
+        if ($tblGroup->getMetaTable() == 'PROSPECT') {
+            $ColumnList['ReservationDate'] = 'Eingangsdatum';
+            $ColumnList['InterviewDate'] = 'Aufnahmegespräch';
+            $ColumnList['TrialDate'] = 'Schnuppertag';
+            $ColumnList['ReservationYear'] = 'Voranmeldung Schuljahr';
+            $ColumnList['ReservationDivision'] = 'Voranmeldung Stufe';
+            $ColumnList['SchoolTypeA'] = 'Voranmeldung Schulart A';
+            $ColumnList['SchoolTypeB'] = 'Voranmeldung Schulart B';
+        }
+        if ($tblGroup->getMetaTable() == 'STUDENT') {
+            $ColumnList['Identifier'] = 'Schülernummer';
+            $ColumnList['School'] = 'Schule';
+            $ColumnList['SchoolType'] = 'Schulart';
+            $ColumnList['SchoolCourse'] = 'Bildungsgang';
             $ColumnList['Division'] = 'aktuelle Klasse';
-            $ColumnList['ParticipationWillingness'] = 'Mitarbeitsbereitschaft';
-            $ColumnList['ParticipationActivities'] = 'Mitarbeitsbereitschaft - Tätigkeiten';
-            $ColumnList['RemarkExcel'] = 'Bemerkungen';
-            if ($tblGroup->getMetaTable() == 'PROSPECT') {
-                $ColumnList['ReservationDate'] = 'Eingangsdatum';
-                $ColumnList['InterviewDate'] = 'Aufnahmegespräch';
-                $ColumnList['TrialDate'] = 'Schnuppertag';
-                $ColumnList['ReservationYear'] = 'Voranmeldung Schuljahr';
-                $ColumnList['ReservationDivision'] = 'Voranmeldung Stufe';
-                $ColumnList['SchoolTypeA'] = 'Voranmeldung Schulart A';
-                $ColumnList['SchoolTypeB'] = 'Voranmeldung Schulart B';
-            }
-            if ($tblGroup->getMetaTable() == 'STUDENT') {
-
-                $ColumnList['Identifier'] = 'Schülernummer';
-                $ColumnList['School'] = 'Schule';
-                $ColumnList['SchoolType'] = 'Schulart';
-                $ColumnList['SchoolCourse'] = 'Bildungsgang';
-                $ColumnList['Division'] = 'aktuelle Klasse';
-                //Agreement Head
-                if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
-                    foreach($tblAgreementCategoryAll as $tblAgreementCategory){
-                        if(($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))){
-                            foreach($tblAgreementTypeList as $tblAgreementType){
-                                $ColumnList['AgreementType'.$tblAgreementType->getId()] = $tblAgreementType->getName();
-                            }
+            //Agreement Head
+            if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+                foreach($tblAgreementCategoryAll as $tblAgreementCategory){
+                    if(($tblAgreementTypeList = Student::useService()->getStudentAgreementTypeAllByCategory($tblAgreementCategory))){
+                        foreach($tblAgreementTypeList as $tblAgreementType){
+                            $ColumnList['AgreementType'.$tblAgreementType->getId()] = $tblAgreementType->getName();
                         }
                     }
                 }
             }
-            if ($tblGroup->getMetaTable() == 'CUSTODY') {
-                $ColumnList['Occupation'] = 'Beruf';
-                $ColumnList['Employment'] = 'Arbeitsstelle';
-                $ColumnList['Remark'] = 'Bemerkung Sorgeberechtigter';
-            }
-            if ($tblGroup->getMetaTable() == 'TEACHER') {
-                $ColumnList['TeacherAcronym'] = 'Lehrerkürzel';
-            }
-            if ($tblGroup->getMetaTable() == 'CLUB') {
-                $ColumnList['ClubIdentifier'] = 'Mitgliedsnummer';
-                $ColumnList['EntryDate'] = 'Eintrittsdatum';
-                $ColumnList['ExitDate'] = 'Austrittsdatum';
-                $ColumnList['ClubRemark'] = 'Bemerkung Vereinsmitglied';
-            }
-            $fileLocation = Storage::createFilePointer('xlsx');
-            /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation->getFileLocation());
-            $Row = 0;
-            $export->setValue($export->getCell(0, 0), 'Gruppenliste ' . $tblGroup->getName());
-            if ($tblGroup->getDescription(true, true)) {
-                $Row++;
-                $export->setValue($export->getCell(0, 1), $tblGroup->getDescription(true, true));
-            }
-            if ($tblGroup->getRemark()) {
-                $Row++;
-//                $export->setStyle($export->getCell(0, 2), $export->getCell(12, 2))
-//                    ->mergeCells()->setAlignmentCenter();
-                $export->setValue($export->getCell(0, 2), $tblGroup->getRemark());
-            }
-            $Row += 2;
+        }
+        if ($tblGroup->getMetaTable() == 'CUSTODY') {
+            $ColumnList['Occupation'] = 'Beruf';
+            $ColumnList['Employment'] = 'Arbeitsstelle';
+            $ColumnList['Remark'] = 'Bemerkung Sorgeberechtigter';
+        }
+        if ($tblGroup->getMetaTable() == 'TEACHER') {
+            $ColumnList['TeacherAcronym'] = 'Lehrerkürzel';
+        }
+        if ($tblGroup->getMetaTable() == 'CLUB') {
+            $ColumnList['ClubIdentifier'] = 'Mitgliedsnummer';
+            $ColumnList['EntryDate'] = 'Eintrittsdatum';
+            $ColumnList['ExitDate'] = 'Austrittsdatum';
+            $ColumnList['ClubRemark'] = 'Bemerkung Vereinsmitglied';
+        }
+        $fileLocation = Storage::createFilePointer('xlsx');
+        /** @var PhpExcel $export */
+        $export = Document::getDocument($fileLocation->getFileLocation());
+        $Row = 0;
+        $export->setValue($export->getCell(0, 0), 'Gruppenliste ' . $tblGroup->getName());
+        if ($tblGroup->getDescription(true, true)) {
+            $Row++;
+            $export->setValue($export->getCell(0, 1), $tblGroup->getDescription(true, true));
+        }
+        if ($tblGroup->getRemark()) {
+            $Row++;
+            $export->setValue($export->getCell(0, 2), $tblGroup->getRemark());
+        }
+        $Row += 2;
+        $Column = 0;
+        foreach ($ColumnList as $Value) {
+            $export->setValue($export->getCell($Column, $Row), $Value);
+            $Column++;
+        }
+        $Row++;
+        foreach ($TableContent as $PersonData) {
             $Column = 0;
-            foreach ($ColumnList as $Value) {
-                $export->setValue($export->getCell($Column, $Row), $Value);
+            foreach ($ColumnList as $Key => $Value) {
+                if (isset($PersonData[$Key])) {
+                    // handle value as numeric
+                    if ($Key == 'Number'
+                        || $Key == 'BirthdaySort'
+                        || $Key == 'BirthdayYearSort') {
+                        // don't display if empty
+                        if ($PersonData[$Key] != '') {
+                            $export->setValue($export->getCell($Column, $Row), $PersonData[$Key],
+                                PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                        }
+                    } else {
+                        $export->setValue($export->getCell($Column, $Row), $PersonData[$Key]);
+                        if ($Key == 'RemarkExcel') {
+                            $export->setStyle($export->getCell($Column, $Row))->setWrapText()
+                                ->setAlignmentMiddle();
+                        }
+                    }
+                }
                 $Column++;
             }
             $Row++;
-            foreach ($PersonList as $PersonData) {
-                $Column = 0;
-                foreach ($ColumnList as $Key => $Value) {
-                    if (isset($PersonData[$Key])) {
-                        // handle value as numeric
-                        if ($Key == 'Number'
-                            || $Key == 'BirthdaySort'
-                            || $Key == 'BirthdayYearSort') {
-                            // don't display if empty
-                            if ($PersonData[$Key] != '') {
-                                $export->setValue($export->getCell($Column, $Row), $PersonData[$Key],
-                                    PHPExcel_Cell_DataType::TYPE_NUMERIC);
-                            }
-                        } else {
-                            $export->setValue($export->getCell($Column, $Row), $PersonData[$Key]);
-                            if ($Key == 'RemarkExcel') {
-                                $export->setStyle($export->getCell($Column, $Row))->setWrapText()
-                                    ->setAlignmentMiddle();
-                            }
-                        }
-                    }
-                    $Column++;
-                }
-                $Row++;
-            }
-            $Row++;
-            Person::setGenderFooter($export, $tblPersonList, $Row);
-            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
-
-            return $fileLocation;
         }
-
-        return false;
+        $Row++;
+        Person::setGenderFooter($export, $tblPersonList, $Row);
+        $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+        return $fileLocation;
     }
 
     /**
@@ -2148,15 +2139,6 @@ class Service extends Extension
                 if(($tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup())){
                     $item['DivisionCourse'] .= ($item['DivisionCourse'] ? ', ' : '').$tblDivisionCourseCoreGroup->getDisplayName();
                 }
-//                    if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
-//                        $item['SchoolType'] = $tblSchoolType->getName();
-//                    }
-//                    if (($tblCourseStudent = $tblStudentEducation->getServiceTblCourse())) {
-//                        $item['SchoolCourse'] = $tblCourseStudent->getName();
-//                    }
-//                    if(($tblCompany = $tblStudentEducation->getServiceTblCompany())){
-//                        $item['School'] = $tblCompany->getDisplayName();
-//                    }
             }
             if(($tblMailAll = Mail::useService()->getMailAllByPerson($tblPerson))){
                 foreach($tblMailAll as $tblToPersonMail) {

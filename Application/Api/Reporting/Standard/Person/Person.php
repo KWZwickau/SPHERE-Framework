@@ -179,9 +179,9 @@ class Person extends Extension
     {
 
         if (($tblGroup = Group::useService()->getGroupById($GroupId))
-        && ($PersonList = ReportingPerson::useService()->createGroupList($tblGroup))
-        && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-            $fileLocation = ReportingPerson::useService()->createGroupListExcel($PersonList, $tblPersonList, $GroupId);
+        && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+        && !empty($TableContent = ReportingPerson::useService()->createGroupList($tblGroup))) {
+            $fileLocation = ReportingPerson::useService()->createGroupListExcel($TableContent, $tblPersonList, $tblGroup);
             return FileSystem::getDownload($fileLocation->getRealPath(), "Gruppenliste ".$tblGroup->getName() ." ".date("Y-m-d").".xlsx")->__toString();
         }
         return false;

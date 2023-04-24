@@ -12,7 +12,6 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -41,7 +40,7 @@ class Service extends Extension
             $item['Consumer'] = $Consumer->getName();
         }
         if($tblYear = $tblDivisionCourse->getServiceTblYear()) {
-            $item['DivisionYear'] = $tblYear->getName().' '.$tblYear->getDescription();
+            $item['DivisionYear'] = $tblYear->getDisplayName();
         }
         $TeacherList = array();
         if(($tblTeacherList = $tblDivisionCourse->getDivisionTeacherList())) {
@@ -270,7 +269,7 @@ class Service extends Extension
                     $tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType);
                     if ($tblStudentSubjectList) {
                         foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                            $this->setForeignLanguage($tblStudentSubject, $tblPerson, $item);
+                            $this->setForeignLanguage($tblStudentSubject, $tblPerson, $tblDivisionCourse, $item);
                         }
                     }
                 }
@@ -284,46 +283,29 @@ class Service extends Extension
      * @param TblStudentSubject $tblStudentSubject
      * @param array $item
      */
-    private function setForeignLanguage(TblStudentSubject $tblStudentSubject, TblPerson $tblPerson, array &$item) {
+    private function setForeignLanguage(TblStudentSubject $tblStudentSubject, TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, array &$item) {
         $tblSubject = $tblStudentSubject->getServiceTblSubject();
         if ($tblSubject && ($ranking = $tblStudentSubject->getTblStudentSubjectRanking())) {
             $tblStudentEducation = false;
-            if(($tblYearList = Term::useService()->getYearByNow())){
-                foreach($tblYearList as $tblYear){
-                    if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
-                        break;
-                    }
-                }
+            if(($tblYear = $tblDivisionCourse->getServiceTblYear())){
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
             }
-            // ToDO Umarbeitung tblLevel -> Level in der Schülerakte, dann anpassen.
-            if ($tblStudentEducation && ($level = $tblStudentEducation->getLevel())
-            ) {
+            if($tblStudentEducation && ($level = $tblStudentEducation->getLevel())) {
                 $isSetValue = false;
-                if (($fromLevel = $tblStudentSubject->getServiceTblLevelFrom())
-                    && ($tillLevel = $tblStudentSubject->getServiceTblLevelTill())
-                    && $fromLevel->getName()
-                    && $tillLevel->getName()
-                    && floatval($fromLevel->getName()) <= floatval($level)
-                    && floatval($tillLevel->getName()) >= floatval($level)
-                ) {
+                $fromLevel = $tblStudentSubject->getLevelFrom();
+                $tillLevel = $tblStudentSubject->getLevelTill();
+                if($fromLevel && floatval($fromLevel) <= floatval($level)
+                && $tillLevel && floatval($tillLevel) >= floatval($level)) {
                     $isSetValue = true;
-                } elseif (($fromLevel = $tblStudentSubject->getServiceTblLevelFrom())
-                    && $fromLevel->getName()
-                    && floatval($fromLevel->getName()) <= floatval($level)
-                ) {
+                } elseif($fromLevel && !$tillLevel && floatval($fromLevel) <= floatval($level)) {
                     $isSetValue = true;
-                } elseif (($tillLevel = $tblStudentSubject->getServiceTblLevelTill())
-                    && $tillLevel->getName()
-                    && floatval($tillLevel->getName()) >= floatval($level)
-                ) {
+                } elseif($tillLevel && !$fromLevel && floatval($tillLevel) >= floatval($level)) {
                     $isSetValue = true;
-                } elseif (!$tblStudentSubject->getServiceTblLevelFrom()
-                    && !$tblStudentSubject->getServiceTblLevelTill()
-                ) {
+                } elseif(!$fromLevel && !$tillLevel) {
                     $isSetValue = true;
                 }
-                if ($isSetValue) {
-                    $item['FS' . $ranking->getIdentifier()] = $tblSubject->getAcronym();
+                if($isSetValue) {
+                    $item['FS'.$ranking->getIdentifier()] = $tblSubject->getAcronym();
                 }
             }
         }

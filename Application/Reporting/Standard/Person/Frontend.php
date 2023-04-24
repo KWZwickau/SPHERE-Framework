@@ -97,7 +97,6 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Year'] = $tblDivisionCourse->getYearName();
                 $Item['DivisionCourse'] = $tblDivisionCourse->getDisplayName();
-//                $Item['Description'] = $tblDivisionCourse->getDescription();
                 $Item['CourseType'] = $tblDivisionCourse->getTypeName();
                 $Item['SchoolType'] = $tblDivisionCourse->getSchoolTypeListFromStudents(true);
                 $Item['Option'] = new Standard('', $Route, new EyeOpen(),
@@ -112,7 +111,6 @@ class Frontend extends Extension implements IFrontendInterface
                     array(
                         'Year' => 'Jahr',
                         'DivisionCourse' => 'Kursname',
-//                        'Description' => 'Beschreibung',
                         'CourseType' => 'Typ',
                         'SchoolType' => 'Schulart',
                         'Count' => 'Schüler',
@@ -142,8 +140,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Auswertung', 'Klassenlisten');
+        $Route = '/Reporting/Standard/Person/ClassList';
         if ($DivisionCourseId === null) {
-            $Route = '/Reporting/Standard/Person/ClassList';
             if($All){
                 $Stage->addButton(new Standard('aktuelles Schuljahr', $Route));
                 $Stage->addButton(new Standard(new InfoText(new Bold('Alle Schuljahre')), $Route, null, array('All' => 1)));
@@ -153,7 +151,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $Stage->setContent($this->getChooseDivisionCourse($Route, $All));
         } else {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Standard/Person/ClassList', new ChevronLeft()));
+            $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
             if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
                 return $Stage->setContent(new Warning('Klasse nicht verfügbar.'));
             }
@@ -255,8 +253,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Auswertung', 'erweiterte Klassenlisten');
+        $Route = '/Reporting/Standard/Person/ExtendedClassList';
         if ($DivisionCourseId === null) {
-            $Route = '/Reporting/Standard/Person/ExtendedClassList';
             if($All){
                 $Stage->addButton(new Standard('aktuelles Schuljahr', $Route));
                 $Stage->addButton(new Standard(new InfoText(new Bold('Alle Schuljahre')), $Route, null, array('All' => 1)));
@@ -266,7 +264,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $Stage->setContent($this->getChooseDivisionCourse($Route, $All));
         } else {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Standard/Person/ExtendedClassList', new ChevronLeft()));
+            $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
             if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
                 return $Stage->setContent(new Warning('Klasse nicht verfügbar.'));
             }
@@ -349,8 +347,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Auswertung', 'Wahlfächer in Klassenlisten');
+        $Route = '/Reporting/Standard/Person/ElectiveClassList';
         if ($DivisionCourseId === null) {
-            $Route = '/Reporting/Standard/Person/ElectiveClassList';
             if($All){
                 $Stage->addButton(new Standard('aktuelles Schuljahr', $Route));
                 $Stage->addButton(new Standard(new InfoText(new Bold('Alle Schuljahre')), $Route, null, array('All' => 1)));
@@ -360,8 +358,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $Stage->setContent($this->getChooseDivisionCourse($Route, $All));
         } else {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Standard/Person/ElectiveClassList',
-                new ChevronLeft()));
+            $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
             if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
                 return $Stage->setContent(new Warning('Klasse nicht verfügbar.'));
             }
@@ -423,9 +420,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Auswertung', 'Klassenlisten Geburtstag');
+        $Route = '/Reporting/Standard/Person/BirthdayClassList';
         if ($DivisionCourseId === null) {
-
-            $Route = '/Reporting/Standard/Person/BirthdayClassList';
             if($All){
                 $Stage->addButton(new Standard('aktuelles Schuljahr', $Route));
                 $Stage->addButton(new Standard(new InfoText(new Bold('Alle Schuljahre')), $Route, null, array('All' => 1)));
@@ -435,8 +431,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $Stage->setContent($this->getChooseDivisionCourse($Route, $All));
         } else {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Standard/Person/BirthdayClassList',
-                new ChevronLeft()));
+            $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
             if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
                 return $Stage->setContent(new Warning('Klasse nicht verfügbar.'));
             }
@@ -490,8 +485,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Auswertung', 'Klassenlisten Krankenkasse');
+        $Route = '/Reporting/Standard/Person/MedicalInsuranceClassList';
         if ($DivisionCourseId === null) {
-            $Route = '/Reporting/Standard/Person/MedicalInsuranceClassList';
             if($All){
                 $Stage->addButton(new Standard('aktuelles Schuljahr', $Route));
                 $Stage->addButton(new Standard(new InfoText(new Bold('Alle Schuljahre')), $Route, null, array('All' => 1)));
@@ -501,8 +496,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $Stage->setContent($this->getChooseDivisionCourse($Route, $All));
         } else {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Standard/Person/MedicalInsuranceClassList',
-                new ChevronLeft()));
+            $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
             if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
                 return $Stage->setContent(new Warning('Klasse nicht verfügbar.'));
             }
@@ -1227,11 +1221,6 @@ class Frontend extends Extension implements IFrontendInterface
                         'columnDefs' => array(
                             array('type' => 'natural', 'targets' => 0),
                             array('type' => 'de_date', 'targets' => 16),
-                                // dann ist die Tabelle leer, Api bringt Fehler
-//                            array(
-//                                'type' => Consumer::useService()->getGermanSortBySetting(),
-//                                'targets' => array(1, 2)
-//                            ),
                         ),
                     )
                 ));
@@ -1279,7 +1268,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-
         return empty($inActiveStudentList) ? false : new Panel('Ehemaliger Schüler dieser Klasse', $inActiveStudentList, Panel::PANEL_TYPE_WARNING);
     }
 
@@ -1296,8 +1284,6 @@ class Frontend extends Extension implements IFrontendInterface
             new LayoutColumn(new PullRight(new Bold($tblDivisionCourse->getYearName())), 3),
             new LayoutColumn(new Ruler())
         ));
-
-//        $DivisionPanelContent .= '<br/>';
         if(($tblPersonTeacherList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER, false, false))){
             $TeacherArray = array();
             foreach($tblPersonTeacherList as $tblPersonTeacher){
@@ -1471,63 +1457,6 @@ class Frontend extends Extension implements IFrontendInterface
         );
         return $Stage;
     }
-
-//    /**
-//     * @return Form
-//     */
-//    private function getPersonStudentFilterForm()
-//    {
-//        $tblLevelShowList = array(0 => '');
-//
-//        if(($tblLevelList = Division::useService()->getLevelAll())){
-//            foreach($tblLevelList as $tblLevel) {
-//                if($tblLevel->getName()){
-//                    $tblLevelShowList[$tblLevel->getName()] = $tblLevel->getName();
-//                }
-//            }
-//        }
-//        $tblGroupList = Group::useService()->getGroupByNotLocked();
-//
-//        if(!isset($_POST['Data']['Year'])){
-//            $tblYearList = Term::useService()->getYearByNow();
-//            if($tblYearList && count($tblYearList) == 1){
-//                $_POST['Data']['Year'] = current($tblYearList)->getId();
-//            }
-//        }
-//
-//        return new Form(
-//            new FormGroup(array(
-//                new FormRow(array(
-//                    new FormColumn(
-//                        new Panel('Bildung', array(
-//                            (new SelectBox('Data[Year]', 'Schuljahr',
-//                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
-//                                ->setRequired(),
-//                            new SelectBox('Data[Type]', 'Schulart',
-//                                array('Name' => Type::useService()->getTypeAll()))
-//                        ), Panel::PANEL_TYPE_INFO)
-//                        , 4),
-//                    new FormColumn(
-//                        new Panel('Klasse', array(
-//                            new SelectBox('Data[Level]', 'Stufe', $tblLevelShowList),
-//                            new AutoCompleter('Data[Division]', 'Gruppe',
-//                                'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
-//                        ), Panel::PANEL_TYPE_INFO)
-//                        , 4),
-//                    new FormColumn(
-//                        new Panel('Gruppe',
-//                            new SelectBox('Data[Group]', 'Personengruppe', array('{{ Name }}' => $tblGroupList))
-//                            , Panel::PANEL_TYPE_INFO)
-//                        , 4)
-//                )),
-//                new FormRow(
-//                    new FormColumn(
-//                        new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Filtern')
-//                    )
-//                )
-//            ))
-//        );
-//    }
 
     /**
      * @param $Data

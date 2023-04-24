@@ -2,10 +2,7 @@
 namespace SPHERE\Application\Api\Reporting\Custom\Gersdorf;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Document\Custom\Gersdorf\Gersdorf;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Reporting\Custom\Gersdorf\Person\Person;
 
 /**
@@ -17,104 +14,77 @@ class Common
 {
 
     /**
-     * @param null $DivisionId
+     * @param string $DivisionCourseId
      *
      * @return string|bool
      */
-    public function downloadClassList($DivisionId = null)
+    public function downloadClassList(string $DivisionCourseId)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = Person::useService()->createClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = Person::useService()->createClassListExcel($PersonList, $tblPersonList);
+        if(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+        && ($tblPersonList = $tblDivisionCourse->getStudents())
+        && !empty($TableContent = Person::useService()->createClassList($tblDivisionCourse))
+        ){
+            $fileLocation = Person::useService()->createClassListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Gersdorf Klassenliste ".$tblDivisionCourse->getDisplayName()." "
+                .date("Y-m-d").".xlsx")->__toString();
+        }
+        return false;
+    }
 
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Gersdorf Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+    /**
+     * @param string $DivisionCourseId
+     *
+     * @return string|bool
+     */
+    public function downloadSignList(string $DivisionCourseId)
+    {
+
+        if(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+        && ($tblPersonList = $tblDivisionCourse->getStudents())
+        && !empty($TableContent = Person::useService()->createSignList($tblDivisionCourse))
+        ) {
+            $fileLocation = Person::useService()->createSignListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Gersdorf Unterschriftenliste ".$tblDivisionCourse->getDisplayName()." "
+                .date("Y-m-d").".xlsx")->__toString();
+        }
+        return false;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string|bool
+     */
+    public function downloadElectiveClassList($DivisionCourseId)
+    {
+
+        if(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+        && ($tblPersonList = $tblDivisionCourse->getStudents())
+        && !empty($TableContent = Person::useService()->createElectiveClassList($tblDivisionCourse))) {
+            $fileLocation = Person::useService()->createElectiveClassListExcel($TableContent, $tblPersonList, $tblDivisionCourse);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Gersdorf Klassenliste Fremdsprachen ".$tblDivisionCourse->getDisplayName()
+                ." ".date("Y-m-d").".xlsx")->__toString();
         }
 
         return false;
     }
 
     /**
-     * @param null $DivisionId
+     * @param $DivisionCourseId
      *
      * @return string|bool
      */
-    public function downloadSignList($DivisionId = null)
+    public function downloadClassPhoneList($DivisionCourseId)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = Person::useService()->createSignList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = Person::useService()->createSignListExcel($PersonList, $tblPersonList);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Gersdorf Unterschriftenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param null $DivisionId
-     *
-     * @return string|bool
-     */
-    public function downloadElectiveClassList($DivisionId = null)
-    {
-
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = Person::useService()->createElectiveClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = Person::useService()->createElectiveClassListExcel($PersonList, $tblPersonList, $DivisionId);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Gersdorf Klassenliste Fremdsprachen ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param null $DivisionId
-     *
-     * @return string|bool
-     */
-    public function downloadClassPhoneList($DivisionId = null)
-    {
-
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = Person::useService()->createClassPhoneList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = Person::useService()->createClassPhoneListExcel($PersonList, $tblPersonList);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Gersdorf Erweiterte Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+        && ($tblPersonList = $tblDivisionCourse->getStudents())
+        && !empty($TableContent = Person::useService()->createClassPhoneList($tblDivisionCourse))) {
+            $fileLocation = Person::useService()->createClassPhoneListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Gersdorf Erweiterte Klassenliste ".$tblDivisionCourse->getDisplayName()
+                ." ".date("Y-m-d").".xlsx")->__toString();
         }
 
         return false;
@@ -128,18 +98,14 @@ class Common
     public function downloadTeacherList($isTeacher = false)
     {
 
-        $PersonList = Person::useService()->createTeacherList($isTeacher);
-        if ($PersonList) {
-            $tblPersonList = Person::useService()->getPersonStaffList($isTeacher);
-            if(!empty($tblPersonList)){
-                $fileLocation = Person::useService()->createTeacherListExcel($PersonList, $tblPersonList, $isTeacher);
-                if($isTeacher){
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Lehrerliste ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Mitarbeiter ".date("Y-m-d H:i:s").".xlsx")->__toString();
+        if(!empty($PersonList = Person::useService()->createTeacherList($isTeacher))
+        && !empty($tblPersonList = Person::useService()->getPersonStaffList($isTeacher))
+        ) {
+            $fileLocation = Person::useService()->createTeacherListExcel($PersonList, $tblPersonList, $isTeacher);
+            if($isTeacher){
+                return FileSystem::getDownload($fileLocation->getRealPath(), "Lehrerliste ".date("Y-m-d").".xlsx")->__toString();
             }
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Mitarbeiter u Lehrer ".date("Y-m-d").".xlsx")->__toString();
         }
         return false;
     }

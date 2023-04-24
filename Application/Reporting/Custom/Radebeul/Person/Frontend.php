@@ -156,10 +156,10 @@ class Frontend extends Extension implements IFrontendInterface
             $tblGroupAll = Group::useService()->getGroupAll();
             if ($tblGroupAll) {
                 array_walk($tblGroupAll, function (TblGroup $tblGroup) use (&$TableContent) {
-                    $Item['Name'] = $tblGroup->getName();
-                    $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/PhoneList',
+                    $item['Name'] = $tblGroup->getName();
+                    $item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/PhoneList',
                         new EyeOpen(), array('GroupId' => $tblGroup->getId()), 'Anzeigen');
-                    array_push($TableContent, $Item);
+                    array_push($TableContent, $item);
                 });
             }
             $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -233,10 +233,10 @@ class Frontend extends Extension implements IFrontendInterface
             $tblGroupAll = Group::useService()->getGroupAll();
             if ($tblGroupAll) {
                 array_walk($tblGroupAll, function (TblGroup $tblGroup) use (&$TableContent) {
-                    $Item['Name'] = $tblGroup->getName();
-                    $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/KindergartenList', new EyeOpen(),
+                    $item['Name'] = $tblGroup->getName();
+                    $item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/KindergartenList', new EyeOpen(),
                         array('GroupId' => $tblGroup->getId()), 'Anzeigen');
-                    array_push($TableContent, $Item);
+                    array_push($TableContent, $item);
                 });
             }
             $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -299,10 +299,10 @@ class Frontend extends Extension implements IFrontendInterface
             $tblGroupAll = Group::useService()->getGroupAll();
             if ($tblGroupAll) {
                 array_walk($tblGroupAll, function (TblGroup $tblGroup) use (&$TableContent) {
-                    $Item['Name'] = $tblGroup->getName();
-                    $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/RegularSchoolList', new EyeOpen(),
+                    $item['Name'] = $tblGroup->getName();
+                    $item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/RegularSchoolList', new EyeOpen(),
                         array('GroupId' => $tblGroup->getId()), 'Anzeigen');
-                    array_push($TableContent, $Item);
+                    array_push($TableContent, $item);
                 });
             }
             $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -363,10 +363,10 @@ class Frontend extends Extension implements IFrontendInterface
         if ($GroupId === null) {
             if(($tblGroupAll = Group::useService()->getGroupAll())) {
                 array_walk($tblGroupAll, function (TblGroup $tblGroup) use (&$TableContent) {
-                    $Item['Name'] = $tblGroup->getName();
-                    $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/DiseaseList',
+                    $item['Name'] = $tblGroup->getName();
+                    $item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/DiseaseList',
                         new EyeOpen(), array('GroupId' => $tblGroup->getId()), 'Anzeigen');
-                    array_push($TableContent, $Item);
+                    array_push($TableContent, $item);
                 });
             }
             $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(

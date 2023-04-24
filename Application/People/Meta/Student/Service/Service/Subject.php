@@ -131,16 +131,17 @@ abstract class Subject extends Transfer
     }
 
     /**
-     * @param TblStudent            $tblStudent
-     * @param TblStudentSubjectType $tblStudentSubjectType
+     * @param TblStudent                   $tblStudent
+     * @param string|TblStudentSubjectType $tblStudentSubjectType
      *
      * @return bool|TblStudentSubject[]
      */
-    public function getStudentSubjectAllByStudentAndSubjectType(
-        TblStudent $tblStudent,
-        TblStudentSubjectType $tblStudentSubjectType
-    ) {
+    public function getStudentSubjectAllByStudentAndSubjectType(TblStudent $tblStudent, $tblStudentSubjectType)
+    {
 
+        if(null !== $tblStudentSubjectType && !($tblStudentSubjectType instanceof TblStudentSubjectType)){
+            $tblStudentSubjectType = $this->getStudentSubjectTypeByIdentifier($tblStudentSubjectType);
+        }
         return (new Data($this->getBinding()))->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
             $tblStudentSubjectType);
     }

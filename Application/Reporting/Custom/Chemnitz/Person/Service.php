@@ -759,37 +759,38 @@ class Service extends Extension
         if(!empty($tblPersonList = $tblDivisionCourse->getStudents())) {
             $count = 1;
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblStudentGroup1, $tblStudentGroup2, $tblDivisionCourse, &$count) {
-                $Item['Number'] = $count++;
-                $Item['ExcelName'] = array();
-                $Item['Address'] = '';
-                $Item['ExcelAddress'] = array();
-                $Item['Birthday'] = $Item['Birthplace'] = '';
-                $Item['PhoneNumbers'] = '';
-                $Item['ExcelPhoneNumbers'] = '';
-                $Item['Orientation'] = '';
-                $Item['OrientationAndFrench'] = '';
-                $Item['Advanced'] = '';
-                $Item['Education'] = '';
-                $Item['Group'] = '';
-                $Item['Group1'] = false;
-                $Item['Group2'] = false;
-                $Item['Elective'] = '';
-                $Item['ExcelElective'] = array();
-                $Item['Integration'] = '';
-                $Item['French'] = '';
+                $item['Number'] = $count++;
+                $item['ExcelName'] = array();
+                $item['Address'] = '';
+                $item['ExcelAddress'] = array();
+                $item['Birthday'] = $tblPerson->getBirthday();
+                $item['Birthplace'] = $tblPerson->getBirthplaceString();
+                $item['PhoneNumbers'] = '';
+                $item['ExcelPhoneNumbers'] = '';
+                $item['Orientation'] = '';
+                $item['OrientationAndFrench'] = '';
+                $item['Advanced'] = '';
+                $item['Education'] = '';
+                $item['Group'] = '';
+                $item['Group1'] = false;
+                $item['Group2'] = false;
+                $item['Elective'] = '';
+                $item['ExcelElective'] = array();
+                $item['Integration'] = '';
+                $item['French'] = '';
                 $father = null;
                 $mother = null;
                 $fatherPhoneList = false;
                 $motherPhoneList = false;
                 if($tblStudentGroup1
                     && Group::useService()->existsGroupPerson($tblStudentGroup1, $tblPerson)) {
-                    $Item['Group'] .= 1;
-                    $Item['Group1'] = true;
+                    $item['Group'] .= 1;
+                    $item['Group1'] = true;
                 }
                 if($tblStudentGroup2
                     && Group::useService()->existsGroupPerson($tblStudentGroup2, $tblPerson)) {
-                    (!empty($Item['Group']) ? $Item['Group'] .= ', 2' : $Item['Group'] = 2);
-                    $Item['Group2'] = true;
+                    (!empty($item['Group']) ? $item['Group'] .= ', 2' : $item['Group'] = 2);
+                    $item['Group2'] = true;
                 }
                 $tblType = false;
                 if(($tblYear = $tblDivisionCourse->getServiceTblYear())
@@ -831,78 +832,73 @@ class Service extends Extension
                 $SiblingString = '';
                 if(!empty($Sibling)) {
                     $SiblingString = implode('<br>', $Sibling);
-                    $Item['ExcelSibling'] = $Sibling;
+                    $item['ExcelSibling'] = $Sibling;
                 }
                 if(!($tblAddress = Address::useService()->getAddressByPerson($tblPerson))) {
                     $tblAddress = false;
                 }
                 if($tblAddress) {
                     if($tblAddress->getTblCity()->getDisplayDistrict() != '') {
-                        $Item['ExcelAddress'][] = $tblAddress->getTblCity()->getDisplayDistrict();
+                        $item['ExcelAddress'][] = $tblAddress->getTblCity()->getDisplayDistrict();
                     }
-                    $Item['ExcelAddress'][] = $tblAddress->getStreetName() . ' ' . $tblAddress->getStreetNumber();
-                    $Item['ExcelAddress'][] = $tblAddress->getTblCity()->getCode() . ' ' . $tblAddress->getTblCity()->getName();
+                    $item['ExcelAddress'][] = $tblAddress->getStreetName() . ' ' . $tblAddress->getStreetNumber();
+                    $item['ExcelAddress'][] = $tblAddress->getTblCity()->getCode() . ' ' . $tblAddress->getTblCity()->getName();
                 }
                 if($father) {
                     $tblAddressFather = Address::useService()->getAddressByPerson($father);
                     if($tblAddressFather && $tblAddressFather->getId() != ($tblAddress ? $tblAddress->getId() : null)) {
-                        if(!empty($Item['ExcelAddress'])) {
-                            $Item['ExcelAddress'][] = '- - - - - - -';
+                        if(!empty($item['ExcelAddress'])) {
+                            $item['ExcelAddress'][] = '- - - - - - -';
                         }
-                        $Item['ExcelAddress'][] = '(' . $father->getLastFirstName() . ')';
+                        $item['ExcelAddress'][] = '(' . $father->getLastFirstName() . ')';
                         if($tblAddressFather->getTblCity()->getDistrict() != '') {
-                            $Item['ExcelAddress'][] = $tblAddressFather->getTblCity()->getDistrict();
+                            $item['ExcelAddress'][] = $tblAddressFather->getTblCity()->getDistrict();
                         }
-                        $Item['ExcelAddress'][] = $tblAddressFather->getStreetName() . ' ' . $tblAddressFather->getStreetNumber();
-                        $Item['ExcelAddress'][] = $tblAddressFather->getTblCity()->getCode() . ' ' . $tblAddressFather->getTblCity()->getName();
+                        $item['ExcelAddress'][] = $tblAddressFather->getStreetName() . ' ' . $tblAddressFather->getStreetNumber();
+                        $item['ExcelAddress'][] = $tblAddressFather->getTblCity()->getCode() . ' ' . $tblAddressFather->getTblCity()->getName();
                     }
                 }
                 if($mother) {
                     $tblAddressMother = Address::useService()->getAddressByPerson($mother);
                     if($tblAddressMother && $tblAddressMother->getId() != ($tblAddress ? $tblAddress->getId() : null)) {
-                        if(!empty($Item['ExcelAddress'])) {
-                            $Item['ExcelAddress'][] = '- - - - - - -';
+                        if(!empty($item['ExcelAddress'])) {
+                            $item['ExcelAddress'][] = '- - - - - - -';
                         }
-                        $Item['ExcelAddress'][] = '(' . $mother->getLastFirstName() . ')';
+                        $item['ExcelAddress'][] = '(' . $mother->getLastFirstName() . ')';
                         if($tblAddressMother->getTblCity()->getDistrict() != '') {
-                            $Item['ExcelAddress'][] = $tblAddressMother->getTblCity()->getDistrict();
+                            $item['ExcelAddress'][] = $tblAddressMother->getTblCity()->getDistrict();
                         }
-                        $Item['ExcelAddress'][] = $tblAddressMother->getStreetName() . ' ' . $tblAddressMother->getStreetNumber();
-                        $Item['ExcelAddress'][] = $tblAddressMother->getTblCity()->getCode() . ' ' . $tblAddressMother->getTblCity()->getName();
+                        $item['ExcelAddress'][] = $tblAddressMother->getStreetName() . ' ' . $tblAddressMother->getStreetNumber();
+                        $item['ExcelAddress'][] = $tblAddressMother->getTblCity()->getCode() . ' ' . $tblAddressMother->getTblCity()->getName();
                     }
                 }
-                if(!empty($Item['ExcelAddress'])) {
-                    $Item['Address'] = implode('<br/>', $Item['ExcelAddress']);
+                if(!empty($item['ExcelAddress'])) {
+                    $item['Address'] = implode('<br/>', $item['ExcelAddress']);
                 }
-                $Item['FatherName'] = $father ? ($tblPerson->getLastName() == $father->getLastName()
+                $item['FatherName'] = $father ? ($tblPerson->getLastName() == $father->getLastName()
                     ? $father->getFirstSecondName() : $father->getFirstSecondName() . ' ' . $father->getLastName())
                     : '';
-                $Item['MotherName'] = $mother ? ($tblPerson->getLastName() == $mother->getLastName()
+                $item['MotherName'] = $mother ? ($tblPerson->getLastName() == $mother->getLastName()
                     ? $mother->getFirstSecondName() : $mother->getFirstSecondName() . ' ' . $mother->getLastName())
                     : '';
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                $Item['DisplayName'] = ($Item['Integration'] === '1'
+                $item['DisplayName'] = ($item['Integration'] === '1'
                         ? new Bold($tblPerson->getLastFirstName())
                         : $tblPerson->getLastFirstName())
-                    . ($father || $mother ? '<br>(' . ($father ? $Item['FatherName']
+                    . ($father || $mother ? '<br>(' . ($father ? $item['FatherName']
                             . ($mother ? ', ' : '') : '')
-                        . ($mother ? $Item['MotherName'] : '') . ')' : '')
+                        . ($mother ? $item['MotherName'] : '') . ')' : '')
                     . ($SiblingString != '' ? '<br/>' . $SiblingString : '');
-                $Item['ExcelName'][] = $tblPerson->getLastFirstName();
+                $item['ExcelName'][] = $tblPerson->getLastFirstName();
                 if($father || $mother) {
-                    $Item['ExcelName'][] = '(' . ($father ? $Item['FatherName']
+                    $item['ExcelName'][] = '(' . ($father ? $item['FatherName']
                             . ($mother ? ', ' : '') : '')
-                        . ($mother ? $Item['MotherName'] : '') . ')';
+                        . ($mother ? $item['MotherName'] : '') . ')';
                 }
                 if(!empty($Sibling)) {
                     foreach ($Sibling as $Child) {
-                        $Item['ExcelName'][] = $Child;
+                        $item['ExcelName'][] = $Child;
                     }
-                }
-                $common = Common::useService()->getCommonByPerson($tblPerson);
-                if($common) {
-                    $Item['Birthday'] = $common->getTblCommonBirthDates()->getBirthday();
-                    $Item['Birthplace'] = $common->getTblCommonBirthDates()->getBirthplace();
                 }
                 $phoneNumbers = array();
                 $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
@@ -933,8 +929,8 @@ class Service extends Extension
                 }
                 if(!empty($phoneNumbers)) {
 //                    $phoneNumbers = array_unique($phoneNumbers);
-                    $Item['PhoneNumbers'] = implode('<br>', $phoneNumbers);
-                    $Item['ExcelPhoneNumbers'] = $phoneNumbers;
+                    $item['PhoneNumbers'] = implode('<br>', $phoneNumbers);
+                    $item['ExcelPhoneNumbers'] = $phoneNumbers;
                 }
                 // NK/Profil
                 if($tblStudent) {
@@ -944,7 +940,7 @@ class Service extends Extension
                         $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking);
                     if($tblStudentSubject) {
                         if($tblStudentSubject->getServiceTblSubject() && $tblStudentSubject->getServiceTblSubject()->getAcronym() == 'FR') {
-                            $Item['French'] = 'FR';
+                            $item['French'] = 'FR';
                         }
                     }
                     $isSet = false;
@@ -954,7 +950,7 @@ class Service extends Extension
                         Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE')
                     );
                     if($tblStudentProfile && ($tblSubject = $tblStudentProfile[0]->getServiceTblSubject())) {
-                        $Item['Orientation'] = $tblSubject->getAcronym();
+                        $item['Orientation'] = $tblSubject->getAcronym();
                         $isSet = true;
                     }
                     // Neigungskurs
@@ -964,39 +960,35 @@ class Service extends Extension
                     );
                     if($tblStudentOrientation && ($tblSubject = $tblStudentOrientation[0]->getServiceTblSubject())) {
                         if(!$isSet) {
-                            $Item['Orientation'] = $tblSubject->getAcronym();
+                            $item['Orientation'] = $tblSubject->getAcronym();
                         } elseif($tblType && $tblType->getName() == TblTypeSchool::IDENT_GYMNASIUM) {
-                            $Item['Advanced'] = $tblSubject->getAcronym();
+                            $item['Advanced'] = $tblSubject->getAcronym();
                         }
                     }
                     if($tblType && $tblType->getName() == TblTypeSchool::IDENT_OBER_SCHULE) {
-                        $Item['OrientationAndFrench'] = $Item['Orientation'] .
-                            (!empty($Item['Orientation']) && !empty($Item['French']) ? ', ' : '') . $Item['French'];
+                        $item['OrientationAndFrench'] = $item['Orientation'] .
+                            (!empty($item['Orientation']) && !empty($item['French']) ? ', ' : '') . $item['French'];
                     } else {
-                        $Item['OrientationAndFrench'] = $Item['Orientation'];
+                        $item['OrientationAndFrench'] = $item['Orientation'];
                     }
-                    if($Item['Advanced'] && $Item['OrientationAndFrench']) {
-                        $Item['OrientationAndFrench'] .= '<br/>' . $Item['Advanced'];
+                    if($item['Advanced'] && $item['OrientationAndFrench']) {
+                        $item['OrientationAndFrench'] .= '<br/>' . $item['Advanced'];
                     }
                     // Bildungsgang
-                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                    if($tblTransferType) {
-                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                            $tblTransferType);
-                        if($tblStudentTransfer) {
-                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                            if($tblCourse) {
-                                if($tblCourse->getName() == 'Gymnasium') {
-                                    $Item['Education'] = 'GY';
-                                } elseif($tblCourse->getName() == 'Hauptschule') {
-                                    $Item['Education'] = 'HS';
-                                } elseif($tblCourse->getName() == 'Realschule') {
-                                    $Item['Education'] = 'RS';
-                                } else {
-                                    $Item['Education'] = $tblCourse->getName();
-                                }
-                            }
-                        }
+                    $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                    $tblCourse = $tblStudentEducation->getServiceTblCourse();
+                    // berufsbildende Schulart
+                    if ($tblSchoolType && $tblSchoolType->isTechnical()) {
+                        $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                    } else {
+                        $courseName = $tblCourse ? $tblCourse->getName() : '';
+                    }
+                    // set Accronym for typical Course
+                    switch ($courseName) {
+                        case 'Gymnasium': $item['Education'] = 'GY'; break;
+                        case 'Hauptschule': $item['Education'] = 'HS'; break;
+                        case 'Realschule': $item['Education'] = 'RS'; break;
+                        default: $item['Education'] = $courseName; break;
                     }
                     // Wahlfach
                     $tblStudentElectiveList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
@@ -1021,14 +1013,14 @@ class Service extends Extension
                             ksort($ElectiveList);
                         }
                         if(!empty($ElectiveList)) {
-                            $Item['Elective'] = implode('<br/>', $ElectiveList);
+                            $item['Elective'] = implode('<br/>', $ElectiveList);
                             foreach ($ElectiveList as $Elective) {
-                                $Item['ExcelElective'][] = $Elective;
+                                $item['ExcelElective'][] = $Elective;
                             }
                         }
                     }
                 }
-                array_push($TableContent, $Item);
+                array_push($TableContent, $item);
             });
         }
         return $TableContent;

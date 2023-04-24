@@ -29,246 +29,234 @@ class Service
     public function createSuSList()
     {
 
+        $TableContent = array();
         $tblPersonList = array();
         if(($tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))){
-            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroupStudent);
+            $tblPersonList = $tblGroupStudent->getPersonList();
         }
+        if(empty($tblPersonList)){
+            return $TableContent;
+        }
+        array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+            // Content
+            $item['PersonId'] = $tblPerson->getId();
+            $item['StudentNumber'] = '';
+            $item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
+            $item['PersonGroupKL'] = '';
+            $item['PersonGroupTeam'] = '';
+            $item['PersonGroupG'] = '';
+            $item['LastName'] = $tblPerson->getLastName();
+            $item['CallName'] = $tblPerson->getCallName();
+            $item['FirstName'] = $tblPerson->getFirstName();
+            $item['SecondName'] = $tblPerson->getSecondName();
+            $item['PersonGroupTutor'] = '';
+            $item['Birthday'] = '';
+            $item['Birthplace'] = '';
+            $item['Gender'] = '';
+            $item['ExcelStreet'] = '';
+            $item['Code'] = '';
+            $item['City'] = '';
+            $item['AddressRemark'] = '';
+            $item['Nationality'] = '';
+            $item['Denomination'] = '';
+            $item['LeavingSchool'] = '';
+            for($i = 1; $i <= 2; $i++){
+                $item['PersonIdS'.$i] = '';
+                $item['TitleS'.$i] = '';
+                $item['LastNameS'.$i] = '';
+                $item['FirstNameS'.$i] = '';
+                $item['AddressRemarkS'.$i] = '';
+                $item['ExcelStreetS'.$i] = '';
+                $item['CodeS'.$i] = '';
+                $item['CityS'.$i] = '';
+                $item['MailS'.$i] = '';
+                $item['Mail2S'.$i] = '';
+                $item['RemarkS'.$i] = '';
+            }
+            $item['EnterDate'] = '';
+            $item['LeaveDate'] = '';
+            $item['Region'] = '';
+            $item['Mail'] = '';
+            $item['MailExcel'] = '';
+            $item['Masern'] = '';
+            for($j = 1; $j <= 3; $j++) {
+                $item['Foreign_Language'.$j] = '';
+                $item['Foreign_Language'.$j.'_JG'] = '';
+            }
+            $item['UserName'] = $tblPerson->getLastName().'.'.$tblPerson->getFirstName();
+            $item['MigrationBackground'] = '';
 
-        $TableContent = array();
-
-        if (!empty( $tblPersonList )) {
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
-                // Content
-                $Item['PersonId'] = $tblPerson->getId();
-                $Item['StudentNumber'] = '';
-                $Item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
-                $Item['PersonGroupKL'] = '';
-                $Item['PersonGroupTeam'] = '';
-                $Item['PersonGroupG'] = '';
-                $Item['LastName'] = $tblPerson->getLastName();
-                $Item['CallName'] = $tblPerson->getCallName();
-                $Item['FirstName'] = $tblPerson->getFirstName();
-                $Item['SecondName'] = $tblPerson->getSecondName();
-                $Item['PersonGroupTutor'] = '';
-                $Item['Birthday'] = '';
-                $Item['Birthplace'] = '';
-                $Item['Gender'] = '';
-                $Item['ExcelStreet'] = '';
-                $Item['Code'] = '';
-                $Item['City'] = '';
-                $Item['AddressRemark'] = '';
-                $Item['Nationality'] = '';
-                $Item['Denomination'] = '';
-                $Item['LeavingSchool'] = '';
-                for($i = 1; $i <= 2; $i++){
-                    $Item['PersonIdS'.$i] = '';
-                    $Item['TitleS'.$i] = '';
-                    $Item['LastNameS'.$i] = '';
-                    $Item['FirstNameS'.$i] = '';
-                    $Item['AddressRemarkS'.$i] = '';
-                    $Item['ExcelStreetS'.$i] = '';
-                    $Item['CodeS'.$i] = '';
-                    $Item['CityS'.$i] = '';
-                    $Item['MailS'.$i] = '';
-                    $Item['Mail2S'.$i] = '';
-                    $Item['RemarkS'.$i] = '';
-                }
-                $Item['EnterDate'] = '';
-                $Item['LeaveDate'] = '';
-                $Item['Region'] = '';
-                $Item['Mail'] = '';
-                $Item['MailExcel'] = '';
-                $Item['Masern'] = '';
-                for($j = 1; $j <= 3; $j++) {
-                    $Item['Foreign_Language'.$j] = '';
-                    $Item['Foreign_Language'.$j.'_JG'] = '';
-                }
-                $Item['UserName'] = $tblPerson->getLastName().'.'.$tblPerson->getFirstName();
-                $Item['MigrationBackground'] = '';
-
-                if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-                    $Item['StudentNumber'] = $tblStudent->getIdentifier();
-                }
-                //  Personengruppen Schüler
-                if($tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPerson)){
-                    foreach($tblPersonGroupList as $tblPersonGroup){
-                        if(strpos($tblPersonGroup->getName(), 'Klasse') !== false){
-                            if($Item['PersonGroupKL'] != ''){
-                                $Item['PersonGroupKL'] .= ', '.$tblPersonGroup->getName();
-                            } else {
-                                $Item['PersonGroupKL'] .= $tblPersonGroup->getName();
-                            }
+            if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
+                $item['StudentNumber'] = $tblStudent->getIdentifier();
+            }
+            //  Personengruppen Schüler
+            if($tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPerson)){
+                foreach($tblPersonGroupList as $tblPersonGroup){
+                    if(strpos($tblPersonGroup->getName(), 'Klasse') !== false){
+                        if($item['PersonGroupKL'] != ''){
+                            $item['PersonGroupKL'] .= ', '.$tblPersonGroup->getName();
+                        } else {
+                            $item['PersonGroupKL'] .= $tblPersonGroup->getName();
                         }
-                        if(strpos($tblPersonGroup->getName(), 'Team') !== false){
-                            if($Item['PersonGroupTeam'] != ''){
-                                $Item['PersonGroupTeam'] .= ', '.$tblPersonGroup->getName();
-                            } else {
-                                $Item['PersonGroupTeam'] .= $tblPersonGroup->getName();
-                            }
+                    }
+                    if(strpos($tblPersonGroup->getName(), 'Team') !== false){
+                        if($item['PersonGroupTeam'] != ''){
+                            $item['PersonGroupTeam'] .= ', '.$tblPersonGroup->getName();
+                        } else {
+                            $item['PersonGroupTeam'] .= $tblPersonGroup->getName();
                         }
-                        if(strpos($tblPersonGroup->getName(), 'Gruppe') !== false){
-                            if($Item['PersonGroupG'] != ''){
-                                $Item['PersonGroupG'] .= ', '.$tblPersonGroup->getName();
-                            } else {
-                                $Item['PersonGroupG'] .= $tblPersonGroup->getName();
-                            }
+                    }
+                    if(strpos($tblPersonGroup->getName(), 'Gruppe') !== false){
+                        if($item['PersonGroupG'] != ''){
+                            $item['PersonGroupG'] .= ', '.$tblPersonGroup->getName();
+                        } else {
+                            $item['PersonGroupG'] .= $tblPersonGroup->getName();
                         }
-                        if(strpos($tblPersonGroup->getName(), 'Tutor') !== false){
-                            if($Item['PersonGroupTutor'] != ''){
-                                $Item['PersonGroupTutor'] .= ', '.$tblPersonGroup->getName();
-                            } else {
-                                $Item['PersonGroupTutor'] .= $tblPersonGroup->getName();
-                            }
+                    }
+                    if(strpos($tblPersonGroup->getName(), 'Tutor') !== false){
+                        if($item['PersonGroupTutor'] != ''){
+                            $item['PersonGroupTutor'] .= ', '.$tblPersonGroup->getName();
+                        } else {
+                            $item['PersonGroupTutor'] .= $tblPersonGroup->getName();
                         }
                     }
                 }
-
-
-                // Allgemeine Daten Schüler
-                if (($common = Common::useService()->getCommonByPerson($tblPerson))) {
-                    if(($tblCommonBirthDates = $common->getTblCommonBirthDates())){
-                        $Item['Birthday'] = $tblCommonBirthDates->getBirthday();
-                        $Item['Birthplace'] = $tblCommonBirthDates->getBirthplace();
-                        if(($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())){
-                            $Item['Gender'] = $tblCommonGender->getName();
-                        }
-                    }
-                    if(($tblCommonInformation = $common->getTblCommonInformation())){
-                        $Item['Nationality'] = $tblCommonInformation->getNationality();
-                        $Item['Denomination'] = $tblCommonInformation->getDenomination();
+            }
+            // Allgemeine Daten Schüler
+            if (($common = Common::useService()->getCommonByPerson($tblPerson))) {
+                if(($tblCommonBirthDates = $common->getTblCommonBirthDates())){
+                    $item['Birthday'] = $tblCommonBirthDates->getBirthday();
+                    $item['Birthplace'] = $tblCommonBirthDates->getBirthplace();
+                    if(($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())){
+                        $item['Gender'] = $tblCommonGender->getName();
                     }
                 }
-                // Address Schüler
-                if (( $tblAdress = Address::useService()->getAddressByPerson($tblPerson) )) {
-//                    $tblToPersonAdress = Address::useService()->getToPersonAllByAddress($tblAdress);
-//                    $Item['Address'] = $tblAdress->getStreetName().' '.$tblAdress->getStreetNumber().', '.$tblAdress->getTblCity()->getCode().' '
-//                        .$tblAdress->getTblCity()->getName();
-
-//                    $Item['StreetName'] = $tblAdress->getStreetName();
-//                    $Item['StreetNumber'] = $tblAdress->getStreetNumber();
-                    $Item['ExcelStreet'] = $tblAdress->getStreetName().' '.$tblAdress->getStreetNumber();
-                    $Item['Code'] = $tblAdress->getTblCity()->getCode();
-                    $Item['City'] = $tblAdress->getTblCity()->getName();
-//                    $Item['District'] = $tblAdress->getTblCity()->getDistrict();
-                    $RemarkToPerson = '';
-                    if(($tblToPersonAddressList = Address::useService()->getToPersonAllByAddress($tblAdress))) {
-                        foreach($tblToPersonAddressList as $tblToPersonAddress){
-                            if($tblToPersonAddress->getServiceTblPerson()->getId() == $tblPerson->getId()){
-                                $RemarkToPerson = $tblToPersonAddress->getRemark();
+                if(($tblCommonInformation = $common->getTblCommonInformation())){
+                    $item['Nationality'] = $tblCommonInformation->getNationality();
+                    $item['Denomination'] = $tblCommonInformation->getDenomination();
+                }
+            }
+            // Address Schüler
+            if (( $tblAdress = Address::useService()->getAddressByPerson($tblPerson) )) {
+                $item['ExcelStreet'] = $tblAdress->getStreetName().' '.$tblAdress->getStreetNumber();
+                $item['Code'] = $tblAdress->getTblCity()->getCode();
+                $item['City'] = $tblAdress->getTblCity()->getName();
+                $RemarkToPerson = '';
+                if(($tblToPersonAddressList = Address::useService()->getToPersonAllByAddress($tblAdress))) {
+                    foreach($tblToPersonAddressList as $tblToPersonAddress){
+                        if($tblToPersonAddress->getServiceTblPerson()->getId() == $tblPerson->getId()){
+                            $RemarkToPerson = $tblToPersonAddress->getRemark();
+                        }
+                    }
+                }
+                $item['AddressRemark'] = $RemarkToPerson;
+                if($tblAdress->getRegion()){
+                    $item['Region'] = $tblAdress->getRegion();
+                } else {
+                    $item['Region'] = Address::useService()->getRegionStringByCode($tblAdress->getTblCity()->getCode());
+                }
+            }
+            // Schülerakte
+            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                if(($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::ARRIVE))){
+                    if(($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
+                        $item['EnterDate'] = $tblStudentTransfer->getTransferDate();
+                        if(($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
+                            $item['LeavingSchool'] = $tblCompany->getName();
+                        }
+                    }
+                }
+                if(($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE))){
+                    if(($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
+                        $item['LeaveDate'] = $tblStudentTransfer->getTransferDate();
+                    }
+                }
+                if(($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier(TblStudentSubjectType::TYPE_FOREIGN_LANGUAGE))){
+                    if(($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType))){
+                        foreach($tblStudentSubjectList as $tblStudentSubject){
+                            for($k = 1; $k <= 3; $k++){
+                                if($tblStudentSubject->getTblStudentSubjectRanking()->getName() == $k){
+                                    $item['Foreign_Language'.$k] = $tblStudentSubject->getServiceTblSubject()->getName();
+                                    if(($level = $tblStudentSubject->getLevelFrom())){
+                                        $item['Foreign_Language'.$k.'_JG'] = $level;
+                                    }
+                                }
                             }
                         }
                     }
-                    $Item['AddressRemark'] = $RemarkToPerson;
-                    if($tblAdress->getRegion()){
-                        $Item['Region'] = $tblAdress->getRegion();
-                    } else {
-                        $Item['Region'] = Address::useService()->getRegionStringByCode($tblAdress->getTblCity()->getCode());
-                    }
                 }
-                // Schülerakte
-                if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                    if(($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::ARRIVE))){
-                        if(($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
-                            $Item['EnterDate'] = $tblStudentTransfer->getTransferDate();
-                            if(($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
-                                $Item['LeavingSchool'] = $tblCompany->getName();
-                            }
-                        }
-                    }
-                    if(($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE))){
-                        if(($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
-                            $Item['LeaveDate'] = $tblStudentTransfer->getTransferDate();
-                        }
-                    }
-                    if(($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier(TblStudentSubjectType::TYPE_FOREIGN_LANGUAGE))){
-                        if(($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType))){
-                            foreach($tblStudentSubjectList as $tblStudentSubject){
-                                for($k = 1; $k <= 3; $k++){
-                                    if($tblStudentSubject->getTblStudentSubjectRanking()->getName() == $k){
-                                        $Item['Foreign_Language'.$k] = $tblStudentSubject->getServiceTblSubject()->getName();
-                                        if(($tblLevel = $tblStudentSubject->getServiceTblLevelFrom())){
-                                            $Item['Foreign_Language'.$k.'_JG'] = $tblLevel->getName();
+                if(($tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord())){
+                    $item['Masern'] = $tblStudentMedicalRecord->getMasernDocumentType()->getTextShort();
+                }
+                if($tblStudent->getHasMigrationBackground()){
+                    $item['MigrationBackground'] = 'Ja';
+                } else {
+                    $item['MigrationBackground'] = 'Nein';
+                }
+            }
+            // Sorgeberechtigte
+            if(($tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN))){
+                if(($tbltoPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))){
+                    foreach($tbltoPersonList as $tbltoPerson){
+                        if(($tblPersonS = $tbltoPerson->getServiceTblPersonFrom())){
+                            $Number = $tbltoPerson->getRanking();
+                            $item['PersonIdS'.$Number] = $tblPersonS->getId();
+                            $item['TitleS'.$Number] = $tblPersonS->getTitle();
+                            $item['LastNameS'.$Number] = $tblPersonS->getLastName();
+                            $item['FirstNameS'.$Number] = $tblPersonS->getFirstName();
+
+                            // Address
+                            if (( $tblAdress = Address::useService()->getAddressByPerson($tblPersonS) )) {
+                                $item['ExcelStreetS'.$Number] = '';
+                                $item['CodeS'.$Number] = '';
+                                $item['CityS'.$Number] = '';
+                                $item['ExcelStreetS'.$Number] = $tblAdress->getStreetName().' '.$tblAdress->getStreetNumber();
+                                $item['CodeS'.$Number] = $tblAdress->getTblCity()->getCode();
+                                $item['CityS'.$Number] = $tblAdress->getTblCity()->getName();
+                                $RemarkToPerson = '';
+                                if(($tblToPersonAddressList = Address::useService()->getToPersonAllByAddress($tblAdress))) {
+                                    foreach($tblToPersonAddressList as $tblToPersonAddress){
+                                        if($tblToPersonAddress->getServiceTblPerson()->getId() == $tblPersonS->getId()){
+                                            $RemarkToPerson = $tblToPersonAddress->getRemark();
                                         }
                                     }
                                 }
+                                $item['AddressRemarkS'.$Number] = $RemarkToPerson;
                             }
-                        }
-                    }
-                    if(($tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord())){
-                        $Item['Masern'] = $tblStudentMedicalRecord->getMasernDocumentType()->getTextShort();
-                    }
-                    if($tblStudent->getHasMigrationBackground()){
-                        $Item['MigrationBackground'] = 'Ja';
-                    } else {
-                        $Item['MigrationBackground'] = 'Nein';
-                    }
-                }
-                // Sorgeberechtigte
-                if(($tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN))){
-                    if(($tbltoPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))){
-                        foreach($tbltoPersonList as $tbltoPerson){
-                            if(($tblPersonS = $tbltoPerson->getServiceTblPersonFrom())){
-                                $Number = $tbltoPerson->getRanking();
-                                $Item['PersonIdS'.$Number] = $tblPersonS->getId();
-                                $Item['TitleS'.$Number] = $tblPersonS->getTitle();
-                                $Item['LastNameS'.$Number] = $tblPersonS->getLastName();
-                                $Item['FirstNameS'.$Number] = $tblPersonS->getFirstName();
 
-                                // Address
-                                if (( $tblAdress = Address::useService()->getAddressByPerson($tblPersonS) )) {
-                                    $Item['ExcelStreetS'.$Number] = '';
-                                    $Item['CodeS'.$Number] = '';
-                                    $Item['CityS'.$Number] = '';
-                                    $Item['ExcelStreetS'.$Number] = $tblAdress->getStreetName().' '.$tblAdress->getStreetNumber();
-                                    $Item['CodeS'.$Number] = $tblAdress->getTblCity()->getCode();
-                                    $Item['CityS'.$Number] = $tblAdress->getTblCity()->getName();
-                                    //                    $Item['District'] = $tblAdress->getTblCity()->getDistrict();
-                                    $RemarkToPerson = '';
-                                    if(($tblToPersonAddressList = Address::useService()->getToPersonAllByAddress($tblAdress))) {
-                                        foreach($tblToPersonAddressList as $tblToPersonAddress){
-                                            if($tblToPersonAddress->getServiceTblPerson()->getId() == $tblPersonS->getId()){
-                                                $RemarkToPerson = $tblToPersonAddress->getRemark();
-                                            }
-                                        }
-                                    }
-                                    $Item['AddressRemarkS'.$Number] = $RemarkToPerson;
+                            if(($tblMailList = Mail::useService()->getMailAllByPerson($tblPersonS))){
+                                if(isset($tblMailList[0]) && ($tblMail = $tblMailList[0]->getTblMail())){
+                                    $item['MailS'.$Number] = $tblMail->getAddress();
                                 }
+                                if(isset($tblMailList[1]) && ($tblMail = $tblMailList[1]->getTblMail())){
+                                    $item['Mail2S'.$Number] = $tblMail->getAddress();
+                                }
+                            }
 
-                                if(($tblMailList = Mail::useService()->getMailAllByPerson($tblPersonS))){
-                                    if(isset($tblMailList[0]) && ($tblMail = $tblMailList[0]->getTblMail())){
-                                        $Item['MailS'.$Number] = $tblMail->getAddress();
-                                    }
-                                    if(isset($tblMailList[1]) && ($tblMail = $tblMailList[1]->getTblMail())){
-                                        $Item['Mail2S'.$Number] = $tblMail->getAddress();
-                                    }
-                                }
-
-                                if(($tblCommonS = $tblPerson->getCommon())){
-                                    $Item['RemarkS'.$Number] = $tblCommonS->getRemark();
-                                }
+                            if(($tblCommonS = $tblPerson->getCommon())){
+                                $item['RemarkS'.$Number] = $tblCommonS->getRemark();
                             }
                         }
                     }
                 }
-                // E-Mail
-                $ContactMailList = array();
-                $tblMailList = Mail::useService()->getMailAllByPerson($tblPerson);
-                if ($tblMailList) {
-                    foreach ($tblMailList as $tblMail) {
-                        if ($tblMail->getTblMail()) {
-                            $ContactMailList[] = $tblMail->getTblMail()->getAddress();
-                        }
-                    }
-                    if (!empty( $ContactMailList )) {
-                        $Item['Mail'] = implode('<br>', $ContactMailList);
-                        $Item['MailExcel'] = implode('; ', $ContactMailList);
+            }
+            // E-Mail
+            $ContactMailList = array();
+            $tblMailList = Mail::useService()->getMailAllByPerson($tblPerson);
+            if ($tblMailList) {
+                foreach ($tblMailList as $tblMail) {
+                    if ($tblMail->getTblMail()) {
+                        $ContactMailList[] = $tblMail->getTblMail()->getAddress();
                     }
                 }
+                if (!empty( $ContactMailList )) {
+                    $item['Mail'] = implode('<br>', $ContactMailList);
+                    $item['MailExcel'] = implode('; ', $ContactMailList);
+                }
+            }
 
-                array_push($TableContent, $Item);
-            });
-        }
-
+            array_push($TableContent, $item);
+        });
         return $TableContent;
     }
 
