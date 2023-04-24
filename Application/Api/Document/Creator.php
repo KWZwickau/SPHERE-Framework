@@ -1142,7 +1142,7 @@ class Creator extends Extension
         if($Select == 'Help'){
             $file = "Common/Style/Resource/Document/Manual/SSWHelp.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Hilfe_Schulsoftware_25.11.2021.pdf");
+            header("Content-Disposition: attachment; filename=Hilfe_Schulsoftware_18.04.2023.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'UserRole') {
             $file = "Common/Style/Resource/Document/Manual/SSWUserRole.pdf";
