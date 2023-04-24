@@ -3,10 +3,11 @@
 namespace SPHERE\Application\Document\Standard\EnrollmentDocument;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -50,15 +51,14 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private static function setButtonList(Stage $Stage)
     {
-        $Stage->addButton(new Standard('Schüler', '/Document/Standard/EnrollmentDocument', new Person(), array(),
-            'Schulbescheinigung eines Schülers'));
+        $Stage->addButton(new Standard('Schüler', '/Document/Standard/EnrollmentDocument', new Person(), array(), 'Schulbescheinigung eines Schülers'));
         $Url = $_SERVER['REDIRECT_URL'];
         if(strpos($Url, '/EnrollmentDocument/Division')){
-            $Stage->addButton(new Standard(new Info(new Bold('Klasse')), '/Document/Standard/EnrollmentDocument/Division',
-                new PersonGroup(), array(), 'Schulbescheinigungen einer Klasse'));
+            $Stage->addButton(new Standard(new Info(new Bold('Kurs')), '/Document/Standard/EnrollmentDocument/Division', new PersonGroup(),
+                array(), 'Schulbescheinigungen eines Kurses'));
         } else {
-            $Stage->addButton(new Standard('Klasse', '/Document/Standard/EnrollmentDocument/Division', new PersonGroup(),
-                array(), 'Schulbescheinigungen einer Klasse'));
+            $Stage->addButton(new Standard('Kurs', '/Document/Standard/EnrollmentDocument/Division', new PersonGroup(),
+                array(), 'Schulbescheinigungen eines Kurses'));
         }
     }
 
@@ -70,7 +70,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public static function frontendSelectDivision(bool $IsAllYears = false, ?string $YearId = null): Stage
     {
-        $Stage = new Stage('Schulbescheinigung', 'Klasse auswählen');
+        $Stage = new Stage('Schulbescheinigung', 'Kurs auswählen');
         self::setButtonList($Stage);
 
         list($yearButtonList, $filterYearList)
@@ -100,60 +100,66 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public static function loadDivisionTable(array $filterYearList): TableData
     {
-        $TableContent = array();
-        if (($tblDivisionAll = Division::useService()->getDivisionAll())) {
-            foreach ($tblDivisionAll as $tblDivision) {
-                // Schuljahre filtern
-                if (!empty($filterYearList)
-                    && ($tblYearDivision = $tblDivision->getServiceTblYear())
-                    && !isset($filterYearList[$tblYearDivision->getId()]))
-                {
-                    continue;
+        $dataList = array();
+        $tblDivisionCourseList = array();
+        if ($filterYearList) {
+            foreach ($filterYearList as $tblYear) {
+                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                    $tblDivisionCourseList = $tblDivisionCourseListDivision;
                 }
-
-                $count = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                $Item['Year'] = '';
-                $Item['Division'] = $tblDivision->getDisplayName();
-                $Item['Type'] = $tblDivision->getTypeName();
-                if ($tblDivision->getServiceTblYear()) {
-                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
+                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                    TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
                 }
-                $Item['Count'] = $count;
+            }
+        } else {
+            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_DIVISION))) {
+                $tblDivisionCourseList = $tblDivisionCourseListDivision;
+            }
+            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+            }
+        }
 
-                if ($count > 0) {
-                    $Item['Option'] = (new External(
+        /** @var TblDivisionCourse $tblDivisionCourse */
+        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+            $count = $tblDivisionCourse->getCountStudents();
+            $dataList[] = array(
+                'Year' => $tblDivisionCourse->getYearName(),
+                'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
+                'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                'Count' => $count,
+                'Option' => $count > 0
+                    ? (new External(
                         '',
                         '/Api/Document/Standard/EnrollmentDocument/CreateMulti',
                         new Download(),
                         array(
-                            'DivisionId' => $tblDivision->getId()
+                            'DivisionCourseId' => $tblDivisionCourse->getId()
                         ),
                         'Schulbescheinigungen herunterladen'
-                    ))->__toString();
-                } else {
-                    $Item['Option'] = '';
-                }
-
-                array_push($TableContent, $Item);
-            }
+                    ))->__toString()
+                    : ''
+            );
         }
 
-        return new TableData($TableContent, null,
+        return new TableData($dataList, null,
             array(
-                'Year' => 'Jahr',
-                'Division' => 'Klasse',
-                'Type' => 'Schulart',
+                'Year' => 'Schuljahr',
+                'DivisionCourse' => 'Kurs',
+                'DivisionCourseType' => 'Kurs-Typ',
+                'SchoolTypes' => 'Schularten',
                 'Count' => 'Schüler',
                 'Option' => '',
             ), array(
-                'columnDefs' => array(
-                    array('type' => 'natural', 'targets' => array(1,3)),
-                    array('orderable' => false, 'targets'   => -1),
-                ),
                 'order' => array(
-                    array(0, 'desc'),
-                    array(2, 'asc'),
-                    array(1, 'asc')
+                    array('0', 'desc'),
+                    array('1', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 1),
+                    array('orderable' => false, 'width' => '1%', 'targets' => -1)
                 ),
                 'responsive' => false
             ));
@@ -164,46 +170,15 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public static function frontendEnrollmentDocument(): Stage
     {
-
         $Stage = new Stage('Schulbescheinigung', 'Schüler auswählen');
         self::setButtonList($Stage);
-
-        $dataList = array();
-        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                foreach ($tblPersonList as $tblPerson) {
-                    $tblAddress = $tblPerson->fetchMainAddress();
-                    $dataList[] = array(
-                        'Name'     => $tblPerson->getLastFirstName(),
-                        'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
-                        'Option'   => new Standard('Erstellen', __NAMESPACE__.'/Fill', null,
-                            array('PersonId' => $tblPerson->getId()))
-                    );
-                }
-            }
-        }
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData(
-                                $dataList,
-                                null,
-                                array(
-                                    'Name'     => 'Name',
-                                    'Address'  => 'Adresse',
-                                    'Division' => 'Klasse',
-                                    'Option'   => ''
-                                ),
-                                array(
-                                    "columnDefs" => array(
-                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                                    ),
-                                )
-                            )
+                            self::getStudentSelectDataTable('/Document/Standard/EnrollmentDocument/Fill')
                         )),
                     ))
                 )),
@@ -214,13 +189,80 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param string $route
+     *
+     * @return TableData
+     */
+    public static function getStudentSelectDataTable(string $route): TableData
+    {
+        $dataList = array();
+        $showDivision = false;
+        $showCoreGroup = false;
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
+            && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                $displayDivision = '';
+                $displayCoreGroup = '';
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))){
+                    if (($tblDivision = $tblStudentEducation->getTblDivision())
+                        && ($displayDivision = $tblDivision->getName())
+                    ) {
+                        $showDivision = true;
+                    }
+                    if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                        && ($displayCoreGroup = $tblCoreGroup->getName())
+                    ) {
+                        $showCoreGroup = true;
+                    }
+                }
+                $tblAddress = $tblPerson->fetchMainAddress();
+                $dataList[] = array(
+                    'Name'     => $tblPerson->getLastFirstName(),
+                    'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
+                    'Division' => $displayDivision,
+                    'CoreGroup' => $displayCoreGroup,
+                    'Option'   => new Standard(
+                        'Erstellen',
+                        $route,
+                        null,
+                        array('PersonId' => $tblPerson->getId())
+                    )
+                );
+            }
+        }
+
+        $columnList['Name'] = 'Name';
+        $columnList['Address'] = 'Adresse';
+        if ($showDivision) {
+            $columnList['Division'] = 'Klasse';
+        }
+        if ($showCoreGroup) {
+            $columnList['CoreGroup'] = 'Stammgruppe';
+        }
+        $columnList['Option'] = '';
+
+        return new TableData(
+            $dataList,
+            null,
+            $columnList,
+            array(
+                "columnDefs" => array(
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                    array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                ),
+                'responsive' => false
+            )
+        );
+    }
+
+    /**
      * @param string|null $PersonId
      *
      * @return Stage
      */
     public function frontendFillEnrollmentDocument(?string $PersonId = null): Stage
     {
-
         $Stage = new Stage('Schulbescheinigung', 'Erstellen');
         $Stage->addButton(new Standard('Zurück', '/Document/Standard/EnrollmentDocument', new ChevronLeft()));
         $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($PersonId);
@@ -232,14 +274,17 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Global->savePost();
 
-        $form = $this->formStudentDocument(isset($Data['Gender']) ? $Data['Gender'] : false);
+        $form = $this->formStudentDocument($Data['Gender'] ?? false);
 
         $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
 
-        $Stage->addButton(new External('Blanko Schulbescheinigung herunterladen',
+        $Stage->addButton(new External(
+            'Blanko Schulbescheinigung herunterladen',
             'SPHERE\Application\Api\Document\Standard\EnrollmentDocument\Create',
-            new Download(), array('Data' => array('empty')),
-            'Schulbescheinigung herunterladen'));
+            new Download(),
+            array('Data' => array('empty')),
+            'Schulbescheinigung herunterladen'
+        ));
 
         $Stage->setContent(
             new Layout(

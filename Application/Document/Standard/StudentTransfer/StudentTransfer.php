@@ -6,16 +6,13 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblToPersonPhone;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\Document\Standard\EnrollmentDocument\Frontend;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -26,7 +23,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -37,7 +33,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -45,7 +40,6 @@ use SPHERE\System\Extension\Extension;
 
 class StudentTransfer extends Extension
 {
-
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
@@ -62,72 +56,18 @@ class StudentTransfer extends Extension
     }
 
     /**
-     * @return IServiceInterface
-     */
-    public static function useService()
-    {
-        // TODO: Implement useService() method.
-    }
-
-    /**
-     * @return IFrontendInterface
-     */
-    public static function useFrontend()
-    {
-        // TODO: Implement useFrontend() method.
-    }
-
-    /**
      * @return Stage
      */
-    public static function frontendSelectPerson()
+    public static function frontendSelectPerson(): Stage
     {
-
         $Stage = new Stage('Schülerüberweisung', 'Schüler auswählen');
-
-        $dataList = array();
-        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$dataList) {
-                    $Data['PersonId'] = $tblPerson->getId();
-
-                    $tblAddress = $tblPerson->fetchMainAddress();
-                    $dataList[] = array(
-                        'Name'     => $tblPerson->getLastFirstName(),
-                        'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
-                        'Option'   => new Standard('Erstellen', __NAMESPACE__.'/Fill', null,
-                                array('Id' => $tblPerson->getId()))
-//                            .new External('Herunterladen',
-//                                'SPHERE\Application\Api\Document\Standard\StudentTransfer\Create',
-//                                new Download(), array('Data' => $Data),
-//                                'Schulbescheinigung herunterladen')
-                    );
-                });
-            }
-        }
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData(
-                                $dataList,
-                                null,
-                                array(
-                                    'Name'     => 'Name',
-                                    'Address'  => 'Adresse',
-                                    'Division' => 'Klasse',
-                                    'Option'   => ''
-                                ),
-                                array(
-                                    'columnDefs' => array(
-                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                                        array('width' => '1%', 'targets' => -1),
-                                    ),
-                                )
-                            )
+                            Frontend::getStudentSelectDataTable('/Document/Standard/StudentTransfer/Fill')
                         )),
                     ))
                 )),
@@ -138,32 +78,36 @@ class StudentTransfer extends Extension
     }
 
     /**
-     * @param null $Id
+     * @param null $PersonId
      *
      * @return Stage
      */
-    public function frontendFillStudentTransfer($Id = null)
+    public function frontendFillStudentTransfer($PersonId = null): Stage
     {
-
         $Stage = new Stage('Schülerüberweisung', 'Erstellen');
         $Stage->addButton(new Standard('Zurück', '/Document/Standard/StudentTransfer', new ChevronLeft()));
-        $tblPerson = Person::useService()->getPersonById($Id);
+        $tblPerson = Person::useService()->getPersonById($PersonId);
         $Global = $this->getGlobal();
         if ($tblPerson) {
-            $Global->POST['Data']['PersonId'] = $Id;
+            $Global->POST['Data']['PersonId'] = $PersonId;
             $Global->POST['Data']['LastFirstName'] = $tblPerson->getLastFirstName();
             $Global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');
-            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-            if ($tblStudent) {
-                // Schuldaten der Schule des Schülers
-                if (($tblCompanySchool = Student::useService()->getCurrentSchoolByPerson($tblPerson))) {
+
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+                if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                    $Global->POST['Data']['Division'] = $tblDivision->getName();
+                } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                    $Global->POST['Data']['Division'] = $tblCoreGroup->getName();
+                }
+
+                if (($tblCompanySchool = $tblStudentEducation->getServiceTblCompany())) {
                     $Global->POST['Data']['LeaveSchool'] = $tblCompanySchool->getDisplayName();
                     $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
                     if ($tblAddressSchool) {
-                        $Global->POST['Data']['AddressStreet'] = $tblAddressSchool->getStreetName().' '.$tblAddressSchool->getStreetNumber();
+                        $Global->POST['Data']['AddressStreet'] = $tblAddressSchool->getStreetName() . ' ' . $tblAddressSchool->getStreetNumber();
                         $tblCitySchool = $tblAddressSchool->getTblCity();
                         if ($tblCitySchool) {
-                            $Global->POST['Data']['AddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
+                            $Global->POST['Data']['AddressCity'] = $tblCitySchool->getCode() . ' ' . $tblCitySchool->getName();
                         }
                     }
 
@@ -201,6 +145,9 @@ class StudentTransfer extends Extension
                         }
                     }
                 }
+            }
+
+            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
                 // Datum Aufnahme
                 $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::ARRIVE);
                 $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
@@ -209,13 +156,11 @@ class StudentTransfer extends Extension
                     $EntryDate = $tblStudentTransfer->getTransferDate();
                     $Global->POST['Data']['SchoolEntry'] = $EntryDate;
                     if ($EntryDate != '') {
-                        $tblYearList = Term::useService()->getYearAllByDate(new DateTime($EntryDate));
-                        if ($tblYearList) {
-                            foreach ($tblYearList as $tblYear) {
-                                $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
-                                if ($tblDivision && $tblDivision->getTblLevel()) {
-                                    $Global->POST['Data']['SchoolEntryDivision'] = $tblDivision->getDisplayName();
-                                }
+                        if (($tblStudentEducationEntry = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson, $EntryDate))) {
+                            if (($tblDivisionEntry = $tblStudentEducationEntry->getTblDivision())) {
+                                $Global->POST['Data']['SchoolEntryDivision'] = $tblDivisionEntry->getName();
+                            } elseif (($tblCoreGroupEntry = $tblStudentEducationEntry->getTblCoreGroup())) {
+                                $Global->POST['Data']['SchoolEntryDivision'] = $tblCoreGroupEntry->getName();
                             }
                         }
                     }
@@ -300,40 +245,28 @@ class StudentTransfer extends Extension
             }
 
             // Klassen Wiederholungen
-            $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-            $DivisionArray = array();
-            $DivisionRepeatArray = array();
-            if ($tblDivisionStudentList) {
-                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                    $tblDivision = $tblDivisionStudent->getTblDivision();
-                    if ($tblDivision) {
-                        $tblLevel = $tblDivision->getTblLevel();
-                        $tblType = $tblDivision->getType();
-                        if (!array_key_exists($tblLevel->getName().$tblType->getId(), $DivisionArray)) {
-                            $DivisionArray[$tblLevel->getName().$tblType->getId()] = $tblDivision->getDisplayName();
-                        } else {
-                            $DivisionRepeatArray[] = $tblDivision->getDisplayName();
+            if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
+                // Sortierung absteigend, notwendig wegen Schuljahrwiederholung
+                $levelList = array();
+                $repeatList = array();
+                $tblStudentEducationList = $this->getSorter($tblStudentEducationList)->sortObjectBy('YearNameForSorter');
+                /** @var TblStudentEducation $tblStudentEducationTemp */
+                foreach ($tblStudentEducationList as $tblStudentEducationTemp) {
+                    if (!$tblStudentEducationTemp->isInActive() && $tblStudentEducationTemp->getLevel()) {
+                        if (isset($levelList[$tblStudentEducationTemp->getLevel()])) {
+                            if (($tblDivisionTemp = $tblStudentEducationTemp->getTblDivision())) {
+                                $repeatList[] = $tblDivisionTemp->getName();
+                            } elseif (($tblCoreGroupTemp = $tblStudentEducationTemp->getTblCoreGroup())) {
+                                $repeatList[] = $tblCoreGroupTemp->getName();
+                            }
                         }
-//                        } elseif (array_key_exists($tblType->getId(), $DivisionArray)) {
-//                            $DivisionRepeatArray[] = $tblDivision->getDisplayName();
-//                        } elseif ($tblLevel->getName() != '') {
-//                            $DivisionRepeatArray[] = $tblDivision->getDisplayName();
-//                        }
+
+                        $levelList[$tblStudentEducationTemp->getLevel()] = 1;
                     }
                 }
-            }
-            if (!empty($DivisionRepeatArray)) {
-                $Global->POST['Data']['DivisionRepeat'] = implode(', ', $DivisionRepeatArray);
-            }
 
-            // Aktuelle Klasse
-            $tblYearList = Term::useService()->getYearByNow();
-            if ($tblYearList) {
-                foreach ($tblYearList as $tblYear) {
-                    $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
-                    if ($tblDivision && $tblDivision->getTblLevel() && $tblDivision->getTblLevel()->getName() != '') {
-                        $Global->POST['Data']['Division'] = $tblDivision->getTblLevel()->getName();
-                    }
+                if (!empty($repeatList)) {
+                    $Global->POST['Data']['DivisionRepeat'] = implode(', ', $repeatList);
                 }
             }
         }
@@ -343,10 +276,13 @@ class StudentTransfer extends Extension
 
         $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
 
-        $Stage->addButton(new External('Blanko Schülerüberweisung herunterladen',
+        $Stage->addButton(new External(
+            'Blanko Schülerüberweisung herunterladen',
             'SPHERE\Application\Api\Document\Standard\StudentTransfer\Create',
-            new Download(), array('Data' => array('empty')),
-            'Schülerüberweisung herunterladen'));
+            new Download(),
+            array('Data' => array('empty')),
+            'Schülerüberweisung herunterladen'
+        ));
 
         $Stage->setContent(
             new Layout(
@@ -378,9 +314,8 @@ class StudentTransfer extends Extension
     /**
      * @return Form
      */
-    private function formStudentTransfer()
+    private function formStudentTransfer(): Form
     {
-
         return new Form(
             new FormGroup(array(
                 new FormRow(array(

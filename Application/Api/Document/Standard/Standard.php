@@ -123,27 +123,27 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
-     * @param null|int $DivisionId
-     * @param null|int $List
-     * @param bool $Redirect
+     * @param $DivisionCourseId
+     * @param $List
+     * @param $Redirect
      *
      * @return Stage|string
      */
-    public static function createStudentCardMultiPdf($DivisionId = null, $List = null, $Redirect = true)
+    public static function createStudentCardMultiPdf($DivisionCourseId = null, $List = null, $Redirect = true)
     {
-        return Creator::createMultiStudentCardPdf($DivisionId, $List, $Redirect);
+        return Creator::createMultiStudentCardPdf($DivisionCourseId, $List, $Redirect);
     }
 
     /**
-     * @param null|int $DivisionId
-     * @param null|int $List
-     * @param bool $Redirect
+     * @param $DivisionCourseId
+     * @param $List
+     * @param $Redirect
      *
      * @return Stage|string
      */
-    public static function createStudentCardMultiNewPdf($DivisionId = null, $List = null, $Redirect = true)
+    public static function createStudentCardMultiNewPdf($DivisionCourseId = null, $List = null, $Redirect = true)
     {
-        return Creator::createMultiStudentCardNewPdf($DivisionId, $List, $Redirect);
+        return Creator::createMultiStudentCardNewPdf($DivisionCourseId, $List, $Redirect);
     }
 
     /**
@@ -253,14 +253,14 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
-     * @param string $DivisionId
+     * @param string $DivisionCourseId
      * @param bool $Redirect
      *
      * @return string
      */
-    public static function createEnrollmentDocumentMultiPdf(string $DivisionId, bool $Redirect = true): string
+    public static function createEnrollmentDocumentMultiPdf(string $DivisionCourseId, bool $Redirect = true): string
     {
-        return Creator::createMultiEnrollmentDocumentPdf($DivisionId, $Redirect);
+        return Creator::createMultiEnrollmentDocumentPdf($DivisionCourseId, $Redirect);
     }
 
     /**

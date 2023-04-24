@@ -11,8 +11,8 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -70,12 +70,18 @@ class MetaDataComparison extends AbstractDocument
         if ($Data['Person']['Id']) {
             if (($tblPerson = Person::useService()->getPersonById($Data['Person']['Id']))) {
                 $this->setPersonContent($tblPerson);
-                if(($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))){
-                    $this->FieldValue['Division'] = $tblDivision->getDisplayName();
-                    if(($tblYear = $tblDivision->getServiceTblYear())){
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+                    if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                        $this->FieldValue['Division'] = $tblDivision->getName();
+                    } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                        $this->FieldValue['Division'] = $tblCoreGroup->getName();
+                    }
+
+                    if (($tblYear = $tblStudentEducation->getServiceTblYear())) {
                         $this->FieldValue['Year'] = $tblYear->getYear();
                     }
                 }
+
                 if(($tblCommon = Common::useService()->getCommonByPerson($tblPerson))){
                     if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
                         $this->FieldValue['Birthdate'] = $tblCommonBirthDates->getBirthday();
