@@ -1482,9 +1482,9 @@ class Service extends AbstractService
 
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
-                $PaymentId = $tblInvoice->getInvoiceNumber().'-';
-                $countSepaPayment = 0;
-
+                if($InvoiceCount == 0) {
+                    $PaymentId = $tblInvoice->getInvoiceNumber().'-';
+                }
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
                 // Dient nur der SEPA-Prüfung
                 // Gutschriften sollen anhand vorhandener Kontodaten gewählt werden
@@ -1493,7 +1493,6 @@ class Service extends AbstractService
                     foreach ($tblInvoiceItemDebtorList as &$tblInvoiceItemDebtorCheck) {
                         if ($tblInvoiceItemDebtorCheck->getServiceTblBankAccount()){
                             $usedTblInvoiceItemDebtorList[] = $tblInvoiceItemDebtorCheck;
-                            $countSepaPayment++;
                         }
                     }
                 }
@@ -1503,10 +1502,13 @@ class Service extends AbstractService
                 }
 //                // entfernen der false Werte
 //                $tblInvoiceItemDebtorList = array_filter($tblInvoiceItemDebtorList);
-                $InvoiceCount++;
-                if(!empty($usedTblInvoiceItemDebtorList)){
+                if(!empty($usedTblInvoiceItemDebtorList) && $InvoiceCount == 0){
                     $this->addCompanyPayment($customerCredit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
                     $this->addCompanyTransfer($customerCredit, $usedTblInvoiceItemDebtorList, $PaymentId);
+                    $InvoiceCount++;
+                } elseif(!empty($usedTblInvoiceItemDebtorList)) {
+                    $this->addCompanyTransfer($customerCredit, $usedTblInvoiceItemDebtorList, $PaymentId);
+                    $InvoiceCount++;
                 }
             }
         }
