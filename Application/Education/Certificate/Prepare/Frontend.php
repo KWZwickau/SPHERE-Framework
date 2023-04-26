@@ -2332,6 +2332,15 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             }
                         }
 
+                        // Fachoberschule HOGA Jahreszeugnis für Klassenstufe 12
+                        if (!$hasRemarkText
+                            && $Certificate->getCertificateEntity()->getCertificate() == 'HOGA\FosJ'
+                            && $tblLevel->getName() == 12
+                        ) {
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $tblPerson->getFullName()
+                                . ' wurde zur Abschlussprüfung nicht zugelassen / hat die Abschlussprüfung nicht bestanden und kann erst nach erfolgreicher Wiederholung der Klassenstufe erneut an der Abschlussprüfung teilnehmen.';
+                        }
+
                         $Global->savePost();
                     }
 
