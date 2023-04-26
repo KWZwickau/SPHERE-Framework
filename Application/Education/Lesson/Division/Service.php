@@ -34,11 +34,12 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -197,10 +198,18 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
-        // Division Zeicheneingrenzung
-        if (isset($Division['Name']) && $Division['Name'] != '') {
-            if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
-                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9, -_/]');
+
+        // ist ein UCS Mandant?
+        $IsUCSMandant = false;
+        if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
+            if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                $IsUCSMandant = true;
+            }
+        }
+        // Division Zeicheneingrenzung nur für UCS Mandanten
+        if (isset($Division['Name']) && $Division['Name'] != '' && $IsUCSMandant) {
+            if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Division['Name'])){
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
                 $Error = true;
             }
         }
@@ -1267,8 +1276,7 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public
-    function changeDivision(
+    public function changeDivision(
         IFormInterface $Form,
         $Division,
         $Id
@@ -1288,11 +1296,17 @@ class Service extends AbstractService
             $Form->setError('Division[Company]', 'Schule erforderlich! Bitte auswählen');
             $Error = true;
         }
-
-        // Division Zeicheneingrenzung
-        if (isset($Division['Name']) && $Division['Name'] != '') {
-            if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
-                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9, -_/]');
+        // ist ein UCS Mandant?
+        $IsUCSMandant = false;
+        if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
+            if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                $IsUCSMandant = true;
+            }
+        }
+        // Division Zeicheneingrenzung nur für UCS Mandanten
+        if (isset($Division['Name']) && $Division['Name'] != '' && $IsUCSMandant) {
+            if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Division['Name'])){
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
                 $Error = true;
             }
         }
@@ -2110,8 +2124,8 @@ class Service extends AbstractService
 
         // Division Zeicheneingrenzung
         if (isset($Division['Name']) && $Division['Name'] != '') {
-            if(!preg_match('!^[\w\-,\/ ]+$!', $Division['Name'])){
-                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9, -_/]');
+            if(!preg_match('!^[\w]+[\w \-_]*[\w]+$!', $Division['Name'])){
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
                 $Error = true;
             }
         }

@@ -79,6 +79,7 @@ class Setup extends AbstractSetup
 
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'CertificateNumber', self::FIELD_TYPE_STRING, false, '');
 
         $this->getConnection()->addForeignKey($Table, $tblCertificateType, true);
 

@@ -72,7 +72,7 @@ class Service extends AbstractService
     public function getPriceString($Value)
     {
 
-        return number_format($Value, 2, ',', '').' €';
+        return number_format($Value, 2, ',', '.').' €';
     }
 
     /**
@@ -169,6 +169,13 @@ class Service extends AbstractService
                         }
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
+                    }
+
+                    // Rechnungsnummer Liste
+                    if(!isset($PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])
+                        || !in_array($RowContent['InvoiceNumber'], $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])){
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'][] = $RowContent['InvoiceNumber'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumber'] = implode('; ', $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList']);
                     }
                 }
             }
@@ -555,6 +562,12 @@ class Service extends AbstractService
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
                     }
+                    // Rechnungsnummer Liste
+                    if(!isset($PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])
+                        || !in_array($RowContent['InvoiceNumber'], $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])){
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'][] = $RowContent['InvoiceNumber'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumber'] = implode('; ', $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList']);
+                    }
                 }
             }
         }
@@ -638,7 +651,29 @@ class Service extends AbstractService
             $export = Document::getDocument($fileLocation->getFileLocation());
             // Auswahl des Trennzeichen's
             $export->setDelimiter(';');
-            $YearBegin = $tblBasket->getBillYear().'0101';
+            // Wirtschaftsjahr
+            // Standard sollte immer überschrieben werden
+            $EconomicDateString = '0101';
+            $BillDate = new \DateTime($tblBasket->getBillTime());
+            $Day = (int)$BillDate->format('d');
+            $Month = (int)$BillDate->format('m');
+            $Year = (int)$BillDate->format('Y');
+            // Start Datum aus den Einstellungen
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_ECONOMIC_DATE))){
+                $EconomicDate = new \DateTime($tblSetting->getValue());
+                // Rechnung vor Abrechnungsstart (Monat) dann geht datev auf das alte Jahr
+                if($Month < (int)$EconomicDate->format('m')){
+                    $Year = $Year - 1;
+                }
+                // Bei gleichem Monat Tag-Prüfung
+                if($Month == (int)$EconomicDate->format('m')
+                && $Day < (int)$EconomicDate->format('d')){
+                    $Year = $Year - 1;
+                }
+                $EconomicDateString = $EconomicDate->format('md');
+            }
+
+            $YearBegin = $Year.$EconomicDateString;
             $BookingFrom = $tblBasket->getBillYearMonth();
             $BookingTo = $tblBasket->getBillYearMonth(true);
 
@@ -1447,9 +1482,9 @@ class Service extends AbstractService
 
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
-                $PaymentId = $tblInvoice->getInvoiceNumber().'-';
-                $countSepaPayment = 0;
-
+                if($InvoiceCount == 0) {
+                    $PaymentId = $tblInvoice->getInvoiceNumber().'-';
+                }
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
                 // Dient nur der SEPA-Prüfung
                 // Gutschriften sollen anhand vorhandener Kontodaten gewählt werden
@@ -1458,7 +1493,6 @@ class Service extends AbstractService
                     foreach ($tblInvoiceItemDebtorList as &$tblInvoiceItemDebtorCheck) {
                         if ($tblInvoiceItemDebtorCheck->getServiceTblBankAccount()){
                             $usedTblInvoiceItemDebtorList[] = $tblInvoiceItemDebtorCheck;
-                            $countSepaPayment++;
                         }
                     }
                 }
@@ -1468,10 +1502,13 @@ class Service extends AbstractService
                 }
 //                // entfernen der false Werte
 //                $tblInvoiceItemDebtorList = array_filter($tblInvoiceItemDebtorList);
-                $InvoiceCount++;
-                if(!empty($usedTblInvoiceItemDebtorList)){
+                if(!empty($usedTblInvoiceItemDebtorList) && $InvoiceCount == 0){
                     $this->addCompanyPayment($customerCredit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
                     $this->addCompanyTransfer($customerCredit, $usedTblInvoiceItemDebtorList, $PaymentId);
+                    $InvoiceCount++;
+                } elseif(!empty($usedTblInvoiceItemDebtorList)) {
+                    $this->addCompanyTransfer($customerCredit, $usedTblInvoiceItemDebtorList, $PaymentId);
+                    $InvoiceCount++;
                 }
             }
         }

@@ -57,6 +57,8 @@ class ViewPerson extends AbstractView
     const TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY = 'TblCommonInformation_AssistanceActivity';
     const TBL_COMMON_REMARK = 'TblCommon_Remark';
 
+    const TBL_CHILD_AUTHORIZED_TO_COLLECT = 'TblChild_AuthorizedToCollect';
+
     /**
      * @return array
      */
@@ -154,6 +156,10 @@ class ViewPerson extends AbstractView
      * @Column(type="string")
      */
     protected $TblCommonBirthDates_Birthplace;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblChild_AuthorizedToCollect;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -164,6 +170,7 @@ class ViewPerson extends AbstractView
     {
 
         //NameDefinition
+        $this->setNameDefinition(self::TBL_PERSON_ID, 'Person: Id');
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION, 'Person: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE, 'Person: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME, 'Person: Vorname');
@@ -189,8 +196,11 @@ class ViewPerson extends AbstractView
         $this->setNameDefinition(self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY, 'Person: Mitarbeit Tätigkeit');
         $this->setNameDefinition(self::TBL_COMMON_REMARK, 'Person: Bemerkung zur Person');
 
+        $this->setNameDefinition(self::TBL_CHILD_AUTHORIZED_TO_COLLECT, 'Person: Abholberechtigte');
+
         //GroupDefinition
         $this->setGroupDefinition('Grunddaten', array(
+            self::TBL_PERSON_ID,
             self::TBL_SALUTATION_SALUTATION,
             self::TBL_PERSON_TITLE,
             self::TBL_PERSON_FIRST_NAME,
@@ -214,6 +224,9 @@ class ViewPerson extends AbstractView
             self::TBL_COMMON_INFORMATION_IS_ASSISTANCE,
             self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY,
             self::TBL_COMMON_REMARK,
+        ));
+        $this->setGroupDefinition('Abholberechtigte', array(
+            self::TBL_CHILD_AUTHORIZED_TO_COLLECT
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
@@ -305,27 +318,4 @@ class ViewPerson extends AbstractView
         }
         return $Field;
     }
-
-
-    // only necessary if need in twig (SelectBox etc.)
-//    /** @return string */
-//    public function getTblPerson_Id(){return $this->TblPerson_Id;}
-//    public function getTblCommonGender_Name(){return $this->TblCommonGender_Name;}
-//    public function getTblSalutation_Salutation(){return $this->TblSalutation_Salutation;}
-//    public function getTblPerson_Title(){return $this->TblPerson_Title;}
-//    public function TblPerson_FirstName(){return $this->TblPerson_FirstName;}
-//    public function TblPerson_SecondName(){return $this->TblPerson_SecondName;}
-//    public function TblPerson_CallName(){return $this->TblPerson_CallName;}
-//    public function getTblPerson_LastName(){return $this->TblPerson_LastName;}
-//    public function getTblPerson_BirthName(){return $this->TblPerson_BirthName;}
-//    public function getTblPerson_FirstLastName(){return $this->TblPerson_FirstLastName;}
-//    public function getTblPerson_LastFirstName(){return $this->TblPerson_LastFirstName;}
-//    public function getTblGroup_GroupList(){return $this->TblGroup_GroupList;}
-//    public function getTblCommonInformation_Denomination(){return $this->TblCommonInformation_Denomination;}
-//    public function getTblCommonInformation_Nationality(){return $this->TblCommonInformation_Nationality;}
-//    public function getTblCommonInformation_IsAssistance(){return $this->TblCommonInformation_IsAssistance;}
-//    public function getTblCommonInformation_AssistanceActivity(){return $this->TblCommonInformation_AssistanceActivity;}
-//    public function getTblCommon_Remark(){return $this->TblCommon_Remark;}
-//    public function getTblCommonBirthDates_Birthday(){return $this->TblCommonBirthDates_Birthday;}
-//    public function getTblCommonBirthDates_Birthplace(){return $this->TblCommonBirthDates_Birthplace;}
 }

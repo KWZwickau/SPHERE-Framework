@@ -44,6 +44,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
@@ -379,6 +380,7 @@ class Frontend extends Extension implements IFrontendInterface
             array('GroupId' => $GroupId)));
 
         $ColumnList = array();
+        $ColumnHideList = array();
         $tblPerson = Person::useService()->getPersonById($PersonId);
         if(!$tblPerson){
             $Stage->setContent(new Warning('Person nicht gefunden'));
@@ -386,7 +388,7 @@ class Frontend extends Extension implements IFrontendInterface
                     array('GroupId' => $GroupId));
         }
 
-        $ItemList = Item::useService()->getItemAllByPerson($tblPerson);
+        $tblItemList = Item::useService()->getItemAllByPerson($tblPerson);
         $ColumnList[] = new LayoutColumn(new Panel('Mandatsreferenznummer',
             ApiBankReference::receiverPanelContent($this->getReferenceContent($PersonId)).
             (new Link('Mandatsreferenznummer hinzufügen', ApiBankReference::getEndpoint(), new Plus()))
@@ -394,17 +396,51 @@ class Frontend extends Extension implements IFrontendInterface
             Panel::PANEL_TYPE_INFO),
             3);
 
-        if($ItemList){
-            foreach($ItemList as $tblItem) {
-                // Panel Color (unchoosen)
-                $ColumnList[] = new LayoutColumn(new Panel($tblItem->getName(),
+        if($tblItemList){
+            $tblItemList = $this->getSorter($tblItemList)->sortObjectBy('Name');
+            foreach($tblItemList as $tblItem) {
+                if((Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
+                    $ColumnList[] = new LayoutColumn(new Panel($tblItem->getName(),
                         ApiDebtorSelection::receiverPanelContent($this->getItemContent($PersonId, $tblItem->getId())
                             , $tblItem->getId())
                         , Panel::PANEL_TYPE_INFO)
                     , 3);
+                }
+            }
+            foreach($tblItemList as $tblItem) {
+                if(!(Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
+                    $ColumnHideList[] = new LayoutColumn(new Panel($tblItem->getName(),
+                        ApiDebtorSelection::receiverPanelContent($this->getItemContent($PersonId, $tblItem->getId())
+                            , $tblItem->getId())
+                        , Panel::PANEL_TYPE_DEFAULT)
+                    .'<div style="height: 5px"></div>'
+                    , 3);
+                }
             }
         }
+        $LayoutRowList = $this->getFrontendPanelList($ColumnList);
+        $LayoutRowHideList = $this->getFrontendPanelList($ColumnHideList);
 
+        $UnusedItemAccordion = new Accordion();
+        $UnusedItemAccordion->addItem(new InfoText(new Edit().' Weitere mögliche '.new Bold('Beitragsarten')), '<div style="height: 11px;">&nbsp;</div>'.
+            new Layout(new LayoutGroup($LayoutRowHideList)), (count($ColumnList) > 1? false : true));
+
+        $Stage->setContent(
+            ApiBankReference::receiverModal('Hinzufügen einer Mandatsreferenznummer', 'addBankReference')
+            .ApiBankReference::receiverModal('Bearbeiten der Mandatsreferenznummer', 'editBankReference')
+            .ApiBankReference::receiverModal('Entfernen der Mandatsreferenznummer', 'deleteBankReference')
+            .ApiDebtorSelection::receiverModal('Hinzufügen der Beitragszahler', 'addDebtorSelection')
+            .ApiDebtorSelection::receiverModal('Bearbeiten der Beitragszahler', 'editDebtorSelection')
+            .ApiDebtorSelection::receiverModal('Entfernen der Beitragszahler', 'deleteDebtorSelection')
+            .Debtor::useFrontend()->getPersonPanel($PersonId)
+            .new Layout(new LayoutGroup($LayoutRowList))
+            .$UnusedItemAccordion);
+
+        return $Stage;
+    }
+
+    private function getFrontendPanelList($ColumnList)
+    {
         $LayoutRowList = array();
         $LayoutRowCount = 0;
         $LayoutRow = null;
@@ -419,23 +455,7 @@ class Frontend extends Extension implements IFrontendInterface
             $LayoutRow->addColumn($Column);
             $LayoutRowCount++;
         }
-
-
-        $Stage->setContent(
-            ApiBankReference::receiverModal('Hinzufügen einer Mandatsreferenznummer', 'addBankReference')
-            .ApiBankReference::receiverModal('Bearbeiten der Mandatsreferenznummer', 'editBankReference')
-            .ApiBankReference::receiverModal('Entfernen der Mandatsreferenznummer', 'deleteBankReference')
-            .ApiDebtorSelection::receiverModal('Hinzufügen der Beitragszahler', 'addDebtorSelection')
-            .ApiDebtorSelection::receiverModal('Bearbeiten der Beitragszahler', 'editDebtorSelection')
-            .ApiDebtorSelection::receiverModal('Entfernen der Beitragszahler', 'deleteDebtorSelection')
-            .Debtor::useFrontend()->getPersonPanel($PersonId)
-            .new Layout(
-                new LayoutGroup(
-                    $LayoutRowList
-                )
-            ));
-
-        return $Stage;
+        return $LayoutRowList;
     }
 
     /**
@@ -496,7 +516,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $PaymentType = 'Zahlungsart: ';
                     $BankAccount = 'Bank: ';
                     $Reference = 'Mandatsreferenznummer: ';
-                    $Debtor = 'Bezahler: ';
+                    $Debtor = new InfoText('Bezahler: ');
                     $PeriodPayType = 'Zahlungszeitraum: ';
                     $FromDate = 'Beitragspflicht ab: ';
                     $ToDate = 'Beitragspflicht bis: ';
@@ -515,8 +535,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $ToDate .= new Bold('kein Enddatum');
                     }
                     if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
-                        $Debtor .= $tblPersonDebtor->getSalutation().' '.substr($tblPersonDebtor->getFirstName(), 0, 1) .'. '
-                            .$tblPersonDebtor->getLastName();
+                        $Debtor .= new InfoText(new Bold($tblPersonDebtor->getSalutation().' '.substr($tblPersonDebtor->getFirstName(), 0, 1) .'. '
+                            .$tblPersonDebtor->getLastName())); // .new Link(new PersonIcon(), '') Wäre möglich aber Gruppenproblematik
                     }
 
                     $OptionButtons = new PullRight(
@@ -569,12 +589,12 @@ class Frontend extends Extension implements IFrontendInterface
                     $i++;
                 }
             } else {
-                $PanelContent[] = new Warning(
+                $PanelContent[] = // new Warning(
                     (new Link('Beitragszahler festlegen', '', new PersonIcon()))
                         ->ajaxPipelineOnClick(ApiDebtorSelection::pipelineOpenAddDebtorSelectionModal('addDebtorSelection',
                             $PersonId, $ItemId))
-                    .new ToolTip(new Info(), 'Beitragsarten werden ohne Beitragszahler nicht berücksichtigt')
-                );
+                    .new ToolTip(new Info(), 'Beitragsarten werden ohne Beitragszahler nicht berücksichtigt');
+                // , null, false, 3, 3);
                 return implode('<br/>', $PanelContent);
             }
             // Add Button at end of DebtorSelection List

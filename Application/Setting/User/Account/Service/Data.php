@@ -96,7 +96,7 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
             array(
                 TblUserAccount::ATTR_GROUP_BY_TIME => $dateTime
-            ));
+            ), array('Id' => self::ORDER_ASC));
     }
 
     /**
@@ -128,7 +128,7 @@ class Data extends AbstractData
             array(
                 TblUserAccount::ATTR_GROUP_BY_TIME => $dateTime,
                 TblUserAccount::ATTR_GROUP_BY_COUNT => $groupCount
-            ));
+            ), array('Id' => self::ORDER_ASC));
     }
 
     /**

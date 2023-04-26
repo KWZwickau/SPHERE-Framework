@@ -50,6 +50,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
@@ -306,22 +307,28 @@ class Service extends AbstractService
         $DivisionId = $tblDivision ? $tblDivision->getId() : null;
         $GroupId = $tblGroup ? $tblGroup->getId() : null;
 
-        $buttonList[] = $this->getButton('Klassentagebuch', '/Education/ClassRegister/Digital/LessonContent', new Book(),
-            $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonContent');
+        $isCourseSystem = ($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))
+            || ($tblGroup && $tblGroup->getIsGroupCourseSystem());
+
+        if ($isCourseSystem) {
+            $buttonList[] = $this->getButton('Kursheft auswählen', '/Education/ClassRegister/Digital/SelectCourse', new Book(),
+                $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/SelectCourse');
+        } else {
+            $buttonList[] = $this->getButton('Klassentagebuch', '/Education/ClassRegister/Digital/LessonContent', new Book(),
+                $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonContent');
+        }
 
         // Klassentagebuch Kontrolle: nur für Klassenlehrer, Tudor oder Schulleitung
-        if (($tblPerson = Account::useService()->getPersonByLogin())
+        if ((($tblPerson = Account::useService()->getPersonByLogin())
             && (($tblDivision && Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson))
                 || ($tblGroup && ($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
                     && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson))
-                || Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting')
-            )
+            ))
+            || Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting')
         ) {
             // Klassentagebuch Kontrolle: nicht bei Kurssystemen
-            if (!($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))
-                && !($tblGroup && $tblGroup->getIsGroupCourseSystem())
-            ) {
+            if (!$isCourseSystem) {
                 $buttonList[] = $this->getButton('Klassentagebuch Kontrolle', '/Education/ClassRegister/Digital/LessonWeek', new Ok(),
                     $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonWeek');
             }
@@ -336,8 +343,11 @@ class Service extends AbstractService
                 new Calendar(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
         }
 
-        $buttonList[] = $this->getButton('Belehrungen', '/Education/ClassRegister/Digital/Instruction',
-            new CommodityItem(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Instruction');
+        // Belehrungen: nicht bei Kurssystemen → Belehrungen direkt im Kursheft
+        if (!$isCourseSystem) {
+            $buttonList[] = $this->getButton('Belehrungen', '/Education/ClassRegister/Digital/Instruction',
+                new CommodityItem(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Instruction');
+        }
         $buttonList[] = $this->getButton('Unterrichtete Fächer / Lehrer', '/Education/ClassRegister/Digital/Lectureship',
             new Listing(), $DivisionId, $GroupId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
         $buttonList[] = $this->getButton('Ferien', '/Education/ClassRegister/Digital/Holiday',
@@ -453,14 +463,14 @@ class Service extends AbstractService
      */
     public function getTeacherString(TblPerson $tblPerson, bool $IsToolTip = true): string
     {
-        $teacher = '';
         if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
             && ($acronym = $tblTeacher->getAcronym())
         ) {
             $teacher = $acronym;
         } else {
-            if (strlen($tblPerson->getLastName()) > 5) {
-                $teacher = substr($tblPerson->getLastName(), 0, 5) . '.';
+            $teacher = $tblPerson->getLastName();
+            if (strlen($teacher) > 5) {
+                $teacher = substr($teacher, 0, 5) . '.';
             }
         }
 
@@ -646,13 +656,14 @@ class Service extends AbstractService
             $error = true;
         }
 
-        // bei einem gesetzten Vertretungsfach muss auch ein Fach ausgewählt werden
-        if (Subject::useService()->getSubjectById($Data['serviceTblSubstituteSubject'])
-            && empty($Data['serviceTblSubject'])
-        ) {
-            $form->setError('Data[serviceTblSubject]', 'Bitte geben Sie ein Fach an');
-            $error = true;
-        }
+        // nicht mehr verwenden da es als zusätzliches Fach benutzt werden soll
+//        // bei einem gesetzten Vertretungsfach muss auch ein Fach ausgewählt werden
+//        if (Subject::useService()->getSubjectById($Data['serviceTblSubstituteSubject'])
+//            && empty($Data['serviceTblSubject'])
+//        ) {
+//            $form->setError('Data[serviceTblSubject]', 'Bitte geben Sie ein Fach an');
+//            $error = true;
+//        }
 
         return $error ? $form : false;
     }
@@ -935,7 +946,7 @@ class Service extends AbstractService
 
                 $studentTable[] = array(
                     'Number'        => ++$count,
-                    'Name'          => $tblPerson->getLastFirstName(),
+                    'Name'          => $tblPerson->getLastFirstNameWithCallNameUnderline(),
                     'Picture'       => $PersonPicture,
                     'Division'      => $displayDivision,
 //                    'Integration'   => $integration,
@@ -944,8 +955,8 @@ class Service extends AbstractService
                     'Info'          => $integration . $medicalRecord . $agreement,
                     'Gender'        => $Gender,
                     'Address'       => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiTwoRowString() : '',
-                    'Phone'         => $contacts['Phone'] ?? '',
-                    'Mail'          => $contacts['Mail'] ?? '',
+                    'Phone'         => $contacts['PhoneFixed'] ?? '',
+                    'Mail'          => $contacts['MailFrontendListFixed'] ?? '',
                     'Birthday'      => $birthday,
                     'Course'        => $course,
                     'AbsenceDays'   => $absenceDays,
@@ -994,7 +1005,7 @@ class Service extends AbstractService
             $columns['Gender'] = 'Ge&shy;schlecht';
             $columns['Birthday'] = 'Geburts&shy;datum';
             $columns['Address'] = 'Adresse';
-            $columns['Phone'] = new ToolTip('Telefon '. new \SPHERE\Common\Frontend\Icon\Repository\Info(),
+            $columns['Phone'] = new ToolTip('Telefon '. new InfoIcon(),
                 'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt');
             $columns['Mail'] = 'E-Mail';
             $columns['AbsenceDays'] = 'Zeugnis&shy;relevante Fehlzeiten Tage<br>(E, U)';
@@ -1015,9 +1026,9 @@ class Service extends AbstractService
                         'columnDefs' => array(
                             array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                             array('width' => '60px', 'targets' => $hasColumnCourse ? 4 : 3),
-                            array('width' => '60px', 'targets' => -1),
                             array('width' => '60px', 'targets' => -2),
                             array('width' => '60px', 'targets' => -3),
+                            array('width' => '180px', 'targets' => -6),
                             array('orderable' => false, 'width' => '60px', 'targets' => -1),
                         ),
                         'responsive' => false
@@ -1139,20 +1150,28 @@ class Service extends AbstractService
      */
     public function getLessonContentCanceledSubjectList(DateTime $toDate, TblDivision $tblDivision = null, TblGroup $tblGroup = null): array
     {
-        $subjectList = array();
+        $subjectCancelList = array();
+        $subjectAdditionalList = array();
         if (($tblLessonContentList = (new Data($this->getBinding()))->getLessonContentCanceledAllByToDate($toDate, $tblDivision, $tblGroup))) {
             foreach ($tblLessonContentList as $tblLessonContent) {
                 if (($tblSubject = $tblLessonContent->getServiceTblSubject())) {
-                    if (isset($subjectList[$tblSubject->getAcronym()])) {
-                        $subjectList[$tblSubject->getAcronym()]++;
+                    if (isset($subjectCancelList[$tblSubject->getAcronym()])) {
+                        $subjectCancelList[$tblSubject->getAcronym()]++;
                     } else {
-                        $subjectList[$tblSubject->getAcronym()] = 1;
+                        $subjectCancelList[$tblSubject->getAcronym()] = 1;
+                    }
+                }
+                if (($tblSubstituteSubjectSubject = $tblLessonContent->getServiceTblSubstituteSubject())) {
+                    if (isset($subjectAdditionalList[$tblSubstituteSubjectSubject->getAcronym()])) {
+                        $subjectAdditionalList[$tblSubstituteSubjectSubject->getAcronym()]++;
+                    } else {
+                        $subjectAdditionalList[$tblSubstituteSubjectSubject->getAcronym()] = 1;
                     }
                 }
             }
         }
 
-        return $subjectList;
+        return array($subjectCancelList, $subjectAdditionalList);
     }
 
     /**
@@ -1167,21 +1186,25 @@ class Service extends AbstractService
     {
         list($fromDate, $toDate, $canceledSubjectList, $additionalSubjectList, $subjectList) = $this->getCanceledSubjectList($dateTime, $tblDivision, $tblGroup);
 
-        $subjectTotalCanceledList = $this->getLessonContentCanceledSubjectList($toDate, $tblDivision, $tblGroup);
+        list($subjectTotalCanceledList, $subjectTotalAdditionalList) = $this->getLessonContentCanceledSubjectList($toDate, $tblDivision, $tblGroup);
 
         if ($subjectList) {
             $columns = array();
             $dataList = array();
             ksort($subjectList);
             $columns['Name'] = 'Fach';
-            $dataList['Canceled']['Name'] = 'Ausgefallene Stunden';
-            $dataList['Additional']['Name'] = 'Zusätzlich erteilte Stunden';
-            $dataList['TotalCanceled']['Name'] = 'Absoluter Ausfall';
+            $dataList['Canceled']['Name'] = new ToolTip('Ausgefallene Stunden ' . new InfoIcon(), "Ausgefallene Stunden der KW{$dateTime->format('W')}");
+            $dataList['Additional']['Name'] = new ToolTip('Zusätzlich erteilte Stunden ' . new InfoIcon(), "Zusätzlich erteilte Stunden der KW{$dateTime->format('W')}");
+            $dataList['TotalCanceled']['Name'] = new ToolTip('Absoluter Ausfall ' . new InfoIcon(),
+                "Aufsummierung der ausgefallenen Stunden bis einschließlich der KW{$dateTime->format('W')}");
+            $dataList['TotalAdditional']['Name'] = new ToolTip('Abs. zus. erteilte Stunden ' . new InfoIcon(),
+                "Aufsummierung der zusätzlich erteilten Stunden bis einschließlich der KW{$dateTime->format('W')}");
             foreach ($subjectList as $acronym => $subject) {
                 $columns[$acronym] = $acronym;
                 $dataList['Canceled'][$acronym] = $canceledSubjectList[$acronym] ?? 0;
                 $dataList['Additional'][$acronym] = $additionalSubjectList[$acronym] ?? 0;
                 $dataList['TotalCanceled'][$acronym] = $subjectTotalCanceledList[$acronym] ?? 0;
+                $dataList['TotalAdditional'][$acronym] = $subjectTotalAdditionalList[$acronym] ?? 0;
             }
 
             $remark = '&nbsp;';
@@ -1257,15 +1280,38 @@ class Service extends AbstractService
 
         $subjectList = array();
         if ($tblDivision) {
-            $this->setSubjectListByDivision($tblDivision, $subjectList);
+            // Falls es bereits Einträge im Klassenbuch gibt, werden diese Fächer in der Wochenübersicht angezeigt
+            if (($tempList = $this->getSubjectListFromLessonContent($tblDivision))) {
+                $subjectList = $tempList;
+            // ansonsten die Fächer der Klasse
+            } else {
+                $this->setSubjectListByDivision($tblDivision, $subjectList);
+            }
         } elseif ($tblGroup) {
-            if (($tblDivisionList = $tblGroup->getCurrentDivisionList())) {
-                foreach ($tblDivisionList as $tblDivisionItem) {
-                    $this->setSubjectListByDivision($tblDivisionItem, $subjectList);
+            // Falls es bereits Einträge im Klassenbuch gibt, werden diese Fächer in der Wochenübersicht angezeigt
+            if (($tempList = $this->getSubjectListFromLessonContent(null, $tblGroup))) {
+                $subjectList = $tempList;
+            // ansonsten die Fächer der Stammgruppe
+            } else {
+                if (($tblDivisionList = $tblGroup->getCurrentDivisionList())) {
+                    foreach ($tblDivisionList as $tblDivisionItem) {
+                        $this->setSubjectListByDivision($tblDivisionItem, $subjectList);
+                    }
                 }
             }
         }
         return array($fromDate, $toDate, $canceledSubjectList, $additionalSubjectList, $subjectList);
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return TblSubject[]|false
+     */
+    public function getSubjectListFromLessonContent(TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    {
+        return (new Data($this->getBinding()))->getSubjectListFromLessonContent($tblDivision, $tblGroup);
     }
 
     /**

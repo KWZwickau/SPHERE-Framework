@@ -21,6 +21,7 @@ use SPHERE\Application\Api\Education\Division\SubjectSelect;
 use SPHERE\Application\Api\Education\Division\SubjectTeacher;
 use SPHERE\Application\Api\Education\Division\ValidationFilter;
 use SPHERE\Application\Api\Education\Graduation\Evaluation\ApiEvaluation;
+use SPHERE\Application\Api\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradesAllYears;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradeMaintenance;
@@ -72,5 +73,6 @@ class Education implements IApplicationInterface
         ApiDigital::registerApi();
         ApiInstructionSetting::registerApi();
         ApiInstructionItem::registerApi();
+        Evaluation::registerModule();
     }
 }

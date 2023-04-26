@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Reporting;
 
 use SPHERE\Application\Api\Reporting\CheckList\CheckList;
 use SPHERE\Application\Api\Reporting\Custom\Custom;
+use SPHERE\Application\Api\Reporting\CustomEKBO\CustomEKBO;
 use SPHERE\Application\Api\Reporting\Individual\ApiIndividual;
 use SPHERE\Application\Api\Reporting\DeclarationBasis\DeclarationBasis;
 use SPHERE\Application\Api\Reporting\SerialLetter\ApiSerialLetter;
@@ -24,6 +25,7 @@ class Reporting implements IApplicationInterface
     {
 
         Custom::registerModule();
+        CustomEKBO::registerModule();
         Standard::registerModule();
         ApiStandard::registerApi();
         CheckList::registerModule();

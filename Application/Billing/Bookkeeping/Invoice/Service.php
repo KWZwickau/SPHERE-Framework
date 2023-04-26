@@ -83,10 +83,22 @@ class Service extends AbstractService
      *
      * @return bool|TblInvoice[]
      */
-    public function getInvoiceAllByPersonCauserAndTime(TblPerson $tblPerson, $Year = '', $Month = '')
+    public function getInvoiceAllByPersonCauserAndYearAndMonth(TblPerson $tblPerson, $Year = '', $Month = '')
     {
 
-        return (new Data($this->getBinding()))->getInvoiceAllByPersonCauserAndTime($tblPerson, $Year, $Month);
+        return (new Data($this->getBinding()))->getInvoiceAllByPersonCauserAndYearAndMonth($tblPerson, $Year, $Month);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string    $Year
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceAllByPersonCauserAndYear(TblPerson $tblPerson, $Year = '')
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceAllByPersonCauserAndYear($tblPerson, $Year);
     }
 
     /**
@@ -111,7 +123,54 @@ class Service extends AbstractService
         if(($tblBasketType = $tblBasket->getTblBasketType())){
             $BasketTypeId = $tblBasketType->getId();
         }
-        if(($tblInvoiceList = $this->getInvoiceAllByPersonCauserAndTime($tblPerson, $Year, $Month))){
+        if(($tblInvoiceList = $this->getInvoiceAllByPersonCauserAndYearAndMonth($tblPerson, $Year, $Month))){
+            foreach($tblInvoiceList as $tblInvoice) {
+                // wird der gleiche Abrechnungstyp gesucht?
+                $IsSameType = false;
+                if(($tempTblBasket = $tblInvoice->getServiceTblBasket())){
+                    if(($tempTblBasketType = $tempTblBasket->getTblBasketType())){
+                        if($BasketTypeId == $tempTblBasketType->getId()){
+                            $IsSameType = true;
+                        }
+                    }
+                }
+                // Doppelte Invoice mit gleichem Abrechnungstyp
+                if($IsSameType && ($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
+                        if(($tblInvoiceItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+                            if($tblInvoiceItem->getId() == $tblItem->getId()){
+                                $isInvoice = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $isInvoice;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param TblPerson $tblPerson
+     * @param TblItem   $tblItem
+     * @param string    $Year
+     *
+     * @return TblInvoice[]|bool
+     */
+    public function getInvoiceByPersonCauserAndItemAndYear(
+        TblBasket $tblBasket,
+        TblPerson $tblPerson,
+        TblItem $tblItem,
+        $Year
+    ){
+        $isInvoice = false;
+        // Abrechnung als Default
+        $BasketTypeId = 1;
+        if(($tblBasketType = $tblBasket->getTblBasketType())){
+            $BasketTypeId = $tblBasketType->getId();
+        }
+        if(($tblInvoiceList = $this->getInvoiceAllByPersonCauserAndYear($tblPerson, $Year))){
             foreach($tblInvoiceList as $tblInvoice) {
                 // wird der gleiche Abrechnungstyp gesucht?
                 $IsSameType = false;

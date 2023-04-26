@@ -10,7 +10,6 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -115,7 +114,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblYear $tblYear
+     * @param TblYear[] $tblYear
      * @param string  $Acronym
      * @param array   $TeacherClasses
      * @param array   $schoolList
@@ -124,7 +123,7 @@ class Service extends AbstractService
      * @return array
      */
     public function getAccountActive(
-        TblYear $tblYear,
+        $tblYearList,
         $Acronym = '',
         $TeacherClasses = array(),
         $schoolList = array(),
@@ -136,7 +135,7 @@ class Service extends AbstractService
 
         if($tblAccountList){
             array_walk($tblAccountList, function(TblAccount $tblAccount) use (
-                $tblYear,
+                $tblYearList,
                 $Acronym,
                 &$activeAccountList,
                 $TeacherClasses,
@@ -165,7 +164,15 @@ class Service extends AbstractService
                     $tblPerson = current($tblPerson);
                     $UploadItem['firstname'] = $tblPerson->getFirstName();
                     $UploadItem['lastname'] = $tblPerson->getLastName();
-                    $tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+                    $tblDivision = false;
+                    if($tblYearList){
+                        foreach($tblYearList as $tblYear){
+                            $tblDivision = Student::useService()->getMainDivisionByPersonAndYear($tblPerson, $tblYear);
+                            if($tblDivision){
+                                break;
+                            }
+                        }
+                    }
                 }
                 // Klasse
 
@@ -242,6 +249,10 @@ class Service extends AbstractService
                 if(isset($User['udm_properties']['DllpServiceAccount']) && $User['udm_properties']['DllpServiceAccount'] == '1'){
                     continue;
                 }
+                if(is_string($User)){ // strpos($User, 'error when reading'
+                    echo '<pre> Antwort der API:<br/>'.print_r($User, true).'</pre>';
+                    continue;
+                }
 
                 // Nutzer ohne record_uid müssen in das Array mit eigenem Key aufgenommen werden
                 if(!$User['record_uid']){
@@ -279,35 +290,18 @@ class Service extends AbstractService
      *
      * @return array
      */
-    public function getSchulsoftwareUser($roleList, $schoolList)
+    public function getSchulsoftwareUser($roleList, $schoolList, $YearId = '')
     {
 
         $Acronym = Account::useService()->getMandantAcronym();
         // Lehraufträge
         $TeacherClasses = array();
-        if(($tblYearList = Term::useService()->getYearByNow())){
+        if($YearId && ($tblYear = Term::useService()->getYearById($YearId))){
+            $this->getTeacherClassesByYear($Acronym, $tblYear, $TeacherClasses);
+            $tblYearList[] = $tblYear;
+        } elseif(($tblYearList = Term::useService()->getYearByNow())){
             foreach($tblYearList as $tblYear){
-                if(($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))){
-                    foreach($tblDivisionList as $tblDivision){
-                        if(($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))){
-                            foreach($tblDivisionSubjectList as $tblDivisionSubject){
-                                if(($tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))){
-                                    foreach($tblDivisionTeacherList as $tblDivisionTeacher){
-                                        if(($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())){
-//                                            if($Acronym == 'REF'){
-//                                                $Acronym = 'DLLP';
-//                                            }
-                                            $ClassName = $this->getCorrectionClassNameByDivision($tblDivision);
-                                            $TeacherClasses[$tblPersonTeacher->getId()][$Acronym][] = $ClassName;
-                                            // doppelte werte entfernen
-                                            $TeacherClasses[$tblPersonTeacher->getId()][$Acronym] = array_unique($TeacherClasses[$tblPersonTeacher->getId()][$Acronym]);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                $this->getTeacherClassesByYear($Acronym, $tblYear, $TeacherClasses);
             }
         }
         // ArrayKey muss immer eine normale Zählung bei 0 beginnend ohne Lücken erhalten 0,1,2,3...
@@ -319,7 +313,40 @@ class Service extends AbstractService
             }
         }
 
-        return Univention::useService()->getAccountActive($tblYear, $Acronym, $TeacherClasses, $schoolList, $roleList);
+        return Univention::useService()->getAccountActive($tblYearList, $Acronym, $TeacherClasses, $schoolList, $roleList);
+    }
+
+    /**
+     * @param $Acronym
+     * @param $tblYear
+     * @param $TeacherClasses
+     *
+     * @return void
+     */
+    private function getTeacherClassesByYear($Acronym, $tblYear, &$TeacherClasses)
+    {
+
+        if(($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))){
+            foreach($tblDivisionList as $tblDivision){
+                if(($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))){
+                    foreach($tblDivisionSubjectList as $tblDivisionSubject){
+                        if(($tblDivisionTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))){
+                            foreach($tblDivisionTeacherList as $tblDivisionTeacher){
+                                if(($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson())){
+                                    //                                            if($Acronym == 'REF'){
+                                    //                                                $Acronym = 'DLLP';
+                                    //                                            }
+                                    $ClassName = $this->getCorrectionClassNameByDivision($tblDivision);
+                                    $TeacherClasses[$tblPersonTeacher->getId()][$Acronym][] = $ClassName;
+                                    // doppelte werte entfernen
+                                    $TeacherClasses[$tblPersonTeacher->getId()][$Acronym] = array_unique($TeacherClasses[$tblPersonTeacher->getId()][$Acronym]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

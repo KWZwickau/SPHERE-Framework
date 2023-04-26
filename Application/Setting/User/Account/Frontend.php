@@ -23,6 +23,8 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -58,6 +60,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -181,8 +184,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'order'      => array(array(5, 'asc')),
                 'columnDefs' => array(
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-//                    array('width' => '1%', 'targets' => 0), //ToDO handle changing with
-//                    array('width' => '1%', 'targets' => -1),
+                    array('width' => '1%', 'targets' => 0),
+                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
                 'paging'     => false,
@@ -577,8 +580,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'order'      => array(array(2, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'german-string', 'targets' => 1),
-//                    array('width' => '1%', 'targets' => 0), //ToDO handle changing with
-//                    array('width' => '1%', 'targets' => -1),
+                    array('width' => '1%', 'targets' => 0),
+                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
                 'paging'     => false,
@@ -805,8 +808,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 $DataPerson['Option'] = $this->apiChangeMainAddressButton($tblPerson);
 
                                 if ($tblPerson){
+                                    // Gibt Person und Schüler als Id zurück (12_13)
                                     $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
-                                        $tblPerson->getId()
+                                        $tblPerson->getId().'_'.$tblPersonStudent->getId()
                                         , array($tblPerson->getId())))->setChecked();
                                     $DataPerson['Name'] = $tblPerson->getLastFirstName();
                                 }
@@ -1296,18 +1300,18 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Success Entry if linked
                     if ($Time && $Time == $GroupByTime) {
-                        $item['GroupByTime'] = new SuccessMessage(new Bold($GroupByTime).' Aktuell erstellte Benutzer');
-                        $item['UserAccountCount'] = new SuccessMessage(count($tblUserAccountList));
-                        $item['ExportInfo'] = new SuccessMessage('&nbsp;');
+                        $item['GroupByTime'] = new SuccessMessage(new Bold($GroupByTime).' Aktuell erstellte Benutzer', null, false, '5', '3');
+                        $item['UserAccountCount'] = new SuccessMessage(count($tblUserAccountList), null, false, '5', '3');
+                        $item['ExportInfo'] = new SuccessMessage('&nbsp;', null, false, '5', '3');
                         if ($tblUserAccountTarget->getExportDate()) {
                             $item['ExportInfo'] = new SuccessMessage($tblUserAccountTarget->getLastDownloadAccount()
-                                .' ('.$tblUserAccountTarget->getExportDate().')');
+                                .' ('.$tblUserAccountTarget->getExportDate().')', null, false, '5', '3');
                         }
 
                         if ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
-                            $item['AccountType'] = new SuccessMessage('Schüler-Accounts');
+                            $item['AccountType'] = new SuccessMessage('Schüler-Accounts', null, false, '5', '3');
                         } elseif ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
-                            $item['AccountType'] = new SuccessMessage('Sorgeberechtigten-Accounts');
+                            $item['AccountType'] = new SuccessMessage('Sorgeberechtigten-Accounts', null, false, '5', '3');
                         }
                     } else {
                         $item['GroupByTime'] = $GroupByTime;
@@ -1783,6 +1787,18 @@ class Frontend extends Extension implements IFrontendInterface
                 new Standard('Zurück', $Route, new ChevronLeft())
             );
             if (!$Confirm) {
+                $IsUCSMandant = false;
+                if ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
+                && ($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())) {
+                    if (ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)) {
+                        $IsUCSMandant = true;
+                    }
+                }
+                $UcsRemark = '';
+                if($IsUCSMandant){
+                    $UcsRemark = new WellReadOnly('Nach dem Löschen des Accounts in der Schulsoftware wird dieser auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
+                }
+
                 $UserName = '';
                 if($tblAccount){
                     $UserName = $tblAccount->getUserName();
@@ -1796,7 +1812,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             Panel::PANEL_TYPE_SUCCESS
                         ),
-                        new Panel(new Question().' Diesen Benutzer wirklich löschen?', '',
+                        new Panel(new Question().' Diesen Benutzer wirklich löschen?', $UcsRemark,
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/User/Account/Destroy', new Ok(),

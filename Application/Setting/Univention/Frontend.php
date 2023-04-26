@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Api\Setting\Univention\ApiUnivention;
+use SPHERE\Application\Api\Setting\Univention\ApiWorkGroup;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -12,22 +13,29 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Group as GroupIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Share;
+use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -35,6 +43,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
+use SPHERE\Common\Frontend\Text\Repository\Primary as PrimaryText;
 use SPHERE\Common\Frontend\Text\Repository\TextBackground;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -42,6 +51,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -57,7 +67,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUnivention()
     {
         $Stage = new Stage('UCS', '');
-        $Stage->addButton(new Standard('Zurück', '/Setting', new ChevronLeft()));
 
         //ToDO Erklärung der Schnittstelle? + Vorraussetzungen
 
@@ -69,11 +78,10 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendUnivAPI($Upload = '')
+    public function frontendUnivAPI($Upload = '', $YearId = '')
     {
         set_time_limit(900);
         $Stage = new Stage('UCS', 'Schnittstelle API');
-        $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
 
         // dynamsiche Rollenliste
         $roleList = (new UniventionRole())->getAllRoles();
@@ -112,16 +120,39 @@ class Frontend extends Extension implements IFrontendInterface
                 $IsActiveAPI = true;
             }
         }
+
+        $YearString = '&nbsp;Aktuelles SJ';
+        if($YearId == ''){
+            $YearString = new PrimaryText(new Bold($YearString));
+        }
+        $Stage->addButton(new Standard($YearString, '/Setting/Univention/Api', new GroupIcon(), array('YearId' => '')));
+        if($nextYearList = Term::useService()->getYearAllFutureYears(1)){
+            foreach($nextYearList as $nextYear){
+                $YearString = '&nbsp;'.$nextYear->getDisplayName();
+                if($YearId == $nextYear->getId()){
+                    $YearString = new PrimaryText(new Bold($YearString));
+                }
+                $Stage->addButton(new Standard($YearString, '/Setting/Univention/Api', new GroupIcon(), array('YearId' => $nextYear->getId())));
+            }
+        }
+
         if($IsActiveAPI){
+            $ButtonCreate = new Primary('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create', 'YearId' => $YearId));
+            $ButtonUpdate = new Primary('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update', 'YearId' => $YearId));
+            $ButtonDelete = new Danger('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete', 'YearId' => $YearId));
+
 //            $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
-            $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
-            $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
-            $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete')));
+//            $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
+//            $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
+//            $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete')));
         } else {
-//            $Stage->addButton((new Standard('Benutzer komplett abgleichen', '', new Upload()))->setDisabled());
-            $Stage->addButton((new Standard('Benutzer anlegen', '', new Plus()))->setDisabled());
-            $Stage->addButton((new Standard('Benutzer anpassen', '', new Edit()))->setDisabled());
-            $Stage->addButton((new Standard('Benutzer löschen', '', new Remove()))->setDisabled());
+            $ButtonCreate = (new Standard('Benutzer anlegen', '', new Plus()))->setDisabled();
+            $ButtonUpdate = (new Standard('Benutzer anpassen', '', new Edit()))->setDisabled();
+            $ButtonDelete = (new Standard('Benutzer löschen', '', new Remove()))->setDisabled();
+
+//            $Stage->addButton((new Standard('Benutzer anlegen', '', new Plus()))->setDisabled());
+//            $Stage->addButton((new Standard('Benutzer anpassen', '', new Edit()))->setDisabled());
+//            $Stage->addButton((new Standard('Benutzer löschen', '', new Remove()))->setDisabled());
         }
 
         $UserUniventionList = Univention::useService()->getApiUser();
@@ -130,7 +161,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Vorraussetzung, es muss ein aktives Schuljahr geben.
         $tblYearList = Term::useService()->getYearByNow();
         if($tblYearList){
-            $UserSchulsoftwareList = Univention::useService()->getSchulsoftwareUser($roleList, $schoolList);
+            $UserSchulsoftwareList = Univention::useService()->getSchulsoftwareUser($roleList, $schoolList, $YearId);
         }
 
         // Zählung
@@ -485,11 +516,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Upload erst nach ausführlicher Bestätigung
         if($Upload == 'Create'){
-            return $this->frontendApiAction($createList, $Upload);
+            return $this->frontendApiAction($createList, $Upload, $YearId);
         } elseif($Upload == 'Update'){
-            return $this->frontendApiAction($updateList, $Upload);
+            return $this->frontendApiAction($updateList, $Upload, $YearId);
         } elseif($Upload == 'Delete'){
-            return $this->frontendApiAction($deleteList, $Upload);
+            return $this->frontendApiAction($deleteList, $Upload, $YearId);
         }
 
         // Frontend Anzeige
@@ -504,7 +535,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(!empty($updateList)){
             foreach($updateList as $AccountArray) {
                 if(isset($AccountArray['UpdateLog'])){
-                    $ContentUpdate[] = (new ToolTip($AccountArray['name'].' '.new Info(), htmlspecialchars(
+                    $ContentUpdate[] = (new ToolTip($AccountArray['name'].' '.new InfoIcon(), htmlspecialchars(
                         implode('<br/>', $AccountArray['UpdateLog'])
                     )))->enableHtml();
                 } else {
@@ -623,17 +654,17 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new LayoutRow(array(
                 new LayoutColumn(
-                    new Well(new Title(new SuccessText(new Plus().' Anlegen'))
+                    new Well(new Title(new PullClear(new SuccessText(new Plus().' Anlegen').new PullRight($ButtonCreate)))
                         .$AccordionCreate)
                 , 6),
                 new LayoutColumn(
-                    new Well(new Title(new DangerText(new Remove().' Löschen'))
+                    new Well(new Title(new PullClear(new DangerText(new Remove().' Löschen').new PullRight($ButtonDelete)))
                         .$AccordionDelete)
                 , 6)
             )),
             new LayoutRow(
                 new LayoutColumn(
-                    new Well(new Title(new InfoText(new Edit().' Anpassen'))
+                    new Well(new Title(new PullClear(new InfoText(new Edit().' Anpassen').new PullRight($ButtonUpdate)))
                         .$AccordionUpdate)
                 )
             ),
@@ -653,11 +684,11 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendApiAction($UserList, $ApiType = '')
+    public function frontendApiAction($UserList, $ApiType = '', $YearId = '')
     {
 
         $Stage = new Stage('API', 'Transfermeldung');
-        $Stage->addButton(new Standard('Zurück', '/Setting/Univention/Api', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Setting/Univention/Api', new ChevronLeft(), array('YearId' => $YearId)));
 
         $CountMax = count($UserList);
         $TypeFrontend = '';
@@ -667,13 +698,13 @@ class Frontend extends Extension implements IFrontendInterface
             $UserList = json_encode($UserList);
             if($ApiType == 'Create'){
                 $TypeFrontend = 'Anlegen von Nutzern';
-                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType,$CountMax);
+                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType, $CountMax);
             }elseif($ApiType == 'Update'){
                 $TypeFrontend = 'Bearbeiten von Nutzern';
-                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType,$CountMax);
+                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType, $CountMax);
             }elseif($ApiType == 'Delete'){
                 $TypeFrontend = 'Löschen von Nutzern';
-                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType,$CountMax);
+                $PipelineServiceUser = ApiUnivention::pipelineServiceUser('0', $UserList, $ApiType, $CountMax);
             }
 
             // insert receiver into frontend
@@ -685,6 +716,145 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Layout(new LayoutGroup(array(new LayoutRow(array(
                 new LayoutColumn(new Title($TypeFrontend)),
                 new LayoutColumn(ApiUnivention::receiverLoad(ApiUnivention::pipelineLoad(0, $CountMax))),
+                new LayoutColumn('<div style="height: 15px"> </div>'),
+            )),
+                $LayoutRowAPI
+            ))));
+        } else {
+            $Stage->setContent(
+                new Warning(new Center('Es sind keine Transaktionen verfügbar.'))
+            );
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendWorkGroupAPI($isStart = false) //
+    {
+
+        $Stage = new Stage('API', 'Arbeitsgruppen-Abgleich');
+        if(!$isStart){
+            $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(new Warning('Diese Schnittstelle legt neue Stammgruppen aus der Schulsoftware als
+                 Arbeitsgruppen im DLLP / UCS an und ordnet die entsprechenden Schüler
+                  diesen Gruppen zu. Bitte beachten Sie, dass die entsprechenden Schüler zuvor
+                   mittels der Schnittstelle "UCS über API" erst nach DLLP / UCS übertragen
+                    werden müssen.'), 4),
+                new LayoutColumn(new Primary('Datenabgleich der Arbeitsgruppen starten', '/Setting/Univention/WorkGroupApi', new Upload(), array('isStart' => true)))
+            )))));
+            return $Stage;
+        }
+
+        $Acronym = Account::useService()->getMandantAcronym();
+        // dynamsiche Schulliste
+        $schoolList = (new UniventionSchool())->getAllSchools();
+        // Fehlerausgabe
+        if($this->errorScan($Stage, $schoolList)){
+            return $Stage;
+        }
+        // early break if no answer
+        if(!is_array($schoolList)){
+            $Stage->setContent(new Warning('UCS liefert keine Informationen'));
+            return $Stage;
+        }
+        // Mandant ist nicht in der Schulliste
+        if( !array_key_exists($Acronym, $schoolList)){
+            $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht in UCS freigeschalten'));
+            return $Stage;
+        }
+        $school = $schoolList[$Acronym];
+        // Vorhandene Nutzer in Univention holen
+        $UserUniventionList = Univention::useService()->getApiUser();
+        $ApiUserNameList = array();
+        if($UserUniventionList){
+            foreach($UserUniventionList as $UserUnivention){
+                $ApiUserNameList[] = $UserUnivention['name'];
+            }
+        }
+
+        $ApiWorkGroupList = (new UniventionWorkGroup())->getWorkGroupListAll();
+        $ApiGroupArray = array();
+        if($ApiWorkGroupList){
+            // Workgroup mit Nutzernamen
+            foreach($ApiWorkGroupList as $ApiWorkGroup){
+                $group = $ApiWorkGroup['name'];
+                if(!empty($ApiWorkGroup['users'])){
+                    foreach($ApiWorkGroup['users'] as &$User){
+                        // Nutzernamen aus URL
+                        $Position = strpos($User, $Acronym.'-');
+                        $TempUser = str_split($User, $Position);
+                        $User = $TempUser[1];
+                    }
+                }
+                sort($ApiWorkGroup['users']);
+                $ApiGroupArray[$group] = $ApiWorkGroup['users'];
+            }
+        }
+        $ContentArray = array();
+        if(($tblGroupList = Group::useService()->getGroupListByIsCoreGroup())){
+            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            foreach($tblGroupList as $tblGroup){
+                $tblPersonAccountList = array();
+                if(($tblPersonGroupList = Group::useService()->getPersonAllByGroup($tblGroup))){
+                    foreach($tblPersonGroupList as $tblPersonGroup){
+                        // Nur bei Schülern
+                        if(Group::useService()->getMemberByPersonAndGroup($tblPersonGroup, $tblGroupStudent)){
+                            // Nur Schüler mit einem Account und einer hinterlegten E-Mail
+                            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPersonGroup)))
+                            {
+                                // Nutzer müssen in der API verfügbar sein
+                                if(in_array($tblAccountList[0]->getUsername(), $ApiUserNameList)){
+                                    $tblPersonAccountList[] = $tblAccountList[0]->getUsername();
+                                }
+                            }
+                        }
+                    }
+                }
+                if((array_key_exists($tblGroup->getName(), $ApiGroupArray))){
+                    $ApiUserList = $ApiGroupArray[$tblGroup->getName()];
+                    if(count($ApiUserList) != count($tblPersonAccountList)
+                        || ($Diff = array_diff($ApiUserList, $tblPersonAccountList))){
+                        // Gruppen SSW & Univention unterscheiden sich
+                        $Type = 'update';
+                    } else {
+                        // Sonnst keine Änderungen
+                        $Type = 'ok';
+                    }
+                } else {
+                    $Type = 'create';
+                }
+
+                $ContentArray[$tblGroup->getName()] = array(
+                    'Group' => $tblGroup->getName(),
+                    'UserList' => $tblPersonAccountList,
+                    'Type' => $Type,
+                    'School' => $school
+                );
+            }
+        }
+        if(!empty($ContentArray)){
+            ksort($ContentArray);
+        }
+
+        $CountMax = count($ContentArray);
+        if($CountMax > 0){
+
+            // avoid max_input_vars
+            $ContentJson = json_encode($ContentArray);
+            $PipelineServiceWorkgroup = ApiWorkGroup::pipelineServiceWorkgroup('0', $ContentJson, $CountMax);
+
+            // insert receiver into frontend
+            $LayoutRowAPI = new LayoutRow(new LayoutColumn(ApiWorkGroup::receiverWorkgroup($PipelineServiceWorkgroup), 4));
+            for($i = 1; $i <= $CountMax; $i++){
+                $LayoutRowAPI->addColumn(new LayoutColumn(ApiWorkGroup::receiverWorkgroup('', $i), 4));
+            }
+
+            $Stage->setContent(new Layout(new LayoutGroup(array(new LayoutRow(array(
+                //                new LayoutColumn(new Title($TypeFrontend)),
+                new LayoutColumn(ApiWorkGroup::receiverLoad(ApiWorkGroup::pipelineLoad(0, $CountMax))),
                 new LayoutColumn('<div style="height: 15px"> </div>'),
                 )),
                 $LayoutRowAPI
@@ -781,13 +951,13 @@ class Frontend extends Extension implements IFrontendInterface
                             && (Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStaff)
                               || Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupTeacher)
                                 )){
-                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'<br />'.
                                     'Person mit sich ausschließenden Personengruppen:<br />'
                                     .new DangerText('Schüler, Mitarbeiter/Lehrer')
                                 )))->enableHtml();
                             } else {
-                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'<br />'.
                                     'Person in keiner der folgenen Personengruppen:<br />'
                                     .new DangerText('Schüler, Mitarbeiter/Lehrer')
@@ -796,7 +966,7 @@ class Frontend extends Extension implements IFrontendInterface
                         break;
                         case 'schools':
                             $KeyReplace = 'Schule:';
-                            $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                            $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
                                 'Schüler ist keiner Klasse zugewiesen <br />'
                                 .'oder Schule fehlt in UCS')))->enableHtml();
                         break;
@@ -805,7 +975,7 @@ class Frontend extends Extension implements IFrontendInterface
                     // Sonderregelung Schüler ohne Klasse ist ein Fehler Lehrer/Mitarbeiter nicht
                     if($tblMember && $Key == 'school_classes'){
                         $KeyReplace = 'Klassen:';
-                        $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                        $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                            new DangerText('Fehler:').'<br />'.
                             'Schüler ist keiner Klasse zugewiesen')))->enableHtml();
                     } elseif(!$tblMember && $Key == 'school_classes') {
@@ -820,14 +990,14 @@ class Frontend extends Extension implements IFrontendInterface
                         switch ($Key){
                             case 'name':
                                 $KeyReplace = 'Benutzername:';
-                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'</br>'.
                                     'Umlaute oder Sonderzeichen'
                                 )))->enableHtml();
                             break;
                             case 'email':
                                 $KeyReplace = 'E-Mail:';
-                                $MouseOver = (new ToolTip(new Info(), htmlspecialchars(
+                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'<br />'.
                                     'keine E-Mail als UCS Benutzername verwendet'
                                 )))->enableHtml();
@@ -842,11 +1012,11 @@ class Frontend extends Extension implements IFrontendInterface
 //                            break;
                             case 'lastname':
                                 $KeyReplace = 'Person:';
-                                $MouseOver = new ToolTip(new Info(), 'keine Person am Account');
+                                $MouseOver = new ToolTip(new InfoIcon(), 'keine Person am Account');
                             break;
                             case 'school_classes':
                                 $KeyReplace = 'Klasse:';
-                                $MouseOver = new ToolTip(new Info(), 'Person muss mindestens einer Klasse zugewiesen sein');
+                                $MouseOver = new ToolTip(new InfoIcon(), 'Person muss mindestens einer Klasse zugewiesen sein');
                             break;
                         }
 
@@ -912,7 +1082,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUnivCSV()
     {
         $Stage = new Stage('UCS', 'Schnittstelle CSV');
-        $Stage->addButton(new Standard('Zurück', '/Setting/Univention', new ChevronLeft()));
         $Stage->addButton(new Standard('CSV Mandant herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download()));
         $Stage->addButton(new Standard('CSV User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Beinhaltet alle Schüler/Mitarbeiter/Lehrer Accounts'));
         // Schularten, welche keine E-Mail als Benutzernamen benötigen

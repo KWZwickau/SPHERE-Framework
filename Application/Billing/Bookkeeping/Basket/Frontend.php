@@ -446,7 +446,7 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         $PanelContent = '';
         $IsDebtorNumberNeed = false;
-        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA)){
+        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
             if($tblSetting->getValue() == 1){
                 $IsDebtorNumberNeed = true;
             }

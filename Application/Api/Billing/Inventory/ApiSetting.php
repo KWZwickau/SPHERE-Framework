@@ -301,6 +301,9 @@ class ApiSetting extends Extension implements IApiInterface
                 Setting::useService()->createSetting(TblSetting::IDENT_KOST_2, $Kost2);
                 $BuKey = (isset($Setting[TblSetting::IDENT_BU_KEY]) ? $Setting[TblSetting::IDENT_BU_KEY] : '0');
                 Setting::useService()->createSetting(TblSetting::IDENT_BU_KEY, $BuKey);
+                $Now = new \DateTime();
+                $EconomicDate = (isset($Setting[TblSetting::IDENT_ECONOMIC_DATE]) ? $Setting[TblSetting::IDENT_ECONOMIC_DATE] : '01.01.'.$Now->format('Y'));
+                Setting::useService()->createSetting(TblSetting::IDENT_ECONOMIC_DATE, $EconomicDate);
             break;
         }
 

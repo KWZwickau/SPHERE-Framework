@@ -57,7 +57,23 @@ class ServiceView extends AbstractService
      */
     public function getCityNameGroupByCityName(){return (new Data($this->getBinding()))->getCityNameGroupByCityName();}
 
-    /**
+//    /** @deprecated -> alte Personengruppensuche
+//     * @param TblGroup $tblGroup
+//     *
+//     * @return array|bool
+//     * array_keys:
+//     * <br/>TblPerson_Id
+//     * <br/>TblPerson_LastFirstName
+//     * <br/>TblCommon_Remark
+//     * <br/>Address
+//     * <br/>Identifier
+//     * <br/>Year
+//     * <br/>Level
+//     * <br/>SchoolOption
+//     */
+//    public function getPersonListByGroup(TblGroup $tblGroup){return (new Data($this->getBinding()))->getPersonListByGroup($tblGroup);}
+
+    /** Funktionsname beibehalten (Kompatibilität)
      * @param TblGroup $tblGroup
      *
      * @return array|bool
@@ -71,7 +87,11 @@ class ServiceView extends AbstractService
      * <br/>Level
      * <br/>SchoolOption
      */
-    public function getPersonListByGroup(TblGroup $tblGroup){return (new Data($this->getBinding()))->getPersonListByGroup($tblGroup);}
+    public function getPersonListByGroup(TblGroup $tblGroup){
+
+        return (new Data($this->getBinding()))->getPersonSearchListByGroup($tblGroup);
+    }
+
     public function getStudentPersonListByFilter(TblYear $tblYear, $tblGroup = false, $tblType = false, $Level = '', $Division = ''){
         return (new Data($this->getBinding()))->getStudentPersonListByFilter($tblYear, $tblGroup, $tblType, $Level, $Division);
     }

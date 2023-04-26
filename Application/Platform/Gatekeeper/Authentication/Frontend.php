@@ -4,10 +4,14 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
 use DateTime;
 use Exception;
+use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
+use SPHERE\Application\ParentStudentAccess\OnlineGradebook\OnlineGradebook;
 use SPHERE\Application\People\ContactDetails\ContactDetails;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Saml\SamlDLLP;
@@ -57,12 +61,14 @@ use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
+use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success;
@@ -107,6 +113,8 @@ class Frontend extends Extension implements IFrontendInterface
         $contentHeadmasterWelcome = false;
         $contentSecretariatWelcome = false;
         $IsChangePassword = false;
+        $IsNavigationAssistance = false;
+        $IsStudentAccount = false;
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
@@ -131,8 +139,12 @@ class Frontend extends Extension implements IFrontendInterface
             if (($tblIdentification = $tblAccount->getServiceTblIdentification())
                 && ($tblIdentification->getName() == TblIdentification::NAME_USER_CREDENTIAL)
             ) {
+                // Alle TblUserAccounts erhalten direktlink Button
+                $IsNavigationAssistance = true;
+
                 // Eltern und Schüler funktionieren anders als die anderen Accounts
                 if (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))) {
+                    $IsStudentAccount = $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT;
                     $Password = $tblUserAccount->getAccountPassword();
                     if ($tblAccount->getPassword() == $Password) {
                         $IsChangePassword = true;
@@ -189,6 +201,14 @@ class Frontend extends Extension implements IFrontendInterface
                 if(Consumer::useService()->getConsumerLoginListByConsumer($tblConsumer)){
                     $isConsumerLogin = true;
                 }
+                // Vidis temporär Login auf der Demo-Version
+                if( strtolower($this->getRequest()->getHost()) == 'demo.schulsoftware.schule'
+                    || $this->getRequest()->getHost() == '192.168.202.230'
+                ){
+                    if($tblConsumer->getAcronym() == 'DEMO'){
+                        $isConsumerLogin = true;
+                    }
+                }
             }
         }
 
@@ -211,6 +231,10 @@ class Frontend extends Extension implements IFrontendInterface
             )
             .($IsChangePassword && !$isConsumerLogin
                 ? $this->layoutPasswordChange()
+                : ''
+            )
+            . ($IsNavigationAssistance
+                ? $this->layoutNavigationAssistance($IsStudentAccount)
                 : ''
             )
             . ($contentHeadmasterWelcome ?: '')
@@ -241,6 +265,35 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )
         );
+    }
+
+    /**
+     * @param bool $IsStudentAccount
+     * @return string
+     */
+    private function layoutNavigationAssistance(bool $IsStudentAccount): string
+    {
+        $columns = array();
+        if ($IsStudentAccount ? OnlineGradebook::useService()->getPersonListFromStudentLogin() : OnlineGradebook::useService()->getPersonListFromCustodyLogin()) {
+            $columns[] = new LayoutColumn(new Link(
+                (new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png'), 'Notenübersicht'))->setPictureHeight(),
+                '/ParentStudentAccess/OnlineGradebook'
+            ), 4);
+        }
+        if ($IsStudentAccount ? OnlineAbsence::useService()->getPersonListFromStudentLogin() : OnlineAbsence::useService()->getPersonListFromCustodyLogin()) {
+            $columns[] = new LayoutColumn(new Link(
+                (new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png'), 'Fehlzeiten'))->setPictureHeight(),
+                '/ParentStudentAccess/OnlineAbsence'
+            ), 4);
+        }
+        if ($IsStudentAccount ? OnlineContactDetails::useService()->getPersonListFromStudentLogin() : OnlineContactDetails::useService()->getPersonListFromCustodyLogin()) {
+            $columns[] = new LayoutColumn(new Link(
+                (new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Kontakt-Daten'))->setPictureHeight(),
+                '/ParentStudentAccess/OnlineContactDetails'
+            ), 4);
+        }
+
+        return empty($columns) ? '' : new Layout(new LayoutGroup(new LayoutRow($columns)));
     }
 
     /**
@@ -349,24 +402,23 @@ class Frontend extends Extension implements IFrontendInterface
         // Create Form
         $Form = new Form(
             new FormGroup(array(
-                    new FormRow(
-                        new FormColumn(array(
-                            new Headline('Anmeldung Schulsoftware'),
-                            new Ruler(),
-                            new Listing(array(
-                                new Container($CredentialNameField) .
-                                new Container($CredentialLockField)
-                            )),
-                            $FormError
-                        ))
-                    ),
-                    new FormRow(
-                        new FormColumn(array(
-                            (new Primary('Login')),
-                        ))
-                    )
+                new FormRow(
+                    new FormColumn(array(
+                        new Headline('Anmeldung Schulsoftware'),
+                        new Ruler(),
+                        new Listing(array(
+                            new Container($CredentialNameField) .
+                            new Container($CredentialLockField)
+                        )),
+                        $FormError
+                    ))
+                ),
+                new FormRow(
+                    new FormColumn(array(
+                        (new Primary('Login')),
+                    ))
                 )
-            )
+            ))
         );
 
         // set depending information
@@ -384,14 +436,21 @@ class Frontend extends Extension implements IFrontendInterface
 
                 ))
             )));
-        } elseif(strtolower($this->getRequest()->getHost()) == 'www.demo.schulsoftware.schule'){
-//            $Form.= new Layout(new LayoutGroup(new LayoutRow(
-//                new LayoutColumn(array(
-//                    '<br/><br/><br/><br/>',
-//                    new Title('Anmeldung UCS Demo (Pilot)'),
-//                    new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\DLLPDemo')
-//                ))
-//            )));
+        } elseif( strtolower($this->getRequest()->getHost()) == 'demo.schulsoftware.schule'
+        || $this->getRequest()->getHost() == '192.168.202.230'
+        ){
+            // Vidis temporär Login auf der Demo-Version
+            $Form.= new Layout(new LayoutGroup(new LayoutRow(
+                new LayoutColumn(array(
+                    '<br/><br/><br/><br/>',
+                    new Title('Anmeldung Vidis Demo'),
+                        (new PrimaryLink('Login', '/Platform/Gatekeeper/OAuth2/OAuthSite'))->setExternal()
+                    .'<script src="https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js"></script>'
+//                    // size L/M/S
+//                    // cookie = "true" (zum testen erstmal false)
+                    .'<vidis-login Size = "L" cookie = "true" loginurl="http://demo.schulsoftware.schule/Platform/Gatekeeper/OAuth2/OAuthSite"></vidis-login>'
+                ))
+            )));
         }
 
         setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');
@@ -451,11 +510,18 @@ class Frontend extends Extension implements IFrontendInterface
         $tblAccount = null;
         $LoginOk = false;
 
-        if(isset($_SESSION['samlUserdata']['ucsschoolRecordUID']) && $_SESSION['samlUserdata']['ucsschoolRecordUID']){
-//            var_dump($_SESSION['samlUserdata']);
+        if(isset($_SESSION['samlUserdata']['uid']) && !empty($_SESSION['samlUserdata']['uid'])){
             $AccountNameAPI = current($_SESSION['samlUserdata']['uid']);
+        } else {
+            $AccountNameAPI = new Bold('UCS missing (uid)');
+        }
+
+        if(isset($_SESSION['samlUserdata']['ucsschoolRecordUID']) && $_SESSION['samlUserdata']['ucsschoolRecordUID']){
+//            $AccountNameAPI = current($_SESSION['samlUserdata']['uid']);
             $AccountId = current($_SESSION['samlUserdata']['ucsschoolRecordUID']);
             $tblAccount = Account::useService()->getAccountById($AccountId);
+        } else {
+            $AccountId = new Bold('UCS missing (ucsschoolRecordUID)');
         }
 
         // AccountId gegen Prüfung
@@ -491,7 +557,6 @@ class Frontend extends Extension implements IFrontendInterface
             if($Session = session_id()){
                 Account::useService()->destroySession(null, $Session);
             }
-
         }
 
         $tblIdentification = null;
@@ -516,8 +581,13 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $detailInfo = '';
+        if(isset($AccountNameAPI) || isset($AccountId)){
+            $detailInfo = '( '.(isset($AccountNameAPI)? $AccountNameAPI: '').' [ '.(isset($AccountId)? $AccountId: '').' ]'.' )';
+        }
+
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
-            new LayoutColumn(new Warning('Ihr Login von UCS ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
+            new LayoutColumn(new Warning('Ihr Login von UCS '.$detailInfo.' ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
         ))));
 
         return $Stage;
@@ -539,6 +609,8 @@ class Frontend extends Extension implements IFrontendInterface
             case 'demo.schulsoftware.schule':
             case 'demo.kreda.schule':
                 return new Danger(new Picture().' Demo-Umgebung');
+            case 'nightly.schulsoftware.schule':
+                return new Danger(new Picture().' Nightly-Umgebung');
             default:
                 return new WarningText( new Globe().' '.$this->getRequest()->getHost());
         }

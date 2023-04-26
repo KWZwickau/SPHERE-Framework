@@ -236,7 +236,6 @@ UPDATE ".$Acronym."_PeopleMeta.tblClub SET Remark = '' , Identifier = FLOOR(RAND
 UPDATE ".$Acronym."_PeopleMeta.tblCommonBirthDates SET Birthplace = '';
 UPDATE ".$Acronym."_PeopleMeta.tblCustody SET Remark = '';
 UPDATE ".$Acronym."_PeopleMeta.tblSpecial SET PersonEditor = 'DatenÃ¼bernahme', Remark = '';
-UPDATE ".$Acronym."_PeopleMeta.tblStudentIntegration SET CoachingRemark = '';
 UPDATE ".$Acronym."_PeopleMeta.tblStudentTransfer SET Remark = '';
 UPDATE ".$Acronym."_PeopleMeta.tblStudentTransport SET Remark = '';
 UPDATE ".$Acronym."_PeopleMeta.tblSupport SET PersonSupport = '', PersonEditor = 'DatenÃ¼bernahme', Remark = '';

@@ -2470,7 +2470,7 @@ abstract class Style extends Certificate
             {% endif %}',
             $textSize
         );
-//        $element->styleLineHeight('80%');
+        $element->styleLineHeight('80%');
         if ($tblSetting && $tblSetting->getValue()) {
             $element->styleAlignJustify();
         }
@@ -2817,8 +2817,8 @@ abstract class Style extends Certificate
     {
         $slice = (new Slice())
             ->styleMarginTop($marginTop)
-            ->addElement($this->getElement('Leistungen', self::TEXT_SIZE_LARGE)->styleTextBold())
-            ->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold()->styleMarginTop('5px'))
+            ->addElement($this->getElement('Leistungen:', self::TEXT_SIZE_LARGE)->styleTextBold())
+//            ->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold()->styleMarginTop('5px'))
         ;
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());

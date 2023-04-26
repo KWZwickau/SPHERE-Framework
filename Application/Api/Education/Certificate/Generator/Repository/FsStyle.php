@@ -1104,7 +1104,9 @@ abstract class FsStyle extends Certificate
                     $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
                     $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
 
-                    if($tblCertificateSubject->getRanking() == 16) {
+                    if ($tblCertificateSubject->getRanking() == 15
+                        || $tblCertificateSubject->getRanking() == 16
+                    ) {
 
                         if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                             $SubjectStructure[$RankingString.$LaneString]['SubjectAcronym']
@@ -2154,56 +2156,44 @@ abstract class FsStyle extends Certificate
             )
         );
 
-        $Slice->addSection((new Section())
-            ->addElementColumn((new Element())
-                ->setContent('Ort, Datum')
-                ->styleAlignCenter()
-                ->styleTextSize('10px')
-                , '60%'
+        $Slice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Ort, Datum')
+                    ->styleAlignCenter()
+                    ->styleTextSize('10px')
+                    , '60%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                            {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                        {% else %}
+                            Klassenlehrer/in
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
+                    ->styleTextSize('10px')
+                    , '40%'
+                )
             )
-            ->addElementColumn((new Element())
-                ->setContent('
-                    {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
-                        {{ Content.P' . $personId . '.DivisionTeacher.Description }}
-                    {% else %}
-                        Klassenlehrer/in
-                    {% endif %}
-                ')
-                ->styleAlignCenter()
-                ->styleTextSize('10px')
-                , '40%'
-            )
-        );
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                , '60%')
+                ->addElementColumn((new Element())
+                    ->setContent(
+                        '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                            {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}'
+                    )
+                    ->styleAlignCenter()
+                    ->styleTextSize('10px')
+                , '40%')
+            );
 
-//        $Slice->addElement((new Element())
-//            ->setContent('&nbsp;')
-//            ->styleHeight('30px')
-//        );
-//
-//        $Slice->addSection((new Section())
-//            ->addElementColumn((new Element())
-//                ->setContent('Zur Kenntnis genommen:')
-//                , '27%'
-//            )
-//            ->addElementColumn((new Element())
-//                ->setContent('&nbsp;')
-//                ->styleBorderBottom('0.5px')
-//                , '73%'
-//            )
-//        );
-//
-//        $Slice->addSection((new Section())
-//            ->addElementColumn((new Element())
-//                ->setContent('&nbsp;')
-//                , '27%'
-//            )
-//            ->addElementColumn((new Element())
-//                ->setContent('Eltern')
-//                ->styleTextSize('10px')
-//                ->styleAlignCenter()
-//                , '73%'
-//            )
-//        );
         return $Slice;
     }
 

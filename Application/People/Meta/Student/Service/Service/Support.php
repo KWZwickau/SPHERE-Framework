@@ -30,7 +30,7 @@ use SPHERE\Common\Window\Redirect;
  *
  * @package SPHERE\Application\People\Meta\Student\Service\Service
  */
-abstract class Support extends Integration
+abstract class Support extends Subject
 {
 
     /**

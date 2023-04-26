@@ -207,6 +207,21 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTimetable $tblTimeTable
+     * @param string       $Name
+     * @param string       $Description
+     * @param DateTime     $DateFrom
+     * @param DateTime     $DateTo
+     *
+     * @return TblTimetable|null
+     */
+    public function updateTimetable(TblTimetable $tblTimeTable, string $Name, string $Description, DateTime $DateFrom, DateTime $DateTo): ?TblTimetable
+    {
+
+        return (new Data($this->getBinding()))->updateTimetable($tblTimeTable, $Name, $Description, $DateFrom, $DateTo);
+    }
+
+    /**
      * @param TblTimetable $tblTimetable
      * @return bool
      */

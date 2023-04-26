@@ -50,6 +50,17 @@ class Get extends Extension implements ITypeInterface
         }
 
         if (!empty( $Global->GET ) && !isset( $Global->GET['_Sign'] )) {
+            // Ausnahmen für Vidis Login
+            $Path = Extension::getRequest()->getPathInfo();
+            if((isset($Global->GET['kc_idp_hint'])
+                && $Path == '/Platform/Gatekeeper/OAuth2/Vidis')
+            || (isset($Global->GET['state'])
+                && isset($Global->GET['session_state'])
+                && isset($Global->GET['code'])
+                && $Path == '/Platform/Gatekeeper/OAuth2/Vidis')){
+                $Global->saveGet();
+                return true;
+            }
             $Global->GET = array();
             $Global->saveGet();
             return null;

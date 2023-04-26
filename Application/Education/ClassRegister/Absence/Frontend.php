@@ -102,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new Panel(
                                         'Schüler',
-                                        $tblPerson->getLastFirstName(),
+                                        $tblPerson->getLastFirstNameWithCallNameUnderline(),
                                         Panel::PANEL_TYPE_INFO
                                     )
                                 ), 6),
@@ -332,7 +332,9 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($tblPersonList) {
                 $formRows[] = new FormRow(new FormColumn(
-                    (new SelectBox('Data[PersonId]', 'Schüler', array('{{ LastFirstName }}' => $tblPersonList)))->setRequired()
+                    (new SelectBox('Data[PersonId]', 'Schüler', array('{{ LastFirstName }}' => $tblPersonList)))
+                        ->setRequired()
+                        ->ajaxPipelineOnChange(ApiAbsence::pipelineLoadType())
                 ));
             }
         } elseif ($hasSearch) {
@@ -670,6 +672,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'Option' => ''
             );
         }
+        // name Downloadfile
+        $FileName = 'Fehlzeiten '.$tblPerson->getLastName().' '.$tblPerson->getFirstName().' '.(new DateTime())->format('d-m-Y');
 
         return new TableData(
             $tableData,
@@ -684,7 +688,13 @@ class Frontend extends Extension implements IFrontendInterface
                     array('type' => 'de_date', 'targets' => 1),
                     array('orderable' => false, 'width' => '60px', 'targets' => -1)
                 ),
-                'responsive' => false
+                'responsive' => false,
+//                'ExtensionColVisibility' => array('Enabled' => true),
+                'ExtensionDownloadExcel' => array(
+                    'Enabled' => true,
+                    'FileName' => $FileName,
+                    'Columns' => '0,1,2,3,4,5,6,7,8',
+                )
             )
         );
     }

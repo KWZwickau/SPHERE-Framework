@@ -3304,7 +3304,9 @@ EOT;
 
         $this->addMessage("openFont: $font - $name");
 
-        if (!$this->isUnicode || in_array(mb_strtolower(basename($name)), self::$coreFonts)) {
+        if(preg_match('!^Helvetica!', basename($name))){
+            $metrics_name = "$name.ufm";
+        } elseif (!$this->isUnicode || in_array(mb_strtolower(basename($name)), self::$coreFonts)) {
             $metrics_name = "$name.afm";
         } else {
             $metrics_name = "$name.ufm";

@@ -117,8 +117,12 @@ class Data extends AbstractData
         $this->createSetting('Education', 'Certificate', 'Diploma', 'ShowExtendedSchoolName', TblSetting::TYPE_BOOLEAN,
             '', 'Zeugnisse', 'Schul-Zusatz-Name von der Institution auf Abschlusszeugnissen und Abgangszeugnissen
             anzeigen [Standard: Nein]', true);
-        $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking', TblSetting::TYPE_BOOLEAN, '1',
-            'Zeugnisse', 'Sollen leere Bemerkungsfelder auf Zeugnissen gesperrt werden ("---"). [Standard: Ja]', true);
+        $tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking', TblSetting::TYPE_BOOLEAN, '1',
+            'Zeugnisse', 'Sollen leere Bemerkung- und Einschätzungsfelder auf Zeugnissen mit  ("—") ergänzen. [Standard: Ja]', true);
+        if($tblSetting->getDescription() != 'Sollen leere Bemerkung- und Einschätzungsfelder auf Zeugnissen mit  ("—") ergänzen. [Standard: Ja]'){
+            $this->updateSettingDescription($tblSetting, $tblSetting->getCategory(),
+                'Sollen leere Bemerkung- und Einschätzungsfelder auf Zeugnissen mit  ("—") ergänzen. [Standard: Ja]', $tblSetting->isPublic());
+        }
         $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowTeamsInCertificateRemark', TblSetting::TYPE_BOOLEAN, '1',
             'Zeugnisse', 'Sollen Arbeitsgemeinschaften in das Bemerkungsfeld der Zeugnisse eingetragen werden. [Standard: Ja]', true);
         $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowOrientationsInCertificateRemark', TblSetting::TYPE_BOOLEAN, '1',
@@ -146,6 +150,12 @@ class Data extends AbstractData
         $this->createSetting('Education', 'Certificate', 'Generate', 'PictureDisplayLocationForDiplomaCertificate',
             TblSetting::TYPE_BOOLEAN, '1', 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse wird das Logo auf der 2.
              Seite unter dem Abschluss angezeigt (ansonsten auf dem Cover oben links): [Ja]');
+        $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddressForLeaveCertificate',
+            TblSetting::TYPE_STRING, '', 'Zeugnisse', 'Für die Standard-Abgangs-Zeugnisse kann ein Bild (Logo)
+             hinterlegt werden. Adresse des Bildes: []');
+        $this->createSetting('Education', 'Certificate', 'Generate', 'PictureHeightForLeaveCertificate',
+            TblSetting::TYPE_STRING, '', 'Zeugnisse', 'Für die Standard-Abgangs-Zeugnisse kann ein Bild (Logo)
+             hinterlegt werden. Höhe des Bildes: []');
         $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym', TblSetting::TYPE_STRING, '',
             'Zeugnisse','Werden die Neigungskurse in der Bildung nicht einzeln gepflegt, sondern nur ein einzelner
              Standard-Neigungskurs, kann hier das Kürzel des Standard-Neigungskurses (z.B. NK) hinterlegt werden. Für

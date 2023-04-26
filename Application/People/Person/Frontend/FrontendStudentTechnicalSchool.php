@@ -270,7 +270,7 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
      */
     private function getEditStudentTechnicalSchoolForm(TblPerson $tblPerson = null)
     {
-        FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
+        FrontendStudentBasic::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
 
         $tblTechnicalCourseAll = Course::useService()->getTechnicalCourseAll();
         $tblTechnicalSubjectAreaAll = Course::useService()->getTechnicalSubjectAreaAll();

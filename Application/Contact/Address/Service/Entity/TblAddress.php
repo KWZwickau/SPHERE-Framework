@@ -26,6 +26,7 @@ class TblAddress extends Element
     const ATTR_STREET_NAME = 'StreetName';
     const ATTR_STREET_NUMBER = 'StreetNumber';
     const ATTR_POST_OFFICE_BOX = 'PostOfficeBox';
+    const ATTR_REGION = 'Region';
     const ATTR_TBL_CITY = 'tblCity';
     const ATTR_TBL_STATE = 'tblState';
     const ATTR_COUNTY = 'County';
@@ -43,6 +44,10 @@ class TblAddress extends Element
      * @Column(type="string")
      */
     protected $PostOfficeBox;
+    /**
+     * @Column(type="string")
+     */
+    protected $Region;
     /**
      * @Column(type="bigint")
      */
@@ -76,6 +81,22 @@ class TblAddress extends Element
     {
 
         $this->PostOfficeBox = $PostOfficeBox;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRegion()
+    {
+        return $this->Region;
+    }
+
+    /**
+     * @param string $Region
+     */
+    public function setRegion(string $Region = ''): void
+    {
+        $this->Region = $Region;
     }
 
     /**
@@ -344,5 +365,24 @@ class TblAddress extends Element
         }
 
         return empty($result) ? '' : implode(', ', $result);
+    }
+
+    /**
+     * @return string
+     */
+    public function getRegionString()
+    {
+
+
+        $RegionString = $this->getRegion();
+        if(!$RegionString && ($tblCity = $this->getTblCity())){
+            $RegionString = Address::useService()->getRegionStringByCode($tblCity->getCode());
+        }
+
+        if($RegionString){
+            $RegionString = 'Bezirk '.$RegionString;
+        }
+
+        return $RegionString;
     }
 }

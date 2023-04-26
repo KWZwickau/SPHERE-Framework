@@ -89,15 +89,10 @@ class Frontend extends Extension implements IFrontendInterface
                         'Address' => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
                         'Option' =>
-                            new External(
-                                'Herunterladen',
-                                'SPHERE\Application\Api\Document\Standard\StudentCard\Create',
-                                new Download(),
-                                array(
-                                    'PersonId' => $tblPerson->getId()
-                                ),
-                                'Schülerkartei herunterladen'
-                            )
+                            new External('Herunterladen', '/Api/Document/Standard/StudentCardNew/Create',
+                                new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen')
+                            .new External('(Alt)', '/Api/Document/Standard/StudentCard/Create',
+                                new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei (Alt))')
                     );
                 }
             }
@@ -121,7 +116,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'columnDefs' => array(
                                         array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
                                         array('type' => 'natural', 'targets' => array(2)),
-                                        array('width' => '5%', 'orderable' => false, 'targets'   => -1),
+                                        array('width' => '15%', 'orderable' => false, 'targets'   => -1),
                                     ),
                                     'responsive' => false
                                 )
@@ -215,15 +210,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if ($count > 0) {
                     if ($count <= $maxPersonCount) {
-                        $external = (new External(
-                            '',
-                            '/Api/Document/Standard/StudentCard/CreateMulti',
-                            new Download(),
-                            array(
-                                'DivisionId' => $tblDivision->getId()
-                            ),
-                            'Schülerkarteien herunterladen'
-                        ));
+                        $external = new External('', '/Api/Document/Standard/StudentCardNew/CreateMulti', new Download(),
+                            array('DivisionId' => $tblDivision->getId()), 'Schülerkarteien herunterladen')
+                        .new External('(Alt)', '/Api/Document/Standard/StudentCard/CreateMulti', new Download(),
+                            array('DivisionId' => $tblDivision->getId()), 'Schülerkarteien (Alt)');
                         $Item['Option'] = $isLocked
                             ? new \SPHERE\Common\Frontend\Text\Repository\Warning('Bitte warten ...')
                             : $external;
@@ -237,14 +227,23 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($i % $maxPersonCount == 0) {
                                     $name = $countList . '. Teil';
                                     $Item['Option'] .= (new External(
-                                        $name,
-                                        '/Api/Document/Standard/StudentCard/CreateMulti',
-                                        new Download(),
+                                        $name, '/Api/Document/Standard/StudentCardNew/CreateMulti', new Download(),
                                         array(
                                             'DivisionId' => $tblDivision->getId(),
                                             'List' => $countList++
-                                        ),
-                                        $name . ' Schülerkarteien herunterladen'
+                                        ), $name . ' Schülerkarteien herunterladen'
+                                    ))->__toString();
+                                }
+                            }
+                            $countList = 1;
+                            for ($j = 0; $j < $count; $j++) {
+                                if ($j % $maxPersonCount == 0) {
+                                    $Item['Option'] .= (new External($countList.
+                                        '. Teil (Alt)', '/Api/Document/Standard/StudentCard/CreateMulti', new Download(),
+                                        array(
+                                            'DivisionId' => $tblDivision->getId(),
+                                            'List' => $countList++
+                                        ), $countList.' Teil Schülerkarteien (Alt)'
                                     ))->__toString();
                                 }
                             }

@@ -74,23 +74,27 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             }
         }
 
-        if (empty( $Username )) {
+        if (empty($Username)) {
             $Form->setError('Account[Name]', 'Bitte geben Sie einen Benutzernamen an');
             $Error = true;
         } else {
-            if (preg_match('!^[a-z0-9]{'.self::MINIMAL_USERNAME_LENGTH.',}$!is', $Username)) {
-                $Username = $tblConsumer->getAcronym().'-'.$Username;
-                if (!GatekeeperAccount::useService()->getAccountByUsername($Username)) {
-                    $Form->setSuccess('Account[Name]', '');
-                } else {
-                    $Form->setError('Account[Name]', 'Der angegebene Benutzername ist bereits vergeben');
-                    $Error = true;
-                }
-            } else {
+            if (!preg_match('!^[a-z0-9]{1,}$!is', $Username)) {
                 $Form->setError('Account[Name]',
-                    'Der Benutzername darf nur Buchstaben und Zahlen enthalten und muss mindestens
-                    '.self::MINIMAL_USERNAME_LENGTH.' Zeichen lang sein. Es sind keine Umlaute oder Sonderzeichen erlaubt.');
+                    'Der Benutzername darf nur Buchstaben und Zahlen enthalten. Es sind keine Umlaute oder Sonderzeichen erlaubt.');
                 $Error = true;
+            } else {
+                $Username = $tblConsumer->getAcronym().'-'.$Username;
+                if(strlen($Username) > 20){
+                    $Form->setError('Account[Name]', 'Der angegebene Benutzername verwendet '.(strlen($Username)-20).' Zeichen zu viel');
+                    $Error = true;
+                } else {
+                    if (GatekeeperAccount::useService()->getAccountByUsername($Username)) {
+                        $Form->setError('Account[Name]', 'Der angegebene Benutzername ist bereits vergeben');
+                        $Error = true;
+                    } else {
+                        $Form->setSuccess('Account[Name]', '');
+                    }
+                }
             }
         }
 

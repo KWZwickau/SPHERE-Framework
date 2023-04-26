@@ -905,7 +905,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(

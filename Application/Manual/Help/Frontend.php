@@ -36,9 +36,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Hilfe', 'Downloadbereich');
 
-        $isUcsApiActive = ($tblConsumer = Consumer::useService()->getConsumerBySession())
-            && ($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))
-            && $tblConsumerLogin->getIsActiveAPI();
+        $isUcsConsumer = ($tblConsumer = Consumer::useService()->getConsumerBySession())
+            && Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS);
 
         $Stage->setContent(
             new Layout(
@@ -51,7 +50,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn('<h4>Schulsoftware Download der Hilfe</h4>'
                                     .new Link(new Thumbnail(
                                         FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                        , 'Allgemeine Hilfe '.new Muted(new Small('Stand:&nbsp;25.11.2021'))), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Help'))
+                                        , 'Allgemeine Hilfe '.new Muted(new Small('Stand:&nbsp;18.04.2023'))), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Help'))
                                 , 6),
                                 new LayoutColumn('', 3),
                             ))))
@@ -70,7 +69,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'Digitales Klassenbuch', 'Stand:&nbsp;22.08.2022'))->setPictureHeight()
+                                , 'Digitales Klassenbuch', 'Stand:&nbsp;09.11.2022'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'DigitalClassBook')
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
@@ -79,26 +78,33 @@ class Frontend extends Extension implements IFrontendInterface
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Billing')
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                                , 'Import aus Indiware', 'Export der Lehraufträge aus Indiware'))->setPictureHeight()
-                                , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware')
-                        ), 2),
-                        new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png')
                                 , 'Druck Abschlusszeugnisse A3'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'PrintA3Certificate')
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'ESDi Leistungsbeschreibung'))->setPictureHeight()
+                                , 'ESDi Leistungsbeschreibung', 'Stand 26.01.2023'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'ESDi'))
                         , 2),
                     )),
                     new LayoutRow(array(
-                        $isUcsApiActive
+                        new LayoutColumn(new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                            , 'Indiware Import', 'Leitfaden zur Informationsbeschaffung'))->setPictureHeight()
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware')
+                        ), 2),
+                        new LayoutColumn(new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                            , 'Untis Import', 'Leitfaden zur Informationsbeschaffung'))->setPictureHeight()
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Untis')
+                        ), 2),
+                    )),
+                    new LayoutRow(array(
+                        $isUcsConsumer
                             ? new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'Schnittstelle Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;05.09.2022'))->setPictureHeight()
+                                , 'Schnittstelle Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;10.11.2022'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_UCS_DLLP')
                             ), 2)
                             : null

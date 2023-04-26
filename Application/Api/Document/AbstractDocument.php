@@ -14,6 +14,8 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -170,6 +172,7 @@ abstract class AbstractDocument
                 $Data['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
                     ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';
             }
+                $Data['Person']['Common']['isReligion'] = 'nein';
             if (( $tblCommon = Common::useService()->getCommonByPerson($this->getTblPerson()) )
                 && $tblCommonInformation = $tblCommon->getTblCommonInformation()
             ) {
@@ -185,6 +188,9 @@ abstract class AbstractDocument
                     $Denomination = substr($Denomination, 0, 14);
                 }
                 $Data['Person']['Common']['Denomination'] = $Denomination;
+                if (!empty($Denomination)) {
+                    $Data['Person']['Common']['isReligion'] = 'ja';
+                }
             }
         }
 
@@ -407,6 +413,8 @@ abstract class AbstractDocument
      */
     private function allocatePersonParents(&$Data)
     {
+        $tblPersonMother = false;
+        $tblPersonFather = false;
 
         if ($this->getTblPerson()) {
             if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($this->getTblPerson()))) {
@@ -416,21 +424,60 @@ abstract class AbstractDocument
                         && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
                         && $tblToPerson->getServiceTblPersonTo()->getId() == $this->getTblPerson()->getId()
                     ) {
+
+                        $Ranking = $tblToPerson->getRanking();
+                        $Data['Person']['Parent']['S'.$Ranking]['Gender'] = $tblFromPerson->getGenderNameFromGenderOrSalutation();
+                        $Data['Person']['Parent']['S'.$Ranking]['Salutation'] = $tblFromPerson->getSalutation();
+                        $Data['Person']['Parent']['S'.$Ranking]['Name']['First'] = $tblFromPerson->getFirstName();
+                        $Data['Person']['Parent']['S'.$Ranking]['Name']['Last'] = $tblFromPerson->getLastName();
+
+
+                        $tblAddress = $tblFromPerson->fetchMainAddress();
+                        if ($tblAddress) {
+                            $Data['Person']['Parent']['S'.$Ranking]['AddressTwoRowString'] = $tblAddress->getGuiString();
+                        }
+
                         if (!isset($Data['Person']['Parent']['Mother']['Name'])) {
                             $Data['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                             $Data['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
                             $Data['Person']['Parent']['Mother']['Name']['LastFirst'] = $tblFromPerson->getLastFirstName();
-                            $tblAddress = Address::useService()->getAddressByPerson($tblFromPerson);
                             if ($tblAddress) {
-                                $Data['Person']['Parent']['Mother']['Address'] = $tblAddress->getGuiString();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['CityCode'] = $tblAddress->getTblCity()->getCode();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['City'] = $tblAddress->getTblCity()->getDisplayName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['Street'] = $tblAddress->getStreetName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['StreetNumber'] = $tblAddress->getStreetNumber();
                             }
                         } elseif (!isset($Data['Person']['Parent']['Father']['Name'])) {
                             $Data['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                             $Data['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
                             $Data['Person']['Parent']['Father']['Name']['LastFirst'] = $tblFromPerson->getLastFirstName();
-                            $tblAddress = Address::useService()->getAddressByPerson($tblFromPerson);
                             if ($tblAddress) {
-                                $Data['Person']['Parent']['Father']['Address'] = $tblAddress->getGuiString();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['CityCode'] = $tblAddress->getTblCity()->getCode();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['City'] = $tblAddress->getTblCity()->getDisplayName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['Street'] = $tblAddress->getStreetName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['StreetNumber'] = $tblAddress->getStreetNumber();
+                            }
+                        }
+
+                        if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblFromPerson))){
+                            foreach($tblPhoneList as $tblToPersonPhone) {
+                                if(($tblToPersonPhone->getTblType()->getName() == 'Privat'
+                                    || $tblToPersonPhone->getTblType()->getName() == 'Geschäftlich')
+                                    && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
+                                    && !isset($Data['Person']['Parent']['S'.$Ranking]['Phone']['Festnetz'])
+
+                                ) {
+                                    $Data['Person']['Parent']['S'.$Ranking]['Phone']['Festnetz'] = $tblToPersonPhone->getTblPhone()->getNumber();
+
+                                } elseif ($tblToPersonPhone->getTblType()->getName() == 'Privat'
+                                    || $tblToPersonPhone->getTblType()->getName() == 'Geschäftlich'
+                                    && $tblToPersonPhone->getTblType()->getDescription() == 'Mobil'
+                                    && !isset($Data['Person']['Parent']['S'.$Ranking]['Phone']['Mobil'])
+
+                                ) {
+                                    $Data['Person']['Parent']['S'.$Ranking]['Phone']['Mobil'] = $tblToPersonPhone->getTblPhone()->getNumber();
+
+                                }
                             }
                         }
                     }
@@ -473,6 +520,7 @@ abstract class AbstractDocument
      */
     private function allocatePersonParentsContact(&$Data)
     {
+
 
         $Data['Person']['Contact']['All']['Mail'] = '';
         $Data['Person']['Contact']['All']['Person']['Mail'] = '';
@@ -541,6 +589,7 @@ abstract class AbstractDocument
                                     if ($tblToPersonPhone->getTblType()->getName() == 'Privat'
                                         && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
                                     ) {
+
                                         $Data['Person']['Parent']['Mother']['Phone']['Private'] .=
                                             ($Data['Person']['Parent']['Mother']['Phone']['Private'] != '' ? '<br/>' : '')
                                             .$tblToPersonPhone->getTblPhone()->getNumber();

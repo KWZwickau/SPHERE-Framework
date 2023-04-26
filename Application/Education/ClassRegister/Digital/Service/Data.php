@@ -10,6 +10,7 @@ use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonW
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -250,7 +251,7 @@ class Data  extends AbstractData
      * @param TblDivision|null $tblDivision
      * @param TblGroup|null $tblGroup
      *
-     * @return TblCourseContent[]|false
+     * @return TblLessonContent[]|false
      */
     public function getLessonContentCanceledAllByToDate(DateTime $toDate, TblDivision $tblDivision = null, TblGroup $tblGroup = null)
     {
@@ -296,6 +297,56 @@ class Data  extends AbstractData
         $resultList = $query->getResult();
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivision|null $tblDivision
+     * @param TblGroup|null $tblGroup
+     *
+     * @return TblSubject[]|false
+     */
+    public function getSubjectListFromLessonContent(TblDivision $tblDivision = null, TblGroup $tblGroup = null)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        if ($tblDivision) {
+            $query = $queryBuilder->select('t.serviceTblSubject as SubjectId, t.serviceTblSubstituteSubject as SubstituteSubjectId')
+                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
+                ->where(
+                    $queryBuilder->expr()->eq('t.serviceTblDivision', '?1')
+                )
+                ->setParameter(1, $tblDivision->getId())
+                ->distinct()
+                ->getQuery();
+        } else {
+            $query = $queryBuilder->select('t.serviceTblSubject as SubjectId, t.serviceTblSubstituteSubject as SubstituteSubjectId')
+                ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
+                ->where(
+                    $queryBuilder->expr()->eq('t.serviceTblGroup', '?1')
+                )
+                ->setParameter(1, $tblGroup->getId())
+                ->distinct()
+                ->getQuery();
+        }
+
+        $resultList = $query->getResult();
+
+        $tblSubjectList = array();
+        if ($resultList) {
+            foreach ($resultList as $result) {
+                $subjectId = $result["SubjectId"];
+                $substituteSubjectId = $result["SubstituteSubjectId"];
+                if ($subjectId && !isset($tblSubjectList[$subjectId]) && ($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                    $tblSubjectList[$tblSubject->getAcronym()] = $tblSubject;
+                }
+                if ($substituteSubjectId && !isset($tblSubjectList[$substituteSubjectId]) && ($tblSubstituteSubject = Subject::useService()->getSubjectById($substituteSubjectId))) {
+                    $tblSubjectList[$tblSubstituteSubject->getAcronym()] = $tblSubstituteSubject;
+                }
+            }
+        }
+
+        return empty($tblSubjectList) ? false : $tblSubjectList;
     }
 
     /**

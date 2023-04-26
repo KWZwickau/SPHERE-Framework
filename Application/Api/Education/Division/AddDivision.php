@@ -75,7 +75,10 @@ class AddDivision extends Extension implements IApiInterface
 
         if (isset($_POST['Level']['Type']) && $_POST['Level']['Type'] != '') {
             $tblType = Type::useService()->getTypeById($_POST['Level']['Type']);
-            if($tblType && $tblType->getShortName() == 'FöS'){
+            if($tblType &&
+                ($tblType->getShortName() == 'FöS'
+                || $tblType->getShortName() == 'KTE'
+                )){
                 $_POST['Level']['isChecked'] = true;
                 return '';
             }

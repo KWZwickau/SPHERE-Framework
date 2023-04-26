@@ -39,6 +39,8 @@ class Data extends AbstractData
         $this->createSetting(TblSetting::IDENT_KOST_1, '0', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_KOST_2, '0', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_BU_KEY, '0', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
+        $Now = new \DateTime();
+        $this->createSetting(TblSetting::IDENT_ECONOMIC_DATE, '01.01.'.$Now->format('Y'), TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
 
 
 

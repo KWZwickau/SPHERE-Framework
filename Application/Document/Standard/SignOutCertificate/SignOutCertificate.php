@@ -163,7 +163,7 @@ class SignOutCertificate extends Extension
             if ($tblAddress) {
                 $Global->POST['Data']['AddressStreet'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
                 if (($tblCity = $tblAddress->getTblCity())) {
-                    $Global->POST['Data']['AddressCity'] = $tblCity->getCode().' '.$tblCity->getName();
+                    $Global->POST['Data']['AddressCity'] = $tblCity->getCode().' '.$tblCity->getDisplayName();
                 }
             }
 

@@ -660,7 +660,7 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
             )))));
             $isError = true;
         } else {
-            if(Student::useService()->getStudentAgreementTypeByName($Meta['Type'])){
+            if(Student::useService()->getStudentAgreementTypeByNameAndCategory($Meta['Type'], $tblStudentAgreementCategory)){
                 $form = FrontendStudentAgreement::getTypeForm();
                 // Fehler
                 $form->setError('Meta[Type]', 'Name des Eintrag\'s ist bereits in Verwendung');
@@ -728,7 +728,7 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
             $isError = true;
         } else {
             if($Meta['Type'] != $tblStudentAgreementType->getName()
-            && Student::useService()->getStudentAgreementTypeByName($Meta['Type'])){
+            && Student::useService()->getStudentAgreementTypeByNameAndCategory($Meta['Type'], $tblStudentAgreementType->getTblStudentAgreementCategory())){
                 $form = FrontendStudentAgreement::getTypeForm();
                 // Fehler
                 $form->setError('Meta[Type]', 'Name des Eintrag\'s ist bereits in Verwendung');

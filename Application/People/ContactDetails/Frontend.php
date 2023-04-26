@@ -11,6 +11,7 @@ use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblMailToPerso
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblPhoneToPerson;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -91,12 +92,17 @@ class Frontend extends Extension implements IFrontendInterface
                                 ->ajaxPipelineOnClick(ApiMailToPerson::pipelineOpenCreateMailToPersonModal($tblPerson->getId(), $tblOnlineContact->getId()));
                         break;
                 }
+                $DivisionString = '';
+                if(($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))){
+                    $DivisionString = $tblDivision->getDisplayName().' '.$tblDivision->getTypeName();
+                }
 
                 $dataList[] = array(
                     'CreateDate' => $tblOnlineContact->getEntityCreate()->format('d.m.Y H:i:s'),
                     'Creator' => ($tblPersonCreator = $tblOnlineContact->getServiceTblPersonCreator()) ? $tblPersonCreator->getFullName() : '',
                     'Category' => $tblOnlineContact->getContactTypeIcon() . ' ' . $tblOnlineContact->getContactTypeName(),
                     'Person' => $tblOnlineContact->getServiceTblPerson() ? $tblOnlineContact->getServiceTblPerson()->getLastFirstName() : '',
+                    'Division' => $DivisionString,
                     'Original' => $tblOnlineContact->getOriginalContent(),
                     'Content' => $tblOnlineContact->getContactContent(),
                     'Remark' => $tblOnlineContact->getRemark(),
@@ -111,6 +117,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Creator' => 'Ersteller',
                 'Category' => 'Kategorie',
                 'Person' => 'Person',
+                'Division' => 'Klasse/Schulart',
                 'Original' => 'Alter Kontakt',
                 'Content' => 'Neuer Kontakt',
                 'Remark' => 'Änderungsbemerkung',
@@ -127,6 +134,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array('type' => 'de_date', 'targets' => 0),
                             array('orderable' => false, 'width' => '60px', 'targets' => -1),
                         ),
+                        'responsive' => false
                     )
                 );
         }

@@ -34,11 +34,6 @@ class DataMaintenance extends Extension implements IModuleInterface
                 __NAMESPACE__.'/Frontend::frontendDestroyAccount'
             )
         );
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Integration',
-//                __NAMESPACE__.'/Frontend::frontendTransferOltIntegration'
-//            )
-//        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Restore/Person',
                 __NAMESPACE__.'/Frontend::frontendPersonRestore'

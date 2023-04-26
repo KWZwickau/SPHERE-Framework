@@ -11,6 +11,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -51,6 +52,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -306,7 +308,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_unshift($tblTokenAll, new Danger('AKTUELL hinterlegter Hardware-Schlüssel, '));
         }
 
-        $PanelToken = new Panel(new Person() . ' mit folgender Authenfizierungsmethode anmelden', $tblTokenAll, Panel::PANEL_TYPE_INFO);
+        $PanelToken = new Panel(new Person() . ' mit folgender Authentifizierungsmethode anmelden', $tblTokenAll, Panel::PANEL_TYPE_INFO);
 
         // Person
         if ($tblAccount){
@@ -412,11 +414,14 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
             ), Panel::PANEL_TYPE_INFO);
         }
-
+        $MaxString = 20;
+        if($tblConsumer = Consumer::useService()->getConsumerBySession()){
+            $MaxString = $MaxString - strlen($tblConsumer->getAcronym().'-');
+        }
         // Username Panel
         if ($tblAccount) {
             $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', array(
-                (new TextField('Account[Name]', 'Benutzername (min. 5 Zeichen)', 'Benutzername',
+                (new TextField('Account[Name]', 'Benutzername (max. '.$MaxString.' Zeichen)', 'Benutzername',
                     new Person()))
                     ->setPrefixValue($tblConsumer->getAcronym())->setDisabled(),
                 new Danger('Die Passwort-Felder nur ausfüllen wenn das Passwort dieses Benutzers geändert werden soll'),
@@ -429,7 +434,7 @@ class Frontend extends Extension implements IFrontendInterface
             ), Panel::PANEL_TYPE_INFO);
         } else {
             $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', array(
-                (new TextField('Account[Name]', 'Benutzername (min. 5 Zeichen)', 'Benutzername',
+                (new TextField('Account[Name]', 'Benutzername (max. '.$MaxString.' Zeichen)', 'Benutzername',
                     new Person()))
                     ->setPrefixValue($tblConsumer->getAcronym()),
                 new PasswordField(
@@ -619,11 +624,22 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblAuthorizationAll = array_filter(( $tblAuthorizationAll ));
                     $Content = array_merge($Content, $tblAuthorizationAll);
                 }
+                // ist ein UCS Mandant?
+                $IsUCSMandant = false;
+                if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
+                    if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                        $IsUCSMandant = true;
+                    }
+                }
+                $UcsRemark = '';
+                if($IsUCSMandant){
+                    $UcsRemark = new WellReadOnly('Nach dem Löschen des Accounts in der Schulsoftware wird dieser auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
+                }
 
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonKey().' Benutzerkonto', $Content, Panel::PANEL_TYPE_SUCCESS),
-                        new Panel(new Question().' Dieses Benutzerkonto wirklich löschen?', array(),
+                        new Panel(new Question().' Dieses Benutzerkonto wirklich löschen?', $UcsRemark,
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/Authorization/Account/Destroy', new Ok(),

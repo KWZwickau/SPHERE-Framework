@@ -8,6 +8,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Club\Club;
@@ -250,12 +251,12 @@ class Service extends AbstractService
             $NameList = explode(' ', $FirstName);
             $count = count($NameList);
             $SecondName = '';
-            if($count ==  2){
+            if($count == 2){
                 $FirstName = $NameList[0];
                 $SecondName = $NameList[1];
             } elseif($count > 2) {
                 $FirstName = $NameList[0];
-                for($i = 1; $i <= $count; $i++){
+                for($i = 1; $i < $count; $i++){
                     $SecondName .= $NameList[$i];
                 }
             }
@@ -286,7 +287,7 @@ class Service extends AbstractService
                 $SecondName = $NameList[1];
             } elseif($count > 2) {
                 $FirstName = $NameList[0];
-                for($i = 1; $i <= $count; $i++){
+                for($i = 1; $i < $count; $i++){
                     $SecondName .= $NameList[$i];
                 }
             }
@@ -607,6 +608,12 @@ class Service extends AbstractService
      */
     public function destroyPerson(TblPerson $tblPerson)
     {
+        // alle Online-Kontakt-Daten Änderungswünsche zu der Person löschen
+        if (($tblOnlineContacts = OnlineContactDetails::useService()->getOnlineContactAllByPerson($tblPerson))) {
+            foreach ($tblOnlineContacts as $tblOnlineContact) {
+                OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContact);
+            }
+        }
 
         return (new Data($this->getBinding()))->destroyPerson($tblPerson);
     }
@@ -1474,7 +1481,7 @@ class Service extends AbstractService
                 $tblPersonList = array();
 
                 $tblType = Mail::useService()->getTypeById($item['Type']);
-                $address = $item['Address'];
+                $address = $this->validateMailAddress($item['Address']);
                 $remark = $item['Remark'];
                 $isAccountUserAlias = isset($item['IsAccountUserAlias']);
                 $isAccountRecoveryMail = isset($item['IsAccountRecoveryMail']);
@@ -1492,7 +1499,7 @@ class Service extends AbstractService
                 if ($tblType || $address || $remark) {
                     $isAdd = true;
                     $this->setMessage($tblType, $key, 'Type', 'Bitte wählen Sie einen Typ aus.', $Errors, $errorMail);
-                    $this->setMessage($address, $key, 'Address', 'Bitte geben Sie eine E-Mail Adresse ein.', $Errors, $errorMail);
+                    $this->setMessage($address, $key, 'Address', 'Bitte geben Sie eine gültige E-Mail Adresse an', $Errors, $errorMail);
 
                     if ($countPersons == 0) {
                         $errorMail = true;
@@ -1570,6 +1577,7 @@ class Service extends AbstractService
                     $address['CityCode'],
                     $address['CityName'],
                     $address['CityDistrict'],
+                    '',
                     $address['County'],
                     $address['Nation'],
                     $address['tblPersonList'],

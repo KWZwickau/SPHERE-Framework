@@ -418,6 +418,34 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblTimetable $tblTimeTable
+     * @param string       $Name
+     * @param string       $Description
+     * @param DateTime     $DateFrom
+     * @param DateTime     $DateTo
+     *
+     * @return TblTimetable|null
+     */
+    public function updateTimetable(TblTimetable $tblTimeTable, string $Name, string $Description, DateTime $DateFrom, DateTime $DateTo): ?TblTimetable
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblTimetable $Entity*/
+        $Entity = $Manager->getEntityById('TblTimetable', $tblTimeTable->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Entity->setDateFrom($DateFrom);
+            $Entity->setDateTo($DateTo);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return $Entity;
+        }
+        return null;
+    }
+
+    /**
      * @param $tblTimetableNodeList
      * @return bool
      */

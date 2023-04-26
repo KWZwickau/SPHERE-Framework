@@ -239,7 +239,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
     private function getEditStudentMedicalRecordForm(TblPerson $tblPerson = null)
     {
 
-        FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
+        FrontendStudentBasic::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
         $NodeMasern = 'Masern-Impfpflicht';
 
 //        $tblPerson

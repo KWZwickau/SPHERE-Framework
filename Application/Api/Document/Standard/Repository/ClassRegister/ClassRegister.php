@@ -43,6 +43,7 @@ class ClassRegister extends AbstractDocument
     protected array $tblPersonList = array();
     protected array $personNumberAbsenceList = array();
     private array $totalCanceledSubjectList = array();
+    private array $totalAdditionalSubjectList = array();
     private bool $hasSaturdayLessons;
 
     private array $dayName = array(
@@ -769,6 +770,8 @@ class ClassRegister extends AbstractDocument
     {
         if ($this->tblYear) {
             list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($this->tblYear);
+//            $startDate = new DateTime('10.11.2022');
+//            $endDate = new DateTime('20.11.2022');
             if ($startDate && $endDate) {
                 $dayOfWeek = $startDate->format('w');
 
@@ -1004,6 +1007,7 @@ class ClassRegister extends AbstractDocument
             $sectionCanceled = (new Section())->addElementColumn($this->getElement('Anzahl ausgefallene Stunden', 10), $widthString);
             $sectionAdditional = (new Section())->addElementColumn($this->getElement('Anzahl zusätzlich erteilte Stunden', 10), $widthString);
             $sectionTotalCanceled = (new Section())->addElementColumn($this->getElement('absoluter Ausfall', 10), $widthString);
+            $sectionTotalAdditional = (new Section())->addElementColumn($this->getElement('abs. zus. erteilte Stunden', 10), $widthString);
 
             foreach ($subjectList as $acronym => $subject) {
 
@@ -1014,17 +1018,26 @@ class ClassRegister extends AbstractDocument
                     $this->totalCanceledSubjectList[$acronym] = $canceledSubjectList[$acronym];
                 }
 
+                // absolute zusätzlich erteilte Stunden aufsummieren
+                if (isset($this->totalAdditionalSubjectList[$acronym]) && isset($additionalSubjectList[$acronym])) {
+                    $this->totalAdditionalSubjectList[$acronym] += $additionalSubjectList[$acronym];
+                } elseif (isset($additionalSubjectList[$acronym])) {
+                    $this->totalAdditionalSubjectList[$acronym] = $additionalSubjectList[$acronym];
+                }
+
                 $sectionHeader->addElementColumn($this->getHeaderElement($acronym), $widthItemString);
                 $sectionCanceled->addElementColumn($this->getElement($canceledSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
                 $sectionAdditional->addElementColumn($this->getElement($additionalSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
                 $sectionTotalCanceled->addElementColumn($this->getElement($this->totalCanceledSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
+                $sectionTotalAdditional->addElementColumn($this->getElement($this->totalAdditionalSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
             }
 
             $slice
                 ->addSection($sectionHeader)
                 ->addSection($sectionCanceled)
                 ->addSection($sectionAdditional)
-                ->addSection($sectionTotalCanceled);
+                ->addSection($sectionTotalCanceled)
+                ->addSection($sectionTotalAdditional);
         }
 
         $remark = '';

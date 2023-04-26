@@ -171,27 +171,35 @@ class FrontendTabs extends FrontendCourseContent
                 && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
             ) {
                 $name = 'Kursliste';
-                $printLink = new Link((new Thumbnail(
+                $printLink = (new Link((new Thumbnail(
                     FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'), 'Kursheft'))->setPictureHeight(),
                     '/Api/Document/Standard/CourseContent/Create', null, array(
                         'DivisionId' => $DivisionId,
                         'SubjectId' => $tblSubject->getId(),
                         'SubjectGroupId' => $tblSubjectGroup->getId()
-                    ));
+                    )))->setExternal();
             } else {
                 if ($tblGroup) {
                     $name = 'Stammgruppenliste';
                 } else {
                     $name = 'Klassenliste';
                 }
-                $printLink = new Link((new Thumbnail(
-                    FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
-                    $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'))->setPictureHeight(),
-                    '/Api/Document/Standard/ClassRegister/Create', null, array(
-                        'DivisionId' => $DivisionId,
-                        'GroupId'    => $GroupId,
-                        'YearId'     => $tblYear ? $tblYear->getId() : null
-                    ));
+
+                $isCourseSystem = ($tblDivision && Division::useService()->getIsDivisionCourseSystem($tblDivision))
+                    || ($tblGroup && $tblGroup->getIsGroupCourseSystem());
+
+                if ($isCourseSystem) {
+                    $printLink = null;
+                } else {
+                    $printLink = (new Link((new Thumbnail(
+                        FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
+                        $tblDivision ? ' Klassen&shy;tagebuch' : 'Stammgruppen&shy;tagebuch'))->setPictureHeight(),
+                        '/Api/Document/Standard/ClassRegister/Create', null, array(
+                            'DivisionId' => $DivisionId,
+                            'GroupId' => $GroupId,
+                            'YearId' => $tblYear ? $tblYear->getId() : null
+                        )))->setExternal();
+                }
             }
 
             $stage->setContent(
@@ -326,7 +334,7 @@ class FrontendTabs extends FrontendCourseContent
 
         $PersonPanel = '';
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
-            $PersonPanel = new Panel('Person', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO);
+            $PersonPanel = new Panel('Person', $tblPerson->getLastFirstNameWithCallNameUnderline(), Panel::PANEL_TYPE_INFO);
         }
         $DivisionPanel = '';
         if(($tblDivision = Division::useService()->getDivisionById($DivisionId))){

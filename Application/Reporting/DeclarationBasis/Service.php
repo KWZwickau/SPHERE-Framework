@@ -34,6 +34,7 @@ class Service extends Extension
     public function createDivisionReportExcel(DateTime $date)
     {
         $DataContent = array();
+        $DataAutismus = array();
         $DataBlind = array();
         $DataHear = array();
         $DataMental = array();
@@ -45,6 +46,7 @@ class Service extends Extension
         $DataSickStudent = array();
 
         $isSaxony = Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN);
+        $isBerlin = Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN);
 
         $YearString = '';
         if (($tblYearList = Term::useService()->getYearAllByDate($date))) {
@@ -72,6 +74,14 @@ class Service extends Extension
                                         && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
                                     ) {
                                         // füllen der Förderschwerpunkte
+                                        if ($tblSupportFocusType->getName() == 'Autismus') {
+                                            if (isset($DataBlind[$DivisionTypeName][$tblLevel->getName()])) {
+                                                $DataAutismus[$DivisionTypeName][$tblLevel->getName()] += 1;
+                                            } else {
+                                                $DataAutismus[$DivisionTypeName][$tblLevel->getName()] = 1;
+                                            }
+                                            $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
+                                        }
                                         if ($tblSupportFocusType->getName() == 'Sehen') {
                                             if (isset($DataBlind[$DivisionTypeName][$tblLevel->getName()])) {
                                                 $DataBlind[$DivisionTypeName][$tblLevel->getName()] += 1;
@@ -120,7 +130,7 @@ class Service extends Extension
                                             }
                                             $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
                                         }
-                                        if ($tblSupportFocusType->getName() == 'Sozial-emotionale Entwicklung') {
+                                        if ($tblSupportFocusType->getName() == 'Emotionale-soziale Entwicklung') {
                                             if (isset($DataEducation[$DivisionTypeName][$tblLevel->getName()])) {
                                                 $DataEducation[$DivisionTypeName][$tblLevel->getName()] += 1;
                                             } else {
@@ -227,7 +237,7 @@ class Service extends Extension
                     ->setAlignmentCenter();
                 $Row++;
                 $export->setValue($export->getCell(0, $Row),
-                    " - Abgabe bei der Sächsischen Bildungsagentur spätestens:    24. Oktober - ");
+                    " - Abgabe beim Landesamt für Schule und Bildung spätestens:    24. Oktober - ");
                 $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
                     ->setRowHeight(23)
                     ->mergeCells()
@@ -248,7 +258,8 @@ class Service extends Extension
             $export->setStyle($export->getCell(0, $Row), $export->getCell(4, ($Row)))
                 ->mergeCells();
             $export->setValue($export->getCell(7, $Row), "Stichtag, Datum: ...........");
-            $export->setStyle($export->getCell(7, $Row))
+            $export->setStyle($export->getCell(7, $Row), $export->getCell(15, ($Row)))
+                ->mergeCells()
                 ->setFontSize(12)
                 ->setFontBold()
                 ->setFontColor('FFFF0000');
@@ -257,7 +268,7 @@ class Service extends Extension
             $export->setStyle($export->getCell(0, $Row), $export->getCell(4, ($Row)))
                 ->mergeCells();
             if ($isSaxony) {
-                $export->setValue($export->getCell(7, $Row), "(10. Oktober oder abweichender Stichtag  gem. § 8 Abs. 3 Satz6 ZuschussVO:
+                $export->setValue($export->getCell(7, $Row), "(10. Oktober oder abweichender Stichtag  gem. § 8 Abs. 3 Satz 6 ZuschussVO:
                     Fällt ein Stichtag auf einen unterrichtsfreien Tag, gilt der letzte vorhergehende
                     Unterrichtstag als Stichtag. Dieser ist anzugeben.)");
                 $export->setStyle($export->getCell(7, $Row), $export->getCell(15, ($Row + 2)))
@@ -416,7 +427,38 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderVertical(2)
                 ->setBorderRight(2);
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für Blinde und Sehbehinderte");
+            if($isBerlin){
+                $export->setValue($export->getCell(0, $Row), "FSP Autismus");
+                // Autismus Insert
+                $SumAutismus = 0;
+                if (isset($DataAutismus[$Type]) && !empty($DataAutismus[$Type])) {
+                    foreach ($DataAutismus[$Type] as $Level => $StudentCount) {
+                        $export->setValue($export->getCell($Level, $Row), $StudentCount);
+                        if ($StudentCount) {
+                            $SumAutismus += $StudentCount;
+                        }
+                    }
+                }
+                $export->setValue($export->getCell(14, $Row), $SumAutismus);
+
+                $export->setStyle($export->getCell(0, $Row))
+                    ->setBorderLeft(2)
+                    ->setBorderBottom(1)
+                    ->setBorderRight(1);
+                $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+                    ->setBorderLeft(1)
+                    ->setBorderBottom(1)
+                    ->setBorderVertical(1)
+                    ->setBorderRight(2)
+                    ->setAlignmentCenter();
+                $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+                    ->setBorderBottom(1)
+                    ->setBorderVertical(2)
+                    ->setBorderRight(2)
+                    ->setAlignmentCenter();
+                $Row++;
+            }
+            $export->setValue($export->getCell(0, $Row), "FSP Sehen");
             // Blind Insert
             $SumBlind = 0;
             if (isset($DataBlind[$Type]) && !empty($DataBlind[$Type])) {
@@ -445,7 +487,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für Hörgeschädigte");
+            $export->setValue($export->getCell(0, $Row), "FSP Hören");
             // Hear Insert
             $SumHear = 0;
             if (isset($DataHear[$Type]) && !empty($DataHear[$Type])) {
@@ -474,7 +516,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für geistig Behinderte");
+            $export->setValue($export->getCell(0, $Row), "FSP geistige Entwicklung");
             // Mental Insert
             $SumMental = 0;
             if (isset($DataMental[$Type]) && !empty($DataMental[$Type])) {
@@ -503,7 +545,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für Körperbehinderte");
+            $export->setValue($export->getCell(0, $Row), "FSP körp. und mot. Entwicklung.");
             // Physical Insert
             $SumPhysical = 0;
             if (isset($DataPhysical[$Type]) && !empty($DataPhysical[$Type])) {
@@ -532,7 +574,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Sprachheilschule");
+            $export->setValue($export->getCell(0, $Row), "FSP Sprache");
             // Language Insert
             $SumLanguage = 0;
             if (isset($DataLanguage[$Type]) && !empty($DataLanguage[$Type])) {
@@ -561,7 +603,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für Lernförderung");
+            $export->setValue($export->getCell(0, $Row), "FSP Lernen");
             // Lern Insert
             $SumLern = 0;
             if (isset($DataLearn[$Type]) && !empty($DataLearn[$Type])) {
@@ -590,7 +632,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für Erziehungshilfe");
+            $export->setValue($export->getCell(0, $Row), "FSP emot. und soz. Entwicklung");
             // Education Insert
             $SumEducation = 0;
             if (isset($DataEducation[$Type]) && !empty($DataEducation[$Type])) {
@@ -658,12 +700,20 @@ Kostenerstattung durch andere öffentlichen Träger");
 //                ->setAlignmentBottom();
 //            $Row++;
 
-            $export->setValue($export->getCell(0, $Row), '                    Eine Namensliste unter Angabe des Förderschwerpunktes
- ist der Meldung zusätzlich beizufügen.');
+            $export->setValue($export->getCell(0, $Row), 'Hinweis:  Schüler, die inklusiv unterrichtet werden, sind dem
+Förderschultyp zuzuordnen, den sie ohne inklusive Beschulung besuchen würden.  ');
             $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
                 ->mergeCells()
                 ->setFontBold()
-                ->setRowHeight(21)
+                ->setRowHeight(15)
+                ->setAlignmentBottom();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), '                    Eine Namensliste unter Angabe des
+Förderschwerpunktes (FSP) ist der Meldung zusätzlich beizufügen.');
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                ->mergeCells()
+                ->setFontBold()
+                ->setRowHeight(17)
                 ->setAlignmentTop();
             $Row++;
             if ($isSaxony) {
@@ -692,7 +742,12 @@ Kostenerstattung durch andere öffentlichen Träger");
 
             // Spaltenhöhe Definieren
 //            $export->setStyle($export->getCell(0, 6))->setRowHeight(12);
-            $export->setStyle($export->getCell(0, 10))->setRowHeight(10);
+            if($isSaxony){
+                $export->setStyle($export->getCell(0, 10))->setRowHeight(10);
+            } elseif($isBerlin){
+                $export->setStyle($export->getCell(0, 6))->setRowHeight(10);
+            }
+
 
             // Spaltenbreite Definieren
             $export->setStyle($export->getCell(0, 0))->setColumnWidth(30);
@@ -728,7 +783,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                 $PaperOrientation = new PaperOrientationParameter('LANDSCAPE');
                 $export->setPaperOrientationParameter($PaperOrientation);
                 //Header
-                $export->setValue($export->getCell(0, $Row), "Namensliste unter Angabe des Förderschwerpunktes");
+                $export->setValue($export->getCell(0, $Row), "Namentliche Auflistung der gemeldeten Inklusionsschüler");
                 $export->setStyle($export->getCell(0, $Row), $export->getCell(9, $Row))
                     ->mergeCells()
                     ->setFontBold()
@@ -773,7 +828,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                     ->setFontBold();
                 $Row++;
                 $RowStartAddress = $Row;
-                $export->setValue($export->getCell(0, $Row), 'Anschrift (Straße. Hausnummer, PLZ, Ort)');
+                $export->setValue($export->getCell(0, $Row), 'Anschrift (Straße, Hausnummer, PLZ, Ort)');
                 $export->setStyle($export->getCell(0, $Row))
                     ->setFontSize(10);
                 $Row++;
@@ -843,7 +898,7 @@ Kostenerstattung durch andere öffentlichen Träger");
                     ->setAlignmentCenter()
                     ->setAlignmentMiddle()
                     ->setFontBold();
-                $export->setValue($export->getCell(4, $Row), 'Datum des Integrations- bescheids');
+                $export->setValue($export->getCell(4, $Row), 'Datum des Bescheids');
                 $export->setStyle($export->getCell(4, $Row))
                     ->setWrapText()
                     ->setAlignmentCenter()

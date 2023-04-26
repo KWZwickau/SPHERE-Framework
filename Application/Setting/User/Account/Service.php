@@ -765,7 +765,7 @@ class Service extends AbstractService
         $tblAccountSession = \SPHERE\Application\Setting\Authorization\Account\Account::useService()->getAccountBySession();
         $result = array();
         foreach ($PersonIdArray as $PersonId) {
-            if ($CountAccount % 30 == 0
+            if ($CountAccount % 50 == 0
                 && $CountAccount != 0) {
                 $GroupByCount++;
             }
@@ -1254,5 +1254,95 @@ class Service extends AbstractService
         }
 
         return (new Data($this->getBinding()))->changeUpdateDate($tblUserAccount, $UserName, $Type);
+    }
+
+    /**
+     * @param array $PersonIdList
+     *
+     * @return array
+     */
+    public function sortPersonIdListByDivisionAndName($PersonIdList = array())
+    {
+        if(empty($PersonIdList)){
+            return array();
+        }
+        $tblClassList = array();
+        foreach($PersonIdList as $PersonId){
+            if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+                if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson))){
+                    $tblClassList[$tblDivision->getDisplayName()][$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                } else {
+                    $tblClassList['000'][$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                }
+            }
+        }
+        if(empty($tblClassList)){
+            return array();
+        }
+
+        ksort($tblClassList, SORT_NUMERIC);
+        foreach($tblClassList as &$tblPersonList){
+            asort($tblPersonList);
+        }
+        $PersonIdList = array();
+        if(!empty($tblClassList)){
+            foreach($tblClassList as $tmpTblPersonList){
+                if(!empty($tmpTblPersonList)){
+                    foreach($tmpTblPersonList as $PersonId => $Person){
+                        $PersonIdList[] = $PersonId;
+                    }
+                }
+            }
+        }
+        return $PersonIdList;
+    }
+
+    /**
+     * @param array $PersonIdList
+     *
+     * @return array
+     */
+    public function sortGuardianPersonIdListByDivisionAndName($PersonIdList = array())
+    {
+        if(empty($PersonIdList)){
+            return array();
+        }
+        $tblClassList = array();
+        foreach($PersonIdList as $PersonId){
+            $IdList = explode('_', $PersonId);
+            $PersonCId = $IdList[0]; // Custody (+ Vormund + Bevollmächtigt)
+            $PersonSId = $IdList[1]; // Student (von welchem die Filterung kahm)
+            if(($tblPersonC = Person::useService()->getPersonById($PersonCId))){
+                if(($tblPersonS = Person::useService()->getPersonById($PersonSId))){
+                    if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPersonS))){
+                        $tblClassList[$tblDivision->getDisplayName()][$tblPersonC->getId()] = $tblPersonC->getLastFirstName();
+                    } else {
+                        $tblClassList['000'][$tblPersonC->getId()] = $tblPersonC->getLastFirstName();
+                    }
+                }
+            }
+        }
+        if(empty($tblClassList)){
+            return array();
+        }
+
+        ksort($tblClassList, SORT_NUMERIC);
+        foreach($tblClassList as &$tblPersonList){
+            // zerstört Key's im Array
+//            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastName', new Sorter\StringGermanOrderSorter());
+            // alternativ asort
+            asort($tblPersonList);
+        }
+        $PersonIdList = array();
+        if(!empty($tblClassList)){
+            foreach($tblClassList as $tmpTblPersonList){
+                if(!empty($tmpTblPersonList)){
+                    foreach($tmpTblPersonList as $PersonCId => $Person){
+                        $PersonIdList[] = $PersonCId;
+                    }
+                }
+            }
+        }
+        return $PersonIdList;
     }
 }

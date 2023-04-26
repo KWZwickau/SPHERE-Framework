@@ -146,7 +146,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Route(__NAMESPACE__), new PersonGroup())
         );
 
-        $YearAll = Term::useService()->getYearAllSinceYears(1);
+        $YearAll = Term::useService()->getYearAllSinceYears(2);
         if (!empty( $YearAll )) {
             foreach ($YearAll as $key => $row) {
                 $name[$key] = strtoupper($row->getDisplayName());
@@ -330,7 +330,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array('orderable' => false, 'width' => '60px', 'targets' => 0),
                                         array('orderable' => false, 'width' => '150px', 'targets' => 1),
                                         array('width' => '110px', 'targets' => -2),
-                                        array('orderable' => false, 'width' => '235px', 'targets' => -1),
+                                        array('orderable' => false, 'width' => '170px', 'targets' => -1),
                                         array('type' => 'natural', 'targets' => 4),
                                         array('type' => 'natural', 'targets' => 6),
                                         array('type' => 'natural', 'targets' => 8),
@@ -398,19 +398,19 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblSchoolTypeAll = Type::useService()->getTypeAll();
 
-        $tblYearAll = Term::useService()->getYearAllSinceYears(0);
+        $tblYearAll = Term::useService()->getYearAllSinceYears(2);
 
         $receiver = AddDivision::receiverFormSelect((new AddDivision())->reloadLevelNameInput());
 
-        $FormRow = new FormRow(new FormColumn(new SuccessText('')));
-        if($tblLevel == null && $tblDivision == null){
-            if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
-                $FormRow->addColumn(new FormColumn(
-                    (new CheckBox('Level[isChecked]', 'Jahrgangsübergreifende Klasse', 1))
-                        ->ajaxPipelineOnChange(array(AddDivision::pipelineCreateLevelNameInput($receiver)))
-                ));
-            }
-        }
+//        $FormRow = new FormRow(new FormColumn(new SuccessText('')));
+//        if($tblLevel == null && $tblDivision == null){
+//            if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
+//                $FormRow->addColumn(new FormColumn(
+//                    (new CheckBox('Level[isChecked]', 'Jahrgangsübergreifende Klasse', 1))
+//                        ->ajaxPipelineOnChange(array(AddDivision::pipelineCreateLevelNameInput($receiver)))
+//                ));
+//            }
+//        }
 
 
         return new Form(
@@ -452,7 +452,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ), Panel::PANEL_TYPE_INFO
                         ), 4),
                 )),
-                $FormRow
+//                $FormRow
             ))
         );
     }
@@ -885,16 +885,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivision);
         $TableContent = array();
 
-        if (($tblLevel = $tblDivision->getTblLevel())
-            && ($tblType = $tblLevel->getServiceTblType())
-            && $tblType->getName() == 'Gymnasium'
-            && ($tblLevel->getName() == '11'
-                || $tblLevel->getName() == '12')
-        ) {
-            $IsSekTwo = true;
-        } else {
-            $IsSekTwo = false;
-        }
+        $IsSekTwo = Division::useService()->getIsDivisionCourseSystem($tblDivision);
 
         if (!empty($tblDivisionSubjectList)) {
             array_walk($tblDivisionSubjectList,
@@ -1065,14 +1056,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblSubjectGroup = Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getTblSubjectGroup();
         if ($tblSubjectGroup) {
-            if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
-                && ($tblLevel = $tblDivision->getTblLevel())
-                && ($tblType = $tblLevel->getServiceTblType())
-                && $tblType->getName() == 'Gymnasium'
-                && ($tblLevel->getName() == '11'
-                    || $tblLevel->getName() == '12')
-            ) {
-                $IsSekTwo = true;
+            if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+                $IsSekTwo = Division::useService()->getIsDivisionCourseSystem($tblDivision);
             } else {
                 $IsSekTwo = false;
             }
@@ -1329,16 +1314,7 @@ class Frontend extends Extension implements IFrontendInterface
             $personAdvancedCourseList = array();
             $personBasicCourseList = array();
             $missingCourseList = array();
-            if (($tblLevel = $tblDivision->getTblLevel())
-                && ($tblType = $tblLevel->getServiceTblType())
-                && $tblType->getName() == 'Gymnasium'
-                && ($tblLevel->getName() == '11'
-                    || $tblLevel->getName() == '12')
-            ) {
-                $IsSekTwo = true;
-            } else {
-                $IsSekTwo = false;
-            }
+            $IsSekTwo = Division::useService()->getIsDivisionCourseSystem($tblDivision);
 
             $studentCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
             $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true);

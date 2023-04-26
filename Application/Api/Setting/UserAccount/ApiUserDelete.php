@@ -4,6 +4,8 @@ namespace SPHERE\Application\Api\Setting\UserAccount;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuth;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -20,6 +22,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -32,6 +35,7 @@ use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -176,12 +180,24 @@ class ApiUserDelete extends Extension implements IApiInterface
         }
 
         $Danger = new Danger('Löschen', '#', new Remove(), $Data, 'Löschen ist unwiderruflich');
-        $DangerText = new DangerMessage('Hiermit werden die ausgewählten Accounts dauerhaft gelöscht');
+        $DangerText = 'Hiermit werden die ausgewählten Accounts dauerhaft gelöscht';
         if($Type == 'STUDENT'){
-            $DangerText = new DangerMessage('Hiermit werden die ausgewählten Schüler-Accounts dauerhaft gelöscht');
+            $DangerText = 'Hiermit werden die ausgewählten Schüler-Accounts dauerhaft gelöscht';
+            // nur bei Schülern
+            $IsUCSMandant = false;
+            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
+                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                    $IsUCSMandant = true;
+                }
+            }
+            if($IsUCSMandant){
+                $DangerText .= new Container('Nach dem Löschen der Accounts in der Schulsoftware werden diese auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
+            }
         } elseif($Type == 'CUSTODY'){
-            $DangerText = new DangerMessage('Hiermit werden die ausgewählten Sorgeberechtigten-Accounts dauerhaft gelöscht');
+            $DangerText = 'Hiermit werden die ausgewählten Sorgeberechtigten-Accounts dauerhaft gelöscht';
         }
+
+        $DangerText = new DangerMessage($DangerText);
 
         $form = new Form(new FormGroup(new FormRow(array(
             new FormColumn(

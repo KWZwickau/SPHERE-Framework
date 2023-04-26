@@ -205,7 +205,7 @@ class GradebookOverview extends AbstractDocument
                                         );
 
                                         $hasGrades = false;
-                                        $yearGradeList = array();
+                                        $yearGradeListForAverage = array();
                                         foreach ($tblPeriodList as $tblPeriod) {
                                             $maxCount = 0;
                                             $tblGradeList = Gradebook::useService()->getGradesAllByStudentAndYearAndSubject(
@@ -215,6 +215,7 @@ class GradebookOverview extends AbstractDocument
                                                 $tblTestType,
                                                 $tblPeriod
                                             );
+                                            $tblGradeListForAverage = $tblGradeList;
 
                                             // Stichtagsnoten den Halbjahren zuordnen
                                             if ($appointedDateGradeList) {
@@ -234,7 +235,9 @@ class GradebookOverview extends AbstractDocument
                                                 // Sortieren der Zensuren
                                                 $gradeListSorted = $this->getSorter($tblGradeList)->sortObjectBy('DateForSorter', new Sorter\DateTimeSorter());
 
-                                                $yearGradeList = array_merge($yearGradeList, $gradeListSorted);
+                                                if ($tblGradeListForAverage) {
+                                                    $yearGradeListForAverage = array_merge($yearGradeListForAverage, $tblGradeListForAverage);
+                                                }
 
                                                 /**@var TblGrade $tblGrade * */
                                                 foreach ($gradeListSorted as $tblGrade) {
@@ -255,7 +258,7 @@ class GradebookOverview extends AbstractDocument
                                                     $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
                                                     false,
                                                     false,
-                                                    $gradeListSorted
+                                                    $tblGradeListForAverage ?: array()
                                                 );
                                                 if (is_array($average)) {
                                                     $average = 'Fehler';
@@ -298,7 +301,7 @@ class GradebookOverview extends AbstractDocument
                                                 $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
                                                 false,
                                                 false,
-                                                $yearGradeList
+                                                $yearGradeListForAverage
                                             );
                                             if (is_array($average)) {
                                                 $average = 'Fehler';

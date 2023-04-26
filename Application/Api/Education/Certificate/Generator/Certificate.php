@@ -19,6 +19,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -588,6 +589,120 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @param bool $IsSample
+     * @param bool $showPicture
+     *
+     * @return Slice
+     */
+    public function getHeadForLeave(bool $IsSample, bool $showPicture = true): Slice
+    {
+        if (!ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
+            $elementSaxonyLogo = (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '214px', '66px'))->styleAlignRight();
+        } else {
+            $elementSaxonyLogo = (new Element())->setContent('&nbsp;');
+        }
+
+        $pictureAddress = '';
+        $pictureHeight = '66px';
+        if ($showPicture) {
+            if (($tblSettingAddress = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Generate', 'PictureAddressForLeaveCertificate'))
+            ) {
+                $pictureAddress = trim($tblSettingAddress->getValue());
+            }
+            if (($tblSettingHeight = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                    'Education', 'Certificate', 'Generate', 'PictureHeightForLeaveCertificate'))
+                && ($value = trim($tblSettingHeight->getValue()))
+            ) {
+                $pictureHeight = $value;
+            }
+        }
+        if ($pictureAddress) {
+            $elementSchoolLogo = new Element\Image($pictureAddress, 'auto', $pictureHeight);
+        } else {
+            $elementSchoolLogo = (new Element())->setContent('&nbsp;');
+        }
+
+        $Header = (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn($elementSchoolLogo, '61%')
+                ->addElementColumn($elementSaxonyLogo, '39%')
+            );
+        if ($IsSample) {
+            $Header->addSection((new Section())
+                ->addElementColumn((new Element\Sample())
+                    ->styleMarginTop('80px')
+                    ->styleTextSize('30px')
+                    ->styleAlignCenter()
+                    ->styleHeight('0px')
+                )
+            );
+        }
+
+        $Header->stylePaddingTop('24px');
+        $Header->styleHeight('100px');
+
+        return $Header;
+    }
+
+    /**
+     * @param bool $IsSample
+     * @param bool $showPicture
+     *
+     * @return Slice
+     */
+    public function getHeadForDiploma(bool $IsSample, bool $showPicture = true): Slice
+    {
+        if (!ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
+            $elementSaxonyLogo = (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '214px', '66px'))->styleAlignRight();
+        } else {
+            $elementSaxonyLogo = (new Element())->setContent('&nbsp;');
+        }
+
+        $pictureAddress = '';
+        $pictureHeight = '66px';
+        if ($showPicture) {
+            if (($tblSettingAddress = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Generate', 'PictureAddressForDiplomaCertificate'))
+            ) {
+                $pictureAddress = trim($tblSettingAddress->getValue());
+            }
+            if (($tblSettingHeight = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                    'Education', 'Certificate', 'Generate', 'PictureHeightForDiplomaCertificate'))
+                && ($value = trim($tblSettingHeight->getValue()))
+            ) {
+                $pictureHeight = $value;
+            }
+        }
+        if ($pictureAddress) {
+            $elementSchoolLogo = new Element\Image($pictureAddress, 'auto', $pictureHeight);
+        } else {
+            $elementSchoolLogo = (new Element())->setContent('&nbsp;');
+        }
+
+        $Header = (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn($elementSchoolLogo, '61%')
+                ->addElementColumn($elementSaxonyLogo, '39%')
+            );
+        if ($IsSample) {
+            $Header->addSection((new Section())
+                ->addElementColumn((new Element\Sample())
+                    ->styleMarginTop('80px')
+                    ->styleTextSize('30px')
+                    ->styleAlignCenter()
+                    ->styleHeight('0px')
+                )
+            );
+        }
+
+        $Header->stylePaddingTop('24px');
+        $Header->styleHeight('100px');
+
+        return $Header;
+    }
+
+    /**
      * @param $personId
      * @param string $MarginTop
      * @param string $YearString
@@ -624,6 +739,38 @@ abstract class Certificate extends Extension
     /**
      * @param $personId
      * @param string $MarginTop
+     * @param string $YearString
+     *
+     * @return Slice
+     */
+    protected function getFoesLevelAndYear($personId, $MarginTop = '20px', $YearString = 'Schuljahr')
+    {
+        $YearDivisionSlice = (new Slice());
+        $YearDivisionSlice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('
+                {% if(Content.P' . $personId . '.Student.StudentSpecialNeeds.LevelName is not empty) %}
+                    {{ Content.P' . $personId . '.Student.StudentSpecialNeeds.LevelName }}
+                {% else %}
+                    ________ Stufe
+                {% endif %}')
+//                ->styleBorderBottom()
+                , '33%')
+            ->addElementColumn((new Element())
+                ->setContent('{{ Content.P' . $personId . '.Input.SchoolVisitYear }}. Schulbesuchsjahr')
+                    ->styleAlignCenter()
+                , '33%')
+            ->addElementColumn((new Element())
+                ->setContent($YearString . ':&nbsp;&nbsp;{{ Content.P' . $personId . '.Division.Data.Year }}')
+                ->styleAlignRight()
+                , '34%')
+        )->styleMarginTop($MarginTop);
+        return $YearDivisionSlice;
+    }
+
+    /**
+     * @param $personId
+     * @param string $MarginTop
      *
      * @return Slice
      */
@@ -644,15 +791,15 @@ abstract class Certificate extends Extension
     }
 
     /**
-     * @param $personId
      * @param bool|true $isSlice
      * @param array $languagesWithStartLevel
      * @param string $TextSize
      * @param bool $IsGradeUnderlined
      * @param bool $hasSecondLanguageDiploma
      * @param bool $hasSecondLanguageSecondarySchool
+     * @param bool $hasSecondLanguageFoteNote
      *
-     * @return Section[]|Slice
+     * @return Section|Slice
      */
     protected function getSubjectLanes(
         $personId,
@@ -661,7 +808,8 @@ abstract class Certificate extends Extension
         $TextSize = '14px',
         $IsGradeUnderlined = false,
         $hasSecondLanguageDiploma = false,
-        $hasSecondLanguageSecondarySchool = false
+        $hasSecondLanguageSecondarySchool = false,
+        $hasSecondLanguageFoteNote = false
     ) {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -991,7 +1139,7 @@ abstract class Certificate extends Extension
                     }
 
                     $content = $hasSecondLanguageSecondarySchool
-                        ? $hasAdditionalLine['Ranking'] . '. Fremdsprache (abschlussorientiert)'
+                        ? $hasAdditionalLine['Ranking'] . '. Fremdsprache (abschlussorientiert)' . ($hasSecondLanguageFoteNote ? '¹' : '')
                         : $hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
                         '{% if(Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
                                      {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }})
@@ -1820,6 +1968,44 @@ abstract class Certificate extends Extension
 
         if($tblSetting && $tblSetting->getValue()){
             $Element->styleAlignJustify();
+        }
+
+        return (new Slice())->addElement($Element);
+    }
+
+    /**
+     * @param $personId
+     * @param string $Height
+     * @param string $MarginTop
+     * @param string $PreRemark
+     * @param string|bool $TextSize
+     * @param string $Remark
+     * @return Slice
+     */
+    public function getDescriptionWithoutTeamContent($personId, $Height = '150px', $MarginTop = '0px', $PreRemark = '', $TextSize = false, $Remark = '')
+    {
+
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
+
+        $Element = (new Element());
+        if($Remark != ''){
+            $Element->setContent($PreRemark.nl2br($Remark));
+        } else {
+            $Element->setContent($PreRemark.
+                '{% if(Content.P' . $personId . '.Input.RemarkWithoutTeam is not empty) %}
+                        {{ Content.P' . $personId . '.Input.RemarkWithoutTeam|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}');
+        }
+        $Element->styleHeight($Height);
+        $Element->styleMarginTop($MarginTop);
+
+        if($tblSetting && $tblSetting->getValue()){
+            $Element->styleAlignJustify();
+        }
+        if($TextSize){
+            $Element->styleTextSize($TextSize);
         }
 
         return (new Slice())->addElement($Element);
@@ -2987,14 +3173,15 @@ abstract class Certificate extends Extension
         $section = new Section();
         $section
             ->addElementColumn($elementName
-                , '32%')
-            ->addElementColumn((new Element())
-                ->setContent('Profil')
-                ->stylePaddingTop($paddingTop)
-                ->stylePaddingBottom($paddingBottom)
-                ->styleTextSize($TextSize)
-                ->styleAlignCenter()
-                , '7%')
+                , '38%')
+            ->addElementColumn((new Element()), '1%')
+//            ->addElementColumn((new Element())
+//                ->setContent('Profil')
+//                ->stylePaddingTop($paddingTop)
+//                ->stylePaddingBottom($paddingBottom)
+//                ->styleTextSize($TextSize)
+//                ->styleAlignCenter()
+//                , '7%')
             ->addElementColumn($elementGrade, '9%')
             ->addElementColumn((new Element()), '4%')
             ->addElementColumn($elementForeignName, '38%')
