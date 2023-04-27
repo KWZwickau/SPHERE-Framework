@@ -32,9 +32,11 @@ class TblDivisionCourse extends Element
     const ATTR_MIGRATE_SEK_COURSE = 'MigrateSekCourse';
 
     /**
+     * muss null sein für SelectBox
+     *
      * @Column(type="bigint")
      */
-    protected int $tblLessonDivisionCourseType;
+    protected ?int $tblLessonDivisionCourseType = null;
 
     /**
      * @Column(type="bigint")

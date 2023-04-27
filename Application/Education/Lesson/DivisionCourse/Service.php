@@ -99,6 +99,26 @@ class Service extends ServiceYearChange
     }
 
     /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function createEntityListBulk(array $tblEntityList): bool
+    {
+        return (new Data($this->getBinding()))->createEntityListBulk($tblEntityList);
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function deleteEntityListBulk(array $tblEntityList): bool
+    {
+        return (new Data($this->getBinding()))->deleteEntityListBulk($tblEntityList);
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDivisionCourse
