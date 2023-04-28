@@ -6,7 +6,7 @@ use DateTime;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsenceLesson;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence as AbsenceOld;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -21,22 +21,22 @@ class Data extends AbstractData
 
     /**
      * @param TblYear $tblYear
+     * @param array $tblDivisionList
      *
      * @return array
      */
-    public function migrateYear(TblYear $tblYear): array
+    public function migrateYear(TblYear $tblYear, array $tblDivisionList): float
     {
-        $count = 0;
         $start = hrtime(true);
-        if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
+        if ($tblDivisionList) {
             $Manager = $this->getEntityManager();
+            /** @var TblDivision $tblDivision */
             foreach ($tblDivisionList as $tblDivision) {
                 if (($tblAbsenceOldList = AbsenceOld::useService()->getAbsenceAllByDivision($tblDivision))) {
                     $createEntityList = array();
                     // trennung nach mit Stunden und ohne Stunden
                     foreach ($tblAbsenceOldList as $tblAbsenceOld) {
                         if (($tblPerson = $tblAbsenceOld->getServiceTblPerson())) {
-                            $count++;
                             $tblAbsence = new TblAbsence(
                                 $tblPerson, $tblAbsenceOld->getFromDateTime(), $tblAbsenceOld->getToDateTime(),
                                 $tblAbsenceOld->getStatus(), $tblAbsenceOld->getType(), $tblAbsenceOld->getRemark(), $tblAbsenceOld->getIsCertificateRelevant(),
@@ -66,7 +66,7 @@ class Data extends AbstractData
 
         $end = hrtime(true);
 
-        return array($count, round(($end - $start) / 1000000000, 2));
+        return round(($end - $start) / 1000000000, 2);
     }
 
     /**
