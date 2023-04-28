@@ -1398,6 +1398,7 @@ class Service
                     'Ortsteil'                  => null,
                     'Tel_Geschäftlich_Festnetz' => null,
                     'Tel_Geschäftlich_Mobil'    => null,
+                    'Fax_Geschäftlich'          => null,
                     'E-Mail_Geschäftlich'       => null,
                     'Internetadresse'           => null,
                     'Bemerkung'                 => null,
@@ -1459,7 +1460,8 @@ class Service
 
                         $Phone_F = trim($Document->getValue($Document->getCell($Location['Tel_Geschäftlich_Festnetz'], $RunY)));
                         $Phone_M = trim($Document->getValue($Document->getCell($Location['Tel_Geschäftlich_Mobil'], $RunY)));
-                        $this->setCompanyPhone($tblCompany, $Phone_F, $Phone_M);
+                        $Fax_G = trim($Document->getValue($Document->getCell($Location['Fax_Geschäftlich'], $RunY)));
+                        $this->setCompanyPhone($tblCompany, $Phone_F, $Phone_M, $Fax_G);
 
                         $Mail_B = trim($Document->getValue($Document->getCell($Location['E-Mail_Geschäftlich'], $RunY)));
                         $this->setCompanyMail($tblCompany, $Mail_B);
@@ -1619,7 +1621,7 @@ class Service
      *
      * @return void
      */
-    private function setCompanyPhone(TblCompany $tblCompany, $Phone_F, $Phone_M)
+    private function setCompanyPhone(TblCompany $tblCompany, $Phone_F, $Phone_M, $Fax_G)
     {
 
         if($Phone_F){
@@ -1629,6 +1631,10 @@ class Service
         if($Phone_M){
             $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_BUSINESS, TblTypePhone::VALUE_DESCRIPTION_MOBILE);
             Phone::useService()->insertPhoneToCompany($tblCompany, $Phone_M, $tblType, '');
+        }
+        if($Fax_G){
+            $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_FAX, TblTypePhone::VALUE_NAME_BUSINESS);
+            Phone::useService()->insertPhoneToCompany($tblCompany, $Fax_G, $tblType, '');
         }
     }
 
