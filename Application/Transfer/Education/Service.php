@@ -298,6 +298,13 @@ class Service extends AbstractService
             return $tblDivisionCourse;
         }
 
+        // ohne Leerzeichen suchen
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByNameAndYear(str_replace(' ', '', $divisionName), $tblYear))
+            && ($tblDivisionCourse->getIsDivisionOrCoreGroup() || $tblDivisionCourse->getType() == TblDivisionCourseType::TYPE_TEACHING_GROUP)
+        ) {
+            return $tblDivisionCourse;
+        }
+
         return false;
     }
 

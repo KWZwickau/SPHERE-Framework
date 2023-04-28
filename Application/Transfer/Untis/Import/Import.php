@@ -2,7 +2,10 @@
 namespace SPHERE\Application\Transfer\Untis\Import;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Transfer\Education\Education;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -24,14 +27,13 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 
-
 /**
  * Class Lectureship
+ *
  * @package SPHERE\Application\Transfer\Untis\Import
  */
 class Import extends Extension implements IModuleInterface
 {
-
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
@@ -66,18 +68,23 @@ class Import extends Extension implements IModuleInterface
      */
     public function frontendDashboard()
     {
-
         $Stage = new Stage('Untis', 'Datentransfer');
 
+        $tblAccount = Account::useService()->getAccountBySession();
+
         $PanelLectureshipImport[] = new PullClear('Lehraufträge importieren: '.
-            new Center(new Standard('', '/Transfer/Untis/Import/Lectureship/Prepare', new Upload()
-                , array(), 'Hochladen, danach bearbeiten')));
-        $tblUntisImportLectureship = Import::useService()->getUntisImportLectureshipAll(true);
-        // load if TblUntisImportLectureship exist (by Account)
-        if ($tblUntisImportLectureship) {
-            $PanelLectureshipImport[] = 'Vorhandenen Import der Lehraufträge bearbeiten: '.
-                new Center(new Standard('', '/Transfer/Untis/Import/Lectureship/Show', new Edit(), array(), 'Bearbeiten')
-                    .new Standard('', '/Transfer/Untis/Import/Lectureship/Destroy', new Remove(), array(), 'Löschen'));
+            new Center(new Standard('', '/Transfer/Untis/Import/Lectureship/Prepare', new Upload(), array(), 'Hochladen, danach bearbeiten')));
+        if ($tblAccount
+            && ($tblImport = Education::useService()->getImportByAccountAndExternSoftwareNameAndTypeIdentifier(
+                $tblAccount, TblImport::EXTERN_SOFTWARE_NAME_UNTIS, TblImport::TYPE_IDENTIFIER_LECTURESHIP
+            ))
+        ) {
+            $PanelLectureshipImport[] = '<span style="color: black!important">Vorhandenen Import der Lehraufträge bearbeiten: </span>'
+                . $tblImport->getFileName()
+                . new Center(
+                    new Standard('', '/Transfer/Untis/Import/Lectureship/Show', new Edit(), array('ImportId' => $tblImport->getId()), 'Bearbeiten')
+                    . new Standard('', '/Transfer/Untis/Import/Lectureship/Destroy', new Remove(), array('ImportId' => $tblImport->getId()), 'Löschen')
+                );
         }
 
         $PanelStudentCourse[] = new PullClear('Schüler-Kurse SEK II importieren: '.

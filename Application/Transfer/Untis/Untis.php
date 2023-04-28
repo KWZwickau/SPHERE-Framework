@@ -29,7 +29,8 @@ class Untis implements IApplicationInterface
     {
 
         Import::registerModule();
-        ImportLectureship::registerModule();
+//        ImportLectureship::registerModule();
+        ImportLectureship\Lectureship::registerModule();
         ImportStudentCourse::registerModule();
         ImportTimetable::registerModule();
         ImportReplacement::registerModule();

@@ -47,6 +47,7 @@ class Document implements IVendorInterface
                 return self::getPdfDocument($Location);
             }
             case 'csv':
+            case 'txt':
             case 'xls':
             case 'xlsx': {
                 return self::getExcelDocument($Location);
