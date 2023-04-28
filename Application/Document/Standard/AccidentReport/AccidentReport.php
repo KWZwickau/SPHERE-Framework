@@ -429,10 +429,7 @@ class AccidentReport extends Extension
                             , 7),
                         new LayoutColumn(
                             new Title('Vorlage des Standard-Dokuments "Unfallanzeige"')
-                            .new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/Document/AccidentReport.PNG')
-                                , ''
-                            )
+                            .new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/Document/AccidentReportNew.png'), '')
                             , 5),
                     ))
                 ))

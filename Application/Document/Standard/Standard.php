@@ -1,16 +1,7 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 09.09.2016
- * Time: 09:14
- */
-
 namespace SPHERE\Application\Document\Standard;
 
 use SPHERE\Application\Document\Standard\AccidentReport\AccidentReport;
-use SPHERE\Application\Document\Standard\AccidentReport\AccidentReportTest;
-use SPHERE\Application\Document\Standard\StaffAccidentReport\AccidentReportTeacher;
 use SPHERE\Application\Document\Standard\StaffAccidentReport\StaffAccidentReport;
 use SPHERE\Application\Document\Standard\EnrollmentDocument\EnrollmentDocument;
 use SPHERE\Application\Document\Standard\SignOutCertificate\SignOutCertificate;

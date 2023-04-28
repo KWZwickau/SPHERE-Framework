@@ -104,23 +104,23 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
-     * @param null $PersonId
-     * @param bool $Redirect
+     * @param int|null $PersonId
+     * @param bool     $Redirect
      *
      * @return Stage|string
      */
-    public static function createStudentCardPdf($PersonId = null, $Redirect = true)
+    public static function createStudentCardPdf(int $PersonId = null, bool $Redirect = true)
     {
         return Creator::createStudentCardPdf($PersonId, $Redirect);
     }
 
     /**
-     * @param null $PersonId
-     * @param bool $Redirect
+     * @param int|null $PersonId
+     * @param bool     $Redirect
      *
      * @return Stage|string
      */
-    public static function createStudentCardNewPdf($PersonId = null, $Redirect = true)
+    public static function createStudentCardNewPdf(int $PersonId = null, bool $Redirect = true)
     {
         return Creator::createStudentCardNewPdf($PersonId, $Redirect);
     }
@@ -204,7 +204,12 @@ class Standard extends Extension implements IModuleInterface
         return Creator::createDataPdf($Data, 'AccidentReport', Creator::PAPERORIENTATION_PORTRAIT);
     }
 
-    public static function createStaffAccidentReportPdf($Data = array())
+    /**
+     * @param array $Data
+     *
+     * @return Stage|string
+     */
+    public static function createStaffAccidentReportPdf(array $Data = array())
     {
 
         return Creator::createDataPdf($Data, 'StaffAccidentReport', Creator::PAPERORIENTATION_PORTRAIT);

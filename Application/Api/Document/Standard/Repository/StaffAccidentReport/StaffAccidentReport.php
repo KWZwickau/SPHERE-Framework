@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
@@ -42,8 +41,6 @@ class StaffAccidentReport extends AbstractDocument
      */
     private function setFieldValue($DataPost)
     {
-//        echo new Code(print_r($DataPost, true));
-//        exit;
 
         // school
         $this->FieldValue['School'] = (isset($DataPost['School']) && $DataPost['School'] != '' ? $DataPost['School'] : '&nbsp;');
@@ -378,15 +375,15 @@ class StaffAccidentReport extends AbstractDocument
                             ->setContent('7 Geschlecht')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
-                            ->styleBorderRight()
-                            , '22%'
+                            , '24%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8 Staatsangehörigkeit')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
+                            ->styleBorderLeft()
                             ->styleBorderRight()
-                            , '50%'
+                            , '48%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9 Leiharbeitnehmer/in')
@@ -408,7 +405,7 @@ class StaffAccidentReport extends AbstractDocument
                             ->styleHeight('25px')
                             ->stylePaddingTop('4px')
                             ->styleBorderBottom()
-                            , '7%'
+                            , '8%'
                         )
                         ->addSliceColumn(
                             $this->setCheckBox((isset($this->FieldValue['Female']) && $this->FieldValue['Female'] ? 'X' : ''))
@@ -421,18 +418,18 @@ class StaffAccidentReport extends AbstractDocument
                             ->styleTextSize('12px')
                             ->styleHeight('25px')
                             ->stylePaddingTop('4px')
-                            ->styleBorderRight()
                             ->styleBorderBottom()
-                            , '7%'
+                            , '8%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent($this->FieldValue['Nationality'])
                             ->stylePaddingLeft('5px')
                             ->styleHeight('27px')
                             ->stylePaddingTop()
+                            ->styleBorderLeft()
                             ->styleBorderRight()
                             ->styleBorderBottom()
-                            , '50%'
+                            , '48%'
                         )
                         ->addSliceColumn(
                             $this->setCheckBox((isset($this->FieldValue['TemporaryWorkYes']) && $this->FieldValue['TemporaryWorkYes'] ? 'X' : ''))
@@ -477,96 +474,97 @@ class StaffAccidentReport extends AbstractDocument
                             ->setContent('11 ist der Versicherte')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
-                            ->styleHeight('20px')
+                            ->styleHeight('23px')
                             ->styleBorderLeft()
-                            , '76%'
+                            , '16%'
+                        )
+                        ->addSliceColumn(
+                            $this->setCheckBox(($this->FieldValue['MartialStatusEmployer'] ? 'X' : ''))
+//                                ->stylePaddingTop('-5px')
+                                ->styleHeight('15px')
+                            , '4%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Unternehmer')
+                            ->styleTextSize('12px')
+                            ->stylePaddingTop('5px')
+                            ->styleHeight('18px')
+                            , '24%'
+                        )
+                        ->addSliceColumn(
+                            $this->setCheckBox(($this->FieldValue['MartialStatusSpouse'] ? 'X' : ''))
+//                                ->stylePaddingTop('-5px')
+                                ->styleHeight('15px')
+                            , '4%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Ehegatte des Unternehmers')
+                            ->stylePaddingTop('5px')
+                            ->styleTextSize('12px')
+                            ->styleHeight('18px')
+                            , '28%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->styleHeight('32px')
+                            ->styleHeight('25px')
                             , '2%'
                         )
                         ->addSliceColumn(
                             $this->setCheckBox(($this->FieldValue['ApprenticeYes'] ? 'X' : ''))
-                                ->stylePaddingTop('3px')
+                                ->stylePaddingTop('-5px')
                                 ->styleHeight('25px')
                             , '4%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('ja')
                             ->styleTextSize('12px')
-                            ->styleHeight('24px')
-                            ->stylePaddingTop('8px')
+                            ->styleHeight('20px')
+//                            ->stylePaddingTop('5px')
                             , '7%'
                         )
                         ->addSliceColumn(
                             $this->setCheckBox(($this->FieldValue['ApprenticeNo'] ? 'X' : ''))
-                                ->stylePaddingTop('3px')
-                                ->styleHeight('25px')
+                                ->stylePaddingTop('-5px')
+                                ->styleHeight('20px')
                             , '4%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('nein')
                             ->styleTextSize('12px')
-                            ->styleHeight('24px')
-                            ->stylePaddingTop('8px')
+                            ->styleHeight('20px')
+//                            ->stylePaddingTop('5px')
                             , '7%'
                         )
-                        ->addSliceColumn(
-                            $this->setCheckBox(($this->FieldValue['MartialStatusEmployer'] ? 'X' : ''))
-                                ->stylePaddingTop('3px')
-                                ->styleHeight('40px')
-                                ->styleBorderLeft()
-                            ,
-                        )
                         ->addElementColumn((new Element())
-                            ->setContent('Unternehmer')
-                            ->styleTextSize('12px')
-                            ->stylePaddingTop('8px')
-                            ,
+                            ->setContent('&nbsp;')
+                            ->styleHeight('25px')
+                            ->styleBorderLeft()
+                            , '16%'
                         )
                         ->addSliceColumn(
                             $this->setCheckBox(($this->FieldValue['MartialStatusFamily'] ? 'X' : ''))
-                                ->stylePaddingTop('3px')
-                                ->styleHeight('29px')
-                            ,
+                                ->stylePaddingTop('-5px')
+                                ->styleHeight('20px')
+                            , '4%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('mit Unternehmer verwandt')
                             ->styleTextSize('12px')
-                            ->styleHeight('24px')
-                            ->stylePaddingTop('8px')
-
-                            ,
-                        )
-                        ->addSliceColumn(
-                            $this->setCheckBox(($this->FieldValue['MartialStatusSpouse'] ? 'X' : ''))
-                                ->stylePaddingTop('3px')
-                                ->styleHeight('29px')
-                            ,
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('Ehegatte des Unternehmers')
-                            ->styleTextSize('12px')
-                            ->styleHeight('24px')
-                            ->stylePaddingTop('8px')
-
-                            ,
+                            ->styleHeight('20px')
+                            , '24%'
                         )
                         ->addSliceColumn(
                             $this->setCheckBox(($this->FieldValue['MartialStatusManager'] ? 'X' : ''))
-                                ->stylePaddingTop('3px')
-                                ->styleHeight('29px')
-                            ,
+                                ->stylePaddingTop('-5px')
+                                ->styleHeight('20px')
+                            , '4%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Gesellschafter oder Geschäftsführer')
+                            ->setContent('Gesellschafter/Geschäftsführer')
                             ->styleTextSize('12px')
-                            ->styleHeight('24px')
-                            ->stylePaddingTop('8px')
-
-                            ,
+                            ->styleHeight('20px')
+                            , '28%'
                         )
                     )
                     ->addSection((new Section())
@@ -841,7 +839,7 @@ class StaffAccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('20 Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift)')
+                            ->setContent('20 Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift des Zeugen)')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '70%'
@@ -891,7 +889,7 @@ class StaffAccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('21 Name und Anschrift der Ärztin/des Arztes oder des Krankenhauses')
+                            ->setContent('21 Name und Anschrift des erstbehandelnden Arztes/Krankenhauses')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
@@ -900,7 +898,7 @@ class StaffAccidentReport extends AbstractDocument
                         )
                         ->addSliceColumn((new Slice())
                             ->addElement((new Element())
-                                ->setContent('22 Beginn und Ende des Besuchs der Einrichtung')
+                                ->setContent('22 Beginn und Ende der Arbeitszeit des Versicherten')
                                 ->styleTextSize('11px')
                                 ->stylePaddingLeft('5px')
                             )
@@ -1009,7 +1007,7 @@ class StaffAccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('25 In welchem Teil des Unternehmens ist die versicherte Person ständig tätig?')
+                            ->setContent('25 In welchem Teil des Unternehmens ist der Versicherte ständig tätig?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             , '100%'
@@ -1026,10 +1024,11 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Unterbrechung
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('26 Hat die Versicherte Person den <br/> Besuch der Einrichtung unterbrochen?')
+                            ->setContent('26 hat der Versicherte die Arbeit eingestellt?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
-                            ->styleHeight('27px')
+                            ->stylePaddingTop('7px')
+                            ->styleHeight('20px')
                             ->styleBorderBottom()
                             , '35%'
                         )
@@ -1100,10 +1099,11 @@ class StaffAccidentReport extends AbstractDocument
                     /////// Vortsetzung
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('27 hat die Versicherte Person den Besuch <br/> der Einrichtung wieder aufgenommen?')
+                            ->setContent('27 hat der Versicherte die Arbeit wieder aufgenommen?')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
-                            ->styleHeight('27px')
+                            ->stylePaddingTop('7px')
+                            ->styleHeight('20px')
                             ->styleBorderBottom()
                             , '50%'
                         )
