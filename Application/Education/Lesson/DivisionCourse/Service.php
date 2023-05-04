@@ -548,6 +548,24 @@ class Service extends ServiceYearChange
     }
 
     /**
+     * @param string $Date
+     *
+     * @return array|TblDivisionCourse[]
+     */
+    public function getDivisionCourseListByDate(string $Date = 'now'):array
+    {
+        $result = array();
+        if(($tblYearList = Term::useService()->getYearAllByDate(new DateTime($Date)))) {
+            foreach ($tblYearList as $tblYear) {
+                if(($tblDivisionCourseList = $this->getDivisionCourseListByYear($tblYear))) {
+                    $result = array_merge($result, $tblDivisionCourseList);
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
      * @param $Filter
      * @param $Data
      * @param TblDivisionCourse|null $tblDivisionCourse
