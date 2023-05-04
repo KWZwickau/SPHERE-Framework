@@ -174,7 +174,9 @@ class Data extends Support
         $this->createSupportFocusType('Sehen');
         $this->createSupportFocusType('Geistige Entwicklung');
         $this->createSupportFocusType('Lernen');
-        $this->createSupportFocusType('Unterricht kranker Schüler');
+        if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)){
+            $this->createSupportFocusType('Unterricht kranker Schüler');
+        }
         if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
             $this->createSupportFocusType('Autismus');
         }
