@@ -143,7 +143,7 @@ class ApiAppointmentGrade extends Extension implements IApiInterface
                 4 => 'Stufe 12 - 2.Halbjahr'
             );
         }
-        return (new SelectBox('Period',
+        return (new SelectBox('Data[Period]',
             'Auswahl Schulhalbjahr '.new ToolTip(new Info(),
                 'Indiware benötigt diese Information um den Export zuweisen zu können'),
             $PeriodList

@@ -14,6 +14,7 @@ use SPHERE\Application\Transfer\Education\Service\Data;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportLectureship;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImportStudent;
 use SPHERE\Application\Transfer\Education\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
@@ -42,6 +43,26 @@ class Service extends AbstractService
         }
 
         return $Protocol;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function createEntityListBulk(array $tblEntityList): bool
+    {
+        return (new Data($this->getBinding()))->createEntityListBulk($tblEntityList);
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function deleteEntityListBulk(array $tblEntityList): bool
+    {
+        return (new Data($this->getBinding()))->deleteEntityListBulk($tblEntityList);
     }
 
     /**
@@ -83,7 +104,22 @@ class Service extends AbstractService
      */
     public function destroyImport(TblImport $tblImport): bool
     {
-        (new Data($this->getBinding()))->destroyImportLectureshipAllByImport($tblImport);
+        if ($tblImport->getTypeIdentifier() == TblImport::TYPE_IDENTIFIER_LECTURESHIP) {
+            (new Data($this->getBinding()))->destroyImportLectureshipAllByImport($tblImport);
+        } else {
+            $deleteImportStudentList = array();
+            if (($tblImportStudentList = $this->getImportStudentListByImport($tblImport))) {
+                foreach ($tblImportStudentList as $tblImportStudent) {
+                    (new Data($this->getBinding()))->destroyImportStudentCourseAllByImportStudent($tblImportStudent);
+
+                    $deleteImportStudentList[] = $tblImportStudent;
+                }
+            }
+
+            if ($deleteImportStudentList) {
+                $this->deleteEntityListBulk($deleteImportStudentList);
+            }
+        }
 
         return (new Data($this->getBinding()))->destroyImport($tblImport);
     }
@@ -309,12 +345,32 @@ class Service extends AbstractService
     }
 
     /**
-     * @param array $tblEntityList
+     * @param $Id
      *
-     * @return bool
+     * @return false|TblImportStudent
      */
-    public function createEntityListBulk(array $tblEntityList): bool
+    public function getImportStudentById($Id)
     {
-        return (new Data($this->getBinding()))->createEntityListBulk($tblEntityList);
+        return (new Data($this->getBinding()))->getImportStudentById($Id);
+    }
+
+    /**
+     * @param TblImport $tblImport
+     *
+     * @return false|TblImportStudent[]
+     */
+    public function getImportStudentListByImport(TblImport $tblImport)
+    {
+        return (new Data($this->getBinding()))->getImportStudentListByImport($tblImport);
+    }
+
+    /**
+     * @param TblImportStudent $tblImportStudent
+     *
+     * @return TblImportStudent
+     */
+    public function createImportStudent(TblImportStudent $tblImportStudent): TblImportStudent
+    {
+        return (new Data($this->getBinding()))->createImportStudent($tblImportStudent);
     }
 }

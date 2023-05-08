@@ -24,7 +24,7 @@ class TblImport extends Element
     const EXTERN_SOFTWARE_NAME_UNTIS = 'UNTIS';
 
     const TYPE_IDENTIFIER_LECTURESHIP = 'LECTURESHIP';
-    const TYPE_IDENTIFIER_SEKII = 'SEKII';
+    const TYPE_IDENTIFIER_STUDENT_COURSE = 'STUDENT_COURSE';
 
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
