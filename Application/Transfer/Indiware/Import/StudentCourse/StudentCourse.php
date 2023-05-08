@@ -12,9 +12,9 @@ class StudentCourse implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Prepare', __NAMESPACE__ . '\Frontend::frontendUpload'
         ));
-//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-//            __NAMESPACE__ . '/Show', __NAMESPACE__ . '\Frontend::frontendShow'
-//        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Show', __NAMESPACE__ . '\Frontend::frontendShow'
+        ));
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
 //            __NAMESPACE__ . '/Destroy', __NAMESPACE__ . '\Frontend::frontendLectureshipDestroy'
 //        ));

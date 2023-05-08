@@ -152,6 +152,12 @@ class TblImport extends Element
             } else {
                 return '/Transfer/Untis/Import/Lectureship/Show';
             }
+        } elseif ($this->getTypeIdentifier() == TblImport::TYPE_IDENTIFIER_STUDENT_COURSE) {
+            if ($this->getExternSoftwareName() == TblImport::EXTERN_SOFTWARE_NAME_INDIWARE) {
+                return '/Transfer/Indiware/Import/StudentCourse/Show';
+            } else {
+                return '/Transfer/Untis/Import/StudentCourse/Show';
+            }
         }
 
         return '';
@@ -175,5 +181,21 @@ class TblImport extends Element
     public function getImportLectureships()
     {
         return Education::useService()->getImportLectureshipListByImport($this);
+    }
+
+    /**
+     * @return false|TblImportStudent[]
+     */
+    public function getImportStudents()
+    {
+        return Education::useService()->getImportStudentListByImport($this);
+    }
+
+    /**
+     * @return false|TblImportStudentCourse[]
+     */
+    public function getImportStudentCourses()
+    {
+        return Education::useService()->getImportStudentCourseListByImport($this);
     }
 }

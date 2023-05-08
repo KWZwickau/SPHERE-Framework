@@ -175,4 +175,12 @@ class TblImportStudent extends Element
     {
         $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
     }
+
+    /**
+     * @return string
+     */
+    public function getLastFirstName(): string
+    {
+        return $this->getLastName() . ', ' . $this->getFirstName();
+    }
 }

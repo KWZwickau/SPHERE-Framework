@@ -9,7 +9,6 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Transfer\Education\Education;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
-use SPHERE\Application\Transfer\Indiware\Import\Lectureship\Lectureship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -18,6 +17,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
@@ -30,6 +30,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
@@ -72,7 +73,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Global->POST['Data']['SchoolTypeId'] = $PreselectId;
         $Global->savePost();
 
-        if (!($tblYearList = Term::useService()->getYearAllSinceYears(1))) {
+        // todo 4 -> 1
+        if (!($tblYearList = Term::useService()->getYearAllSinceYears(4))) {
             $tblYearList = array();
         }
 
@@ -139,6 +141,29 @@ class Frontend extends Extension implements IFrontendInterface
                 ), new TitleLayout('Schülerkurse', 'importieren'))
             )
         );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $ImportId
+     * @param string $Tab
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendShow($ImportId = null, string $Tab = 'Schüler', $Data = null): Stage
+    {
+        $Stage = new Stage('Indiware', 'Datentransfer');
+        $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft()));
+        $Stage->setMessage('Importvorbereitung / Daten überprüfen und mappen');
+
+        if (($tblImport = Education::useService()->getImportById($ImportId))) {
+            $content = Education::useFrontend()->getStudentCourseContent($tblImport, $Tab, $Data);
+        } else {
+            $content = (new Danger('Der Import wurde nicht gefunden', new Exclamation()));
+        }
+        $Stage->setContent($content);
 
         return $Stage;
     }

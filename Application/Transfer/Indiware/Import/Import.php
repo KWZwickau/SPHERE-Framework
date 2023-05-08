@@ -7,7 +7,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Education\Education;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
-use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareError;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -78,14 +77,16 @@ class Import extends Extension implements IModuleInterface
         $PanelStudentCourseImport[] = new PullClear('<span style="color: black!important">Schüler-Kurse SEK II importieren: </span>'.
             new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/Prepare', new Upload()
                 , array(), 'Hochladen, danach bearbeiten')));
-        $tblIndiwareImportStudent = Import::useService()->getIndiwareImportStudentAll(true);
-        // load if TblIndiwareImportLectureship exist (by Account)
-        if ($tblIndiwareImportStudent) {
+        if ($tblAccount
+            && ($tblImport = Education::useService()->getImportByAccountAndExternSoftwareNameAndTypeIdentifier(
+                $tblAccount, TblImport::EXTERN_SOFTWARE_NAME_INDIWARE, TblImport::TYPE_IDENTIFIER_STUDENT_COURSE
+            ))
+        ) {
             $PanelStudentCourseImport[] = '<span style="color: black!important">Vorhandenen Schüler-Kurse der SEK II bearbeiten: </span>'.
-                new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/Show', new Edit(), array(),
-                        'Bearbeiten')
-                    .new Standard('', '/Transfer/Indiware/Import/StudentCourse/Destroy', new Remove(), array(),
-                        'Löschen'));
+                new Center(
+                    new Standard('', '/Transfer/Indiware/Import/StudentCourse/Show', new Edit(), array('ImportId' => $tblImport->getId()), 'Bearbeiten')
+                    . new Standard('', '/Transfer/Indiware/Import/StudentCourse/Destroy', new Remove(), array('ImportId' => $tblImport->getId()), 'Löschen')
+                );
         }
 
         $PanelLectureshipImport[] = new PullClear('<span style="color: black!important">Lehraufträge importieren: </span>'.

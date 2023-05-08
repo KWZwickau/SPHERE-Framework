@@ -2,19 +2,24 @@
 
 namespace SPHERE\Application\Transfer\Education;
 
+use DateTime;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Transfer\Education\Service\Data;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportLectureship;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportStudent;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImportStudentCourse;
 use SPHERE\Application\Transfer\Education\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
@@ -53,6 +58,16 @@ class Service extends AbstractService
     public function createEntityListBulk(array $tblEntityList): bool
     {
         return (new Data($this->getBinding()))->createEntityListBulk($tblEntityList);
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function updateEntityListBulk(array $tblEntityList): bool
+    {
+        return (new Data($this->getBinding()))->updateEntityListBulk($tblEntityList);
     }
 
     /**
@@ -215,9 +230,12 @@ class Service extends AbstractService
             return $Form;
         }
 
-        foreach ($Data as $ImportLectureshipId => $SubjectId) {
-            if (($tblImportLectureship = $this->getImportLectureshipById($ImportLectureshipId))
-                && ($subjectAcronym = $tblImportLectureship->getSubjectAcronym())
+        foreach ($Data as $ImportItemId => $SubjectId) {
+            $tblImportItem = $tblImport->getTypeIdentifier() == TblImport::TYPE_IDENTIFIER_LECTURESHIP
+                ? $this->getImportLectureshipById($ImportItemId)
+                : $this->getImportStudentCourseById($ImportItemId);
+            if ($tblImportItem
+                && ($subjectAcronym = $tblImportItem->getSubjectAcronym())
             ) {
                 // Fach in Schulsoftware gefunden
                 if (($tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym))
@@ -235,7 +253,7 @@ class Service extends AbstractService
         }
 
         return new Success('Die Fächer wurden erfolgreich gemappt.', new Check())
-            . new Redirect('/Transfer/Indiware/Import/Lectureship/Show', Redirect::TIMEOUT_SUCCESS, array('ImportId' => $tblImport->getId(), 'Tab' => $NextTab));
+            . new Redirect($tblImport->getShowRoute(), Redirect::TIMEOUT_SUCCESS, array('ImportId' => $tblImport->getId(), 'Tab' => $NextTab));
     }
 
     /**
@@ -372,5 +390,153 @@ class Service extends AbstractService
     public function createImportStudent(TblImportStudent $tblImportStudent): TblImportStudent
     {
         return (new Data($this->getBinding()))->createImportStudent($tblImportStudent);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblImportStudentCourse
+     */
+    public function getImportStudentCourseById($Id)
+    {
+        return (new Data($this->getBinding()))->getImportStudentCourseById($Id);
+    }
+
+    /**
+     * @param TblImport $tblImport
+     *
+     * @return false|TblImportStudentCourse[]
+     */
+    public function getImportStudentCourseListByImport(TblImport $tblImport)
+    {
+        return (new Data($this->getBinding()))->getImportStudentCourseListByImport($tblImport);
+    }
+
+    /**
+     * @param string $firstName
+     * @param string $lastName
+     * @param TblYear $tblYear
+     * @param DateTime|null $birthday
+     *
+     * @return false|TblPerson
+     */
+    public function getPersonIsInCourseSystemByFristNameAndLastName(string $firstName, string $lastName, TblYear $tblYear, ?DateTime $birthday)
+    {
+        $tblPersonInCourseSystemList = array();
+        if (($tblPersonList = Person::useService()->getPersonListLikeFirstNameAndLastName($firstName, $lastName))) {
+            foreach ($tblPersonList as $tblPerson) {
+                // Schüler muss im Kurs-System sein im Schuljahr
+                if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+                    $tblPersonInCourseSystemList[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+        }
+
+        if (count($tblPersonInCourseSystemList) == 1) {
+            return current($tblPersonInCourseSystemList);
+        } elseif($birthday) {
+            foreach ($tblPersonInCourseSystemList as $tblPersonTemp) {
+                if (($temp = $tblPersonTemp->getBirthday())
+                    && $temp == $birthday->format('d.m.Y')
+                ) {
+                    return $tblPersonTemp;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return array
+     */
+    public function getPersonListByIsInCourseSystem(TblYear $tblYear): array
+    {
+        $tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy');
+        $tblSchoolTypeBGy = Type::useService()->getTypeByShortName('BGy');
+
+        $tblPersonList = array();
+
+        $this->setPersonListBySchoolTypeAndLevel($tblPersonList, $tblYear, $tblSchoolTypeGy, 11);
+        $this->setPersonListBySchoolTypeAndLevel($tblPersonList, $tblYear, $tblSchoolTypeGy, 12);
+        $this->setPersonListBySchoolTypeAndLevel($tblPersonList, $tblYear, $tblSchoolTypeBGy, 12);
+        $this->setPersonListBySchoolTypeAndLevel($tblPersonList, $tblYear, $tblSchoolTypeBGy, 13);
+
+        return $tblPersonList;
+    }
+
+    /**
+     * @param array $tblPersonList
+     * @param TblYear $tblYear
+     * @param TblType $tblSchoolType
+     * @param int $level
+     *
+     * @return void
+     */
+    private function setPersonListBySchoolTypeAndLevel(array &$tblPersonList, TblYear $tblYear, TblType $tblSchoolType, int $level)
+    {
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear, $tblSchoolType, $level))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (!$tblStudentEducation->getLeaveDateTime()
+                    && ($tblPerson = $tblStudentEducation->getServiceTblPerson())
+                ) {
+                    $tblPersonList[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+        }
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param TblImport $tblImport
+     * @param string $NextTab
+     * @param $Data
+     *
+     * @return IFormInterface|string|null
+     */
+    public function saveMappingPerson(?IFormInterface $Form, TblImport $tblImport, string $NextTab, $Data)
+    {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Form;
+        }
+
+        if (($tblYear = $tblImport->getServiceTblYear())) {
+            $updateImportStudentList = array();
+            foreach ($Data as $ImportStudentId => $PersonId) {
+                if (($tblImportStudent = $this->getImportStudentById($ImportStudentId))) {
+                    // Schüler in Schulsoftware gefunden
+                    if (($tblPerson = Education::useService()->getPersonIsInCourseSystemByFristNameAndLastName(
+                            $tblImportStudent->getFirstName(),
+                            $tblImportStudent->getLastName(),
+                            $tblYear,
+                            $tblImportStudent->getBirthday() ?: null
+                        ))
+                        && $tblPerson->getId() == $PersonId
+                    ) {
+                        continue;
+                    // Person wird gemappt
+                    } elseif (($tblPerson = Person::useService()->getPersonById($PersonId))) {
+                        $tblImportStudent->setServiceTblPerson($tblPerson);
+                        $updateImportStudentList[$tblImportStudent->getId()] = $tblImportStudent;
+                    // vorhandenes Personen-Mapping löschen
+                    } elseif ($tblImportStudent->getServiceTblPerson()) {
+                        $tblImportStudent->setServiceTblPerson();
+                        $updateImportStudentList[$tblImportStudent->getId()] = $tblImportStudent;
+                    }
+                }
+            }
+
+            if (!empty($updateImportStudentList)) {
+                $this->updateEntityListBulk($updateImportStudentList);
+            }
+        }
+
+        return new Success('Die Schüler wurden erfolgreich gemappt.', new Check())
+            . new Redirect($tblImport->getShowRoute(), Redirect::TIMEOUT_SUCCESS, array('ImportId' => $tblImport->getId(), 'Tab' => $NextTab));
     }
 }

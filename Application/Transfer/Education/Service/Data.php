@@ -44,6 +44,29 @@ class Data extends AbstractData
      *
      * @return bool
      */
+    public function updateEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+            $Manager->bulkSaveEntity($tblElement);
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
     public function deleteEntityListBulk(array $tblEntityList): bool
     {
         $Manager = $this->getConnection()->getEntityManager();
@@ -298,5 +321,42 @@ class Data extends AbstractData
         Protocol::useService()->flushBulkEntries();
 
         return true;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblImportStudentCourse
+     */
+    public function getImportStudentCourseById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblImportStudentCourse', $Id);
+    }
+
+    /**
+     * @param TblImport $tblImport
+     *
+     * @return false|TblImportStudentCourse[]
+     */
+    public function getImportStudentCourseListByImport(TblImport $tblImport)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(TblImportStudentCourse::class, 't')
+            ->leftJoin(TblImportStudent::class, 's', 'WITH', 't.tblImportStudent = s.Id')
+            ->leftJoin(TblImport::class, 'i', 'WITH', 's.tblImport = i.Id')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('i.Id', '?1'),
+                ),
+            )
+            ->setParameter(1, $tblImport->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 }

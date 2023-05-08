@@ -20,13 +20,11 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -35,24 +33,17 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
-class Frontend extends Extension implements IFrontendInterface
+class Frontend extends FrontendStudentCourse
 {
-    const LEFT = 3;
-    const MIDDLE = 1;
-    const RIGHT = 8;
-
     private array $tabList = array(
         0 => 'Klassen',
         1 => 'Lehrer',
@@ -85,7 +76,7 @@ class Frontend extends Extension implements IFrontendInterface
         return (new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
-                    $this->getButtonList($tblImport, $Tab)
+                    $this->getButtonList($tblImport, $Tab, $this->tabList)
                 )
             )),
             new LayoutRow(array(
@@ -94,34 +85,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             ))
         ))));
-    }
-
-    /**
-     * @param TblImport $tblImport
-     * @param string $Tab
-     *
-     * @return array
-     */
-    private function getButtonList(TblImport $tblImport, string $Tab): array
-    {
-        $buttonList = array();
-        foreach ($this->tabList as $item)
-        {
-            if ($Tab == $item) {
-                $icon = new Edit();
-                $name = new Info(new Bold($item));
-            } else {
-                $icon = null;
-                $name = $item;
-            }
-
-            $buttonList[] = new Standard($name, $tblImport->getShowRoute(), $icon, array(
-                'ImportId' => $tblImport->getId(),
-                'Tab' => $item
-            ));
-        }
-
-        return $buttonList;
     }
 
     /**
@@ -148,7 +111,6 @@ class Frontend extends Extension implements IFrontendInterface
             if (($tblDivisionCourseListTeachingGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_TEACHING_GROUP))) {
                 $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListTeachingGroup);
             }
-
 
             $global = $this->getGlobal();
             $tblImportLectureshipList = $this->getSorter($tblImportLectureshipList)->sortObjectBy('DivisionName', new StringNaturalOrderSorter());
@@ -204,74 +166,6 @@ class Frontend extends Extension implements IFrontendInterface
 
             return new Title($header)
                 . new Well(Education::useService()->saveMappingDivisionCourse($form, $tblImport, $NextTab, $Data, $tblYear));
-        }
-    }
-
-    /**
-     * @param TblImport $tblImport
-     * @param string $NextTab
-     * @param $Data
-     *
-     * @return string
-     */
-    public function getSubjectContent(TblImport $tblImport, string $NextTab, $Data): string
-    {
-        $rows = array();
-        $tblSubjectAll = Subject::useService()->getSubjectAll();
-        $subjectAcronymList = array();
-        if (($tblImportLectureshipList = $tblImport->getImportLectureships())) {
-            $global = $this->getGlobal();
-            $tblImportLectureshipList = $this->getSorter($tblImportLectureshipList)->sortObjectBy('SubjectAcronym', new StringNaturalOrderSorter());
-            /** @var TblImportLectureship $tblImportLectureship */
-            foreach ($tblImportLectureshipList as $tblImportLectureship) {
-                if (($subjectAcronym = $tblImportLectureship->getSubjectAcronym())
-                    && !isset($subjectAcronymList[$subjectAcronym])
-                ) {
-                    $subjectAcronymList[$subjectAcronym] = $subjectAcronym;
-
-                    // Mapping
-                    if (($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $subjectAcronym))) {
-                        $status = new Warning(new Bold('Mapping'));
-                    // Found
-                    } elseif (($tblSubject = Subject::useService()->getSubjectByVariantAcronym($subjectAcronym))) {
-                        $status = new Success(new SuccessIcon());
-                    // Missing
-                    } else {
-                        $status = new Danger(new Ban());
-                    }
-
-                    // POST setzen
-                    if ($tblSubject) {
-                        $global->POST['Data'][$tblImportLectureship->getId()] = $tblSubject->getId();
-                        $global->savePost();
-                    }
-
-                    $select = new SelectBox('Data[' . $tblImportLectureship->getId() . ']', '', array('{{ DisplayName }}' => $tblSubjectAll));
-                    $rows[] = new LayoutRow(array(
-                        new LayoutColumn($subjectAcronym, self::LEFT),
-                        new LayoutColumn($status, self::MIDDLE),
-                        new LayoutColumn($select, self::RIGHT)
-                    ));
-                }
-            }
-        }
-
-        if (empty($rows)) {
-            return new WarningMessage('Es wurden keine Fächer-Kürzel im Import gefunden. Somit können auch keine Lehraufträge importiert werden', new Exclamation());
-        } else {
-            // Kopf erstellen
-            $header = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(new Bold('Fächer-Kürzel in ' . $tblImport->getExternSoftwareName()), self::LEFT),
-                new LayoutColumn(new Bold('Status'), self::MIDDLE),
-                new LayoutColumn(new Bold('Auswahl Fach in der Schulsoftware'), self::RIGHT)
-            ))));
-
-            $form = (new Form(new FormGroup(new FormRow(new FormColumn(
-                new Layout(new LayoutGroup($rows))
-            )))))->appendFormButton(new Primary('Speichern und Weiter', new Save()));
-
-            return new Title($header)
-                . new Well(Education::useService()->saveMappingSubject($form, $tblImport, $NextTab, $Data));
         }
     }
 
