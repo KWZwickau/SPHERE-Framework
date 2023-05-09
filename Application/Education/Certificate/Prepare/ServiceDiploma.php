@@ -542,9 +542,9 @@ abstract class ServiceDiploma extends ServiceCertificateContent
             elseif (isset($gradeList['LS']) && isset($gradeList['LM'])) {
                 $calc = ($gradeList['JN'] + $gradeList['LS'] + $gradeList['LM']) / 3;
             } elseif (isset($gradeList['LS'])) {
-                $calc = (2 * $gradeList['JN'] + $gradeList['LS']) / 3;
+                $calc = ($gradeList['JN'] + $gradeList['LS']) / 2;
             } elseif (isset($gradeList['LM'])) {
-                $calc = (2 * $gradeList['JN'] + $gradeList['LM']) / 3;
+                $calc = ($gradeList['JN'] + $gradeList['LM']) / 2;
             }
 
             // bei ,5 entscheidet die Prüfungsnote bei FOS und BFS
