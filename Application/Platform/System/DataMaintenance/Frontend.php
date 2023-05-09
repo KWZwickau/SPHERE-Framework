@@ -629,7 +629,8 @@ UPDATE ".$Acronym."_SettingConsumer.tblPrepareInformation SET Value = CONCAT(SUB
             }
 
             $stage->setContent(
-                ApiMigrateDivision::receiverBlock(ApiMigrateDivision::pipelineStatus(ApiMigrateDivision::STATUS_BUTTON), 'Status')
+                new Warning('Press F12 before Migration', new Exclamation())
+                . ApiMigrateDivision::receiverBlock(ApiMigrateDivision::pipelineStatus(ApiMigrateDivision::STATUS_BUTTON), 'Status')
                 . $content
             );
         }
