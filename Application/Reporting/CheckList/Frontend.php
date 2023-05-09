@@ -785,10 +785,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Option'      => ( new Form(new FormGroup(new FormRow(array(
                                         new FormColumn(
                                             new CheckBox('Option[' . $tblPersonGroup->getId() . ']', 'dynamisch', 1)
-                                        , 5),
+                                        , 6),
                                         new FormColumn(
                                             new Primary('Hinzufügen', new Plus())
-                                        , 7)
+                                        , 6),
                                     ))), null,
                                     '/Reporting/CheckList/Object/Add', array(
                                         'ListId'       => $tblList->getId(),
@@ -824,10 +824,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Option'      => ( new Form(new FormGroup(new FormRow(array(
                                     new FormColumn(
                                         new CheckBox('Option[' . $tblCompanyGroup->getId() . ']', 'dynamisch', 1)
-                                    , 5),
+                                    , 6),
                                     new FormColumn(
                                         new Primary('Hinzufügen', new Plus())
-                                    , 7)
+                                    , 6),
                                     ))), null,
                                     '/Reporting/CheckList/Object/Add', array(
                                         'ListId'       => $tblList->getId(),
