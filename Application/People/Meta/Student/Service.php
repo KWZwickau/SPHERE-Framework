@@ -1087,7 +1087,7 @@ class Service extends Support
                 if ($tblDivisionStudentList) {
                     foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                         foreach ($tblYearList as $tblYear) {
-                            if ($tblDivisionStudent->getTblDivision()) {
+                            if ($tblDivisionStudent->getTblDivision() && !$tblDivisionStudent->getLeaveDateTime()) {
                                 $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
                                 if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
                                     $tblDivisionList[] = $tblDivisionStudent->getTblDivision();

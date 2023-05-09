@@ -127,6 +127,8 @@ class FrontendStudentProcess extends FrontendReadOnly
                                         === $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getId()
                                     )
                                     && $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getName() != ''
+                                    && !$tblDivisionStudentTemp->getLeaveDateTime()
+                                    && !$tblDivisionStudent->getLeaveDateTime()
                                 ) {
                                     $RepeatedLevels[] = $tblYear->getDisplayName().' Klasse '.$tblLevel->getName();
                                 }
