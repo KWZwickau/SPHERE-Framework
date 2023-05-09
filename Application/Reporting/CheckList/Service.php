@@ -1,6 +1,4 @@
 <?php
-
-
 namespace SPHERE\Application\Reporting\CheckList;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
@@ -13,8 +11,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as CompanyGroupEntity;
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
@@ -1242,12 +1239,11 @@ class Service extends AbstractService
                             }
                         }
                     } elseif ($Identifier == 'DIVISIONGROUP') {
-                        /** @var TblDivision $tblObject */
-                        $tblStudentAllByDivision = Division::useService()->getStudentAllByDivision($tblObject);
-                        if ($tblStudentAllByDivision) {
-                            $GroupIdentifer = $this->getObjectTypeByIdentifier('PERSON');
+                        /** @var TblDivisionCourse $tblObject */
+                        if (($tblStudentAllByDivision = $tblObject->getStudents())) {
+                            $GroupIdentifier = $this->getObjectTypeByIdentifier('PERSON');
                             foreach ($tblStudentAllByDivision as $tblPerson) {
-                                $objectList[$GroupIdentifer->getId()][$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                                $objectList[$GroupIdentifier->getId()][$tblPerson->getId()] = $tblPerson->getLastFirstName();
                             }
                         }
                     }
