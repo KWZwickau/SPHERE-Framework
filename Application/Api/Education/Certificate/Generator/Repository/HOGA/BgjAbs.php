@@ -146,7 +146,7 @@ class BgjAbs extends Style
                 ->styleMarginTop('20px')
                 ->addSection((new Section())
                     ->addElementColumn($this->getElement(
-                        'Zeugnis der Fachhochschulreife für
+                        'Zeugnis des Berufsgrundbildungsjahres für
                             {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
                             {{ Content.P'.$personId.'.Person.Data.Name.First }} {{ Content.P'.$personId.'.Person.Data.Name.Last }},
                             geboren am
