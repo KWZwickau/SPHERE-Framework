@@ -204,7 +204,6 @@ class FrontendStudent extends FrontendMember
             new FormColumn(array(
                 ApiMassReplace::receiverField((
                     $Field = (new SelectBox('StudentEducationData[Course]', 'Bildungsgang', array('{{ Name }}' => $tblCourseAll)))
-                        ->setRequired()
                         ->configureLibrary(SelectBox::LIBRARY_SELECT2)
                 )),
                 ApiMassReplace::receiverModal($Field, 'Schülertransfer - Aktueller Schulverlauf'),

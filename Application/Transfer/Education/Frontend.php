@@ -122,9 +122,9 @@ class Frontend extends FrontendStudentCourse
                     $divisionNameList[$divisionName] = $divisionName;
 
                     // Mapping
-                    if (($mappingDivisionCourseName = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $divisionName))
-                        && ($tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($mappingDivisionCourseName, $tblYear))
-                    ) {
+                    if (($tblDivisionCourse = Education::useService()->getImportMappingValueBy(
+                        TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $divisionName, $tblYear
+                    ))) {
                         $status = new Warning(new Bold('Mapping'));
                     // Found
                     } elseif (($tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($divisionName, $tblYear))) {
@@ -422,10 +422,9 @@ class Frontend extends FrontendStudentCourse
                     // Klassen
                     if (!isset($divisionNameList[$divisionName])) {
                         // Mapping
-                        if (($mappingDivisionCourseName = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME,
-                                $divisionName))
-                            && ($tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($mappingDivisionCourseName, $tblYear))
-                        ) {
+                        if (($tblDivisionCourse = Education::useService()->getImportMappingValueBy(
+                            TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $divisionName, $tblYear
+                        ))) {
                             // Found
                         } else {
                             $tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($divisionName, $tblYear);
@@ -443,9 +442,8 @@ class Frontend extends FrontendStudentCourse
                     // Lehrer
                     if (!isset($teacherAcronymList[$teacherAcronym])) {
                         // Mapping
-                        if (($tblPerson = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_TEACHER_ACRONYM_TO_PERSON_ID,
-                            $teacherAcronym))) {
-                            // Found
+                        if (($tblPerson = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_TEACHER_ACRONYM_TO_PERSON_ID, $teacherAcronym))) {
+                        // Found
                         } elseif (($tblTeacher = Teacher::useService()->getTeacherByAcronym($teacherAcronym))) {
                             $tblPerson = $tblTeacher->getServiceTblPerson();
                         }
@@ -470,9 +468,8 @@ class Frontend extends FrontendStudentCourse
                     // Fächer
                     if (!isset($subjectAcronymList[$subjectAcronym])) {
                         // Mapping
-                        if (($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID,
-                            $subjectAcronym))) {
-                            // Found
+                        if (($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $subjectAcronym))) {
+                        // Found
                         } else {
                             $tblSubject = Subject::useService()->getSubjectByVariantAcronym($subjectAcronym);
                         }

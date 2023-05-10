@@ -173,10 +173,11 @@ class Service extends AbstractService
     /**
      * @param string $Type
      * @param string $Original
+     * @param TblYear|null $tblYear
      *
      * @return false|Element
      */
-    public function getImportMappingValueBy(string $Type, string $Original)
+    public function getImportMappingValueBy(string $Type, string $Original, ?TblYear $tblYear = null)
     {
         if (($tblImportMapping = $this->getImportMappingBy($Type, $Original))) {
             switch ($Type) {
@@ -184,6 +185,10 @@ class Service extends AbstractService
                     return Subject::useService()->getSubjectById($tblImportMapping->getMapping());
                 case TblImportMapping::TYPE_TEACHER_ACRONYM_TO_PERSON_ID:
                     return Person::useService()->getPersonById($tblImportMapping->getMapping());
+                case TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME:
+                    return Education::useService()->getDivisionCourseByDivisionNameAndYear($tblImportMapping->getMapping(), $tblYear);
+                case TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME:
+                    return Education::useService()->getDivisionCourseCourseSystemByCourseNameAndYear($tblImportMapping->getMapping(), $tblYear);
                 default: return $tblImportMapping->getMapping();
             }
         }
@@ -354,7 +359,26 @@ class Service extends AbstractService
 
         // ohne Leerzeichen suchen
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByNameAndYear(str_replace(' ', '', $divisionName), $tblYear))
-            && ($tblDivisionCourse->getIsDivisionOrCoreGroup() || $tblDivisionCourse->getType() == TblDivisionCourseType::TYPE_TEACHING_GROUP)
+            && ($tblDivisionCourse->getIsDivisionOrCoreGroup() || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHING_GROUP)
+        ) {
+            return $tblDivisionCourse;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $courseName
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivisionCourse
+     */
+    public function getDivisionCourseCourseSystemByCourseNameAndYear(string $courseName, TblYear $tblYear)
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByNameAndYear($courseName, $tblYear))
+            && ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE
+                || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE
+            )
         ) {
             return $tblDivisionCourse;
         }
@@ -537,6 +561,111 @@ class Service extends AbstractService
         }
 
         return new Success('Die Schüler wurden erfolgreich gemappt.', new Check())
+            . new Redirect($tblImport->getShowRoute(), Redirect::TIMEOUT_SUCCESS, array('ImportId' => $tblImport->getId(), 'Tab' => $NextTab));
+    }
+
+    /**
+     * @param TblImport $tblImport
+     * @param string $courseName
+     *
+     * @return bool
+     */
+    public function getIsAdvancedCourse(TblImport $tblImport, string $courseName): bool
+    {
+        // Untis: EN-L-1
+        if ($tblImport->getExternSoftwareName() == TblImport::EXTERN_SOFTWARE_NAME_UNTIS) {
+            if (strpos($courseName, '-L-') !== false) {
+                return true;
+            } else {
+                return false;
+            }
+        // Indiware: BIO1
+        } else {
+            if (preg_match('!^([a-zA-Z]+)!', $courseName, $Match)) {
+                if (ctype_upper($Match[1])) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param TblImport $tblImport
+     * @param string $NextTab
+     * @param $Data
+     * @param TblYear $tblYear
+     *
+     * @return IFormInterface|string|null
+     */
+    public function saveMappingStudentCourse(?IFormInterface $Form, TblImport $tblImport, string $NextTab, $Data, TblYear $tblYear)
+    {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Form;
+        }
+
+        $createDivisionCourseList = array();
+        if (isset($Data['Select'])) {
+            foreach ($Data['Select'] as $ImportStudentCourseId => $DivisionCourseId) {
+                if (($tblImportStudentCourse = $this->getImportStudentCourseById($ImportStudentCourseId))
+                    && ($courseName = $tblImportStudentCourse->getCourseName())
+                    && ($tblImportStudent = $tblImportStudentCourse->getTblImportStudent())
+                    && ($tblStudentEducation = $tblImportStudent->getStudentEducation())
+                    && ($level = $tblStudentEducation->getLevel())
+                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                ) {
+                    $courseName = $tblImportStudentCourse->getCourseNameForSystem($tblImport, $courseName, $level, $tblSchoolType);
+
+                    // Kurs in Schulsoftware gefunden
+                    if (($tblDivisionCourse = Education::useService()->getDivisionCourseCourseSystemByCourseNameAndYear($courseName, $tblYear))
+                        && $tblDivisionCourse->getId() == $DivisionCourseId
+                    ) {
+                        continue;
+                    // Kurs wird gemappt
+                    } elseif (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+                        $this->updateImportMapping(TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $courseName, $tblDivisionCourse->getName());
+                    // Kurs wird in der Schulsoftware neu angelegt
+                    } elseif (isset($Data['Check'][$ImportStudentCourseId])) {
+                        // Fach
+                        $subjectAcronym = $tblImportStudentCourse->getSubjectAcronym();
+                        if (($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $subjectAcronym))) {
+
+                        } elseif (($tblSubject = Subject::useService()->getSubjectByVariantAcronym($subjectAcronym))) {
+
+                        }
+
+                        $isAdvanceCourse = $this->getIsAdvancedCourse($tblImport, $tblImportStudentCourse->getCourseName());
+                        $createDivisionCourseList[] = TblDivisionCourse::withParameter(
+                            DivisionCourse::useService()->getDivisionCourseTypeByIdentifier(
+                                $isAdvanceCourse ? TblDivisionCourseType::TYPE_ADVANCED_COURSE : TblDivisionCourseType::TYPE_BASIC_COURSE
+                            ),
+                            $tblYear,
+                            $courseName,
+                            '',
+                            $isAdvanceCourse,
+                            $isAdvanceCourse,
+                            $tblSubject ?: null
+                        );
+                    // vorhandenes Mapping löschen
+                    } elseif (($tblImportMapping = $this->getImportMappingBy(TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $courseName))) {
+                        $this->destroyImportMapping($tblImportMapping);
+                    }
+                }
+            }
+        }
+
+        if ($createDivisionCourseList) {
+            DivisionCourse::useService()->createEntityListBulk($createDivisionCourseList);
+        }
+
+        return new Success('Die Sek-Kurse wurden erfolgreich gemappt bzw. neu angelegt.', new Check())
             . new Redirect($tblImport->getShowRoute(), Redirect::TIMEOUT_SUCCESS, array('ImportId' => $tblImport->getId(), 'Tab' => $NextTab));
     }
 }

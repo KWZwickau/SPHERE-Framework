@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Transfer\Education\Education;
@@ -182,5 +184,32 @@ class TblImportStudent extends Element
     public function getLastFirstName(): string
     {
         return $this->getLastName() . ', ' . $this->getFirstName();
+    }
+
+    /**
+     * SchülerBildung, der gefundene Person in der Schulsoftware oder gemappten Person
+     *
+     * @return bool|TblStudentEducation
+     */
+    public function getStudentEducation()
+    {
+        if (($tblImport = $this->getTblImport())
+            && ($tblYear = $tblImport->getServiceTblYear())
+        ) {
+            if (!($tblPerson = $this->getServiceTblPerson())) {
+                $tblPerson = Education::useService()->getPersonIsInCourseSystemByFristNameAndLastName(
+                    $this->getFirstName(),
+                    $this->getLastName(),
+                    $tblYear,
+                    $this->getBirthday() ?: null
+                );
+            }
+
+            if ($tblPerson) {
+                return DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+            }
+        }
+
+        return false;
     }
 }

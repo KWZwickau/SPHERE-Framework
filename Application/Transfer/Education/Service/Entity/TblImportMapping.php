@@ -18,6 +18,7 @@ class TblImportMapping extends Element
     const TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID = 'SubjectAcronymToSubjectId';
     const TYPE_TEACHER_ACRONYM_TO_PERSON_ID = 'TeacherAcronymToPersonId';
     const TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME = 'DivisionNameToDivisionCourseName';
+    const TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME = 'CourseNameToDivisionCourseName';
 
     const ATTR_TYPE = 'Type';
     const ATTR_ORIGINAL = 'Original';

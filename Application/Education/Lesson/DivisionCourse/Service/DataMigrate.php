@@ -310,9 +310,21 @@ abstract class DataMigrate extends AbstractData
                                         ) {
                                             // SekII-Kurs als Kurs anlegen
                                             if ($isCourseSystem) {
+                                                // Erkennung Untis: 11Gy EN-L-1
+                                                if (strpos($tblSubjectGroup->getName(), '-L-') !== false
+                                                    || strpos($tblSubjectGroup->getName(), '-G-') !== false
+                                                ) {
+                                                    $newCourseName = $tblLevel->getName() . $tblSchoolType->getShortName() . ' ' . $tblSubjectGroup->getName();
+                                                // Inidware: 11Gy L-BIO1
+                                                } else {
+                                                    $newCourseName = $tblLevel->getName() . $tblSchoolType->getShortName() . ' '
+                                                       . ($tblSubjectGroup->isAdvancedCourse() ? 'L-' : 'G-') . $tblSubjectGroup->getName();
+                                                }
+
                                                 $tblDivisionCourseSekII = TblDivisionCourse::withParameter(
                                                     $tblSubjectGroup->isAdvancedCourse() ? $tblTypeAdvancedCourse : $tblTypeBasicCourse,
-                                                    $tblYear, $tblLevel->getName() . $tblSchoolType->getShortName() . ' ' . $tblSubjectGroup->getName(),
+                                                    $tblYear,
+                                                    $newCourseName,
                                                     '',
                                                     $tblSubjectGroup->isAdvancedCourse(),
                                                     $tblSubjectGroup->isAdvancedCourse(),
