@@ -1983,6 +1983,7 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         $hasTransfer = false;
                         $isTeamSet = false;
                         $hasRemarkText = false;
+                        $hasEducationDateFrom = false;
                         $isSubjectAreaSet = false;
                         $tblStudent = $tblPerson->getStudent();
                         if ($tblPrepareInformationAll) {
@@ -1993,6 +1994,10 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                                 if ($tblPrepareInformation->getField() == 'Remark' || $tblPrepareInformation->getField() == 'RemarkWithoutTeam') {
                                     $hasRemarkText = true;
+                                }
+
+                                if ($tblPrepareInformation->getField() == 'EducationDateFrom') {
+                                    $hasEducationDateFrom = true;
                                 }
 
                                 if ($tblPrepareInformation->getField() == 'SubjectArea') {
@@ -2339,6 +2344,18 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                         ) {
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $tblPerson->getFullName()
                                 . ' wurde zur Abschlussprüfung nicht zugelassen / hat die Abschlussprüfung nicht bestanden und kann erst nach erfolgreicher Wiederholung der Klassenstufe erneut an der Abschlussprüfung teilnehmen.';
+                        }
+
+                        // HOGA Beginn der Ausbildung bei Fachoberschule Abschlusszeugnissen
+                        if (!$hasEducationDateFrom
+                            && $Certificate->getCertificateEntity()->getCertificate() == 'HOGA\FosAbs'
+                            && $tblStudent
+                            && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
+                                $tblStudent, Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE')
+                            ))
+                            && ($transferDate = $tblStudentTransfer->getTransferDate())
+                        ) {
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['EducationDateFrom'] = $transferDate;
                         }
 
                         $Global->savePost();
