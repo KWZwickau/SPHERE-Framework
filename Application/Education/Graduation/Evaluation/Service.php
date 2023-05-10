@@ -430,14 +430,17 @@ class Service extends AbstractService
         if (($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson(
                 $tblDivision, $tblPerson
             ))
-            && ($leaveDate = $tblDivisionStudent->getLeaveDateTime()) !== null
         ) {
-            if ($taskDate > $leaveDate) {
+            if (($leaveDate = $tblDivisionStudent->getLeaveDateTime()) !== null
+                && $taskDate > $leaveDate
+            ) {
                 return true;
+            } else {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     /**
