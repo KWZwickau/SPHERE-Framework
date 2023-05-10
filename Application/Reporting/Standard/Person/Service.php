@@ -23,6 +23,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -44,7 +45,6 @@ use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
@@ -4823,8 +4823,9 @@ class Service extends Extension
      *
      * @return bool|FilePointer
      */
-    public function createAbsenceContentExcelMonthly(array $PersonList, array $dataList, array $countList): ?FilePointer
+    public function createAbsenceContentExcelMonthly(array $PersonList, array $dataList, array $countList, TblYear $tblYear): ?FilePointer
     {
+        $totalCountList = array();
         if (!empty($PersonList)) {
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
@@ -4844,71 +4845,123 @@ class Service extends Extension
                 '12' => 'Dezember'
             ];
             $IsFirstTab = true;
-            for ($month = 1; $month < 13; $month++) {
-                if ($IsFirstTab === true) {
-                    $export->renameWorksheet($workSheetsName[(string)$month]);
-                    $IsFirstTab = false;
-                } else {
-                    $export->createWorksheet($workSheetsName[(string)$month]);
-                }
-                $row = 2;
-                $column = 0;
-                $export->setValue($export->getCell($column++, $row), 'Schüler');
-                for ($i = 1; $i < 31; $i++) {
-                    $export->setValue($export->getCell($column++, $row), $i);
-                }
-                $columnStudents = 0;
-                $rowStudents = 3;
-                /** @var TblPerson $tblPerson */
-                foreach ($PersonList as $tblPerson) {
-                    $lastName = $tblPerson->getLastName();
-                    $firstName = $tblPerson->getFirstSecondName();
-                    $export->setValue($export->getCell($columnStudents, $rowStudents), $lastName . ', ' . $firstName);
-
-                    if (isset($dataList[$month][$tblPerson->getId()])) {
-                        foreach ($dataList[$month][$tblPerson->getId()] as $day => $status) {
-                            $export->setValue($export->getCell($day, $rowStudents), $status);
-                        }
+            /** @var DateTime $startDate */
+            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if ($startDate && $endDate) {
+                while ($startDate < $endDate) {
+                    $month = intval($startDate->format('m'));
+                    $startDate->add(new \DateInterval('P1M'));
+                    if ($IsFirstTab === true) {
+                        $export->renameWorksheet($workSheetsName[(string)$month]);
+                        $IsFirstTab = false;
+                    } else {
+                        $export->createWorksheet($workSheetsName[(string)$month]);
                     }
-                    $export->setValue($export->getCell(32, $rowStudents), $countList[$month][$tblPerson->getId()]['Days']['E'] ?? 0);
-                    $export->setValue($export->getCell(33, $rowStudents), $countList[$month][$tblPerson->getId()]['Days']['U'] ?? 0);
-                    $export->setValue($export->getCell(34, $rowStudents), $countList[$month][$tblPerson->getId()]['Lessons']['E'] ?? 0);
-                    $export->setValue($export->getCell(35, $rowStudents), $countList[$month][$tblPerson->getId()]['Lessons']['U'] ?? 0);
-                    $rowStudents++;
-                }
+                    $row = 2;
+                    $column = 0;
+                    $export->setValue($export->getCell($column++, $row), 'Schüler');
+                    for ($i = 1; $i < 31; $i++) {
+                        $export->setValue($export->getCell($column++, $row), $i);
+                    }
+                    $columnStudents = 0;
+                    $rowStudents = 3;
+                    /** @var TblPerson $tblPerson */
+                    foreach ($PersonList as $tblPerson) {
+                        $lastName = $tblPerson->getLastName();
+                        $firstName = $tblPerson->getFirstSecondName();
+                        $export->setValue($export->getCell($columnStudents, $rowStudents), $lastName . ', ' . $firstName);
 
-                // Center Data
-                for ($maxColumn = 0; $maxColumn <= 40; $maxColumn++) {
-                    $columnLetter = \PHPExcel_Cell::stringFromColumnIndex($maxColumn);
-                    $export->getActiveSheet()->getStyle($columnLetter . 3)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-                    $export->setStyle($export->getCell($maxColumn, 0))->setColumnWidth(5);
-                }
-                $mergeCells = ['AG1:AJ1', 'AG2:AH2', 'AI2:AJ2', 'AK1:AN1', 'AK2:AL2', 'AM2:AN2'];
-                foreach ($mergeCells as $cellRange) {
+                        if (isset($dataList[$month][$tblPerson->getId()])) {
+                            foreach ($dataList[$month][$tblPerson->getId()] as $day => $status) {
+                                $export->setValue($export->getCell($day, $rowStudents), $status);
+                            }
+                        }
+                        $export->setValue($export->getCell(32, $rowStudents), $countList[$month][$tblPerson->getId()]['Days']['E'] ?? 0);
+                        $export->setValue($export->getCell(33, $rowStudents), $countList[$month][$tblPerson->getId()]['Days']['U'] ?? 0);
+                        $export->setValue($export->getCell(34, $rowStudents), $countList[$month][$tblPerson->getId()]['Lessons']['E'] ?? 0);
+                        $export->setValue($export->getCell(35, $rowStudents), $countList[$month][$tblPerson->getId()]['Lessons']['U'] ?? 0);
+
+                        if (isset($totalCountList[$tblPerson->getId()]['Days']['E'])) {
+                            $totalCountList[$tblPerson->getId()]['Days']['E'] += $countList[$month][$tblPerson->getId()]['Days']['E'] ?? 0;
+                        } else {
+                            $totalCountList[$tblPerson->getId()]['Days']['E'] = $countList[$month][$tblPerson->getId()]['Days']['E'] ?? 0;
+                        }
+                        $export->setValue($export->getCell(36, $rowStudents), $totalCountList[$tblPerson->getId()]['Days']['E']);
+
+                        if (isset($totalCountList[$tblPerson->getId()]['Days']['U'])) {
+                            $totalCountList[$tblPerson->getId()]['Days']['U'] += $countList[$month][$tblPerson->getId()]['Days']['U'] ?? 0;
+                        } else {
+                            $totalCountList[$tblPerson->getId()]['Days']['U'] = $countList[$month][$tblPerson->getId()]['Days']['U'] ?? 0;
+                        }
+                        $export->setValue($export->getCell(37, $rowStudents), $totalCountList[$tblPerson->getId()]['Days']['U']);
+
+                        if (isset($totalCountList[$tblPerson->getId()]['Lessons']['E'])) {
+                            $totalCountList[$tblPerson->getId()]['Lessons']['E'] += $countList[$month][$tblPerson->getId()]['Lessons']['E'] ?? 0;
+                        } else {
+                            $totalCountList[$tblPerson->getId()]['Lessons']['E'] = $countList[$month][$tblPerson->getId()]['Lessons']['E'] ?? 0;
+                        }
+                        $export->setValue($export->getCell(38, $rowStudents), $totalCountList[$tblPerson->getId()]['Lessons']['E']);
+
+                        if (isset($totalCountList[$tblPerson->getId()]['Lessons']['U'])) {
+                            $totalCountList[$tblPerson->getId()]['Lessons']['U'] += $countList[$month][$tblPerson->getId()]['Lessons']['U'] ?? 0;
+                        } else {
+                            $totalCountList[$tblPerson->getId()]['Lessons']['U'] = $countList[$month][$tblPerson->getId()]['Lessons']['U'] ?? 0;
+                        }
+                        $export->setValue($export->getCell(39, $rowStudents), $totalCountList[$tblPerson->getId()]['Lessons']['U']);
+
+                        for ($columnCount = 0; $columnCount < 40; $columnCount++) {
+                            $columnLetter = \PHPExcel_Cell::stringFromColumnIndex($columnCount);
+                            $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                            $export->setStyle($export->getCell($columnCount, $rowStudents), $export->getCell($columnCount, $rowStudents))
+                                ->setBorderLeft()
+                                ->setBorderBottom();
+
+                            $export->setStyle($export->getCell($columnCount, $row), $export->getCell($columnCount, $row))
+                                ->setBorderLeft()
+                                ->setBorderBottom()
+                                ->setFontBold();
+                        }
+                        $rowStudents++;
+                    }
+                    // Center Data
+                    for ($maxColumn = 0; $maxColumn < 40; $maxColumn++) {
+                        $columnLetter = \PHPExcel_Cell::stringFromColumnIndex($maxColumn);
+                        $export->getActiveSheet()->getStyle($columnLetter . 3)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                        $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                        $export->setStyle($export->getCell($maxColumn, 0))->setColumnWidth(2.6);
+                        $export->setStyle($export->getCell($maxColumn, $row), $export->getCell($maxColumn, $row));
+                    }
+
                     $export->getActiveSheet()
-                        ->mergeCells($cellRange);
+                        ->getStyle("A1:AN34")
+                        ->getFont()
+                        ->setSize(9);
+                    $mergeCells = ['AG1:AJ1', 'AG2:AH2', 'AI2:AJ2', 'AK1:AN1', 'AK2:AL2', 'AM2:AN2'];
+                    foreach ($mergeCells as $cellRange) {
+                        $export->getActiveSheet()
+                            ->mergeCells($cellRange);
+                    }
+                    $cellValues = [
+                        'AG1' => 'Fehlzeiten',
+                        'AG2' => 'Tage',
+                        'AI2' => 'Std',
+                        'AK1' => 'Ges. Fz',
+                        'AK2' => 'Tage',
+                        'AM2' => 'Std'
+                    ];
+                    foreach ($cellValues as $cellCoord => $value) {
+                        $export->getActiveSheet()->setCellValue($cellCoord, $value);
+                        $export->getActiveSheet()->getStyle($cellCoord)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                    }
+                    $columnOffset = $column + 1;
+                    for ($day = 1; $day <= 8; $day++) {
+                        $value = ($day % 2 == 1) ? 'E' : 'U';
+                        $cellCoord = $export->getCell($columnOffset++, 2);
+                        $export->setValue($cellCoord, $value);
+                    }
+                    // width of cells
+                    $export->setStyle($export->getCell(0, 2), $export->getCell($column, $row))->setColumnWidth(17.5);
                 }
-                $cellValues = [
-                    'AG1' => 'Fehlzeiten',
-                    'AG2' => 'Tage',
-                    'AI2' => 'Std',
-                    'AK1' => 'Ges. Fz',
-                    'AK2' => 'Tage',
-                    'AM2' => 'Std'
-                ];
-                foreach ($cellValues as $cellCoord => $value) {
-                    $export->getActiveSheet()->setCellValue($cellCoord, $value);
-                    $export->getActiveSheet()->getStyle($cellCoord)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-                }
-                $columnOffset = $column + 1;
-                for ($day = 1; $day <= 8; $day++) {
-                    $value = ($day % 2 == 1) ? 'E' : 'U';
-                    $cellCoord = $export->getCell($columnOffset++, 2);
-                    $export->setValue($cellCoord, $value);
-                }
-
-                // width of cells
-                $export->setStyle($export->getCell(0, 2), $export->getCell($column++, $row))->setColumnWidth(20);
             }
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

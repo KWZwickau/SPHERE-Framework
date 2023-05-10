@@ -508,9 +508,10 @@ class Person
 
         if ($tblPersonList
             && $tblDivision
+            && ($tblYear = $tblDivision->getServiceTblYear())
         ) {
             list($dataList, $countList) = Absence::useService()->getAbsenceForExcelDownload($tblDivision);
-            $fileLocation = ReportingPerson::useService()->createAbsenceContentExcelMonthly($tblPersonList, $dataList, $countList);
+            $fileLocation = ReportingPerson::useService()->createAbsenceContentExcelMonthly($tblPersonList, $dataList, $countList, $tblYear);
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
