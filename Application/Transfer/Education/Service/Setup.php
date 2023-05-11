@@ -99,7 +99,7 @@ class Setup extends AbstractSetup
 
         $this->createColumn($table, 'FirstName');
         $this->createColumn($table, 'LastName');
-        $this->createColumn($table, 'Birthday', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($table, 'Birthday', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($table, 'GenderAcronym');
         $this->createColumn($table, 'DivisionName');
         $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);

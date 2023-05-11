@@ -6,6 +6,9 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportLectureship;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
@@ -508,72 +511,44 @@ class FrontendStudentCourse extends Extension implements IFrontendInterface
                         foreach ($tblImportStudentCourseList as $tblImportStudentCourse) {
                             if (($subjectAcronym = $tblImportStudentCourse->getSubjectAcronym())
                                 && ($courseName = $tblImportStudentCourse->getCourseName())
-                                && ($courseNumber = $tblImportStudentCourse->getCourseNumber())
                             ) {
-                                $coursePeriod = intval(substr($courseNumber, 0, 1));
-                                // nur das ausgewählte Schuljahr importieren, es sind allerdings alle 4. Halbjahre im Import bei Indiware
-                                if ($coursePeriod < 3) {
-                                    if (($tblSchoolType->getShortName() == 'Gy' && $level == 12)
-                                        || ($tblSchoolType->getShortName() == 'BGy' && $level == 13)
-                                    ) {
-                                        continue;
+                                // Indiware beinhaltet alle 4 Halbjahre
+                                if ($tblImport->getExternSoftwareName() == TblImport::EXTERN_SOFTWARE_NAME_INDIWARE) {
+                                    $coursePeriod = intval(substr($tblImportStudentCourse->getCourseNumber(), 0, 1));
+                                    // nur das ausgewählte Schuljahr importieren, es sind allerdings alle 4. Halbjahre im Import bei Indiware
+                                    if ($coursePeriod < 3) {
+                                        if (($tblSchoolType->getShortName() == 'Gy' && $level == 12)
+                                            || ($tblSchoolType->getShortName() == 'BGy' && $level == 13)
+                                        ) {
+                                            continue;
+                                        }
+                                    } else {
+                                        if (($tblSchoolType->getShortName() == 'Gy' && $level == 11)
+                                            || ($tblSchoolType->getShortName() == 'BGy' && $level == 12)
+                                        ) {
+                                            continue;
+                                        }
                                     }
-                                } else {
-                                    if (($tblSchoolType->getShortName() == 'Gy' && $level == 11)
-                                        || ($tblSchoolType->getShortName() == 'BGy' && $level == 12)
-                                    ) {
-                                        continue;
+                                    if ($coursePeriod == 1 || $coursePeriod == 3) {
+                                        $period = 1;
+                                    } else {
+                                        $period = 2;
                                     }
-                                }
-                                if ($coursePeriod == 1 || $coursePeriod == 3) {
-                                    $period = 1;
-                                } else {
-                                    $period = 2;
-                                }
 
-                                $courseName = $tblImportStudentCourse->getCourseNameForSystem($tblImport, $courseName, $level, $tblSchoolType);
-
-                                if (!isset($headerList[$period][$subjectAcronym])) {
-                                    $headerList[$period][$subjectAcronym] = $subjectAcronym;
-                                }
-
-                                // Mapping SekII-Kurs
-                                if (($tblDivisionCourse = Education::useService()->getImportMappingValueBy(
-                                    TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $courseName, $tblYear
-                                ))) {
-                                // Found SekII-Kurs
-                                } elseif (($tblDivisionCourse = Education::useService()->getDivisionCourseCourseSystemByCourseNameAndYear($courseName, $tblYear))) {
-
-                                }
-
-                                if ($tblDivisionCourse) {
-                                    $periodIdentifier = $level . '/' . $period;
-                                    $studentCourseList[$tblPerson->getId()][$periodIdentifier][$tblDivisionCourse->getId()] = 1;
-
-                                    $existsStudentSubject = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndDivisionCourseAndPeriod(
-                                        $tblPerson, $tblYear, $tblDivisionCourse, $period
+                                    $this->setItemForStudentCourse(
+                                        $tblImport, $tblImportStudentCourse, $courseName, $subjectAcronym, $level, $tblSchoolType,
+                                        $tblYear, $tblPerson, $period, $IsPreview, $headerList, $studentCourseList, $saveCreateStudentSubjectList,
+                                        $missingCourseList, $item
                                     );
-
-                                    if ($IsPreview) {
-                                        $item[$period][$subjectAcronym] = $existsStudentSubject
-                                            ? $tblDivisionCourse->getName()
-                                            : new Success(new Plus() . $tblDivisionCourse->getName());
-                                    } elseif (!$existsStudentSubject) {
-                                        // doppelte Einträge bei Untis (A- und B-Woche) ignorieren
-                                        $key = $tblPerson->getId() . '_' . $periodIdentifier . '_' . $tblDivisionCourse->getId();
-                                        $saveCreateStudentSubjectList[$key] = TblStudentSubject::withParameter(
-                                            $tblPerson,
-                                            $tblYear,
-                                            null,
-                                            true,
-                                            null,
-                                            $tblDivisionCourse,
-                                            $periodIdentifier
+                                // Untis beinhaltet nur ein Halbjahr
+                                } else {
+                                    for ($period = 1; $period < 3; $period++ ) {
+                                        $this->setItemForStudentCourse(
+                                            $tblImport, $tblImportStudentCourse, $courseName, $subjectAcronym, $level, $tblSchoolType,
+                                            $tblYear, $tblPerson, $period, $IsPreview, $headerList, $studentCourseList, $saveCreateStudentSubjectList,
+                                            $missingCourseList, $item
                                         );
                                     }
-                                } else {
-                                    $missingCourseList[$courseName] = $courseName;
-                                    $item[$period][$subjectAcronym] = new Danger('Kurs: ' . $courseName . ' ist nicht vorhanden');
                                 }
                             }
                         }
@@ -619,6 +594,56 @@ class FrontendStudentCourse extends Extension implements IFrontendInterface
                 $saveCreateStudentSubjectList,
                 $saveDeleteStudentSubjectList
             );
+        }
+    }
+
+    private function setItemForStudentCourse(TblImport $tblImport, TblImportStudentCourse $tblImportStudentCourse, string $courseName, string $subjectAcronym,
+        int $level, TblType $tblSchoolType, TblYear $tblYear, TblPerson $tblPerson, int $period, bool $IsPreview,
+        array &$headerList, array &$studentCourseList, array &$saveCreateStudentSubjectList, array &$missingCourseList, array &$item)
+    {
+        $courseName = $tblImportStudentCourse->getCourseNameForSystem($tblImport, $courseName, $level, $tblSchoolType);
+
+        if (!isset($headerList[$period][$subjectAcronym])) {
+            $headerList[$period][$subjectAcronym] = $subjectAcronym;
+        }
+
+        // Mapping SekII-Kurs
+        if (($tblDivisionCourse = Education::useService()->getImportMappingValueBy(
+            TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $courseName, $tblYear
+        ))) {
+            // Found SekII-Kurs
+        } elseif (($tblDivisionCourse = Education::useService()->getDivisionCourseCourseSystemByCourseNameAndYear($courseName, $tblYear))) {
+
+        }
+
+        if ($tblDivisionCourse) {
+            $periodIdentifier = $level . '/' . $period;
+            $studentCourseList[$tblPerson->getId()][$periodIdentifier][$tblDivisionCourse->getId()] = 1;
+
+            $existsStudentSubject = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndDivisionCourseAndPeriod(
+                $tblPerson, $tblYear, $tblDivisionCourse, $period
+            );
+
+            if ($IsPreview) {
+                $item[$period][$subjectAcronym] = $existsStudentSubject
+                    ? $tblDivisionCourse->getName()
+                    : new Success(new Plus() . $tblDivisionCourse->getName());
+            } elseif (!$existsStudentSubject) {
+                // doppelte Einträge bei Untis (A- und B-Woche) ignorieren
+                $key = $tblPerson->getId() . '_' . $periodIdentifier . '_' . $tblDivisionCourse->getId();
+                $saveCreateStudentSubjectList[$key] = TblStudentSubject::withParameter(
+                    $tblPerson,
+                    $tblYear,
+                    null,
+                    true,
+                    null,
+                    $tblDivisionCourse,
+                    $periodIdentifier
+                );
+            }
+        } else {
+            $missingCourseList[$courseName] = $courseName;
+            $item[$period][$subjectAcronym] = new Danger('Kurs: ' . $courseName . ' ist nicht vorhanden');
         }
     }
 }

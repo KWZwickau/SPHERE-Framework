@@ -105,6 +105,7 @@ class Import extends Extension implements IModuleInterface
                     . new Standard('', '/Transfer/Indiware/Import/Lectureship/Destroy', new Remove(), array('ImportId' => $tblImport->getId()), 'Löschen')
                 );
         }
+
         $PanelTimetable[] = new PullClear('Stundenplan aus Indiware: '.
             new Center(new Standard('', '/Transfer/Indiware/Import/Timetable', new Upload())));
         $PanelTimetableReplacement[] = new PullClear('Vertretungsplan aus Indiware: '.
