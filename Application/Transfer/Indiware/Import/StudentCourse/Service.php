@@ -5,7 +5,6 @@ namespace SPHERE\Application\Transfer\Indiware\Import\StudentCourse;
 use DateTime;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Transfer\Education\Education;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
@@ -61,16 +60,6 @@ class Service
 
             return $Form;
         }
-
-        if (!($tblSchoolType = Type::useService()->getTypeById($Data['SchoolTypeId']))) {
-            $Form->setError('Data[SchoolTypeId]', 'Bitte wählen Sie eine Schulart aus');
-
-            return $Form;
-        }
-
-
-        // todo periode error
-
 
         if (!($tblAccount = Account::useService()->getAccountBySession())) {
             return new Danger('Kein angemeldetes Benutzerkonto gefunden!', new Exclamation());
