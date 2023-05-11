@@ -437,6 +437,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblImportStudent $tblImportStudent
+     *
+     * @return false|TblImportStudentCourse[]
+     */
+    public function getImportStudentCourseListByImportStudent(TblImportStudent $tblImportStudent)
+    {
+        return (new Data($this->getBinding()))->getImportStudentCourseListByImportStudent($tblImportStudent);
+    }
+
+    /**
      * @param string $firstName
      * @param string $lastName
      * @param TblYear $tblYear

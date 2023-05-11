@@ -52,7 +52,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft()));
         $Stage->setMessage('Importvorbereitung / Daten importieren');
 
-        if (!($tblYearList = Term::useService()->getYearAllSinceYears(1))) {
+        // todo 4 -> 1
+        if (!($tblYearList = Term::useService()->getYearAllSinceYears(4))) {
             $tblYearList = array();
         }
 

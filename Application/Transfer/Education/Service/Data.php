@@ -359,4 +359,16 @@ class Data extends AbstractData
 
         return empty($resultList) ? false : $resultList;
     }
+
+    /**
+     * @param TblImportStudent $tblImportStudent
+     *
+     * @return false|TblImportStudentCourse[]
+     */
+    public function getImportStudentCourseListByImportStudent(TblImportStudent $tblImportStudent)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblImportStudentCourse', array(
+            TblImportStudentCourse::ATTR_TBL_IMPORT_STUDENT => $tblImportStudent->getId(),
+        ));
+    }
 }
