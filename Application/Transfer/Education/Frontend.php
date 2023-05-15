@@ -488,6 +488,44 @@ class Frontend extends FrontendStudentCourse
                         && ($tblPerson = $teacherAcronymList[$teacherAcronym])
                         && ($tblSubject = $subjectAcronymList[$subjectAcronym])
                     ) {
+                        $subjectGroup = $tblImportLectureship->getSubjectGroup();
+
+                        // Spezialfall: Lehraufträge für SekII -> es werden direkt bei den Lehraufträge die SekII-Kurse zugeordnet, falls vorhanden
+                        if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+                            && ($tblStudentList = $tblDivisionCourse->getStudents())
+                        ) {
+                            foreach ($tblStudentList as $tblStudent) {
+                                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblStudent, $tblYear))
+                                    && ($level = $tblStudentEducation->getLevel())
+                                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                                ) {
+                                    $divisionCourseName = Education::useService()->getCourseNameForSystem(
+                                        $tblImport, $subjectGroup, $level, $tblSchoolType
+                                    );
+
+                                    // mapping SekII-Kurs
+                                    if (($tblDivisionCourseCourseSystem = Education::useService()->getImportMappingValueBy(
+                                        TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $divisionCourseName, $tblYear
+                                    ))) {
+
+                                    // found SekII-Kurs
+                                    } elseif (($tblDivisionCourseCourseSystem = DivisionCourse::useService()->getDivisionCourseByNameAndYear(
+                                        $divisionCourseName, $tblYear
+                                    ))) {
+
+                                    }
+
+                                    if ($tblDivisionCourseCourseSystem
+                                        && ($tblDivisionCourseCourseSystem->getServiceTblSubject())
+                                        && $tblDivisionCourseCourseSystem->getServiceTblSubject()->getId() == $tblSubject->getId()
+                                    ) {
+                                        $tblDivisionCourse = $tblDivisionCourseCourseSystem;
+                                        $subjectGroup = '';
+                                    }
+                                }
+                            }
+                        }
+
                         // Lehrauftrag existiert bereits
                         if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(
                             $tblYear, $tblPerson, $tblDivisionCourse, $tblSubject
@@ -501,7 +539,7 @@ class Frontend extends FrontendStudentCourse
                                 $previewCreateTeacherLectureshipList[$tblDivisionCourse->getId() . '_' . $tblPerson->getId() . '_' . $tblSubject->getId()] = 1;
                             } else {
                                 $saveCreateTeacherLectureshipList[$tblDivisionCourse->getId() . '_' . $tblPerson->getId() . '_' . $tblSubject->getId()]
-                                    = TblTeacherLectureship::withParameter($tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $tblImportLectureship->getSubjectGroup());
+                                    = TblTeacherLectureship::withParameter($tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $subjectGroup);
                             }
                         }
                     }

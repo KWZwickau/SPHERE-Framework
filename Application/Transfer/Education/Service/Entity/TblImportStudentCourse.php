@@ -107,26 +107,4 @@ class TblImportStudentCourse extends Element
     {
         $this->CourseName = $CourseName;
     }
-
-    /**
-     * @param TblImport $tblImport
-     * @param string $courseName
-     * @param int $level
-     * @param TblType $tblSchoolType
-     *
-     * @return string
-     */
-    public function getCourseNameForSystem(TblImport $tblImport, string $courseName, int $level, TblType $tblSchoolType): string
-    {
-        $isAdvancedCourse = Education::useService()->getIsAdvancedCourse($tblImport, $courseName);
-        // Untis: 11Gy EN-L-1
-        if ($tblImport->getExternSoftwareName() == TblImport::EXTERN_SOFTWARE_NAME_UNTIS) {
-            $courseName = $level . $tblSchoolType->getShortName() . ' ' . $courseName;
-            // Inidware: 11Gy L-BIO1
-        } else {
-            $courseName = $level . $tblSchoolType->getShortName() . ' ' . ($isAdvancedCourse ? 'L-' : 'G-') . $courseName;
-        }
-
-        return $courseName;
-    }
 }

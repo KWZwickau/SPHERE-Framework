@@ -604,6 +604,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblImport $tblImport
+     * @param string $courseName
+     * @param int $level
+     * @param TblType $tblSchoolType
+     *
+     * @return string
+     */
+    public function getCourseNameForSystem(TblImport $tblImport, string $courseName, int $level, TblType $tblSchoolType): string
+    {
+        $isAdvancedCourse = Education::useService()->getIsAdvancedCourse($tblImport, $courseName);
+        // Untis: 11Gy EN-L-1
+        if ($tblImport->getExternSoftwareName() == TblImport::EXTERN_SOFTWARE_NAME_UNTIS) {
+            $courseName = $level . $tblSchoolType->getShortName() . ' ' . $courseName;
+            // Inidware: 11Gy L-BIO1
+        } else {
+            $courseName = $level . $tblSchoolType->getShortName() . ' ' . ($isAdvancedCourse ? 'L-' : 'G-') . $courseName;
+        }
+
+        return $courseName;
+    }
+
+    /**
      * @param IFormInterface|null $Form
      * @param TblImport $tblImport
      * @param string $NextTab
@@ -631,7 +653,7 @@ class Service extends AbstractService
                     && ($level = $tblStudentEducation->getLevel())
                     && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                 ) {
-                    $courseName = $tblImportStudentCourse->getCourseNameForSystem($tblImport, $courseName, $level, $tblSchoolType);
+                    $courseName = Education::useService()->getCourseNameForSystem($tblImport, $courseName, $level, $tblSchoolType);
 
                     // Kurs in Schulsoftware gefunden
                     if (($tblDivisionCourse = Education::useService()->getDivisionCourseCourseSystemByCourseNameAndYear($courseName, $tblYear))

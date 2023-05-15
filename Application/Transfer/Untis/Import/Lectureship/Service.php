@@ -162,6 +162,12 @@ class Service
                 $TeacherAcronym = trim($Document->getValue($Document->getCell($Location['Lehrer'], $RunY)));
                 $DivisionName = trim($Document->getValue($Document->getCell($Location['Klasse'], $RunY)));
                 if ($SubjectAcronym && $TeacherAcronym && $DivisionName) {
+                    // bei Untis steht bei der SekII der Kursname im Fach
+                    if (preg_match('!^([\w\/]{1,})-([GLgl]-[\d])!', $SubjectAcronym, $Match)) {
+                        $SubjectGroup = $SubjectAcronym;
+                        $SubjectAcronym = $Match[1];
+                    }
+
                     // doppelte Einträge ignorieren
                     $createImportLectureshipList[$SubjectAcronym . '_' . $TeacherAcronym . '_' . $DivisionName . '_' . $SubjectGroup]
                         = new TblImportLectureship(
