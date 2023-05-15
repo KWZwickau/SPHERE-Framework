@@ -593,10 +593,20 @@ class Service extends ServiceYearChange
             }
             // Name Zeicheneingrenzung für Klassen und Stammgruppen, falls diese an angeschlossene Systeme übertragen werden müssen (UCS)
             if ($IsUCSMandant && $tblType && ($tblType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
-                // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
-                if (!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Data['Name'])) {
-                    $form->setError('Data[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
+                // Gleiche Logik für Klassen und Stammgruppen
+                // erlaubte Zeichen: [a-zA-Z0-9 -]
+                // am Anfang und Ende dürfen nur Zahlen und Buchstaben sein
+                if (!preg_match('!^[\w \-]+$!', $Data['Name'])) {
+                    $form->setError('Data[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -]');
                     $error = true;
+                } else {
+                    if (preg_match('!^[ \-]!', $Data['Name'])) {
+                        $form->setError('Data[Name]', 'Darf nicht mit einem "-" beginnen');
+                        $error = true;
+                    } elseif (preg_match('![ \-]$!', $Data['Name'])) {
+                        $form->setError('Data[Name]', 'Darf nicht mit einem "-" aufhören');
+                        $error = true;
+                    }
                 }
             }
             // Prüfung ob name schon mal verwendet wird
