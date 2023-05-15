@@ -7,7 +7,7 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -37,7 +37,7 @@ class Service extends Extension
                 $tblPersonToList = array();
                 $Account = false;
                 if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))){
-                    $Account = $tblAccountList[0];
+                    $Account = current($tblAccountList);
                 }
                 $PersonAccountList[$tblPerson->getId()]['Account'] = ($Account
                     ? $Account->getId()
@@ -50,30 +50,27 @@ class Service extends Extension
                 $PersonAccountList[$tblPerson->getId()]['LastName'] = $tblPerson->getLastName();
 
                 // Aktuelle Klasse
-                $Level = '';
+                $level = '';
                 $Division = '';
-                $DivisionName = '';
+                $DivisionDisplay = '';
                 $SchoolType = '';
 
-                if(($tblYear = Term::useService()->getYearById($YearId))){
-                    $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
-                    if ($tblDivision && $tblDivision->getTblLevel() && $tblDivision->getTblLevel()->getName() != '') {
-                        $Level = $tblDivision->getTblLevel()->getName();
-                        $Division = $tblDivision->getDisplayName();
-                        $DivisionName = $tblDivision->getName();
-                        if(($tblSchoolType = $tblDivision->getType())){
-                            $SchoolType = $tblSchoolType->getName();
-                            // Excel kommt mit dem Auslesen der Daten nicht gut klar, wenn ein "/" enthalten ist
-                            if($SchoolType == 'Mittelschule / Oberschule'){
-                                $SchoolType = 'Oberschule';
-                            }
-                        }
+                if(($tblYear = Term::useService()->getYearById($YearId))
+                && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
+                    $SchoolType = $tblStudentEducation->getServiceTblSchoolType()->getName();
+                    if($SchoolType == 'Mittelschule / Oberschule'){
+                        $SchoolType = 'Oberschule';
+                    }
+                    $level = $tblStudentEducation->getLevel();
+                    if(($tblDivisionCourse = $tblStudentEducation->getTblDivision())) {
+                        $Division = $tblDivisionCourse->getName();
+                        $DivisionDisplay = $tblDivisionCourse->getDisplayName();
                     }
                 }
 
-                $PersonAccountList[$tblPerson->getId()]['Level'] = $Level;
+                $PersonAccountList[$tblPerson->getId()]['Level'] = $level;
                 $PersonAccountList[$tblPerson->getId()]['Division'] = $Division;
-                $PersonAccountList[$tblPerson->getId()]['DivisionName'] = $DivisionName;
+                $PersonAccountList[$tblPerson->getId()]['DivisionDisplay'] = $DivisionDisplay;
                 $PersonAccountList[$tblPerson->getId()]['SchoolType'] = $SchoolType;
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
                     $PersonAccountList[$tblPerson->getId()]['Identification'] = $tblStudent->getIdentifierComplete();
@@ -157,7 +154,7 @@ class Service extends Extension
         // Maximale spalten Sorgeberechtigte
         if(($StudentAccountList = $this->getStudentCustodyAccountList($Year))){
             foreach($StudentAccountList as $PersonId => &$StudentData){
-                $Item = array();
+                $item = array();
                 // Fehler werden bereinigt
                 if(!$StudentData['Account']){
                     $StudentData = false;
@@ -171,15 +168,15 @@ class Service extends Extension
                     $StudentData = false;
                     continue;
                 }
-                $Item['Id'] = $StudentData['Account'];
-                $Item['Identification'] = $StudentData['Identification'];
-                $Item['AccountName'] = $StudentData['AccountName'];
-                $Item['FirstName'] = $StudentData['FirstName'];
-                $Item['LastName'] = $StudentData['LastName'];
-                $Item['Level'] = $StudentData['Level'];
-                $Item['Division'] = $StudentData['Division'];
-                $Item['DivisionName'] = $StudentData['DivisionName'];
-                $Item['SchoolType'] = $StudentData['SchoolType'];
+                $item['Id'] = $StudentData['Account'];
+                $item['Identification'] = $StudentData['Identification'];
+                $item['AccountName'] = $StudentData['AccountName'];
+                $item['FirstName'] = $StudentData['FirstName'];
+                $item['LastName'] = $StudentData['LastName'];
+                $item['Level'] = $StudentData['Level'];
+                $item['Division'] = $StudentData['Division'];
+                $item['DivisionDisplay'] = $StudentData['DivisionDisplay'];
+                $item['SchoolType'] = $StudentData['SchoolType'];
 
                 if(isset($StudentData['Custody'])){
                     if(count($StudentData['Custody']) > $countCustody){
@@ -189,70 +186,70 @@ class Service extends Extension
                     foreach($StudentData['Custody'] as $CustodyId => $CustodyData){
                         // Geschwisterkind Angabe, nur wenn Elternaccounts vorhanden sind
                         if(isset($StudentData['Sibling'.$i])){
-                            $Item['Sibling'.$i] = $StudentData['Sibling'.$i];
+                            $item['Sibling'.$i] = $StudentData['Sibling'.$i];
                         } else {
                             //default
-                            $Item['Sibling'.$i] = 'Test';
+                            $item['Sibling'.$i] = 'Test';
                         }
 
-                        $Item['IdS'.$i] = $CustodyId;
-                        $Item['AccountNameS'.$i] = $CustodyData['AccountName'];
-                        $Item['FirstNameS'.$i] = $CustodyData['FirstName'];
-                        $Item['LastNameS'.$i] = $CustodyData['LastName'];
-                        $Item['MailS'.$i] = $CustodyData['Mail'];
+                        $item['IdS'.$i] = $CustodyId;
+                        $item['AccountNameS'.$i] = $CustodyData['AccountName'];
+                        $item['FirstNameS'.$i] = $CustodyData['FirstName'];
+                        $item['LastNameS'.$i] = $CustodyData['LastName'];
+                        $item['MailS'.$i] = $CustodyData['Mail'];
                         $i++;
                     }
                 }
-                array_push($UploadList, $Item);
+                array_push($UploadList, $item);
             }
         }
 
         if (!empty($UploadList)){
             $fileLocation = Storage::createFilePointer('csv');
 
-            $Row = $Column = 0;
+            $row = $column = 0;
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell($Column++, $Row), "Schüler:ID");
-            $export->setValue($export->getCell($Column++, $Row), "Schüler:Nummer");
-            $export->setValue($export->getCell($Column++, $Row), "Schüler:Vorname");
-            $export->setValue($export->getCell($Column++, $Row), "Schüler:Name");
-            $export->setValue($export->getCell($Column++, $Row), "Schüler:Nutzername");
-            $export->setValue($export->getCell($Column++, $Row), "Schüler:Jahrgang");
-            $export->setValue($export->getCell($Column++, $Row), "Klasse");
-            $export->setValue($export->getCell($Column++, $Row), "Klassengruppe");
-            $export->setValue($export->getCell($Column++, $Row), "Schulart");
+            $export->setValue($export->getCell($column++, $row), "Schüler:ID");
+            $export->setValue($export->getCell($column++, $row), "Schüler:Nummer");
+            $export->setValue($export->getCell($column++, $row), "Schüler:Vorname");
+            $export->setValue($export->getCell($column++, $row), "Schüler:Name");
+            $export->setValue($export->getCell($column++, $row), "Schüler:Nutzername");
+            $export->setValue($export->getCell($column++, $row), "Schüler:Jahrgang");
+            $export->setValue($export->getCell($column++, $row), "Klasse");
+            $export->setValue($export->getCell($column++, $row), "Klasse mit Beschreibung");
+            $export->setValue($export->getCell($column++, $row), "Schulart");
             for($i = 1; $i <= $countCustody; $i++){
-                $Number = $i;
+                $number = $i;
                 if($i == 1){
-                    $Number = '';
+                    $number = '';
                 }
-                $export->setValue($export->getCell($Column++, $Row), "Kind Nr.".$Number);
-                $export->setValue($export->getCell($Column++, $Row), "Eltern:ID".$Number);
-                $export->setValue($export->getCell($Column++, $Row), "Eltern:Vorname".$Number);
-                $export->setValue($export->getCell($Column++, $Row), "Eltern:Name".$Number);
-                $export->setValue($export->getCell($Column++, $Row), "Eltern:Nutzername".$Number);
-                $export->setValue($export->getCell($Column++, $Row), "Eltern:E-Mail".$Number);
+                $export->setValue($export->getCell($column++, $row), "Kind Nr.".$number);
+                $export->setValue($export->getCell($column++, $row), "Eltern:ID".$number);
+                $export->setValue($export->getCell($column++, $row), "Eltern:Vorname".$number);
+                $export->setValue($export->getCell($column++, $row), "Eltern:Name".$number);
+                $export->setValue($export->getCell($column++, $row), "Eltern:Nutzername".$number);
+                $export->setValue($export->getCell($column++, $row), "Eltern:E-Mail".$number);
             }
             foreach($UploadList as $Upload){
-                $Row++;
-                $Column = 0;
-                $export->setValue($export->getCell($Column++, $Row), $Upload['Id']);
-                $export->setValue($export->getCell($Column++, $Row), $Upload['Identification']);
-                $export->setValue($export->getCell($Column++, $Row), $Upload['FirstName']);
-                $export->setValue($export->getCell($Column++, $Row), $Upload['LastName']);
-                $export->setValue($export->getCell($Column++, $Row), $Upload['AccountName']);
-                $export->setValue($export->getCell($Column++, $Row), $Upload['Level']);
-                $export->setValue($export->getCell($Column++, $Row), $Upload['Division']);
-                $export->setValue($export->getCell($Column++, $Row), $Upload['DivisionName']);
-                $export->setValue($export->getCell($Column++, $Row), $Upload['SchoolType']);
+                $row++;
+                $column = 0;
+                $export->setValue($export->getCell($column++, $row), $Upload['Id']);
+                $export->setValue($export->getCell($column++, $row), $Upload['Identification']);
+                $export->setValue($export->getCell($column++, $row), $Upload['FirstName']);
+                $export->setValue($export->getCell($column++, $row), $Upload['LastName']);
+                $export->setValue($export->getCell($column++, $row), $Upload['AccountName']);
+                $export->setValue($export->getCell($column++, $row), $Upload['Level']);
+                $export->setValue($export->getCell($column++, $row), $Upload['Division']);
+                $export->setValue($export->getCell($column++, $row), $Upload['DivisionDisplay']);
+                $export->setValue($export->getCell($column++, $row), $Upload['SchoolType']);
                 for($j = 1; $j <= $countCustody; $j++) {
-                    $export->setValue($export->getCell($Column++, $Row), (isset($Upload['Sibling'.$j]) ? $Upload['Sibling'.$j] : ''));
-                    $export->setValue($export->getCell($Column++, $Row), (isset($Upload['IdS'.$j]) ? $Upload['IdS'.$j] : ''));
-                    $export->setValue($export->getCell($Column++, $Row), (isset($Upload['FirstNameS'.$j]) ? $Upload['FirstNameS'.$j] : ''));
-                    $export->setValue($export->getCell($Column++, $Row), (isset($Upload['LastNameS'.$j]) ? $Upload['LastNameS'.$j] : ''));
-                    $export->setValue($export->getCell($Column++, $Row), (isset($Upload['AccountNameS'.$j]) ? $Upload['AccountNameS'.$j] : ''));
-                    $export->setValue($export->getCell($Column++, $Row), (isset($Upload['MailS'.$j]) ? $Upload['MailS'.$j] : ''));
+                    $export->setValue($export->getCell($column++, $row), (isset($Upload['Sibling'.$j]) ? $Upload['Sibling'.$j] : ''));
+                    $export->setValue($export->getCell($column++, $row), (isset($Upload['IdS'.$j]) ? $Upload['IdS'.$j] : ''));
+                    $export->setValue($export->getCell($column++, $row), (isset($Upload['FirstNameS'.$j]) ? $Upload['FirstNameS'.$j] : ''));
+                    $export->setValue($export->getCell($column++, $row), (isset($Upload['LastNameS'.$j]) ? $Upload['LastNameS'.$j] : ''));
+                    $export->setValue($export->getCell($column++, $row), (isset($Upload['AccountNameS'.$j]) ? $Upload['AccountNameS'.$j] : ''));
+                    $export->setValue($export->getCell($column++, $row), (isset($Upload['MailS'.$j]) ? $Upload['MailS'.$j] : ''));
                 }
             }
 
@@ -300,38 +297,38 @@ class Service extends Extension
         $UploadList = array();
         if(($TeacherAccountList = $this->getTeacherAccountList())){
             foreach($TeacherAccountList as $PersonId => &$TeacherData){
-                $Item = array();
+                $item = array();
                 // Fehler werden bereinigt
                 if(!$TeacherData['AccountName']){
                     $TeacherData = false;
                     continue;
                 }
-                $Item['Id'] = $TeacherData['Account'];
-                $Item['AccountName'] = $TeacherData['AccountName'];
-                $Item['FirstName'] = $TeacherData['FirstName'];
-                $Item['LastName'] = $TeacherData['LastName'];
-                array_push($UploadList, $Item);
+                $item['Id'] = $TeacherData['Account'];
+                $item['AccountName'] = $TeacherData['AccountName'];
+                $item['FirstName'] = $TeacherData['FirstName'];
+                $item['LastName'] = $TeacherData['LastName'];
+                array_push($UploadList, $item);
             }
         }
 
         if (!empty($UploadList)){
             $fileLocation = Storage::createFilePointer('csv');
 
-            $Row = $Column = 0;
+            $row = $column = 0;
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell($Column++, $Row), "ID");
-            $export->setValue($export->getCell($Column++, $Row), "Vorname");
-            $export->setValue($export->getCell($Column++, $Row), "Name");
-            $export->setValue($export->getCell($Column, $Row), "Nutzername");
+            $export->setValue($export->getCell($column++, $row), "ID");
+            $export->setValue($export->getCell($column++, $row), "Vorname");
+            $export->setValue($export->getCell($column++, $row), "Name");
+            $export->setValue($export->getCell($column, $row), "Nutzername");
 
             foreach($UploadList as $Upload) {
-                $Row++;
-                $Column = 0;
-                $export->setValue($export->getCell($Column++, $Row), $Upload['Id']);
-                $export->setValue($export->getCell($Column++, $Row), $Upload['FirstName']);
-                $export->setValue($export->getCell($Column++, $Row), $Upload['LastName']);
-                $export->setValue($export->getCell($Column, $Row), $Upload['AccountName']);
+                $row++;
+                $column = 0;
+                $export->setValue($export->getCell($column++, $row), $Upload['Id']);
+                $export->setValue($export->getCell($column++, $row), $Upload['FirstName']);
+                $export->setValue($export->getCell($column++, $row), $Upload['LastName']);
+                $export->setValue($export->getCell($column, $row), $Upload['AccountName']);
             }
 
             $export->setDelimiter(',');

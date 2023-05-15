@@ -114,6 +114,9 @@ class UniventionWorkGroup
         if(false !== strpos($Json, 'Bad Request')){
             return $group.' '.new Bold('UCS: Bad Request');
         }
+        if(false !== strpos($Json, 'Forbidden')){
+            return $group.' '.new Bold('UCS: You don\'t have permission to access this resource.');
+        }
 
         // Object to Array
         $StdClassArray = json_decode($Json, true);
