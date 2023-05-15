@@ -9,7 +9,7 @@
 
 <div {% if( Hash is not empty ) %}id="{{ Hash }}"{% endif %} class="panel {{ Type }}" style="margin-bottom: 3px;">
 
-    {% if( Title|length > 0) %}
+    {% if( Title is not empty) %}
 
         <div class="panel-heading">
             <h6 class="panel-title" style="display: flex; flex-wrap: nowrap; position: relative;">
@@ -43,7 +43,7 @@
                 <li class="list-group-item clearfix">{{ Content }}</li>
             {% endfor %}
         </ul>
-    {% elseif( Content|length > 0) %}
+    {% elseif( Content is not empty) %}
         <div class="panel-body" id="body-{{ Hash }}" {% if toggleOpen is defined and toggleOpen != true %}style="display: none;"{% endif %}>
             {{ Content }}
         </div>

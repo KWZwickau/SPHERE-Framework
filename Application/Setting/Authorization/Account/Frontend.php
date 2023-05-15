@@ -150,10 +150,15 @@ class Frontend extends Extension implements IFrontendInterface
                     ? $tblIdentification->getDescription()
                     : '')
                 );
-                $Item['Authorization'] = (new CustomPanel(
-                    (!empty( $AuthorizationList )
-                    ? 'Anzahl vergebener Benutzerrechte: '.count($AuthorizationList)
-                    : new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
+
+                $isEmpty = false;
+                if(empty($AuthorizationList)){
+                    $isEmpty = true;
+                }
+                $Item['Authorization'] = ($isEmpty ? '<span hidden>000</span>' : '<span hidden>'.count($AuthorizationList).'</span>').(new CustomPanel(
+                    (! $isEmpty
+                        ? 'Anzahl vergebener Benutzerrechte: '.count($AuthorizationList)
+                        : new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
                     , $AuthorizationList))->setHash($tblAccount->getId())->setAccordeon();
                 $Item['Token'] = new Listing(array($tblAccount->getServiceTblToken()
                         ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
@@ -205,6 +210,16 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Authorization'  => new Nameplate().' Benutzerrechte',
                                 'Token'          => new Key().' Hardware-Schlüssel',
                                 'Option'         => 'Optionen'
+                            ), array(
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 3),
+                                ),
+//                                'order'      => array(array(1, 'asc')),
+//                                'pageLength' => -1,
+//                                'paging'     => false,
+//                                'info'       => false,
+//                                'searching'  => false,
+//                                'responsive' => false
                             )
                         )
                     )
