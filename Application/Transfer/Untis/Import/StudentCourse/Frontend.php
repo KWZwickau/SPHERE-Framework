@@ -65,8 +65,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Global->POST['Data']['YearId'] = $YearId;
         $Global->savePost();
 
-        // todo 4 -> 1
-        if (!($tblYearList = Term::useService()->getYearAllSinceYears(4))) {
+        if (!($tblYearList = Term::useService()->getYearAllSinceYears(1))) {
             $tblYearList = array();
         }
 

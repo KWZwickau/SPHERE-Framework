@@ -4,7 +4,6 @@ namespace SPHERE\Application\Api\Transfer;
 
 use SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\ApiAppointmentGrade;
 use SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\AppointmentGrade;
-use SPHERE\Application\Api\Transfer\Indiware\ErrorExcel\ErrorExcel;
 use SPHERE\Application\Api\Transfer\Indiware\Meta\Meta;
 use SPHERE\Application\Api\Transfer\ItsLearning\ItsLearning;
 use SPHERE\Application\Api\Transfer\Standard\Import;
@@ -24,7 +23,6 @@ class Transfer implements IApplicationInterface
         AppointmentGrade::registerModule();
         Meta::registerModule();
         \SPHERE\Application\Api\Transfer\Untis\Meta\Meta::registerModule();
-        ErrorExcel::registerModule();
         ItsLearning::registerModule();
         Import::registerModule();
     }

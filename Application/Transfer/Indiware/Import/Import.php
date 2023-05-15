@@ -4,13 +4,11 @@ namespace SPHERE\Application\Transfer\Indiware\Import;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Education\Education;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
@@ -25,7 +23,6 @@ use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -46,23 +43,17 @@ class Import extends Extension implements IModuleInterface
     }
 
     /**
-     * @return Service
      */
     public static function useService()
     {
-        return new Service(new Identifier('Setting', 'Consumer', null, null,
-            Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/Service/Entity',
-            __NAMESPACE__.'\Service\Entity'
-        );
+
     }
 
     /**
-     * @return IFrontendInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
     }
 
     /**
