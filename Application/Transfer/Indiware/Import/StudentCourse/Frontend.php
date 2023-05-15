@@ -2,7 +2,10 @@
 
 namespace SPHERE\Application\Transfer\Indiware\Import\StudentCourse;
 
+use SPHERE\Application\Education\Certificate\Generate\Generate;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Transfer\Education\Education;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
@@ -211,5 +214,81 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param null $File
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendImportSelectedCourse($File = null, $Data = null) : Stage
+    {
+        $stage = new Stage('Import', 'Abitur Kurseinbringung');
+
+        $list = array();
+        $tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy');
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAllByYear($tblYear))) {
+                    foreach ($tblGenerateCertificateList as $tblGenerateCertificate) {
+                        if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                            && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                        ) {
+                            if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                                foreach ($tblPrepareList as $tblPrepare) {
+                                    if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+                                        && ($tblSchoolTypeListByGenerateCertificate = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                                        && isset($tblSchoolTypeListByGenerateCertificate[$tblSchoolTypeGy->getId()])
+                                    ) {
+                                        $list[] = $tblGenerateCertificate;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (empty($list)) {
+            $stage->setContent(
+                new \SPHERE\Common\Frontend\Message\Repository\Warning('Es wurde im aktuellen Schuljahr kein Zeugnisauftrag
+                 für Abiturzeugnisse gefunden!<br /> Bitte legen Sie erst unter: Bildung->Zeugnisse->Zeugnisse generieren, einen
+                 Zeugnisauftrag für die 12. Klasse Gymnasium an.<br /> Danach können Sie die Kurseinbringung aus Indiware in die
+                 Schulsoftware importieren.')
+            );
+        } else {
+            $stage->setContent(
+                new Well(
+                    StudentCourse::useService()->createSelectedCourseFromFile(
+                        new Form(new FormGroup(array(
+                            new FormRow(array(
+                                new FormColumn(
+                                    (new FileUpload(
+                                        'File',
+                                        'Datei auswählen',
+                                        'Datei auswählen ' . new ToolTip(new InfoIcon(), 'Schueler.csv'),
+                                        null,
+                                        array('showPreview' => false)
+                                    ))->setRequired()
+                                )
+                            )),
+                            new FormRow(array(
+                                new FormColumn(
+                                    (new SelectBox('Data[GenerateCertificateId]', 'Zeugnisauftrag',
+                                        array('{{ Name }}' => $list)
+                                    ))->setRequired()
+                                ),
+                            )),
+                        )), new Primary('Hochladen')),
+                        $File,
+                        $Data
+                    )
+                )
+            );
+        }
+
+        return $stage;
     }
 }

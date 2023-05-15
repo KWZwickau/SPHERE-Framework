@@ -18,6 +18,9 @@ class StudentCourse implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Destroy', __NAMESPACE__ . '\Frontend::frontendStudentCourseDestroy'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/SelectedCourse/Import', __NAMESPACE__ . '\Frontend::frontendImportSelectedCourse'
+        ));
     }
 
     /**
