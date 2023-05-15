@@ -1077,6 +1077,8 @@ class Service extends Support
     }
 
     /**
+     * @deprecated
+     *
      * @param TblPerson $tblPerson
      * @param bool $isStudentGroup
      *
@@ -1111,6 +1113,8 @@ class Service extends Support
     }
 
     /**
+     * @deprecated
+     *
      * @param TblPerson $tblPerson
      * @param TblYear|null $tblYear
      *
@@ -1154,6 +1158,8 @@ class Service extends Support
     }
 
     /**
+     * @deprecated
+     *
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      *

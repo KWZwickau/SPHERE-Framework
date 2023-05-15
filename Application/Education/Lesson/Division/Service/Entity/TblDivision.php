@@ -15,6 +15,8 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
+ * @deprecated
+ *
  * e.g. 6 Alpha
  *
  * @Entity

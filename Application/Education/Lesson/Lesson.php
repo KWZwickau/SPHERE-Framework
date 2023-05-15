@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Education\Lesson;
 
 use SPHERE\Application\Education\Lesson\Course\Course;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -25,7 +24,7 @@ class Lesson implements IApplicationInterface
 
         Subject::registerModule();
         Term::registerModule();
-        Division::registerModule();
+//        Division::registerModule();
         if (School::useService()->hasConsumerTechnicalSchool()){
             Course::registerModule();
         }

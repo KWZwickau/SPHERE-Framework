@@ -28,6 +28,8 @@ use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
+ * @deprecated
+ *
  * Class Data
  *
  * @package SPHERE\Application\Education\Lesson\Division\Service
