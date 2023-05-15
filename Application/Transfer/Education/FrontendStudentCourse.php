@@ -11,8 +11,10 @@ use SPHERE\Application\Transfer\Education\Service\Entity\TblImportLectureship;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportStudent;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportStudentCourse;
+use SPHERE\Common\Frontend\Form\Repository\Button\Danger as DangerButton;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -34,9 +36,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Repository\Title as TitleTable;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -45,7 +45,6 @@ use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
@@ -110,8 +109,7 @@ class FrontendStudentCourse extends Extension implements IFrontendInterface
             case 'Schüler': $content = $this->getStudentContent($tblImport, $NextTab, $Data); break;
             case 'Fächer': $content = $this->getSubjectContent($tblImport, $NextTab, $Data); break;
             case 'SekII-Kurse': $content = $this->getCourseContent($tblImport, $NextTab, $Data); break;
-            case 'Zusammenfassung / Endgültiger Import': $content = $this->getImportPreviewContent($tblImport); break;
-            case 'SaveStudentCourse': $content = $this->getSaveStudentCourseContent($tblImport); break;
+            case 'Zusammenfassung / Endgültiger Import': $content = $this->getImportPreviewContent($tblImport, $Data); break;
             default: $content = '';
         }
 
@@ -389,10 +387,11 @@ class FrontendStudentCourse extends Extension implements IFrontendInterface
 
     /**
      * @param TblImport $tblImport
+     * @param $Data
      *
      * @return string
      */
-    private function getImportPreviewContent(TblImport $tblImport): string
+    private function getImportPreviewContent(TblImport $tblImport, $Data): string
     {
         list(
             $dataList,
@@ -400,7 +399,7 @@ class FrontendStudentCourse extends Extension implements IFrontendInterface
             $missingPersonList,
             $missingCourseList,
             $previewDeleteStudentSubjectList
-            ) = $this->getImportPreviewData($tblImport, true);
+            ) = $this->getImportStudentCoursePreviewData($tblImport, true);
 
         // sortieren
         sort($missingPersonList, SORT_NATURAL);
@@ -425,32 +424,16 @@ class FrontendStudentCourse extends Extension implements IFrontendInterface
                     Panel::PANEL_TYPE_DANGER
                 )
                 : '')
-            . new DangerLink('Import unwiderruflich Durchführen', $tblImport->getShowRoute(), new Save(), array(
-                'ImportId' => $tblImport->getId(),
-                'Tab' => 'SaveStudentCourse'
-            ));
-    }
-
-    /**
-     * @param TblImport $tblImport
-     *
-     * @return string
-     */
-    public function getSaveStudentCourseContent(TblImport $tblImport): string
-    {
-        list($saveCreateStudentSubjectList, $saveDeleteStudentSubjectList) = $this->getImportPreviewData($tblImport, false);
-
-        if ($saveCreateStudentSubjectList) {
-            DivisionCourse::useService()->createEntityListBulk($saveCreateStudentSubjectList);
-        }
-        if ($saveDeleteStudentSubjectList) {
-            DivisionCourse::useService()->deleteEntityListBulk($saveDeleteStudentSubjectList);
-        }
-
-        Education::useService()->destroyImport($tblImport);
-
-        return new SuccessMessage('Die Schüler-Fächer wurden erfolgreich aktualisiert.', new SuccessIcon())
-            . new Redirect($tblImport->getBackRoute(), Redirect::TIMEOUT_SUCCESS);
+            . Education::useService()->saveStudentCoursesFromImport(
+                new Form(new FormGroup(new FormRow(array(
+                    new FormColumn(new HiddenField('Data[Id]')),
+                    new FormColumn(
+                        new DangerButton('Import unwiderruflich Durchführen', new Save())
+                    )
+                )))),
+                $tblImport,
+                $Data
+            );
     }
 
     /**
@@ -459,7 +442,7 @@ class FrontendStudentCourse extends Extension implements IFrontendInterface
      *
      * @return array
      */
-    private function getImportPreviewData(TblImport $tblImport, bool $IsPreview): array
+    public function getImportStudentCoursePreviewData(TblImport $tblImport, bool $IsPreview): array
     {
         $dataList[1] = array();
         $dataList[2] = array();

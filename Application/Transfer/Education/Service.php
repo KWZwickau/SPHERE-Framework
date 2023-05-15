@@ -23,7 +23,9 @@ use SPHERE\Application\Transfer\Education\Service\Entity\TblImportStudentCourse;
 use SPHERE\Application\Transfer\Education\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Fitting\Element;
@@ -699,5 +701,61 @@ class Service extends AbstractService
 
         return new Success('Die Sek-Kurse wurden erfolgreich gemappt bzw. neu angelegt.', new Check())
             . new Redirect($tblImport->getShowRoute(), Redirect::TIMEOUT_SUCCESS, array('ImportId' => $tblImport->getId(), 'Tab' => $NextTab));
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param TblImport $tblImport
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function saveLectureshipFromImport(IFormInterface $form, TblImport $tblImport, $Data)
+    {
+        if ($Data === null) {
+            return $form;
+        }
+
+        list($saveCreateTeacherLectureshipList, $saveDeleteTeacherLectureshipList) = Education::useFrontend()->getImportLectureshipPreviewData($tblImport, false);
+
+        if ($saveCreateTeacherLectureshipList) {
+            DivisionCourse::useService()->createEntityListBulk($saveCreateTeacherLectureshipList);
+        }
+        if ($saveDeleteTeacherLectureshipList) {
+            DivisionCourse::useService()->deleteEntityListBulk($saveDeleteTeacherLectureshipList);
+        }
+
+        Education::useService()->destroyImport($tblImport);
+
+        return new SuccessMessage('Die Lehraufträge wurden erfolgreich aktualisiert.', new SuccessIcon())
+            . new Redirect($tblImport->getBackRoute(), Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param TblImport $tblImport
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function saveStudentCoursesFromImport(IFormInterface $form, TblImport $tblImport, $Data)
+    {
+        if ($Data === null) {
+            return $form;
+        }
+
+        list($saveCreateStudentSubjectList, $saveDeleteStudentSubjectList) = Education::useFrontend()->getImportStudentCoursePreviewData($tblImport, false);
+
+        if ($saveCreateStudentSubjectList) {
+            DivisionCourse::useService()->createEntityListBulk($saveCreateStudentSubjectList);
+        }
+        if ($saveDeleteStudentSubjectList) {
+            DivisionCourse::useService()->deleteEntityListBulk($saveDeleteStudentSubjectList);
+        }
+
+        Education::useService()->destroyImport($tblImport);
+
+        return new SuccessMessage('Die Schüler-Fächer wurden erfolgreich aktualisiert.', new SuccessIcon())
+            . new Redirect($tblImport->getBackRoute(), Redirect::TIMEOUT_SUCCESS);
     }
 }

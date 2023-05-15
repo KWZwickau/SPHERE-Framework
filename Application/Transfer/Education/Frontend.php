@@ -13,7 +13,9 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportLectureship;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
+use SPHERE\Common\Frontend\Form\Repository\Button\Danger as DangerButton;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -39,7 +41,6 @@ use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class Frontend extends FrontendStudentCourse
@@ -68,8 +69,7 @@ class Frontend extends FrontendStudentCourse
             case 'Klassen': $content = $this->getDivisionContent($tblImport, $NextTab, $Data); break;
             case 'Lehrer': $content = $this->getTeacherContent($tblImport, $NextTab, $Data); break;
             case 'Fächer': $content = $this->getSubjectContent($tblImport, $NextTab, $Data); break;
-            case 'Zusammenfassung / Endgültiger Import': $content = $this->getImportPreviewContent($tblImport); break;
-            case 'SaveTeacherLectureship': $content = $this->getSaveTeacherLectureshipContent($tblImport); break;
+            case 'Zusammenfassung / Endgültiger Import': $content = $this->getImportPreviewContent($tblImport, $Data); break;
             default: $content = '';
         }
 
@@ -268,17 +268,18 @@ class Frontend extends FrontendStudentCourse
 
     /**
      * @param TblImport $tblImport
+     * @param $Data
      *
      * @return string
      */
-    private function getImportPreviewContent(TblImport $tblImport): string
+    private function getImportPreviewContent(TblImport $tblImport, $Data): string
     {
         list(
             $importDivisionCourseList, $missingDivisionCourseList,
             $importTeacherList, $missingTeacherList,
             $importSubjectList, $missingSubjectList,
             $createTeacherLectureshipList, $existsTeacherLectureshipList, $deleteTeacherLectureshipList
-        ) = $this->getImportPreviewData($tblImport, true);
+        ) = $this->getImportLectureshipPreviewData($tblImport, true);
 
         // sortieren
         sort($importDivisionCourseList, SORT_NATURAL);
@@ -348,38 +349,18 @@ class Frontend extends FrontendStudentCourse
                             : ''
                     )
                 )),
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        new \SPHERE\Common\Frontend\Link\Repository\Danger('Import unwiderruflich Durchführen', $tblImport->getShowRoute(), new Save(), array(
-                            'ImportId' => $tblImport->getId(),
-                            'Tab' => 'SaveTeacherLectureship'
-                        ))
-                    )
-                ))
             ), new Title('Lehraufträge'))
-        ));
-    }
-
-    /**
-     * @param TblImport $tblImport
-     *
-     * @return string
-     */
-    public function getSaveTeacherLectureshipContent(TblImport $tblImport): string
-    {
-        list($saveCreateTeacherLectureshipList, $saveDeleteTeacherLectureshipList) = $this->getImportPreviewData($tblImport, false);
-
-        if ($saveCreateTeacherLectureshipList) {
-            DivisionCourse::useService()->createEntityListBulk($saveCreateTeacherLectureshipList);
-        }
-        if ($saveDeleteTeacherLectureshipList) {
-            DivisionCourse::useService()->deleteEntityListBulk($saveDeleteTeacherLectureshipList);
-        }
-
-        Education::useService()->destroyImport($tblImport);
-
-        return new SuccessMessage('Die Lehraufträge wurden erfolgreich aktualisiert.', new SuccessIcon())
-            . new Redirect($tblImport->getBackRoute(), Redirect::TIMEOUT_SUCCESS);
+        ))
+            . Education::useService()->saveLectureshipFromImport(
+                new Form(new FormGroup(new FormRow(array(
+                    new FormColumn(new HiddenField('Data[Id]')),
+                    new FormColumn(
+                        new DangerButton('Import unwiderruflich Durchführen', new Save())
+                    )
+                )))),
+                $tblImport,
+                $Data
+            );
     }
 
     /**
@@ -388,7 +369,7 @@ class Frontend extends FrontendStudentCourse
      *
      * @return array
      */
-    private function getImportPreviewData(TblImport $tblImport, bool $IsPreview): array
+    public function getImportLectureshipPreviewData(TblImport $tblImport, bool $IsPreview): array
     {
         $divisionNameList = array();
         $importDivisionCourseList = array();
