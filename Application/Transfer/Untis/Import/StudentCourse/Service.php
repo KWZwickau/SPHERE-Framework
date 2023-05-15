@@ -258,12 +258,14 @@ class Service
                     if (preg_match('!^([\w\/]{1,})-([GLgl]-[\d])!', $CourseName, $Match)){
                         $SubjectAcronym =  $Match[1];
 
-                        $createImportStudentCourseList[] = new TblImportStudentCourse(
-                            $tblImportStudent,
-                            $SubjectAcronym,
-                            '',
-                            $CourseName
-                        );
+                        for ($period = 1; $period < 3; $period++) {
+                            $createImportStudentCourseList[] = new TblImportStudentCourse(
+                                $tblImportStudent,
+                                $SubjectAcronym,
+                                $period,
+                                $CourseName
+                            );
+                        }
                     }
                 }
 
