@@ -208,9 +208,17 @@ class Service extends AbstractService
         }
         // Division Zeicheneingrenzung nur für UCS Mandanten
         if (isset($Division['Name']) && $Division['Name'] != '' && $IsUCSMandant) {
-            if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Division['Name'])){
-                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
+            if(!preg_match('!^[\w \-]+$!', $Division['Name'])) {
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -]');
                 $Error = true;
+            } else {
+                if(preg_match('!^[ \-]!', $Division['Name'])) {
+                    $Form->setError('Division[Name]', 'Darf nicht mit einem "-" beginnen');
+                    $Error = true;
+                } elseif(preg_match('![ \-]$!', $Division['Name'])) {
+                    $Form->setError('Division[Name]', 'Darf nicht mit einem "-" aufhören');
+                    $Error = true;
+                }
             }
         }
 
@@ -1305,9 +1313,17 @@ class Service extends AbstractService
         }
         // Division Zeicheneingrenzung nur für UCS Mandanten
         if (isset($Division['Name']) && $Division['Name'] != '' && $IsUCSMandant) {
-            if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Division['Name'])){
-                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
+            if(!preg_match('!^[\w \-]+$!', $Division['Name'])) {
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -]');
                 $Error = true;
+            } else {
+                if(preg_match('!^[ \-]!', $Division['Name'])) {
+                    $Form->setError('Division[Name]', 'Darf nicht mit einem "-" beginnen');
+                    $Error = true;
+                } elseif(preg_match('![ \-]$!', $Division['Name'])) {
+                    $Form->setError('Division[Name]', 'Darf nicht mit einem "-" aufhören');
+                    $Error = true;
+                }
             }
         }
 
@@ -2122,11 +2138,26 @@ class Service extends AbstractService
             $tblLevel = false;
         }
 
+        // ist ein UCS Mandant?
+        $IsUCSMandant = false;
+        if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
+            if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                $IsUCSMandant = true;
+            }
+        }
         // Division Zeicheneingrenzung
-        if (isset($Division['Name']) && $Division['Name'] != '') {
-            if(!preg_match('!^[\w]+[\w \-_]*[\w]+$!', $Division['Name'])){
-                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
+        if (isset($Division['Name']) && $Division['Name'] != ''&& $IsUCSMandant) {
+            if(!preg_match('!^[\w \-]+$!', $Division['Name'])) {
+                $Form->setError('Division[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -]');
                 $Error = true;
+            } else {
+                if(preg_match('!^[ \-]!', $Division['Name'])) {
+                    $Form->setError('Division[Name]', 'Darf nicht mit einem "-" beginnen');
+                    $Error = true;
+                } elseif(preg_match('![ \-]$!', $Division['Name'])) {
+                    $Form->setError('Division[Name]', 'Darf nicht mit einem "-" aufhören');
+                    $Error = true;
+                }
             }
         }
 
