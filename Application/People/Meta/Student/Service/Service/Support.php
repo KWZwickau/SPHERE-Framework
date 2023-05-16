@@ -343,16 +343,11 @@ abstract class Support extends Subject
 
         $tblSupport = Student::useService()->getSupportById($SupportId);
         $tblPerson = Person::useService()->getPersonById($PersonId);
-        $tblAccount = Account::useService()->getAccountBySession();
         $PersonEditor = '';
-        if($tblAccount){
-            $tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount);
-            $tblPersonEditor = $tblPersonList[0];
-            if($tblPersonEditor){
-                $PersonEditor = $tblPersonEditor->getLastFirstName();
-                if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor))){
-                    $PersonEditor .= ' ('.$tblTeacher->getAcronym().')';
-                }
+        if(($tblPersonEditor = Account::useService()->getPersonByLogin())){
+            $PersonEditor = $tblPersonEditor->getLastFirstName();
+            if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor))){
+                $PersonEditor .= ' ('.$tblTeacher->getAcronym().')';
             }
         }
 
