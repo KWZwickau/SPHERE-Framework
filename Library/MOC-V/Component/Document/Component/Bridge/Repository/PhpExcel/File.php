@@ -129,7 +129,9 @@ abstract class File extends Config
             ),
             'CSV'          => array(
                 'txt',
-                'csv'
+                'TXT',
+                'csv',
+                'CSV'
             )
         );
 

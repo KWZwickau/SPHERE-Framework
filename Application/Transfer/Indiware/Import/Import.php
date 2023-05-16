@@ -3,9 +3,11 @@
 namespace SPHERE\Application\Transfer\Indiware\Import;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Transfer\Education\Education;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareError;
-use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -18,7 +20,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Center;
@@ -28,14 +29,13 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 
-
 /**
  * Class Lectureship
+ *
  * @package SPHERE\Application\Transfer\Indiware\Import
  */
 class Import extends Extension implements IModuleInterface
 {
-
     public static function registerModule()
     {
         Main::getDisplay()->addModuleNavigation(
@@ -69,10 +69,11 @@ class Import extends Extension implements IModuleInterface
     /**
      * @return Stage
      */
-    public function frontendDashboard()
+    public function frontendDashboard(): Stage
     {
-
         $Stage = new Stage('Indiware', 'Datentransfer');
+
+        $tblAccount = Account::useService()->getAccountBySession();
 
         $PanelStudentCourseImport[] = new PullClear('<span style="color: black!important">Schüler-Kurse SEK II importieren: </span>'.
             new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/Prepare', new Upload()
@@ -90,25 +91,18 @@ class Import extends Extension implements IModuleInterface
         $PanelLectureshipImport[] = new PullClear('<span style="color: black!important">Lehraufträge importieren: </span>'.
             new Center(new Standard('', '/Transfer/Indiware/Import/Lectureship/Prepare', new Upload()
                 , array(), 'Hochladen, danach bearbeiten')));
-        $tblIndiwareImportLectureship = Import::useService()->getIndiwareImportLectureshipAll(true);
-        // load if TblIndiwareImportLectureship exist (by Account)
-        if ($tblIndiwareImportLectureship) {
-            $PanelLectureshipImport[] = '<span style="color: black!important">Vorhandenen Import der Lehraufträge bearbeiten: </span>'.
-                new Center(new Standard('', '/Transfer/Indiware/Import/Lectureship/Show', new Edit(), array(),
-                        'Bearbeiten')
-                    .new Standard('', '/Transfer/Indiware/Import/Lectureship/Destroy', new Remove(), array(),
-                        'Löschen'));
-        }
-        $tblIndiwareError = Import::useService()->getIndiwareErrorByType(TblIndiwareError::TYPE_LECTURE_SHIP);
-        // load if TblIndiwareImportLectureship exist (by Account)
-        if ($tblIndiwareError) {
-            $PanelLectureshipImport[] = '<span style="color: black!important">Importfehler des letzten Uploads</span>'.
-                new Center(new External('', '/Api/Transfer/Indiware/ErrorExcel/LectureShip/Download', new Download(),
-                    array(
-                        'Type' => TblIndiwareError::TYPE_LECTURE_SHIP,
-                        'StringCompareDescription' => 'Klasse_Fach_Lehrer(_Fachgruppe)'
-                    )
-                    , 'Herunterladen'));
+
+        if ($tblAccount
+            && ($tblImport = Education::useService()->getImportByAccountAndExternSoftwareNameAndTypeIdentifier(
+                $tblAccount, TblImport::EXTERN_SOFTWARE_NAME_INDIWARE, TblImport::TYPE_IDENTIFIER_LECTURESHIP
+            ))
+        ) {
+            $PanelLectureshipImport[] = '<span style="color: black!important">Vorhandenen Import der Lehraufträge bearbeiten: </span>'
+                . $tblImport->getFileName()
+                . new Center(
+                    new Standard('', '/Transfer/Indiware/Import/Lectureship/Show', new Edit(), array('ImportId' => $tblImport->getId()), 'Bearbeiten')
+                    . new Standard('', '/Transfer/Indiware/Import/Lectureship/Destroy', new Remove(), array('ImportId' => $tblImport->getId()), 'Löschen')
+                );
         }
         $PanelTimetable[] = new PullClear('Stundenplan aus Indiware: '.
             new Center(new Standard('', '/Transfer/Indiware/Import/Timetable', new Upload())));

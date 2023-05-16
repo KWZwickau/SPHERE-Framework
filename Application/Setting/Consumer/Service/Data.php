@@ -66,9 +66,9 @@ class Data extends AbstractData
             true);
 
         // Indiware non-public
-        $this->createSetting('Transfer', 'Indiware', 'Import', 'Lectureship_ConvertDivisionLatinToGreek',
-            TblSetting::TYPE_BOOLEAN, '0', 'Indiware', 'Ersetzung der Klassengruppennamen beim Import in ausgeschriebene
-            Griechische Buchstaben. (z.B. a => alpha) [Standard: Nein]');
+        if (($tblSetting = $this->getSetting('Transfer', 'Indiware', 'Import', 'Lectureship_ConvertDivisionLatinToGreek'))) {
+            $this->destroySetting($tblSetting);
+        }
 
         // Document public
         $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName', TblSetting::TYPE_BOOLEAN,
