@@ -9,6 +9,8 @@ use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
 /**
+ * @deprecated
+ *
  * Class Division
  *
  * @package SPHERE\Application\Education\Lesson\Division
@@ -93,6 +95,8 @@ class Division implements IModuleInterface
     }
 
     /**
+     * @deprecated
+     *
      * @return Frontend
      */
     public static function useFrontend()
@@ -102,6 +106,8 @@ class Division implements IModuleInterface
     }
 
     /**
+     * @deprecated
+     *
      * @return Service
      */
     public static function useService()
