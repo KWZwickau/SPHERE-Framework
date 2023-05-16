@@ -342,7 +342,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblGroup = false;
             if (isset($Balance['DivisionCourse'])) {
                 if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Balance['DivisionCourse']))) {
-                    $filterForm->setError('Balance[Division]', 'Bitte wählen Sie eine Klasse aus');
+                    $filterForm->setError('Balance[DivisionCourse]', 'Bitte wählen Sie eine Klasse aus');
                     $error = true;
                 }
             }
@@ -760,7 +760,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new HiddenField('Data[BasketType]')
                     , 1),
                 new FormColumn(
-                    new HiddenField('Data[Division]')
+                    new HiddenField('Data[DivisionCourse]')
                     , 1),
                 new FormColumn(
                     new HiddenField('Data[Group]')

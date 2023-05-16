@@ -1065,10 +1065,6 @@ class ApiBasket extends Extension implements IApiInterface
                 }
             }
         }
-        // gegen Preselect nach Auswahl entschieden
-//        if(isset($tblDivisionList[0]) && $IsYear){
-//            $_POST['Basket']['Division'] = $tblDivisionList[0];
-//        }
         return new SelectBox('Basket[DivisionCourse]', 'Klasse / Stammgruppe / Kurs', array('{{ DisplayName }}' => $tblDivisionCourseList));
     }
 }
