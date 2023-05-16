@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Reporting\DeclarationBasis;
 
 use SPHERE\Application\IApplicationInterface;
@@ -14,19 +13,14 @@ class DeclarationBasis extends AbstractModule implements IApplicationInterface, 
     public static function registerApplication()
     {
 
-        Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Stichtagsmeldung Integrationsschüler'))
-        );
-
+        Main::getDisplay()->addApplicationNavigation(new Link(new Link\Route(__NAMESPACE__), new Link\Name('Stichtagsmeldung Integrationsschüler')));
         self::registerModule();
     }
 
     public static function registerModule()
     {
 
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendDeclarationBasis'
-        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__.'\Frontend::frontendDeclarationBasis'));
     }
 
     /**

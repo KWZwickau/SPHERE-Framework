@@ -28,59 +28,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDeclarationBasis()
     {
 
-//        $YearString = new Bold('Kein aktuelles Jahr gefunden');
-//        $YearList = Term::useService()->getYearByNow();
-//        $tblYear = false;
-//        if ($YearList) {
-//            $tblYear = current($YearList);
-//            $YearString = $tblYear->getYear();
-//        }
-//
-//        if (($tblFutureYearList = Term::useService()->getYearAllFutureYears(1))) {
-//            $tblFutureYear = current($tblFutureYearList);
-//        } else {
-//            $tblFutureYear = false;
-//        }
-
-//        $Stage = new Stage('Stichtagsmeldung', 'Aktuelles Schuljahr: '.$YearString);
-//        if ($tblYear) {
-//            $Stage->addButton(
-//                new Standard(
-//                    'Herunterladen für das aktuelle Schuljahr ' . $tblYear->getYear(),
-//                    '/Api/Reporting/DeclarationBasis/Download',
-//                    new Download(),
-//                    array(
-//                        'YearId' => $tblYear->getId()
-//                    )
-//                )
-//            );
-//
-//            if ($tblFutureYear) {
-//                $Stage->addButton(
-//                    new Standard(
-//                        'Herunterladen für das nächste Schuljahr ' . $tblFutureYear->getYear(),
-//                        '/Api/Reporting/DeclarationBasis/Download',
-//                        new Download(),
-//                        array(
-//                            'YearId' => $tblFutureYear->getId()
-//                        )
-//                    )
-//                );
-//            }
-//        } else {
-//            $Stage->setContent(
-//                new Layout(
-//                    new LayoutGroup(
-//                        new LayoutRow(
-//                            new LayoutColumn(
-//                                new Warning('Kein Schuljahr besitzt einen Zeitraum der das aktuelle Datum einschließt')
-//                            )
-//                        )
-//                    )
-//                )
-//            );
-//        }
-
         $form = $this->getForm();
 
         $Stage = new Stage('Stichtagsmeldung Integrationsschüler', 'Datum auswählen');

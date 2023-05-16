@@ -19,9 +19,7 @@ class DeclarationBasis implements IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Download', __CLASS__.'::downloadDivisionReport'
-        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__.'/Download', __CLASS__.'::downloadDivisionReport'));
     }
 
     public static function useService()
@@ -43,19 +41,15 @@ class DeclarationBasis implements IModuleInterface
     {
         if ($Date != null) {
             $date = new DateTime($Date);
-            if (($tblYearList = Term::useService()->getYearAllByDate($date))) {
-                $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()
-                    ->createDivisionReportExcel($date);
-
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Stichtagsmeldung Integrationsschüler"
+            if (Term::useService()->getYearAllByDate($date)) {
+                $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()->createDivisionReportExcel($date);
+                return FileSystem::getDownload($fileLocation->getRealPath(), "Stichtagsmeldung Integrationsschüler"
                         . (Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN) ? " SBA " : " ")
                         . $date->format('Y-m-d') . ".xlsx")->__toString();
             } else {
                 return 'Für den Stichtag: ' . $date->format('d.m.Y') . ' wurde kein Schuljahr gefunden.';
             }
         }
-
         return 'Schuljahr nicht gefunden!';
     }
 }
