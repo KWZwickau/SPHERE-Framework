@@ -46,12 +46,13 @@ class Service extends AbstractService
 
     /**
      * @param TblYear $tblYear
+     * @param array $tblDivisionList
      *
-     * @return array
+     * @return float
      */
-    public function migrateYear(TblYear $tblYear): array
+    public function migrateYear(TblYear $tblYear, array $tblDivisionList): float
     {
-        return (new Data($this->getBinding()))->migrateYear($tblYear);
+        return (new Data($this->getBinding()))->migrateYear($tblYear, $tblDivisionList);
     }
 
     /**

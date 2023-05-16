@@ -13,20 +13,20 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportLectureship;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
+use SPHERE\Common\Frontend\Form\Repository\Button\Danger as DangerButton;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -35,24 +35,16 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Success;
-use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
-class Frontend extends Extension implements IFrontendInterface
+class Frontend extends FrontendStudentCourse
 {
-    const LEFT = 3;
-    const MIDDLE = 1;
-    const RIGHT = 8;
-
     private array $tabList = array(
         0 => 'Klassen',
         1 => 'Lehrer',
@@ -77,15 +69,14 @@ class Frontend extends Extension implements IFrontendInterface
             case 'Klassen': $content = $this->getDivisionContent($tblImport, $NextTab, $Data); break;
             case 'Lehrer': $content = $this->getTeacherContent($tblImport, $NextTab, $Data); break;
             case 'Fächer': $content = $this->getSubjectContent($tblImport, $NextTab, $Data); break;
-            case 'Zusammenfassung / Endgültiger Import': $content = $this->getImportPreviewContent($tblImport); break;
-            case 'SaveTeacherLectureship': $content = $this->getSaveTeacherLectureshipContent($tblImport); break;
+            case 'Zusammenfassung / Endgültiger Import': $content = $this->getImportPreviewContent($tblImport, $Data); break;
             default: $content = '';
         }
 
         return (new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
-                    $this->getButtonList($tblImport, $Tab)
+                    $this->getButtonList($tblImport, $Tab, $this->tabList)
                 )
             )),
             new LayoutRow(array(
@@ -94,34 +85,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             ))
         ))));
-    }
-
-    /**
-     * @param TblImport $tblImport
-     * @param string $Tab
-     *
-     * @return array
-     */
-    private function getButtonList(TblImport $tblImport, string $Tab): array
-    {
-        $buttonList = array();
-        foreach ($this->tabList as $item)
-        {
-            if ($Tab == $item) {
-                $icon = new Edit();
-                $name = new Info(new Bold($item));
-            } else {
-                $icon = null;
-                $name = $item;
-            }
-
-            $buttonList[] = new Standard($name, $tblImport->getShowRoute(), $icon, array(
-                'ImportId' => $tblImport->getId(),
-                'Tab' => $item
-            ));
-        }
-
-        return $buttonList;
     }
 
     /**
@@ -149,7 +112,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListTeachingGroup);
             }
 
-
             $global = $this->getGlobal();
             $tblImportLectureshipList = $this->getSorter($tblImportLectureshipList)->sortObjectBy('DivisionName', new StringNaturalOrderSorter());
             /** @var TblImportLectureship $tblImportLectureship */
@@ -160,9 +122,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $divisionNameList[$divisionName] = $divisionName;
 
                     // Mapping
-                    if (($mappingDivisionCourseName = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $divisionName))
-                        && ($tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($mappingDivisionCourseName, $tblYear))
-                    ) {
+                    if (($tblDivisionCourse = Education::useService()->getImportMappingValueBy(
+                        TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $divisionName, $tblYear
+                    ))) {
                         $status = new Warning(new Bold('Mapping'));
                     // Found
                     } elseif (($tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($divisionName, $tblYear))) {
@@ -204,74 +166,6 @@ class Frontend extends Extension implements IFrontendInterface
 
             return new Title($header)
                 . new Well(Education::useService()->saveMappingDivisionCourse($form, $tblImport, $NextTab, $Data, $tblYear));
-        }
-    }
-
-    /**
-     * @param TblImport $tblImport
-     * @param string $NextTab
-     * @param $Data
-     *
-     * @return string
-     */
-    public function getSubjectContent(TblImport $tblImport, string $NextTab, $Data): string
-    {
-        $rows = array();
-        $tblSubjectAll = Subject::useService()->getSubjectAll();
-        $subjectAcronymList = array();
-        if (($tblImportLectureshipList = $tblImport->getImportLectureships())) {
-            $global = $this->getGlobal();
-            $tblImportLectureshipList = $this->getSorter($tblImportLectureshipList)->sortObjectBy('SubjectAcronym', new StringNaturalOrderSorter());
-            /** @var TblImportLectureship $tblImportLectureship */
-            foreach ($tblImportLectureshipList as $tblImportLectureship) {
-                if (($subjectAcronym = $tblImportLectureship->getSubjectAcronym())
-                    && !isset($subjectAcronymList[$subjectAcronym])
-                ) {
-                    $subjectAcronymList[$subjectAcronym] = $subjectAcronym;
-
-                    // Mapping
-                    if (($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $subjectAcronym))) {
-                        $status = new Warning(new Bold('Mapping'));
-                    // Found
-                    } elseif (($tblSubject = Subject::useService()->getSubjectByVariantAcronym($subjectAcronym))) {
-                        $status = new Success(new SuccessIcon());
-                    // Missing
-                    } else {
-                        $status = new Danger(new Ban());
-                    }
-
-                    // POST setzen
-                    if ($tblSubject) {
-                        $global->POST['Data'][$tblImportLectureship->getId()] = $tblSubject->getId();
-                        $global->savePost();
-                    }
-
-                    $select = new SelectBox('Data[' . $tblImportLectureship->getId() . ']', '', array('{{ DisplayName }}' => $tblSubjectAll));
-                    $rows[] = new LayoutRow(array(
-                        new LayoutColumn($subjectAcronym, self::LEFT),
-                        new LayoutColumn($status, self::MIDDLE),
-                        new LayoutColumn($select, self::RIGHT)
-                    ));
-                }
-            }
-        }
-
-        if (empty($rows)) {
-            return new WarningMessage('Es wurden keine Fächer-Kürzel im Import gefunden. Somit können auch keine Lehraufträge importiert werden', new Exclamation());
-        } else {
-            // Kopf erstellen
-            $header = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(new Bold('Fächer-Kürzel in ' . $tblImport->getExternSoftwareName()), self::LEFT),
-                new LayoutColumn(new Bold('Status'), self::MIDDLE),
-                new LayoutColumn(new Bold('Auswahl Fach in der Schulsoftware'), self::RIGHT)
-            ))));
-
-            $form = (new Form(new FormGroup(new FormRow(new FormColumn(
-                new Layout(new LayoutGroup($rows))
-            )))))->appendFormButton(new Primary('Speichern und Weiter', new Save()));
-
-            return new Title($header)
-                . new Well(Education::useService()->saveMappingSubject($form, $tblImport, $NextTab, $Data));
         }
     }
 
@@ -374,17 +268,18 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblImport $tblImport
+     * @param $Data
      *
      * @return string
      */
-    private function getImportPreviewContent(TblImport $tblImport): string
+    private function getImportPreviewContent(TblImport $tblImport, $Data): string
     {
         list(
             $importDivisionCourseList, $missingDivisionCourseList,
             $importTeacherList, $missingTeacherList,
             $importSubjectList, $missingSubjectList,
             $createTeacherLectureshipList, $existsTeacherLectureshipList, $deleteTeacherLectureshipList
-        ) = $this->getImportPreviewData($tblImport, true);
+        ) = $this->getImportLectureshipPreviewData($tblImport, true);
 
         // sortieren
         sort($importDivisionCourseList, SORT_NATURAL);
@@ -454,38 +349,18 @@ class Frontend extends Extension implements IFrontendInterface
                             : ''
                     )
                 )),
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        new \SPHERE\Common\Frontend\Link\Repository\Danger('Import unwiderruflich Durchführen', $tblImport->getShowRoute(), new Save(), array(
-                            'ImportId' => $tblImport->getId(),
-                            'Tab' => 'SaveTeacherLectureship'
-                        ))
-                    )
-                ))
             ), new Title('Lehraufträge'))
-        ));
-    }
-
-    /**
-     * @param TblImport $tblImport
-     *
-     * @return string
-     */
-    public function getSaveTeacherLectureshipContent(TblImport $tblImport): string
-    {
-        list($saveCreateTeacherLectureshipList, $saveDeleteTeacherLectureshipList) = $this->getImportPreviewData($tblImport, false);
-
-        if ($saveCreateTeacherLectureshipList) {
-            DivisionCourse::useService()->createEntityListBulk($saveCreateTeacherLectureshipList);
-        }
-        if ($saveDeleteTeacherLectureshipList) {
-            DivisionCourse::useService()->deleteEntityListBulk($saveDeleteTeacherLectureshipList);
-        }
-
-        Education::useService()->destroyImport($tblImport);
-
-        return new SuccessMessage('Die Lehraufträge wurden erfolgreich aktualisiert.', new SuccessIcon())
-            . new Redirect($tblImport->getBackRoute(), Redirect::TIMEOUT_SUCCESS);
+        ))
+            . Education::useService()->saveLectureshipFromImport(
+                new Form(new FormGroup(new FormRow(array(
+                    new FormColumn(new HiddenField('Data[Id]')),
+                    new FormColumn(
+                        new DangerButton('Import unwiderruflich Durchführen', new Save())
+                    )
+                )))),
+                $tblImport,
+                $Data
+            );
     }
 
     /**
@@ -494,7 +369,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return array
      */
-    private function getImportPreviewData(TblImport $tblImport, bool $IsPreview): array
+    public function getImportLectureshipPreviewData(TblImport $tblImport, bool $IsPreview): array
     {
         $divisionNameList = array();
         $importDivisionCourseList = array();
@@ -528,10 +403,9 @@ class Frontend extends Extension implements IFrontendInterface
                     // Klassen
                     if (!isset($divisionNameList[$divisionName])) {
                         // Mapping
-                        if (($mappingDivisionCourseName = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME,
-                                $divisionName))
-                            && ($tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($mappingDivisionCourseName, $tblYear))
-                        ) {
+                        if (($tblDivisionCourse = Education::useService()->getImportMappingValueBy(
+                            TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $divisionName, $tblYear
+                        ))) {
                             // Found
                         } else {
                             $tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($divisionName, $tblYear);
@@ -549,9 +423,8 @@ class Frontend extends Extension implements IFrontendInterface
                     // Lehrer
                     if (!isset($teacherAcronymList[$teacherAcronym])) {
                         // Mapping
-                        if (($tblPerson = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_TEACHER_ACRONYM_TO_PERSON_ID,
-                            $teacherAcronym))) {
-                            // Found
+                        if (($tblPerson = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_TEACHER_ACRONYM_TO_PERSON_ID, $teacherAcronym))) {
+                        // Found
                         } elseif (($tblTeacher = Teacher::useService()->getTeacherByAcronym($teacherAcronym))) {
                             $tblPerson = $tblTeacher->getServiceTblPerson();
                         }
@@ -576,9 +449,8 @@ class Frontend extends Extension implements IFrontendInterface
                     // Fächer
                     if (!isset($subjectAcronymList[$subjectAcronym])) {
                         // Mapping
-                        if (($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID,
-                            $subjectAcronym))) {
-                            // Found
+                        if (($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $subjectAcronym))) {
+                        // Found
                         } else {
                             $tblSubject = Subject::useService()->getSubjectByVariantAcronym($subjectAcronym);
                         }
@@ -597,6 +469,44 @@ class Frontend extends Extension implements IFrontendInterface
                         && ($tblPerson = $teacherAcronymList[$teacherAcronym])
                         && ($tblSubject = $subjectAcronymList[$subjectAcronym])
                     ) {
+                        $subjectGroup = $tblImportLectureship->getSubjectGroup();
+
+                        // Spezialfall: Lehraufträge für SekII -> es werden direkt bei den Lehraufträge die SekII-Kurse zugeordnet, falls vorhanden
+                        if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+                            && ($tblStudentList = $tblDivisionCourse->getStudents())
+                        ) {
+                            foreach ($tblStudentList as $tblStudent) {
+                                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblStudent, $tblYear))
+                                    && ($level = $tblStudentEducation->getLevel())
+                                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                                ) {
+                                    $divisionCourseName = Education::useService()->getCourseNameForSystem(
+                                        $tblImport, $subjectGroup, $level, $tblSchoolType
+                                    );
+
+                                    // mapping SekII-Kurs
+                                    if (($tblDivisionCourseCourseSystem = Education::useService()->getImportMappingValueBy(
+                                        TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $divisionCourseName, $tblYear
+                                    ))) {
+
+                                    // found SekII-Kurs
+                                    } elseif (($tblDivisionCourseCourseSystem = DivisionCourse::useService()->getDivisionCourseByNameAndYear(
+                                        $divisionCourseName, $tblYear
+                                    ))) {
+
+                                    }
+
+                                    if ($tblDivisionCourseCourseSystem
+                                        && ($tblDivisionCourseCourseSystem->getServiceTblSubject())
+                                        && $tblDivisionCourseCourseSystem->getServiceTblSubject()->getId() == $tblSubject->getId()
+                                    ) {
+                                        $tblDivisionCourse = $tblDivisionCourseCourseSystem;
+                                        $subjectGroup = '';
+                                    }
+                                }
+                            }
+                        }
+
                         // Lehrauftrag existiert bereits
                         if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(
                             $tblYear, $tblPerson, $tblDivisionCourse, $tblSubject
@@ -610,7 +520,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $previewCreateTeacherLectureshipList[$tblDivisionCourse->getId() . '_' . $tblPerson->getId() . '_' . $tblSubject->getId()] = 1;
                             } else {
                                 $saveCreateTeacherLectureshipList[$tblDivisionCourse->getId() . '_' . $tblPerson->getId() . '_' . $tblSubject->getId()]
-                                    = TblTeacherLectureship::withParameter($tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $tblImportLectureship->getSubjectGroup());
+                                    = TblTeacherLectureship::withParameter($tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $subjectGroup);
                             }
                         }
                     }

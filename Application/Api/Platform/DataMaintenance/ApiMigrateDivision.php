@@ -407,12 +407,24 @@ class ApiMigrateDivision  extends Extension implements IApiInterface
                     return new Success($count . ' Pädagogische Tagebücher Elemente erfolgreich migriert' . new PullRight($time . ' Sekunden'), new Check())
                         . self::pipelineMigrateYearItem($YearId, self::TYPE_ABSENCE);
                 case self::TYPE_ABSENCE:
-                    list ($count, $time) = Absence::useService()->migrateYear($tblYear);
-                    return new Success($count . ' Fehlzeiten erfolgreich migriert' . new PullRight($time . ' Sekunden'), new Check())
-                        . new Success(new Bold($tblYear->getDisplayName()) . ' erfolgreich migriert. ')
-                        . (($tblNextYear = $this->getNextYear($tblYear))
-                            ? self::pipelineMigrateYear($tblNextYear->getId())
-                            : self::pipelineStatus(self::STATUS_FINISH));
+                    $startValue = $StartId === null ? 0 : intval($StartId);
+                    if (($tblDivisionList = Division::useService()->getDivisionListByStartIdAndMaxCount($tblYear, $startValue, self::MAX_DIVISION_COUNT))) {
+                        $count = count($tblDivisionList);
+                        $lastId = (end($tblDivisionList))->getId();
+                        return new Success(
+                                "Fehlzeiten für $count Klassen erfolgreich migriert"
+                                . new PullRight(Absence::useService()->migrateYear($tblYear, $tblDivisionList) . ' Sekunden'),
+                                new Check()
+                            )
+                            . self::receiverBlock('', 'MigrateYearItem_' . $YearId . '_' . self::TYPE_ABSENCE . '_' . $lastId)
+                            . self::pipelineMigrateYearItem($YearId, self::TYPE_ABSENCE, $lastId);
+                    } else {
+                        return new Success('Alle Fehlzeiten des Schuljahres erfolgreich migriert', new Check())
+                            . new Success(new Bold($tblYear->getDisplayName()) . ' erfolgreich migriert. ')
+                            . (($tblNextYear = $this->getNextYear($tblYear))
+                                ? self::pipelineMigrateYear($tblNextYear->getId())
+                                : self::pipelineStatus(self::STATUS_FINISH));
+                    }
             }
         }
 

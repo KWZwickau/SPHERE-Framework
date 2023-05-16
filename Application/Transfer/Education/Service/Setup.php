@@ -23,6 +23,8 @@ class Setup extends AbstractSetup
         $tblImport = $this->setTableImport($schema);
         $this->setTableImportLectureship($schema, $tblImport);
         $this->setTableImportMapping($schema);
+        $tblImportStudent = $this->setTableImportStudent($schema, $tblImport);
+        $this->setTableImportStudentCourse($schema, $tblImportStudent);
 
         /**
          * Migration & Protocol
@@ -81,5 +83,42 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'Type');
         $this->createColumn($table, 'Original');
         $this->createColumn($table, 'Mapping');
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblImport
+     *
+     * @return Table
+     */
+    public function setTableImportStudent(Schema &$schema, Table $tblImport): Table
+    {
+        $table = $this->getConnection()->createTable($schema, 'tblImportStudent');
+
+        $this->createForeignKey($table, $tblImport);
+
+        $this->createColumn($table, 'FirstName');
+        $this->createColumn($table, 'LastName');
+        $this->createColumn($table, 'Birthday', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($table, 'GenderAcronym');
+        $this->createColumn($table, 'DivisionName');
+        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblImportStudent
+     */
+    public function setTableImportStudentCourse(Schema &$schema, Table $tblImportStudent)
+    {
+        $table = $this->getConnection()->createTable($schema, 'tblImportStudentCourse');
+
+        $this->createForeignKey($table, $tblImportStudent);
+
+        $this->createColumn($table, 'SubjectAcronym');
+        $this->createColumn($table, 'CourseNumber');
+        $this->createColumn($table, 'CourseName');
     }
 }

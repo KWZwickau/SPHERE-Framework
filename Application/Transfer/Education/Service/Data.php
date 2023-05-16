@@ -7,13 +7,83 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportLectureship;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImportStudent;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImportStudentCourse;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 class Data extends AbstractData
 {
     public function setupDatabaseContent()
     {
 
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function createEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        foreach ($tblEntityList as $tblEntity) {
+            $Manager->bulkSaveEntity($tblEntity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblEntity, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function updateEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+            $Manager->bulkSaveEntity($tblElement);
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function deleteEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+
+            $Manager->bulkKillEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
     }
 
     /**
@@ -193,22 +263,112 @@ class Data extends AbstractData
     }
 
     /**
-     * @param array $tblEntityList
+     * @param $Id
      *
-     * @return bool
+     * @return false|TblImportStudent
      */
-    public function createEntityListBulk(array $tblEntityList): bool
+    public function getImportStudentById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblImportStudent', $Id);
+    }
+
+    /**
+     * @param TblImport $tblImport
+     *
+     * @return false|TblImportStudent[]
+     */
+    public function getImportStudentListByImport(TblImport $tblImport)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblImportStudent', array(
+            TblImportStudent::ATTR_TBL_IMPORT => $tblImport->getId()
+        ));
+    }
+
+    /**
+     * @param TblImportStudent $tblImportStudent
+     *
+     * @return TblImportStudent
+     */
+    public function createImportStudent(TblImportStudent $tblImportStudent): TblImportStudent
     {
         $Manager = $this->getEntityManager();
 
-        foreach ($tblEntityList as $tblEntity) {
-            $Manager->bulkSaveEntity($tblEntity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblEntity, true);
+        $Manager->saveEntity($tblImportStudent);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblImportStudent);
+
+        return $tblImportStudent;
+    }
+
+    /**
+     * @param TblImportStudent $tblImportStudent
+     *
+     * @return bool
+     */
+    public function destroyImportStudentCourseAllByImportStudent(TblImportStudent $tblImportStudent): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        if (($tblImportStudentCourseList = $this->getForceEntityListBy(__METHOD__, $Manager, 'TblImportStudentCourse',
+            array(TblImportStudentCourse::ATTR_TBL_IMPORT_STUDENT => $tblImportStudent->getId())))
+        ) {
+            foreach ($tblImportStudentCourseList as $tblImportStudentCourse) {
+                $Manager->bulkKillEntity($tblImportStudentCourse);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $tblImportStudentCourse, true);
+            }
         }
 
         $Manager->flushCache();
         Protocol::useService()->flushBulkEntries();
 
         return true;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblImportStudentCourse
+     */
+    public function getImportStudentCourseById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblImportStudentCourse', $Id);
+    }
+
+    /**
+     * @param TblImport $tblImport
+     *
+     * @return false|TblImportStudentCourse[]
+     */
+    public function getImportStudentCourseListByImport(TblImport $tblImport)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(TblImportStudentCourse::class, 't')
+            ->leftJoin(TblImportStudent::class, 's', 'WITH', 't.tblImportStudent = s.Id')
+            ->leftJoin(TblImport::class, 'i', 'WITH', 's.tblImport = i.Id')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('i.Id', '?1'),
+                ),
+            )
+            ->setParameter(1, $tblImport->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblImportStudent $tblImportStudent
+     *
+     * @return false|TblImportStudentCourse[]
+     */
+    public function getImportStudentCourseListByImportStudent(TblImportStudent $tblImportStudent)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblImportStudentCourse', array(
+            TblImportStudentCourse::ATTR_TBL_IMPORT_STUDENT => $tblImportStudent->getId(),
+        ));
     }
 }
