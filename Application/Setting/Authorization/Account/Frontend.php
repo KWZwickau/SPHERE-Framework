@@ -30,7 +30,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
@@ -48,6 +47,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\CustomPanel;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -150,10 +150,16 @@ class Frontend extends Extension implements IFrontendInterface
                     ? $tblIdentification->getDescription()
                     : '')
                 );
-                $Item['Authorization'] = new Listing(!empty( $AuthorizationList )
-                    ? $AuthorizationList
-                    : array(new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
-                );
+
+                $isEmpty = false;
+                if(empty($AuthorizationList)){
+                    $isEmpty = true;
+                }
+                $Item['Authorization'] = ($isEmpty ? '<span hidden>000</span>' : '<span hidden>'.count($AuthorizationList).'</span>').(new CustomPanel(
+                    (! $isEmpty
+                        ? 'Anzahl vergebener Benutzerrechte: '.count($AuthorizationList)
+                        : new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
+                    , $AuthorizationList))->setHash($tblAccount->getId())->setAccordeon();
                 $Item['Token'] = new Listing(array($tblAccount->getServiceTblToken()
                         ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
                             4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
@@ -204,6 +210,16 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Authorization'  => new Nameplate().' Benutzerrechte',
                                 'Token'          => new Key().' Hardware-Schlüssel',
                                 'Option'         => 'Optionen'
+                            ), array(
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 3),
+                                ),
+//                                'order'      => array(array(1, 'asc')),
+//                                'pageLength' => -1,
+//                                'paging'     => false,
+//                                'info'       => false,
+//                                'searching'  => false,
+//                                'responsive' => false
                             )
                         )
                     )

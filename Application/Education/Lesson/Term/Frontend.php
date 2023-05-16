@@ -874,6 +874,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $global->savePost();
                 }
             }
+            if (($tblState = BasicData::useService()->getStateByName('Niedersachsen'))) {
+                $list[$tblState->getId()] = $tblState->getName();
+            }
 
             $form = new Form(new FormGroup(new FormRow(new FormColumn(
                 new SelectBox('Data', 'Bundesland', $list

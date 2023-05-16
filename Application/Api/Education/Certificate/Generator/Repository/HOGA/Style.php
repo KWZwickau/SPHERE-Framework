@@ -2291,10 +2291,9 @@ abstract class Style extends Certificate
         $textSizeGrade = self::TEXT_SIZE_NORMAL;
         $slice = (new Slice())
             ->styleMarginTop($marginTop);
-        if ($hasPretext) {
-            $slice->addElement($this->getElement('hat im zurückliegenden Schuljahr folgende Leistungen erreicht:', self::TEXT_SIZE_LARGE));
-        }
-        $slice->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold());
+
+        $slice->addElement($this->getElement('hat im zurückliegenden Schuljahr folgende Leistungen erreicht:', self::TEXT_SIZE_LARGE));
+//        $slice->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold());
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
         $tblGradeList = $this->getGrade();

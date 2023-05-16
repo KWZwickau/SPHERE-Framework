@@ -1196,7 +1196,7 @@ class Creator extends Extension
         } elseif($Select == 'SSW_UCS_DLLP') {
             $file = "Common/Style/Resource/Document/Manual/SSW_UCS_DLLP.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Kurzleidfaden_UCS_DLLP_10.11.2022.pdf");
+            header("Content-Disposition: attachment; filename=Kurzleidfaden_UCS_DLLP_11.05.2023.pdf");
             header("Content-Length: ".filesize($file));
         }
 

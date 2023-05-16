@@ -18,16 +18,20 @@ use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Publicly;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
@@ -400,10 +404,14 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $tblRoleAll = $this->getSorter($tblRoleAll)->sortObjectBy(TblRole::ATTR_NAME, new StringGermanOrderSorter());
         if ($tblRoleAll){
             array_walk($tblRoleAll, function(TblRole &$tblRole) use(&$TeacherRole, $dataName){
-                $tblRole = new CheckBox($dataName . '['.$tblRole->getId().']',
-                    ($tblRole->isSecure() ? new YubiKey() : new Publicly()).' '.$tblRole->getName(),
-                    $tblRole->getId()
-                );
+                $tblRole = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new CheckBox($dataName . '['.$tblRole->getId().']', ($tblRole->isSecure() ? new YubiKey() : new Publicly()).' '.$tblRole->getName(), $tblRole->getId())
+                    , 11),
+                    new LayoutColumn(
+                        new PullRight((Account::useService()->getRoleDescriptionToolTipByRole($tblRole)))
+                    , 1)
+                ))));
             });
             $tblRoleAll = array_filter($tblRoleAll);
         } else {
@@ -480,5 +488,71 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
 
         return empty($tblAccountConsumerTokenList) ? false : $tblAccountConsumerTokenList;
+    }
+
+    public function getRoleDescriptionToolTipByRole(TblRole $tblRole) {
+        switch ($tblRole->getName()) {
+            case 'Auswertung: Allgemein': return $this->setToolTip('Auswertungen (Standard, Individual), Check-Listen, Adresslisten für Serienbriefe');
+            case 'Auswertung: Flexible Auswertung': return $this->setToolTip('Flexible Auswertung (Auswertungen selbst zusammenstellen)');
+            case 'Auswertung: Kamenz-Statistik':return $this->setToolTip('Auswertungen für die Kamenz-Statistik (verfügbar für Schulträger, die die anteilige
+                Kostenübernahme für diese Auswertung über die Schulstiftung explizit zugesagt haben)');
+            case 'Bildung: Fehlzeiten (Verwaltung)': return $this->setToolTip('Fehlzeitenverwaltung Kalenderansicht mit direkter Suche über alle Schüler');
+            case 'Bildung: Klassenbuch (Lehrer mit Lehrauftrag)':  return $this->setToolTip('Digitales Klassenbuch für Lehrer mit Lehrauftrag und
+                Klassenlehrer');
+            case 'Bildung: Klassenbuch (Alle Klassenbücher)': return $this->setToolTip('Digitales Klassenbuch aller Klassen');
+            case 'Bildung: Klassenbuch (Integrationsbeauftragte)': return $this->setToolTip('Digitales Klassenbuch und Integration aller Klassen');
+            case 'Bildung: Klassenbuch (Schulleitung)':return $this->setToolTip('Digitales Klassenbuch, Integration und inkl. Verwaltung und Auswertung von
+                Belehrungen aller Klassen');
+            case 'Bildung: Notenbuch (Integrationsbeauftragte)':return $this->setToolTip('Notenbuch aller Schüler');
+            case 'Bildung: pädagogisches Tagebuch (Klassenlehrer)':return $this->setToolTip('pädagogisches Tagebuch (Klassenlehrer mit eigener Klasse)');
+            case 'Bildung: pädagogisches Tagebuch (Schulleitung)':return $this->setToolTip('pädagogisches Tagebuch (alle Klassen)');
+            case 'Bildung: Unterrichtsverwaltung':return $this->setToolTip('Fächer-, Schuljahr- und Klassenverwaltung, Sortierung aller Klassen');
+            case 'Schüler und Eltern Zugang':return $this->setToolTip('Zensurenübersicht, Online Krankmeldung und Online Kontakten Änderungswünsche für
+                Eltern/Schüler (wird bei Generierung der Schüler/Eltern - Zugänge automatisch gesetzt), auch notwendig für Mitarbeiter, welche gleichzeitig
+                Eltern sind');
+            case 'Bildung: Zensurenvergabe (Lehrer)':return $this->setToolTip('Notenvergabe, Notenbuch für Lehrer mit Lehrauftrag, Notenbuch, Schülerübersicht,
+                Einsicht Notenaufträge für Klassenlehrer (eigene Klasse)');
+            case 'Bildung: Zensurenvergabe (Schulleitung)':return $this->setToolTip('Notenvergabe, Notenbuch in allen Klassen, Festlegung und Einsicht
+                Notenaufträge (Stichtags- und Kopfnoten)');
+            case 'Bildung: Zensurenverwaltung':return $this->setToolTip('Festlegung von Zensuren-Typen, Berechnungsvorschriften, Bewertungssystemen,
+                Mindestnotenanzahl');
+            case 'Bildung: Zeugnis (Drucken - Klassenlehrer)':return $this->setToolTip('Drucken der Zeugnisse für Klassenlehrer (automatische Eingrenzung auf
+                die jeweilige Klasse)');
+            case 'Bildung: Zeugnis (Drucken)':return $this->setToolTip('Drucken der Zeugnisse');
+            case 'Bildung: Zeugnis (Einstellungen)':return $this->setToolTip('Einstellungen Zeugnisvorlagen (Fächer und deren Reihenfolge auf den Zeugnis');
+            case 'Bildung: Zeugnis (Freigabe)':return $this->setToolTip('Freitgabe der Zeugnisse für den Druck');
+            case 'Bildung: Zeugnis (Generierung)':return $this->setToolTip('Generierung eines Zeugnisauftrages (Zeugnisdatum und -vorlage, Stichtags- und
+                Kopfnotenauftrag, Name Schulleiter/in');
+            case 'Bildung: Zeugnis (Vorbereitung - Abgangszeugnisse)':return $this->setToolTip('Zeugnisvorbereitung der Abgangszeugnisse für Oberschule und
+                Gymnasium (SEKI)');
+            case 'Bildung: Zeugnis (Vorbereitung - Abschlusszeugnisse)':return $this->setToolTip('Zeugnisvorbereitung der Abschlusszeugnisse (Prüfungsnoten,
+                Vorjahresnoten, etc.)');
+            case 'Bildung: Zeugnis (Vorbereitung - Klassenlehrer)':return $this->setToolTip('Zeugnisvorbereitung (Festlegung Kopfnoten, Hinterlegung sonstiger
+                Informationen wie Bemerkung, Fehlzeiten etc.)');
+            case 'Datentransfer: Import und Export':return $this->setToolTip('Import der Lehraufträge aus externer Stundenplansoftware');
+            case 'Dokumente':return $this->setToolTip('Dokumentendruck Standard (Schulbescheinigung, Schülerkartei) und Individual');
+            case 'Einstellungen: Administrator':return $this->setToolTip('Verwaltung von Benutzerkonten, Mandanteinstellungen, Eigenes Passwort ändern');
+            case 'Einstellungen: Benutzer':return $this->setToolTip('Benutzereinestellungen (Aussehen der Programmoberfläche, Eigenes Passwort änden, Hilfe und
+                Support)');
+            case 'Einstellungen: Benutzer (Schüler/Eltern) - nicht sichtbar':return $this->setToolTip('Benutzereinestellungen (Aussehen der Programmoberfläche,
+                Eigenes Passwort änden, wird bei Generierung der Schüler/Eltern - Zugänge automatisch gesetzt)');
+            case 'Einstellungen: Verwaltung Schüler und Eltern Zugang':return $this->setToolTip('Erstellung der Benutzerkontos für Eltern / Schüler inkl.
+                Passwortrücksetzung');
+            case 'Fakturierung':return $this->setToolTip('Fakturierungsmodul (z.B. Verwaltung von Schulgeld');
+            case 'Feedback & Support':return $this->setToolTip('Supportformular Ticketsystem');
+            case 'Stammdaten: Institutionenverwaltung (Lesen + Schreiben)':return $this->setToolTip('Verwaltung von Institutionen (Schulen, Kitas, etc.)');
+            case 'Stammdaten: Institutionenverwaltung (Lesen)':return $this->setToolTip('ReadOnly von Institutionen (Schulen, Kitas etc.)');
+            case 'Stammdaten: Personenverwaltung (Lesen + Schreiben)':return $this->setToolTip('Verwaltung von Personen (Schüler, Sorgeberechtigte,
+                Interessenten, Lehrer, etc.');
+            case 'Stammdaten: Personenverwaltung (Lesen)':return $this->setToolTip('ReadOnly von Personen (Schüler, Sorgeberechtigte, Interessenten, Lehrer,
+                etc.');
+        }
+        return '';
+    }
+
+    private function setToolTip($Content)
+    {
+
+        return (new ToolTip(new Info(), htmlspecialchars('<div style="width: 300px !important;">'.$Content.'</div>')))->enableHtml();
     }
 }

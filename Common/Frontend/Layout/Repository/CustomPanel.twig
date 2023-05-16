@@ -1,0 +1,93 @@
+<style>
+    .open {
+        cursor: zoom-out;
+    }
+    .closed {
+        cursor: zoom-in;
+    }
+</style>
+
+<div {% if( Hash is not empty ) %}id="{{ Hash }}"{% endif %} class="panel {{ Type }}" style="margin-bottom: 3px;">
+
+    {% if( Title is not empty) %}
+
+        <div class="panel-heading">
+            <h6 class="panel-title" style="display: flex; flex-wrap: nowrap; position: relative;">
+                <div class="panel-title-content {% if toggleOpen is defined %}
+                {% if toggleOpen == true %}open{% else %}closed{% endif %}{% endif %}"
+                id="header-{{ Hash }}" style="width: 100%;">
+                    {% if toggleOpen is defined %}
+                        <div id="iconDown-{{ Hash }}" style="float: left; font-size: 10px; margin: 2px 10px 0 0; {% if toggleOpen != true %}display: none;{% endif %}">
+                            {{ toggleIconDown }}
+                        </div>
+                        <div id="iconRight-{{ Hash }}" style="float: left; font-size: 10px; margin: 2px 10px 0 0; {% if toggleOpen == true %}display: none;{% endif %}">
+                            {{ toggleIconRight }}
+                        </div>
+                    {% endif %}
+                    {{ Title }}
+                </div>
+                {% if Link is not empty %}
+                    <div style="text-align: right; font-weight: bold; width: auto; position: absolute; right: 0;">
+                        {{ Link }}
+                    </div>
+                {% endif %}
+            </h6>
+        </div>
+
+    {% endif %}
+
+
+    {% if( ContentList|length > 0) %}
+        <ul class="list-group" id="body-{{ Hash }}" {% if toggleOpen is defined and toggleOpen != true %}style="display: none;"{% endif %}>
+            {% for Content in ContentList %}
+                <li class="list-group-item clearfix">{{ Content }}</li>
+            {% endfor %}
+        </ul>
+    {% elseif( Content is not empty) %}
+        <div class="panel-body" id="body-{{ Hash }}" {% if toggleOpen is defined and toggleOpen != true %}style="display: none;"{% endif %}>
+            {{ Content }}
+        </div>
+    {% endif %}
+
+
+    {% if( Footer|length > 0) %}
+        <div class="panel-footer clearfix">
+            {{ Footer }}
+        </div>
+    {% endif %}
+
+</div>
+
+<script type="text/javascript">
+    //noinspection JSUnresolvedFunction
+    executeScript(function() {
+        Client.Use('ModAlways', function() {
+
+        // perform toggle
+            $('#header-{{ Hash }}').on('click', function(){
+                {% if toggleOpen is defined %}
+                    var header = $('#header-{{ Hash }}');
+                    var content = $('#body-{{ Hash }}');
+                    var iconDown = $('#iconDown-{{ Hash }}');
+                    var iconRight = $('#iconRight-{{ Hash }}');
+                    var currentState = header.hasClass('open');
+
+                    if(currentState){
+                        content.hide();
+                        iconDown.hide();
+                        iconRight.show();
+                        header.removeClass('open');
+                        header.addClass('closed');
+                    } else {
+                        content.show();
+                        iconDown.show();
+                        iconRight.hide();
+                        header.addClass('open');
+                        header.removeClass('closed');
+                    }
+                {% endif %}
+            });
+
+        });
+    });
+</script>
