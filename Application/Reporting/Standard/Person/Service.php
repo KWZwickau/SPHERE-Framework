@@ -4961,6 +4961,13 @@ class Service extends Extension
                     $export->setStyle($export->getCell(0, 2), $export->getCell($column, $row))->setColumnWidth(17.5);
                 }
             }
+            $Month = (int)$startDate->format('m');
+            $nowMonth = (int)(new DateTime())->format('m');
+            if($nowMonth < $Month){
+                $nowMonth += 12;
+            }
+            $DiffMonth = $nowMonth - $Month;
+            $export->selectWorksheetByIndex($DiffMonth);
             $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
