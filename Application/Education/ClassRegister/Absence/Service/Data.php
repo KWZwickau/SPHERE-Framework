@@ -332,6 +332,7 @@ class Data extends AbstractData
             ->setParameter(1, $fromDate)
             ->setParameter(2, $toDate)
             ->setParameter(3, $tblDivision->getId())
+            ->orderBy('t.FromDate', 'ASC')
             ->getQuery();
 
         $resultList = $query->getResult();

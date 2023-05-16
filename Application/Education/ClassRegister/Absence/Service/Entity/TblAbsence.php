@@ -596,4 +596,13 @@ class TblAbsence extends Element
     {
         return $this->getSource() != TblAbsence::VALUE_SOURCE_STAFF && $this->getServiceTblPersonStaff() == false;
     }
+
+    public function getCountLessons(): int
+    {
+        if(($list =  Absence::useService()->getAbsenceLessonAllByAbsence($this))) {
+            return count($list);
+        }
+
+        return 0;
+    }
 }

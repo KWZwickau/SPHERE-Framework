@@ -42,7 +42,6 @@ class Lesson implements IApplicationInterface
      */
     public function frontendDashboard()
     {
-
         $Stage = new Stage('Dashboard', 'Unterricht');
 
         return $Stage;
