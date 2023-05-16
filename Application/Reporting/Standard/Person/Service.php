@@ -4860,8 +4860,7 @@ class Service extends Extension
                     // Header
                     $row = $column = 0;
                     $export->setValue($export->getCell($column, $row), 'Schüler');
-                    $export->setStyle($export->getCell($column, $row), $export->getCell($column++, 2))->mergeCells()->setBorderAll()->setFontBold()
-                        ->setAlignmentCenter();
+                    $export->setStyle($export->getCell($column, $row), $export->getCell($column++, 2))->mergeCells()->setBorderAll()->setFontBold();
                     for ($i = 1; $i <= 31; $i++) {
                         $export->setValue($export->getCell($column, $row), $i);
                         $export->setStyle($export->getCell($column, $row), $export->getCell($column++, 2))->mergeCells()->setBorderAll()->setFontBold()
@@ -4894,6 +4893,7 @@ class Service extends Extension
                         $lastName = $tblPerson->getLastName();
                         $firstName = $tblPerson->getFirstSecondName();
                         $export->setValue($export->getCell($columnStudents, $rowStudents), $lastName . ', ' . $firstName);
+                        $export->setStyle($export->getCell($columnStudents, $rowStudents))->setBorderAll();
 
                         if (isset($dataList[$month][$tblPerson->getId()])) {
                             foreach ($dataList[$month][$tblPerson->getId()] as $day => $status) {
@@ -4933,7 +4933,7 @@ class Service extends Extension
                         }
                         $export->setValue($export->getCell(39, $rowStudents), $totalCountList[$tblPerson->getId()]['Lessons']['U']);
 
-                        for ($columnCount = 0; $columnCount < 40; $columnCount++) {
+                        for ($columnCount = 1; $columnCount < 40; $columnCount++) {
                             $columnLetter = \PHPExcel_Cell::stringFromColumnIndex($columnCount);
                             $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()
                                 ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
@@ -4943,7 +4943,7 @@ class Service extends Extension
                         $rowStudents++;
                     }
                     // Center Data
-                    for ($maxColumn = 0; $maxColumn < 40; $maxColumn++) {
+                    for ($maxColumn = 1; $maxColumn < 40; $maxColumn++) {
                         $columnLetter = \PHPExcel_Cell::stringFromColumnIndex($maxColumn);
                         $export->getActiveSheet()->getStyle($columnLetter . 3)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
                         $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()
