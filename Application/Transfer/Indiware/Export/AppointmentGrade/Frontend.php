@@ -4,8 +4,8 @@ namespace SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade;
 
 use SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\ApiAppointmentGrade;
 use SPHERE\Application\Document\Storage\FilePointer;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
@@ -50,11 +50,11 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Class Frontend
+ *
  * @package SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade
  */
 class Frontend extends Extension implements IFrontendInterface
 {
-
     /**
      * @return Stage
      */
@@ -89,8 +89,6 @@ class Frontend extends Extension implements IFrontendInterface
         // Vorladen der Selectbox mit Notenaufträgen des aktuellen Schuljahres
         $ReceiverAppointmentTask = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadTaskSelect($YearId), 'AppointmentTask');
         $ReceiverPeriod = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadPeriodSelect($PreselectId), 'Period');
-
-
 
         // Anzeige nur für alle aktuellen Jahre + das letzte Schuljahr
         $tblYearList = Term::useService()->getYearAllSinceYears(1);
@@ -166,7 +164,6 @@ class Frontend extends Extension implements IFrontendInterface
         int $TaskId = null,
         int $SchoolTypeId = null
     ): string {
-
         $Stage = new Stage('Indiware', 'Daten Export');
         $Stage->setMessage('Schüler-Fächer-Reihenfolge SEK II importieren');
 
@@ -180,7 +177,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
             return $Stage;
         } else {
-            $tblTask = Evaluation::useService()->getTaskById($TaskId);
+            $tblTask = Grade::useService()->getTaskById($TaskId);
             if (!$tblTask) {
                 $Stage->setContent(
                     new WarningMessage('Notenauftrag wurde nicht gefunden')

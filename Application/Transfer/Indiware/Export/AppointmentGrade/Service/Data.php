@@ -2,8 +2,7 @@
 
 namespace SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service;
 
-
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Entity\TblIndiwareStudentSubjectOrder;
@@ -11,7 +10,6 @@ use SPHERE\System\Database\Binding\AbstractData;
 
 class Data extends AbstractData
 {
-
     public function setupDatabaseContent()
     {
 
@@ -60,7 +58,6 @@ class Data extends AbstractData
      */
     public function createIndiwareStudentSubjectOrderBulk(array $ImportList,int $Period, TblTask $tblTask): bool
     {
-
         $Manager = $this->getConnection()->getEntityManager();
         if (!empty($ImportList)) {
             foreach ($ImportList as $Row) {

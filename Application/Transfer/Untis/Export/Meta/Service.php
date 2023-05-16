@@ -8,7 +8,7 @@ use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -16,36 +16,26 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 class Service
 {
     /**
-     * @param string $DivisionId
+     * @param string $DivisionCourseId
      *
      * @return bool|FilePointer
      */
-    public function createCsv($DivisionId = '')
+    public function createCsv(string $DivisionCourseId = '')
     {
-        $PersonList = array();
-        if($tblDivision = Division::useService()->getDivisionById($DivisionId)){
-            if(($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByDivision($tblDivision))){
-                foreach($tblDivisionStudentList as $tblDivisionStudent){
-                    if(($tblPerson = $tblDivisionStudent->getServiceTblPerson())){
-                        $PersonList[] = $tblPerson;
-                    }
-                }
-            }
-        }
-
-        if (!empty($PersonList)) {
-
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
             $fileLocation = Storage::createFilePointer('csv');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setDelimiter(';');
 
             $Row = 0;
-            foreach ($PersonList as $tblPerson) {
+            foreach ($tblPersonList as $tblPerson) {
                 $birthday = '';
                 $gender = '0';
                 $mark = '';
-                $DivisionName = '';
                 $studentNumber = '';
                 if(($tblCommon = Common::useService()->getCommonByPerson($tblPerson))){
                     if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
@@ -62,22 +52,20 @@ class Service
                 if (($tblStudent = $tblPerson->getStudent())) {
                     $studentNumber = $tblStudent->getIdentifier();
                 }
-                if($tblDivision){
-                    $DivisionName = $tblDivision->getDisplayName();
-                }
+
+                $DivisionName = $tblDivisionCourse->getName();
 
                 // todo Jens Ticket Auswahl für den Anzeigenamen erstellen über Formular + Möglichkeit Kennzeichnung "N" zu setzen, steht für nicht drucken
                 // Hintergrund aus Datenschutzgründen wird im Beruflichen Gym als Anzeigename die Schülernummer, statt des Schülernamens verwendet
                 $displayName = $tblPerson->getLastName() . ' : ' . $tblPerson->getFirstSecondName();
                 if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
-                    && $tblDivision
-                    && ($tblLevel = $tblDivision->getTblLevel())
-                    && ($tblSchoolType = $tblLevel->getServiceTblType())
+                    && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                 ) {
                     if ($tblSchoolType->getShortName() == 'BGy') {
                         $displayName = $studentNumber;
                     }
-                    if ($tblSchoolType->getShortName() == 'Gy' && intval($tblLevel->getName()) == 10) {
+                    if ($tblSchoolType->getShortName() == 'Gy' && $tblStudentEducation->getLevel() == 10) {
                         $mark = "N";
                     }
                 }
