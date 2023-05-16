@@ -22,7 +22,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -32,10 +31,9 @@ use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
-use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -178,6 +176,10 @@ class ApiUserDelete extends Extension implements IApiInterface
         } else {
             $Content = Account::useFrontend()->getCustodyTable(true);
         }
+        $showDeleting = true;
+        if($Content instanceof Warning){
+            $showDeleting = false;
+        }
 
         $Danger = new Danger('Löschen', '#', new Remove(), $Data, 'Löschen ist unwiderruflich');
         $DangerText = 'Hiermit werden die ausgewählten Accounts dauerhaft gelöscht';
@@ -204,10 +206,10 @@ class ApiUserDelete extends Extension implements IApiInterface
                 $Content
             ),
             new FormColumn(
-                $DangerText
+                ($showDeleting ? $DangerText : new WarningText(''))
             ),
             new FormColumn(
-                $Danger->ajaxPipelineOnClick(ApiUserDelete::pipelineLoadingScreen($Type))
+                ($showDeleting ? $Danger->ajaxPipelineOnClick(ApiUserDelete::pipelineLoadingScreen($Type)) : new WarningText(''))
             ),
         ))));
 
@@ -217,8 +219,12 @@ class ApiUserDelete extends Extension implements IApiInterface
         } elseif($Type == 'CUSTODY'){
             $InfoText = new Info('Auflistung von Sorgeberechtigten, deren Kinder nicht mehr in der Personengruppe Schüler sind');
         }
+        $ToggleButton = '';
+        if($showDeleting){
+            $ToggleButton = new ToggleCheckbox('Alle auswählen/abwählen', $form);
+        }
 
-        return $InfoText.new ToggleCheckbox('Alle auswählen/abwählen', $form).$form;
+        return $InfoText.$ToggleButton.$form;
     }
 
     /**
@@ -272,7 +278,7 @@ class ApiUserDelete extends Extension implements IApiInterface
     }
 
     /**
-     * @return WarningMessage|TableData
+     * @return Warning|TableData
      */
     public function getTableContent($Type)
     {
