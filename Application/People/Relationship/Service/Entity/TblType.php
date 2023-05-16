@@ -18,6 +18,7 @@ class TblType extends Element
     const IDENTIFIER_GUARDIAN = 'Sorgeberechtigt';
     const IDENTIFIER_AUTHORIZED = 'Bevollmächtigt';
     const IDENTIFIER_GUARDIAN_SHIP = 'Vormund';
+    const IDENTIFIER_SIBLING = 'Geschwisterkind';
     const IDENTIFIER_DEBTOR = 'Beitragszahler';
     const IDENTIFIER_EMERGENCY_CONTACT = 'Notfallkontakt';
 

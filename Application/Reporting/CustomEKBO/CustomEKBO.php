@@ -5,6 +5,9 @@ use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Reporting\CustomEKBO\BerlinZentrum\Person\Person as BerlinZentrumPerson;
+use SPHERE\Common\Main;
+use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\Common\Window\Stage;
 
 /**
  * Class CustomEKBO
@@ -26,10 +29,23 @@ class CustomEKBO implements IApplicationInterface
         }
 
 //        Main::getDisplay()->addApplicationNavigation(
-//            new Link(new Link\Route('SPHERE\Application\Reporting\Custom'), new Link\Name('Individual'))
+//            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Individual'))
 //        );
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-//            'SPHERE\Application\Reporting\Custom\SuSList', __CLASS__.'::frontendDashboard'
+//            __NAMESPACE__, __CLASS__.'::frontendDashboard'
 //        ));
     }
+
+//    /**
+//     * @return Stage
+//     */
+//    public function frontendDashboard()
+//    {
+//
+//        $Stage = new Stage('Individual', 'Dashboard');
+//
+//        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Auswertung'));
+//
+//        return $Stage;
+//    }
 }

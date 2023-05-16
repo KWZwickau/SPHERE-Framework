@@ -5,14 +5,15 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Application\Reporting\Standard\Person\Person;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -24,244 +25,148 @@ class Service extends Extension
 {
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return array
      */
-    public function createClassList(TblDivision $tblDivision)
+    public function createClassList(TblDivisionCourse $tblDivisionCourse)
     {
 
-        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
         $TableContent = array();
-        if (!empty( $tblPersonList )) {
-
-            $count = 0;
-
+        if(($tblPersonList = $tblDivisionCourse->getStudents())) {
+            $count = 1;
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count) {
-
-                $Item['Birthday'] = '';
-                $Item['Street'] = '';
-                $Item['ZipCode'] = '';
-                $Item['City'] = '';
-                $Item['District'] = '';
-                $Item['Parents'] = '';
-                $Item['ParentJob'] = '';
-                $Item['Phone'] = '';
-                $Item['PhoneMother'] = '';
-                $Item['PhoneFather'] = '';
-                $Item['Photo'] = '';
-
-                $Item['Number'] = ++$count;
-
-                $father = false;
-                $mother = false;
-                $fatherPhoneList = false;
-                $motherPhoneList = false;
-                $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-                if ($guardianList) {
-                    foreach ($guardianList as $guardian) {
-                        if ($guardian->getTblType()->getId() == 1 && $guardian->getServiceTblPersonFrom()) {
-                            if ($guardian->getServiceTblPersonFrom()->getTblSalutation()) {
-                                if ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1) {
-                                    $father = $guardian->getServiceTblPersonFrom();
-                                    if ($father) {
-                                        $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
-                                    }
-                                } else {
-                                    $mother = $guardian->getServiceTblPersonFrom();
-                                    if ($mother) {
-                                        $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
-                                    }
-                                }
-                            } else {
-                                if (!$father) {
-                                    $father = $guardian->getServiceTblPersonFrom();
-                                    if ($father) {
-                                        $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
-                                    }
-                                } else {
-                                    $mother = $guardian->getServiceTblPersonFrom();
-                                    if ($mother) {
-                                        $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
+                $item['Number'] = $count++;
+                $item['LastName'] = $tblPerson->getLastName();
+                $item['FirstName'] = $tblPerson->getFirstSecondName();
+                $item['Birthday'] = $tblPerson->getBirthday();
+                $item['Street'] = $item['StreetName'] = $item['StreetNumber'] = $item['Code'] = $item['City'] = $item['District'] = '';
+                $item['Parents'] = $item['ParentJob'] = '';
+                $item['Phone'] = $item['PhoneS1'] = $item['PhoneS2'] = '';
+                $item['Photo'] = '';
+                $item = Person::useService()->getAddressDataFromPerson($tblPerson, $item);
+                if($item['StreetName'] && $item['StreetNumber']){
+                    $item['Street'] = $item['StreetName'].' '.$item['StreetNumber'];
+                }
+                $phoneNumbers = array();
+                if(($phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))) {
+                    foreach ($phoneList as $phone) {
+                        if(($tblPhone = $phone->getTblPhone())){
+                            $phoneNumbers[] = $tblPhone->getNumber();
+                        }
+                    }
+                }
+                if (!empty($phoneNumbers)){
+                    $item['Phone'] = implode(', ', $phoneNumbers);
+                }
+                $tblPersonGuardList = array();
+                $GuardListPhoneList = array();
+                if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, TblType::IDENTIFIER_GUARDIAN))) {
+                    foreach($tblRelationshipList as $tblToPerson) {
+                        if(($tblPersonGuard = $tblToPerson->getServiceTblPersonFrom())) {
+                            $Ranking = $tblToPerson->getRanking();
+                            $tblPersonGuardList[$Ranking] = $tblPersonGuard;
+                            if(($tblToPersonGuardList = Phone::useService()->getPhoneAllByPerson($tblPersonGuard))) {
+                                foreach($tblToPersonGuardList as $tblToPersonGuard) {
+                                    if(($tblPhoneGuard = $tblToPersonGuard->getTblPhone())) {
+                                        $GuardListPhoneList[$Ranking][] = $tblPhoneGuard->getNumber();
                                     }
                                 }
                             }
                         }
                     }
+                    ksort($tblPersonGuardList);
                 }
-
-                if (( $address = $tblPerson->fetchMainAddress() )) {
-                    $Item['Street'] = $address->getStreetName() . ' ' . $address->getStreetNumber();
-                    if ($address->getTblCity()) {
-                        $Item['ZipCode'] = $address->getTblCity()->getCode();
-                        $Item['City'] = $address->getTblCity()->getName();
-                        $Item['District'] = $address->getTblCity()->getDistrict();
+                if(!empty($GuardListPhoneList)){
+                    foreach($GuardListPhoneList as $Ranking => $PhoneList){
+                        switch ($Ranking) {
+                            case 1:
+                                $item['PhoneS1'] = implode(', ', $PhoneList);
+                            break;
+                            case 2:
+                                $item['PhoneS2'] = implode(', ', $PhoneList);
+                            break;
+                        }
                     }
                 }
-
-                $Item['LastName'] = $tblPerson->getLastName();
-                $Item['FirstName'] = $tblPerson->getFirstSecondName();
-
-                $FatherString = '( - )';
-                if ($father) {
-                    $tblCustodyFather = Custody::useService()->getCustodyByPerson($father);
-                    if ($tblCustodyFather) {
-                        $FatherString = '('.($tblCustodyFather->getOccupation()
-                                ? $tblCustodyFather->getOccupation()
-                                : ' - ').
-                            ($tblCustodyFather->getEmployment()
-                                ? ', '.$tblCustodyFather->getEmployment()
-                                : '')
-                            .')';
+                if(!empty($tblPersonGuardList)){
+                    foreach($tblPersonGuardList as $tblPersonGuard){
+                        $jobString = '( - )';
+                        if(($tblCustody = Custody::useService()->getCustodyByPerson($tblPersonGuard))) {
+                            $jobString = '('.
+                                ($tblCustody->getOccupation()
+                                    ?: ' - ').
+                                ($tblCustody->getEmployment()
+                                    ? ', '.$tblCustody->getEmployment()
+                                    : '')
+                                .')';
+                        }
+                        $item['ParentJob'] .= ($item['ParentJob'] != ''? ', ': '').$tblPersonGuard->getFirstSecondName().' '.$tblPersonGuard->getLastName().' '
+                            .$jobString;
+                        $item['Parents'] .= ($item['Parents'] != ''? ' & ': '').($tblPersonGuard->getTitle() ? $tblPersonGuard->getTitle().' ' : '')
+                            .$tblPersonGuard->getFirstSecondName().' '.$tblPersonGuard->getLastName();
                     }
                 }
-                $MotherString = '( - )';
-                if ($mother) {
-                    $tblCustodyMother = Custody::useService()->getCustodyByPerson($mother);
-                    if ($tblCustodyMother) {
-                        $MotherString = '('.
-                            ($tblCustodyMother->getOccupation()
-                                ? $tblCustodyMother->getOccupation()
-                                : ' - ').
-                            ($tblCustodyMother->getEmployment()
-                                ? ', '.$tblCustodyMother->getEmployment()
-                                : '')
-                            .')';
-                    }
-                }
-
-                if ($father && $mother){
-
-                    $Item['ParentJob'] = $father->getFirstSecondName().' '.$father->getLastName().' '.$FatherString;
-                    $Item['ParentJob'] .= ', '.$mother->getFirstSecondName().' '.$mother->getLastName().' '.$MotherString;
-
-                    $Item['Parents'] = ($mother->getTitle() ? $mother->getTitle().' ' : '').$mother->getFirstSecondName() .
-                        ($father->getLastName() == $mother->getLastName() ? '' : ' ' . $mother->getLastName())
-                        . ' & ' .($father->getTitle() ? $father->getTitle().' ' : '')
-                        . $father->getFirstSecondName() . ' ' . $father->getLastName();
-                } elseif ($father) {
-                    $Item['ParentJob'] = $father->getFirstSecondName().' '.$father->getLastName().' '.$FatherString;
-                    $Item['Parents'] = ($father->getTitle() ? $father->getTitle().' ' : '')
-                        .$father->getFirstSecondName().' '.$father->getLastName();
-                } elseif ($mother) {
-                    $Item['ParentJob'] = $mother->getFirstSecondName().' '.$mother->getLastName().$MotherString;
-                    $Item['Parents'] = ($mother->getTitle() ? $mother->getTitle().' ' : '')
-                        .$mother->getFirstSecondName().' '.$mother->getLastName();
-                }
-
-                $common = Common::useService()->getCommonByPerson($tblPerson);
-                if ($common) {
-                    $Item['Birthday'] = $common->getTblCommonBirthDates()->getBirthday();
-                }
-
-                $phoneNumbers = array();
-                $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
-                if ($phoneList) {
-                    foreach ($phoneList as $phone) {
-                        $phoneNumbers[] = $phone->getTblPhone()->getNumber();
-                    }
-                    if (!empty($phoneNumbers)){
-                        $Item['Phone'] = implode(', ', $phoneNumbers);
-                    }
-                }
-
-                $phoneNumbers = array();
-                if ($fatherPhoneList) {
-                    foreach ($fatherPhoneList as $phone) {
-                        $phoneNumbers[] = $phone->getTblPhone()->getNumber();
-                    }
-                    if (!empty($phoneNumbers)){
-                        $Item['PhoneFather'] = implode(', ', $phoneNumbers);
-                    }
-                }
-
-                $phoneNumbers = array();
-                if ($motherPhoneList) {
-                    foreach ($motherPhoneList as $phone) {
-                        $phoneNumbers[] = $phone->getTblPhone()->getNumber();
-                    }
-                    if (!empty($phoneNumbers)){
-                        $Item['PhoneMother'] = implode(', ', $phoneNumbers);
-                    }
-                }
-
-                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                if ($tblStudent){
-                    $tblStudentAgreementAllByStudent = Student::useService()->getStudentAgreementAllByStudent($tblStudent);
-                    if ($tblStudentAgreementAllByStudent){
+                if(($tblStudent = $tblPerson->getStudent())){
+                    if(($tblStudentAgreementAllByStudent = Student::useService()->getStudentAgreementAllByStudent($tblStudent))){
                         foreach ($tblStudentAgreementAllByStudent as $tblStudentAgreement){
                             if ($tblStudentAgreement->getTblStudentAgreementType()->getTblStudentAgreementCategory()->getId() == 1 ){
-                                $Item['Photo'] = 'X';
+                                $item['Photo'] = 'X';
                             }
                         }
                     }
                 }
-
-                array_push($TableContent, $Item);
+                array_push($TableContent, $item);
             });
         }
-
         return $TableContent;
     }
 
     /**
      * @param $PersonList
      *
-     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
-     * @throws \PHPExcel_Reader_Exception
+     * @return FilePointer
      */
-    public function createClassListExcel($PersonList)
+    public function createClassListExcel($TableContent)
     {
 
-        if (!empty( $PersonList )) {
-
-            $fileLocation = Storage::createFilePointer('xlsx');
-            /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation->getFileLocation());
-
-            $export->setStyle($export->getCell(0, 0), $export->getCell(12, 0))->setFontBold();
-
-            $row = 0;
-            $column = 1;
-            $export->setValue($export->getCell($column++, $row), 'Name');
-            $export->setValue($export->getCell($column++, $row), 'Vorname');
-            $export->setValue($export->getCell($column++, $row), 'Geburtstag');
-            $export->setValue($export->getCell($column++, $row), 'Ortsteil');
-            $export->setValue($export->getCell($column++, $row), 'Straße');
-            $export->setValue($export->getCell($column++, $row), 'PLZ');
-            $export->setValue($export->getCell($column++, $row), 'Ort');
-            $export->setValue($export->getCell($column++, $row), 'Eltern');
-            $export->setValue($export->getCell($column++, $row), 'Eltern (Beruf)');
-            $export->setValue($export->getCell($column++, $row), 'Telefon privat');
-            $export->setValue($export->getCell($column++, $row), 'Mutter');
-            $export->setValue($export->getCell($column++, $row), 'Vater');
-            $export->setValue($export->getCell($column, $row), 'FOTO');
-
-            foreach ($PersonList as $PersonData) {
-                $row++;
-                $column = 0;
-                $export->setValue($export->getCell($column++, $row), $PersonData['Number']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['Birthday']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['District']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['Street']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['ZipCode']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['City']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['Parents']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['ParentJob']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['Phone']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['PhoneMother']);
-                $export->setValue($export->getCell($column++, $row), $PersonData['PhoneFather']);
-                $export->setValue($export->getCell($column, $row), $PersonData['Photo']);
-            }
-
-            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
-
-            return $fileLocation;
+        $fileLocation = Storage::createFilePointer('xlsx');
+        /** @var PhpExcel $export */
+        $export = Document::getDocument($fileLocation->getFileLocation());
+        $column = $row = 0;
+        $export->setValue($export->getCell($column++, $row), 'Nr.');
+        $export->setValue($export->getCell($column++, $row), 'Name');
+        $export->setValue($export->getCell($column++, $row), 'Vorname');
+        $export->setValue($export->getCell($column++, $row), 'Geburtstag');
+        $export->setValue($export->getCell($column++, $row), 'Ortsteil');
+        $export->setValue($export->getCell($column++, $row), 'Straße');
+        $export->setValue($export->getCell($column++, $row), 'PLZ');
+        $export->setValue($export->getCell($column++, $row), 'Ort');
+        $export->setValue($export->getCell($column++, $row), 'Eltern');
+        $export->setValue($export->getCell($column++, $row), 'Eltern (Beruf)');
+        $export->setValue($export->getCell($column++, $row), 'Telefon privat');
+        $export->setValue($export->getCell($column++, $row), 'S1');
+        $export->setValue($export->getCell($column++, $row), 'S2');
+        $export->setValue($export->getCell($column, $row++), 'FOTO');
+        $export->setStyle($export->getCell(0, 0), $export->getCell(12, 0))->setFontBold();
+        foreach ($TableContent as $PersonData) {
+            $column = 0;
+            $export->setValue($export->getCell($column++, $row), $PersonData['Number']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['Birthday']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['District']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['Street']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['Code']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['City']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['Parents']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['ParentJob']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['Phone']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['PhoneS1']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['PhoneS2']);
+            $export->setValue($export->getCell($column, $row++), $PersonData['Photo']);
         }
-        return false;
+        $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+        return $fileLocation;
     }
 }

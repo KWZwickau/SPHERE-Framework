@@ -80,16 +80,19 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblType|null $tblType
+     * @param TblType|string|null $tblType
      * @param bool $isForced
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, TblType $tblType = null, $isForced = false)
+    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, $tblType = null, $isForced = false)
     {
+
+        if(null !== $tblType && !($tblType instanceof TblType)){
+            $tblType = Relationship::useService()->getTypeByName($tblType);
+        }
         // Sortier-Reihenfolge
         // Sorg1, Sorg2, Sorg3, Vormund, Bevollmächtigter, Geschwisterkinder (eigene Beziehungen), Geschwisterkinder (andersrum), Rest
-
         $resultList = array();
         if (($list  = (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType, $isForced))) {
             $count['Sorgeberechtigt'] = 4;

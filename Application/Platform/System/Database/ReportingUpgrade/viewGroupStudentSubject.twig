@@ -19,34 +19,24 @@ SELECT distinct
 			limit 0,1) = tSU.Id
 	) AS TblSubject_Name_ForeignLanguage1,
 
-	(select
-		tL.Name
-	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
-	where
-		(select
-			tSS.serviceTblLevelFrom
-		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
-		where tSSR.Identifier = 1
-			and tSST.Identifier = 'FOREIGN_LANGUAGE'
-			and tSS.tblStudent = tS.Id
-			limit 0,1) = tL.Id
+	(select tSS.LevelFrom
+	from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+	where tSSR.Identifier = 1
+		and tSST.Identifier = 'FOREIGN_LANGUAGE'
+		and tSS.tblStudent = tS.Id
+		limit 0,1
 	) AS TblSubject_From_ForeignLanguage1,
 
-	(select
-		tL.Name
-	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
-	where
-		(select
-			tSS.serviceTblLevelTill
-		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
-		where tSSR.Identifier = 1
-			and tSST.Identifier = 'FOREIGN_LANGUAGE'
-			and tSS.tblStudent = tS.Id
-			limit 0,1) = tL.Id
+	(select tSS.LevelTill
+	from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+	where tSSR.Identifier = 1
+		and tSST.Identifier = 'FOREIGN_LANGUAGE'
+		and tSS.tblStudent = tS.Id
+		limit 0,1
 	) AS TblSubject_Till_ForeignLanguage1,
 
 -- second foreign language
@@ -65,34 +55,24 @@ SELECT distinct
 			limit 0,1)= tSU.Id
 	) AS TblSubject_Name_ForeignLanguage2,
 
-	(select
-		tL.Name
-	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
-	where
-		(select
-			tSS.serviceTblLevelFrom
-		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
-		where tSSR.Identifier = 2
-			and tSST.Identifier = 'FOREIGN_LANGUAGE'
-			and tSS.tblStudent = tS.Id
-			limit 0,1) = tL.Id
+	(select tSS.LevelFrom
+	from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+	where tSSR.Identifier = 2
+		and tSST.Identifier = 'FOREIGN_LANGUAGE'
+		and tSS.tblStudent = tS.Id
+		limit 0,1
 	) AS TblSubject_From_ForeignLanguage2,
 
-	(select
-		tL.Name
-	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
-	where
-		(select
-			tSS.serviceTblLevelTill
-		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
-		where tSSR.Identifier = 2
-			and tSST.Identifier = 'FOREIGN_LANGUAGE'
-			and tSS.tblStudent = tS.Id
-			limit 0,1) = tL.Id
+	(select tSS.LevelTill
+	from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+	where tSSR.Identifier = 2
+		and tSST.Identifier = 'FOREIGN_LANGUAGE'
+		and tSS.tblStudent = tS.Id
+		limit 0,1
 	) AS TblSubject_Till_ForeignLanguage2,
 
 -- third foreign language
@@ -111,34 +91,24 @@ SELECT distinct
 			limit 0,1) = tSU.Id
 	) AS TblSubject_Name_ForeignLanguage3,
 
-	(select
-		tL.Name
-	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
-	where
-		(select
-			tSS.serviceTblLevelFrom
-		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
-		where tSSR.Identifier = 3
-			and tSST.Identifier = 'FOREIGN_LANGUAGE'
-			and tSS.tblStudent = tS.Id
-			limit 0,1) = tL.Id
+	(select tSS.LevelFrom
+	from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+	where tSSR.Identifier = 3
+		and tSST.Identifier = 'FOREIGN_LANGUAGE'
+		and tSS.tblStudent = tS.Id
+		limit 0,1
 	) AS TblSubject_From_ForeignLanguage3,
 
-	(select
-		tL.Name
-	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
-	where
-		(select
-			tSS.serviceTblLevelTill
-		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
-		where tSSR.Identifier = 3
-			and tSST.Identifier = 'FOREIGN_LANGUAGE'
-			and tSS.tblStudent = tS.Id
-			limit 0,1) = tL.Id
+	(select tSS.LevelTill
+	from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+	where tSSR.Identifier = 3
+		and tSST.Identifier = 'FOREIGN_LANGUAGE'
+		and tSS.tblStudent = tS.Id
+		limit 0,1
 	) AS TblSubject_Till_ForeignLanguage3,
 
 -- fourth foreign language
@@ -157,33 +127,24 @@ SELECT distinct
 			limit 0,1) = tSU.Id
 	) AS TblSubject_Name_ForeignLanguage4,
 
-	(select
-		tL.Name
-	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
-	where
-		(select tSS.serviceTblLevelFrom
-		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
-		where tSSR.Identifier = 4
-			and tSST.Identifier = 'FOREIGN_LANGUAGE'
-			and tSS.tblStudent = tS.Id
-			limit 0,1) = tL.Id
+	(select tSS.LevelFrom
+	from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+	where tSSR.Identifier = 4
+		and tSST.Identifier = 'FOREIGN_LANGUAGE'
+		and tSS.tblStudent = tS.Id
+		limit 0,1
 	) AS TblSubject_From_ForeignLanguage4,
 
-	(select
-		tL.Name
-	from {{ ConsumerAcronym }}_EducationLessonDivision.tblLevel tL
-	where
-		(select
-			tSS.serviceTblLevelTill
-		from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
-			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
-		where tSSR.Identifier = 4
-			and tSST.Identifier = 'FOREIGN_LANGUAGE'
-			and tSS.tblStudent = tS.Id
-			limit 0,1) = tL.Id
+	(select tSS.LevelTill
+	from {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubject tSS
+	LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectRanking tSSR ON tSSR.Id = tSS.tblStudentSubjectRanking
+	LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentSubjectType tSST ON tSST.Id = tSS.tblStudentSubjectType
+	where tSSR.Identifier = 4
+	and tSST.Identifier = 'FOREIGN_LANGUAGE'
+	and tSS.tblStudent = tS.Id
+	limit 0,1
 	) AS TblSubject_Till_ForeignLanguage4,
 
 -- religion

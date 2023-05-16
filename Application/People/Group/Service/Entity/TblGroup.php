@@ -336,4 +336,14 @@ class TblGroup extends Element
 
         return empty($list) ? false : $list;
     }
+
+    /**
+     * @return array|TblPerson[]
+     */
+    public function getPersonList()
+    {
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup($this);
+        return $tblPersonList ?: array();
+    }
 }

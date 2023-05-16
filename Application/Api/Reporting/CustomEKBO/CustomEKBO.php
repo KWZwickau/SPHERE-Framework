@@ -22,7 +22,7 @@ class CustomEKBO implements IModuleInterface
         if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_BERLIN) {
             $consumerAcronym = $tblConsumer->getAcronym();
             // Berlin Zentrum
-            if ($consumerAcronym === 'ESBZ') {
+            if ($consumerAcronym === 'ESBZ' || $consumerAcronym === 'REF') {
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/BerlinZentrum/SuSList/Download', __NAMESPACE__ . '\BerlinZentrum\Common::downloadSuSList'
                 ));

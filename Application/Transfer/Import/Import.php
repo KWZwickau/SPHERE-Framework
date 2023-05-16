@@ -30,9 +30,7 @@ use SPHERE\Application\Transfer\Import\Standard\Mail\Mail;
 use SPHERE\Application\Transfer\Import\Tharandt\Tharandt;
 use SPHERE\Application\Transfer\Import\WVSZ\WVSZ;
 use SPHERE\Application\Transfer\Import\Zwickau\Zwickau;
-use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -73,7 +71,7 @@ class Import implements IApplicationInterface
             if ($consumerAcronym === 'EZSH') {
                 Herrnhut::registerModule();
             }
-            if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
+            if ($consumerAcronym === 'FESH') {
                 Hormersdorf::registerModule();
             }
             if ($consumerAcronym === 'EVAMTL') {

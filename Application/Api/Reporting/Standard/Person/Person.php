@@ -66,7 +66,7 @@ class Person extends Extension
             && ($dataList = ReportingPerson::useService()->createClassList($tblPersonList, $tblYear))
         ) {
             $fileLocation = ReportingPerson::useService()->createClassListExcel($dataList, $tblPersonList, $tblDivisionCourse);
-            return FileSystem::getDownload($fileLocation->getRealPath(), $name . '_' . date("Y-m-d").".xlsx")->__toString();    // removed " H:i:s"
+            return FileSystem::getDownload($fileLocation->getRealPath(), $name . '_' . date("Y-m-d").".xlsx")->__toString();
         }
         return false;
     }
@@ -84,7 +84,7 @@ class Person extends Extension
         } else {return false;}
         if (($dataList = ReportingPerson::useService()->createExtendedClassList($tblDivisionCourse))) {
             $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($dataList, $tblDivisionCourse);
-            return FileSystem::getDownload($fileLocation->getRealPath(), "Erweiterte_".$name.'_'.date("Y-m-d").".xlsx")->__toString();  // removed " H:i:s"
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Erweiterte_".$name.'_'.date("Y-m-d").".xlsx")->__toString();
         }
         return false;
     }
@@ -103,7 +103,7 @@ class Person extends Extension
         } else {return false;}
         if (($dataList = ReportingPerson::useService()->createElectiveClassList($tblDivisionCourse))) {
             $fileLocation = ReportingPerson::useService()->createElectiveClassListExcel($dataList, $tblDivisionCourse);
-            return FileSystem::getDownload($fileLocation->getRealPath(), "Wahlfächer_".$name.'_'.date("Y-m-d").".xlsx")->__toString();  // removed " H:i:s"
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Wahlfächer_".$name.'_'.date("Y-m-d").".xlsx")->__toString();
         }
         return false;
     }
@@ -123,7 +123,7 @@ class Person extends Extension
         if(($tblPersonList = $tblDivisionCourse->getStudents())
         && ($dataList = ReportingPerson::useService()->createBirthdayClassList($tblDivisionCourse))){
             $fileLocation = ReportingPerson::useService()->createBirthdayClassListExcel($dataList, $tblPersonList);
-            return FileSystem::getDownload($fileLocation->getRealPath(), "Geburtstag_".$name.'_'.date("Y-m-d").".xlsx")->__toString();  // removed " H:i:s"
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Geburtstag_".$name.'_'.date("Y-m-d").".xlsx")->__toString();
         }
         return false;
     }
@@ -165,7 +165,7 @@ class Person extends Extension
             array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $dataList);
             $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT));
             $fileLocation = ReportingPerson::useService()->createInterestedPersonListExcel($dataList, $tblPersonList, $hasGuardian, $hasAuthorizedPerson);
-            return FileSystem::getDownload($fileLocation->getRealPath(), "Interessentenliste ".date("Y-m-d").".xlsx")->__toString(); // removed " H:i:s"
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Interessentenliste ".date("Y-m-d").".xlsx")->__toString();
         }
         return false;
     }
@@ -179,10 +179,10 @@ class Person extends Extension
     {
 
         if (($tblGroup = Group::useService()->getGroupById($GroupId))
-        && ($PersonList = ReportingPerson::useService()->createGroupList($tblGroup))
-        && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-            $fileLocation = ReportingPerson::useService()->createGroupListExcel($PersonList, $tblPersonList, $GroupId);
-            return FileSystem::getDownload($fileLocation->getRealPath(), "Gruppenliste ".$tblGroup->getName() ." ".date("Y-m-d").".xlsx")->__toString();  // removed " H:i:s"
+        && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+        && !empty($TableContent = ReportingPerson::useService()->createGroupList($tblGroup))) {
+            $fileLocation = ReportingPerson::useService()->createGroupListExcel($TableContent, $tblPersonList, $tblGroup);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Gruppenliste ".$tblGroup->getName() ." ".date("Y-m-d").".xlsx")->__toString();
         }
         return false;
     }
@@ -196,7 +196,7 @@ class Person extends Extension
     {
 
         $fileLocation = ReportingPerson::useService()->createMetaDataComparisonExcel($Data);
-        return FileSystem::getDownload($fileLocation->getRealPath(),"Stammdatenabfrage ".date("Y-m-d").".xlsx")->__toString();  // removed " H:i:s"
+        return FileSystem::getDownload($fileLocation->getRealPath(),"Stammdatenabfrage ".date("Y-m-d").".xlsx")->__toString();
     }
 
     /**
@@ -272,7 +272,7 @@ class Person extends Extension
             if(!empty(($dataList = ReportingPerson::useService()->createAgreementList($tblPersonList)))){
                 $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($dataList, $tblPersonList);
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    'Einverständniserklärung_Schüler ' . date("Y-m-d").".xlsx")->__toString();  // removed " H:i:s"
+                    'Einverständniserklärung_Schüler ' . date("Y-m-d").".xlsx")->__toString();
             }
         }
         return false;
@@ -370,7 +370,7 @@ class Person extends Extension
             $dataList = ReportingPerson::useService()->createStudentArchiveList($personList);
             $fileLocation = ReportingPerson::useService()->createStudentArchiveExcel($dataList);
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Ehemalige Schüler " . $tblYear->getName() . ' ' . date("Y-m-d").".xlsx")->__toString();  // removed " H:i:s"
+                "Ehemalige Schüler " . $tblYear->getName() . ' ' . date("Y-m-d").".xlsx")->__toString();
         }
         return false;
     }
@@ -489,7 +489,7 @@ class Person extends Extension
         if (!empty($TableContent)) {
             $fileLocation = ReportingPerson::useService()->createDivisionTeacherExcelList($TableContent, $headers);
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Klassenlehrer ".date("Y-m-d").".xlsx")->__toString();  // removed " H:i:s"
+                "Klassenlehrer ".date("Y-m-d").".xlsx")->__toString();
         }
         return false;
     }

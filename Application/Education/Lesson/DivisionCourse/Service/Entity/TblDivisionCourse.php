@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
@@ -340,6 +339,14 @@ class TblDivisionCourse extends Element
         } else {
             return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_STUDENT, $withInActive);
         }
+    }
+
+    /**
+     * @return false|TblPerson[]
+     */
+    public function getCustody()
+    {
+        return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_CUSTODY);
     }
 
     /**
