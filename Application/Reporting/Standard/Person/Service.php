@@ -4958,7 +4958,7 @@ class Service extends Extension
                         $export->setValue($cellCoord, $value);
                     }
                     // width of cells
-                    $export->setStyle($export->getCell(0, 2), $export->getCell($column, $row))->setColumnWidth(17.5);
+                    $export->setStyle($export->getCell(0, 0))->setColumnWidth(21);
                 }
             }
             $Month = (int)$startDate->format('m');
