@@ -817,13 +817,18 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = $PersonService->getStudentTableContent($tblPersonList, $Data);
         $MetaComparisonList = $PersonService->getMetaComparisonList();
         $TableHead = array();
+        $TableHead['Level'] = 'Stufe';
         $TableHead['DivisionCourse'] = 'Klasse';
+        $TableHead['CoreGroup'] = 'Stammgruppe';
         $TableHead['StudentNumber'] = 'Schülernummer';
         $TableHead['FirstName'] = 'Vorname';
         $TableHead['LastName'] = 'Nachname';
         $TableHead['Gender'] = 'Geschlecht';
         $TableHead['Birthday'] = 'Geburtsdatum';
         $TableHead['BirthPlace'] = 'Geburtsort';
+        $TableHead['CourseType'] = 'Bildungsgang';
+        $TableHead['School'] = 'Schule';
+        $TableHead['SchoolType'] = 'Schulart';
         $TableHead['Nationality'] = 'Staatsangehörigkeit';
         $TableHead['Address'] = 'Adresse';
         $TableHead['Medication'] = 'Medikamente';
@@ -843,12 +848,12 @@ class Frontend extends Extension implements IFrontendInterface
         $TableHead['Sibling_3'] = 'Geschwister3';
 
         $ColumnDef = array(
-            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 4),
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 5),
             // Sibling
-            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 21),
-            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 22),
-            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 23),
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 25),
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 26),
+            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 27),
         );
 
         $SortCount = 0;
@@ -872,8 +877,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $TableHead[$Type.$i.'_PhoneMobileEmergency'] = $Type.' '.$i.' Festnetz (Notfall)';
                         $TableHead[$Type.$i.'_Mail_Private'] = $Type.' '.$i.' Mail (Privat)';
                         $TableHead[$Type.$i.'_Mail_Work'] = $Type.' '.$i.' Mail (Geschäftl.)';
-                        $ColumnDef[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (27 + (16 * $SortCount)));
-                        $ColumnDef[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (28 + (16 * $SortCount)));
+                        $ColumnDef[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (31 + (16 * $SortCount)));
+                        $ColumnDef[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => (32 + (16 * $SortCount)));
                         $SortCount++;
                     }
                 }
@@ -882,7 +887,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Table = new TableData($TableContent, null, $TableHead,
             array(
-                'order'      => array(array(1, 'asc')),
+                'order'      => array(array(1, 'asc'), array(5, 'asc')),
                 'columnDefs' => $ColumnDef,
                 'responsive' => false,
             )
@@ -935,7 +940,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new SelectBox('Data[TypeId]', 'Schulart', array('{{ Name }}' => Type::useService()->getTypeAll()))), Panel::PANEL_TYPE_INFO)
             , 4);
         $FilterColumnList[] = new FormColumn(
-            new Panel('Klasse/Stammgruppe/Kurs', array(
+            new Panel('Klasse/Stammgruppe', array(
                 new SelectBox('Data[Level]', 'Stufe', $LevelList, null, false), $DivisionCourseSelectBox), Panel::PANEL_TYPE_INFO)
             , 4);
         if($IsSibling){
@@ -952,27 +957,31 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param false|int $YearId
+     * @param string $YearId
      *
      * @return string
      *
      */
-    public function getDivisionCourseSelectBox($YearId = false)
+    public function getDivisionCourseSelectBox($YearId)
     {
 
-        if($YearId){
-            $tblYear = Term::useService()->getYearById($YearId);
-        } else {
-            return new Warning('Bitte wählen Sie ein Schuljahr aus', null, false, 15, 11);
+        if(!($tblYear = Term::useService()->getYearById($YearId))){
+            return new Warning('Schuljahr nicht gefunden', null, false, 15, 11);
         }
-        if(!$tblYear){
-            // fallback if no Id exists
-            $tblYearList = Term::useService()->getYearByNow();
-            $tblYear = current($tblYearList);
+//        if(!$tblYear){
+//            // fallback if no Id exists
+//            $tblYearList = Term::useService()->getYearByNow();
+//            $tblYear = current($tblYearList);
+//        }
+        $tblDivisionCourseList = array();
+        if(($tempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tempList);
         }
-
-        return new SelectBox('Data[DivisionCourseId]', 'Klasse/Stammgruppe/Kurs SJ'.$tblYear->getYear()
-            , array('{{ Name }} {{ Description }}' => DivisionCourse::useService()->getDivisionCourseListByYear($tblYear, true)));
+        if(($tempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tempList);
+        }
+        return new SelectBox('Data[DivisionCourseId]', 'Klasse/Stammgruppe SJ'.$tblYear->getYear()
+            , array('{{ Name }} {{ Description }}' => $tblDivisionCourseList));
     }
 
     /**

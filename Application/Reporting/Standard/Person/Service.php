@@ -2107,13 +2107,17 @@ class Service extends Extension
         }
         /* @var TblPerson $tblPerson */
         foreach($tblPersonList as $tblPerson){
+            $item['Level'] = '';
             $item['DivisionCourse'] = '';
+            $item['CoreGroup'] = '';
             $item['StudentNumber'] = '';
             $item['FirstName'] = $tblPerson->getFirstSecondName();
             $item['LastName'] = $tblPerson->getLastName();
             $item['Gender'] = $tblPerson->getGenderString();
             $item['Birthday'] = $tblPerson->getBirthday();
             $item['BirthPlace'] = $tblPerson->getBirthplaceString();
+            $item['School'] = '';
+            $item['SchoolType'] = '';
             $item['Denomination'] = $tblPerson->getDenominationString();
             $item['Nationality'] = $tblPerson->getNationalityString();
             $item['StreetName'] = $item['StreetNumber'] = $item['Code'] = $item['City'] = $item['District'] = '';
@@ -2133,11 +2137,27 @@ class Service extends Extension
                 }
             }
             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+                $item['Level'] = $tblStudentEducation->getLevel();
+                if(($tblCompany = $tblStudentEducation->getServiceTblCompany())){
+                    $item['School'] = $tblCompany->getDisplayName();
+                }
+                // Bildungsgang
+                $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                $tblCourse = $tblStudentEducation->getServiceTblCourse();
+                // berufsbildende Schulart
+                if ($tblSchoolType && $tblSchoolType->isTechnical()) {
+                    $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                } else {
+                    $courseName = $tblCourse ? $tblCourse->getName() : '';
+                }
+                $item['CourseType'] = $courseName;
+                $item['SchoolType'] = $tblSchoolType->getName();
+                // Klasse / Gruppe
                 if(($tblDivisionCourseClass = $tblStudentEducation->getTblDivision())){
                     $item['DivisionCourse'] = $tblDivisionCourseClass->getDisplayName();
                 }
                 if(($tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup())){
-                    $item['DivisionCourse'] .= ($item['DivisionCourse'] ? ', ' : '').$tblDivisionCourseCoreGroup->getDisplayName();
+                    $item['CoreGroup'] = ($item['CoreGroup'] ? ', ' : '').$tblDivisionCourseCoreGroup->getDisplayName();
                 }
             }
             if(($tblMailAll = Mail::useService()->getMailAllByPerson($tblPerson))){
@@ -2485,13 +2505,18 @@ class Service extends Extension
         $export = Document::getDocument($fileLocation->getFileLocation());
         $Row = 0;
         $Column = 0;
+        $export->setValue($export->getCell($Column++, $Row), "Stufe");
         $export->setValue($export->getCell($Column++, $Row), "Klasse");
+        $export->setValue($export->getCell($Column++, $Row), "Stammgruppe");
         $export->setValue($export->getCell($Column++, $Row), "Schülernummer");
         $export->setValue($export->getCell($Column++, $Row), "Vorname");
         $export->setValue($export->getCell($Column++, $Row), "Nachname");
         $export->setValue($export->getCell($Column++, $Row), "Geschlecht");
         $export->setValue($export->getCell($Column++, $Row), "Geburtstag");
         $export->setValue($export->getCell($Column++, $Row), "Geburtsort");
+        $export->setValue($export->getCell($Column++, $Row), "Bildungsgang");
+        $export->setValue($export->getCell($Column++, $Row), "Schule");
+        $export->setValue($export->getCell($Column++, $Row), "Schulart");
         $export->setValue($export->getCell($Column++, $Row), "Staatsangehörigkeit");
         $export->setValue($export->getCell($Column++, $Row), "Straße");
         $export->setValue($export->getCell($Column++, $Row), "Hausnummer");
@@ -2559,13 +2584,18 @@ class Service extends Extension
         foreach ($TableContent as $PersonData) {
             $Row++;
             $Column = 0;
+            $export->setValue($export->getCell($Column++, $Row), $PersonData['Level']);
             $export->setValue($export->getCell($Column++, $Row), $PersonData['DivisionCourse']);
+            $export->setValue($export->getCell($Column++, $Row), $PersonData['CoreGroup']);
             $export->setValue($export->getCell($Column++, $Row), $PersonData['StudentNumber']);
             $export->setValue($export->getCell($Column++, $Row), $PersonData['FirstName']);
             $export->setValue($export->getCell($Column++, $Row), $PersonData['LastName']);
             $export->setValue($export->getCell($Column++, $Row), $PersonData['Gender']);
             $export->setValue($export->getCell($Column++, $Row), $PersonData['Birthday']);
             $export->setValue($export->getCell($Column++, $Row), $PersonData['BirthPlace']);
+            $export->setValue($export->getCell($Column++, $Row), $PersonData['CourseType']);
+            $export->setValue($export->getCell($Column++, $Row), $PersonData['School']);
+            $export->setValue($export->getCell($Column++, $Row), $PersonData['SchoolType']);
             $export->setValue($export->getCell($Column++, $Row), $PersonData['Nationality']);
             $export->setValue($export->getCell($Column++, $Row), $PersonData['StreetName']);
             $export->setValue($export->getCell($Column++, $Row), $PersonData['StreetNumber']);

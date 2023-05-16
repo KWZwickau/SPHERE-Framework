@@ -354,12 +354,13 @@ class Data extends DataTeacher
     /**
      * @param TblYear $tblYear
      * @param TblDivisionCourse|null $tblDivisionCourse
+     * @param TblType|null $tblTypeSchool
      * @param string $level
      *
      * @return array
      */
-    public function getDivisionCourseListByYearAndDivisionCourseAndTypeAndLevel(TblYear $tblYear, ?TblDivisionCourse $tblDivisionCourse = null, ?TblType $tblTypeSchool = null,
-        string $level = '')
+    public function getDivisionCourseListByYearAndDivisionCourseAndTypeAndLevel(TblYear $tblYear, ?TblDivisionCourse $tblDivisionCourse = null,
+        ?TblType $tblTypeSchool = null, string $level = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();

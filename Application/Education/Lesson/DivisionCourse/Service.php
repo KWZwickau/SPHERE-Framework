@@ -494,38 +494,37 @@ class Service extends ServiceYearChange
     {
 
         $returnPersonList = array();
-        if($tblDivisionCourse &&
-            !($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION
-          || $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP
-          || $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE
-          || $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE)
-        ){
-            $this->getStudentListByDivisionCourseByFilter($returnPersonList, $tblYear, $tblDivisionCourse, $tblTypeSchool, $level);
-        } elseif ($tblDivisionCourse &&
-            ($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE
-                || $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE)
-        ) {
-            if(($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListBySubjectDivisionCourse($tblDivisionCourse))){
-                foreach($tblStudentSubjectList as $tblStudentSubject){
-                    if(($tblPersonSubject = $tblStudentSubject->getServiceTblPerson())){
-                        $returnPersonList[$tblPersonSubject->getId()] = $tblPersonSubject;
-                    }
+//        if($tblDivisionCourse &&
+//            !($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+//          || $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+//        ){
+//            $this->getStudentListByDivisionCourseByFilter($returnPersonList, $tblYear, $tblDivisionCourse, $tblTypeSchool, $level);
+//        } elseif ($tblDivisionCourse &&
+//            ($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE
+//                || $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE)
+//        ) {
+//            if(($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListBySubjectDivisionCourse($tblDivisionCourse))){
+//                foreach($tblStudentSubjectList as $tblStudentSubject){
+//                    if(($tblPersonSubject = $tblStudentSubject->getServiceTblPerson())){
+//                        $returnPersonList[$tblPersonSubject->getId()] = $tblPersonSubject;
+//                    }
+//                }
+//            }
+//        } else {
+        $ResultList = (new Data($this->getBinding()))->getDivisionCourseListByYearAndDivisionCourseAndTypeAndLevel($tblYear, $tblDivisionCourse,
+            $tblTypeSchool, $level);
+        if(!empty($ResultList)){
+            foreach($ResultList as $Row){
+                if(($tblPersonResult = Person::useService()->getPersonById($Row['PersonId']))){
+                    $returnPersonList[$tblPersonResult->getId()] = $tblPersonResult;
                 }
-            }
-        } else {
-            $ResultList = (new Data($this->getBinding()))->getDivisionCourseListByYearAndDivisionCourseAndTypeAndLevel($tblYear, $tblDivisionCourse, $tblTypeSchool, $level);
-            if(!empty($ResultList)){
-                foreach($ResultList as $Row){
-                    if(($tblPersonResult = Person::useService()->getPersonById($Row['PersonId']))){
-                        $returnPersonList[$tblPersonResult->getId()] = $tblPersonResult;
-                    }
-                }
-            }
-            // Personen aus verlinkten Kursen hinzufügen
-            if($tblDivisionCourse){
-                $this->getStudentListByDivisionCourseByFilter($returnPersonList, $tblYear, $tblDivisionCourse, $tblTypeSchool, $level);
             }
         }
+        // Personen aus verlinkten Kursen hinzufügen
+        if($tblDivisionCourse){
+            $this->getStudentListByDivisionCourseByFilter($returnPersonList, $tblYear, $tblDivisionCourse, $tblTypeSchool, $level);
+        }
+//        }
         return $returnPersonList;
     }
 
