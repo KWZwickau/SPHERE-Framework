@@ -3,6 +3,8 @@ namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Api\Setting\Univention\ApiUnivention;
 use SPHERE\Application\Api\Setting\Univention\ApiWorkGroup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -19,7 +21,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
-use SPHERE\Common\Frontend\Icon\Repository\Share;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
@@ -51,7 +52,6 @@ use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -140,19 +140,10 @@ class Frontend extends Extension implements IFrontendInterface
             $ButtonCreate = new Primary('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create', 'YearId' => $YearId));
             $ButtonUpdate = new Primary('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update', 'YearId' => $YearId));
             $ButtonDelete = new Danger('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete', 'YearId' => $YearId));
-
-//            $Stage->addButton(new Standard('Benutzer komplett abgleichen', '/Setting/Univention/Api', new Upload(), array('Upload' => 'All')));
-//            $Stage->addButton(new Standard('Benutzer anlegen', '/Setting/Univention/Api', new Plus(), array('Upload' => 'Create')));
-//            $Stage->addButton(new Standard('Benutzer anpassen', '/Setting/Univention/Api', new Edit(), array('Upload' => 'Update')));
-//            $Stage->addButton(new Standard('Benutzer löschen', '/Setting/Univention/Api', new Remove(), array('Upload' => 'Delete')));
         } else {
             $ButtonCreate = (new Standard('Benutzer anlegen', '', new Plus()))->setDisabled();
             $ButtonUpdate = (new Standard('Benutzer anpassen', '', new Edit()))->setDisabled();
             $ButtonDelete = (new Standard('Benutzer löschen', '', new Remove()))->setDisabled();
-
-//            $Stage->addButton((new Standard('Benutzer anlegen', '', new Plus()))->setDisabled());
-//            $Stage->addButton((new Standard('Benutzer anpassen', '', new Edit()))->setDisabled());
-//            $Stage->addButton((new Standard('Benutzer löschen', '', new Remove()))->setDisabled());
         }
 
         $UserUniventionList = Univention::useService()->getApiUser();
@@ -793,48 +784,49 @@ class Frontend extends Extension implements IFrontendInterface
                 $ApiGroupArray[$group] = $ApiWorkGroup['users'];
             }
         }
-        $ContentArray = array();
-        if(($tblGroupList = Group::useService()->getGroupListByIsCoreGroup())){
-            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-            foreach($tblGroupList as $tblGroup){
-                $tblPersonAccountList = array();
-                if(($tblPersonGroupList = Group::useService()->getPersonAllByGroup($tblGroup))){
-                    foreach($tblPersonGroupList as $tblPersonGroup){
-                        // Nur bei Schülern
-                        if(Group::useService()->getMemberByPersonAndGroup($tblPersonGroup, $tblGroupStudent)){
-                            // Nur Schüler mit einem Account und einer hinterlegten E-Mail
-                            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPersonGroup)))
-                            {
-                                // Nutzer müssen in der API verfügbar sein
-                                if(in_array($tblAccountList[0]->getUsername(), $ApiUserNameList)){
-                                    $tblPersonAccountList[] = $tblAccountList[0]->getUsername();
+
+        if(($tblYearList = Term::useService()->getYearByNow())){
+            foreach($tblYearList as $tblYear){
+                if(($tblDivisionCourseCoreGroupList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))){
+                    foreach($tblDivisionCourseCoreGroupList as $tblDivisionCourseCoreGroup){
+                        $CoreGroupName = $tblDivisionCourseCoreGroup->getName();
+                        $tblPersonAccountList = array();
+                        if(($tblPersonList = $tblDivisionCourseCoreGroup->getStudents())){
+                            foreach($tblPersonList as $tblPerson){
+                                // Nur Schüler mit einem Account
+                                if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
+                                    $tblAccount = current($tblAccountList);
+                                    // Nutzer müssen in der API verfügbar sein
+                                    if(in_array($tblAccount->getUsername(), $ApiUserNameList)){
+                                        $tblPersonAccountList[] = $tblAccount->getUsername();
+                                    }
                                 }
                             }
                         }
+                        if((array_key_exists($CoreGroupName, $ApiGroupArray))){
+                            $ApiUserList = $ApiGroupArray[$CoreGroupName];
+                            if(count($ApiUserList) != count($tblPersonAccountList)
+                                || ($Diff = array_diff($ApiUserList, $tblPersonAccountList))){
+                                // Gruppen SSW & Univention unterscheiden sich
+                                $Type = 'update';
+                            } else {
+                                // sonst keine Änderungen
+                                $Type = 'ok';
+                            }
+                        } else {
+                            $Type = 'create';
+                        }
+                        $ContentArray[$CoreGroupName] = array(
+                            'Group' => $CoreGroupName,
+                            'UserList' => $tblPersonAccountList,
+                            'Type' => $Type,
+                            'School' => $school
+                        );
                     }
                 }
-                if((array_key_exists($tblGroup->getName(), $ApiGroupArray))){
-                    $ApiUserList = $ApiGroupArray[$tblGroup->getName()];
-                    if(count($ApiUserList) != count($tblPersonAccountList)
-                        || ($Diff = array_diff($ApiUserList, $tblPersonAccountList))){
-                        // Gruppen SSW & Univention unterscheiden sich
-                        $Type = 'update';
-                    } else {
-                        // Sonnst keine Änderungen
-                        $Type = 'ok';
-                    }
-                } else {
-                    $Type = 'create';
-                }
-
-                $ContentArray[$tblGroup->getName()] = array(
-                    'Group' => $tblGroup->getName(),
-                    'UserList' => $tblPersonAccountList,
-                    'Type' => $Type,
-                    'School' => $school
-                );
             }
         }
+
         if(!empty($ContentArray)){
             ksort($ContentArray);
         }
