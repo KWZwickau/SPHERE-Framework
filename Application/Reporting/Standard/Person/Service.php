@@ -4857,12 +4857,36 @@ class Service extends Extension
                     } else {
                         $export->createWorksheet($workSheetsName[(string)$month]);
                     }
-                    $row = 2;
-                    $column = 0;
-                    $export->setValue($export->getCell($column++, $row), 'Schüler');
-                    for ($i = 1; $i < 31; $i++) {
-                        $export->setValue($export->getCell($column++, $row), $i);
+                    // Header
+                    $row = $column = 0;
+                    $export->setValue($export->getCell($column, $row), 'Schüler');
+                    $export->setStyle($export->getCell($column, $row), $export->getCell($column++, 2))->mergeCells()->setBorderAll()->setFontBold()
+                        ->setAlignmentCenter();
+                    for ($i = 1; $i <= 31; $i++) {
+                        $export->setValue($export->getCell($column, $row), $i);
+                        $export->setStyle($export->getCell($column, $row), $export->getCell($column++, 2))->mergeCells()->setBorderAll()->setFontBold()
+                            ->setAlignmentCenter();
                     }
+                    for($i = 0; $i <= 4; $i += 4){
+                        $column += $i;
+                        if($i == 0){
+                            $export->setValue($export->getCell($column, 0), 'Fehlzeiten');
+                        } elseif($i == 4) {
+                            $export->setValue($export->getCell($column, 0), 'Ges. Fz');
+                        }
+                        $export->setStyle($export->getCell($column, 0), $export->getCell($column + 3, 0))->mergeCells()->setBorderTop()->setBorderRight()
+                            ->setAlignmentCenter();
+                        $export->setValue($export->getCell($column, 1), 'Tage');
+                        $export->setStyle($export->getCell($column, 1), $export->getCell($column + 1, 1))->mergeCells()->setBorderRight()->setAlignmentCenter();
+                        $export->setValue($export->getCell($column + 2, 1), 'Std');
+                        $export->setStyle($export->getCell($column + 2, 1), $export->getCell($column + 3, 1))->mergeCells()->setBorderRight()
+                            ->setAlignmentCenter();
+                        for($j = 0; $j < 4; $j++){
+                            $export->setStyle($export->getCell($column + $j, 2))->setBorderRight()->setAlignmentCenter();
+                        }
+                    }
+                    $column -= 4;
+                    // Content
                     $columnStudents = 0;
                     $rowStudents = 3;
                     /** @var TblPerson $tblPerson */
@@ -4911,15 +4935,10 @@ class Service extends Extension
 
                         for ($columnCount = 0; $columnCount < 40; $columnCount++) {
                             $columnLetter = \PHPExcel_Cell::stringFromColumnIndex($columnCount);
-                            $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                            $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()
+                                ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
                             $export->setStyle($export->getCell($columnCount, $rowStudents), $export->getCell($columnCount, $rowStudents))
-                                ->setBorderLeft()
-                                ->setBorderBottom();
-
-                            $export->setStyle($export->getCell($columnCount, $row), $export->getCell($columnCount, $row))
-                                ->setBorderLeft()
-                                ->setBorderBottom()
-                                ->setFontBold();
+                                ->setBorderOutline();
                         }
                         $rowStudents++;
                     }
@@ -4927,33 +4946,12 @@ class Service extends Extension
                     for ($maxColumn = 0; $maxColumn < 40; $maxColumn++) {
                         $columnLetter = \PHPExcel_Cell::stringFromColumnIndex($maxColumn);
                         $export->getActiveSheet()->getStyle($columnLetter . 3)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-                        $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                        $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()
+                            ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
                         $export->setStyle($export->getCell($maxColumn, 0))->setColumnWidth(2.6);
                         $export->setStyle($export->getCell($maxColumn, $row), $export->getCell($maxColumn, $row));
                     }
-
-                    $export->getActiveSheet()
-                        ->getStyle("A1:AN34")
-                        ->getFont()
-                        ->setSize(9);
-                    $mergeCells = ['AG1:AJ1', 'AG2:AH2', 'AI2:AJ2', 'AK1:AN1', 'AK2:AL2', 'AM2:AN2'];
-                    foreach ($mergeCells as $cellRange) {
-                        $export->getActiveSheet()
-                            ->mergeCells($cellRange);
-                    }
-                    $cellValues = [
-                        'AG1' => 'Fehlzeiten',
-                        'AG2' => 'Tage',
-                        'AI2' => 'Std',
-                        'AK1' => 'Ges. Fz',
-                        'AK2' => 'Tage',
-                        'AM2' => 'Std'
-                    ];
-                    foreach ($cellValues as $cellCoord => $value) {
-                        $export->getActiveSheet()->setCellValue($cellCoord, $value);
-                        $export->getActiveSheet()->getStyle($cellCoord)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-                    }
-                    $columnOffset = $column + 1;
+                    $columnOffset = $column;
                     for ($day = 1; $day <= 8; $day++) {
                         $value = ($day % 2 == 1) ? 'E' : 'U';
                         $cellCoord = $export->getCell($columnOffset++, 2);
@@ -4963,6 +4961,7 @@ class Service extends Extension
                     $export->setStyle($export->getCell(0, 2), $export->getCell($column, $row))->setColumnWidth(17.5);
                 }
             }
+            $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
             return $fileLocation;
