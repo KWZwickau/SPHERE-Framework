@@ -14,6 +14,7 @@ namespace SPHERE\Application\Transfer\Untis\Import;
  * H Stundenlänge (hh:mm) (nur in Minute, sonst leer)
  */
 use DateTime;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -21,6 +22,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Transfer\Education\Education;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
 use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldPointer;
@@ -111,16 +113,53 @@ class TimetableGPU001 extends AbstractConverter
             $Result = array_merge($Result, $Part);
         }
 
-        //kurze schreibweise von ($Result['tblCourse'] ? $Result['tblCourse'] : null);
-        $tblCourse = ($Result['tblCourse'] ? : null);
+        /** @var TblDivisionCourse $tblDivisionCourse */
+        $tblDivisionCourse = ($Result['tblCourse'] ? : null);
         $tblPerson = ($Result['tblPerson'] ? : null);
         $tblSubject = ($Result['tblSubject'] ? : null);
 
         if($Result['tblCourse'] === false || $Result['tblPerson'] === false || $Result['tblSubject'] === false){
             // ignore Row complete
-        } elseif($tblCourse && $tblSubject && $tblPerson){ // && $Result['Room'] != ''
-            $CombineString = $Result['Hour'].'*'.$Result['Day'].'*'.$Result['Room'].'*'.$tblCourse->getId().'*'.$tblSubject->getId().'*'.$tblPerson->getId();
+        } elseif($tblDivisionCourse && $tblSubject && $tblPerson){ // && $Result['Room'] != ''
+            $CombineString = $Result['Hour'].'*'.$Result['Day'].'*'.$Result['Room'].'*'.$tblDivisionCourse->getId().'*'.$tblSubject->getId().'*'.$tblPerson->getId();
             if(!isset($this->CombineList[$CombineString])){
+                // Spezialfall: Stundenplan für SekII -> es werden direkt beim Stundenplan die SekII-Kurse zugeordnet, falls vorhanden
+                if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+                    && ($tblStudentList = $tblDivisionCourse->getStudents())
+                    && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                ) {
+                    foreach ($tblStudentList as $tblStudent) {
+                        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblStudent, $tblYear))
+                            && ($level = $tblStudentEducation->getLevel())
+                            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                        ) {
+                            $divisionCourseName = Education::useService()->getCourseNameForSystem(
+                                TblImport::EXTERN_SOFTWARE_NAME_UNTIS, $Result['SubjectGroup'], $level, $tblSchoolType
+                            );
+
+                            // mapping SekII-Kurs
+                            if (($tblDivisionCourseCourseSystem = Education::useService()->getImportMappingValueBy(
+                                TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $divisionCourseName, $tblYear
+                            ))) {
+
+                                // found SekII-Kurs
+                            } elseif (($tblDivisionCourseCourseSystem = DivisionCourse::useService()->getDivisionCourseByNameAndYear(
+                                $divisionCourseName, $tblYear
+                            ))) {
+
+                            }
+
+                            if ($tblDivisionCourseCourseSystem
+                                && ($tblDivisionCourseCourseSystem->getServiceTblSubject())
+                                && $tblDivisionCourseCourseSystem->getServiceTblSubject()->getId() == $tblSubject->getId()
+                            ) {
+                                $tblDivisionCourse = $tblDivisionCourseCourseSystem;
+                            }
+
+                            break;
+                        }
+                    }
+                }
                 $ImportRow = array(
                     'Hour'         => $Result['Hour'],
                     'Day'          => $Result['Day'],
@@ -128,7 +167,7 @@ class TimetableGPU001 extends AbstractConverter
                     'Room'         => $Result['Room'],
                     'SubjectGroup' => $Result['SubjectGroup'],
                     'Level'        => '',
-                    'tblCourse'    => $tblCourse,
+                    'tblCourse'    => $tblDivisionCourse,
                     'tblSubject'   => $tblSubject,
                     'tblPerson'    => $tblPerson,
                 );

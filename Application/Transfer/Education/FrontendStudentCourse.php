@@ -320,7 +320,7 @@ class FrontendStudentCourse extends Extension implements IFrontendInterface
                         && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                     ) {
                         $courseNameExternSoftware = $level . $tblSchoolType->getShortName() . ' ' . $courseName;
-                        $courseName = Education::useService()->getCourseNameForSystem($tblImport, $courseName, $level, $tblSchoolType);
+                        $courseName = Education::useService()->getCourseNameForSystem($tblImport->getExternSoftwareName(), $courseName, $level, $tblSchoolType);
 
                         if (!isset($courseNameList[$courseName])) {
                             $courseNameList[$courseName] = $courseName;
@@ -520,7 +520,7 @@ class FrontendStudentCourse extends Extension implements IFrontendInterface
                                     $period = $tblImportStudentCourse->getCourseNumber();
                                 }
 
-                                $courseName = Education::useService()->getCourseNameForSystem($tblImport, $courseName, $level, $tblSchoolType);
+                                $courseName = Education::useService()->getCourseNameForSystem($tblImport->getExternSoftwareName(), $courseName, $level, $tblSchoolType);
 
                                 if (!isset($headerList[$period][$subjectAcronym])) {
                                     $headerList[$period][$subjectAcronym] = $subjectAcronym;

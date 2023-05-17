@@ -7,11 +7,12 @@ use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeExce
 use MOC\V\Component\Document\Vendor\UniversalXml\Source\Node;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassRegister;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\Transfer\Education\Education;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -368,6 +369,7 @@ class TimetableService
         foreach($result as $Row){
             $Row['tblPerson'] = $Row['tblCourse'] = $Row['tblSubject'] = false;
 
+            $tblSubject = false;
             if(isset($Row['Subject']) && $Row['Subject'] !== ''){
                 // Mapping
                 if (($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $Row['Subject']))) {
@@ -399,7 +401,45 @@ class TimetableService
                             $tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($Row['Course'], $tblYear);
                         }
 
-                        if ($tblDivisionCourse) {
+                        if ($tblDivisionCourse && $tblSubject) {
+                            // Spezialfall: Stundenplan für SekII -> es werden direkt beim Stundenplan die SekII-Kurse zugeordnet, falls vorhanden
+                            if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+                                && ($tblStudentList = $tblDivisionCourse->getStudents())
+                                && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                            ) {
+                                foreach ($tblStudentList as $tblStudent) {
+                                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblStudent, $tblYear))
+                                        && ($level = $tblStudentEducation->getLevel())
+                                        && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                                    ) {
+                                        $divisionCourseName = Education::useService()->getCourseNameForSystem(
+                                            TblImport::EXTERN_SOFTWARE_NAME_INDIWARE, $Row['SubjectGroup'], $level, $tblSchoolType
+                                        );
+
+                                        // mapping SekII-Kurs
+                                        if (($tblDivisionCourseCourseSystem = Education::useService()->getImportMappingValueBy(
+                                            TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $divisionCourseName, $tblYear
+                                        ))) {
+
+                                            // found SekII-Kurs
+                                        } elseif (($tblDivisionCourseCourseSystem = DivisionCourse::useService()->getDivisionCourseByNameAndYear(
+                                            $divisionCourseName, $tblYear
+                                        ))) {
+
+                                        }
+
+                                        if ($tblDivisionCourseCourseSystem
+                                            && ($tblDivisionCourseCourseSystem->getServiceTblSubject())
+                                            && $tblDivisionCourseCourseSystem->getServiceTblSubject()->getId() == $tblSubject->getId()
+                                        ) {
+                                            $tblDivisionCourse = $tblDivisionCourseCourseSystem;
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+
                             $Row['tblCourse'] = $tblDivisionCourse;
                             break;
                         }

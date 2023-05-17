@@ -481,7 +481,7 @@ class Frontend extends FrontendStudentCourse
                                     && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                                 ) {
                                     $divisionCourseName = Education::useService()->getCourseNameForSystem(
-                                        $tblImport, $subjectGroup, $level, $tblSchoolType
+                                        $tblImport->getExternSoftwareName(), $subjectGroup, $level, $tblSchoolType
                                     );
 
                                     // mapping SekII-Kurs
