@@ -51,7 +51,6 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-
                                 new TableData($TableContent, null,
                                     array(
                                         'PersonId'             => 'PersonId',
@@ -72,6 +71,12 @@ class Frontend extends Extension implements IFrontendInterface
                                         'ExcelStreet'          => 'Strasse Kind',
                                         'Code'                 => 'PLZ Kind',
                                         'City'                 => 'Stadt Kind',
+                                        'PhonePrivate'         => 'Privat_Festnetz',
+                                        'MobilePrivate'        => 'Privat_Mobil',
+                                        'PhoneBusiness'        => 'Geschäftlich_Festnetz',
+                                        'MobileBusiness'       => 'Geschäftlich_Mobil',
+                                        'EmergencyPhone'       => 'Notfall_Festnetz',
+                                        'EmergencyMobile'      => 'Notfall_Mobil',
                                         'Nationality'          => 'Nationalität',
                                         'Denomination'         => 'Kirche',
                                         'LeavingSchool'        => 'Grundschule',
@@ -83,6 +88,12 @@ class Frontend extends Extension implements IFrontendInterface
                                         'ExcelStreetS2'        => 'Straße_S2',
                                         'CodeS2'               => 'PLZ_S2',
                                         'CityS2'               => 'Ort_S2',
+                                        'PhonePrivateS2'       => 'S2 Privat_Festnetz',
+                                        'MobilePrivateS2'      => 'S2 Privat_Mobil',
+                                        'PhoneBusinessS2'      => 'S2 Geschäftlich_Festnetz',
+                                        'MobileBusinessS2'     => 'S2 Geschäftlich_Mobil',
+                                        'EmergencyPhoneS2'     => 'S2 Notfall_Festnetz',
+                                        'EmergencyMobileS2'    => 'S2 Notfall_Mobil',
                                         'MailS2'               => 'Mail_S2',
                                         'Mail2S2'              => 'Mail_S2_Zwei',
                                         'RemarkS2'             => 'Bemerkung_S2',
@@ -94,6 +105,12 @@ class Frontend extends Extension implements IFrontendInterface
                                         'ExcelStreetS1'        => 'Straße_S1',
                                         'CodeS1'               => 'PLZ_S1',
                                         'CityS1'               => 'Ort_S1',
+                                        'PhonePrivateS1'       => 'S1 Privat_Festnetz',
+                                        'MobilePrivateS1'      => 'S1 Privat_Mobil',
+                                        'PhoneBusinessS1'      => 'S1 Geschäftlich_Festnetz',
+                                        'MobileBusinessS1'     => 'S1 Geschäftlich_Mobil',
+                                        'EmergencyPhoneS1'     => 'S1 Notfall_Festnetz',
+                                        'EmergencyMobileS1'    => 'S1 Notfall_Mobil',
                                         'MailS1'               => 'Mail_S1',
                                         'Mail2S1'              => 'Mail_S1_Zwei',
                                         'RemarkS1'             => 'Bemerkung_S1',

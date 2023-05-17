@@ -52,6 +52,9 @@ class Standard extends Extension implements IModuleInterface
             __NAMESPACE__.'/AccidentReport/Create', __CLASS__.'::createAccidentReportPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/StaffAccidentReport/Create', __CLASS__.'::createStaffAccidentReportPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/PasswordChange/Create', __CLASS__.'::createPasswordChangePdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -101,23 +104,23 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
-     * @param null $PersonId
-     * @param bool $Redirect
+     * @param int|null $PersonId
+     * @param bool     $Redirect
      *
      * @return Stage|string
      */
-    public static function createStudentCardPdf($PersonId = null, $Redirect = true)
+    public static function createStudentCardPdf(int $PersonId = null, bool $Redirect = true)
     {
         return Creator::createStudentCardPdf($PersonId, $Redirect);
     }
 
     /**
-     * @param null $PersonId
-     * @param bool $Redirect
+     * @param int|null $PersonId
+     * @param bool     $Redirect
      *
      * @return Stage|string
      */
-    public static function createStudentCardNewPdf($PersonId = null, $Redirect = true)
+    public static function createStudentCardNewPdf(int $PersonId = null, bool $Redirect = true)
     {
         return Creator::createStudentCardNewPdf($PersonId, $Redirect);
     }
@@ -199,6 +202,18 @@ class Standard extends Extension implements IModuleInterface
 
         return Creator::createDataPdf($Data, 'AccidentReport', Creator::PAPERORIENTATION_PORTRAIT);
     }
+
+    /**
+     * @param array $Data
+     *
+     * @return Stage|string
+     */
+    public static function createStaffAccidentReportPdf(array $Data = array())
+    {
+
+        return Creator::createDataPdf($Data, 'StaffAccidentReport', Creator::PAPERORIENTATION_PORTRAIT);
+    }
+
 
     /**
      * @param array $Data

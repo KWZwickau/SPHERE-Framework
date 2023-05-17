@@ -8,6 +8,8 @@ use SPHERE\Application\Education\Certificate\Reporting\View;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
@@ -391,6 +393,43 @@ class Person extends Extension
             $fileLocation = ReportingPerson::useService()->createAbsenceContentExcel($dataList);
 
             return FileSystem::getDownload($fileLocation->getRealPath(), $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return false;
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param null $GroupId
+     *
+     * @return bool|string
+     */
+    public function downloadClassRegisterAbsenceMonthly($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
+    {
+        $tblDivision = false;
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+            $name = 'Fehlzeiten des Kurses '
+                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
+        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+            $name = 'Fehlzeiten der Klasse ' . $tblDivision->getDisplayName();
+        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
+            $tblPersonList = $tblGroup->getStudentOnlyList();
+            $name = 'Fehlzeiten der Stammgruppe ' . $tblGroup->getName();
+        } else {
+            return false;
+        }
+
+        if ($tblPersonList
+            && $tblDivision
+            && ($tblYear = $tblDivision->getServiceTblYear())
+        ) {
+            list($dataList, $countList) = Absence::useService()->getAbsenceForExcelDownload($tblDivision);
+            $fileLocation = ReportingPerson::useService()->createAbsenceContentExcelMonthly($tblPersonList, $dataList, $countList, $tblYear);
+
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;
