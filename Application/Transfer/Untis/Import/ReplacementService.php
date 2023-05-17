@@ -6,8 +6,7 @@ use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeException;
 use MOC\V\Component\Document\Vendor\UniversalXml\Source\Node;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassRegister;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
@@ -24,7 +23,7 @@ class ReplacementService
     private array $UploadList = array();
     private array $WarningList = array();
     private array $DateList = array();
-    /* @var TblDivision[] $CourseList */
+    /* @var TblDivisionCourse[] $CourseList */
     private array $CourseList = array();
     private array $CountImport = array();
 
@@ -255,7 +254,7 @@ class ReplacementService
      */
     public function getReplacementResult(array $result)
     {
-
+        // ist nicht ans Mapping angepasst
         $tblYearList = Term::useService()->getYearByNow();
         foreach($result as $Row){
             $Row['tblPerson'] = $Row['tblCourse'] = $Row['tblSubject'] = false;
@@ -269,11 +268,10 @@ class ReplacementService
                 if($tblYearList){
                     // Suche nach SSW Klasse
                     foreach ($tblYearList as $tblYear) {
-                        //ToDO Course
-                        if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['Course'], $tblYear))) {
-                            $Row['tblCourse'] = $tblDivision;
-                            break;
-                        }
+//                        if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['Course'], $tblYear))) {
+//                            $Row['tblCourse'] = $tblDivision;
+//                            break;
+//                        }
                     }
                 }
             }

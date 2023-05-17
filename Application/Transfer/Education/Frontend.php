@@ -503,6 +503,8 @@ class Frontend extends FrontendStudentCourse
                                         $tblDivisionCourse = $tblDivisionCourseCourseSystem;
                                         $subjectGroup = '';
                                     }
+
+                                    break;
                                 }
                             }
                         }
