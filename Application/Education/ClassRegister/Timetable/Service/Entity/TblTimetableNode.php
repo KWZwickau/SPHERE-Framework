@@ -6,8 +6,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
@@ -219,27 +219,26 @@ class TblTimetableNode extends Element
         $this->Level = $Level;
     }
 
-    /** //ToDO Course
-     * @return TblDivision|null
+    /**
+     * @return TblDivisionCourse|null
      */
-    public function getServiceTblCourse(): ?TblDivision
+    public function getServiceTblCourse(): ?TblDivisionCourse
     {
-
         if (null !== $this->serviceTblCourse) {
-            $tblDivision = Division::useService()->getDivisionById($this->serviceTblCourse);
-            return $this->changeFalseToNull($tblDivision);
+            $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($this->serviceTblCourse);
+            return $this->changeFalseToNull($tblDivisionCourse);
         }
+
         return null;
     }
 
-    /** //ToDO Course
-     * @param TblDivision $tblDivision
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
      * @return void
      */
-    public function setServiceTblCourse(TblDivision $tblDivision): void
+    public function setServiceTblCourse(TblDivisionCourse $tblDivisionCourse): void
     {
-
-        $this->serviceTblCourse = $tblDivision->getId();
+        $this->serviceTblCourse = $tblDivisionCourse->getId();
     }
 
     /**

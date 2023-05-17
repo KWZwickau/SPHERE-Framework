@@ -13,11 +13,12 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\Transfer\Education\Education;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -280,20 +281,41 @@ class ReplacementService
         $tblYearList = Term::useService()->getYearByNow();
         foreach($result as $Row){
             $Row['tblPerson'] = $Row['tblCourse'] = $Row['tblSubstituteSubject'] = false;
+
             if(isset($Row['Subject']) && $Row['Subject'] !== ''){
-                $Row['tblSubstituteSubject'] = Subject::useService()->getSubjectByAcronym($Row['Subject']);
+                // Mapping
+                if (($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $Row['Subject']))) {
+
+                // Found
+                } else {
+                    $tblSubject = Subject::useService()->getSubjectByVariantAcronym($Row['Subject']);
+                }
+
+                if ($tblSubject) {
+                    $Row['tblSubstituteSubject'] = Subject::useService()->getSubjectByVariantAcronym($Row['Subject']);
+                }
             }
             if (!$Row['tblSubstituteSubject']) {
                 $this->CountImport['Subject'][$Row['Subject']][] = 'Fach nicht gefunden';
             }
+
             if(isset($Row['Course']) && $Row['Course'] !== ''){
                 if($tblYearList){
                     // Suche nach SSW Klasse
                     foreach ($tblYearList as $tblYear) {
-                        //ToDO Course
-                        if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['Course'], $tblYear))) {
-                            $Row['tblCourse'] = $tblDivision;
-                            $Row['CourseId'] = $tblDivision;
+                        // Mapping
+                        if (($tblDivisionCourse = Education::useService()->getImportMappingValueBy(
+                            TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $Row['Course'], $tblYear
+                        ))) {
+
+                        // Found
+                        } else {
+                            $tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($Row['Course'], $tblYear);
+                        }
+
+                        if ($tblDivisionCourse) {
+                            $Row['tblCourse'] = $tblDivisionCourse;
+                            $Row['CourseId'] = $tblDivisionCourse;
                             break;
                         }
                     }
@@ -302,20 +324,29 @@ class ReplacementService
             if(!$Row['tblCourse']){
                 $this->CountImport['Course'][$Row['Course']][] = 'Klasse nicht gefunden';
             }
+
             if(isset($Row['Person']) && $Row['Person'] !== ''){
-                $tblTeacher = Teacher::useService()->getTeacherByAcronym($Row['Person']);
-                if($tblTeacher && $tblTeacher->getServiceTblPerson()){
-                    $Row['tblPerson'] = $tblTeacher->getServiceTblPerson();
+                // Mapping
+                if (($tblPerson = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_TEACHER_ACRONYM_TO_PERSON_ID, $Row['Person']))) {
+
+                    // Found
+                } elseif (($tblTeacher = Teacher::useService()->getTeacherByAcronym($Row['Person']))) {
+                    $tblPerson = $tblTeacher->getServiceTblPerson();
+                }
+
+                if ($tblPerson) {
+                    $Row['tblPerson'] = $tblPerson;
                 }
             }
             if(!$Row['tblPerson']){
                 $this->CountImport['Person'][$Row['Person']][] = 'Lehrerkürzel nicht gefunden';
             }
+
             // Pflichtangaben
             if($Row['tblSubstituteSubject'] && $Row['tblCourse'] && $Row['tblPerson']) { // && $isRoom
                 // Löschliste für Klassen
-                if(isset($tblDivision) && $tblDivision){
-                    $this->CourseList[$tblDivision->getId()] = $tblDivision;
+                if(isset($tblDivisionCourse) && $tblDivisionCourse){
+                    $this->CourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
                 }
                 // import
                 array_push($this->UploadList, $Row);

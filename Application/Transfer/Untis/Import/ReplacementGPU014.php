@@ -52,11 +52,12 @@ namespace SPHERE\Application\Transfer\Untis\Import;
  * U Zeit der letzten Änderung (JJJJMMTTHHMM)
  */
 use DateTime;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Transfer\Education\Education;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
 use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldPointer;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldSanitizer;
@@ -241,47 +242,32 @@ class ReplacementGPU014 extends AbstractConverter
         $result = array();
         if($Value == ''){
 //            $this->CountImport['Course']['Keine Klasse'][] = 'Klasse nicht gefunden';
-            $result = false;
-            return $result;
+            return false;
         }
 
-        //ToDO Course
         $CourseList = explode('~', $Value);
         foreach($CourseList as $Course){
-            $LevelName = null;
-            $DivisionName = null;
-            Division::useService()->matchDivision($Course, $LevelName, $DivisionName);
-            $tblLevel = null;
-
-            $tblDivisionList = array();
+            $tblDivisionCourse = false;
             // search with Level
             foreach($this->tblYearList as $tblYear){
-                if (( $tblLevelList = Division::useService()->getLevelAllByName($LevelName) ) && $tblYear) {
-                    foreach ($tblLevelList as $tblLevel) {
-                        if (( $tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName, $tblLevel, $tblYear) )) {
-                            foreach ($tblDivisionArray as $tblDivision) {
-                                $tblDivisionList[] = $tblDivision;
-                            }
-                        }
-                    }
+                // Mapping
+                if (($tblDivisionCourse = Education::useService()->getImportMappingValueBy(
+                    TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $Value, $tblYear
+                ))) {
+
+                    // Found
+                } else {
+                    $tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($Value, $tblYear);
+                }
+
+                if ($tblDivisionCourse) {
+                    break;
                 }
             }
-            // search without Level with empty DivisionList
-            if (empty($tblDivisionList)) {
-                foreach($this->tblYearList as $tblYear){
-                    if ($tblLevel === null && $tblYear && $LevelName == '') {
-                        if (( $tblDivisionArray = Division::useService()->getDivisionByDivisionNameAndLevelAndYear($DivisionName, $tblLevel, $tblYear) )) {
-                            foreach ($tblDivisionArray as $tblDivision) {
-                                $tblDivisionList[] = $tblDivision;
-                            }
-                        }
-                    }
-                }
-            }
-            if(!empty($tblDivisionList) && count($tblDivisionList) == 1){
-                $tblDivision = current($tblDivisionList);
-                $result[] = $tblDivision;
-                $this->CourseList[$tblDivision->getId()] = $tblDivision;
+
+            if($tblDivisionCourse){
+                $result[] = $tblDivisionCourse;
+                $this->CourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
             } else {
                 $this->CountImport['Course'][$Course][] = 'Klasse nicht gefunden';
             }
@@ -312,15 +298,21 @@ class ReplacementGPU014 extends AbstractConverter
      */
     protected function sanitizePerson($Value)
     {
-
         if($Value == ''){
 //            $this->CountImport['Person']['Kein Lehrerkürzel'][] = 'Person nicht gefunden';
             return false;
         }
-        if(($tblTeacher = Teacher::useService()->getTeacherByAcronym($Value))){
-            if(($tblPerson = $tblTeacher->getServiceTblPerson())){
-                return $tblPerson;
-            }
+
+        // Mapping
+        if (($tblPerson = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_TEACHER_ACRONYM_TO_PERSON_ID, $Value))) {
+
+        // Found
+        } elseif (($tblTeacher = Teacher::useService()->getTeacherByAcronym($Value))) {
+            $tblPerson = $tblTeacher->getServiceTblPerson();
+        }
+
+        if ($tblPerson) {
+            return $tblPerson;
         }
 
         $this->CountImport['Person'][$Value][] = 'Person nicht gefunden';
@@ -343,7 +335,15 @@ class ReplacementGPU014 extends AbstractConverter
             $Value = $Match[1];
         }
 
-        if(($tblSubject = Subject::useService()->getSubjectByAcronym($Value))){
+        // Mapping
+        if (($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $Value))) {
+
+            // Found
+        } else {
+            $tblSubject = Subject::useService()->getSubjectByVariantAcronym($Value);
+        }
+
+        if ($tblSubject) {
             return $tblSubject;
         }
 
@@ -358,7 +358,6 @@ class ReplacementGPU014 extends AbstractConverter
      */
     protected function sanitizeSubjectGroup($Value)
     {
-
         if(preg_match('!^([\w\/]*)-([GL])-(\d)!is', $Value, $Match)){
             return $Value;
         }
