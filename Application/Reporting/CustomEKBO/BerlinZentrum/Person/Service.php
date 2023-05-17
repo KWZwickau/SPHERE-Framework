@@ -35,6 +35,7 @@ class Service extends Extension
         $tblPersonList = array();
         if(($tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))){
             $tblPersonList = $tblGroupStudent->getPersonList();
+            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
         }
         if(empty($tblPersonList)){
             return $TableContent;
@@ -58,6 +59,12 @@ class Service extends Extension
             $item['ExcelStreet'] = '';
             $item['Code'] = '';
             $item['City'] = '';
+            $item['PhonePrivate'] = '';
+            $item['MobilePrivate'] = '';
+            $item['PhoneBusiness'] = '';
+            $item['MobileBusiness'] = '';
+            $item['EmergencyPhone'] = '';
+            $item['EmergencyMobile'] = '';
             $item['AddressRemark'] = '';
             $item['Nationality'] = '';
             $item['Denomination'] = '';
@@ -71,6 +78,12 @@ class Service extends Extension
                 $item['ExcelStreetS'.$i] = '';
                 $item['CodeS'.$i] = '';
                 $item['CityS'.$i] = '';
+                $item['PhonePrivateS'.$i] = '';
+                $item['MobilePrivateS'.$i] = '';
+                $item['PhoneBusinessS'.$i] = '';
+                $item['MobileBusinessS'.$i] = '';
+                $item['EmergencyPhoneS'.$i] = '';
+                $item['EmergencyMobileS'.$i] = '';
                 $item['MailS'.$i] = '';
                 $item['Mail2S'.$i] = '';
                 $item['RemarkS'.$i] = '';
@@ -158,6 +171,56 @@ class Service extends Extension
                     $item['Region'] = Address::useService()->getRegionStringByCode($tblAdress->getTblCity()->getCode());
                 }
             }
+            // Telefon Schüler
+            if(($tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))){
+                $phoneFP = array();
+                $phoneMP = array();
+                $phoneFB = array();
+                $phoneMB = array();
+                $phoneEP = array();
+                $phoneEM = array();
+                foreach($tblToPersonPhoneList as $tblToPersonPhone){
+                    $PhoneNumber = $tblToPersonPhone->getTblPhone()->getNumber();
+                    $TypeName = $tblToPersonPhone->getTblType()->getName();
+                    $TypeDescription = $tblToPersonPhone->getTblType()->getDescription();
+                    if($TypeDescription == 'Festnetz' && $TypeName == 'Privat'){
+                        $phoneFP[] = $PhoneNumber;
+                    }
+                    if($TypeDescription == 'Mobil' && $TypeName == 'Privat'){
+                        $phoneMP[] = $PhoneNumber;
+                    }
+                    if($TypeDescription == 'Festnetz' && $TypeName == 'Geschäftlich'){
+                        $phoneFB[] = $PhoneNumber;
+                    }
+                    if($TypeDescription == 'Mobil' && $TypeName == 'Geschäftlich'){
+                        $phoneMB[] = $PhoneNumber;
+                    }
+                    if($TypeName == 'Notfall' && $TypeDescription == 'Festnetz'){
+                        $phoneEP[] = $PhoneNumber;
+                    }
+                    if($TypeName == 'Notfall' && $TypeDescription == 'Mobil'){
+                        $phoneEM[] = $PhoneNumber;
+                    }
+                }
+                if(!empty($phoneFP)){
+                    $item['PhonePrivate'] = implode('; ', $phoneFP);
+                }
+                if(!empty($phoneMP)){
+                    $item['MobilePrivate'] = implode('; ', $phoneMP);
+                }
+                if(!empty($phoneFB)){
+                    $item['PhoneBusiness'] = implode('; ', $phoneFB);
+                }
+                if(!empty($phoneMB)){
+                    $item['MobileBusiness'] = implode('; ', $phoneMB);
+                }
+                if(!empty($phoneEP)){
+                    $item['EmergencyPhone'] = implode('; ', $phoneEP);
+                }
+                if(!empty($phoneEM)){
+                    $item['EmergencyMobile'] = implode('; ', $phoneEM);
+                }
+            }
             // Schülerakte
             if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
                 if(($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::ARRIVE))){
@@ -188,7 +251,9 @@ class Service extends Extension
                     }
                 }
                 if(($tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord())){
-                    $item['Masern'] = $tblStudentMedicalRecord->getMasernDocumentType()->getTextShort();
+                    if(($tblMasernDocumentType = $tblStudentMedicalRecord->getMasernDocumentType())){
+                        $item['Masern'] = $tblMasernDocumentType->getTextShort();
+                    }
                 }
                 if($tblStudent->getHasMigrationBackground()){
                     $item['MigrationBackground'] = 'Ja';
@@ -225,7 +290,56 @@ class Service extends Extension
                                 }
                                 $item['AddressRemarkS'.$Number] = $RemarkToPerson;
                             }
-
+                            // Telefon Sorgeberechtigte
+                            if(($tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonS))){
+                                $phoneFP = array();
+                                $phoneMP = array();
+                                $phoneFB = array();
+                                $phoneMB = array();
+                                $phoneEP = array();
+                                $phoneEM = array();
+                                foreach($tblToPersonPhoneList as $tblToPersonPhone){
+                                    $PhoneNumber = $tblToPersonPhone->getTblPhone()->getNumber();
+                                    $TypeName = $tblToPersonPhone->getTblType()->getName();
+                                    $TypeDescription = $tblToPersonPhone->getTblType()->getDescription();
+                                    if($TypeDescription == 'Festnetz' && $TypeName == 'Privat'){
+                                        $phoneFP[] = $PhoneNumber;
+                                    }
+                                    if($TypeDescription == 'Mobil' && $TypeName == 'Privat'){
+                                        $phoneMP[] = $PhoneNumber;
+                                    }
+                                    if($TypeDescription == 'Festnetz' && $TypeName == 'Geschäftlich'){
+                                        $phoneFB[] = $PhoneNumber;
+                                    }
+                                    if($TypeDescription == 'Mobil' && $TypeName == 'Geschäftlich'){
+                                        $phoneMB[] = $PhoneNumber;
+                                    }
+                                    if($TypeName == 'Notfall' && $TypeDescription == 'Festnetz'){
+                                        $phoneEP[] = $PhoneNumber;
+                                    }
+                                    if($TypeName == 'Notfall' && $TypeDescription == 'Mobil'){
+                                        $phoneEM[] = $PhoneNumber;
+                                    }
+                                }
+                                if(!empty($phoneFP)){
+                                    $item['PhonePrivateS'.$Number] = implode('; ', $phoneFP);
+                                }
+                                if(!empty($phoneMP)){
+                                    $item['MobilePrivateS'.$Number] = implode('; ', $phoneMP);
+                                }
+                                if(!empty($phoneFB)){
+                                    $item['PhoneBusinessS'.$Number] = implode('; ', $phoneFB);
+                                }
+                                if(!empty($phoneMB)){
+                                    $item['MobileBusinessS'.$Number] = implode('; ', $phoneMB);
+                                }
+                                if(!empty($phoneEP)){
+                                    $item['EmergencyPhoneS'.$Number] = implode('; ', $phoneEP);
+                                }
+                                if(!empty($phoneEM)){
+                                    $item['EmergencyMobileS'.$Number] = implode('; ', $phoneEM);
+                                }
+                            }
                             if(($tblMailList = Mail::useService()->getMailAllByPerson($tblPersonS))){
                                 if(isset($tblMailList[0]) && ($tblMail = $tblMailList[0]->getTblMail())){
                                     $item['MailS'.$Number] = $tblMail->getAddress();
