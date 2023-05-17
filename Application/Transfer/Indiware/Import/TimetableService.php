@@ -7,10 +7,13 @@ use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeExce
 use MOC\V\Component\Document\Vendor\UniversalXml\Source\Node;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassRegister;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\Transfer\Education\Education;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -365,19 +368,79 @@ class TimetableService
 
         foreach($result as $Row){
             $Row['tblPerson'] = $Row['tblCourse'] = $Row['tblSubject'] = false;
+
+            $tblSubject = false;
             if(isset($Row['Subject']) && $Row['Subject'] !== ''){
-                $Row['tblSubject'] = Subject::useService()->getSubjectByAcronym($Row['Subject']);
+                // Mapping
+                if (($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $Row['Subject']))) {
+
+                // Found
+                } else {
+                    $tblSubject = Subject::useService()->getSubjectByVariantAcronym($Row['Subject']);
+                }
+
+                if ($tblSubject) {
+                    $Row['tblSubject'] = $tblSubject;
+                }
             }
             if (!$Row['tblSubject']) {
                 $this->CountImport['Subject'][$Row['Subject']][] = 'Fach nicht gefunden';
             }
+
             if(isset($Row['Course']) && $Row['Course'] !== ''){
                 if($tblYearList){
                     // Suche nach SSW Klasse
                     foreach ($tblYearList as $tblYear) {
-                        //ToDO Course
-                        if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['Course'], $tblYear))) {
-                            $Row['tblCourse'] = $tblDivision;
+                        // Mapping
+                        if (($tblDivisionCourse = Education::useService()->getImportMappingValueBy(
+                            TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $Row['Course'], $tblYear
+                        ))) {
+
+                        // Found
+                        } else {
+                            $tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($Row['Course'], $tblYear);
+                        }
+
+                        if ($tblDivisionCourse && $tblSubject) {
+                            // Spezialfall: Stundenplan für SekII -> es werden direkt beim Stundenplan die SekII-Kurse zugeordnet, falls vorhanden
+                            if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+                                && ($tblStudentList = $tblDivisionCourse->getStudents())
+                                && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                            ) {
+                                foreach ($tblStudentList as $tblStudent) {
+                                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblStudent, $tblYear))
+                                        && ($level = $tblStudentEducation->getLevel())
+                                        && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                                    ) {
+                                        $divisionCourseName = Education::useService()->getCourseNameForSystem(
+                                            TblImport::EXTERN_SOFTWARE_NAME_INDIWARE, $Row['SubjectGroup'], $level, $tblSchoolType
+                                        );
+
+                                        // mapping SekII-Kurs
+                                        if (($tblDivisionCourseCourseSystem = Education::useService()->getImportMappingValueBy(
+                                            TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $divisionCourseName, $tblYear
+                                        ))) {
+
+                                            // found SekII-Kurs
+                                        } elseif (($tblDivisionCourseCourseSystem = DivisionCourse::useService()->getDivisionCourseByNameAndYear(
+                                            $divisionCourseName, $tblYear
+                                        ))) {
+
+                                        }
+
+                                        if ($tblDivisionCourseCourseSystem
+                                            && ($tblDivisionCourseCourseSystem->getServiceTblSubject())
+                                            && $tblDivisionCourseCourseSystem->getServiceTblSubject()->getId() == $tblSubject->getId()
+                                        ) {
+                                            $tblDivisionCourse = $tblDivisionCourseCourseSystem;
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                            $Row['tblCourse'] = $tblDivisionCourse;
                             break;
                         }
                     }
@@ -386,15 +449,24 @@ class TimetableService
             if(!$Row['tblCourse']){
                 $this->CountImport['Course'][$Row['Course']][] = 'Klasse nicht gefunden';
             }
+
             if(isset($Row['Person']) && $Row['Person'] !== ''){
-                $tblTeacher = Teacher::useService()->getTeacherByAcronym($Row['Person']);
-                if($tblTeacher && $tblTeacher->getServiceTblPerson()){
-                    $Row['tblPerson'] = $tblTeacher->getServiceTblPerson();
+                // Mapping
+                if (($tblPerson = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_TEACHER_ACRONYM_TO_PERSON_ID, $Row['Person']))) {
+
+                // Found
+                } elseif (($tblTeacher = Teacher::useService()->getTeacherByAcronym($Row['Person']))) {
+                    $tblPerson = $tblTeacher->getServiceTblPerson();
+                }
+
+                if ($tblPerson) {
+                    $Row['tblPerson'] = $tblPerson;
                 }
             }
             if(!$Row['tblPerson']){
                 $this->CountImport['Person'][$Row['Person']][] = 'Lehrerkürzel nicht gefunden';
             }
+
             // Pflichtangaben
             if($Row['tblSubject'] && $Row['tblCourse'] && $Row['tblPerson']) { // && $isRoom
                 array_push($this->UploadList, $Row);

@@ -4,7 +4,7 @@ namespace SPHERE\Application\Transfer\Untis\Import;
 use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeException;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassregister;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -91,8 +91,8 @@ class Replacement extends Extension implements IModuleInterface
         $TableContentTemp = array();
         if(($tblTimetableReplacementList = TimetableClassregister::useService()->getTimetableReplacementByDate($DateFrom, $DateTo))){
             foreach($tblTimetableReplacementList as $tblTimetableReplacement){
-                $tblDivision = $tblTimetableReplacement->getServiceTblCourse();
-                $TableContentTemp[$tblTimetableReplacement->getDate()][$tblDivision->getId()] = $tblDivision;
+                $tblDivisionCourse = $tblTimetableReplacement->getServiceTblCourse();
+                $TableContentTemp[$tblTimetableReplacement->getDate()][$tblDivisionCourse->getId()] = $tblDivisionCourse;
             }
         }
         $TableContent = array();
@@ -102,9 +102,9 @@ class Replacement extends Extension implements IModuleInterface
                 $item['Date'] = $Date;
                 $DivisionList = $this->getSorter($DivisionList)->sortObjectBy('DisplayName');
                 $DivList = array();
-                /** @var TblDivision $Division */
-                foreach($DivisionList as $Division){
-                    $DivList[] = $Division->getDisplayName();
+                /** @var TblDivisionCourse $tblDivisionCourseTemp */
+                foreach($DivisionList as $tblDivisionCourseTemp){
+                    $DivList[] = $tblDivisionCourseTemp->getDisplayName();
                 }
                 $item['Course'] = implode(', ', $DivList);
                 array_push($TableContent, $item);
