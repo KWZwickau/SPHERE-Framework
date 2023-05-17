@@ -6,6 +6,7 @@ use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Group;
@@ -17,8 +18,9 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\System\Extension\Extension;
 
-class Service
+class Service extends Extension
 {
 
     /**
@@ -32,6 +34,7 @@ class Service
         $tblPersonList = array();
         if(($tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))){
             $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroupStudent);
+            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
         }
 
         $TableContent = array();
@@ -56,6 +59,12 @@ class Service
                 $Item['ExcelStreet'] = '';
                 $Item['Code'] = '';
                 $Item['City'] = '';
+                $Item['PhonePrivate'] = '';
+                $Item['MobilePrivate'] = '';
+                $Item['PhoneBusiness'] = '';
+                $Item['MobileBusiness'] = '';
+                $Item['EmergencyPhone'] = '';
+                $Item['EmergencyMobile'] = '';
                 $Item['AddressRemark'] = '';
                 $Item['Nationality'] = '';
                 $Item['Denomination'] = '';
@@ -69,6 +78,12 @@ class Service
                     $Item['ExcelStreetS'.$i] = '';
                     $Item['CodeS'.$i] = '';
                     $Item['CityS'.$i] = '';
+                    $Item['PhonePrivateS'.$i] = '';
+                    $Item['MobilePrivateS'.$i] = '';
+                    $Item['PhoneBusinessS'.$i] = '';
+                    $Item['MobileBusinessS'.$i] = '';
+                    $Item['EmergencyPhoneS'.$i] = '';
+                    $Item['EmergencyMobileS'.$i] = '';
                     $Item['MailS'.$i] = '';
                     $Item['Mail2S'.$i] = '';
                     $Item['RemarkS'.$i] = '';
@@ -165,6 +180,56 @@ class Service
                         $Item['Region'] = Address::useService()->getRegionStringByCode($tblAdress->getTblCity()->getCode());
                     }
                 }
+                // Telefon Schüler
+                if(($tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))){
+                    $PhoneFP = array();
+                    $PhoneMP = array();
+                    $PhoneFB = array();
+                    $PhoneMB = array();
+                    $PhoneEP = array();
+                    $PhoneEM = array();
+                    foreach($tblToPersonPhoneList as $tblToPersonPhone){
+                        $PhoneNumber = $tblToPersonPhone->getTblPhone()->getNumber();
+                        $TypeName = $tblToPersonPhone->getTblType()->getName();
+                        $TypeDescription = $tblToPersonPhone->getTblType()->getDescription();
+                        if($TypeDescription == 'Festnetz' && $TypeName == 'Privat'){
+                            $PhoneFP[] = $PhoneNumber;
+                        }
+                        if($TypeDescription == 'Mobil' && $TypeName == 'Privat'){
+                            $PhoneMP[] = $PhoneNumber;
+                        }
+                        if($TypeDescription == 'Festnetz' && $TypeName == 'Geschäftlich'){
+                            $PhoneFB[] = $PhoneNumber;
+                        }
+                        if($TypeDescription == 'Mobil' && $TypeName == 'Geschäftlich'){
+                            $PhoneMB[] = $PhoneNumber;
+                        }
+                        if($TypeName == 'Notfall' && $TypeDescription == 'Festnetz'){
+                            $PhoneEP[] = $PhoneNumber;
+                        }
+                        if($TypeName == 'Notfall' && $TypeDescription == 'Mobil'){
+                            $PhoneEM[] = $PhoneNumber;
+                        }
+                    }
+                    if(!empty($PhoneFP)){
+                        $Item['PhonePrivate'] = implode('; ', $PhoneFP);
+                    }
+                    if(!empty($PhoneMP)){
+                        $Item['MobilePrivate'] = implode('; ', $PhoneMP);
+                    }
+                    if(!empty($PhoneFB)){
+                        $Item['PhoneBusiness'] = implode('; ', $PhoneFB);
+                    }
+                    if(!empty($PhoneMB)){
+                        $Item['MobileBusiness'] = implode('; ', $PhoneMB);
+                    }
+                    if(!empty($PhoneEP)){
+                        $Item['EmergencyPhone'] = implode('; ', $PhoneEP);
+                    }
+                    if(!empty($PhoneEM)){
+                        $Item['EmergencyMobile'] = implode('; ', $PhoneEM);
+                    }
+                }
                 // Schülerakte
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
                     if(($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::ARRIVE))){
@@ -195,7 +260,9 @@ class Service
                         }
                     }
                     if(($tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord())){
-                        $Item['Masern'] = $tblStudentMedicalRecord->getMasernDocumentType()->getTextShort();
+                        if(($tblMasernDocumentType = $tblStudentMedicalRecord->getMasernDocumentType())){
+                            $Item['Masern'] = $tblMasernDocumentType->getTextShort();
+                        }
                     }
                     if($tblStudent->getHasMigrationBackground()){
                         $Item['MigrationBackground'] = 'Ja';
@@ -232,6 +299,57 @@ class Service
                                         }
                                     }
                                     $Item['AddressRemarkS'.$Number] = $RemarkToPerson;
+                                }
+
+                                // Telefon Schüler
+                                if(($tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonS))){
+                                    $PhoneFP = array();
+                                    $PhoneMP = array();
+                                    $PhoneFB = array();
+                                    $PhoneMB = array();
+                                    $PhoneEP = array();
+                                    $PhoneEM = array();
+                                    foreach($tblToPersonPhoneList as $tblToPersonPhone){
+                                        $PhoneNumber = $tblToPersonPhone->getTblPhone()->getNumber();
+                                        $TypeName = $tblToPersonPhone->getTblType()->getName();
+                                        $TypeDescription = $tblToPersonPhone->getTblType()->getDescription();
+                                        if($TypeDescription == 'Festnetz' && $TypeName == 'Privat'){
+                                            $PhoneFP[] = $PhoneNumber;
+                                        }
+                                        if($TypeDescription == 'Mobil' && $TypeName == 'Privat'){
+                                            $PhoneMP[] = $PhoneNumber;
+                                        }
+                                        if($TypeDescription == 'Festnetz' && $TypeName == 'Geschäftlich'){
+                                            $PhoneFB[] = $PhoneNumber;
+                                        }
+                                        if($TypeDescription == 'Mobil' && $TypeName == 'Geschäftlich'){
+                                            $PhoneMB[] = $PhoneNumber;
+                                        }
+                                        if($TypeName == 'Notfall' && $TypeDescription == 'Festnetz'){
+                                            $PhoneEP[] = $PhoneNumber;
+                                        }
+                                        if($TypeName == 'Notfall' && $TypeDescription == 'Mobil'){
+                                            $PhoneEM[] = $PhoneNumber;
+                                        }
+                                    }
+                                    if(!empty($PhoneFP)){
+                                        $Item['PhonePrivateS'.$Number] = implode('; ', $PhoneFP);
+                                    }
+                                    if(!empty($PhoneMP)){
+                                        $Item['MobilePrivateS'.$Number] = implode('; ', $PhoneMP);
+                                    }
+                                    if(!empty($PhoneFB)){
+                                        $Item['PhoneBusinessS'.$Number] = implode('; ', $PhoneFB);
+                                    }
+                                    if(!empty($PhoneMB)){
+                                        $Item['MobileBusinessS'.$Number] = implode('; ', $PhoneMB);
+                                    }
+                                    if(!empty($PhoneEP)){
+                                        $Item['EmergencyPhoneS'.$Number] = implode('; ', $PhoneEP);
+                                    }
+                                    if(!empty($PhoneEM)){
+                                        $Item['EmergencyMobileS'.$Number] = implode('; ', $PhoneEM);
+                                    }
                                 }
 
                                 if(($tblMailList = Mail::useService()->getMailAllByPerson($tblPersonS))){
@@ -307,6 +425,12 @@ class Service
             $export->setValue($export->getCell($column++, $row), "Strasse Kind");
             $export->setValue($export->getCell($column++, $row), "PLZ Kind");
             $export->setValue($export->getCell($column++, $row), "Stadt Kind");
+            $export->setValue($export->getCell($column++, $row), "Privat_Festnetz");
+            $export->setValue($export->getCell($column++, $row), "Privat_Mobil");
+            $export->setValue($export->getCell($column++, $row), "Geschäftlich_Festnetz");
+            $export->setValue($export->getCell($column++, $row), "Geschäftlich_Mobil");
+            $export->setValue($export->getCell($column++, $row), "Notfall_Festnetz");
+            $export->setValue($export->getCell($column++, $row), "Notfall_Mobil");
             $export->setValue($export->getCell($column++, $row), "Nationalität");
             $export->setValue($export->getCell($column++, $row), "Kirche");
             $export->setValue($export->getCell($column++, $row), "Grundschule");
@@ -318,6 +442,12 @@ class Service
             $export->setValue($export->getCell($column++, $row), "Straße_S2");
             $export->setValue($export->getCell($column++, $row), "PLZ_S2");
             $export->setValue($export->getCell($column++, $row), "Ort_S2");
+            $export->setValue($export->getCell($column++, $row), "Privat_Festnetz_S2");
+            $export->setValue($export->getCell($column++, $row), "Privat_Mobil_S2");
+            $export->setValue($export->getCell($column++, $row), "Geschäftlich_Festnetz_S2");
+            $export->setValue($export->getCell($column++, $row), "Geschäftlich_Mobil_S2");
+            $export->setValue($export->getCell($column++, $row), "Notfall_Festnetz_S2");
+            $export->setValue($export->getCell($column++, $row), "Notfall_Mobil_S2");
             $export->setValue($export->getCell($column++, $row), "Mail_S2");
             $export->setValue($export->getCell($column++, $row), "Mail_S2_Zwei");
             $export->setValue($export->getCell($column++, $row), "Bemerkung_S2");
@@ -329,6 +459,12 @@ class Service
             $export->setValue($export->getCell($column++, $row), "Straße_S1");
             $export->setValue($export->getCell($column++, $row), "PLZ_S1");
             $export->setValue($export->getCell($column++, $row), "Ort_S1");
+            $export->setValue($export->getCell($column++, $row), "Privat_Festnetz_S1");
+            $export->setValue($export->getCell($column++, $row), "Privat_Mobil_S1");
+            $export->setValue($export->getCell($column++, $row), "Geschäftlich_Festnetz_S1");
+            $export->setValue($export->getCell($column++, $row), "Geschäftlich_Mobil_S1");
+            $export->setValue($export->getCell($column++, $row), "Notfall_Festnetz_S1");
+            $export->setValue($export->getCell($column++, $row), "Notfall_Mobil_S1");
             $export->setValue($export->getCell($column++, $row), "Mail_S1");
             $export->setValue($export->getCell($column++, $row), "Mail_S1_Zwei");
             $export->setValue($export->getCell($column++, $row), "Bemerkung_S1");
@@ -368,6 +504,12 @@ class Service
                 $export->setValue($export->getCell($column++, $row), $RowContent['ExcelStreet']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Code']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['City']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['PhonePrivate']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['MobilePrivate']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['PhoneBusiness']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['MobileBusiness']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['EmergencyPhone']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['EmergencyMobile']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Nationality']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Denomination']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['LeavingSchool']);
@@ -379,6 +521,12 @@ class Service
                 $export->setValue($export->getCell($column++, $row), $RowContent['ExcelStreetS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['CodeS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['CityS2']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['PhonePrivateS2']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['MobilePrivateS2']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['PhoneBusinessS2']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['MobileBusinessS2']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['EmergencyPhoneS2']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['EmergencyMobileS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['MailS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Mail2S2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['RemarkS2']);
@@ -390,6 +538,12 @@ class Service
                 $export->setValue($export->getCell($column++, $row), $RowContent['ExcelStreetS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['CodeS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['CityS1']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['PhonePrivateS1']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['MobilePrivateS1']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['PhoneBusinessS1']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['MobileBusinessS1']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['EmergencyPhoneS1']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['EmergencyMobileS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['MailS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Mail2S1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['RemarkS1']);
