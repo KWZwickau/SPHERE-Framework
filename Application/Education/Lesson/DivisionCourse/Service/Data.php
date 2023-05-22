@@ -670,14 +670,21 @@ class Data extends DataTeacher
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $IsForced
      *
      * @return false|TblStudentEducation[]
      */
-    public function getStudentEducationListByPerson(TblPerson $tblPerson)
+    public function getStudentEducationListByPerson(TblPerson $tblPerson, bool $IsForced = false)
     {
-        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
-            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+        if ($IsForced) {
+            return $this->getForceEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+                TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        } else {
+            return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+                TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        }
     }
 
     /**
@@ -1769,5 +1776,93 @@ class Data extends DataTeacher
         Protocol::useService()->flushBulkEntries();
 
         return true;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param bool $IsSoftRemove
+     */
+    public function removePerson(TblPerson $tblPerson, bool $IsSoftRemove)
+    {
+        $Manager = $this->getEntityManager();
+
+        if (($tblStudentEducationList = $this->getStudentEducationListByPerson($tblPerson))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $tblStudentEducation);
+
+                if ($IsSoftRemove) {
+                    $Manager->removeEntity($tblStudentEducation);
+                } else {
+                    $Manager->killEntity($tblStudentEducation);
+                }
+            }
+        }
+
+        if (($tblDivisionCourseMemberList = $this->getCachedEntityListBy(
+            __METHOD__, $Manager, 'TblDivisionCourseMember', array(TblDivisionCourseMember::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId())
+        ))) {
+            foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $tblDivisionCourseMember);
+
+                if ($IsSoftRemove) {
+                    $Manager->removeEntity($tblDivisionCourseMember);
+                } else {
+                    $Manager->killEntity($tblDivisionCourseMember);
+                }
+            }
+        }
+
+        if (($tblStudentSubjectList = $this->getCachedEntityListBy(
+            __METHOD__, $Manager, 'TblStudentSubject', array(TblStudentSubject::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId())
+        ))) {
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $tblStudentSubject);
+
+                if ($IsSoftRemove) {
+                    $Manager->removeEntity($tblStudentSubject);
+                } else {
+                    $Manager->killEntity($tblStudentSubject);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     */
+    public function restorePerson(TblPerson $tblPerson)
+    {
+        $Manager = $this->getEntityManager();
+
+        if (($tblStudentEducationList = $this->getStudentEducationListByPerson($tblPerson, true))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                $Protocol = clone $tblStudentEducation;
+                $tblStudentEducation->setEntityRemove(null);
+                $Manager->saveEntity($tblStudentEducation);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $tblStudentEducation);
+            }
+        }
+
+        if (($tblDivisionCourseMemberList = $this->getForceEntityListBy(
+            __METHOD__, $Manager, 'TblDivisionCourseMember', array(TblDivisionCourseMember::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId())
+        ))) {
+            foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                $Protocol = clone $tblDivisionCourseMember;
+                $tblDivisionCourseMember->setEntityRemove(null);
+                $Manager->saveEntity($tblDivisionCourseMember);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $tblDivisionCourseMember);
+            }
+        }
+
+        if (($tblStudentSubjectList = $this->getForceEntityListBy(
+            __METHOD__, $Manager, 'TblStudentSubject', array(TblStudentSubject::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId())
+        ))) {
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                $Protocol = clone $tblStudentSubject;
+                $tblStudentSubject->setEntityRemove(null);
+                $Manager->saveEntity($tblStudentSubject);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $tblStudentSubject);
+            }
+        }
     }
 }

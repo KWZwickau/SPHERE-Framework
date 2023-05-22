@@ -6,8 +6,8 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Absence\Absence;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -743,14 +743,18 @@ class Service extends AbstractService
             }
         }
 
-        // Division
-        if (($tblDivisionList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
-            foreach ($tblDivisionList as $tblDivisionStudent) {
-                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson, true))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (($tblDivision = $tblStudentEducation->getTblDivision())
                     && ($tblYear = $tblDivision->getServiceTblYear())
                 ) {
-                    $list[] = 'Klassenzuordnung: ' . $tblDivision->getDisplayName()
-                        . ' (' . $tblYear->getDisplayName() . ')';
+                    $list[] = 'Klassenzuordnung: ' . $tblDivision->getName() . ' (' . $tblYear->getDisplayName() . ')';
+                }
+
+                if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                    && ($tblYear = $tblCoreGroup->getServiceTblYear())
+                ) {
+                    $list[] = 'Stammgruppenzuordnung: ' . $tblCoreGroup->getName() . ' (' . $tblYear->getDisplayName() . ')';
                 }
             }
         }
@@ -759,8 +763,8 @@ class Service extends AbstractService
             $list[] = count($tblAbsenceList) . ' Fehlzeiten zur Person';
         }
         // Grades
-        if (($tblGradeList = Gradebook::useService()->getGradeAllBy($tblPerson))) {
-            $list[] = 'Zugriff auf ' . count($tblGradeList) . ' Zensuren der Person';
+        if (($count = Grade::useService()->getCountPersonTestGrades($tblPerson))) {
+            $list[] = 'Zugriff auf ' . $count . ' Zensuren der Person';
         }
         // Certificates
         if (($tblFileList = Storage::useService()->getCertificateRevisionFileAllByPerson($tblPerson))) {
@@ -989,25 +993,34 @@ class Service extends AbstractService
             }
         }
 
-        // Division
-        if (($tblDivisionList = Division::useService()->getDivisionStudentAllByPerson($tblPerson, true))) {
-            foreach ($tblDivisionList as $tblDivisionStudent) {
-                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+        // StudentEducation
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson, true))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (($tblDivision = $tblStudentEducation->getTblDivision())
                     && ($tblYear = $tblDivision->getServiceTblYear())
                 ) {
-
                     $result[] = array(
                         'Number' => $count++,
                         'Type' => 'Klassenzuordnung',
-                        'Value' =>  $tblDivision->getDisplayName() . ' (' . $tblYear->getDisplayName() . ')',
-                        'EntityRemove' => $tblDivisionStudent->getEntityRemove()
+                        'Value' =>  $tblDivision->getName() . ' (' . $tblYear->getDisplayName() . ')',
+                        'EntityRemove' => $tblStudentEducation->getEntityRemove()
                     );
+                }
 
-                    if ($isRestore) {
-                        Division::useService()->restoreDivisionStudent($tblDivisionStudent);
-                    }
+                if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                    && ($tblYear = $tblCoreGroup->getServiceTblYear())
+                ) {
+                    $result[] = array(
+                        'Number' => $count++,
+                        'Type' => 'Stammgruppenzuordnung',
+                        'Value' =>  $tblCoreGroup->getName() . ' (' . $tblYear->getDisplayName() . ')',
+                        'EntityRemove' => $tblStudentEducation->getEntityRemove()
+                    );
                 }
             }
+        }
+        if ($isRestore) {
+            DivisionCourse::useService()->restorePerson($tblPerson);
         }
         // Absence
         if (($tblAbsenceList = Absence::useService()->getAbsenceAllByPerson($tblPerson, true))){
@@ -1018,8 +1031,10 @@ class Service extends AbstractService
                 'EntityRemove' => ''
             );
 
-            foreach ($tblAbsenceList as $tblAbsence) {
-                Absence::useService()->restoreAbsence($tblAbsence);
+            if ($isRestore) {
+                foreach ($tblAbsenceList as $tblAbsence) {
+                    Absence::useService()->restoreAbsence($tblAbsence);
+                }
             }
         }
 

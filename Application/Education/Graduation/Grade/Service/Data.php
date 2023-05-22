@@ -732,4 +732,20 @@ class Data extends DataTask
             TblTestGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return integer
+     */
+    public function getCountPersonTestGrades(TblPerson $tblPerson): int
+    {
+        if (($list = $this->getForceEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTestGrade', array(
+            TblTestGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+        )))) {
+            return count($list);
+        }
+
+        return 0;
+    }
 }
