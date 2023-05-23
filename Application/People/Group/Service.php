@@ -1,8 +1,8 @@
 <?php
 namespace SPHERE\Application\People\Group;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Group\Service\Data;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\TblMember;
@@ -168,7 +168,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int $Id
+     * @param $Id
      *
      * @return bool|TblGroup
      */
@@ -594,7 +594,7 @@ class Service extends AbstractService
      * @param null             $DataAddPerson
      * @param null             $DataRemovePerson
      * @param TblGroup|null    $tblFilterGroup
-     * @param TblDivision|null $tblFilterDivision
+     * @param TblDivisionCourse|null $tblFilterDivisionCourse
      *
      * @return IFormInterface|string
      */
@@ -604,9 +604,8 @@ class Service extends AbstractService
         $DataAddPerson = null,
         $DataRemovePerson = null,
         TblGroup $tblFilterGroup = null,
-        TblDivision $tblFilterDivision = null
+        TblDivisionCourse $tblFilterDivisionCourse = null
     ) {
-
         /**
          * Skip to Frontend
          */
@@ -628,7 +627,7 @@ class Service extends AbstractService
         .new Redirect('/People/Group/Person/Add', Redirect::TIMEOUT_SUCCESS, array(
             'Id'               => $tblGroup->getId(),
             'FilterGroupId'    => $tblFilterGroup ? $tblFilterGroup->getId() : null,
-            'FilterDivisionId' => $tblFilterDivision ? $tblFilterDivision->getId() : null,
+            'FilterDivisionCourseId' => $tblFilterDivisionCourse ? $tblFilterDivisionCourse->getId() : null,
         ));
     }
 
@@ -672,7 +671,6 @@ class Service extends AbstractService
      */
     public function getFilter(IFormInterface $Form, TblGroup $tblGroup, $Filter = null)
     {
-
         /**
          * Skip to Frontend
          */
@@ -681,12 +679,12 @@ class Service extends AbstractService
         }
 
         $tblFilterGroup = false;
-        $tblDivision = false;
+        $tblDivisionCourse = false;
         if (isset( $Filter['Group'] )) {
             $tblFilterGroup = $this->getGroupById($Filter['Group']);
         }
         if (isset( $Filter['Division'] )) {
-            $tblDivision = Division::useService()->getDivisionById($Filter['Division']);
+            $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Filter['Division']);
         }
 
         return new Success('Die verfügbaren Personen werden gefiltert.',
@@ -694,60 +692,8 @@ class Service extends AbstractService
         .new Redirect('/People/Group/Person/Add', Redirect::TIMEOUT_SUCCESS, array(
             'Id'               => $tblGroup->getId(),
             'FilterGroupId'    => $tblFilterGroup ? $tblFilterGroup->getId() : null,
-            'FilterDivisionId' => $tblDivision ? $tblDivision->getId() : null,
+            'FilterDivisionCourseId' => $tblDivisionCourse ? $tblDivisionCourse->getId() : null,
         ));
-    }
-
-    /**
-     * @param                  $tblPersonList
-     * @param TblGroup|null    $tblGroup
-     * @param TblDivision|null $tblDivision
-     *
-     * @return false|TblPerson[]
-     */
-    public function filterPersonListByGroupAndDivision(
-        $tblPersonList,
-        TblGroup $tblGroup = null,
-        TblDivision $tblDivision = null
-    ) {
-
-        if (is_array($tblPersonList)) {
-            $resultPersonList = array();
-            /** @var TblPerson $tblPerson */
-            foreach ($tblPersonList as $tblPerson) {
-                if ($tblGroup && $tblDivision) {
-                    $tblPersonDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson);
-                    if ($this->existsGroupPerson($tblGroup, $tblPerson)
-                        && $tblPersonDivisionList
-                    ) {
-                        foreach ($tblPersonDivisionList as $division){
-                            if ($division->getId() == $tblDivision->getId()){
-                                $resultPersonList[$tblPerson->getId()] = $tblPerson;
-                                break;
-                            }
-                        }
-                    }
-                } elseif ($tblGroup) {
-                    if ($this->existsGroupPerson($tblGroup, $tblPerson)) {
-                        $resultPersonList[$tblPerson->getId()] = $tblPerson;
-                    }
-                } elseif ($tblDivision) {
-                    $tblPersonDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson);
-                    if ($tblPersonDivisionList) {
-                        foreach ($tblPersonDivisionList as $division){
-                            if ($division->getId() == $tblDivision->getId()){
-                                $resultPersonList[$tblPerson->getId()] = $tblPerson;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return empty( $resultPersonList ) ? false : $resultPersonList;
-        } else {
-            return false;
-        }
     }
 
     /**
@@ -761,31 +707,6 @@ class Service extends AbstractService
             foreach ($tblGroupList as $tblGroup) {
                 $this->removeGroupPerson($tblGroup, $tblPerson, $IsSoftRemove);
             }
-        }
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     * @return TblPerson[]|bool
-     */
-    public function getTudors(TblGroup $tblGroup)
-    {
-
-        if ($tblGroup->isLocked()) {
-            return false;
-        } else {
-            $tudors = array();
-            if (($tblPersonList = $this->getPersonAllByGroup($tblGroup))
-                && ($tblGroupTudor = $this->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
-            ) {
-                foreach ($tblPersonList as $tblPerson) {
-                    if ($this->existsGroupPerson($tblGroupTudor, $tblPerson)) {
-                        $tudors[] = $tblPerson;
-                    }
-                }
-            }
-
-            return empty($tudors) ? false : $tudors;
         }
     }
 
