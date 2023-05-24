@@ -19,6 +19,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareSt
 use SPHERE\Application\Education\Certificate\Prepare\Service\Setup;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -448,7 +449,7 @@ class Service extends ServiceTemplateInformation
 
                             // Zeugnistext umwandeln
                             if (strpos($field, '_GradeText')) {
-                                if (($tblGradeText = Gradebook::useService()->getGradeTextById($value))) {
+                                if (($tblGradeText = Grade::useService()->getGradeTextById($value))) {
                                     $value = $tblGradeText->getName();
                                 } else {
                                     $value = '';

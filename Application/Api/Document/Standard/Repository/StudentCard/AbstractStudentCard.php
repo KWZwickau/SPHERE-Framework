@@ -15,8 +15,7 @@ use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Document\Generator\Service\Entity\TblDocument;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 
@@ -239,7 +238,7 @@ abstract class AbstractStudentCard extends AbstractDocument
         $widthString = $width . '%';
         $countTotalColumns = 3 + $countGradesTotal + 4;
 
-        $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR'));
+        $tblGradeTypeList = Grade::useService()->getGradeTypeList(true);
 
         $sliceList = array();
         for ($j = 1; $j <= $countRows; $j++) {

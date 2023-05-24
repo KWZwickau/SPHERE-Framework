@@ -109,6 +109,7 @@ class Import extends Extension implements IModuleInterface
                             new Container('Bitte beachten Sie die Reihenfolge für den Import:').
                             new Container('1. Untis-Import für Schüler-Kurse SEK II').
                             new Container('2. Untis-Import für Lehraufträge')
+                            . new Container('3. Untis-Import für Stundenplan')
                         )
                     )
                 ),

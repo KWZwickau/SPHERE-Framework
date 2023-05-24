@@ -86,7 +86,6 @@ class Education implements IApplicationInterface
         ApiDigital::registerApi();
         ApiInstructionSetting::registerApi();
         ApiInstructionItem::registerApi();
-        Evaluation::registerModule();
 
         ApiDivisionCourse::registerApi();
         ApiDivisionCourseMember::registerApi();

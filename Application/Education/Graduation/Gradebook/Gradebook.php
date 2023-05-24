@@ -11,6 +11,8 @@ use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
 /**
+ * @deprecated
+ *
  * Class Gradebook
  *
  * @package SPHERE\Application\Education\Graduation\Gradebook
@@ -237,6 +239,8 @@ class Gradebook implements IModuleInterface
     }
 
     /**
+     * @deprecated
+     *
      * @return Service
      */
     public static function useService()
@@ -249,6 +253,8 @@ class Gradebook implements IModuleInterface
     }
 
     /**
+     * @deprecated
+     *
      * @return Frontend
      */
     public static function useFrontend()

@@ -111,6 +111,7 @@ class Import extends Extension implements IModuleInterface
                         new Container('Bitte beachten Sie die Reihenfolge für den Import:')
                         .new Container('1. Indiware-Import für Schüler-Kurse SEK II')
                         .new Container('2. Indiware-Import für Lehraufträge')
+                        .new Container('3. Indiware-Import für Stundenplan')
                         .new Layout(new LayoutGroup(new LayoutRow(array(
                         ))))
                     )

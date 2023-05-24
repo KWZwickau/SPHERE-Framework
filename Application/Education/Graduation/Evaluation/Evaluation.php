@@ -10,6 +10,8 @@ use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
 /**
+ * @deprecated
+ *
  * Class Evaluation
  *
  * @package SPHERE\Application\Education\Graduation\Evaluation
@@ -144,6 +146,8 @@ class Evaluation implements IModuleInterface
     }
 
     /**
+     * @deprecated
+     *
      * @return Service
      */
     public static function useService()
@@ -156,6 +160,8 @@ class Evaluation implements IModuleInterface
     }
 
     /**
+     * @deprecated
+     *
      * @return Frontend
      */
     public static function useFrontend()
