@@ -2,7 +2,7 @@
 namespace SPHERE\Application\People\Person;
 
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
@@ -61,7 +61,7 @@ class Frontend extends Extension implements IFrontendInterface
                     // Personen (Schüler) dürfen aktuell nicht gelöscht werden wenn sie Zensuren oder Zeugnisse besitzen SSW-115
                     $canRemove = true;
                     $descriptionList = array();
-                    if (($tblGradeAll = Gradebook::useService()->getGradeAllBy($tblPerson))) {
+                    if (Grade::useService()->getCountPersonTestGrades($tblPerson)) {
                         $canRemove = false;
                         $descriptionList[] = 'Diese Person kann aktuell nicht gelöscht werden, da zu dieser Person Zensuren und/oder Zeugnisse existieren.';
                     } elseif (($tblFileList = Storage::useService()->getCertificateRevisionFileAllByPerson($tblPerson))) {

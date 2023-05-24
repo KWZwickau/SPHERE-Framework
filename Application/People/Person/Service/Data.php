@@ -5,7 +5,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Absence\Absence;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -474,7 +474,7 @@ class Data extends AbstractData
         Address::useService()->removeAddressAllByPerson($tblPerson, $IsSoftRemove);
         Mail::useService()->removeSoftMailAllByPerson($tblPerson, $IsSoftRemove);
         Phone::useService()->removeSoftPhoneAllByPerson($tblPerson, $IsSoftRemove);
-        Division::useService()->removePerson($tblPerson, $IsSoftRemove);
+        DivisionCourse::useService()->removePerson($tblPerson, $IsSoftRemove);
         if (($tblClub = Club::useService()->getClubByPerson($tblPerson))){
             Club::useService()->destroyClub($tblClub, $IsSoftRemove);
         }

@@ -3,9 +3,9 @@ namespace SPHERE\Application\People\Meta\Student;
 
 use DateTime;
 use SPHERE\Application\Corporation\Company\Company;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -1192,45 +1192,22 @@ class Service extends Support
     }
 
     /**
+     * @deprecated
+     *
      * @param TblPerson $tblPerson
      * @param string $Prefix
      *
      * @return string
      */
-    public function getDisplayCurrentDivisionListByPerson(TblPerson $tblPerson, $Prefix = 'Klasse' )
+    public function getDisplayCurrentDivisionListByPerson(TblPerson $tblPerson, $Prefix = 'Klasse' ): string
     {
-
-        $tblDivisionList = $this->getCurrentDivisionListByPerson($tblPerson);
-        $list = array();
-        if ($tblDivisionList){
-            foreach ($tblDivisionList as $tblDivision){
-                $list[] = trim($Prefix . ' ' . $tblDivision->getDisplayName());
-            }
-
-            return implode(', ', $list);
-        } else {
-
-            return '';
+        $result = DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson);
+        if (!$Prefix) {
+            str_replace('Klasse: ', '', $result);
+            str_replace('Stammgruppe: ', '', $result);
         }
-    }
 
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return TblDivision|bool
-     */
-    public function getCurrentDivisionByPerson(TblPerson $tblPerson)
-    {
-
-        $tblDivisionList = $this->getCurrentDivisionListByPerson($tblPerson);
-        if ($tblDivisionList) {
-            foreach ($tblDivisionList as $tblDivision) {
-                if (($tblLevel = $tblDivision->getTblLevel()) && !$tblLevel->getIsChecked()) {
-                    return $tblDivision;
-                }
-            }
-        }
-        return false;
+        return $result;
     }
 
     /**
@@ -1270,58 +1247,6 @@ class Service extends Support
     }
 
     /**
-     * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
-     *
-     * @return false|TblDivision[]
-     */
-    public function getDivisionListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
-    {
-
-        $tblDivisionList = array();
-
-        $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-        if ($tblDivisionStudentList) {
-            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                if ($tblDivisionStudent->getTblDivision()) {
-                    $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
-                    if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
-                        $tblDivisionList[] = $tblDivisionStudent->getTblDivision();
-                    }
-                }
-            }
-        }
-
-        return empty($tblDivisionList) ? false : $tblDivisionList;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
-     *
-     * @return false|TblDivision[]
-     */
-    public function getDivisionListByPersonAndYearAndIsNotInActive(TblPerson $tblPerson, TblYear $tblYear)
-    {
-
-        $tblDivisionList = array();
-
-        $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-        if ($tblDivisionStudentList) {
-            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                if ($tblDivisionStudent->getTblDivision() && !$tblDivisionStudent->isInActive()) {
-                    $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
-                    if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
-                        $tblDivisionList[] = $tblDivisionStudent->getTblDivision();
-                    }
-                }
-            }
-        }
-
-        return empty($tblDivisionList) ? false : $tblDivisionList;
-    }
-
-    /**
      * @param array $EntityList
      * @param array $ProtocolList
      *
@@ -1332,32 +1257,6 @@ class Service extends Support
 
         if (!empty($EntityList)) {
             return (new Data($this->getBinding()))->bulkSaveEntityList($EntityList, $ProtocolList);
-        }
-
-        return false;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param TblDivision|null $tblDivision
-     *
-     * @return bool|TblCompany
-     */
-    public function getCurrentSchoolByPerson(TblPerson $tblPerson, TblDivision $tblDivision = null)
-    {
-        if ($tblDivision && $tblDivision->getServiceTblCompany()) {
-            return $tblDivision->getServiceTblCompany();
-        } elseif (($tblCurrentDivision = $this->getCurrentDivisionByPerson($tblPerson))
-            && $tblCurrentDivision->getServiceTblCompany()
-        ) {
-            return $tblCurrentDivision->getServiceTblCompany();
-        } else {
-            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                && ($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType))
-            ) {
-                return $tblTransfer->getServiceTblCompany();
-            }
         }
 
         return false;

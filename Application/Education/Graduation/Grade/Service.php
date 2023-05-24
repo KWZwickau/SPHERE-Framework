@@ -867,4 +867,14 @@ class Service extends ServiceTask
 
         return false;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return integer
+     */
+    public function getCountPersonTestGrades(TblPerson $tblPerson): int
+    {
+        return (new Data($this->getBinding()))->getCountPersonTestGrades($tblPerson);
+    }
 }

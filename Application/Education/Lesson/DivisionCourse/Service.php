@@ -1312,12 +1312,13 @@ class Service extends ServiceYearChange
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $IsForced
      *
      * @return false|TblStudentEducation[]
      */
-    public function getStudentEducationListByPerson(TblPerson $tblPerson)
+    public function getStudentEducationListByPerson(TblPerson $tblPerson, bool $IsForced = false)
     {
-        return (new Data($this->getBinding()))->getStudentEducationListByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getStudentEducationListByPerson($tblPerson, $IsForced);
     }
 
     /**
@@ -2085,5 +2086,22 @@ class Service extends ServiceYearChange
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param bool $IsSoftRemove
+     */
+    public function removePerson(TblPerson $tblPerson, bool $IsSoftRemove)
+    {
+        (new Data($this->getBinding()))->removePerson($tblPerson, $IsSoftRemove);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     */
+    public function restorePerson(TblPerson $tblPerson)
+    {
+        (new Data($this->getBinding()))->restorePerson($tblPerson);
     }
 }

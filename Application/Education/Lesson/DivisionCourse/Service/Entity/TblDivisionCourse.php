@@ -38,9 +38,11 @@ class TblDivisionCourse extends Element
     protected ?int $tblLessonDivisionCourseType = null;
 
     /**
+     *  muss null sein für SelectBox
+     *
      * @Column(type="bigint")
      */
-    protected int $serviceTblYear;
+    protected ?int $serviceTblYear = null;
 
     /**
      * @Column(type="string")
