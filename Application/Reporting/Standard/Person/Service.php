@@ -3999,15 +3999,17 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
+     * @param array $tblPersonList
      * @param array $dataList
+     * @param array $countList
+     * @param TblYear $tblYear
      *
      * @return bool|FilePointer
      */
-    public function createAbsenceContentExcelMonthly(array $PersonList, array $dataList, array $countList, TblYear $tblYear): ?FilePointer
+    public function createAbsenceContentExcelMonthly(array $tblPersonList, array $dataList, array $countList, TblYear $tblYear): ?FilePointer
     {
         $totalCountList = array();
-        if (!empty($PersonList)) {
+        if (!empty($tblPersonList)) {
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
@@ -4070,7 +4072,7 @@ class Service extends Extension
                     $columnStudents = 0;
                     $rowStudents = 3;
                     /** @var TblPerson $tblPerson */
-                    foreach ($PersonList as $tblPerson) {
+                    foreach ($tblPersonList as $tblPerson) {
                         $lastName = $tblPerson->getLastName();
                         $firstName = $tblPerson->getFirstSecondName();
                         $export->setValue($export->getCell($columnStudents, $rowStudents), $lastName . ', ' . $firstName);
