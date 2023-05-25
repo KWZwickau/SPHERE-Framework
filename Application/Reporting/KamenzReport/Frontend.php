@@ -112,7 +112,17 @@ class Frontend extends Extension implements IFrontendInterface
             $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse/Stammgruppe zugeordnet.'
                 , new Exclamation());
         } else {
-            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse/Stammgruppe zugeordnet',
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse/Stammgruppe zugeordnet.',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success());
+        }
+
+        $countStudentsWithoutSchoolTypeOrLevel = 0;
+        if (($studentsWithoutSchoolTypeOrLevel = KamenzService::getStudentsWithoutSchoolTypeOrLevel($countStudentsWithoutSchoolTypeOrLevel))) {
+            $content[] = new LayoutColumn($studentsWithoutSchoolTypeOrLevel);
+            $summary[] = new Warning($countStudentsWithoutSchoolTypeOrLevel . ' Schüler sind keiner aktuellen Klassenstufe oder Schulart zugeordnet.'
+                , new Exclamation());
+        } else {
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klassenstufe und Schulart zugeordnet.',
                 new \SPHERE\Common\Frontend\Icon\Repository\Success());
         }
 
@@ -165,7 +175,17 @@ class Frontend extends Extension implements IFrontendInterface
             $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse/Stammgruppe zugeordnet.'
                 , new Exclamation());
         } else {
-            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse/Stammgruppe zugeordnet',
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse/Stammgruppe zugeordnet.',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success());
+        }
+
+        $countStudentsWithoutSchoolTypeOrLevel = 0;
+        if (($studentsWithoutSchoolTypeOrLevel = KamenzService::getStudentsWithoutSchoolTypeOrLevel($countStudentsWithoutSchoolTypeOrLevel))) {
+            $content[] = new LayoutColumn($studentsWithoutSchoolTypeOrLevel);
+            $summary[] = new Warning($countStudentsWithoutSchoolTypeOrLevel . ' Schüler sind keiner aktuellen Klassenstufe oder Schulart zugeordnet.'
+                , new Exclamation());
+        } else {
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klassenstufe und Schulart zugeordnet.',
                 new \SPHERE\Common\Frontend\Icon\Repository\Success());
         }
 
@@ -222,7 +242,17 @@ class Frontend extends Extension implements IFrontendInterface
             $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse/Stammgruppe zugeordnet.'
                 , new Exclamation());
         } else {
-            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse/Stammgruppe zugeordnet',
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse/Stammgruppe zugeordnet.',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success());
+        }
+
+        $countStudentsWithoutSchoolTypeOrLevel = 0;
+        if (($studentsWithoutSchoolTypeOrLevel = KamenzService::getStudentsWithoutSchoolTypeOrLevel($countStudentsWithoutSchoolTypeOrLevel))) {
+            $content[] = new LayoutColumn($studentsWithoutSchoolTypeOrLevel);
+            $summary[] = new Warning($countStudentsWithoutSchoolTypeOrLevel . ' Schüler sind keiner aktuellen Klassenstufe oder Schulart zugeordnet.'
+                , new Exclamation());
+        } else {
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klassenstufe und Schulart zugeordnet',
                 new \SPHERE\Common\Frontend\Icon\Repository\Success());
         }
 
@@ -288,13 +318,23 @@ class Frontend extends Extension implements IFrontendInterface
 
         $summary = array();
 
-        $countStudentsWithoutDivision = 0;
-        if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {
-            $content[] = new LayoutColumn($studentsWithoutDivision);
-            $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse/Stammgruppe zugeordnet.'
+//        $countStudentsWithoutDivision = 0;
+//        if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {
+//            $content[] = new LayoutColumn($studentsWithoutDivision);
+//            $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse/Stammgruppe zugeordnet.'
+//                , new Exclamation());
+//        } else {
+//            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse/Stammgruppe zugeordnet',
+//                new \SPHERE\Common\Frontend\Icon\Repository\Success());
+//        }
+
+        $countStudentsWithoutSchoolTypeOrLevel = 0;
+        if (($studentsWithoutSchoolTypeOrLevel = KamenzService::getStudentsWithoutSchoolTypeOrLevel($countStudentsWithoutSchoolTypeOrLevel))) {
+            $content[] = new LayoutColumn($studentsWithoutSchoolTypeOrLevel);
+            $summary[] = new Warning($countStudentsWithoutSchoolTypeOrLevel . ' Schüler sind keiner aktuellen Klassenstufe oder Schulart zugeordnet.'
                 , new Exclamation());
         } else {
-            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse/Stammgruppe zugeordnet',
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klassenstufe und Schulart zugeordnet.',
                 new \SPHERE\Common\Frontend\Icon\Repository\Success());
         }
 
@@ -351,13 +391,23 @@ class Frontend extends Extension implements IFrontendInterface
 
         $summary = array();
 
-        $countStudentsWithoutDivision = 0;
-        if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {
-            $content[] = new LayoutColumn($studentsWithoutDivision);
-            $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse/Stammgruppe zugeordnet.'
+//        $countStudentsWithoutDivision = 0;
+//        if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {
+//            $content[] = new LayoutColumn($studentsWithoutDivision);
+//            $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse/Stammgruppe zugeordnet.'
+//                , new Exclamation());
+//        } else {
+//            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse/Stammgruppe zugeordnet',
+//                new \SPHERE\Common\Frontend\Icon\Repository\Success());
+//        }
+
+        $countStudentsWithoutSchoolTypeOrLevel = 0;
+        if (($studentsWithoutSchoolTypeOrLevel = KamenzService::getStudentsWithoutSchoolTypeOrLevel($countStudentsWithoutSchoolTypeOrLevel))) {
+            $content[] = new LayoutColumn($studentsWithoutSchoolTypeOrLevel);
+            $summary[] = new Warning($countStudentsWithoutSchoolTypeOrLevel . ' Schüler sind keiner aktuellen Klassenstufe oder Schulart zugeordnet.'
                 , new Exclamation());
         } else {
-            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse/Stammgruppe zugeordnet',
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klassenstufe und Schulart zugeordnet.',
                 new \SPHERE\Common\Frontend\Icon\Repository\Success());
         }
 

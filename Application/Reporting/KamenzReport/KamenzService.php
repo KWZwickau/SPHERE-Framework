@@ -557,7 +557,7 @@ class KamenzService
         if (empty($personList)) {
             return false;
         } else {
-            return new TableData(
+            return (new TableData(
                 $personList,
                 new Title('Schüler ohne Klasse/Stammgruppe im aktuellen Schuljahr'),
                 array(
@@ -574,9 +574,78 @@ class KamenzService
 //                    'iDisplayLength' => -1,
                     'responsive' => false
                 )
-            );
+            ))->setHash('Table_Without_Division');
         }
     }
+
+    /**
+     * @param int $count
+     *
+     * @return bool|TableData
+     */
+    public static function getStudentsWithoutSchoolTypeOrLevel(int &$count = 0)
+    {
+        $personList = array();
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
+            && ($tblPersonList = Group::useService()->getMemberAllByGroup($tblGroup))
+        ) {
+
+            foreach ($tblPersonList as $tblMember) {
+                if (($tblPerson = $tblMember->getServiceTblPerson())) {
+                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+                        if ($tblStudentEducation->getServiceTblSchoolType() && $tblStudentEducation->getLevel()) {
+                            continue;
+                        }
+                    }
+
+                    $count++;
+                    $gender = '';
+                    $birthday = '';
+                    if (($tblCommon = $tblPerson->getCommon())) {
+                        if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                            if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
+                                $gender = $tblGender->getName();
+                            }
+                            if (($birthdayDate = $tblCommonBirthDates->getBirthday())) {
+                                $birthday = $birthdayDate;
+                            }
+                        }
+                    }
+
+                    $personList[$tblPerson->getId()] = array(
+                        'Name' => $tblPerson->getLastFirstName(),
+                        'Gender' => $gender,
+                        'Birthday' => $birthday,
+                        'Address' => (($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : '')
+                    );
+                }
+            }
+        }
+
+        if (empty($personList)) {
+            return false;
+        } else {
+            return (new TableData(
+                $personList,
+                new Title('Schüler ohne Klassenstufe oder Schulart im aktuellen Schuljahr'),
+                array(
+                    'Name' => 'Name',
+                    'Gender' => 'Geschlecht',
+                    'Birthday' => 'Geburtsdatum',
+                    'Address' => 'Adresse'
+                ),
+                array(
+                    'columnDefs' => array(
+                        array('type' => 'de_date', 'targets' => 2),
+                    ),
+//                    'paging' => false,
+//                    'iDisplayLength' => -1,
+                    'responsive' => false
+                )
+            ))->setHash('Table_Without_SchoolType_Or_Level');
+        }
+    }
+
 
     /**
      * @param $summary
