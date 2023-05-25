@@ -6,7 +6,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -321,6 +320,8 @@ class TblStudent extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @return bool|TblCourse
      */
     public function getCourse()

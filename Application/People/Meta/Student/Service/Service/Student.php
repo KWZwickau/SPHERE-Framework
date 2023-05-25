@@ -137,6 +137,8 @@ abstract class Student extends AbstractService
     }
 
     /**
+     * @deprecated
+     *
      * @param TblPerson $tblPerson
      *
      * @return bool|TblCourse
@@ -153,6 +155,8 @@ abstract class Student extends AbstractService
     }
 
     /**
+     * @deprecated
+     *
      * @param TblStudent $tblStudent
      *
      * @return bool|TblCourse
