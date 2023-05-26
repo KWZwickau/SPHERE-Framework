@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
@@ -33,6 +34,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
@@ -41,6 +43,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -48,6 +51,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -291,21 +295,57 @@ class Frontend extends FrontendTest
             $content = new Danger("Kurse oder Fach nicht gefunden.", new Exclamation());
         }
 
-        return new Title(
+        $externalDownloadSingleGradeBook = new External(
+            'Notenbuch herunterladen',
+            '/Api/Document/Standard/Gradebook/Create',
+            new Download(),
+            array(
+                'DivisionCourseId' => $DivisionCourseId,
+                'SubjectId' => $SubjectId
+            ),
+            false
+        );
+
+        // Download alle Klassenbücher nicht für Lehrer
+        $externalDownloadAllGradeBooks = '';
+        if ($tblDivisionCourse->getIsDivisionOrCoreGroup()
+            && (Grade::useService()->getRole() != 'Teacher'
+                || (($tblPerson = Account::useService()->getPersonByLogin())
+                    && ($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+                    && (DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPerson))
+                )
+            )
+        ) {
+            $externalDownloadAllGradeBooks = new External(
+                'Alle Notenbücher dieses Kurses herunterladen',
+                '/Api/Document/Standard/MultiGradebook/Create',
+                new Download(),
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                ),
+                false
+            );
+        }
+
+        return
+            new Title(
                 (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookSelect($Filter))
-                    . "&nbsp;&nbsp;&nbsp;&nbsp;Notenbuch"
-                    . new Muted(new Small(" für Kurs: ")) . $textCourse
-                    . new Muted(new Small(" im Fach: ")) . $textSubject
-                    . "&nbsp;&nbsp;&nbsp;"
-                    . (new Link('Mindestnotenanzahl anzeigen', ApiGradeBook::getEndpoint()))
-                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewMinimumGradeCountContent($DivisionCourseId, $SubjectId, $Filter))
-                    . ($isEdit
-                        ? new PullRight((new Primary('Leistungsüberprüfung hinzufügen', ApiGradeBook::getEndpoint(), new Plus()))
-                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter)))
-                        : ''
-                    )
+                . "&nbsp;&nbsp;&nbsp;Notenbuch"
+                . new Muted(new Small(" für Kurs: ")) . $textCourse
+                . new Muted(new Small(" im Fach: ")) . $textSubject
+                . new PullRight($externalDownloadSingleGradeBook . $externalDownloadAllGradeBooks)
             )
+            . new PullClear(new Container(
+                 ($isEdit
+                    ? (new Primary('Leistungsüberprüfung hinzufügen', ApiGradeBook::getEndpoint(), new Plus()))
+                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter))
+                    : ''
+                )
+                . new PullRight((new Standard('Mindestnotenanzahl anzeigen', ApiGradeBook::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewMinimumGradeCountContent($DivisionCourseId, $SubjectId, $Filter)))
+            ))
+            . new Container('&nbsp;')
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
             . $content;

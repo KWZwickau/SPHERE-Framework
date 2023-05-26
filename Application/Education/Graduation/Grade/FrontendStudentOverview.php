@@ -298,13 +298,13 @@ abstract class FrontendStudentOverview extends FrontendScoreType
         return new Title(
                 (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiStudentOverview::pipelineLoadViewStudentOverviewCourseSelect($Filter))
-                . (new External(
-                    'Alle Schülerübersichten dieses Kurses herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
-                    array('DivisionCourseId' => $DivisionCourseId)
-                ))
                 . "&nbsp;&nbsp;&nbsp;&nbsp;Schülerübersicht"
                 . new Muted(new Small(" für Kurs: ")) . $textCourse
                 . new Muted(new Small(" Schüler auswählen"))
+                . new PullRight((new External(
+                    'Alle Schülerübersichten dieses Kurses herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
+                    array('DivisionCourseId' => $DivisionCourseId)
+                )))
             )
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
