@@ -69,6 +69,7 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openGradeMirrorModal');
 
         $Dispatcher->registerMethod('loadViewMinimumGradeCountContent');
+        $Dispatcher->registerMethod('loadViewMinimumGradeCountReportingContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -1111,5 +1112,31 @@ class ApiGradeBook extends Extension implements IApiInterface
     public function loadViewMinimumGradeCountContent($DivisionCourseId, $SubjectId, $Filter): string
     {
         return Grade::useFrontend()->loadViewMinimumGradeCountContent($DivisionCourseId, $SubjectId, $Filter);
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewMinimumGradeCountReportingContent(): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewMinimumGradeCountReportingContent',
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return string
+     */
+    public function loadViewMinimumGradeCountReportingContent($Data = null): string
+    {
+        return Grade::useFrontend()->loadViewMinimumGradeCountReportingContent($Data);
     }
 }

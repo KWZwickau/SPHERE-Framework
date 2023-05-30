@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Grade;
 
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -11,6 +12,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -20,6 +22,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
@@ -354,5 +357,67 @@ class FrontendMinimumGradeCount extends FrontendGradeType
 
         return $Stage . new Danger('Mindestnotenanzahl nicht gefunden.', new Ban())
             . new Redirect('/Education/Graduation/Grade/MinimumGradeCount', Redirect::TIMEOUT_ERROR);
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return string
+     */
+    public function loadViewMinimumGradeCountReportingContent($Data = null): string
+    {
+        if ($Data == null) {
+            $global = $this->getGlobal();
+
+            $global->POST['Data']['Period'] = SelectBoxItem::PERIOD_FULL_YEAR;
+
+            $global->savePost();
+        }
+
+        $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
+        if (Grade::useService()->getRole() !== 'Teacher') {
+            $typeSelectBox->setRequired();
+        }
+        $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse/Stammgruppe');
+
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FULL_YEAR, '-Gesamtes Schuljahr-');
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FIRST_PERIOD, '1. Halbjahr');
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_SECOND_PERIOD, '2. Halbjahr');
+
+        $periodSelectBox = new SelectBox('Data[Period]', 'Zeitraum', array('Name' => $periodList));
+
+        $button = (new \SPHERE\Common\Frontend\Link\Repository\Primary('Filtern', '', new Filter()))
+            ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewMinimumGradeCountReportingContent());
+
+        $form = (new Form(new FormGroup(new FormRow(array(
+            new FormColumn(
+                new Panel(
+                    'Filter',
+                    new Layout (new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                $typeSelectBox, 4
+                            ),
+                            new LayoutColumn(
+                                $divisionTextField, 4
+                            ),
+                            new LayoutColumn(
+                                $periodSelectBox, 4
+                            ),
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                $button
+                            ),
+                        )),
+                    ))),
+                    Panel::PANEL_TYPE_INFO
+                )
+            )
+        )))))->disableSubmitAction();
+
+        return new Title('Mindestnotenanzahl', 'Auswertung')
+            . $form
+            . Grade::useService()->loadMinimumGradeCountReporting($Data);
     }
 }
