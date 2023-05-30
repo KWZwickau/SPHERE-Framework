@@ -2474,10 +2474,7 @@ abstract class Style extends Certificate
     public function getCustomFosTransfer(int $personId, string $marginTop = '5px') : Slice
     {
         // SSWHD-2163 Klasse 12 bei den FOS Jahreszeugnissen besitzt keinen Versetzungsvermerk
-        if (($tblDivision = $this->getTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && intval($tblLevel->getName()) == 12
-        ) {
+        if ($this->getLevel() == 12) {
             $content = '&nbsp;';
         } else {
             $content = '{% if(Content.P' . $personId . '.Input.Transfer) %}
