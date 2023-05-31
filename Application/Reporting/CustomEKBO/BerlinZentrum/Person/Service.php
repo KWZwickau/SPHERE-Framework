@@ -240,7 +240,10 @@ class Service extends Extension
                     if(($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType))){
                         foreach($tblStudentSubjectList as $tblStudentSubject){
                             for($k = 1; $k <= 3; $k++){
-                                if($tblStudentSubject->getTblStudentSubjectRanking()->getName() == $k){
+                                if($tblStudentSubject->getServiceTblSubject()
+                                    && $tblStudentSubject->getTblStudentSubjectRanking()
+                                    && $tblStudentSubject->getTblStudentSubjectRanking()->getName() == $k
+                                ){
                                     $item['Foreign_Language'.$k] = $tblStudentSubject->getServiceTblSubject()->getName();
                                     if(($level = $tblStudentSubject->getLevelFrom())){
                                         $item['Foreign_Language'.$k.'_JG'] = $level;
