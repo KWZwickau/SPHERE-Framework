@@ -340,8 +340,8 @@ class Service extends AbstractService
             $export->setValue($export->getCell($Column++, $Row), $Content['DivisionCourse']);
             $export->setValue($export->getCell($Column++, $Row), $Content['ItemName']);
             $export->setValue($export->getCell($Column++, $Row), $Content['Value']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['Variant']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['VariantPrice']);
+            $export->setValue($export->getCell($Column++, $Row), $Content['Variant'] ?? '');
+            $export->setValue($export->getCell($Column++, $Row), $Content['VariantPrice'] ?? '');
             $export->setValue($export->getCell($Column++, $Row), $Content['From']);
             $export->setValue($export->getCell($Column++, $Row), $Content['To']);
             $export->setValue($export->getCell($Column++, $Row), $Content['ReferenceDate']);
