@@ -6,6 +6,7 @@ use DateTime;
 use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
@@ -766,6 +767,20 @@ class Frontend extends FrontendTestPlanning
         if (($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             $textSubject = new Bold($tblSubject->getDisplayName());
         }
+
+        // prüfen, ob es ein freigegebenes Zeugnis zu den Stichtagsnoten gibt
+        $hasApprovedCertificates = false;
+        if (!$tblTask->getIsTypeBehavior()
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (Prepare::useService()->getIsAppointedDateTaskGradeApproved($tblPerson, $tblTask)) {
+                    $hasApprovedCertificates = true;
+                    break;
+                }
+            }
+        }
+
         $content =
             new Panel(
                 $tblTask->getTypeName(),
@@ -773,6 +788,7 @@ class Frontend extends FrontendTestPlanning
                 . new Container(new Muted('Bearbeitungszeitraum '.$tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString())),
                 Panel::PANEL_TYPE_INFO
             )
+            . ($hasApprovedCertificates ? new Warning('Es können keine Stichtagsnoten von freigegebenen Zeugnissen bearbeitet werden.', new Exclamation()) : '')
             . $form;
 
         return new Title(
@@ -987,23 +1003,40 @@ class Frontend extends FrontendTestPlanning
                     if (isset($Errors[$tblPerson->getId()]['Grade'])) {
                         $selectComplete->setError('Bitte geben Sie eine gültige Stichtagsnote ein');
                     }
-                    $bodyList[$tblPerson->getId()]['Grade'] = $this->getTableColumnBody($selectComplete);
 
                     if (isset($Data[$tblPerson->getId()]['GradeText'])) {
                         $gradeTextId = $Data[$tblPerson->getId()]['GradeText'];
                     } else {
                         $gradeTextId = $tblGrade && ($tblGradeText = $tblGrade->getTblGradeText()) ? $tblGradeText->getId() : 0;
                     }
-                    $bodyList[$tblPerson->getId()]['GradeText'] = $this->getTableColumnBody(ApiGradeBook::receiverBlock(
-                        $this->getGradeTextSelectBox($tblPerson->getId(), $gradeTextId),
-                        'ChangeGradeText_' . $tblPerson->getId()
-                    ));
 
                     $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))
                         ->setTabIndex(1000 + $tabIndex);
                     if (isset($Errors[$tblPerson->getId()]['Comment'])) {
                         $textFieldComment->setError('Bitte geben Sie einen Änderungsgrund an');
                     }
+
+                    // sperren, wenn es ein freigegebenes Zeugnis zur Stichtagsnote gibt
+                    if (Prepare::useService()->getIsAppointedDateTaskGradeApproved($tblPerson, $tblTask)) {
+                        $selectComplete->setDisabled();
+                        // kein alle bearbeiten
+                        $global = $this->getGlobal();
+                        $global->POST['Data'][$tblPerson->getId()]['GradeText'] = $gradeTextId;
+                        $global->savePost();
+                        $selectBoxGradeText = (new SelectBox(
+                            'Data[' . $tblPerson->getId() . '][GradeText]', '', array(TblGradeText::ATTR_NAME => Grade::useService()->getGradeTextAll())
+                        ))->setDisabled();
+                        $textFieldComment->setDisabled();
+                    } else {
+                        // notwendig für alle bearbeiten
+                        $selectBoxGradeText = ApiGradeBook::receiverBlock(
+                            $this->getGradeTextSelectBox($tblPerson->getId(), $gradeTextId),
+                            'ChangeGradeText_' . $tblPerson->getId()
+                        );
+                    }
+
+                    $bodyList[$tblPerson->getId()]['Grade'] = $this->getTableColumnBody($selectComplete);
+                    $bodyList[$tblPerson->getId()]['GradeText'] = $this->getTableColumnBody($selectBoxGradeText);
                     $bodyList[$tblPerson->getId()]['Comment'] = $this->getTableColumnBody($textFieldComment);
                 }
             }
