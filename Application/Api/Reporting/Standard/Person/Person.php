@@ -3,13 +3,12 @@ namespace SPHERE\Application\Api\Reporting\Standard\Person;
 
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Certificate\Reporting\View;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
@@ -398,38 +397,23 @@ class Person extends Extension
         return false;
     }
 
-    /** // ToDO Anpassung an Nightly erforderlich (Max)
-     * @param null $DivisionId
-     * @param null $GroupId
+    /**
+     * @param null $DivisionCourseId
      *
      * @return bool|string
      */
-    public function downloadClassRegisterAbsenceMonthly($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
+    public function downloadClassRegisterAbsenceMonthly($DivisionCourseId = null)
     {
-        $tblDivision = false;
-        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-            $name = 'Fehlzeiten des Kurses '
-                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
-        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-            $name = 'Fehlzeiten der Klasse ' . $tblDivision->getDisplayName();
-        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $tblPersonList = $tblGroup->getStudentOnlyList();
-            $name = 'Fehlzeiten der Stammgruppe ' . $tblGroup->getName();
-        } else {
-            return false;
-        }
-
-        if ($tblPersonList
-            && $tblDivision
-            && ($tblYear = $tblDivision->getServiceTblYear())
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
         ) {
-            list($dataList, $countList) = Absence::useService()->getAbsenceForExcelDownload($tblDivision);
+            $name = 'Fehlzeiten der ' . $tblDivisionCourse->getTypeName() . $tblDivisionCourse->getName();
+
+            list($dataList, $countList) = Absence::useService()->getMonthAbsencesForExcelDownload($tblDivisionCourse);
             $fileLocation = ReportingPerson::useService()->createAbsenceContentExcelMonthly($tblPersonList, $dataList, $countList, $tblYear);
 
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+            return FileSystem::getDownload($fileLocation->getRealPath(), $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;

@@ -8,9 +8,11 @@ use SPHERE\Application\Education\Absence\Service\Data;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsenceLesson;
 use SPHERE\Application\Education\Absence\Service\Setup;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
 use SPHERE\Application\People\Person\Person;
@@ -665,5 +667,104 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return array[]
+     */
+    public function getMonthAbsencesForExcelDownload(TblDivisionCourse $tblDivisionCourse): array
+    {
+        $dataList = array();
+        $countList = array();
+
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if ($startDate && $endDate) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByPerson($tblPerson, $startDate, $endDate))
+                        && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                        && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                    ) {
+                        $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                        $hasSaturdayLessons = Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType);
+
+                        foreach($tblAbsenceList as $tblAbsence) {
+                            $fromDate = new DateTime($tblAbsence->getFromDate());
+                            $countLessons = $tblAbsence->getCountLessons();
+                            if ($tblAbsence->getToDate()) {
+                                $toDate = new DateTime($tblAbsence->getToDate());
+                                if ($toDate > $fromDate) {
+                                    $date = $fromDate;
+                                    while ($date <= $toDate) {
+                                        $this->setData(
+                                            $dataList, $countList, $date, $tblPerson, $tblAbsence->getStatusDisplayShortName(),
+                                            $countLessons, $tblYear, $hasSaturdayLessons, $tblCompany ?: null
+                                        );
+                                        $date = $date->modify('+1 day');
+                                    }
+                                } elseif ($toDate == $fromDate) {
+                                    $this->setData(
+                                        $dataList, $countList, $fromDate, $tblPerson, $tblAbsence->getStatusDisplayShortName(),
+                                        $countLessons, $tblYear, $hasSaturdayLessons, $tblCompany ?: null
+                                    );
+                                }
+                            } else {
+                                $this->setData(
+                                    $dataList, $countList, $fromDate, $tblPerson, $tblAbsence->getStatusDisplayShortName(),
+                                    $countLessons, $tblYear, $hasSaturdayLessons, $tblCompany ?: null
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return array($dataList, $countList);
+    }
+
+    /**
+     * @param array $dataList
+     * @param array $countList
+     * @param DateTime $dateTime
+     * @param TblPerson $tblPerson
+     * @param string $status
+     * @param int $countLessons
+     * @param TblYear $tblYear
+     * @param bool $hasSaturdayLessons
+     * @param TblCompany|null $tblCompany
+     */
+    private function setData(
+        array &$dataList,
+        array &$countList,
+        DateTime $dateTime,
+        TblPerson $tblPerson,
+        string $status,
+        int $countLessons,
+        TblYear $tblYear,
+        bool $hasSaturdayLessons,
+        ?TblCompany $tblCompany
+    ) {
+        $DayAtWeek = $dateTime->format('w');
+        $month = intval($dateTime->format('m'));
+
+        if ($hasSaturdayLessons) {
+            $isWeekend = $DayAtWeek == 0;
+        } else {
+            $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
+        }
+        $isHoliday = Term::useService()->getHolidayByDay($tblYear, $dateTime, $tblCompany);
+        if (!$isWeekend && !$isHoliday) {
+            $dataList[$month][$tblPerson->getId()][$dateTime->format('d')] = $countLessons > 0 ? $countLessons : $status;
+            if (isset($countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status])) {
+                $countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] += $countLessons > 0 ? $countLessons : 1;
+            } else {
+                $countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] = $countLessons > 0 ? $countLessons : 1;
+            }
+        }
     }
 }

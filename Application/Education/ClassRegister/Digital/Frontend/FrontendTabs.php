@@ -205,16 +205,12 @@ class FrontendTabs extends FrontendCourseContent
                                     'DivisionCourseId' => $DivisionCourseId
                                 ))
                             , 2),
-                            // ToDO Anpassung an Nightly erforderlich (Max)
                         new LayoutColumn(
                             new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' Monatliche Fehlzeiten'))->setPictureHeight(),
-                                '#'
-//                                '/Api/Reporting/Standard/Person/ClassRegister/AbsenceMonthly/Download', null, array(
-//                                    'DivisionId' => $DivisionId,
-//                                    'GroupId'    => $GroupId,
-//                                    'DivisionSubjectId' => $DivisionSubjectId)
-                                )
+                                '/Api/Reporting/Standard/Person/ClassRegister/AbsenceMonthly/Download', null, array(
+                                    'DivisionCourseId' => $DivisionCourseId
+                                ))
                             , 2),
                         new LayoutColumn(
                             $printLink
