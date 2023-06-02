@@ -34,6 +34,7 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
     const VIEW_STUDENT_OVERVIEW_STUDENT_SELECT = 'VIEW_STUDENT_OVERVIEW_STUDENT_SELECT';
     const VIEW_STUDENT_OVERVIEW_STUDENT_CONTENT = 'VIEW_STUDENT_OVERVIEW_STUDENT_CONTENT';
     const VIEW_MINIMUM_GRADE_COUNT_REPORTING = 'VIEW_MINIMUM_GRADE_COUNT_REPORTING';
+    const VIEW_TEST_PLANNING = 'VIEW_TEST_PLANNING';
 
     const BACKGROUND_COLOR = '#D8EDF7';
 //    const BACKGROUND_COLOR_TASK_HEADER = '#EEEEEE';
@@ -75,6 +76,10 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
         $textMinimumGradeCountReporting = $View == self::VIEW_MINIMUM_GRADE_COUNT_REPORTING
             ? new Info(new Edit() . new Bold(" Mindestnotenauswertung"))
             : "Mindestnotenauswertung";
+
+        $textTestPlanning = $View == self::VIEW_TEST_PLANNING
+            ? new Info(new Edit() . new Bold(" Planungsübersicht"))
+            : "Planungsübersicht";
 
         $hasMinimumGradeCountReporting = $role !== 'Teacher';
         if (!$hasMinimumGradeCountReporting
@@ -118,6 +123,13 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
                     ->ajaxPipelineOnClick(array(
                         ApiGradeBook::pipelineLoadHeader(self::VIEW_MINIMUM_GRADE_COUNT_REPORTING),
                         ApiGradeBook::pipelineLoadViewMinimumGradeCountReportingContent()
+                    ))
+                : "")
+            . ($hasMinimumGradeCountReporting
+                ? (new Standard($textTestPlanning, ApiGradeBook::getEndpoint()))
+                    ->ajaxPipelineOnClick(array(
+                        ApiGradeBook::pipelineLoadHeader(self::VIEW_TEST_PLANNING),
+                        ApiGradeBook::pipelineLoadViewTestPlanningContent()
                     ))
                 : "")
             ;

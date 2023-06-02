@@ -67,7 +67,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
-class Frontend extends FrontendTest
+class Frontend extends FrontendTestPlanning
 {
     /**
      * @param null $DivisionCourseId

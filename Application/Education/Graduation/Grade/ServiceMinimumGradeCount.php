@@ -400,46 +400,16 @@ abstract class ServiceMinimumGradeCount extends ServiceGradeType
             return new Warning('Bitte wählen Sie eine Schulart aus!', new Exclamation());
         }
 
-        $tblDivisionCourseList = array();
-        if (isset($Data['DivisionName']) && ($divisionName = $Data['DivisionName']) && $divisionName != '') {
-            $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($divisionName, array($tblYear), true);
-            if (empty($tblDivisionCourseList)) {
-                return new Warning('Klasse/Stammgruppe nicht gefunden', new Exclamation());
-            }
-        } else {
-            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
-                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
-            }
-            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
-            }
-
-            if ($tblType && $tblDivisionCourseList) {
-                $tblDivisionCourseListForType = array();
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    if (($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
-                        && isset($tblSchoolTypeList[$tblType->getId()])
-                    ) {
-                        $tblDivisionCourseListForType[$tblDivisionCourse->getId()] = $tblDivisionCourse;
-                    }
-                }
-                $tblDivisionCourseList = $tblDivisionCourseListForType;
-            }
-        }
-
-        // Klassenlehrer können nur ihre eigenen Klassen sehen
-        if ($IsDivisionTeacher && $tblDivisionCourseList) {
-            $tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
-            $tempDivisionList = array();
-            if (($tblPersonAccount = Account::useService()->getPersonByLogin())) {
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    if (DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblMemberType, $tblPersonAccount)) {
-                        $tempDivisionList[] = $tblDivisionCourse;
-                    }
-                }
-            }
-
-            $tblDivisionCourseList = empty($tempDivisionList) ? false : $tempDivisionList;
+        $warning = '';
+        $tblDivisionCourseList = $this->getDivisionCourseListForMinimumGradeCountReporting(
+            $tblYear,
+            $tblType ?: null,
+            $IsDivisionTeacher,
+            trim($Data['DivisionName']),
+            $warning
+        );
+        if ($warning) {
+            return $warning;
         }
 
         if ($tblDivisionCourseList) {
@@ -596,5 +566,69 @@ abstract class ServiceMinimumGradeCount extends ServiceGradeType
         }
 
         return new Warning('Keine Mindestnoten gefunden', new Exclamation());
+    }
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblType|null $tblType
+     * @param bool $IsDivisionTeacher
+     * @param string $divisionName
+     * @param string $warning
+     *
+     * @return array
+     */
+    public function getDivisionCourseListForMinimumGradeCountReporting(
+        TblYear $tblYear,
+        ?TblType $tblType,
+        bool $IsDivisionTeacher,
+        string $divisionName,
+        string &$warning
+    ): array
+    {
+        $tblDivisionCourseList = array();
+        if ($divisionName != '') {
+            $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($divisionName, array($tblYear), true);
+            if (empty($tblDivisionCourseList)) {
+                $warning = new Warning('Klasse/Stammgruppe nicht gefunden', new Exclamation());
+
+                return array();
+            }
+        } else {
+            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
+            }
+            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+            }
+
+            if ($tblType && $tblDivisionCourseList) {
+                $tblDivisionCourseListForType = array();
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    if (($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                        && isset($tblSchoolTypeList[$tblType->getId()])
+                    ) {
+                        $tblDivisionCourseListForType[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                    }
+                }
+                $tblDivisionCourseList = $tblDivisionCourseListForType;
+            }
+        }
+
+        // Klassenlehrer können nur ihre eigenen Klassen sehen
+        if ($IsDivisionTeacher && $tblDivisionCourseList) {
+            $tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
+            $tempDivisionList = array();
+            if (($tblPersonAccount = Account::useService()->getPersonByLogin())) {
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    if (DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblMemberType, $tblPersonAccount)) {
+                        $tempDivisionList[] = $tblDivisionCourse;
+                    }
+                }
+            }
+
+            $tblDivisionCourseList = empty($tempDivisionList) ? false : $tempDivisionList;
+        }
+
+        return  $tblDivisionCourseList;
     }
 }
