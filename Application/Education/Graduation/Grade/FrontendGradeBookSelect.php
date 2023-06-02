@@ -84,7 +84,7 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
             $global->savePost();
         }
 
-        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeCommonAll();
+        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll();
 
         return new Form(new FormGroup(array(
             new FormRow(array(

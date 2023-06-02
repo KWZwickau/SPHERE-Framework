@@ -15,7 +15,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareIn
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -92,59 +92,11 @@ class Data extends DataLeave
     }
 
     /**
-     * @deprecated
-     *
-     * @param TblDivision $tblDivision
-     * @param bool $IsGradeInformation
-     *
-     * @return false|Entity\TblPrepareCertificate[]
-     */
-    public function getPrepareAllByDivision(TblDivision $tblDivision, $IsGradeInformation = false)
-    {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblPrepareCertificate',
-            array(
-                TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-//                TblPrepareCertificate::ATTR_IS_GRADE_INFORMATION => $IsGradeInformation
-            )
-        );
-    }
-
-    /**
      * @return false|TblPrepareCertificate[]
      */
     public function getPrepareAll()
     {
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareCertificate');
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param TblTestType $tblTestType
-     *
-     * @return false|TblPrepareGrade
-     */
-    public function getPrepareGradeBySubject(
-        TblPrepareCertificate $tblPrepare,
-        TblPerson $tblPerson,
-        TblDivision $tblDivision,
-        TblSubject $tblSubject,
-        TblTestType $tblTestType
-    ) {
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
-            array(
-                TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
-            )
-        );
     }
 
     /**
@@ -1401,5 +1353,37 @@ class Data extends DataLeave
         Protocol::useService()->flushBulkEntries();
 
         return true;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     *
+     * @return bool
+     */
+    public function getIsAppointedDateTaskGradeApproved(TblPerson $tblPerson, TblTask $tblTask): bool
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('ps')
+            ->from(TblPrepareStudent::class, 'ps')
+            ->leftJoin(TblPrepareCertificate::class, 'pc', 'WITH', 'ps.tblPrepareCertificate = pc.Id')
+            ->leftJoin(TblGenerateCertificate::class, 'gc', 'WITH', 'pc.serviceTblGenerateCertificate = gc.Id')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('ps.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('ps.IsApproved', 1),
+                    $queryBuilder->expr()->eq('gc.serviceTblAppointedDateTask', '?2'),
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblTask->getId())
+            ->orderBy('gc.Date', 'DESC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return !empty($resultList);
     }
 }

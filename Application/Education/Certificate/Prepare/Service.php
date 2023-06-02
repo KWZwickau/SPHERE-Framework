@@ -21,8 +21,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -80,19 +79,6 @@ class Service extends ServiceTemplateInformation
     public function getPrepareById($Id)
     {
         return (new Data($this->getBinding()))->getPrepareById($Id);
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblDivision $tblDivision
-     * @param bool $IsGradeInformation
-     *
-     * @return false|Service\Entity\TblPrepareCertificate[]
-     */
-    public function getPrepareAllByDivision(TblDivision $tblDivision, bool $IsGradeInformation = false)
-    {
-        return (new Data($this->getBinding()))->getPrepareAllByDivision($tblDivision, $IsGradeInformation);
     }
 
     /**
@@ -169,34 +155,6 @@ class Service extends ServiceTemplateInformation
     public function getPrepareStudentAllWhere(bool $IsApproved = false, bool $IsPrinted = false)
     {
         return (new Data($this->getBinding()))->getPrepareStudentAllWhere($IsApproved, $IsPrinted);
-    }
-
-    /**
-     * Fach-Note
-     * @deprecated
-     *
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param TblTestType $tblTestType
-     *
-     * @return false|TblPrepareGrade
-     */
-    public function getPrepareGradeBySubject(
-        TblPrepareCertificate $tblPrepare,
-        TblPerson $tblPerson,
-        TblDivision $tblDivision,
-        TblSubject $tblSubject,
-        TblTestType $tblTestType
-    ) {
-        return (new Data($this->getBinding()))->getPrepareGradeBySubject(
-            $tblPrepare,
-            $tblPerson,
-            $tblDivision,
-            $tblSubject,
-            $tblTestType
-        );
     }
 
     /**
@@ -1290,5 +1248,16 @@ class Service extends ServiceTemplateInformation
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     *
+     * @return bool
+     */
+    public function getIsAppointedDateTaskGradeApproved(TblPerson $tblPerson, TblTask $tblTask): bool
+    {
+        return (new Data($this->getBinding()))->getIsAppointedDateTaskGradeApproved($tblPerson, $tblTask);
     }
 }

@@ -6,7 +6,10 @@ use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiStudentOverview;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -30,6 +33,8 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
     const VIEW_STUDENT_OVERVIEW_COURSE_SELECT = 'VIEW_STUDENT_OVERVIEW_COURSE_SELECT';
     const VIEW_STUDENT_OVERVIEW_STUDENT_SELECT = 'VIEW_STUDENT_OVERVIEW_STUDENT_SELECT';
     const VIEW_STUDENT_OVERVIEW_STUDENT_CONTENT = 'VIEW_STUDENT_OVERVIEW_STUDENT_CONTENT';
+    const VIEW_MINIMUM_GRADE_COUNT_REPORTING = 'VIEW_MINIMUM_GRADE_COUNT_REPORTING';
+    const VIEW_TEST_PLANNING = 'VIEW_TEST_PLANNING';
 
     const BACKGROUND_COLOR = '#D8EDF7';
 //    const BACKGROUND_COLOR_TASK_HEADER = '#EEEEEE';
@@ -68,6 +73,33 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
             ? new Info(new Edit() . new Bold(" Lerngruppen"))
             : "Lerngruppen";
 
+        $textMinimumGradeCountReporting = $View == self::VIEW_MINIMUM_GRADE_COUNT_REPORTING
+            ? new Info(new Edit() . new Bold(" Mindestnotenauswertung"))
+            : "Mindestnotenauswertung";
+
+        $textTestPlanning = $View == self::VIEW_TEST_PLANNING
+            ? new Info(new Edit() . new Bold(" Planungsübersicht"))
+            : "Planungsübersicht";
+
+        $hasMinimumGradeCountReporting = $role !== 'Teacher';
+        if (!$hasMinimumGradeCountReporting
+            && ($tblPersonLogin = Account::useService()->getPersonByLogin())
+            && ($tblYearList = Term::useService()->getYearByNow())
+        ) {
+            foreach ($tblYearList as $tblYear) {
+                if (!$hasMinimumGradeCountReporting
+                    && ($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear))
+                ) {
+                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                        if ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
+                            $hasMinimumGradeCountReporting = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         return
             (new Standard($textGradeBook, ApiGradeBook::getEndpoint()))
                 ->ajaxPipelineOnClick(array(
@@ -84,6 +116,20 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
                     ->ajaxPipelineOnClick(array(
                         ApiGradeBook::pipelineLoadHeader(self::VIEW_TEACHER_GROUP),
                         ApiTeacherGroup::pipelineLoadViewTeacherGroups()
+                    ))
+                : "")
+            . ($hasMinimumGradeCountReporting
+                ? (new Standard($textMinimumGradeCountReporting, ApiGradeBook::getEndpoint()))
+                    ->ajaxPipelineOnClick(array(
+                        ApiGradeBook::pipelineLoadHeader(self::VIEW_MINIMUM_GRADE_COUNT_REPORTING),
+                        ApiGradeBook::pipelineLoadViewMinimumGradeCountReportingContent()
+                    ))
+                : "")
+            . ($hasMinimumGradeCountReporting
+                ? (new Standard($textTestPlanning, ApiGradeBook::getEndpoint()))
+                    ->ajaxPipelineOnClick(array(
+                        ApiGradeBook::pipelineLoadHeader(self::VIEW_TEST_PLANNING),
+                        ApiGradeBook::pipelineLoadViewTestPlanningContent()
                     ))
                 : "")
             ;

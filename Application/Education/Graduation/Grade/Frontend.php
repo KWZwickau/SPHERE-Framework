@@ -6,6 +6,7 @@ use DateTime;
 use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
@@ -15,6 +16,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
@@ -33,6 +35,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
@@ -41,6 +44,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -48,6 +52,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -63,7 +68,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
-class Frontend extends FrontendTest
+class Frontend extends FrontendTestPlanning
 {
     /**
      * @param null $DivisionCourseId
@@ -291,21 +296,57 @@ class Frontend extends FrontendTest
             $content = new Danger("Kurse oder Fach nicht gefunden.", new Exclamation());
         }
 
-        return new Title(
+        $externalDownloadSingleGradeBook = new External(
+            'Notenbuch herunterladen',
+            '/Api/Document/Standard/Gradebook/Create',
+            new Download(),
+            array(
+                'DivisionCourseId' => $DivisionCourseId,
+                'SubjectId' => $SubjectId
+            ),
+            false
+        );
+
+        // Download alle Klassenbücher nicht für Lehrer
+        $externalDownloadAllGradeBooks = '';
+        if ($tblDivisionCourse->getIsDivisionOrCoreGroup()
+            && (Grade::useService()->getRole() != 'Teacher'
+                || (($tblPerson = Account::useService()->getPersonByLogin())
+                    && ($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+                    && (DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPerson))
+                )
+            )
+        ) {
+            $externalDownloadAllGradeBooks = new External(
+                'Alle Notenbücher dieses Kurses herunterladen',
+                '/Api/Document/Standard/MultiGradebook/Create',
+                new Download(),
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                ),
+                false
+            );
+        }
+
+        return
+            new Title(
                 (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookSelect($Filter))
-                    . "&nbsp;&nbsp;&nbsp;&nbsp;Notenbuch"
-                    . new Muted(new Small(" für Kurs: ")) . $textCourse
-                    . new Muted(new Small(" im Fach: ")) . $textSubject
-                    . "&nbsp;&nbsp;&nbsp;"
-                    . (new Link('Mindestnotenanzahl anzeigen', ApiGradeBook::getEndpoint()))
-                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewMinimumGradeCountContent($DivisionCourseId, $SubjectId, $Filter))
-                    . ($isEdit
-                        ? new PullRight((new Primary('Leistungsüberprüfung hinzufügen', ApiGradeBook::getEndpoint(), new Plus()))
-                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter)))
-                        : ''
-                    )
+                . "&nbsp;&nbsp;&nbsp;Notenbuch"
+                . new Muted(new Small(" für Kurs: ")) . $textCourse
+                . new Muted(new Small(" im Fach: ")) . $textSubject
+                . new PullRight($externalDownloadSingleGradeBook . $externalDownloadAllGradeBooks)
             )
+            . new PullClear(new Container(
+                 ($isEdit
+                    ? (new Primary('Leistungsüberprüfung hinzufügen', ApiGradeBook::getEndpoint(), new Plus()))
+                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter))
+                    : ''
+                )
+                . new PullRight((new Standard('Mindestnotenanzahl anzeigen', ApiGradeBook::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewMinimumGradeCountContent($DivisionCourseId, $SubjectId, $Filter)))
+            ))
+            . new Container('&nbsp;')
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
             . $content;
@@ -726,6 +767,20 @@ class Frontend extends FrontendTest
         if (($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             $textSubject = new Bold($tblSubject->getDisplayName());
         }
+
+        // prüfen, ob es ein freigegebenes Zeugnis zu den Stichtagsnoten gibt
+        $hasApprovedCertificates = false;
+        if (!$tblTask->getIsTypeBehavior()
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (Prepare::useService()->getIsAppointedDateTaskGradeApproved($tblPerson, $tblTask)) {
+                    $hasApprovedCertificates = true;
+                    break;
+                }
+            }
+        }
+
         $content =
             new Panel(
                 $tblTask->getTypeName(),
@@ -733,6 +788,7 @@ class Frontend extends FrontendTest
                 . new Container(new Muted('Bearbeitungszeitraum '.$tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString())),
                 Panel::PANEL_TYPE_INFO
             )
+            . ($hasApprovedCertificates ? new Warning('Es können keine Stichtagsnoten von freigegebenen Zeugnissen bearbeitet werden.', new Exclamation()) : '')
             . $form;
 
         return new Title(
@@ -947,23 +1003,40 @@ class Frontend extends FrontendTest
                     if (isset($Errors[$tblPerson->getId()]['Grade'])) {
                         $selectComplete->setError('Bitte geben Sie eine gültige Stichtagsnote ein');
                     }
-                    $bodyList[$tblPerson->getId()]['Grade'] = $this->getTableColumnBody($selectComplete);
 
                     if (isset($Data[$tblPerson->getId()]['GradeText'])) {
                         $gradeTextId = $Data[$tblPerson->getId()]['GradeText'];
                     } else {
                         $gradeTextId = $tblGrade && ($tblGradeText = $tblGrade->getTblGradeText()) ? $tblGradeText->getId() : 0;
                     }
-                    $bodyList[$tblPerson->getId()]['GradeText'] = $this->getTableColumnBody(ApiGradeBook::receiverBlock(
-                        $this->getGradeTextSelectBox($tblPerson->getId(), $gradeTextId),
-                        'ChangeGradeText_' . $tblPerson->getId()
-                    ));
 
                     $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))
                         ->setTabIndex(1000 + $tabIndex);
                     if (isset($Errors[$tblPerson->getId()]['Comment'])) {
                         $textFieldComment->setError('Bitte geben Sie einen Änderungsgrund an');
                     }
+
+                    // sperren, wenn es ein freigegebenes Zeugnis zur Stichtagsnote gibt
+                    if (Prepare::useService()->getIsAppointedDateTaskGradeApproved($tblPerson, $tblTask)) {
+                        $selectComplete->setDisabled();
+                        // kein alle bearbeiten
+                        $global = $this->getGlobal();
+                        $global->POST['Data'][$tblPerson->getId()]['GradeText'] = $gradeTextId;
+                        $global->savePost();
+                        $selectBoxGradeText = (new SelectBox(
+                            'Data[' . $tblPerson->getId() . '][GradeText]', '', array(TblGradeText::ATTR_NAME => Grade::useService()->getGradeTextAll())
+                        ))->setDisabled();
+                        $textFieldComment->setDisabled();
+                    } else {
+                        // notwendig für alle bearbeiten
+                        $selectBoxGradeText = ApiGradeBook::receiverBlock(
+                            $this->getGradeTextSelectBox($tblPerson->getId(), $gradeTextId),
+                            'ChangeGradeText_' . $tblPerson->getId()
+                        );
+                    }
+
+                    $bodyList[$tblPerson->getId()]['Grade'] = $this->getTableColumnBody($selectComplete);
+                    $bodyList[$tblPerson->getId()]['GradeText'] = $this->getTableColumnBody($selectBoxGradeText);
                     $bodyList[$tblPerson->getId()]['Comment'] = $this->getTableColumnBody($textFieldComment);
                 }
             }
