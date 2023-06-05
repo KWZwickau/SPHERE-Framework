@@ -8,7 +8,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -24,8 +24,6 @@ class Service extends Extension
 {
 
     /**
-     * @param TblDivision $tblDivision
-     *
      * @return array
      */
     public function createSuSList()
@@ -44,7 +42,7 @@ class Service extends Extension
             // Content
             $item['PersonId'] = $tblPerson->getId();
             $item['StudentNumber'] = '';
-            $item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
+            $item['Division'] = DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson);
             $item['PersonGroupKL'] = '';
             $item['PersonGroupTeam'] = '';
             $item['PersonGroupG'] = '';
