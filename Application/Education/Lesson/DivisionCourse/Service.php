@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group as GroupPerson;
@@ -694,8 +695,15 @@ class Service extends ServiceYearChange
      * @return TblDivisionCourse
      */
     public function insertDivisionCourse(
-        TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description, bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject
-    ): TblDivisionCourse {
+        TblDivisionCourseType $tblType,
+        TblYear $tblYear,
+        string $name,
+        string $description = '',
+        bool $isShownInPersonData = true,
+        bool $isReporting = true,
+        ?TblSubject $tblSubject = null): TblDivisionCourse
+    {
+
         return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
     }
 
@@ -1823,6 +1831,41 @@ class Service extends ServiceYearChange
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPerson              $tblPerson
+     * @param                        $Level
+     * @param TblYear                $tblYear
+     * @param null|TblDivisionCourse $tblDivisionCourseD
+     * @param null|TblDivisionCourse $tblDivisionCourseC
+     * @param null|TblType           $tblType
+     * @param null|TblCompany        $tblCompany
+     * @param null|TblCourse        $tblCourse
+     *
+     * @return TblStudentEducation
+     */
+    public function insertStudentEducation(
+        TblPerson $tblPerson,
+        $Level,
+        TblYear $tblYear,
+        ?TblDivisionCourse $tblDivisionCourseD,
+        ?TblDivisionCourse $tblDivisionCourseC,
+        ?TblType $tblType,
+        ?TblCompany $tblCompany,
+        ?TblCourse $tblCourse)
+    {
+        $tblStudentEducation = new TblStudentEducation();
+        $tblStudentEducation->setServiceTblPerson($tblPerson);
+        $tblStudentEducation->setLevel($Level);
+        $tblStudentEducation->setServiceTblYear($tblYear);
+        $tblStudentEducation->setTblDivision($tblDivisionCourseD);
+        $tblStudentEducation->setTblCoreGroup($tblDivisionCourseC);
+        $tblStudentEducation->setServiceTblSchoolType($tblType);
+        $tblStudentEducation->setServiceTblCompany($tblCompany);
+        $tblStudentEducation->setServiceTblCourse($tblCourse);
+
+        return (new Data($this->getBinding()))->createStudentEducation($tblStudentEducation);
     }
 
     /**

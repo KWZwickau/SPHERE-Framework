@@ -110,11 +110,15 @@ class Data extends DataTeacher
         bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject): TblDivisionCourse
     {
         $Manager = $this->getEntityManager();
-
-        $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
-
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        $Entity = $Manager->getEntity('TblDivisionCourse')->findOneBy(array(
+            TblDivisionCourse::ATTR_NAME => $name,
+            TblDivisionCourse::SERVICE_TBL_YEAR => $tblYear->getId(),
+        ));
+        if($Entity === null) {
+            $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
 
         return $Entity;
     }

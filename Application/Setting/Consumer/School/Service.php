@@ -235,6 +235,23 @@ class Service extends AbstractService
     /**
      * @return bool
      */
+    public function hasConsumerSupportSchool()
+    {
+        if (($tblSchoolAll = $this->getSchoolAll())) {
+            foreach($tblSchoolAll as $tblSchool) {
+                if (($tblType = $tblSchool->getServiceTblType())
+                    && $tblType->getName() == TblType::IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
     public function getIsConsumerSpecialNeedSchool()
     {
         if (($tblSchoolAll = $this->getSchoolAll())) {
