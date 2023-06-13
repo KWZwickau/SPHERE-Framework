@@ -13,6 +13,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContentLink;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
@@ -1702,5 +1703,122 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblFullTimeContent
+     */
+    public function getFullTimeContentById($Id)
+    {
+        return (new Data($this->getBinding()))->getFullTimeContentById($Id);
+    }
+
+    /**
+     * @param $Data
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblFullTimeContent|null $tblFullTimeContent
+     *
+     * @return bool|Form
+     */
+    public function checkFormFullTimeContent($Data, TblDivisionCourse $tblDivisionCourse, TblFullTimeContent $tblFullTimeContent = null)
+    {
+        $error = false;
+        $form = Digital::useFrontend()->formFullTimeContent($tblDivisionCourse, $tblFullTimeContent ? $tblFullTimeContent->getId() : null);
+
+        if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
+            $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
+            $error = true;
+        } else {
+            // Prüfung, ob das Datum innerhalb des Schuljahres liegt.
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+                list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                if ($startDateSchoolYear && $endDateSchoolYear) {
+                    $date = new DateTime($Data['FromDate']);
+                    if ($date < $startDateSchoolYear || $date > $endDateSchoolYear) {
+                        $form->setError('Data[FromDate]', 'Das ausgewählte Datum: ' . $Data['FromDate'] . ' befindet sich außerhalb des Schuljahres.');
+                        $error = true;
+                    }
+                } else {
+                    $form->setError('Data[FromDate]', 'Das Schuljahr besitzt keinen Zeitraum');
+                    $error = true;
+                }
+            } else {
+                $form->setError('Data[FromDate]', 'Kein Schuljahr gefunden');
+                $error = true;
+            }
+
+            if ($Data['FromDate'] && $Data['ToDate']) {
+                $fromDate = new DateTime($Data['FromDate']);
+                $toDate = new DateTime($Data['ToDate']);
+
+                if ($toDate < $fromDate) {
+                    $form->setError('Data[ToDate]', 'Das Datum bis muss größer sein als das Datum von.');
+                    $error = true;
+                }
+            }
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param $Data
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TblFullTimeContent
+     */
+    public function createFullTimeContent($Data, TblDivisionCourse $tblDivisionCourse): TblFullTimeContent
+    {
+        $tblPerson = Account::useService()->getPersonByLogin();
+
+        return (new Data($this->getBinding()))->createFullTimeContent(
+            $Data['FromDate'],
+            $Data['ToDate'],
+            $Data['Content'],
+            $tblDivisionCourse,
+            $tblPerson ?: null
+        );
+    }
+
+    /**
+     * @param TblFullTimeContent $tblFullTimeContent
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateFullTimeContent(TblFullTimeContent $tblFullTimeContent, $Data): bool
+    {
+        $tblPerson = Account::useService()->getPersonByLogin();
+
+        return (new Data($this->getBinding()))->updateFullTimeContent(
+            $tblFullTimeContent,
+            $Data['FromDate'],
+            $Data['ToDate'],
+            $Data['Content'],
+            $tblPerson ?: null,
+        );
+    }
+
+    /**
+     * @param TblFullTimeContent $tblFullTimeContent
+     *
+     * @return bool
+     */
+    public function destroyFullTimeContent(TblFullTimeContent $tblFullTimeContent): bool
+    {
+        return (new Data($this->getBinding()))->destroyFullTimeContent($tblFullTimeContent);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param DateTime $date
+     *
+     * @return TblFullTimeContent[]|false
+     */
+    public function getFullTimeContentListByDivisionCourseAndDate(TblDivisionCourse $tblDivisionCourse, DateTime $date)
+    {
+        return (new Data($this->getBinding()))->getFullTimeContentListByDivisionCourseAndDate($tblDivisionCourse, $date);
     }
 }
