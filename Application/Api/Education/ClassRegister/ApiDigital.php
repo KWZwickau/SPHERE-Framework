@@ -173,11 +173,13 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionCourseId
      * @param string|null $Date
      * @param string|null $Lesson
+     * @param string|null $SubjectId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateLessonContentModal(string $DivisionCourseId = null, string $Date = null, string $Lesson = null): Pipeline
-    {
+    public static function pipelineOpenCreateLessonContentModal(
+        string $DivisionCourseId = null, string $Date = null, string $Lesson = null, string $SubjectId = null
+    ): Pipeline {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
@@ -186,8 +188,10 @@ class ApiDigital extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'Date' => $Date,
-            'Lesson' => $Lesson
+            'Lesson' => $Lesson,
+            'SubjectId' => $SubjectId
         ));
+
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
@@ -197,16 +201,17 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionCourseId
      * @param string|null $Date
      * @param string|null $Lesson
+     * @param string|null $SubjectId
      *
      * @return string
      */
-    public function openCreateLessonContentModal(string $DivisionCourseId = null, string $Date = null, string $Lesson = null): string
+    public function openCreateLessonContentModal(string $DivisionCourseId = null, string $Date = null, string $Lesson = null, string $SubjectId = null): string
     {
         if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)))) {
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getLessonContentModal(Digital::useFrontend()->formLessonContent($tblDivisionCourse, null, false, $Date, $Lesson));
+        return $this->getLessonContentModal(Digital::useFrontend()->formLessonContent($tblDivisionCourse, null, false, $Date, $Lesson, $SubjectId));
     }
 
     /**
