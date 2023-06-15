@@ -115,7 +115,7 @@ class GradebookOverview extends AbstractDocument
                 ->addElementColumn((new Element())
                     ->setContent(''), '33%'
                 )
-            )->stylePaddingBottom('25px');
+            )->stylePaddingBottom('2px');
     }
 
     /**
