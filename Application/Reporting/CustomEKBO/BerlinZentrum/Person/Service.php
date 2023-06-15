@@ -473,14 +473,14 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), "Bemerkung_S1");
             $export->setValue($export->getCell($column++, $row), "Zugang");
             $export->setValue($export->getCell($column++, $row), "Abgang");
-            $export->setValue($export->getCell($column++, $row), "stadtbezirk");
+            $export->setValue($export->getCell($column++, $row), "Stadtbezirk");
             $export->setValue($export->getCell($column++, $row), "Mailschüler");
             $export->setValue($export->getCell($column++, $row), "Masern");
-            $export->setValue($export->getCell($column++, $row), "1. Framddsprache");
+            $export->setValue($export->getCell($column++, $row), "1. Fremdsprache");
             $export->setValue($export->getCell($column++, $row), "1 ab JG");
-            $export->setValue($export->getCell($column++, $row), "2. Framddsprache");
+            $export->setValue($export->getCell($column++, $row), "2. Fremdsprache");
             $export->setValue($export->getCell($column++, $row), "2 ab JG");
-            $export->setValue($export->getCell($column++, $row), "3. Framddsprache");
+            $export->setValue($export->getCell($column++, $row), "3. Fremdsprache");
             $export->setValue($export->getCell($column++, $row), "3 ab JG");
             $export->setValue($export->getCell($column++, $row), "Benutzernamen");
             $export->setValue($export->getCell($column, $row), "Nicht dt. Herkunftssprache");
