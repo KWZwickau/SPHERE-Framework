@@ -49,11 +49,11 @@ class DataMaintenance extends Extension implements IModuleInterface
                 __NAMESPACE__ . '/Frontend::frontendGrade'
             )
         );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeUnreachable',
-                __NAMESPACE__ . '/Frontend::frontendGradeUnreachable'
-            )
-        );
+//        Main::getDispatcher()->registerRoute(
+//            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeUnreachable',
+//                __NAMESPACE__ . '/Frontend::frontendGradeUnreachable'
+//            )
+//        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Yearly',
                 __NAMESPACE__.'/Frontend::frontendYearly'

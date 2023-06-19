@@ -24,7 +24,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Extension\Extension;
 
-/**
+/** @deprecated
  * Class ApiGradeMaintenance
  *
  * @package SPHERE\Application\Api\Education\Graduation\Gradebook

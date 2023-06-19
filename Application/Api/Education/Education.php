@@ -36,14 +36,13 @@ use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebookOld;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradesAllYears;
-use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradeMaintenance;
+//use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradeMaintenance;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiMinimumGradeCount;
 use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\Education\Prepare\Prepare;
 use SPHERE\Application\Api\Education\School\ApiCourse;
 use SPHERE\Application\Api\Education\Term\YearHoliday;
 use SPHERE\Application\Api\Education\Term\YearPeriod;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -82,11 +81,10 @@ class Education implements IApplicationInterface
         AddDivision::registerApi();
         ApiCourse::registerApi();
         ApiGradesAllYears::registerApi();
-        ApiGradeMaintenance::registerApi();
+//        ApiGradeMaintenance::registerApi();
         ApiDigital::registerApi();
         ApiInstructionSetting::registerApi();
         ApiInstructionItem::registerApi();
-
         ApiDivisionCourse::registerApi();
         ApiDivisionCourseMember::registerApi();
         ApiDivisionCourseStudent::registerApi();
