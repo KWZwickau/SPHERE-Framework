@@ -36,7 +36,6 @@ use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebookOld;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradesAllYears;
-//use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradeMaintenance;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiMinimumGradeCount;
 use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\Education\Prepare\Prepare;
@@ -81,7 +80,6 @@ class Education implements IApplicationInterface
         AddDivision::registerApi();
         ApiCourse::registerApi();
         ApiGradesAllYears::registerApi();
-//        ApiGradeMaintenance::registerApi();
         ApiDigital::registerApi();
         ApiInstructionSetting::registerApi();
         ApiInstructionItem::registerApi();
