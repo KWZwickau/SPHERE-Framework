@@ -71,7 +71,7 @@ class FuxSchool implements IModuleInterface
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
             'FuxSchool', 'Institutionendaten (Einrichtungsdaten)',
-            new Standard('', '/Transfer/Import/FuxMedia/Company', new Upload(), array(), 'Upload')
+            (new Standard('', '/Transfer/Import/FuxMedia/Company', new Upload(), array(), 'Upload'))->setDisabled()
         );
     }
 
@@ -84,7 +84,7 @@ class FuxSchool implements IModuleInterface
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
             'FuxSchool', 'Schülerdaten',
-            new Standard('', '/Transfer/Import/FuxMedia/Student', new Upload(), array(), 'Upload')
+            (new Standard('', '/Transfer/Import/FuxMedia/Student', new Upload(), array(), 'Upload'))->setDisabled()
         );
     }
 
@@ -97,7 +97,7 @@ class FuxSchool implements IModuleInterface
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
             'FuxSchool', 'Lehrerdaten',
-            new Standard('', '/Transfer/Import/FuxMedia/Teacher', new Upload(), array(), 'Upload')
+            (new Standard('', '/Transfer/Import/FuxMedia/Teacher', new Upload(), array(), 'Upload'))->setDisabled()
         );
     }
 
@@ -110,7 +110,7 @@ class FuxSchool implements IModuleInterface
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
             'FuxSchool', 'Klassendaten',
-            new Standard('', '/Transfer/Import/FuxMedia/Division', new Upload(), array(), 'Upload')
+            (new Standard('', '/Transfer/Import/FuxMedia/Division', new Upload(), array(), 'Upload'))->setDisabled()
         );
     }
 }

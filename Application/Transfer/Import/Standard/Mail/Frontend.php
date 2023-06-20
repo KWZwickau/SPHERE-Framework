@@ -44,7 +44,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendMailImport($File = null, $Data = null)
     {
 
-        $Stage = new Stage('Import', 'Standard für Emailadressen');
+        $Stage = new Stage('Import', 'Standard für E-Mail-Adressen');
         $Stage->addButton(
             new Standard(
                 'Zurück',
@@ -66,7 +66,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Excel-Header',
                                 array(
                                     0 => "Pflichtfelder: Vorname, Nachname",
-                                    1 => "Wahlpflichtfelder (1 Feld): Emailadresse, Benutzer-Alias-Mail, Recovery-Mail",
+                                    1 => "Wahlpflichtfelder (1 Feld): E-Mail-Adresse, Benutzer-Alias-Mail, Recovery-Mail",
                                     2 => "optionales Feld für besser Personenerkennung: Geburtsdatum",
                                     3 => "optionales Feld vorhandener Inhalt setzt die Schülernummer: Schülernummer"
                                 ),
@@ -86,19 +86,19 @@ class Frontend extends Extension implements IFrontendInterface
                                         )),
                                         new FormRow(array(
                                             new FormColumn(
-                                                (new SelectBox('Data[Type]', 'Emailadress-Typ',
+                                                (new SelectBox('Data[Type]', 'E-Mail-Adress-Typ',
                                                     array('{{ Name }} {{ Description }}' =>\SPHERE\Application\Contact\Mail\Mail::useService()->getTypeAll())
                                                 ))->setRequired()
                                             ),
                                         )),
                                         new FormRow(array(
                                             new FormColumn(
-                                                new RadioBox('Data[Radio]', 'Nur Emailadressen importieren', 1)
+                                                new RadioBox('Data[Radio]', 'Nur E-Mail-Adressen importieren', 1)
                                             ),
                                         )),
                                         new FormRow(array(
                                             new FormColumn(
-                                                new RadioBox('Data[Radio]', 'Emailadresse als Account-Alias verwenden', 2)
+                                                new RadioBox('Data[Radio]', 'E-Mail-Adresse als Account-Alias verwenden', 2)
                                             ),
                                         )),
                                         new FormRow(array(

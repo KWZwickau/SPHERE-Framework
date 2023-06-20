@@ -159,7 +159,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendStuffImport($File = null)
     {
 
-        $Stage = new Stage('Import', 'Standard für Lehrer');
+        $Stage = new Stage('Import', 'Standard für Mitarbeiter/Lehrer');
         $Stage->addButton(
             new Standard(
                 'Zurück',
