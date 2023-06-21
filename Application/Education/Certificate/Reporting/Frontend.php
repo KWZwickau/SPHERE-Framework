@@ -316,8 +316,7 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($tblPrepareList as $tblPrepare) {
                             if (($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))) {
                                 foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                                    if ($tblPrepareStudent->isPrinted()
-                                        && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                                    if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                                         && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
                                         && (($View == View::HS && strpos($tblCertificate->getCertificate(), 'MsAbsHs') !== false)
                                             || ($View == View::RS && strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false)
@@ -391,7 +390,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )))
                     );
                 } else {
-                    $Stage->setContent(new Warning('Es sind noch keine gedruckten Abschlusszeugnisse für das Schuljahr: '
+                    $Stage->setContent(new Warning('Es sind noch keine Abschlusszeugnisse für das Schuljahr: '
                         . $tblYear->getDisplayName() . ' vorhanden.', new Exclamation()));
                 }
             }
@@ -443,7 +442,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if (!empty($gradeList)) {
-            return round(floatval(array_sum($gradeList) / count($gradeList)), 1);
+            return round(floatval(array_sum($gradeList) / count($gradeList)), 2);
         }
 
         return false;
