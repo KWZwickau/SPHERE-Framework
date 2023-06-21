@@ -33,6 +33,7 @@ class Setup  extends AbstractSetup
         $this->setTableTaskGrade($schema, $tblTask, $tblGradeType, $tblGradeText);
         $this->setTableTaskCourseLink($schema, $tblTask);
         $this->setTableTaskGradeTypeLink($schema, $tblTask, $tblGradeType);
+        $this->setTableProposalBehaviorGrade($schema, $tblTask, $tblGradeType);
 
         // Score
         $this->setTableScoreTypeSubject($schema, $tblScoreType);
@@ -175,7 +176,6 @@ class Setup  extends AbstractSetup
         $table = $this->createTable($schema, 'tblGraduationTaskCourseLink');
         $this->createForeignKey($table, $tblTask);
         $this->createColumn($table, 'serviceTblDivisionCourse', self::FIELD_TYPE_BIGINT);
-        // todo Stichtagsnotenauftrag für HS in Klasse 9, 2 Aufträge für Klasse 9 OS wären schlecht für Zeugnisauftrag
     }
 
     private function setTableTaskGradeTypeLink(Schema &$schema, Table $tblTask, Table $tblGradeType)
@@ -334,5 +334,25 @@ class Setup  extends AbstractSetup
         $table = $this->createTable($schema, 'tblGraduationMinimumGradeCountSubjectLink');
         $this->createForeignKey($table, $tblMinimumGradeCount);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblTask
+     * @param Table $tblGradeType
+     */
+    private function setTableProposalBehaviorGrade(Schema $schema, Table $tblTask, Table $tblGradeType)
+    {
+        $table = $this->createTable($schema, 'tblGraduationProposalBehaviorGrade');
+
+        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createForeignKey($table, $tblTask);
+        $this->createForeignKey($table, $tblGradeType, true);
+
+        $this->createColumn($table, 'Grade', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($table, 'Comment', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
+
+        $this->createIndex($table, array('tblGraduationTask', 'serviceTblPerson'), false);
     }
 }

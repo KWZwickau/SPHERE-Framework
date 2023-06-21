@@ -6,6 +6,7 @@ use DateInterval;
 use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskCourseLink;
@@ -785,5 +786,28 @@ abstract class ServiceTask extends ServiceStudentOverview
         }
 
         return $columns;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     *
+     * @return false|TblProposalBehaviorGrade[]
+     */
+    public function getProposalBehaviorGradeListByPersonAndTask(TblPerson $tblPerson, TblTask $tblTask)
+    {
+        return (new Data($this->getBinding()))->getProposalBehaviorGradeListByPersonAndTask($tblPerson, $tblTask);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblProposalBehaviorGrade
+     */
+    public function getProposalBehaviorGradeByPersonAndTaskAndGradeType(TblPerson $tblPerson, TblTask $tblTask, TblGradeType $tblGradeType)
+    {
+        return (new Data($this->getBinding()))->getProposalBehaviorGradeByPersonAndTaskAndGradeType($tblPerson, $tblTask, $tblGradeType);
     }
 }

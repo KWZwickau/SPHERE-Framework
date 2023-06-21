@@ -9,6 +9,7 @@ use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
@@ -24,6 +25,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
@@ -880,6 +882,9 @@ class Frontend extends FrontendTestPlanning
         $hasCourse = !empty($courseList);
         $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
 
+        $showProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+
         // Stichtagsnotenauftrag
         if (!$tblTask->getIsTypeBehavior()) {
             list($tblTestList, $tblTestGradeValueList, $tblTestGradeList, $personPeriodList)
@@ -897,6 +902,13 @@ class Frontend extends FrontendTestPlanning
                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenGradeTextModal($DivisionCourseId))
             );
             $headerList['Comment'] = $this->getTableColumnHead('Vermerk Noten&shy;änderung');
+            $tblGradeTypes = false;
+        // Kopfnotenauftrag
+        } else {
+            $tblGradeTypes = $tblTask->getGradeTypes();
+            if ($showProposalBehaviorGrade && $tblGradeTypes) {
+                $headerList['Proposal'] = $this->getTableColumnHead('KL-Vorschlag');
+            }
         }
 
         if ($tblPersonList) {
@@ -928,9 +940,23 @@ class Frontend extends FrontendTestPlanning
 
                 // Kopfnoten
                 if ($tblTask->getIsTypeBehavior()) {
-                    // todo Kopfnotenvorschlag Klassenlehrer
+                    if ($showProposalBehaviorGrade && $tblGradeTypes) {
+                        $contentProposal = '';
+                        $tooltipProposal = '';
+                        if (($tblProposalBehaviorGradeList = Grade::useService()->getProposalBehaviorGradeListByPersonAndTask($tblPerson, $tblTask))) {
+                            $tblProposalBehaviorGradeList = $this->getSorter($tblProposalBehaviorGradeList)->sortObjectBy('GradeTypeName');
+                            /** @var TblProposalBehaviorGrade $tblProposalBehaviorGrade */
+                            foreach ($tblProposalBehaviorGradeList as $tblProposalBehaviorGrade) {
+                                $contentProposal .= ($contentProposal ? ', ' : '') . $tblProposalBehaviorGrade->getGrade();
+                                $tooltipProposal .= ($tooltipProposal ? ', ' : '') . $tblProposalBehaviorGrade->getGradeTypeName() . ': ' . $tblProposalBehaviorGrade->getGrade();
+                            }
+                        }
+
+                        $bodyList[$tblPerson->getId()]['Proposal'] = $this->getTableColumnBody(new ToolTip($contentProposal, $tooltipProposal));
+                    }
+
                     $selectList = $selectListBehaviorTask;
-                    if (($tblGradeTypes = $tblTask->getGradeTypes())) {
+                    if ($tblGradeTypes) {
                         foreach ($tblGradeTypes as $tblGradeType) {
                             $key = 'GradeType' . $tblGradeType->getId();
                             if (!isset($headerList[$key])) {
