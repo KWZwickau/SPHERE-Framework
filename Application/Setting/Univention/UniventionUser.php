@@ -169,7 +169,15 @@ class UniventionUser
                     $Error = '';
                     foreach($StdClassArray['detail'] as $Detail){
                         if($Detail['msg']){
-                            $Error .= new Bold($name.'-> ').$Detail['loc'].':'.$Detail['msg'];
+                            $loc = '';
+                            if ($Detail['loc']) {
+                                $loc = is_array($Detail['loc']) ? implode('; ', $Detail['loc']) : $Detail['loc'];
+                            }
+
+                            $Error .= new Bold($name.'-> ')
+                                . $loc
+                                . ':'
+                                . (is_array($Detail['msg']) ? implode('; ', $Detail['msg']) : $Detail['msg']);
                         }
                     }
                 }
