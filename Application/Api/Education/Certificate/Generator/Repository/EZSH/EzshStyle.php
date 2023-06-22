@@ -2091,10 +2091,10 @@ abstract class EzshStyle extends Certificate
 //                        $subjectName = 'PWDS';
 //                    }
 
-//                    if (strpos($subjectName, 'naturwissenschaftlich-mathematisches') !== false) {
-//                        $subjectName = str_replace('-', ' - ', $subjectName);
-//                        continue;
-//                    }
+                    if (($pos = strpos($subjectName, 'Profil'))) {
+                        $subjectName = substr($subjectName, $pos + strlen('Profil'));
+                        $subjectName = str_replace(' / ', ' ', $subjectName);
+                    }
 
                     $section->addElementColumn((new Element())
                         ->setContent($subjectName)
