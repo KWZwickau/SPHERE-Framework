@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBo
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
@@ -783,10 +784,25 @@ class Frontend extends FrontendTestPlanning
             }
         }
 
+        // Kopfnotenvorschlag Button für Klassenlehrer
+        $buttonProposalBehaviorGrades = '';
+        $showProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+        if ($showProposalBehaviorGrade
+            && ($tblDivisionCourse->getIsDivisionOrCoreGroup() || $tblDivisionCourse->getType() == TblDivisionCourseType::TYPE_TEACHING_GROUP)
+            && ($tblPerson = Account::useService()->getPersonByLogin())
+            && ($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+            && (DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPerson))
+        ) {
+            $buttonProposalBehaviorGrades = (new Standard('Kopfnotenvorschlag KL', ApiGradeBook::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewProposalBehaviorGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId));
+        }
+
         $content =
             new Panel(
                 $tblTask->getTypeName(),
                 $tblTask->getName() . ' ' . $tblTask->getDateString()
+                . ($buttonProposalBehaviorGrades ? new PullRight($buttonProposalBehaviorGrades) : '')
                 . new Container(new Muted('Bearbeitungszeitraum '.$tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString())),
                 Panel::PANEL_TYPE_INFO
             )
@@ -1098,6 +1114,191 @@ class Frontend extends FrontendTestPlanning
                 ->ajaxPipelineOnClick(ApiGradeBook::pipelineSaveTaskGradeEdit($DivisionCourseId, $tblSubject->getId(), $Filter, $tblTask->getId())),
             (new Standard('Abbrechen', ApiGradeBook::getEndpoint(), new Disable()))
                 ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $tblSubject->getId(), $Filter))
+        )));
+
+        return (new Form(new FormGroup($formRows)))->disableSubmitAction();
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TaskId
+     *
+     * @return string
+     */
+    public function loadViewProposalBehaviorGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId): string
+    {
+        if (!($tblTask = Grade::useService()->getTaskById($TaskId))) {
+            return (new Danger("Notenauftrag wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblYear = $tblTask->getServiceTblYear())) {
+            return (new Danger("Schuljahr wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
+            return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
+        }
+
+        $form = $this->formProposalBehaviorGrades($tblTask, $tblYear, $tblSubject, $DivisionCourseId, $Filter, true);
+
+        return $this->getProposalBehaviorGradesEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TaskId);
+    }
+
+    /**
+     * @param $form
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TaskId
+     *
+     * @return string
+     */
+    public function getProposalBehaviorGradesEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TaskId): string
+    {
+        if (!($tblTask = Grade::useService()->getTaskById($TaskId))) {
+            return new Danger('Der Notenauftrag wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        $content =
+            new Panel(
+                $tblTask->getTypeName(),
+                $tblTask->getName() . ' ' . $tblTask->getDateString()
+                . new Container(new Muted('Bearbeitungszeitraum ' . $tblTask->getFromDateString() . ' - ' . $tblTask->getToDateString())),
+                Panel::PANEL_TYPE_INFO
+            )
+            . $form;
+
+        return new Title(
+                (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
+                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId))
+                . '&nbsp;&nbsp;&nbsp;&nbsp; Kopfnotenvorschlag KL - Eingabe'
+                . new Muted(new Small(" für Kurs: ")) . new Bold($tblDivisionCourse->getName())
+            )
+            . ApiSupportReadOnly::receiverOverViewModal()
+            . ApiPersonPicture::receiverModal()
+            . ApiGradeBook::receiverModal()
+            . $content;
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param $DivisionCourseId
+     * @param $Filter
+     * @param bool $setPost
+     * @param null $Errors
+     * @param null $Data
+     *
+     * @return Form
+     */
+    public function formProposalBehaviorGrades(TblTask $tblTask, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId, $Filter, bool $setPost = false, $Errors = null, $Data = null): Form
+    {
+        $bodyList = array();
+
+        $tblPersonList = array();
+        $integrationList = array();
+        $pictureList = array();
+        $courseList = array();
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tempPersons as $tblPersonTemp) {
+                Grade::useService()->setStudentInfo($tblPersonTemp, $tblYear, $integrationList, $pictureList, $courseList);
+                $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
+            }
+        }
+
+        $tblProposalBehaviorGradeList = array();
+        if ($setPost) {
+            if ($tblPersonList) {
+                foreach ($tblPersonList as $tblPerson) {
+                    $global = $this->getGlobal();
+                    if (($tempList = Grade::useService()->getProposalBehaviorGradeListByPersonAndTask($tblPerson, $tblTask))) {
+                        foreach ($tempList as $tblProposalBehaviorGrade) {
+                            if (($tblGradeType = $tblProposalBehaviorGrade->getTblGradeType())) {
+                                $global->POST['Data'][$tblPerson->getId()]['GradeTypes'][$tblGradeType->getId()] = $tblProposalBehaviorGrade->getGrade();
+                                $global->POST['Data'][$tblPerson->getId()]['Comment'] = $tblProposalBehaviorGrade->getComment();
+                                // für Lehrer, welcher die Note gespeichert hat + Zeugnistexte
+                                $tblProposalBehaviorGradeList[$tblPerson->getId()][$tblGradeType->getId()] = $tblProposalBehaviorGrade;
+                            }
+                        }
+                    }
+                    $global->savePost();
+                }
+            }
+        }
+
+        $hasPicture = !empty($pictureList);
+        $hasIntegration = !empty($integrationList);
+        $hasCourse = !empty($courseList);
+        $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
+
+        if ($tblPersonList) {
+            $count = 0;
+            $tabIndex = 1;
+
+            $tblGradeTypes = $tblTask->getGradeTypes();
+            $selectListBehaviorTask = Grade::useService()->getGradeSelectListByScoreType(Grade::useService()->getScoreTypeByIdentifier('GRADES_BEHAVIOR_TASK'));
+
+            foreach ($tblPersonList as $tblPerson) {
+                $bodyList[$tblPerson->getId()] = $this->getGradeBookPreBodyList($tblPerson, ++$count, $hasPicture, $hasIntegration, $hasCourse,
+                    $pictureList, $integrationList, $courseList);
+
+                if ($tblGradeTypes) {
+                    foreach ($tblGradeTypes as $tblGradeType) {
+                        /** @var TblProposalBehaviorGrade $tblProposalBehaviorGrade */
+                        $tblProposalBehaviorGrade = $tblProposalBehaviorGradeList[$tblPerson->getId()][$tblGradeType->getId()] ?? null;
+                        $key = 'GradeType' . $tblGradeType->getId();
+                        if (!isset($headerList[$key])) {
+                            $tooltip = $this->getGradeTypeTooltip($tblGradeType);
+                            $headerList[$key] = $this->getTableColumnHead($tooltip ? new ToolTip($tblGradeType->getName(), $tooltip) : $tblGradeType->getName());
+                        }
+
+                        $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][GradeTypes][' . $tblGradeType->getId() . ']', '', '', $selectListBehaviorTask))
+                            ->setTabIndex($tabIndex++)
+                            ->setPrefixValue($tblProposalBehaviorGrade ? $tblProposalBehaviorGrade->getDisplayTeacher() : '');
+
+                        // Eingabe-Fehler anzeigen
+                        if (isset($Errors[$tblPerson->getId()]['GradeTypes'][$tblGradeType->getId()])) {
+                            $selectComplete->setError('Bitte geben Sie eine gültige Kopfnote ein');
+                        }
+                        $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody($selectComplete);
+                    }
+                }
+
+                // Kommentar Notenänderung
+                if (!isset($headerList['Comment'])) {
+                    $headerList['Comment'] = $this->getTableColumnHead('Vermerk Noten&shy;änderung');
+                }
+
+                $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))
+                    ->setTabIndex(1000 + $tabIndex);
+                if (isset($Errors[$tblPerson->getId()]['Comment'])) {
+                    $textFieldComment->setError('Bitte geben Sie einen Änderungsgrund an');
+                }
+                $bodyList[$tblPerson->getId()]['Comment'] = $this->getTableColumnBody($textFieldComment);
+            }
+        }
+
+        $table = $this->getTableCustom($headerList, $bodyList);
+
+        $formRows[] = new FormRow(new FormColumn(
+            $table
+        ));
+        if ($Errors) {
+            $formRows[] = new FormRow(new FormColumn(
+                new Danger("Die Zensuren wurden nicht gespeichert. Bitte überprüfen Sie die Fehlermeldungen oben.", new Exclamation())
+            ));
+        }
+        $formRows[] = new FormRow(new FormColumn(array(
+            (new Primary('Speichern', ApiGradeBook::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiGradeBook::pipelineSaveProposalBehaviorGradeEdit($DivisionCourseId, $tblSubject->getId(), $Filter, $tblTask->getId())),
+            (new Standard('Abbrechen', ApiGradeBook::getEndpoint(), new Disable()))
+                ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTaskGradeEditContent($DivisionCourseId, $tblSubject->getId(), $Filter, $tblTask->getId()))
         )));
 
         return (new Form(new FormGroup($formRows)))->disableSubmitAction();
