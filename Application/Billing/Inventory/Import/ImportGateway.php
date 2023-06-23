@@ -466,10 +466,29 @@ class ImportGateway extends AbstractConverter
     protected function sanitizeDate($Value)
     {
         if($Value){
-            if(($Date = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($Value)))){
-                return $Date;
+            $len = strlen($Value);
+            switch ($len) {
+                case 5:
+                    $result = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($Value));
+                    break;
+                case 6:
+                    $result = substr($Value, 0, 2) . '.' . substr($Value, 2, 2) . '.' . substr($Value, 4, 2);
+                    break;
+                case 7:
+                    $Value = '0' . $Value;
+                case 8:
+                    $result = substr($Value, 0, 2) . '.' . substr($Value, 2, 2) . '.' . substr($Value, 4, 4);
+                    break;
+                case 10:
+                    $result = $Value;
+                    break;
+                default:
+                    $result = '';
             }
+
+            return $result;
         }
+
         return $Value;
     }
 
