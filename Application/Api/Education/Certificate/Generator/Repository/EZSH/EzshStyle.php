@@ -1953,7 +1953,7 @@ abstract class EzshStyle extends Certificate
                     ->styleMarginTop('0px')
                     , '30%')
                 ->addElementColumn((new Element())
-                    ->setContent('Schulstempel der Schule' )
+                    ->setContent('Schulstempel' )
                     ->styleFontFamily(self::FONT_FAMILY)
                     ->styleLineHeight(self::LINE_HEIGHT)
                     ->styleTextSize($textSize)

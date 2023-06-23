@@ -176,8 +176,8 @@ class EzshMsAbsHs extends EzshStyle
                 )->styleMarginTop('60px')
                 ->styleMarginBottom('20px')
             )
-            ->addSlice($this->getEZSHSubjectLanes($personId, true, array(), false, false, true, true)->styleHeight('350px'))
-            ->addSlice((new Slice())->addSectionList($this->getEZSHRemark($personId, '170px')))
+            ->addSlice($this->getEZSHSubjectLanes($personId, true, array(), false, false, true, true)->styleHeight('390px'))
+            ->addSlice((new Slice())->addSectionList($this->getEZSHRemark($personId, '150px')))
             ->addSlice($this->getEZSHDateLine($personId))
             ->addSlice((self::getEZSHExaminationsBoard('10px','11px')))
             ->addSlice((new Slice())->styleMarginTop('150px')->addSectionList($this->getEZSHGradeInfo(false)));
