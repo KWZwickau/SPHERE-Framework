@@ -475,12 +475,27 @@ class Frontend extends Extension implements IFrontendInterface
             ))
         ) {
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                if ($tblPrepareAdditionalGrade->getGrade() != '') {
+                if ($tblPrepareAdditionalGrade->getGrade() != ''
+                    && ($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
+                ) {
                     $grade = str_replace('+', '', $tblPrepareAdditionalGrade->getGrade());
                     $grade = str_replace('-', '', $grade);
                     if (is_numeric($grade)) {
-                        $gradeList[] = $grade;
+                        $gradeList[$tblSubject->getId()] = $grade;
                     }
+                }
+            }
+        }
+
+        if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
+            && ($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson))
+        ) {
+            foreach ($tblTaskGradeList as $tblTaskGrade) {
+                if (($tblSubject = $tblTaskGrade->getServiceTblSubject())
+                    && !isset($gradeList[$tblSubject->getId()])
+                    && $tblTaskGrade->getIsGradeNumeric()
+                ) {
+                    $gradeList[$tblSubject->getId()] = $tblTaskGrade->getGradeNumberValue();
                 }
             }
         }
@@ -491,11 +506,13 @@ class Frontend extends Extension implements IFrontendInterface
             ))
         ) {
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                if ($tblPrepareAdditionalGrade->getGrade() != '') {
+                if ($tblPrepareAdditionalGrade->getGrade() != ''
+                    && ($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
+                ) {
                     $grade = str_replace('+', '', $tblPrepareAdditionalGrade->getGrade());
                     $grade = str_replace('-', '', $grade);
                     if (is_numeric($grade)) {
-                        $gradeList[] = $grade;
+                        $gradeList[$tblSubject->getId()] = $grade;
                     }
                 }
             }
