@@ -597,10 +597,7 @@ abstract class FrontendTask extends FrontendStudentOverview
      */
     private function getTaskGradeViewByBehaviorTask(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): string
     {
-        // todo Kopfnotenvorschlag
-        if (($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation',
-            'ShowProposalBehaviorGrade'))
-        ) {
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))) {
             $showProposalBehaviorGrade = $tblSetting->getValue();
         } else {
             $showProposalBehaviorGrade = false;
@@ -658,8 +655,21 @@ abstract class FrontendTask extends FrontendStudentOverview
                                 $contentList[] = $tblSubject->getAcronym() . ': ' . $gradeDisplay;
                             }
                         }
+                        $gradeListString = implode(' | ', $contentList);
+
+                        // Kopfnotenvorschlag KL
+                        if ($showProposalBehaviorGrade) {
+                            if (($tblProposalBehaviorGrade = Grade::useService()->getProposalBehaviorGradeByPersonAndTaskAndGradeType(
+                                    $tblPerson, $tblTask, $tblGradeType
+                                ))
+                                && ($proposalGrade = $tblProposalBehaviorGrade->getGrade())
+                            ) {
+                                $gradeListString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
+                            }
+                        }
+
                         $average = ($countGrades > 0 ? new Bold('&#216; ' . Grade::useService()->getGradeAverage($sum, $countGrades)) . ' | ' : '');
-                        $bodyList[$tblPerson->getId()][$tblGradeType->getId()] = $average . new Small(implode(' | ', $contentList));
+                        $bodyList[$tblPerson->getId()][$tblGradeType->getId()] = $average . new Small($gradeListString);
                     }
                 }
             }

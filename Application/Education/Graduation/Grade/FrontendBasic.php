@@ -81,18 +81,18 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
             ? new Info(new Edit() . new Bold(" Planungsübersicht"))
             : "Planungsübersicht";
 
-        $hasMinimumGradeCountReporting = $role !== 'Teacher';
-        if (!$hasMinimumGradeCountReporting
+        $hasAdditionalTabs = $role !== 'Teacher';
+        if (!$hasAdditionalTabs
             && ($tblPersonLogin = Account::useService()->getPersonByLogin())
             && ($tblYearList = Term::useService()->getYearByNow())
         ) {
             foreach ($tblYearList as $tblYear) {
-                if (!$hasMinimumGradeCountReporting
+                if (!$hasAdditionalTabs
                     && ($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear))
                 ) {
                     foreach ($tblDivisionCourseList as $tblDivisionCourse) {
                         if ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
-                            $hasMinimumGradeCountReporting = true;
+                            $hasAdditionalTabs = true;
                             break;
                         }
                     }
@@ -106,11 +106,13 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
                     ApiGradeBook::pipelineLoadHeader(self::VIEW_GRADE_BOOK_SELECT),
                     ApiGradeBook::pipelineLoadViewGradeBookSelect()
                 ))
-            . (new Standard($textStudentOverview, ApiGradeBook::getEndpoint()))
-                ->ajaxPipelineOnClick(array(
-                    ApiGradeBook::pipelineLoadHeader(self::VIEW_STUDENT_OVERVIEW_COURSE_SELECT),
-                    ApiStudentOverview::pipelineLoadViewStudentOverviewCourseSelect()
-                ))
+            . ($hasAdditionalTabs
+                ? (new Standard($textStudentOverview, ApiGradeBook::getEndpoint()))
+                    ->ajaxPipelineOnClick(array(
+                        ApiGradeBook::pipelineLoadHeader(self::VIEW_STUDENT_OVERVIEW_COURSE_SELECT),
+                        ApiStudentOverview::pipelineLoadViewStudentOverviewCourseSelect()
+                    ))
+                : "")
             . ($role == "Teacher"
                 ? (new Standard($textTeacherGroup, ApiTeacherGroup::getEndpoint()))
                     ->ajaxPipelineOnClick(array(
@@ -118,14 +120,14 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
                         ApiTeacherGroup::pipelineLoadViewTeacherGroups()
                     ))
                 : "")
-            . ($hasMinimumGradeCountReporting
+            . ($hasAdditionalTabs
                 ? (new Standard($textMinimumGradeCountReporting, ApiGradeBook::getEndpoint()))
                     ->ajaxPipelineOnClick(array(
                         ApiGradeBook::pipelineLoadHeader(self::VIEW_MINIMUM_GRADE_COUNT_REPORTING),
                         ApiGradeBook::pipelineLoadViewMinimumGradeCountReportingContent()
                     ))
                 : "")
-            . ($hasMinimumGradeCountReporting
+            . ($hasAdditionalTabs
                 ? (new Standard($textTestPlanning, ApiGradeBook::getEndpoint()))
                     ->ajaxPipelineOnClick(array(
                         ApiGradeBook::pipelineLoadHeader(self::VIEW_TEST_PLANNING),

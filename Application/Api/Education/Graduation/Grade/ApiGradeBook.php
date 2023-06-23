@@ -7,6 +7,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Graduation\Grade\Frontend;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
@@ -61,6 +62,9 @@ class ApiGradeBook extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('loadViewTaskGradeEditContent');
         $Dispatcher->registerMethod('saveTaskGradeEdit');
+
+        $Dispatcher->registerMethod('loadViewProposalBehaviorGradeEditContent');
+        $Dispatcher->registerMethod('saveProposalBehaviorGradeEdit');
 
         $Dispatcher->registerMethod('openGradeTextModal');
         $Dispatcher->registerMethod('setGradeText');
@@ -939,6 +943,156 @@ class ApiGradeBook extends Extension implements IApiInterface
 
         return new Success("Zensuren wurde erfolgreich gespeichert.")
             . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TaskId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewProposalBehaviorGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewProposalBehaviorGradeEditContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter,
+            'TaskId' => $TaskId
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TaskId
+     *
+     * @return string
+     */
+    public function loadViewProposalBehaviorGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId): string
+    {
+        return Grade::useFrontend()->loadViewProposalBehaviorGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TaskId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveProposalBehaviorGradeEdit($DivisionCourseId, $SubjectId, $Filter, $TaskId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveProposalBehaviorGradeEdit'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter,
+            'TaskId' => $TaskId
+        ));
+        $ModalEmitter->setLoadingMessage("Wird bearbeitet");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $TaskId
+     * @param $Data
+     *
+     * @return string
+     */
+    public function saveProposalBehaviorGradeEdit($DivisionCourseId, $SubjectId, $Filter, $TaskId, $Data): string
+    {
+        if (!($tblTask = Grade::useService()->getTaskById($TaskId))) {
+            return (new Danger("Leistungsüberprüfung wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblYear = $tblTask->getServiceTblYear())) {
+            return (new Danger("Schuljahr wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
+            return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
+        }
+
+        if (($form = Grade::useService()->checkFormProposalBehaviorGrades($Data, $tblTask, $tblYear, $tblSubject, $DivisionCourseId, $Filter))) {
+            // display Errors on form
+            return Grade::useFrontend()->getProposalBehaviorGradesEdit($form, $DivisionCourseId, $SubjectId, $Filter, $TaskId);
+        }
+
+        $createList = array();
+        $updateList = array();
+        $deleteList = array();
+        if($Data) {
+            $tblTeacher = Account::useService()->getPersonByLogin();
+            foreach ($Data as $personId => $item) {
+                if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                    if (isset($item['GradeTypes'])) {
+                        $comment = trim($item['Comment']) ?: null;
+                        foreach ($item['GradeTypes'] as $gradeTypeId => $value) {
+                            if (($tblGradeType = Grade::useService()->getGradeTypeById($gradeTypeId))) {
+                                $gradeValue = str_replace(',', '.', trim($value));
+                                $hasGradeValue = $gradeValue === '0' || (!empty($gradeValue) && $gradeValue != -1);
+                                if (($tblProposalBehaviorGrade = Grade::useService()->getProposalBehaviorGradeByPersonAndTaskAndGradeType(
+                                    $tblPerson, $tblTask, $tblGradeType
+                                ))) {
+                                    if ($hasGradeValue) {
+                                        // nur updaten bei wirklicher Änderung, ansonsten wird eventuell ein anderer Lehrer gespeichert
+                                        if ($gradeValue != $tblProposalBehaviorGrade->getGrade()
+                                            || $comment != $tblProposalBehaviorGrade->getComment()
+                                        ) {
+                                            $tblProposalBehaviorGrade->setGrade($gradeValue);
+                                            $tblProposalBehaviorGrade->setComment($comment);
+                                            $tblProposalBehaviorGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
+                                            $updateList[] = $tblProposalBehaviorGrade;
+                                        }
+                                    } else {
+                                        $deleteList[] = $tblProposalBehaviorGrade;
+                                    }
+                                } else {
+                                    if ($hasGradeValue) {
+                                        $createList[] = new TblProposalBehaviorGrade(
+                                            $tblPerson, $tblTask, $tblGradeType, $gradeValue, $comment, $tblTeacher ?: null
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($createList)) {
+            Grade::useService()->createEntityListBulk($createList);
+        }
+        if (!empty($updateList)) {
+            Grade::useService()->updateEntityListBulk($updateList);
+        }
+        if (!empty($deleteList)) {
+            Grade::useService()->deleteEntityListBulk($deleteList);
+        }
+
+        return new Success("Kopfnotenvorschläge wurden erfolgreich gespeichert.")
+            . self::pipelineLoadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId);
     }
 
     /**

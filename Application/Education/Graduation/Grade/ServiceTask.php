@@ -6,6 +6,7 @@ use DateInterval;
 use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskCourseLink;
@@ -625,6 +626,55 @@ abstract class ServiceTask extends ServiceStudentOverview
     }
 
     /**
+     * @param $Data
+     * @param TblTask $tblTask
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param $DivisionCourseId
+     * @param $Filter
+     *
+     * @return false|Form
+     */
+    public function checkFormProposalBehaviorGrades($Data, TblTask $tblTask, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId, $Filter)
+    {
+        $errorList = array();
+        if ($Data) {
+            foreach ($Data as $personId => $item) {
+                if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                    $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('GRADES_BEHAVIOR_TASK');
+                    if (($tblGradeTypes = $tblTask->getGradeTypes())) {
+                        $comment = trim($item['Comment']);
+                        foreach ($tblGradeTypes as $tblGradeType) {
+                            $gradeValue = $item['GradeTypes'][$tblGradeType->getId()] ?? '';
+                            if ($gradeValue === '0' || (!empty($gradeValue) && $gradeValue != -1)) {
+                                // Bewertungssystem Pattern prüfen
+                                if ($tblScoreType && ($pattern = $tblScoreType->getPattern())) {
+                                    if (!preg_match('!' . $pattern . '!is', $gradeValue)) {
+                                        $errorList[$personId]['GradeTypes'][$tblGradeType->getId()] = true;
+                                    }
+                                }
+
+                                // Grund bei Noten-Änderung angeben
+                                if (empty($comment)
+                                    && ($tblTaskGrade = Grade::useService()->getProposalBehaviorGradeByPersonAndTaskAndGradeType(
+                                        $tblPerson, $tblTask, $tblGradeType))
+                                    && $gradeValue != $tblTaskGrade->getGrade()
+                                ) {
+                                    $errorList[$personId]['Comment'] = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($errorList)
+            ? false
+            : Grade::useFrontend()->formProposalBehaviorGrades($tblTask, $tblYear, $tblSubject, $DivisionCourseId, $Filter, false, $errorList, $Data);
+    }
+
+    /**
      * @param TblPerson $tblPersonLogin
      *
      * @return false|Layout
@@ -786,6 +836,29 @@ abstract class ServiceTask extends ServiceStudentOverview
         }
 
         return $columns;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     *
+     * @return false|TblProposalBehaviorGrade[]
+     */
+    public function getProposalBehaviorGradeListByPersonAndTask(TblPerson $tblPerson, TblTask $tblTask)
+    {
+        return (new Data($this->getBinding()))->getProposalBehaviorGradeListByPersonAndTask($tblPerson, $tblTask);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblProposalBehaviorGrade
+     */
+    public function getProposalBehaviorGradeByPersonAndTaskAndGradeType(TblPerson $tblPerson, TblTask $tblTask, TblGradeType $tblGradeType)
+    {
+        return (new Data($this->getBinding()))->getProposalBehaviorGradeByPersonAndTaskAndGradeType($tblPerson, $tblTask, $tblGradeType);
     }
 
     /**

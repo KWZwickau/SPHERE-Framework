@@ -213,14 +213,15 @@ abstract class FrontendSetting extends FrontendSelect
                                             }
                                         }
                                     }
-                                    // todo Kopfnotenvorschlag
+                                    // Kopfnotenvorschlag
                                     if ($showProposalBehaviorGrade) {
-//                                        if (($tblProposalBehaviorGrade = Gradebook::useService()->getProposalBehaviorGrade(
-//                                                $tblDivisionItem, $tblTaskItem, $tblCurrentGradeType, $tblPerson
-//                                            )) && ($proposalGrade = $tblProposalBehaviorGrade->getDisplayGrade())
-//                                        ) {
-//                                            $subString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
-//                                        }
+                                        if (($tblProposalBehaviorGrade = Grade::useService()->getProposalBehaviorGradeByPersonAndTaskAndGradeType(
+                                                $tblPerson, $tblTaskItem, $tblCurrentGradeType
+                                            ))
+                                            && ($proposalGrade = $tblProposalBehaviorGrade->getGrade())
+                                        ) {
+                                            $subString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
+                                        }
                                     }
                                     if (!empty($subString) && isset($gradeList[$taskId])) {
                                         $count = count($gradeList[$taskId]);
@@ -266,22 +267,21 @@ abstract class FrontendSetting extends FrontendSelect
                                         $gradeList[] = floatval($grade->getGrade());
                                     }
                                     if (empty($gradeListString)) {
-                                        $gradeListString =
-                                            $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
+                                        $gradeListString = $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
                                     } else {
-                                        $gradeListString .= ' | '
-                                            . $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
+                                        $gradeListString .= ' | ' . $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
                                     }
                                 }
                             }
-                            // todo Kopfnotenvorschlag
-                            if ($showProposalBehaviorGrade && $tblPrepare->getServiceTblBehaviorTask()) {
-//                                if (($tblProposalBehaviorGrade = Gradebook::useService()->getProposalBehaviorGrade(
-//                                        $tblDivisionItem, $tblPrepare->getServiceTblBehaviorTask(), $tblCurrentGradeType, $tblPerson
-//                                    )) && ($proposalGrade = $tblProposalBehaviorGrade->getDisplayGrade())
-//                                ) {
-//                                    $gradeListString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
-//                                }
+                            // Kopfnotenvorschlag
+                            if ($showProposalBehaviorGrade) {
+                                if (($tblProposalBehaviorGrade = Grade::useService()->getProposalBehaviorGradeByPersonAndTaskAndGradeType(
+                                        $tblPerson, $tblTask, $tblCurrentGradeType
+                                    ))
+                                    && ($proposalGrade = $tblProposalBehaviorGrade->getGrade())
+                                ) {
+                                    $gradeListString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
+                                }
                             }
                             $studentTable[$tblPerson->getId()]['Grades'] = $gradeListString;
 
