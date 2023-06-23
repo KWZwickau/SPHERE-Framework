@@ -351,6 +351,13 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Name' => $tblPerson->getLastFirstName(),
                                             'Average' => $average ? str_replace('.', ',', $average) : '&ndash;'
                                         );
+
+                                        if ($View == View::RS) {
+                                            $dataList[$tblPerson->getId()]['AverageWithDroppedSubjects']
+                                                = ($averageWithDroppedSubjects = $this->calcDiplomaAverageGradeWithDroppedSubjects($tblPrepare, $tblPerson))
+                                                    ? str_replace('.', ',', $averageWithDroppedSubjects)
+                                                    : '&ndash;';
+                                        }
                                     }
                                 }
                             }
@@ -359,6 +366,14 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 if (!empty($dataList)) {
+                    $columns = array(
+                        'Name' => 'Name',
+                        'Average' => 'Notendurchschnitt',
+                    );
+                    if ($View == View::RS) {
+                        $columns['AverageWithDroppedSubjects'] = 'Notendurchschnitt (mit abgewählte Fächer der Klassenstufe 9)';
+                    }
+
                     $Stage->setContent(
                         new Layout(new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
@@ -372,10 +387,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new TableData(
                                     $dataList,
                                     null,
-                                    array(
-                                        'Name' => 'Name',
-                                        'Average' => 'Notendurchschnitt',
-                                    ),
+                                    $columns,
                                     array(
                                         'columnDefs' => array(
                                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
@@ -437,6 +449,54 @@ class Frontend extends Extension implements IFrontendInterface
                     && $tblTaskGrade->getIsGradeNumeric()
                 ) {
                     $gradeList[$tblSubject->getId()] = $tblTaskGrade->getGradeNumberValue();
+                }
+            }
+        }
+
+        if (!empty($gradeList)) {
+            return round(floatval(array_sum($gradeList) / count($gradeList)), 2);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|false|float
+     */
+    public function calcDiplomaAverageGradeWithDroppedSubjects(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
+    {
+        $gradeList = array();
+        if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
+            && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
+            ))
+        ) {
+            foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                if ($tblPrepareAdditionalGrade->getGrade() != '') {
+                    $grade = str_replace('+', '', $tblPrepareAdditionalGrade->getGrade());
+                    $grade = str_replace('-', '', $grade);
+                    if (is_numeric($grade)) {
+                        $gradeList[] = $grade;
+                    }
+                }
+            }
+        }
+
+        if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
+            && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
+            ))
+        ) {
+            foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                if ($tblPrepareAdditionalGrade->getGrade() != '') {
+                    $grade = str_replace('+', '', $tblPrepareAdditionalGrade->getGrade());
+                    $grade = str_replace('-', '', $grade);
+                    if (is_numeric($grade)) {
+                        $gradeList[] = $grade;
+                    }
                 }
             }
         }
