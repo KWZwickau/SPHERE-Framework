@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTyp
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -785,5 +786,253 @@ abstract class ServiceTask extends ServiceStudentOverview
         }
 
         return $columns;
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return array[]
+     */
+    public function getAppointedDateTaskGradesViewData(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): array
+    {
+        $headerList['Number'] = '#';
+        $headerList['FirstName'] = 'Vorname';
+        $headerList['LastName'] = 'Nachname';
+
+        // Fächer der Schüler auch von Unterkursen ermitteln
+        $tblSubjectList = array();
+        $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+        DivisionCourse::useService()->getSubDivisionCourseRecursiveListByDivisionCourse($tblDivisionCourse, $tblDivisionCourseList);
+        foreach ($tblDivisionCourseList as $temp) {
+            if (($tempList = DivisionCourse::useService()->getSubjectListByDivisionCourse($temp))) {
+                $tblSubjectList = array_merge($tblSubjectList, $tempList);
+            }
+        }
+        $subjectListSum = array();
+        $subjectListGradesCount = array();
+        if ($tblSubjectList) {
+            $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('Name');
+            /** @var TblSubject $tblSubject */
+            foreach ($tblSubjectList as $tblSubject) {
+                $headerList['Subject' . $tblSubject->getId()] = $tblSubject->getAcronym();
+                $subjectListSum[$tblSubject->getId()] = 0.0;
+                $subjectListGradesCount[$tblSubject->getId()] = 0;
+            }
+            $headerList['Average'] = 'Ø';
+        }
+
+        $bodyList = array();
+        $count = 0;
+        if (($tblYear = $tblTask->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                $bodyList[$tblPerson->getId()]['Number'] = ++$count;
+//                $bodyList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName();
+                $bodyList[$tblPerson->getId()]['FirstName'] = $tblPerson->getFirstSecondName();
+                $bodyList[$tblPerson->getId()]['LastName'] = $tblPerson->getLastName();
+
+                $tblTaskGradeList = array();
+                $tblTaskGradeTextList = array();
+                if (($tempList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson)))
+                {
+                    foreach($tempList as $tblTaskGrade) {
+                        if (($tblSubject = $tblTaskGrade->getServiceTblSubject())) {
+                            if (($tblGradeText = $tblTaskGrade->getTblGradeText())) {
+                                $tblTaskGradeTextList[$tblSubject->getId()] = $tblGradeText->getShortName();
+                            } elseif ($tblTaskGrade->getGrade() !== null) {
+                                $tblTaskGradeList[$tblSubject->getId()] = $tblTaskGrade->getGrade();
+                            }
+                        }
+                    }
+                }
+                $sum = 0.0;
+                $countGrades = 0;
+                if ($tblSubjectList) {
+                    list($startDate, $tblPeriod) = $this->getStartDateAndPeriodByPerson($tblPerson, $tblYear, $tblTask);
+                    foreach ($tblSubjectList as $tblSubject) {
+                        if (isset($tblTaskGradeList[$tblSubject->getId()])) {
+                            $content = $tblTaskGradeList[$tblSubject->getId()];
+                            if (($gradeValue = Grade::useService()->getGradeNumberValue($content)) !== null) {
+                                $sum += $gradeValue;
+                                $countGrades++;
+
+                                $subjectListSum[$tblSubject->getId()] += $gradeValue;
+                                $subjectListGradesCount[$tblSubject->getId()]++;
+                            }
+                        } elseif (isset($tblTaskGradeTextList[$tblSubject->getId()])) {
+                            $content = $tblTaskGradeTextList[$tblSubject->getId()];
+                        } elseif ((DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+                            $content = 'f';
+                        } else {
+                            $content = '';
+                        }
+
+                        $average = $this->getAppointedTaskAverage(
+                            $tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $tblTask, $startDate ?: null, $tblPeriod ?: null
+                        );
+
+                        $bodyList[$tblPerson->getId()]['Subject' . $tblSubject->getId() . 'Grade'] = $content;
+                        $bodyList[$tblPerson->getId()]['Subject' . $tblSubject->getId() . 'Average'] = $average;
+                    }
+                }
+
+                // gesamt-durchschnitt schüler
+                $bodyList[$tblPerson->getId()]['Average'] = Grade::useService()->getGradeAverage($sum, $countGrades);
+            }
+        }
+
+        // Fach-klassen durchschnitt
+//        array_unshift($bodyList, $this->getBodyItemDivisionCourseSubjectAverage($tblSubjectList, $subjectListSum, $subjectListGradesCount));
+
+        return array($headerList, $bodyList);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblTask $tblTask
+     *
+     * @return array
+     */
+    public function getStartDateAndPeriodByPerson(TblPerson $tblPerson, TblYear $tblYear, TblTask $tblTask): array
+    {
+        $startDate = false;
+        $tblPeriodPerson = false;
+
+        // SEKII: nur Noten des Halbjahres bei Kurssystem
+        if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+            if (($tblPeriodList = $tblYear->getPeriodListByPerson($tblPerson))) {
+                foreach ($tblPeriodList as $tblPeriod) {
+                    if ($tblPeriod->getFromDateTime() <= $tblTask->getDate()
+                        && $tblTask->getDate() <= $tblPeriod->getToDateTime()
+                    ) {
+                        $startDate = $tblPeriod->getFromDateTime();
+                        $tblPeriodPerson = $tblPeriod;
+                        break;
+                    }
+                }
+            }
+            // SEKI
+        } else {
+            list($startDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            $count = 0;
+            // es kann sein, dass es eine Berechnungsvarianten-Bedingung für das 1. Halbjahr gibt
+            if (($tblPeriodList = $tblYear->getPeriodListByPerson($tblPerson))) {
+                foreach ($tblPeriodList as $tblPeriod) {
+                    $count++;
+                    if ($count == 1) {
+                        if ($tblTask->getDate() <= $tblPeriod->getToDateTime()) {
+                            $tblPeriodPerson = $tblPeriod;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        return array($startDate, $tblPeriodPerson);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     * @param TblTask $tblTask
+     * @param DateTime|null $startDate
+     * @param TblPeriod|null $tblPeriod
+     *
+     * @return string
+     */
+    public function getAppointedTaskAverage(TblPerson $tblPerson, TblYear $tblYear, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject,
+        TblTask $tblTask, ?DateTime $startDate, ?TblPeriod $tblPeriod): string
+    {
+        $result = '';
+
+        // Zensuren - Leistungsüberprüfungen
+        if ($startDate
+            && ($tblGradeList = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
+                $tblPerson, $tblYear, $tblSubject, $startDate, $tblTask->getDate()
+            ))
+        ) {
+            $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
+            list($result) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblGradeList, $tblScoreRule ?: null, $tblPeriod ?: null);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return array[]
+     */
+    public function getBehaviorTaskGradesViewData(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): array
+    {
+        $tblGradeTypeList = $tblTask->getGradeTypes();
+        $headerList['Number'] = '#';
+        $headerList['FirstName'] = 'Vorname';
+        $headerList['LastName'] = 'Nachname';
+        if ($tblGradeTypeList) {
+            $tblGradeTypeList = $this->getSorter($tblGradeTypeList)->sortObjectBy('Name');
+            foreach ($tblGradeTypeList as $tblGradeType) {
+                $headerList['GradeType' . $tblGradeType->getId()] = $tblGradeType->getName();
+            }
+        }
+
+        $bodyList = array();
+        $count = 0;
+        if (($tblYear = $tblTask->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                $bodyList[$tblPerson->getId()]['Number'] = ++$count;
+                $bodyList[$tblPerson->getId()]['FirstName'] = $tblPerson->getFirstSecondName();
+                $bodyList[$tblPerson->getId()]['LastName'] = $tblPerson->getLastName();
+
+                if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear))) {
+                    $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('Name');
+                }
+                $tblTaskGradeList = array();
+                if (($tempList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson)))
+                {
+                    foreach($tempList as $tblTaskGrade) {
+                        if (($tblSubject = $tblTaskGrade->getServiceTblSubject())
+                            && ($tblGradeType = $tblTaskGrade->getTblGradeType())
+                        ) {
+                            $tblTaskGradeList[$tblSubject->getId()][$tblGradeType->getId()] = $tblTaskGrade->getGrade();
+                        }
+                    }
+                }
+                if ($tblGradeTypeList) {
+                    foreach ($tblGradeTypeList as $tblGradeType) {
+                        $sum = 0.0;
+                        $countGrades = 0;
+                        if ($tblSubjectList) {
+                            /** @var TblSubject $tblSubject */
+                            foreach ($tblSubjectList as $tblSubject) {
+                                if (($gradeDisplay = $tblTaskGradeList[$tblSubject->getId()][$tblGradeType->getId()] ?? null)) {
+                                    if (($gradeValue = Grade::useService()->getGradeNumberValue($gradeDisplay)) !== null) {
+                                        $sum += $gradeValue;
+                                        $countGrades++;
+                                    }
+                                } else {
+                                    $gradeDisplay = 'f';
+                                }
+                                $bodyList[$tblPerson->getId()]['GradeType' . $tblGradeType->getId()][$tblSubject->getAcronym()]
+                                    = $tblSubject->getAcronym() . ': ' . $gradeDisplay;
+                            }
+                        }
+                        $average = ($countGrades > 0 ? 'Ø ' . Grade::useService()->getGradeAverage($sum, $countGrades) : '');
+                        $bodyList[$tblPerson->getId()]['AverageExcel' . $tblGradeType->getId()] = $average;
+                    }
+                }
+            }
+        }
+
+        return array($headerList, $bodyList);
     }
 }
