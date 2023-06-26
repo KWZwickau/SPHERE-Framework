@@ -33,17 +33,21 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -85,22 +89,22 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
     /**
      *
      * @param null|int $Id
-     * @param null|int $Group
+     * @param null|int $PseudoId
      *
      * @return Stage
      */
-    public function frontendPersonReadOnly($Id = null, $Group = null, UploadedFile $FileUpload = null, $IsUpload = '')
+    public function frontendPersonReadOnly($Id = null, $PseudoId = null, UploadedFile $FileUpload = null, $IsUpload = '')
     {
 
         $stage = new Stage('Person', 'Datenblatt ' . ($Id ? 'bearbeiten' : 'anlegen'));
         $stage->addButton(
-            new Standard('Zurück', '/People', new ChevronLeft(), array('PseudoId' => $Group))
+            new Standard('Zurück', '/People', new ChevronLeft(), array('PseudoId' => $PseudoId))
         );
 
         // Person bearbeiten
         if ($Id != null && ($tblPerson = Person::useService()->getPersonById($Id))) {
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
-            $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id, $Group), 'BasicContent');
+            $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id, $PseudoId), 'BasicContent');
             $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
 
             // Anzeige Foto & Bearbeitung nur bei Schülern
@@ -128,9 +132,9 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             if($PictureContent === null){
                 if($IsUpload){
-                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getEditPersonPictureContent($Id, $Group, $FileUpload));
+                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getEditPersonPictureContent($Id, $PseudoId, $FileUpload));
                 } else {
-                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id, $Group));
+                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id, $PseudoId));
                 }
             }
             $childContent = ApiPersonReadOnly::receiverBlock(FrontendChild::getChildContent($Id), 'ChildContent');
@@ -244,6 +248,8 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $phoneContent
                 . $mailContent
                 . $relationshipContent
+                . new Ruler()
+                .new DangerLink('Person löschen', '/People/Person/Destroy', new Disable(), array('Id' => $Id, 'PseudoId' => $PseudoId, 'PersonView' => true))
             );
         // neue Person anlegen
         } else {

@@ -253,7 +253,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '',
                                 '/People/Person/Destroy',
                                 new Remove(),
-                                array('Id' => $tblPerson->getId(), 'Group' => 'S' . $Search),
+                                array('Id' => $tblPerson->getId(), 'PseudoId' => 'S' . $Search),
                                 'Person löschen'
                             )
                     );
@@ -384,7 +384,7 @@ class Frontend extends Extension implements IFrontendInterface
                         '',
                         '/People/Person/Destroy',
                         new Remove(),
-                        array('Id' => $tblPerson->getId(), 'Group' => 'C' . $tblDivisionCourse->getId())
+                        array('Id' => $tblPerson->getId(), 'PseudoId' => 'C' . $tblDivisionCourse->getId())
                         , 'Person löschen'
                     );
 
@@ -530,7 +530,7 @@ class Frontend extends Extension implements IFrontendInterface
                     .new Standard('',
                         '/People/Person/Destroy', new Remove(),
                         array('Id' => $contentRow['TblPerson_Id'],
-                            'Group' => 'G' . $tblGroup->getId())
+                            'PseudoId' => 'G' . $tblGroup->getId())
                         , 'Person löschen');
 
                 array_push($tableContent, $item);
