@@ -38,7 +38,8 @@ class Service extends Extension
         if(empty($tblPersonList)){
             return $TableContent;
         }
-        array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
+        $userList = array();
+        array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$userList) {
             // Content
             $item['PersonId'] = $tblPerson->getId();
             $item['StudentNumber'] = '';
@@ -96,7 +97,13 @@ class Service extends Extension
                 $item['Foreign_Language'.$j] = '';
                 $item['Foreign_Language'.$j.'_JG'] = '';
             }
-            $item['UserName'] = $tblPerson->getLastName().'.'.$tblPerson->getFirstName();
+            $userName = $this->creatUserName($tblPerson);
+            $AdditionalNumber = $this->getCountUsername($userList, $userName);
+            $userList[] = $userName;
+            if($AdditionalNumber) {
+                $userName .= $AdditionalNumber;
+            }
+            $item['UserName'] = $userName;
             $item['MigrationBackground'] = '';
 
             if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
@@ -375,6 +382,42 @@ class Service extends Extension
             array_push($TableContent, $item);
         });
         return $TableContent;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private function creatUserName(TblPerson $tblPerson):string
+    {
+
+        $userName = $tblPerson->getLastName().'.'.$tblPerson->getFirstName();
+        $userName = strtolower($userName);
+        $userName = str_replace(' ', '-', $userName);
+        $userName = str_replace('ä', 'ae', $userName);
+        $userName = str_replace('ö', 'oe', $userName);
+        $userName = str_replace('ü', 'ue', $userName);
+        $userName = str_replace('ß', 'ss', $userName);
+
+        return $userName;
+    }
+
+    /**
+     * @param array  $userList
+     * @param string $search
+     *
+     * @return int
+     */
+    private function getCountUsername(array $userList, string $search):int
+    {
+        $count = 0;
+        foreach ($userList as $user) {
+            if ($user === $search) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     /**
