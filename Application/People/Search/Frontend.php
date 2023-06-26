@@ -246,7 +246,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '',
                                 '/People/Person',
                                 new Edit(),
-                                array('Id'    => $tblPerson->getId(), 'Group' => 'S' . $Search),
+                                array('Id'    => $tblPerson->getId(), 'PseudoId' => 'S' . $Search),
                                 'Bearbeiten'
                             )
                             . new Standard(
@@ -377,7 +377,7 @@ class Frontend extends Extension implements IFrontendInterface
                         '',
                         '/People/Person',
                         new Edit(),
-                        array('Id'    => $tblPerson->getId(), 'Group' => 'C' . $tblDivisionCourse->getId()),
+                        array('Id'    => $tblPerson->getId(), 'PseudoId' => 'C' . $tblDivisionCourse->getId()),
                         'Bearbeiten'
                     )
                     . new Standard(
@@ -449,7 +449,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     = new Standard('', '/People/Person', new PersonIcon(),
                                         array(
                                             'Id' => $childId,
-                                            'Group' => 'G' . $tblGroup->getId()
+                                            'PseudoId' => 'G' . $tblGroup->getId()
                                         ),
                                         'zur Person wechseln'
                                     )
@@ -525,7 +525,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $item['Option'] = new Standard('', '/People/Person', new Edit(),
                         array(
                             'Id'    => $contentRow['TblPerson_Id'],
-                            'Group' => 'G' . $tblGroup->getId())
+                            'PseudoId' => 'G' . $tblGroup->getId())
                         , 'Bearbeiten')
                     .new Standard('',
                         '/People/Person/Destroy', new Remove(),
