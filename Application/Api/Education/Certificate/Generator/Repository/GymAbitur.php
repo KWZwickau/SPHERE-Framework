@@ -83,7 +83,7 @@ class GymAbitur extends Certificate
             if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'Hebraicums'))
                 && $tblPrepareInformation->getValue()
             ) {
-                $hasLatinums = true;
+                $hasHebraicums = true;
             }
         }
         $certificates = 'Dieses Zeugnis schließt den Nachweis des <b>';
