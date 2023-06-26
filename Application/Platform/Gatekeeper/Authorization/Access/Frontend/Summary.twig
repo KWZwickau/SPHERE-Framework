@@ -18,9 +18,9 @@
                 <table class="table table-bordered table-condensed" style="margin: auto;">
                     <thead>
                     <tr>
-                        <th style="width: 1%; white-space: nowrap;">Id</th>
-                        <th style="width: 25%;">Zugriffslevel</th>
-                        <th>Zusammensetzung</th>
+                        <th style="width: 1%; white-space: nowrap;font-size: 5px; padding: 1px;">Id</th>
+                        <th style="width: 25%;font-size: 5px; padding: 1px;">Zugriffslevel</th>
+                        <th style="font-size: 5px; padding: 1px;">Zusammensetzung</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -32,9 +32,9 @@
                                 <table class="table table-bordered table-condensed" style="margin: auto;">
                                     <thead>
                                     <tr>
-                                        <th style="width: 1%; white-space: nowrap;">Id</th>
-                                        <th style="width: 35%;">Privilegien</th>
-                                        <th>Zusammensetzung</th>
+                                        <th style="width: 1%; white-space: nowrap;font-size: 5px; padding: 1px;">Id</th>
+                                        <th style="width: 40%;font-size: 5px; padding: 1px;">Privilegien</th>
+                                        <th style="font-size: 5px; padding: 1px;">Zusammensetzung</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -47,15 +47,16 @@
                                                        style="margin: auto;">
                                                     <thead>
                                                     <tr>
-                                                        <th style="width: 1%; white-space: nowrap;">Id</th>
-                                                        <th style="width: 99%;">Rechte</th>
+{#                                                        <th style="width: 1%; white-space: nowrap;">Id</th>#}
+{#                                                        <th style="width: 99%;">Rechte</th>#}
+                                                        <th style="font-size: 5px; padding: 1px;">Rechte</th>
                                                     </tr>
                                                     </thead>
                                                     <tbody>
                                                     {% for iRight, oRight in oPrivilege.RightList %}
                                                         <tr>
-                                                            <td>{{ oRight.Id }}</td>
-                                                            <td>{{ oRight.Route }}</td>
+{#                                                            <td>{{ oRight.Id }}</td>#}
+                                                            <td style="font-size: 5px; padding: 0px 5px;">{{ oRight.Route }}</td>
                                                         </tr>
                                                     {% endfor %}
                                                     </tbody>

@@ -426,7 +426,7 @@ class ItemCalculation extends Extension
         }
 
         return ($tblCalculation
-            ? new Success('Preis erfolgreich angelegt').ApiItem::pipelineCloseModal($Identifier)
+            ? new Success('Preis erfolgreich angelegt').ApiItem::pipelineCloseModal($Identifier, $tblCalculation->getId())
             : new Danger('Preis konnte nicht gengelegt werden'));
     }
 
@@ -482,7 +482,7 @@ class ItemCalculation extends Extension
         }
 
         return ($Success
-            ? new Success('Preis erfolgreich angelegt').ApiItem::pipelineCloseModal($Identifier)
+            ? new Success('Preis erfolgreich angelegt').ApiItem::pipelineCloseModal($Identifier, $CalculationId)
             : new Danger('Preis konnte nicht gengelegt werden'));
     }
 
