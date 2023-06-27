@@ -5866,6 +5866,8 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
                             switch ($value) {
                                 case 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.': $value = 1; break;
                                 case 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.': $value = 2; break;
+                                case $tblPerson->getFullName() . ' wurde zur Abschlussprüfung nicht zugelassen und kann erst nach erfolgreicher Wiederholung der Klassenstufe an der Abschlussprüfung teilnehmen.': $value = 3; break;
+                                case '&nbsp;': $value = 4; break;
                                 default: $value = '';
                             }
                         }
@@ -6369,7 +6371,9 @@ class Frontend extends TechnicalSchool\Frontend implements IFrontendInterface
 
                 $selectBoxExam = new SelectBox('Data[InformationList][Exam_Text]', 'Abschlussprüfung', array(
                     1 => 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.',
-                    2 => 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.'
+                    2 => 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.',
+                    3 => $tblPerson->getFullName() . ' wurde zur Abschlussprüfung nicht zugelassen und kann erst nach erfolgreicher Wiederholung der Klassenstufe an der Abschlussprüfung teilnehmen.',
+                    4 => '&nbsp;'
                 ));
                 if ($isApproved) {
                     $selectBoxExam->setDisabled();
