@@ -326,6 +326,11 @@ class Frontend extends Extension implements IFrontendInterface
             foreach($tblInvoiceList as $tblInvoice) {
                 $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
                 $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
+                $item['BasketType'] = '';
+                if(($tblBasket = $tblInvoice->getServiceTblBasket())
+                && ($tblBasketType = $tblBasket->getTblBasketType())){
+                    $item['BasketType'] = $tblBasketType->getName();
+                }
                 if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
                     foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
                         $item['Item'] = $tblInvoiceItemDebtor->getName();
@@ -349,9 +354,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         } else {
             $Table = new TableData($TableContent, null, array(
-                'InvoiceNumber' => 'Rechnungsnummer',
-                'Time'          => 'Abrechnungszeitraum',
+                'InvoiceNumber' => 'Rechnung Nr.',
+                'Time'          => 'Abr. '.new ToolTip(new Info(), 'Abrechnungszeitraum'),
                 'Item'          => 'Beitragsart',
+                'BasketType'    => 'Typ',
                 'Quantity'      => 'Menge',
                 'Price'         => new ToolTip('EP', 'Einzelpreis'),
                 'Summary'       => new ToolTip('GP', 'Gesamtpreis'),
