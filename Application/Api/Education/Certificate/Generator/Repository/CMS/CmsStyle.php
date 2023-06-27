@@ -1096,10 +1096,10 @@ abstract class CmsStyle extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('
                     {% if(Content.P' . $personId . '.Student.Course.Degree is not empty) %}
-                        nahm am Unterricht der Schulart Mittelschule mit dem Ziel des
+                        nahm am Unterricht der Schulart Oberschule mit dem Ziel des
                         {{ Content.P' . $personId . '.Student.Course.Degree }} teil.
                     {% else %}
-                        nahm am Unterricht der Schulart Mittelschule teil.
+                        nahm am Unterricht der Schulart Oberschule teil.
                     {% endif %}'
                 )
                 ->styleMarginTop('15px')
