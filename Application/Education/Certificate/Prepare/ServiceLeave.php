@@ -244,6 +244,8 @@ abstract class ServiceLeave extends ServiceDiploma
                         switch ($value) {
                             case 1: $value = 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.'; break;
                             case 2: $value = 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.'; break;
+                            case 3: $value = $tblPerson->getFullName() . ' wurde zur Abschlussprüfung nicht zugelassen und kann erst nach erfolgreicher Wiederholung der Klassenstufe an der Abschlussprüfung teilnehmen.'; break;
+                            case 4: $value = '&nbsp;'; break;
                             default: $value = '';
                         }
                     }
