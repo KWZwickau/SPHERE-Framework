@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\CustomPanel;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -120,6 +121,10 @@ class FrontendStudentIntegration extends FrontendReadOnly
         $Accordion->addItem('Entwicklungsbesonderheiten '.ApiSupport::receiverInline('', 'SpecialCount'), $SpecialContent, false);
         $Accordion->addItem('Nachteilsausgleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent, false);
 
+        $first = (new CustomPanel('Förderantrag/Förderbescheid '.ApiSupport::receiverInline('', 'SupportCount'), $SupportContent))->setAccordeon(true)->setHash('Förderantrag/Förderbescheid');
+        $second = (new CustomPanel('Entwicklungsbesonderheiten '.ApiSupport::receiverInline('', 'SpecialCount'), $SpecialContent))->setAccordeon()->setHash('Entwicklungsbesonderheiten');
+        $third = (new CustomPanel('Nachteilsausgleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent))->setAccordeon()->setHash('Nachteilsausgleich');
+
         $content = ApiSupport::pipelineLoadTable($tblPerson->getId())
             . new Layout(array(
                 new LayoutGroup(
@@ -147,7 +152,8 @@ class FrontendStudentIntegration extends FrontendReadOnly
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
-                            $Accordion,
+//                            $Accordion,
+                            $first, $second, $third
                         ))
                     )
                 ),
@@ -169,6 +175,10 @@ class FrontendStudentIntegration extends FrontendReadOnly
         $Accordion->addItem('Entwicklungsbesonderheiten', Student::useFrontend()->getSpecialTable($tblPerson, false), false);
         $Accordion->addItem('Nachteilsausgleich', Student::useFrontend()->getHandyCapTable($tblPerson, false), false);
 
+        $first = (new CustomPanel('Förderantrag/Förderbescheid',  Student::useFrontend()->getSupportTable($tblPerson, false)))->setAccordeon(true);
+        $second = (new CustomPanel('Entwicklungsbesonderheiten',  Student::useFrontend()->getSpecialTable($tblPerson, false)))->setAccordeon();
+        $third = (new CustomPanel('Nachteilsausgleich',  Student::useFrontend()->getHandyCapTable($tblPerson, false)))->setAccordeon();
+
         $content = new Layout(array(
             new LayoutGroup(
                 new LayoutRow(
@@ -180,7 +190,8 @@ class FrontendStudentIntegration extends FrontendReadOnly
             new LayoutGroup(
                 new LayoutRow(
                     new LayoutColumn(array(
-                        $Accordion,
+//                        $Accordion,
+                        $first, $second, $third
                     ))
                 )
             ),

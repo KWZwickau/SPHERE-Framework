@@ -33,6 +33,8 @@ class CustomPanel extends Extension implements ITemplateInterface
     private $Footer = '';
     /** @var string $FormName */
     private $FormName = '';
+    /** @var string $HeadStyle */
+    private $HeadStyle = '';
 
     /**
      * @param           $Title
@@ -172,6 +174,17 @@ class CustomPanel extends Extension implements ITemplateInterface
         $Hash = crc32($Hash);
         $this->Hash = 'CustomPanel-'.$Hash;
         $this->Template->setVariable('Hash', $this->Hash);
+        return $this;
+    }
+
+    /**
+     * @param string $HeadStyle
+     *
+     * @return CustomPanel
+     */
+    public function setHeadStyle($HeadStyle)
+    {
+        $this->Template->setVariable('HeadStyle', $HeadStyle);
         return $this;
     }
 }

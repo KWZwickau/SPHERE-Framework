@@ -30,7 +30,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Statistic;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\CustomPanel;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
@@ -441,9 +441,12 @@ class Frontend extends Extension implements IFrontendInterface
         $LayoutRowList = $this->getFrontendPanelList($ColumnList);
         $LayoutRowHideList = $this->getFrontendPanelList($ColumnHideList);
 
-        $UnusedItemAccordion = new Accordion();
-        $UnusedItemAccordion->addItem(new InfoText(new Edit().' Weitere mögliche '.new Bold('Beitragsarten')), '<div style="height: 11px;">&nbsp;</div>'.
-            new Layout(new LayoutGroup($LayoutRowHideList)), (count($ColumnList) > 1? false : true));
+        //
+        $UnusedItemPanel = (new CustomPanel(new InfoText('Weitere mögliche '.new Bold('Beitragsarten')), new Layout(new LayoutGroup($LayoutRowHideList))))
+            ->setAccordeon((count($ColumnList) > 1? false : true));
+//        $UnusedItemAccordion = new Accordion();
+//        $UnusedItemAccordion->addItem(new InfoText(new Edit().' Weitere mögliche '.new Bold('Beitragsarten')), '<div style="height: 11px;">&nbsp;</div>'.
+//            new Layout(new LayoutGroup($LayoutRowHideList)), (count($ColumnList) > 1? false : true));
 
         $Stage->setContent(
             ApiBankReference::receiverModal('Hinzufügen einer Mandatsreferenznummer', 'addBankReference')
@@ -454,7 +457,8 @@ class Frontend extends Extension implements IFrontendInterface
             .ApiDebtorSelection::receiverModal('Entfernen der Beitragszahler', 'deleteDebtorSelection')
             .Debtor::useFrontend()->getPersonPanel($PersonId)
             .new Layout(new LayoutGroup($LayoutRowList))
-            .$UnusedItemAccordion);
+            .$UnusedItemPanel);
+//            .$UnusedItemAccordion);
 
         return $Stage;
     }
@@ -526,7 +530,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $PanelContent = array();
-        $Accordion = array();
+//        $Accordion = array();
+        $CustomPanel = array();
         if(($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblItem = Item::useService()->getItemById($ItemId))){
             if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson,
@@ -601,10 +606,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $PanelContent[] = $FromDate;
                     $PanelContent[] = $ToDate;
 //                    $PanelContent[] = $Debtor;
-                    /**@var Accordion[] $Accordion */
-                    $Accordion[$i] = new Accordion();
-                    $Accordion[$i]->addItem(new PullClear($Debtor.new PullRight($PriceString)), implode('<br/>', $PanelContent),
-                        $IsOpen);
+//                    /**@var Accordion[] $Accordion */
+//                    $Accordion[$i] = new Accordion();
+//                    $Accordion[$i]->addItem(new PullClear($Debtor.new PullRight($PriceString)), implode('<br/>', $PanelContent),
+//                        $IsOpen);
+                    $CustomPanel[$i] = (new CustomPanel(new PullClear($Debtor.new PullRight($PriceString)), implode('<br/>', $PanelContent)))->setAccordeon($IsOpen);
                     $PanelContent = array();
                     $i++;
                 }
@@ -618,10 +624,11 @@ class Frontend extends Extension implements IFrontendInterface
                 return implode('<br/>', $PanelContent);
             }
             // Add Button at end of DebtorSelection List
-            $Accordion[] = (new Link('Weitere Beitragszahler hinzufügen', '', new PersonIcon()))
+//            $Accordion[] = (new Link('Weitere Beitragszahler hinzufügen', '', new PersonIcon()))
+            $CustomPanel[] = (new Link('Weitere Beitragszahler hinzufügen', '', new PersonIcon()))
                 ->ajaxPipelineOnClick(ApiDebtorSelection::pipelineOpenAddDebtorSelectionModal('addDebtorSelection',
                     $PersonId, $ItemId));
         }
-        return implode('', $Accordion);
+        return implode('', $CustomPanel);
     }
 }
