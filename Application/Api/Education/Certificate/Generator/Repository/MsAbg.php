@@ -168,7 +168,7 @@ class MsAbg extends Certificate
                         ->setContent('
                             <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat 
                             gemäß § 27 Absatz 9 Satz 2 Nummer 2 der Schulordnung Ober- und Abendoberschulen mit der Versetzung in die Klassenstufe 10 des
-                            Realschulbildungsganges und der erfolgreichen Teilnahme an der Prüfung zum Erwerb desHauptschulabschlusses den qualifizierenden 
+                            Realschulbildungsganges und der erfolgreichen Teilnahme an der Prüfung zum Erwerb des Hauptschulabschlusses den qualifizierenden 
                             Hauptschulabschluss erworben.¹')
                         ->stylePaddingBottom()
                     )
