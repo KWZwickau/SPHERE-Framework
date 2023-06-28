@@ -191,6 +191,7 @@ class CheHjInfoGs extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
+                        ->styleAlignJustify()
                         ->styleHeight('121px')
                         ->styleTextSize(self::TEXT_SIZE)
                     )

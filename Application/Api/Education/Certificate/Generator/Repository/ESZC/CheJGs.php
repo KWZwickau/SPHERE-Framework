@@ -134,6 +134,7 @@ class CheJGs extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
+                        ->styleAlignJustify()
                         ->styleTextSize(self::TEXT_SIZE_SMALL)
                         ->styleHeight('85px')
                     )
@@ -212,6 +213,7 @@ class CheJGs extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
+                        ->styleAlignJustify()
                         ->styleHeight('62px')
                         ->styleTextSize(self::TEXT_SIZE_SMALL)
                     )

@@ -57,7 +57,9 @@ class Service extends Extension
 
                 if(($tblYear = Term::useService()->getYearById($YearId))
                 && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
-                    $SchoolType = $tblStudentEducation->getServiceTblSchoolType()->getName();
+                    if(($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
+                        $SchoolType = $tblSchoolType->getName();
+                    }
                     if($SchoolType == 'Mittelschule / Oberschule'){
                         $SchoolType = 'Oberschule';
                     }

@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Graduation\Grade\Service;
 
 use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskCourseLink;
@@ -487,5 +488,35 @@ abstract class DataTask extends DataScore
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     *
+     * @return false|TblProposalBehaviorGrade[]
+     */
+    public function getProposalBehaviorGradeListByPersonAndTask(TblPerson $tblPerson, TblTask $tblTask)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblProposalBehaviorGrade', array(
+            TblProposalBehaviorGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblProposalBehaviorGrade::ATTR_TBL_TASK => $tblTask->getId()
+        ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblProposalBehaviorGrade
+     */
+    public function getProposalBehaviorGradeByPersonAndTaskAndGradeType(TblPerson $tblPerson, TblTask $tblTask, TblGradeType $tblGradeType)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblProposalBehaviorGrade', array(
+            TblProposalBehaviorGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblProposalBehaviorGrade::ATTR_TBL_TASK => $tblTask->getId(),
+            TblProposalBehaviorGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()
+        ));
     }
 }

@@ -1937,7 +1937,7 @@ abstract class EzshStyle extends Certificate
                     ->styleMarginTop('0px')
                     , '30%')
                 ->addElementColumn((new Element())
-                    ->setContent('Schulstempel der Schule' )
+                    ->setContent('Schulstempel' )
                     ->styleFontFamily(self::FONT_FAMILY)
                     ->styleLineHeight(self::LINE_HEIGHT)
                     ->styleTextSize($textSize)
@@ -2075,10 +2075,10 @@ abstract class EzshStyle extends Certificate
 //                        $subjectName = 'PWDS';
 //                    }
 
-//                    if (strpos($subjectName, 'naturwissenschaftlich-mathematisches') !== false) {
-//                        $subjectName = str_replace('-', ' - ', $subjectName);
-//                        continue;
-//                    }
+                    if (($pos = strpos($subjectName, 'Profil'))) {
+                        $subjectName = substr($subjectName, $pos + strlen('Profil'));
+                        $subjectName = str_replace(' / ', ' ', $subjectName);
+                    }
 
                     $section->addElementColumn((new Element())
                         ->setContent($subjectName)

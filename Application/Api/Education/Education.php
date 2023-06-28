@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Education;
 
 use SPHERE\Application\Api\Education\Certificate\Certificate;
 use SPHERE\Application\Api\Education\Certificate\Generate\ApiGenerate;
+use SPHERE\Application\Api\Education\Certificate\Reporting\ApiReporting;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
@@ -34,6 +35,7 @@ use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreType;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiStudentOverview;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
+use SPHERE\Application\Api\Education\Graduation\Grade\Task;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebookOld;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradesAllYears;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradeMaintenance;
@@ -43,7 +45,6 @@ use SPHERE\Application\Api\Education\Prepare\Prepare;
 use SPHERE\Application\Api\Education\School\ApiCourse;
 use SPHERE\Application\Api\Education\Term\YearHoliday;
 use SPHERE\Application\Api\Education\Term\YearPeriod;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -67,6 +68,7 @@ class Education implements IApplicationInterface
         StudentGroupSelect::registerApi();
         ValidationFilter::registerApi();
         ApiGenerate::registerApi();
+        ApiReporting::registerApi();
         StudentStatus::registerApi();
         ApiGradebookOld::registerApi();
         ApiEvaluation::registerApi();
@@ -98,6 +100,7 @@ class Education implements IApplicationInterface
         ApiGradeBook::registerApi();
         ApiStudentOverview::registerApi();
         ApiTask::registerApi();
+        Task::registerModule();
         ApiScoreType::registerApi();
         ApiScoreRule::registerApi();
     }

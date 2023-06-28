@@ -19,7 +19,6 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -31,12 +30,13 @@ class Service extends Extension
 {
     /**
      * @param TblType $tblSchoolType
+     * @param TblYear $tblYear
      * @param TblCourse|null $tblCourse
      * @param array $subjectList
      *
      * @return array
      */
-    public function getDiplomaSerialMailContent(TblType $tblSchoolType, ?TblCourse $tblCourse, array &$subjectList): array
+    public function getDiplomaSerialMailContent(TblType $tblSchoolType, TblYear $tblYear, ?TblCourse $tblCourse, array &$subjectList): array
     {
         $level = false;
         $isMainCourse = $tblCourse && $tblCourse->getName() == 'Hauptschule';
@@ -52,62 +52,59 @@ class Service extends Extension
 
         $content = array();
         if ($level
-            && ($tblYearList = Term::useService()->getYearByNow())
             && ($tblMailTypePrivat = Mail::useService()->getTypeById(1))
             && ($tblMailTypeBusiness = Mail::useService()->getTypeById(2))
         ) {
-            foreach ($tblYearList as $tblYear) {
-                list($tblDivisionCourseList, $personCourseList) = $this->getDivisionCourseListByYearAndSchoolTypeAndLevel($tblYear, $tblSchoolType, $level);
-                if ($tblDivisionCourseList) {
-                    $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('DisplayName', new StringGermanOrderSorter());
-                    /** @var TblDivisionCourse $tblDivisionCourse */
-                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                        $tblPrepareHalfYear = false;
-                        $tblPrepareDiploma = false;
-                        if (($tblPrepareList = Prepare::useService()->getPrepareAllByDivisionCourse($tblDivisionCourse))) {
-                            foreach ($tblPrepareList as $tblPrepare) {
-                                if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
-                                    &&  ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
-                                ) {
-                                    if ($tblCertificateType->getIdentifier() == 'HALF_YEAR') {
-                                        $tblPrepareHalfYear = $tblPrepare;
-                                    } elseif ($tblCertificateType->getIdentifier() == 'DIPLOMA') {
-                                        $tblPrepareDiploma = $tblPrepare;
-                                    }
+            list($tblDivisionCourseList, $personCourseList) = $this->getDivisionCourseListByYearAndSchoolTypeAndLevel($tblYear, $tblSchoolType, $level);
+            if ($tblDivisionCourseList) {
+                $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('DisplayName', new StringGermanOrderSorter());
+                /** @var TblDivisionCourse $tblDivisionCourse */
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    $tblPrepareHalfYear = false;
+                    $tblPrepareDiploma = false;
+                    if (($tblPrepareList = Prepare::useService()->getPrepareAllByDivisionCourse($tblDivisionCourse))) {
+                        foreach ($tblPrepareList as $tblPrepare) {
+                            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                                &&  ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                            ) {
+                                if ($tblCertificateType->getIdentifier() == 'HALF_YEAR') {
+                                    $tblPrepareHalfYear = $tblPrepare;
+                                } elseif ($tblCertificateType->getIdentifier() == 'DIPLOMA') {
+                                    $tblPrepareDiploma = $tblPrepare;
                                 }
                             }
                         }
+                    }
 
-                        if (($tblStudentList = $tblDivisionCourse->getStudentsWithSubCourses())) {
-                            foreach ($tblStudentList as $tblPerson) {
-                                $tblCourseStudent = $personCourseList[$tblPerson->getId()] ?? false;
-                                // bei Hauptschüler in der Klasse 9, die Realschüler überspringen
-                                if ($isMainCourse && (!$tblCourseStudent || $tblCourseStudent->getId() != $tblCourse->getId())) {
-                                    continue;
-                                }
+                    if (($tblStudentList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                        foreach ($tblStudentList as $tblPerson) {
+                            $tblCourseStudent = $personCourseList[$tblPerson->getId()] ?? false;
+                            // bei Hauptschüler in der Klasse 9, die Realschüler überspringen
+                            if ($isMainCourse && (!$tblCourseStudent || $tblCourseStudent->getId() != $tblCourse->getId())) {
+                                continue;
+                            }
 
-                                $item = array();
-                                $item['Division'] = $tblDivisionCourse->getName();
-                                $item['LastName'] = $tblPerson->getLastName();
-                                $item['FirstName'] = $tblPerson->getFirstName();
-                                $item['Gender'] = ($tblCommonGender = $tblPerson->getGender()) ? $tblCommonGender->getShortName() : '';
-                                // bei Schülern sind die Email-Adressen der Schule meist als Geschäftlich angelegt
-                                $item['Student-Mail'] = $this->getMailAddress($tblPerson, $tblMailTypeBusiness);
-                                if (($tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
-                                    foreach ($tblPersonRelationshipList as $tblPersonTo) {
-                                        if ($tblPersonTo->getServiceTblPersonFrom() && ($tblPersonTo->getTblType()->getName() == 'Sorgeberechtigt')) {
-                                            $item['Custody-Mail-S' . $tblPersonTo->getRanking()]
-                                                = $this->getMailAddress($tblPersonTo->getServiceTblPersonFrom(), $tblMailTypePrivat);
-                                        }
+                            $item = array();
+                            $item['Division'] = $tblDivisionCourse->getName();
+                            $item['LastName'] = $tblPerson->getLastName();
+                            $item['FirstName'] = $tblPerson->getFirstName();
+                            $item['Gender'] = ($tblCommonGender = $tblPerson->getGender()) ? $tblCommonGender->getShortName() : '';
+                            // bei Schülern sind die Email-Adressen der Schule meist als Geschäftlich angelegt
+                            $item['Student-Mail'] = $this->getMailAddress($tblPerson, $tblMailTypeBusiness);
+                            if (($tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
+                                foreach ($tblPersonRelationshipList as $tblPersonTo) {
+                                    if ($tblPersonTo->getServiceTblPersonFrom() && ($tblPersonTo->getTblType()->getName() == 'Sorgeberechtigt')) {
+                                        $item['Custody-Mail-S' . $tblPersonTo->getRanking()]
+                                            = $this->getMailAddress($tblPersonTo->getServiceTblPersonFrom(), $tblMailTypePrivat);
                                     }
                                 }
-
-                                $tblPrepareHalfYear = $tblPrepareHalfYear? :null;
-                                $tblPrepareDiploma = $tblPrepareDiploma? :null;
-                                $this->getGradesForSerialMail($item, $subjectList, $tblPerson, $tblPrepareHalfYear, $tblPrepareDiploma);
-
-                                $content[$tblPerson->getId()] = $item;
                             }
+
+                            $tblPrepareHalfYear = $tblPrepareHalfYear? :null;
+                            $tblPrepareDiploma = $tblPrepareDiploma? :null;
+                            $this->getGradesForSerialMail($item, $subjectList, $tblPerson, $tblPrepareHalfYear, $tblPrepareDiploma);
+
+                            $content[$tblPerson->getId()] = $item;
                         }
                     }
                 }
@@ -290,11 +287,12 @@ class Service extends Extension
 
     /**
      * @param TblType $tblSchoolType
+     * @param TblYear $tblYear
      * @param TblCourse|null $tblCourse
      *
      * @return array
      */
-    public function getDiplomaStatisticContent(TblType $tblSchoolType, ?TblCourse $tblCourse): array
+    public function getDiplomaStatisticContent(TblType $tblSchoolType, TblYear $tblYear, ?TblCourse $tblCourse): array
     {
         $level = false;
         $isMainCourse = $tblCourse && $tblCourse->getName() == 'Hauptschule';
@@ -309,49 +307,47 @@ class Service extends Extension
         }
 
         $content = array();
-        if ($level && ($tblYearList = Term::useService()->getYearByNow())) {
-            foreach ($tblYearList as $tblYear) {
-                list($tblDivisionCourseList, $personCourseList) = $this->getDivisionCourseListByYearAndSchoolTypeAndLevel($tblYear, $tblSchoolType, $level);
-                if ($tblDivisionCourseList) {
-                    $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('DisplayName', new StringGermanOrderSorter());
-                    /** @var TblDivisionCourse $tblDivisionCourse */
-                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                        $tblPrepareDiploma = false;
-                        if (($tblPrepareList = Prepare::useService()->getPrepareAllByDivisionCourse($tblDivisionCourse))) {
-                            foreach ($tblPrepareList as $tblPrepare) {
-                                if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
-                                    && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
-                                    && $tblCertificateType->getIdentifier() == 'DIPLOMA'
-                                ) {
-                                    $tblPrepareDiploma = $tblPrepare;
-                                }
+        if ($level) {
+            list($tblDivisionCourseList, $personCourseList) = $this->getDivisionCourseListByYearAndSchoolTypeAndLevel($tblYear, $tblSchoolType, $level);
+            if ($tblDivisionCourseList) {
+                $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('DisplayName', new StringGermanOrderSorter());
+                /** @var TblDivisionCourse $tblDivisionCourse */
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    $tblPrepareDiploma = false;
+                    if (($tblPrepareList = Prepare::useService()->getPrepareAllByDivisionCourse($tblDivisionCourse))) {
+                        foreach ($tblPrepareList as $tblPrepare) {
+                            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                                && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                                && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                            ) {
+                                $tblPrepareDiploma = $tblPrepare;
                             }
                         }
+                    }
 
-                        if (($tblStudentList = $tblDivisionCourse->getStudentsWithSubCourses())) {
-                            foreach ($tblStudentList as $tblPerson) {
-                                $tblCourseStudent = $personCourseList[$tblPerson->getId()] ?? false;
-                                // bei Hauptschüler in der Klasse 9, die Realschüler überspringen
-                                if ($isMainCourse && (!$tblCourseStudent || $tblCourseStudent->getId() != $tblCourse->getId())) {
-                                    continue;
-                                }
+                    if (($tblStudentList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                        foreach ($tblStudentList as $tblPerson) {
+                            $tblCourseStudent = $personCourseList[$tblPerson->getId()] ?? false;
+                            // bei Hauptschüler in der Klasse 9, die Realschüler überspringen
+                            if ($isMainCourse && (!$tblCourseStudent || $tblCourseStudent->getId() != $tblCourse->getId())) {
+                                continue;
+                            }
 
-                                $gradeList = array();
-                                if (($tblTask = $tblPrepareDiploma->getServiceTblAppointedDateTask())
-                                    && ($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson))
-                                ) {
-                                    foreach ($tblTaskGradeList as $tblTaskGrade) {
-                                        if (($tblSubject = $tblTaskGrade->getServiceTblSubject())
-                                            && $tblTaskGrade->getGrade() !== null
-                                        ) {
-                                            $gradeList[$tblSubject->getAcronym()]['JN'] = $tblTaskGrade->getGrade();
-                                        }
+                            $gradeList = array();
+                            if (($tblTask = $tblPrepareDiploma->getServiceTblAppointedDateTask())
+                                && ($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson))
+                            ) {
+                                foreach ($tblTaskGradeList as $tblTaskGrade) {
+                                    if (($tblSubject = $tblTaskGrade->getServiceTblSubject())
+                                        && $tblTaskGrade->getGrade() !== null
+                                    ) {
+                                        $gradeList[$tblSubject->getAcronym()]['JN'] = $tblTaskGrade->getGrade();
                                     }
                                 }
+                            }
 
-                                if (isset($gradeList)) {
-                                    $this->setGradesForStatistic($content, $gradeList, $tblPerson, $tblPrepareDiploma, $isMainCourse);
-                                }
+                            if (isset($gradeList)) {
+                                $this->setGradesForStatistic($content, $gradeList, $tblPerson, $tblPrepareDiploma, $isMainCourse);
                             }
                         }
                     }

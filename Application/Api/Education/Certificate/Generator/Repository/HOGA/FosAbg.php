@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\HOGA;
 
+use DateTime;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
@@ -23,6 +24,9 @@ class FosAbg extends Style
         $school[] = 'Berufliches Schulzentrum';
         $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
         $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
+
+        // ist doch nicht das Zeugnisdatum
+        $educationToDate = '31.07.' . (new DateTime('now'))->format('Y');
 
         return (new Page())
             ->addSlice($this->getHeader($school))
@@ -69,7 +73,7 @@ class FosAbg extends Style
                     {% else %}
                         {{ Content.P' . $personId . '.Leave.CalcEducationDateFrom }}
                     {% endif %}
-                    bis {{ Content.P' . $personId . '.Input.Date }}'
+                    bis ' . $educationToDate
                     , $textSize)->styleAlignCenter())
                 ->addElement($this->getElement('den zweijährigen Bildungsgang der', $textSize)->styleAlignCenter())
                 ->addElement($this->getElement('Fachoberschule', $textSize2)->styleAlignCenter()->styleTextBold())

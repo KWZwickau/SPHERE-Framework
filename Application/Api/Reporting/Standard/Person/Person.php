@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Reporting\Standard\Person;
 
 use DateTime;
+use MOC\V\Core\FileSystem\Exception\FileSystemException;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Reporting\Reporting;
@@ -420,12 +421,14 @@ class Person extends Extension
     }
 
     /**
-     * @param int $View
+     * @param null $View
+     * @param null $YearId
      *
      * @return string
      */
-    public function downloadDiplomaSerialMail(int $View): string
+    public function downloadDiplomaSerialMail($View = null, $YearId = null): string
     {
+        $View = intval($View);
         $tblCourse = false;
         switch ($View) {
             case View::HS: $tblCourse = Course::useService()->getCourseByName('Hauptschule');
@@ -441,7 +444,8 @@ class Person extends Extension
 
         $subjectList = array();
         if($tblSchoolType
-            && ($content = Reporting::useService()->getDiplomaSerialMailContent($tblSchoolType, $tblCourse ?: null, $subjectList))
+            && ($tblYear = Term::useService()->getYearById($YearId))
+            && ($content = Reporting::useService()->getDiplomaSerialMailContent($tblSchoolType, $tblYear, $tblCourse ?: null, $subjectList))
             && ($fileLocation = Reporting::useService()->createDiplomaSerialMailContentExcel($content, $subjectList))
         ){
             return FileSystem::getDownload($fileLocation->getRealPath(),
@@ -453,12 +457,14 @@ class Person extends Extension
     }
 
     /**
-     * @param int $View
+     * @param null $View
+     * @param null $YearId
      *
      * @return string
      */
-    public function downloadDiplomaStatistic(int $View): string
+    public function downloadDiplomaStatistic($View = null, $YearId = null): string
     {
+        $View = intval($View);
         $tblCourse = false;
         switch ($View) {
             case View::HS: $tblCourse = Course::useService()->getCourseByName('Hauptschule');
@@ -473,7 +479,8 @@ class Person extends Extension
         }
 
         if($tblSchoolType
-            && ($content = Reporting::useService()->getDiplomaStatisticContent($tblSchoolType, $tblCourse ?: null))
+            && ($tblYear = Term::useService()->getYearById($YearId))
+            && ($content = Reporting::useService()->getDiplomaStatisticContent($tblSchoolType, $tblYear, $tblCourse ?: null))
             && ($fileLocation = Reporting::useService()->createDiplomaStatisticContentExcel($content))
         ){
             return FileSystem::getDownload($fileLocation->getRealPath(),

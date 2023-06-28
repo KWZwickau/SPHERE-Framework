@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Education\Certificate\Reporting;
 
-use SPHERE\Application\Education\Certificate\Approve\Frontend;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
