@@ -77,7 +77,7 @@ class MsJRs extends Certificate
                 )
             )
             ->addSlice($this->getGradeLanesSmall($personId))
-            ->addSlice($this->getRatingContent($personId))
+            ->addSlice($this->getRatingContent($personId, '60px', '10px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
