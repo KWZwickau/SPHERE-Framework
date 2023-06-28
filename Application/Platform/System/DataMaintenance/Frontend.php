@@ -124,11 +124,11 @@ class Frontend extends Extension implements IFrontendInterface
                         new Standard('Alle Sorgeberechtigte '.new Label($CustodyAccountCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/OverView', new EyeOpen(),
                             array('AccountType' => 'CUSTODY'))
                     )),
-                    new LayoutColumn(array(
-                        new TitleLayout('Zensuren/Noten'),
-                        (new Standard('Verschieben', __NAMESPACE__.'/Grade'))
-                        .  (new Standard('Unerreichbare Zensuren', __NAMESPACE__.'/GradeUnreachable'))
-                    )),
+//                    new LayoutColumn(array(
+//                        new TitleLayout('Zensuren/Noten'),
+//                        (new Standard('Verschieben', __NAMESPACE__.'/Grade'))
+//                        .  (new Standard('Unerreichbare Zensuren', __NAMESPACE__.'/GradeUnreachable'))
+//                    )),
                     new LayoutColumn(array(
                             new TitleLayout('Jährliches DEV Update (Datum) wird um 1 Jahr erhöht'),
                             new Standard('Jährliches Update', __NAMESPACE__.'/Yearly', null, array(), 'Anzeige eines SQL Script\'s')
@@ -457,94 +457,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param array|null $Data
-     *
-     * @return Stage
-     */
-    public function frontendGrade(?array $Data = null): Stage
-    {
-        $stage = new Stage('Datenpflege', 'Zensuren verschieben');
-        $stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
-
-        $tblYearList = Term::useService()->getYearAll();
-
-        $stage->setContent(
-            ApiGradeMaintenance::receiverBlock('', 'Message')
-            . new Form(new FormGroup(new FormRow(new FormColumn(
-                new Layout(new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel(
-                                'Source',
-                                array(
-                                    (new SelectBox('Data[Source][YearId]', 'Schuljahr',
-                                        array('{{ Year }} {{ Description }}' => $tblYearList), null, false, SORT_DESC))
-                                        ->ajaxPipelineOnChange(array(
-                                            ApiGradeMaintenance::pipelineLoadDivisionSelect($Data, 'Source')
-                                        ))->setRequired(),
-                                    ApiGradeMaintenance::receiverBlock('', 'SourceDivisionSelect'),
-                                    ApiGradeMaintenance::receiverBlock('', 'SourceDivisionSubjectSelect'),
-                                    ApiGradeMaintenance::receiverBlock('', 'SourceDivisionSubjectInformation')
-                                ),
-                                Panel::PANEL_TYPE_INFO
-                            )
-                            , 6),
-                        new LayoutColumn(
-                            new Panel(
-                                'Target',
-                                array(
-                                    (new SelectBox('Data[Target][YearId]', 'Schuljahr',
-                                        array('{{ Year }} {{ Description }}' => $tblYearList), null, false, SORT_DESC))
-                                        ->ajaxPipelineOnChange(array(
-                                                ApiGradeMaintenance::pipelineLoadDivisionSelect($Data, 'Target'))
-                                        )->setRequired(),
-                                    ApiGradeMaintenance::receiverBlock('', 'TargetDivisionSelect'),
-                                    ApiGradeMaintenance::receiverBlock('', 'TargetDivisionSubjectSelect'),
-                                    ApiGradeMaintenance::receiverBlock('', 'TargetDivisionSubjectInformation')
-                                ),
-                                Panel::PANEL_TYPE_INFO
-                            )
-                            , 6)
-                    )),
-                    new LayoutRow(array(
-                        new LayoutColumn(ApiGradeMaintenance::receiverBlock(ApiGradeMaintenance::loadMoveButton($Data), 'MoveButton'))
-                    )),
-                    new LayoutRow(array(
-                        new LayoutColumn('&nbsp;'),
-                        new LayoutColumn(ApiGradeMaintenance::receiverBlock('', 'OutputInformation'))
-                    )),
-                )))
-            ))))
-        );
-
-        return $stage;
-    }
-
-    /**
-     * @param array|null $Data
-     *
-     * @return Stage
-     */
-    public function frontendGradeUnreachable(?array $Data = null): Stage
-    {
-        $stage = new Stage('Unerreichbare Zensuren');
-        $stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
-
-        $tblYearList = Term::useService()->getYearAll();
-
-        $stage->setContent(
-            (new SelectBox('Data[YearId]', 'Schuljahr',
-                array('{{ Year }} {{ Description }}' => $tblYearList), null, false, SORT_DESC))
-                ->ajaxPipelineOnChange(array(
-                    ApiGradeMaintenance::pipelineLoadUnreachableGrades($Data)
-                ))->setRequired()
-            . ApiGradeMaintenance::receiverBlock('', 'UnreachableGrades')
-        );
-
-        return  $stage;
-    }
-
-    /**
      * @return Stage
      */
     public function frontendYearly()
@@ -572,23 +484,63 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
                 new LayoutRow(
                     new LayoutColumn(
-                        new Code("UPDATE ".$Acronym."_PeopleMeta.tblCommonBirthDates SET Birthday = date_add(Birthday, interval 1 YEAR);
-UPDATE ".$Acronym."_PeopleMeta.tblSpecial SET Date = date_add(Date, interval 1 YEAR);
-UPDATE ".$Acronym."_PeopleMeta.tblStudent SET SchoolAttendanceStartDate = date_add(SchoolAttendanceStartDate, interval 1 YEAR);
-UPDATE ".$Acronym."_PeopleMeta.tblStudentBaptism SET BaptismDate = date_add(BaptismDate, interval 1 YEAR);
-UPDATE ".$Acronym."_PeopleMeta.tblStudentTransfer SET TransferDate = date_add(TransferDate, interval 1 YEAR);
-UPDATE ".$Acronym."_PeopleMeta.tblSupport SET Date = date_add(Date, interval 1 YEAR);
-UPDATE ".$Acronym."_EducationClassRegister.tblAbsence SET FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
-UPDATE ".$Acronym."_EducationGraduationEvaluation.tblTask SET Date = date_add(Date, interval 1 YEAR), FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
-UPDATE ".$Acronym."_EducationGraduationEvaluation.tblTest SET Date = date_add(Date, interval 1 YEAR), CorrectionDate = date_add(CorrectionDate, interval 1 YEAR), ReturnDate = date_add(ReturnDate, interval 1 YEAR);
-UPDATE ".$Acronym."_EducationGraduationGradebook.tblGrade SET Date = date_add(Date, interval 1 YEAR);
-UPDATE ".$Acronym."_EducationLessonDivision.tblDivisionStudent SET LeaveDate = date_add(LeaveDate, interval 1 YEAR);
+                        new Code("
+UPDATE ".$Acronym."_BillingInvoice.tblBankReference SET ReferenceDate = date_add(ReferenceDate, interval 1 YEAR);
+UPDATE ".$Acronym."_BillingInvoice.tblBasket SET Year = Year + 1, TargetTime = date_add(TargetTime, interval 1 YEAR), BillTime = date_add(BillTime, interval 1 YEAR);
+UPDATE ".$Acronym."_BillingInvoice.tblBasket SET SepaDate = date_add(SepaDate, interval 1 YEAR) where SepaDate IS NOT NULL;
+UPDATE ".$Acronym."_BillingInvoice.tblBasket SET DatevDate = date_add(DatevDate, interval 1 YEAR) where DatevDate IS NOT NULL;
+UPDATE ".$Acronym."_BillingInvoice.tblDebtorSelection SET FromDate = date_add(FromDate, interval 1 YEAR);
+UPDATE ".$Acronym."_BillingInvoice.tblDebtorSelection SET ToDate = date_add(ToDate, interval 1 YEAR) where ToDate IS NOT NULL;
+UPDATE ".$Acronym."_BillingInvoice.tblInvoice SET InvoiceNumber = concat(substr(InvoiceNumber, 1, 4)+1, substr(InvoiceNumber, 5, 20)), Year = Year + 1, TargetTime = date_add(TargetTime, interval 1 YEAR), BillTime = date_add(BillTime, interval 1 YEAR);
+UPDATE ".$Acronym."_BillingInvoice.tblItemCalculation SET DateFrom = date_add(DateFrom, interval 1 YEAR);
+UPDATE ".$Acronym."_BillingInvoice.tblItemCalculation SET DateTo = date_add(DateTo, interval 1 YEAR) where DateTo IS NOT NULL;
+UPDATE ".$Acronym."_DocumentStorage.tblDirectory SET Name = concat(substr(Name, 1, 4)+1, \"/\", substr(Name, 6, 2)+1) where Identifier like \"TBL-YEAR-ID%\";
+UPDATE ".$Acronym."_DocumentStorage.tblFile SET Name = concat(substr(Name, 1, 4)+1, \"/\", substr(Name, 6, 2)+1, substr(Name, 8, 100)), Description = concat(substr(Description, 1, 16), substr(Description, 17, 4)+1, substr(Description, 21, 100));
+UPDATE ".$Acronym."_EducationApplication.tblAbsence SET FromDate = date_add(FromDate, interval 1 YEAR);
+UPDATE ".$Acronym."_EducationApplication.tblAbsence SET ToDate = date_add(ToDate, interval 1 YEAR) where ToDate IS NOT NULL;
+UPDATE ".$Acronym."_EducationApplication.tblClassRegisterCourseContent SET Date = date_add(Date, interval 1 YEAR);
+UPDATE ".$Acronym."_EducationApplication.tblClassRegisterCourseContent SET DateHeadmaster = date_add(DateHeadmaster, interval 1 YEAR) where DateHeadmaster IS NOT NULL;
+UPDATE ".$Acronym."_EducationApplication.tblClassRegisterDiary SET Date = date_add(Date, interval 1 YEAR);
+UPDATE ".$Acronym."_EducationApplication.tblClassRegisterInstructionItem SET Date = date_add(Date, interval 1 YEAR);
+UPDATE ".$Acronym."_EducationApplication.tblClassRegisterLessonContent SET Date = date_add(Date, interval 1 YEAR);
+UPDATE ".$Acronym."_EducationApplication.tblClassRegisterLessonWeek SET Date = date_add(Date, interval 1 YEAR);
+UPDATE ".$Acronym."_EducationApplication.tblClassRegisterLessonWeek SET DateDivisionTeacher = date_add(DateDivisionTeacher, interval 1 YEAR) where DateDivisionTeacher IS NOT NULL;
+UPDATE ".$Acronym."_EducationApplication.tblClassRegisterLessonWeek SET DateHeadmaster = date_add(DateHeadmaster, interval 1 YEAR) where DateHeadmaster IS NOT NULL;
+UPDATE ".$Acronym."_EducationApplication.tblClassRegisterTimetable SET DateFrom = date_add(DateFrom, interval 1 YEAR);
+UPDATE ".$Acronym."_EducationApplication.tblClassRegisterTimetable SET DateTo = date_add(DateTo, interval 1 YEAR) where DateTo IS NOT NULL;
+UPDATE ".$Acronym."_EducationApplication.tblClassRegisterTimetableWeek SET Date = date_add(Date, interval 1 YEAR);
+UPDATE ".$Acronym."_EducationApplication.tblGraduationTask SET Date = date_add(Date, interval 1 YEAR), FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
+UPDATE ".$Acronym."_EducationApplication.tblGraduationTest SET Date = date_add(Date, interval 1 YEAR) where Date IS NOT NULL;
+UPDATE ".$Acronym."_EducationApplication.tblGraduationTest SET FinishDate = date_add(FinishDate, interval 1 YEAR) where FinishDate IS NOT NULL;
+UPDATE ".$Acronym."_EducationApplication.tblGraduationTest SET CorrectionDate = date_add(CorrectionDate, interval 1 YEAR) where CorrectionDate IS NOT NULL;
+UPDATE ".$Acronym."_EducationApplication.tblGraduationTest SET ReturnDate = date_add(ReturnDate, interval 1 YEAR) where ReturnDate IS NOT NULL;
+UPDATE ".$Acronym."_EducationApplication.tblGraduationTestGrade SET Date = date_add(Date, interval 1 YEAR) where Date IS NOT NULL;
+UPDATE ".$Acronym."_EducationApplication.tblLessonDivisionCourseMember SET LeaveDate = date_add(LeaveDate, interval 1 YEAR) where LeaveDate IS NOT NULL;
+UPDATE ".$Acronym."_EducationApplication.tblLessonStudentEducation SET LeaveDate = date_add(LeaveDate, interval 1 YEAR) where LeaveDate IS NOT NULL;
 UPDATE ".$Acronym."_EducationLessonTerm.tblHoliday SET FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
 UPDATE ".$Acronym."_EducationLessonTerm.tblPeriod SET FromDate = date_add(FromDate, interval 1 YEAR), ToDate = date_add(ToDate, interval 1 YEAR);
-Update ".$Acronym."_EducationLessonTerm.tblYear SET Name = CONCAT(SUBSTRING_INDEX(Name, '/', 1)+1,'/',SUBSTRING_INDEX(Name, '/', -1)+1), YEAR = CONCAT(SUBSTRING_INDEX(YEAR, '/', 1)+1,'/',SUBSTRING_INDEX(YEAR, '/', -1)+1);
+Update ".$Acronym."_EducationLessonTerm.tblYear SET Name = CONCAT(SUBSTRING_INDEX(Name, \"/\", 1)+1,\"/\",SUBSTRING_INDEX(Name, \"/\", -1)+1), YEAR = CONCAT(SUBSTRING_INDEX(YEAR, \"/\", 1)+1,\"/\",SUBSTRING_INDEX(YEAR, \"/\", -1)+1);
+UPDATE ".$Acronym."_PeopleMeta.tblClub SET EntryDate = date_add(EntryDate, interval 1 YEAR) where EntryDate IS NOT NULL;
+UPDATE ".$Acronym."_PeopleMeta.tblClub SET ExitDate = date_add(ExitDate, interval 1 YEAR) where ExitDate IS NOT NULL;
+UPDATE ".$Acronym."_PeopleMeta.tblCommonBirthDates SET Birthday = date_add(Birthday, interval 1 YEAR) where Birthday IS NOT NULL;
+UPDATE ".$Acronym."_PeopleMeta.tblHandyCap SET Date = date_add(Date, interval 1 YEAR) where Date IS NOT NULL;
+UPDATE ".$Acronym."_PeopleMeta.tblPersonMasern SET MasernDate = date_add(MasernDate, interval 1 YEAR);
+UPDATE ".$Acronym."_PeopleMeta.tblProspectAppointment SET ReservationDate = date_add(ReservationDate, interval 1 YEAR) where ReservationDate IS NOT NULL;
+UPDATE ".$Acronym."_PeopleMeta.tblProspectAppointment SET InterviewDate = date_add(InterviewDate, interval 1 YEAR) where InterviewDate IS NOT NULL;
+UPDATE ".$Acronym."_PeopleMeta.tblProspectAppointment SET TrialDate = date_add(TrialDate, interval 1 YEAR) where TrialDate IS NOT NULL;
+UPDATE ".$Acronym."_PeopleMeta.tblProspectReservation SET ReservationYear = concat(substr(ReservationYear, 1, 4)+1, \"/\", substr(ReservationYear, 6, 4)+1) where ReservationYear != '';
+UPDATE ".$Acronym."_PeopleMeta.tblSpecial SET Date = date_add(Date, interval 1 YEAR);
+UPDATE ".$Acronym."_PeopleMeta.tblStudent SET SchoolAttendanceStartDate = date_add(SchoolAttendanceStartDate, interval 1 YEAR) where SchoolAttendanceStartDate IS NOT NULL;
+UPDATE ".$Acronym."_PeopleMeta.tblStudentBaptism SET BaptismDate = date_add(BaptismDate, interval 1 YEAR) where BaptismDate IS NOT NULL;
+UPDATE ".$Acronym."_PeopleMeta.tblStudentMedicalRecord SET MasernDate = date_add(MasernDate, interval 1 YEAR) where MasernDate IS NOT NULL;
+UPDATE ".$Acronym."_PeopleMeta.tblStudentTransfer SET TransferDate = date_add(TransferDate, interval 1 YEAR) where TransferDate IS NOT NULL;
+UPDATE ".$Acronym."_PeopleMeta.tblSupport SET Date = date_add(Date, interval 1 YEAR) where Date IS NOT NULL;
+UPDATE ".$Acronym."_SettingConsumer.tblGenerateCertificate SET Date = date_add(Date, interval 1 YEAR) where Date IS NOT NULL;
 UPDATE ".$Acronym."_SettingConsumer.tblLeaveInformation SET Value = CONCAT(SUBSTRING_INDEX(Value, '.',2),'.',YEAR(CURDATE())) where Field like 'CertificateDate';
-UPDATE ".$Acronym."_SettingConsumer.tblPrepareCertificate SET Date = date_add(Date, interval 1 YEAR);
-UPDATE ".$Acronym."_SettingConsumer.tblPrepareInformation SET Value = CONCAT(SUBSTRING_INDEX(Value, '.',2),'.',YEAR(CURDATE())) where Field LIKE 'DateConference' OR Field LIKE 'DateConsulting'OR Field LIKE 'DateCertifcate';"
+UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET ExportDate = date_add(ExportDate, interval 1 YEAR) where ExportDate IS NOT NULL;
+UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET GroupByTime = date_add(GroupByTime, interval 1 YEAR) where GroupByTime IS NOT NULL;
+UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET UpdateDate = date_add(UpdateDate, interval 1 YEAR) where UpdateDate IS NOT NULL;"
+// UPDATE ".$Acronym."_SettingConsumer.tblPrepareInformation SET Value = CONCAT(SUBSTRING_INDEX(Value, '.',2),'.',YEAR(CURDATE())) where Field LIKE 'DateConference' OR Field LIKE 'DateConsulting'OR Field LIKE 'DateCertifcate';"
                         )
                     )
                 )
@@ -597,7 +549,6 @@ UPDATE ".$Acronym."_SettingConsumer.tblPrepareInformation SET Value = CONCAT(SUB
 
         return $Stage;
     }
-
     /**
      * @return Stage
      */
