@@ -1831,7 +1831,7 @@ class Service
                 $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_GEMEINSCHAFTS_SCHULE);
                 break;
                 default:
-                    $tblSchoolType = false;
+                    $tblSchoolType = null;
             }
             if(!($tblCompany = Company::useService()->getCompanyByName($school, ''))) {
                 $tblCompany = null;
@@ -2093,17 +2093,29 @@ class Service
     private function checkDate($Date, $ErrorMessage, $RunY, $Nr, &$error)
     {
 
+        $result = '';
         if ($Date !== '') {
-            try {
-                $Date = date('d.m.Y', PHPExcel_Shared_Date::ExcelToPHP($Date));
-            } catch (Exception $ex) {
-                $Date = '';
-                $error[] = new DangerText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' '.$ErrorMessage.' '.$ex->getMessage();
+            $len = strlen($Date);
+            switch ($len) {
+                case 5:
+                    $result = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($Date));
+                    break;
+                case 6:
+                    $result = substr($Date, 0, 2).'.'.substr($Date, 2, 2).'.'.substr($Date, 4, 2);
+                    break;
+                case 7:
+                    $Date = '0'.$Date;
+                case 8:
+                    $result = substr($Date, 0, 2).'.'.substr($Date, 2, 2).'.'.substr($Date, 4, 4);
+                    break;
+                case 10:
+                    $result = $Date;
+                    break;
+                default:
+                    $error[] = new DangerText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' '.$ErrorMessage.'Datumsformat nicht erkannt';
             }
-        } else {
-            $Date = '';
         }
-        return $Date;
+        return $result;
     }
 
     /**

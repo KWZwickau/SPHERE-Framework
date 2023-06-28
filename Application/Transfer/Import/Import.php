@@ -50,7 +50,7 @@ class Import implements IApplicationInterface
                 new LayoutRow(ImportStandard::getStandardLink()),
                 new LayoutRow(new LayoutColumn(
                     new Ruler()
-                    .Main::getDispatcher()->fetchDashboard('Import')
+                    .FuxSchool::getDownloadLayout()
                 ))
             )))
         );
