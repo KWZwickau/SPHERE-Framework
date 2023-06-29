@@ -32,7 +32,8 @@ class EssGsJThree extends EssStyle
     {
         return array(
             1 => "wird nach Klasse 4 versetzt",
-            2 => "wiederholt freiwillig die Klassenstufe 3"
+            2 => "wiederholt freiwillig die Klassenstufe 3",
+            3 => "&nbsp;"
         );
     }
 

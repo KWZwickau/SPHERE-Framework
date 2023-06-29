@@ -32,7 +32,8 @@ class EssGsJTwo extends Certificate
     {
         return array(
             1 => "wird nach Klasse 3 versetzt",
-            2 => "wiederholt freiwillig die Klassenstufe 2"
+            2 => "wiederholt freiwillig die Klassenstufe 2",
+            3 => "&nbsp;"
         );
     }
 
