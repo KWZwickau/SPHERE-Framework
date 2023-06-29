@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Text\Repository\Underline;
@@ -27,15 +28,15 @@ abstract class BGymStyle extends Certificate
     const GRADE_WIDTH = 10;
     const TEXT_SIZE_SMALL = '14px';
 
-    protected function getHeaderBGym(string $title): Slice
+    protected function getHeaderBGym(string $title, string $textSizeSample = '30px', string $marginTop = '25px'): Slice
     {
-        $slice = $this->getSchoolNameBGym();
+        $slice = $this->getSchoolNameBGym($marginTop);
 
         // Sample
         if($this->isSample()){
-            $slice->addElement((new Element\Sample())->styleTextSize('30px'));
+            $slice->addElement((new Element\Sample())->styleTextSize($textSizeSample));
         } else {
-            $slice->addElement((new Element())->setContent('&nbsp;')->styleTextSize('30px'));
+            $slice->addElement((new Element())->setContent('&nbsp;')->styleTextSize($textSizeSample));
         }
 
         // title
@@ -56,9 +57,9 @@ abstract class BGymStyle extends Certificate
         return $slice;
     }
 
-    private function getSchoolNameBGym(): Slice
+    protected function getSchoolNameBGym(string $marginTop = '25px'): Slice
     {
-        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+        if (($tblSetting = Consumer::useService()->getSetting(
                 'Education', 'Certificate', 'Prepare', 'IsSchoolExtendedNameDisplayed'))
             && $tblSetting->getValue()
         ) {
@@ -66,7 +67,7 @@ abstract class BGymStyle extends Certificate
         } else {
             $isSchoolExtendedNameDisplayed = false;
         }
-        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+        if (($tblSetting = Consumer::useService()->getSetting(
                 'Education', 'Certificate', 'Prepare', 'SchoolExtendedNameSeparator'))
             && $tblSetting->getValue()
         ) {
@@ -87,16 +88,17 @@ abstract class BGymStyle extends Certificate
                 ->setContent($name)
                 ->styleAlignCenter()
                 ->styleTextSize('16px')
-                ->styleMarginTop('25px')
+                ->styleMarginTop($marginTop)
             );
     }
 
     /**
      * @param $personId
+     * @param string $marginTop
      *
      * @return Slice
      */
-    protected function getSubjectArea($personId): Slice
+    protected function getSubjectArea($personId, string $marginTop = '15px'): Slice
     {
         $subjectArea = '&nbsp;';
         if (($tblPerson = Person::useService()->getPersonById($personId))
@@ -112,23 +114,25 @@ abstract class BGymStyle extends Certificate
                 ->setContent('Fachrichtung ' . $subjectArea)
                 ->styleAlignCenter()
                 ->styleTextSize('16px')
-                ->styleMarginTop('15px')
+                ->styleMarginTop($marginTop)
             );
     }
 
     /**
      * @param $personId
      * @param string $period
+     * @param string $level
+     * @param string $marginTop
      *
      * @return Slice
      */
-    protected function getLevelYearStudent($personId, string $period): Slice
+    protected function getLevelYearStudent($personId, string $period, string $level = 'Klassenstufe', string $marginTop = '15px'): Slice
     {
-        $slice = (new Slice())
-            ->styleMarginTop('15px')
+        return (new Slice())
+            ->styleMarginTop($marginTop)
             ->addSection((new Section())
                 ->addElementColumn(
-                    $this->getElement('Klassenstufe {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
+                    $this->getElement($level . ' {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
                     , '25%')
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -141,8 +145,8 @@ abstract class BGymStyle extends Certificate
                 $this->getElement('{{ Content.P' . $personId . '.Person.Data.Name.Salutation }} {{ Content.P' . $personId . '.Person.Data.Name.First }} 
                         {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
                     ->styleTextSize('22px')
-                    ->styleMarginTop('15px')
-                    ->styleMarginBottom('15px')
+                    ->styleMarginTop($marginTop)
+                    ->styleMarginBottom($marginTop)
             )
             ->addSection((new Section())
                 ->addElementColumn(
@@ -168,8 +172,6 @@ abstract class BGymStyle extends Certificate
                     , '35%')
             )
         ;
-
-        return $slice;
     }
 
     private function getElement(string $content): Element
@@ -442,7 +444,15 @@ abstract class BGymStyle extends Certificate
         return $slice->styleHeight('90px');
     }
 
-    protected function getRemarkBGym($personId, bool $isMissing, string $height = '60px'): Slice
+    /**
+     * @param $personId
+     * @param bool $isMissing
+     * @param string $height
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getRemarkBGym($personId, bool $isMissing, string $height = '60px', string $marginTop = '15px'): Slice
     {
         $slice = (new Slice());
         if ($isMissing) {
@@ -478,12 +488,12 @@ abstract class BGymStyle extends Certificate
                     ->setContent('&nbsp;')
                     ->styleAlignCenter()
                     , '4%')
-            )
-                ->styleMarginTop('15px');
+            );
         } else {
             $slice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Bemerkungen:'))
+                    ->setContent('Bemerkungen:')
+                )
             );
         }
 
@@ -497,7 +507,7 @@ abstract class BGymStyle extends Certificate
         $slice->addElement($element);
 
         return $slice
-            ->styleMarginTop('20px')
+            ->styleMarginTop($marginTop)
             ->styleHeight($height)
             ->stylePaddingLeft('4px')
             ->stylePaddingRight('4px')
@@ -547,13 +557,27 @@ abstract class BGymStyle extends Certificate
 
     /**
      * @param $personId
+     * @param bool $hasTudor
+     * @param string $marginTop
      *
      * @return Slice
      */
-    protected function getSignPartBGym($personId): Slice
+    protected function getSignPartBGym($personId, bool $hasTudor = false, string $marginTop = '30px'): Slice
     {
+        $divisionTeacherDescription = $hasTudor
+            ? '{% if(Content.P' . $personId . '.Tudor.Description is not empty) %}
+                  {{ Content.P' . $personId . '.Tudor.Description }}
+              {% else %}
+                  Tudor/in
+              {% endif %}'
+            : '{% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                  {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+              {% else %}
+                  Klassenlehrer/in
+              {% endif %}';
+
         $slice = (new Slice())
-            ->styleMarginTop('30px')
+            ->styleMarginTop($marginTop)
             ->addSection((new Section())
                 ->addElementColumn(
                     $this->getElement('{% if( Content.P' . $personId . '.Company.Address.City.Name is not empty) %}
@@ -593,13 +617,13 @@ abstract class BGymStyle extends Certificate
             )
             ->addSection((new Section())
                 ->addElementColumn(
-                    $this->getElement('&nbsp;')->styleMarginTop('40px')
+                    $this->getElement('&nbsp;')->styleMarginTop('30px')
                     , '35%')
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                 )
                 ->addElementColumn(
-                    $this->getElement('&nbsp;')->styleMarginTop('40px')
+                    $this->getElement('&nbsp;')->styleMarginTop('30px')
                     , '35%')
             )
             ->addSection((new Section())
@@ -617,13 +641,7 @@ abstract class BGymStyle extends Certificate
                 ->addElementColumn((new Element())
                     , '30%')
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
-                            {{ Content.P' . $personId . '.DivisionTeacher.Description }}
-                        {% else %}
-                            Klassenlehrer(in)
-                        {% endif %}'
-                    )
+                    ->setContent($divisionTeacherDescription)
                     ->styleAlignCenter()
                     ->styleTextSize('11px')
                     , '35%')
@@ -659,7 +677,7 @@ abstract class BGymStyle extends Certificate
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Zur Kenntnis genommen:')
-                    ->styleMarginTop('30px')
+                    ->styleMarginTop($marginTop)
                     , '27%'
                 )
                 ->addElementColumn((new Element())
@@ -680,13 +698,258 @@ abstract class BGymStyle extends Certificate
                     ->styleAlignCenter()
                     , '73%'
                 )
-            )
-            ->addElement((new Element())
-                ->setContent('NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)')
-                ->styleTextSize('9px')
-            )
-            ;
+            );
 
         return $slice;
+    }
+
+    /**
+     * @return Slice
+     */
+    protected function getGradeLevel(): Slice
+    {
+        return (new Slice())
+            ->addElement((new Element())
+                ->setContent('NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)')
+                ->styleTextSize('11px')
+            );
+    }
+
+    /**
+     * @param bool $hasGradeLevelLine
+     *
+     * @return Slice
+     */
+    protected function getFootNotesSekII(bool $hasGradeLevelLine = true): Slice
+    {
+        $left = '4%';
+        $textSize = '9.5px';
+        $slice = (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($this->setSup('1)'))
+                    , $left
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Leistungskursfächer sind mit LF gekennzeichnet. Alle Punktzahlen werden zweistellig angegeben.')
+                    ->styleTextSize($textSize)
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($this->setSup('2)'))
+                    ->styleMarginTop('5px')
+                    , $left
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Für die Umsetzung der Punkte in Noten gilt:')
+                    ->styleMarginTop('5px')
+                    ->styleTextSize($textSize)
+                    , '25%'
+                )
+                ->addSliceColumn($this->setPointsOverview($textSize)
+                    ->styleMarginTop('5px')
+                )
+            );
+
+        if ($hasGradeLevelLine) {
+            $slice
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($this->setSup('3)'))
+                        ->styleMarginTop('5px')
+                        , $left
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)')
+                        ->styleMarginTop('5px')
+                        ->styleTextSize($textSize)
+                    )
+                );
+        }
+
+        return $slice;
+    }
+
+    /**
+     * @param string $textSize
+     *
+     * @return Slice
+     */
+    private function setPointsOverview(string $textSize): Slice
+    {
+        $slice = new Slice();
+
+        $section = new Section();
+        $this->setColumnElement($section, 'Punkte', $textSize);
+        $this->setColumnElement($section, '15 14 13', $textSize);
+        $this->setColumnElement($section, '12 11 10', $textSize);
+        $this->setColumnElement($section, '09 08 07', $textSize);
+        $this->setColumnElement($section, '06 05 04', $textSize);
+        $this->setColumnElement($section, '03 02 01', $textSize);
+        $this->setColumnElement($section, '00', $textSize, '7px', false, true);
+        $slice
+            ->addSection($section);
+
+        $section = new Section();
+        $this->setColumnElement($section, 'Note', $textSize, '2px', true);
+        $this->setColumnElement($section, 'sehr gut', $textSize, '2px', true);
+        $this->setColumnElement($section, 'gut', $textSize, '2px', true);
+        $this->setColumnElement($section, 'befriedigend', $textSize, '2px', true);
+        $this->setColumnElement($section, 'ausreichend', $textSize, '2px', true);
+        $this->setColumnElement($section, 'mangelhaft', $textSize, '2px', true);
+        $this->setColumnElement($section, 'ungenügend', $textSize, '2px', true, true);
+        $slice
+            ->addSection($section);
+
+        return $slice;
+    }
+
+    /**
+     * @param Section $section
+     * @param string $name
+     * @param $textSize
+     * @param string $padding
+     * @param bool $isBorderBottom
+     * @param bool $isBorderRight
+     */
+    private function setColumnElement(
+        Section $section,
+        string $name,
+        $textSize,
+        string $padding = '7px',
+        bool $isBorderBottom = false,
+        bool $isBorderRight = false
+    ) {
+
+        $section
+            ->addElementColumn((new Element())
+                ->setContent($name)
+                ->styleTextSize($textSize)
+                ->styleAlignCenter()
+                ->styleBorderLeft()
+                ->styleBorderTop()
+                ->stylePaddingTop($padding)
+                ->stylePaddingBottom($padding)
+                ->styleBorderRight($isBorderRight ? '1px' : '0px')
+                ->styleBorderBottom($isBorderBottom ? '1px' : '0px')
+                , '15%');
+    }
+
+    /**
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getLevelMidTerm(string $marginTop = '15px'): Slice
+    {
+        $midTerm = '/I';
+        if (($tblPrepare = $this->getTblPrepareCertificate())
+            && ($date = $tblPrepare->getDateTime())
+            && ($month = intval($date->format('m')))
+            && $month > 3 && $month < 9
+        ) {
+            $midTerm = '/II';
+        }
+
+        $period = ($this->getLevel() ?: '') . $midTerm;
+
+        return (new Slice())->addElement(
+            $this->getElement('hat im Kurshalbjahr ' . $period . ' folgende Leistungen erreicht:' )
+                ->styleMarginTop($marginTop)
+        );
+    }
+
+    /**
+     * @param string $workField
+     *
+     * @return array
+     */
+    protected function getSubjectListByWorkField(string $workField): array
+    {
+        $tblSubjectList  = array();
+        if ($workField == 'Sprachlich-literarisch-künstlerisches Aufgabenfeld') {
+            if (($tblSubject = Subject::useService()->getSubjectByName('Deutsch'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            // Fremdsprachen
+            if (($tblCategory = Subject::useService()->getCategoryByIdentifier('FOREIGNLANGUAGE'))
+                && ($tblSubjectListForeignLanguage = $tblCategory->getTblSubjectAll())
+            ) {
+                foreach ($tblSubjectListForeignLanguage as $tblSubjectForeignLanguage) {
+                    $tblSubjectList[$tblSubjectForeignLanguage->getId()] = $tblSubjectForeignLanguage;
+                }
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Kunst'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Literatur'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Musik'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+        } elseif ($workField == 'Gesellschaftswissenschaftliches Aufgabenfeld') {
+            if (($tblSubject = Subject::useService()->getSubjectByName('Geschichte/Gemeinschaftskunde'))
+                || ($tblSubject = Subject::useService()->getSubjectByName('Geschichte / Gemeinschaftskunde'))
+            ) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Gesundheit und Soziales'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Volks- und Betriebswirtschaftslehre mit Rechnungswesen'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Wirtschaftslehre/Recht'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+        } elseif ($workField == 'Mathematisch-naturwissenschaftlich-technisches Aufgabenfeld') {
+            if (($tblSubject = Subject::useService()->getSubjectByName('Agrartechnik mit Biologie'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Biologie'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Biotechnik'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Chemie'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Ernährungslehre mit Chemie'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Informatik'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Informatiksysteme'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Mathematik'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Physik'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Technik'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+        } elseif ($workField == '') {
+            if (($tblSubject = Subject::useService()->getSubjectByName('Sport'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Evangelische Religion'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Katholische Religion'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+            if (($tblSubject = Subject::useService()->getSubjectByName('Ethik'))) {
+                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            }
+        }
+
+        return $tblSubjectList;
     }
 }

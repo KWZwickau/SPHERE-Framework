@@ -26,6 +26,7 @@ class BGymHjZ extends BGymStyle
             ->addSlice($this->getRemarkBGym($personId, true))
             ->addSlice((new Slice())->styleHeight('20px'))
             ->addSlice($this->getSignPartBGym($personId))
+            ->addSlice($this->getGradeLevel())
             ;
     }
 }

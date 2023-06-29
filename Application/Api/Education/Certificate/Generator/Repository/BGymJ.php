@@ -36,6 +36,7 @@ class BGymJ extends BGymStyle
             ->addSlice($this->getRemarkBGym($personId, true))
             ->addSlice($this->getTransferBGym($personId))
             ->addSlice($this->getSignPartBGym($personId))
+            ->addSlice($this->getGradeLevel())
             ;
     }
 }
