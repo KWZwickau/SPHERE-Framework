@@ -877,7 +877,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // es sind keine Cookies erlaubt -> Login ist nicht möglich
-        if (!isset($_COOKIE['cookies_available'])) {
+        if (!isset($_COOKIE['cookies_available'])) { //  && $doAccept == 0
             // Bypass Cookies
             if(!$isCookieAvailable){
                 $FormInformation = array(
@@ -973,7 +973,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new PullLeft( new Success('Einwilligen',new Route(__NAMESPACE__ . '/Agb'), new Enable(), array(
                                 'tblAccount' => $tblAccount,
                                 'tblIdentification' => $tblIdentification,
-                                'doAccept' => 1
+                                'doAccept' => 1,
+                                'isCookieAvailable' => $isCookieAvailable
                             )) ),
                             new PullRight( new DangerLink('Ablehnen',new Route(__NAMESPACE__ ), new Disable(), array()) )
                         ))
