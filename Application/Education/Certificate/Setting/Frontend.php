@@ -890,6 +890,13 @@ class Frontend extends Extension implements IFrontendInterface
             $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_GYM,
                 'Gymnasium', 'GymJ', count($LayoutRowList));
         }
+        if($showAll
+            || (($tblType = Type::useService()->getTypeByName(TblType::IDENT_BERUFLICHES_GYMNASIUM))
+                && School::useService()->getSchoolByType($tblType))
+        ) {
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_B_GYM,
+                'Berufliches Gymnasium', 'BGymJ', count($LayoutRowList));
+        }
         if($showAll || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE))
             && School::useService()->getSchoolByType($tblType)){
             $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_FOERDERSCHULE,
@@ -990,6 +997,14 @@ class Frontend extends Extension implements IFrontendInterface
             'Gymnasium Abgangszeugnis Sek I' => 'GymAbgSekI',
             'Gymnasium Abgangszeugnis Sek II' => 'GymAbgSekII'
         );
+        // Berufliches Gymnasium
+        $BGymList = array(
+            'Berufliches Gymnasium Halbjahreszeugnis' => 'BGymHjZ',
+            'Berufliches Gymnasium Jahreszeugnis' => 'BGymJ',
+            'Berufliches Gymnasium Kurshalbjahreszeugnis' => 'BGymKurshalbjahreszeugnis',
+            'Berufliches Gymnasium Abschlusszeugnis' => 'BGymAbitur',
+            'Berufliches Gymnasium Abgangszeugnis Sek II' => 'BGymAbgSekII'
+        );
         $BfsList = array(
             'Berufsfachschule Halbjahresinformation' => 'BfsHjInfo',
             'Berufsfachschule Halbjahreszeugnis' => 'BfsHj',
@@ -1025,6 +1040,9 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
             case TblCertificate::CERTIFICATE_TYPE_GYM:
                 $List = $GymList;
+                break;
+            case TblCertificate::CERTIFICATE_TYPE_B_GYM:
+                $List = $BGymList;
                 break;
             case TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE:
                 $List = $BfsList;

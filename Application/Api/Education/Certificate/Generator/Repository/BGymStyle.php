@@ -10,7 +10,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Common\Frontend\Text\Repository\Underline;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 abstract class BGymStyle extends Certificate
 {
@@ -33,7 +33,7 @@ abstract class BGymStyle extends Certificate
         $slice = $this->getSchoolNameBGym($marginTop);
 
         // Sample
-        if($this->isSample()){
+        if ($this->isSample()) {
             $slice->addElement((new Element\Sample())->styleTextSize($textSizeSample));
         } else {
             $slice->addElement((new Element())->setContent('&nbsp;')->styleTextSize($textSizeSample));
@@ -51,8 +51,7 @@ abstract class BGymStyle extends Certificate
                 ->styleAlignCenter()
                 ->styleTextSize('18px')
                 ->styleMarginTop('5px')
-            )
-            ;
+            );
 
         return $slice;
     }
@@ -120,6 +119,33 @@ abstract class BGymStyle extends Certificate
 
     /**
      * @param $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getSubjectAreaDiploma($personId, string $marginTop = '10px'): Slice
+    {
+        $subjectArea = '&nbsp;';
+        if (($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblStudent = $tblPerson->getStudent())
+            && ($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
+            && ($tblTechnicalSubjectArea = $tblStudentTechnicalSchool->getServiceTblTechnicalSubjectArea())
+        ) {
+            $subjectArea = $tblTechnicalSubjectArea->getName();
+        }
+
+        return (new Slice())
+            ->addElement((new Element())
+                ->setContent('Berufliche Gymnasium' . new Container('Fachrichtung ' . $subjectArea))
+                ->styleTextBold()
+                ->styleAlignCenter()
+                ->styleTextSize('16px')
+                ->styleMarginTop($marginTop)
+            );
+    }
+
+    /**
+     * @param $personId
      * @param string $period
      * @param string $level
      * @param string $marginTop
@@ -152,7 +178,7 @@ abstract class BGymStyle extends Certificate
                 ->addElementColumn(
                     $this->getElement('geboren am 
                         {% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
-                            {{ Content.P'.$personId.'.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
+                            {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
                         {% else %}
                             &nbsp;
                         {% endif %}'
@@ -170,16 +196,61 @@ abstract class BGymStyle extends Certificate
                         {% endif %}'
                     )
                     , '35%')
+            );
+    }
+
+    public function getStudentLeaveDiploma($personId, string $marginTop = '15px'): Slice
+    {
+        return (new Slice())
+            ->styleMarginTop('5px')
+            ->addElement(
+                $this->getElementDiploma('{{ Content.P' . $personId . '.Person.Data.Name.Salutation }} {{ Content.P' . $personId . '.Person.Data.Name.First }} 
+                        {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                    ->styleTextSize('22px')
+                    ->styleMarginTop($marginTop)
+                    ->styleMarginBottom($marginTop)
+            )
+            ->addSection((new Section())
+                ->addElementColumn(
+                    $this->getElementDiploma('geboren am 
+                        {% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
+                            {{ Content.P'.$personId.'.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}'
+                    )
+                    , '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                )
+                ->addElementColumn(
+                    $this->getElementDiploma('in
+                        {% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthplace is not empty) %}
+                            {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}'
+                    )
+                    , '35%')
             )
         ;
     }
 
-    private function getElement(string $content): Element
+    protected function getElement(string $content): Element
     {
         return (new Element())
             ->setContent($content)
             ->styleAlignCenter()
             ->styleBorderBottom(self::BORDER_SIZE, self::BORDER_COLOR)
+            ->stylePaddingBottom(self::PADDING_BOTTOM);
+    }
+
+    protected function getElementDiploma(string $content): Element
+    {
+        return (new Element())
+            ->setContent($content)
+            ->styleAlignCenter()
+            ->styleBorderBottom()
             ->stylePaddingBottom(self::PADDING_BOTTOM);
     }
 
@@ -458,7 +529,8 @@ abstract class BGymStyle extends Certificate
         if ($isMissing) {
             $slice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent(new Underline('Bemerkungen:'))
+                    ->setContent('Bemerkungen:')
+                    ->styleTextUnderline()
                     , '16%')
                 ->addElementColumn((new Element())
                     ->setContent('Fehltage entschuldigt:')
@@ -493,6 +565,7 @@ abstract class BGymStyle extends Certificate
             $slice->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Bemerkungen:')
+                    ->styleTextUnderline()
                 )
             );
         }
@@ -562,7 +635,7 @@ abstract class BGymStyle extends Certificate
      *
      * @return Slice
      */
-    protected function getSignPartBGym($personId, bool $hasTudor = false, string $marginTop = '30px'): Slice
+    protected function getSignPartBGym($personId, bool $hasTudor = false, string $marginTop = '30px', bool $hasCustodySign = true): Slice
     {
         $divisionTeacherDescription = $hasTudor
             ? '{% if(Content.P' . $personId . '.Tudor.Description is not empty) %}
@@ -590,7 +663,13 @@ abstract class BGymStyle extends Certificate
                     ->setContent('&nbsp;')
                 )
                 ->addElementColumn(
-                    $this->getElement('{{ Content.P' . $personId . '.Input.Date }}')
+                    $this->getElement('
+                        {% if( Content.P' . $personId . '.Input.Date is not empty) %}
+                            {{ Content.P' . $personId . '.Input.Date }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     , '35%')
             )
             ->addSection((new Section())
@@ -674,31 +753,36 @@ abstract class BGymStyle extends Certificate
                     ->styleAlignCenter()
                     , '35%')
             )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Zur Kenntnis genommen:')
-                    ->styleMarginTop($marginTop)
-                    , '27%'
+            ;
+
+        if ($hasCustodySign) {
+            $slice
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Zur Kenntnis genommen:')
+                        ->styleMarginTop($marginTop)
+                        , '27%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleMarginTop('30px')
+                        ->styleBorderBottom('1px', 'black', 'dotted')
+                        , '73%'
+                    )
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleMarginTop('30px')
-                    ->styleBorderBottom('1px', 'black', 'dotted')
-                    , '73%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '27%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Eltern')
-                    ->styleTextSize('10px')
-                    ->styleAlignCenter()
-                    , '73%'
-                )
-            );
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '27%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Eltern')
+                        ->styleTextSize('10px')
+                        ->styleAlignCenter()
+                        , '73%'
+                    )
+                );
+        }
 
         return $slice;
     }
@@ -865,7 +949,7 @@ abstract class BGymStyle extends Certificate
      *
      * @return array
      */
-    protected function getSubjectListByWorkField(string $workField): array
+    public static function getSubjectListByWorkField(string $workField): array
     {
         $tblSubjectList  = array();
         if ($workField == 'Sprachlich-literarisch-künstlerisches Aufgabenfeld') {
@@ -951,5 +1035,38 @@ abstract class BGymStyle extends Certificate
         }
 
         return $tblSubjectList;
+    }
+
+    /**
+     * @param array $gradeList
+     *
+     * @return string
+     */
+    public static function getAverageText(array $gradeList): string
+    {
+        if ($gradeList) {
+            $average = intval(round(array_sum($gradeList) / count($gradeList)));
+
+            switch ($average) {
+                case 15:
+                case 14:
+                case 13: return 'sehr gut';
+                case 12:
+                case 11:
+                case 10: return 'gut';
+                case 9:
+                case 8:
+                case 7: return 'befriedigend';
+                case 6:
+                case 5:
+                case 4: return 'ausreichend';
+                case 3:
+                case 2:
+                case 1: return 'mangelhaft';
+                case 0: return 'ungenügend';
+            }
+        }
+
+        return '&ndash;';
     }
 }

@@ -56,6 +56,8 @@ class Data extends DataLeave
         $this->createPrepareAdditionalGradeType('11/2', '11-2');
         $this->createPrepareAdditionalGradeType('12/1', '12-1');
         $this->createPrepareAdditionalGradeType('12/2', '12-2');
+        $this->createPrepareAdditionalGradeType('13/1', '13-1'); // Berufliches Abitur
+        $this->createPrepareAdditionalGradeType('13/2', '13-2'); // Berufliches Abitur
         $this->createPrepareAdditionalGradeType('schriftliche Prüfung', 'WRITTEN_EXAM');
         $this->createPrepareAdditionalGradeType('mündliche Prüfung', 'VERBAL_EXAM');
         $this->createPrepareAdditionalGradeType('zusätzliche mündliche Prüfung', 'EXTRA_VERBAL_EXAM');
