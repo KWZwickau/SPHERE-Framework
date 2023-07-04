@@ -62,6 +62,7 @@ class Data extends DataLeave
         $this->createPrepareAdditionalGradeType('mündliche Prüfung', 'VERBAL_EXAM');
         $this->createPrepareAdditionalGradeType('zusätzliche mündliche Prüfung', 'EXTRA_VERBAL_EXAM');
         $this->createPrepareAdditionalGradeType('Klasse 10', 'LEVEL-10');
+        $this->createPrepareAdditionalGradeType('Klasse 11', 'LEVEL-11'); // Berufliches Abitur
 
         // migration TblLeaveStudent serviceTblDivision -> serviceTblYear
         // kann später wieder entfernt werden

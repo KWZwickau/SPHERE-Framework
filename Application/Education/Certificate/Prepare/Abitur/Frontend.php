@@ -9,7 +9,9 @@
 namespace SPHERE\Application\Education\Certificate\Prepare\Abitur;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Prepare\BGyAbitur\LevelEleven;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -111,18 +113,33 @@ class Frontend extends Extension
 
         $studentTable = array();
         $count = 1;
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($tblYear = $tblPrepare->getYear())
+        ) {
             foreach ($tblPersonList as $tblPerson) {
                 $tblCertificate = false;
                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
                     $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
                 }
 
-                list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI($tblPrepare, $tblPerson);
-                if ($countCourses == 40) {
-                    $countCourses = new Success(new Check() . ' ' . $countCourses . ' von 40');
+                // BGy
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                    && $tblSchoolType->getShortName() == 'BGy'
+                ) {
+                    $courseSelectedCount = 36;
+                    $levelTen = '11';
                 } else {
-                    $countCourses = new Warning(new Disable() . ' ' . $countCourses . ' von 40');
+                    // Gy
+                    $courseSelectedCount = 40;
+                    $levelTen = '10';
+                }
+
+                list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI($tblPrepare, $tblPerson);
+                if ($countCourses == $courseSelectedCount) {
+                    $countCourses = new Success(new Check() . ' ' . $countCourses . ' von ' . $courseSelectedCount);
+                } else {
+                    $countCourses = new Warning(new Disable() . ' ' . $countCourses . ' von ' . $courseSelectedCount);
                 }
                 if ($resultBlockI >= 200) {
                     $resultBlockI = new Success(new Check() . ' ' . $resultBlockI . ' von mindestens 200');
@@ -162,13 +179,13 @@ class Frontend extends Extension
                             ),
                             'Block II bearbeiten und anzeigen'))
                         . (new Standard(
-                            'Klassenstufe 10', '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/LevelTen',
+                            'Klassenstufe ' . $levelTen, '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/LevelTen',
                             null,
                             array(
                                 'PrepareId' => $tblPrepare->getId(),
                                 'PersonId' => $tblPerson->getId(),
                             ),
-                            'Klassenstufe 10 bearbeiten und anzeigen'))
+                            'Klassenstufe ' . $levelTen . ' bearbeiten und anzeigen'))
                         . (new Standard(
                             'Sonstige Informationen', '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/OtherInformation',
                             null,
@@ -280,8 +297,20 @@ class Frontend extends Extension
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblYear = $tblPrepare->getYear())
         ) {
-            $blockI = new BlockI($tblPerson, $tblPrepare, $View);
+            // BGy
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && $tblSchoolType->getShortName() == 'BGy'
+            ) {
+                $courseSelectedCount = 36;
+                $blockI = new \SPHERE\Application\Education\Certificate\Prepare\BGyAbitur\BlockI($tblPerson, $tblPrepare, $View);
+            } else {
+                // Gy
+                $courseSelectedCount = 40;
+                $blockI = new BlockI($tblPerson, $tblPrepare, $View);
+            }
 
             $form = $blockI->getForm();
 
@@ -315,12 +344,12 @@ class Frontend extends Extension
 
             list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI($tblPrepare, $tblPerson);
 
-            if ($countCourses == 40) {
+            if ($countCourses == $courseSelectedCount) {
                 $countCourses = new \SPHERE\Common\Frontend\Message\Repository\Success(
-                    new Check() . ' ' . $countCourses . ' von 40 Kursen eingebracht.');
+                    new Check() . ' ' . $countCourses . ' von ' . $courseSelectedCount . ' Kursen eingebracht.');
             } else {
                 $countCourses = new \SPHERE\Common\Frontend\Message\Repository\Warning(
-                    new Disable() . ' ' . $countCourses . ' von 40 Kursen eingebracht.');
+                    new Disable() . ' ' . $countCourses . ' von ' . $courseSelectedCount . ' Kursen eingebracht.');
             }
 
             if ($resultBlockI >= 200) {
@@ -446,9 +475,22 @@ class Frontend extends Extension
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
         ) {
-            $levelTen = new LevelTen($tblPerson, $tblPrepare);
+            // BGy
+            if (($tblYear = $tblPrepare->getYear())
+                && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && $tblSchoolType->getShortName() == 'BGy'
+            ) {
+                $levelEleven = new LevelEleven($tblPerson, $tblPrepare);
+                $stage->setDescription('Ergebnisse der Pflichtfächer, die in Klassenstufe 11 abgeschlossen wurden');
 
-            $stage->setContent($levelTen->getContent($Data));
+                $stage->setContent($levelEleven->getContent($Data));
+            } else {
+                // Gy
+                $levelTen = new LevelTen($tblPerson, $tblPrepare);
+
+                $stage->setContent($levelTen->getContent($Data));
+            }
         }
 
         return $stage;

@@ -111,7 +111,10 @@ class Frontend extends Extension
                     if (($tblSchoolTypeList = $tblGenerateCertificate->getSchoolTypes())) {
                         /** @var TblType $tblSchoolType */
                         foreach ($tblSchoolTypeList as $tblSchoolType) {
-                            if ($tblSchoolType->getShortName() == 'Gy' || $tblSchoolType->getShortName() == 'OS') {
+                            if ($tblSchoolType->getShortName() == 'Gy'
+                                || $tblSchoolType->getShortName() == 'BGy'
+                                || $tblSchoolType->getShortName() == 'OS'
+                            ) {
                                 $hasDiplomaCertificate = true;
                                 break;
                             }

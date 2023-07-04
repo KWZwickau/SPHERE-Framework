@@ -56,6 +56,11 @@ abstract class BGymStyle extends Certificate
         return $slice;
     }
 
+    /**
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
     protected function getSchoolNameBGym(string $marginTop = '25px'): Slice
     {
         if (($tblSetting = Consumer::useService()->getSetting(
@@ -632,6 +637,7 @@ abstract class BGymStyle extends Certificate
      * @param $personId
      * @param bool $hasTudor
      * @param string $marginTop
+     * @param bool $hasCustodySign
      *
      * @return Slice
      */
@@ -860,7 +866,7 @@ abstract class BGymStyle extends Certificate
      *
      * @return Slice
      */
-    private function setPointsOverview(string $textSize): Slice
+    protected function setPointsOverview(string $textSize): Slice
     {
         $slice = new Slice();
 
