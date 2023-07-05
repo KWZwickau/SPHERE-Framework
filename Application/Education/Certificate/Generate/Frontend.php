@@ -832,7 +832,11 @@ class Frontend extends Extension
                     $checkSubjectsString = '';
                     if ($tblCertificate) {
                         // Abitur Fächerprüfung ignorieren
-                        if ($tblCertificate->getCertificate() == 'GymAbitur') {
+                        if ($tblCertificate->getCertificate() == 'GymAbitur'
+                            || $tblCertificate->getCertificate() == 'BGymAbitur'
+                            || $tblCertificate->getCertificate() == 'BGymKurshalbjahreszeugnis'
+                            || $tblCertificate->getCertificate() == 'BGymAbgSekII'
+                        ) {
                             $checkSubjectsString = new Success(
                                 new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Keine Fächerzuordnung erforderlich.'
                             );
