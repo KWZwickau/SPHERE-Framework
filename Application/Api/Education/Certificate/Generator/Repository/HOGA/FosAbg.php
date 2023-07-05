@@ -86,7 +86,7 @@ class FosAbg extends Style
                     , $textSize2)->styleAlignCenter()->styleTextBold()->styleMarginTop('-5px'))
                 ->addElement($this->getElement('besucht und folgende Leistungen erreicht', $textSize)->styleAlignCenter())
             )
-            ->addSlice($this->getCustomFosSubjectLanes($personId, '5px', true, false)->styleHeight('260px'))
+            ->addSlice($this->getCustomFosSubjectLanes($personId, '5px', true, false)->styleHeight('255px'))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn($this->getElement('Bemerkungen:', $textSize)
@@ -108,7 +108,7 @@ class FosAbg extends Style
                     '{{ Content.P' . $personId . '.Input.Exam_Text }} ', $textSize
                 ))
             )
-            ->addSlice($this->getCustomFosSignPart($personId))
-            ->addSlice($this->getCustomFosInfo());
+            ->addSlice($this->getCustomFosSignPart($personId, '5px'))
+            ->addSlice($this->getCustomFosInfo('-5px'));
     }
 }
