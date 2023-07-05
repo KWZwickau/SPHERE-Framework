@@ -245,7 +245,7 @@ class BeSOFS extends Certificate
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('2. Empfehlung der Klassenkonverenz')
+                    ->setContent('2. Empfehlung der Klassenkonferenz')
                     ->styleTextSize('16px')
                     ->styleTextBold()
                     ->styleMarginTop('6px')
