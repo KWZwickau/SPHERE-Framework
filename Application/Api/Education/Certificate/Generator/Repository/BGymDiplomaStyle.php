@@ -79,6 +79,7 @@ abstract class BGymDiplomaStyle extends BGymStyle
         return (new Slice())
             ->addElement((new Element())
                 ->setContent('Wahlbereich')
+                ->styleTextBold()
                 ->styleAlignCenter()
                 ->styleMarginTop('7px')
             )
@@ -114,7 +115,12 @@ abstract class BGymDiplomaStyle extends BGymStyle
 
         $averageList = array();
 
+        $borderSize = '1px';
+        $borderColor = 'black';
+
         if ($this->tblLeaveStudent) {
+            $borderSize = self::BORDER_SIZE;
+            $borderColor = self::BORDER_COLOR;
             for ($level = 12; $level < 14; $level++) {
                 for ($term = 1; $term < 3; $term++) {
                     $midTerm = $level . '-' . $term;
@@ -160,8 +166,9 @@ abstract class BGymDiplomaStyle extends BGymStyle
             ->addElementColumn((new Element())
                 ->setContent($tblSubject->getName() . ($isAdvancedCourse ? ' (LF)' : ''))
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
-                ->styleBorderBottom(self::BORDER_SIZE, self::BORDER_COLOR)
-                ->stylePaddingBottom('5px')
+                ->styleBorderBottom($borderSize, $borderColor)
+                ->stylePaddingTop('5px')
+                ->stylePaddingBottom('4px')
                 , $widthSubject . '%'
             )
             ->addElementColumn((new Element())->setContent('&nbsp;'), $widthSpace . '%')
@@ -173,7 +180,7 @@ abstract class BGymDiplomaStyle extends BGymStyle
             ->addElementColumn((new Element())->setContent('&nbsp;'), $widthSpace . '%')
             ->addElementColumn($this->getElementPoints($grades['13-2']), $widthPoints . '%')
             ->addElementColumn((new Element())->setContent('&nbsp;'), $widthSpace . '%')
-            ->addElementColumn($this->getElementPoints($this->getAverageText($averageList)), $widthGrade . '%')
+            ->addElementColumn($this->getElementPoints($this->getAverageTextByGradeList($averageList)), $widthGrade . '%')
             ;
     }
 

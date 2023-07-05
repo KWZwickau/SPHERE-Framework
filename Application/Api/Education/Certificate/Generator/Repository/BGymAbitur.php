@@ -10,12 +10,14 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Text\Repository\Underline;
 
 class BGymAbitur extends BGymDiplomaStyle
 {
@@ -37,9 +39,17 @@ class BGymAbitur extends BGymDiplomaStyle
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
+        $isBellUsed = false;
         if ($tblPerson) {
             list($this->advancedCourses, $this->basicCourses) = DivisionCourse::useService()->getCoursesForStudent($tblPerson);
             $this->tblPerson = $tblPerson;
+
+            if ($this->getTblPrepareCertificate()
+                && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'IsBellUsed'))
+                && $tblPrepareInformation->getValue()
+            ) {
+                $isBellUsed = true;
+            }
         }
 
         // Seite 4 zuerst für Multi-Pdf-Druck
@@ -48,8 +58,6 @@ class BGymAbitur extends BGymDiplomaStyle
             ->addSlice($this->getLevelElven($tblPerson ?: null))
             ->addSlice($this->getForeignLanguagesWithRemark($tblPerson ?: null))
             ->addSlice($this->getFootNotes()->styleMarginTop('15px'));
-            // todo ausrichtung
-        ;
 
         if (($tblPrepare = $this->getTblPrepareCertificate()) && $tblPrepare->getDate()) {
             $certificateDate = $tblPrepare->getDate();
@@ -114,6 +122,7 @@ class BGymAbitur extends BGymDiplomaStyle
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Pflichtbereich')
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     ->styleMarginTop()
                     ->styleMarginTop('5px')
@@ -126,14 +135,12 @@ class BGymAbitur extends BGymDiplomaStyle
             ->addSlice($this->getChosenSubjectsDiploma());
 
 
-        $pageList = array();
-
         $pageList[] = (new Page())
             ->addSlice($this->getPageHeader($personId, 3))
             ->addSlice($this->getExamHeader())
-            ->addSlice($this->setExamRows($personId))
-            // todo exam und co
-            ;
+            ->addSlice($this->setExamRows($personId, $isBellUsed))
+            ->addSlice($this->getBell($personId, $isBellUsed))
+            ->addSlice($this->getResult($personId));
 
         return $pageList;
     }
@@ -299,7 +306,7 @@ class BGymAbitur extends BGymDiplomaStyle
                 ->addElementColumn((new Element())
                     ->setContent($leaderName)
                     ->styleTextSize('11px')
-                    ->stylePaddingTop('2px')
+                    ->stylePaddingTop()
                     ->styleAlignCenter()
                     , '35%')
                 ->addElementColumn((new Element())
@@ -313,7 +320,7 @@ class BGymAbitur extends BGymDiplomaStyle
                         {% endif %}'
                     )
                     ->styleTextSize('11px')
-                    ->stylePaddingTop('2px')
+                    ->stylePaddingTop()
                     ->styleAlignCenter()
                     , '35%')
             );
@@ -356,22 +363,26 @@ class BGymAbitur extends BGymDiplomaStyle
             ->styleMarginTop('15px')
             ->addElement((new Element())
                 ->setContent('Leistungen in der Qualifikationsphase' . $this->setSup('2)'))
+                ->styleTextBold()
                 ->styleAlignCenter()
                 ->styleMarginBottom('10px')
             )
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Fach')
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     , '40%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Punktzahlen in einfacher Wertung')
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     , '40%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Note' . $this->setSup('3)'))
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     , '20%'
                 )
@@ -387,6 +398,7 @@ class BGymAbitur extends BGymDiplomaStyle
                 )
                 ->addElementColumn((new Element())
                     ->setContent('12/I')
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     ->styleBorderBottom()
                     ->styleMarginTop($marginTop)
@@ -395,6 +407,7 @@ class BGymAbitur extends BGymDiplomaStyle
                 )
                 ->addElementColumn((new Element())
                     ->setContent('12/II')
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     ->styleBorderBottom()
                     ->styleMarginTop($marginTop)
@@ -403,6 +416,7 @@ class BGymAbitur extends BGymDiplomaStyle
                 )
                 ->addElementColumn((new Element())
                     ->setContent('13/I')
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     ->styleBorderBottom()
                     ->styleMarginTop($marginTop)
@@ -411,6 +425,7 @@ class BGymAbitur extends BGymDiplomaStyle
                 )
                 ->addElementColumn((new Element())
                     ->setContent('13/II')
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     ->styleBorderBottom()
                     ->styleMarginTop($marginTop)
@@ -433,33 +448,40 @@ class BGymAbitur extends BGymDiplomaStyle
         $textSize = '11px';
 
         return (new Slice())
-            ->styleMarginTop('10px')
+            ->styleMarginTop('15px')
             ->addElement((new Element())
                 ->setContent('Leistungen in der Abiturprüfung')
                 ->styleAlignCenter()
+                ->styleTextBold()
                 ->styleMarginBottom('10px')
             )
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Fach')
+                    ->stylePaddingTop('7px')
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     ->styleTextSize($textSize)
                     , '40%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Ergebnisse in' . new Container('einfacher Wertung'))
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     ->styleTextSize($textSize)
                     , '20%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Gesamtergebnis in' . new Container('vierfacher Wertung'))
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     ->styleTextSize($textSize)
                     , '20%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Note')
+                    ->stylePaddingTop('7px')
+                    ->styleTextBold()
                     ->styleAlignCenter()
                     ->styleTextSize($textSize)
                     , '20%'
@@ -477,13 +499,13 @@ class BGymAbitur extends BGymDiplomaStyle
                     ->styleAlignCenter()
                     ->styleTextSize($textSize)
                     ->stylePaddingTop('7px')
-                    , '10%'
+                    , '11%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('zusätzliche mündliche Prüfung')
                     ->styleAlignCenter()
                     ->styleTextSize($textSize)
-                    , '10%'
+                    , '11%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -561,8 +583,9 @@ class BGymAbitur extends BGymDiplomaStyle
                 ->addElementColumn((new Element())
                     ->setContent($subject)
                     ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
-                    ->styleBorderBottom(self::BORDER_SIZE, self::BORDER_COLOR)
-                    ->stylePaddingBottom('5px')
+                    ->styleBorderBottom()
+                    ->stylePaddingTop('5px')
+                    ->stylePaddingBottom('4px')
                     , '84%'
                 )
                 ->addElementColumn((new Element())->setContent('&nbsp;'), '1%')
@@ -603,8 +626,8 @@ class BGymAbitur extends BGymDiplomaStyle
             switch ($i) {
                 case 1: $ranking = 'ersten'; break;
                 case 2: $ranking = 'zweiten'; break;
-                case 3: $ranking = 'dritten'; break;
-                case 4: $ranking = 'vierten'; break;
+//                case 3: $ranking = 'dritten'; break;
+//                case 4: $ranking = 'vierten'; break;
                 default: $ranking = '';
             }
 
@@ -740,39 +763,36 @@ class BGymAbitur extends BGymDiplomaStyle
 
     /**
      * @param $personId
+     * @param bool $isBellUsed
      *
      * @return Slice
      */
-    private function setExamRows($personId): Slice
+    private function setExamRows($personId, bool $isBellUsed): Slice
     {
-        if (($tblPerson = Person::useService()->getPersonById($personId))
-            && $this->getTblPrepareCertificate()
-            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'IsBellUsed'))
-            && $tblPrepareInformation->getValue()
-        ) {
-            $isBellUsed = true;
-        } else {
-            $isBellUsed = false;
-        }
-
         $sectionList = array();
 
         for ($i = 1; $i < 6; $i++) {
-            $section = new Section();
-
             $subjectName = '&ndash;';
             $writtenExam = '&ndash;';
             $verbalExam = '&ndash;';
             $extraVerbalExam = '&ndash;';
             $total = '&ndash;';
 
-            if ($tblPerson
+            if (($tblPerson = Person::useService()->getPersonById($personId))
                 && $this->getTblPrepareCertificate()
             ) {
                 if ($i == 4) {
-                    // todo mündliche Prüfung
-//                    $sectionList[] = (new Section())
-//                        ->addElementColumn()
+                    $sectionList[] = (new Section())
+                        ->addElementColumn((new Element())->setContent('&nbsp;'), '40%')
+                        ->addElementColumn((new Element())
+                            ->setContent('mündliche Prüfung')
+                            ->styleTextSize('11px')
+                            ->styleMarginBottom('-4px')
+                            ->styleAlignCenter()
+                            , '11%'
+                        )
+                        ->addElementColumn((new Element())->setContent('&nbsp;'))
+                    ;
                 }
 
                 if ($i < 4) {
@@ -870,27 +890,31 @@ class BGymAbitur extends BGymDiplomaStyle
     /**
      * @param string $subjectName
      * @param string $firstColumn
-     * @param string $verbalExam
      * @param string $secondColumn
      * @param string $total
      *
      * @return Section
      */
-    protected function getExamGradeLineDiploma(string $subjectName, string $firstColumn, string $secondColumn, string $total): Section
+    private function getExamGradeLineDiploma(string $subjectName, string $firstColumn, string $secondColumn, string $total): Section
     {
-        // todo
         $widthSubject = 39;
         $widthSpace = 1;
         $widthSpaceLarge = 4;
         $widthGrade = 20;
         $widthPoints = (100 - $widthSubject - 2 * $widthSpace - 2 * $widthSpaceLarge - $widthGrade) / 3;
 
+        $gradeText = '&ndash;';
+        if ($total) {
+            $gradeText = $this->getAverageText(round(intval($total) / 4));
+        }
+
         return (new Section())
             ->addElementColumn((new Element())
                 ->setContent($subjectName)
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
-                ->styleBorderBottom(self::BORDER_SIZE, self::BORDER_COLOR)
-                ->stylePaddingBottom('5px')
+                ->styleBorderBottom()
+                ->stylePaddingTop('5px')
+                ->stylePaddingBottom('4px')
                 , $widthSubject . '%'
             )
             ->addElementColumn((new Element())->setContent('&nbsp;'), $widthSpace . '%')
@@ -900,7 +924,240 @@ class BGymAbitur extends BGymDiplomaStyle
             ->addElementColumn((new Element())->setContent('&nbsp;'), $widthSpaceLarge . '%')
             ->addElementColumn($this->getElementPoints($total), $widthPoints . '%')
             ->addElementColumn((new Element())->setContent('&nbsp;'), $widthSpaceLarge . '%')
-            ->addElementColumn($this->getElementPoints(' todo  Note'), $widthGrade . '%')
-            ;
+            ->addElementColumn($this->getElementPoints($gradeText), $widthGrade . '%');
+    }
+
+    /**
+     * @param $personId
+     * @param bool $isBellUsed
+     *
+     * @return Slice
+     */
+    private function getBell($personId, bool $isBellUsed): Slice
+    {
+        $textSize = '11px';
+
+        $bellPoints = '&ndash;';
+        $gradeText = '&ndash;';
+        if (($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'BellPoints'))
+        ) {
+            $value = $tblPrepareInformation->getValue();
+            if ($value !== null && $value !== '') {
+                $bellPoints = ($isBellUsed ? '' : '(')
+                    . str_pad($value,2, 0, STR_PAD_LEFT)
+                    . ($isBellUsed ? '' : ')');
+                $gradeText = $this->getAverageText(round(intval($value) / 4));
+            }
+        }
+
+        return (new Slice)
+            ->addElement((new Element())
+                ->setContent('Besondere Lernleistung')
+                ->styleTextBold()
+                ->styleAlignCenter()
+                ->styleMarginTop('20px')
+                ->styleMarginBottom('10px')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())->setContent('&nbsp;'), '60%')
+                ->addElementColumn((new Element())
+                    ->setContent('Gesamtergebnis in' . new Container('vierfacher Wertung'))
+                    ->styleTextBold()
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    , '20%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Note')
+                    ->stylePaddingTop('7px')
+                    ->styleTextBold()
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    , '20%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent(new Underline('Thema:')
+                        . '{% if(Content.P' . $personId . '.Input.BellSubject is not empty) %}
+                            {{ Content.P' . $personId . '.Input.BellSubject|nl2br }}
+                        {% else %}
+                            &ndash;
+                        {% endif %}'
+                    )
+                    ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                    ->styleBorderBottom()
+                    ->stylePaddingTop('5px')
+                    ->stylePaddingBottom('4px')
+                )
+                ->addElementColumn((new Element())->setContent('&nbsp;'), '4%')
+                ->addElementColumn($this->getElementPoints($bellPoints), '10.33%')
+                ->addElementColumn((new Element())->setContent('&nbsp;'), '4%')
+                ->addElementColumn($this->getElementPoints($gradeText), '20%')
+            );
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Slice
+     */
+    private function getResult($personId): Slice
+    {
+        $textSize = '11px';
+        $resultBlockI = '&ndash;';
+        $resultBlockII = '&ndash;';
+        $resultAverageGrade = '&ndash;';
+        $resultAverageWord = '&ndash;';
+
+        $middle = 12;
+        $right = 20;
+
+        if (($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblPrepare = $this->getTblPrepareCertificate())
+        ) {
+            // Berechnung der Gesamtqualifikation und der Durchschnittsnote
+            /** @noinspection PhpUnusedLocalVariableInspection */
+            list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI(
+                $tblPrepare,
+                $tblPerson
+            );
+            $resultBlockII = Prepare::useService()->getResultForAbiturBlockII(
+                $tblPrepare,
+                $tblPerson
+            );
+            $resultPoints = $resultBlockI + $resultBlockII;
+            if ($resultBlockI >= 200 && $resultBlockII >= 100) {
+                $resultAverageGrade = Prepare::useService()->getResultForAbiturAverageGrade($resultPoints);
+                $resultAverageWord = Grade::useService()->getAverageInWord($resultAverageGrade);
+            } else {
+                $resultAverageGrade = '&nbsp;';
+            }
+        }
+
+        return (new Slice)
+            ->addElement((new Element())
+                ->setContent('Gesamtqualifikation und Durchschnittsnote')
+                ->styleTextBold()
+                ->styleAlignCenter()
+                ->styleMarginTop('20px')
+                ->styleMarginBottom('10px')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('1.&nbsp;&nbsp;&nbsp;&nbsp;Punktzahl in der Qualifikationsphase')
+                    ->stylePaddingTop('5px')
+                    ->stylePaddingBottom('4px')
+                    ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                )
+                ->addElementColumn($this->getElementPoints($resultBlockI)
+                    , $middle . '%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent(
+                        'mindestens 200 Punkte'
+                        . new Container('höchstens&nbsp;&nbsp; 600 Punkte')
+                    )
+                    ->styleAlignCenter()
+                    ->stylePaddingTop('6px')
+                    ->stylePaddingBottom('4px')
+                    ->styleTextSize($textSize)
+                    , $right . '%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('2.&nbsp;&nbsp;&nbsp;&nbsp;Punktsumme der Gesamtergebnisse in der Abiturprüfung')
+                    ->stylePaddingTop('5px')
+                    ->stylePaddingBottom('4px')
+                    ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                )
+                ->addElementColumn($this->getElementPoints($resultBlockII)
+                    , $middle . '%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent(
+                        'mindestens 100 Punkte'
+                        . new Container('höchstens&nbsp;&nbsp; 300 Punkte')
+                    )
+                    ->styleAlignCenter()
+                    ->stylePaddingTop('6px')
+                    ->stylePaddingBottom('4px')
+                    ->styleTextSize($textSize)
+                    , $right . '%'
+                )
+            )
+            ->addElement((new Element())
+                ->setContent('&nbsp;')
+                ->styleTextSize($textSize)
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Gesamtpunktzahl')
+                    ->stylePaddingTop('5px')
+                    ->stylePaddingBottom('4px')
+                    ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                )
+                ->addElementColumn($this->getElementPoints($resultBlockI + $resultBlockII)
+                    , $middle . '%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent(
+                        'mindestens 300 Punkte'
+                        . new Container('höchstens&nbsp;&nbsp; 900 Punkte')
+                    )
+                    ->styleAlignCenter()
+                    ->stylePaddingTop('6px')
+                    ->stylePaddingBottom('4px')
+                    ->styleTextSize($textSize)
+                    , $right . '%'
+                )
+            )
+            ->addElement((new Element())
+                ->setContent('&nbsp;')
+                ->styleTextSize($textSize)
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Durchschnittsnote:')
+                    ->stylePaddingTop('5px')
+                    ->stylePaddingBottom('4px')
+                    ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE),
+                    '35%'
+                )
+                ->addElementColumn($this->getElementPoints($resultAverageGrade)
+                    , $middle . '%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                )
+                ->addElementColumn($this->getElementPoints($resultAverageWord)
+                    , '32%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleTextSize($textSize),
+                    '35%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('in Ziffern')
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    , $middle . '%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleTextSize($textSize)
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('in Worten')
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    , '32%'
+                )
+            );
     }
 }

@@ -21,9 +21,9 @@ abstract class BGymStyle extends Certificate
 
     // Grades
     const BACKGROUND = self::BACKGROUND_GRADE_FIELD;
-    const MARGIN_TOP_GRADE_LINE = '10px';
-    const PADDING_TOP_GRADE = '3px';
-    const PADDING_BOTTOM_GRADE = '3px';
+    const MARGIN_TOP_GRADE_LINE = '8px';
+    const PADDING_TOP_GRADE = '4px';
+    const PADDING_BOTTOM_GRADE = '4px';
     const SUBJECT_WIDTH = 37;
     const GRADE_WIDTH = 10;
     const TEXT_SIZE_SMALL = '14px';
@@ -1048,29 +1048,40 @@ abstract class BGymStyle extends Certificate
      *
      * @return string
      */
-    public static function getAverageText(array $gradeList): string
+    public static function getAverageTextByGradeList(array $gradeList): string
     {
         if ($gradeList) {
             $average = intval(round(array_sum($gradeList) / count($gradeList)));
 
-            switch ($average) {
-                case 15:
-                case 14:
-                case 13: return 'sehr gut';
-                case 12:
-                case 11:
-                case 10: return 'gut';
-                case 9:
-                case 8:
-                case 7: return 'befriedigend';
-                case 6:
-                case 5:
-                case 4: return 'ausreichend';
-                case 3:
-                case 2:
-                case 1: return 'mangelhaft';
-                case 0: return 'ungenügend';
-            }
+            return self::getAverageText($average);
+        }
+
+        return '&ndash;';
+    }
+
+    /**
+     * @param int $points
+     * @return string
+     */
+    protected static function getAverageText(int $points): string
+    {
+        switch ($points) {
+            case 15:
+            case 14:
+            case 13: return 'sehr gut';
+            case 12:
+            case 11:
+            case 10: return 'gut';
+            case 9:
+            case 8:
+            case 7: return 'befriedigend';
+            case 6:
+            case 5:
+            case 4: return 'ausreichend';
+            case 3:
+            case 2:
+            case 1: return 'mangelhaft';
+            case 0: return 'ungenügend';
         }
 
         return '&ndash;';

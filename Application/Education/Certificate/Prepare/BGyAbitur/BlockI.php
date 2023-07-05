@@ -30,6 +30,8 @@ class BlockI extends AbstractBlock
 
     private int $count = 0;
 
+    protected array $tblSubjectList = array();
+
     /**
      * @var TblPrepareStudent[]|array
      */
@@ -151,7 +153,11 @@ class BlockI extends AbstractBlock
                             $this->getWorkFieldTable(''),
                             Panel::PANEL_TYPE_PRIMARY
                         ),
-                        // todo Wahlbereich
+                        new Panel(
+                            'Wahlbereich',
+                            $this->getChosenSubjectsTable(),
+                            Panel::PANEL_TYPE_PRIMARY
+                        ),
                     ))
                 ))
             ))
@@ -177,6 +183,7 @@ class BlockI extends AbstractBlock
             {
                 if (isset($this->AdvancedCourses[$tblSubject->getId()]) || isset($this->BasicCourses[$tblSubject->getId()])) {
                     $dataList = $this->setSubjectRow($dataList, $tblSubject);
+                    $this->tblSubjectList[$tblSubject->getId()] = $tblSubject;
                 }
             }
         }
@@ -188,6 +195,42 @@ class BlockI extends AbstractBlock
             $this->interactive
         );
         $table->setHash('Berufliches Abitur - Overview - Show - ' . $workField);
+
+        return $table;
+    }
+
+    /**
+     * @return TableData
+     */
+    private function getChosenSubjectsTable(): TableData
+    {
+        $dataList = array();
+        $chosenSubjectList = array();
+        foreach ($this->AdvancedCourses as $advancedCourse) {
+            if (!isset($this->tblSubjectList[$advancedCourse->getId()])) {
+                $chosenSubjectList[] = $advancedCourse;
+            }
+        }
+        foreach ($this->BasicCourses as $basicCourse) {
+            if (!isset($this->tblSubjectList[$basicCourse->getId()])) {
+                $chosenSubjectList[] = $basicCourse;
+            }
+        }
+
+        if ($chosenSubjectList) {
+            foreach ($chosenSubjectList as $tblSubject)
+            {
+                $dataList = $this->setSubjectRow($dataList, $tblSubject);
+            }
+        }
+
+        $table = new TableData(
+            $dataList,
+            null,
+            $this->columnDefinition,
+            $this->interactive
+        );
+        $table->setHash('Berufliches Abitur - Overview - Show - Wahlbereich');
 
         return $table;
     }
@@ -283,7 +326,7 @@ class BlockI extends AbstractBlock
                 '12-2' => $grades['12-2'] ?? '',
                 '13-1' => $grades['13-1'] ?? '',
                 '13-2' => $grades['13-2'] ?? '',
-                'FinalGrade' => BGymStyle::getAverageText($averageList)
+                'FinalGrade' => BGymStyle::getAverageTextByGradeList($averageList)
             );
         }
 
