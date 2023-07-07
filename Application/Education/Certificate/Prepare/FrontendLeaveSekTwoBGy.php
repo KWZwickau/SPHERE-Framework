@@ -4,8 +4,10 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
+use SPHERE\Application\Education\Certificate\Prepare\BGyAbitur\LeaveLevelEleven;
 use SPHERE\Application\Education\Certificate\Prepare\BGyAbitur\LeavePoints;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -19,20 +21,25 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
 abstract class FrontendLeaveSekTwoBGy extends FrontendLeaveSekTwo
@@ -142,6 +149,12 @@ abstract class FrontendLeaveSekTwoBGy extends FrontendLeaveSekTwo
                                 'SchoolType' => 'BGy'
                             )
                         ),
+                        new Standard('Klassenstufe 11 bearbeiten',
+                            '/Education/Certificate/Prepare/Leave/Student/Abitur/LevelEleven',
+                            new Edit(), array(
+                                'Id' => $tblLeaveStudent->getId(),
+                            )
+                        ),
                         '<br />',
                         '<br />'
                     )),
@@ -182,6 +195,18 @@ abstract class FrontendLeaveSekTwoBGy extends FrontendLeaveSekTwo
                     $remarkInformation->getValue()
                 );
             }
+            if (($bellSubjectInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'BellSubject'))) {
+                $panelList[] = new Panel(
+                    'Thema der Besonderen Lernleistung',
+                    $bellSubjectInformation->getValue()
+                );
+            }
+            if (($bellPointsInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'BellPoints'))) {
+                $panelList[] = new Panel(
+                    'Punktzahl der besonderen Lernleistung in einfacher Wertung',
+                    $bellPointsInformation->getValue()
+                );
+            }
 
             $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn(
                 new Panel(
@@ -216,6 +241,10 @@ abstract class FrontendLeaveSekTwoBGy extends FrontendLeaveSekTwo
         $datePicker = (new DatePicker('Data[CertificateDate]', '', 'Zeugnisdatum', new Calendar()))->setRequired();
         $remarkTextArea = new TextArea('Data[RemarkWithoutTeam]', '', 'Bemerkungen');
 
+        // Besondere Lernleistung BELL
+        $bellSubject = (new TextField('Data[BellSubject]', '', 'Thema'));
+        $bellPoints = (new TextField('Data[BellPoints]', '', 'Punktzahl in einfacher Wertung'));
+
         // headmaster
         $headmasterNameTextField = new TextField('Data[HeadmasterName]', '',
             'Name des/der Schulleiters/in');
@@ -242,6 +271,9 @@ abstract class FrontendLeaveSekTwoBGy extends FrontendLeaveSekTwo
             $datePicker->setDisabled();
             $remarkTextArea->setDisabled();
 
+            $bellSubject->setDisabled();
+            $bellPoints->setDisabled();
+
             $headmasterNameTextField->setDisabled();
             $headmasterRadioSex1->setDisabled();
             $headmasterRadioSex2->setDisabled();
@@ -263,6 +295,16 @@ abstract class FrontendLeaveSekTwoBGy extends FrontendLeaveSekTwo
                 new Panel(
                     'Sonstige Informationen',
                     $otherInformationList,
+                    Panel::PANEL_TYPE_INFO
+                )
+            )),
+            new FormRow(new FormColumn(
+                new Panel(
+                    'Besondere Lernleistung',
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn($bellSubject, 6),
+                        new LayoutColumn($bellPoints, 6)
+                    )))),
                     Panel::PANEL_TYPE_INFO
                 )
             )),
@@ -297,5 +339,103 @@ abstract class FrontendLeaveSekTwoBGy extends FrontendLeaveSekTwo
                     , 6),
             )),
         )));
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function frontendLeaveStudentAbiturLevelEleven(
+        $Id = null,
+        $Data = null
+    ): Stage {
+        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($Id))
+            && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+        ) {
+            $stage = new Stage(new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Ergebnisse der Pflichtfächer, die in Klassenstufe 11 abgeschlossen wurden'));
+
+            $tblYear = $tblLeaveStudent->getServiceTblYear();
+            $tblCertificate = $tblLeaveStudent->getServiceTblCertificate();
+
+            $stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/Prepare/Leave/Student', new ChevronLeft(), array(
+                    'PersonId' => $tblPerson->getId(),
+                    'YearId' => $tblYear ? $tblYear->getId() : 0
+                )
+            ));
+
+            $tblType = false;
+            if ($tblYear && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                $tblType = $tblStudentEducation->getServiceTblSchoolType();
+            }
+
+            if (Student::useService()->getIsSupportByPerson($tblPerson)) {
+                $support = ApiSupportReadOnly::openOverViewModal($tblPerson->getId(), false);
+            } else {
+                $support = false;
+            }
+
+            $layoutGroups[] = new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel(
+                            'Schüler',
+                            $tblPerson->getLastFirstNameWithCallNameUnderline(),
+                            Panel::PANEL_TYPE_INFO
+                        )
+                        , 3),
+                    new LayoutColumn(
+                        new Panel(
+                            'Schuljahr',
+                            $tblYear->getDisplayName(),
+                            Panel::PANEL_TYPE_INFO
+                        )
+                        , 3),
+                    new LayoutColumn(
+                        new Panel(
+                            'Schulart',
+                            $tblType
+                                ? $tblType->getName()
+                                : new Warning(new Exclamation()
+                                . ' Keine aktuelle Schulart zum Schüler gefunden!'),
+                            $tblType ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
+                        )
+                        , 3),
+                    new LayoutColumn(
+                        new Panel(
+                            'Zeugnisvorlage',
+                            $tblCertificate
+                                ? $tblCertificate->getName()
+                                . ($tblCertificate->getDescription()
+                                    ? new Muted(' - ' . $tblCertificate->getDescription()) : '')
+                                : new Warning(new Exclamation()
+                                . ' Keine Zeugnisvorlage verfügbar!'),
+                            $tblCertificate ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
+                        )
+                        , 3),
+                    ($support
+                        ? new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO))
+                        : null
+                    )
+                )),
+            ));
+
+            $levelEleven = new LeaveLevelEleven($tblPerson, $tblLeaveStudent);
+            $content = $levelEleven->getContent($Data);
+
+            $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn(
+                $content
+            )));
+
+            $stage->setContent(new Layout($layoutGroups));
+
+            return $stage;
+        } else {
+            return new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Schüler')
+                . new Danger('Schüler nicht gefunden', new Ban())
+                . new Redirect('/Education/Certificate/Prepare/Leave', Redirect::TIMEOUT_ERROR);
+        }
     }
 }

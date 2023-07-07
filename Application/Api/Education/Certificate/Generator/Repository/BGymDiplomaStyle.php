@@ -115,12 +115,7 @@ abstract class BGymDiplomaStyle extends BGymStyle
 
         $averageList = array();
 
-        $borderSize = '1px';
-        $borderColor = 'black';
-
         if ($this->tblLeaveStudent) {
-            $borderSize = self::BORDER_SIZE;
-            $borderColor = self::BORDER_COLOR;
             for ($level = 12; $level < 14; $level++) {
                 for ($term = 1; $term < 3; $term++) {
                     $midTerm = $level . '-' . $term;
@@ -166,7 +161,7 @@ abstract class BGymDiplomaStyle extends BGymStyle
             ->addElementColumn((new Element())
                 ->setContent($tblSubject->getName() . ($isAdvancedCourse ? ' (LF)' : ''))
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
-                ->styleBorderBottom($borderSize, $borderColor)
+                ->styleBorderBottom()
                 ->stylePaddingTop('5px')
                 ->stylePaddingBottom('4px')
                 , $widthSubject . '%'

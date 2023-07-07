@@ -158,7 +158,6 @@ class LeavePoints extends Extension
                             Panel::PANEL_TYPE_PRIMARY
                         ),
                         new Panel(
-                            // todo Wahlbereich
                             'Wahlbereich',
                             $this->getChosenSubjectsTable(),
                             Panel::PANEL_TYPE_PRIMARY
