@@ -433,8 +433,7 @@ class Service extends AbstractService
         if($tblPersonList){
             /** @var TblPerson $tblPerson */
             foreach($tblPersonList as $tblPerson) {
-                if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson,
-                    $tblItem))){
+                if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
                     foreach($tblDebtorSelectionList as $tblDebtorSelection) {
                         $Item = array();
                         $IsNoDebtorSelection = false;
@@ -497,7 +496,7 @@ class Service extends AbstractService
                             $isInvoice = false;
                             $SjString = $tblBasket->getYear();
                             $YearSplit = str_split($SjString,2);
-                            if($Month > 8){
+                            if($Month >= 8){
                                 $Year++;
                                 $YearString = $SjString.'/'.($YearSplit[1]+1);
                             } else {
