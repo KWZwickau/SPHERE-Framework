@@ -266,6 +266,7 @@ class Service
                     'Sorgeberechtigter4_GO'               => null,
                     'Sorgeberechtigter4_GD'               => null,
                     'Sorgeberechtigter4_Beruf'            => null,
+                    'Zusatzfeld5'                        => null,
                     'Zusatzfeld10'                        => null,
                 );
 
@@ -352,6 +353,16 @@ class Service
                                 Group::useService()->addGroupPerson($tblGroupHofa, $tblPerson);
                             }
 
+                            $Remark = trim($Document->getValue($Document->getCell($Location['Schüler_allgemeine_Bemerkungen'], $RunY)));
+                            $Buchsatz = trim($Document->getValue($Document->getCell($Location['Zusatzfeld5'], $RunY)));
+                            if($Buchsatz){
+                                $Remark = ($Remark?' ':'').'Buchsatz: '.$Buchsatz;
+                            }
+                            $Zecken = trim($Document->getValue($Document->getCell($Location['Zusatzfeld10'])));
+                            if($Zecken){
+                                $Remark = ($Remark?' ':'').$Zecken;
+                            }
+
                             // Student Common
                             Common::useService()->insertMeta(
                                 $tblPerson,
@@ -364,8 +375,8 @@ class Service
                                 trim($Document->getValue($Document->getCell($Location['Schüler_Konfession'], $RunY))),
                                 0,
                                 '',
-                                trim($Document->getValue($Document->getCell($Location['Schüler_allgemeine_Bemerkungen'], $RunY)))
-                                .trim($Document->getValue($Document->getCell($Location['Zusatzfeld10'], $RunY)))
+                                $Remark
+                                , $RunY
                             );
 
                             // Student Address
@@ -1137,7 +1148,7 @@ class Service
         $Document,
         $Location,
         $RunY,
-        $error,
+        &$error,
         $importService,
         $tblCommonGenderMale,
         $tblCommonGenderFemale,
@@ -1149,6 +1160,15 @@ class Service
         $tblPersonCustody = null;
         $CustodyFirstName = $this->getValue('Sorgeberechtigter' . $ranking . '_Vorname', $Location, $Document, $RunY);
         $CustodyLastName = $this->getValue('Sorgeberechtigter' . $ranking . '_Name', $Location, $Document, $RunY);
+        if($CustodyFirstName && !$CustodyLastName){
+            $CustodyLastName = '?'.$tblPerson->getLastName().'?';
+            $error[] = 'Zeile: ' . ($RunY + 1) . ' Sorgeberechtigter S'.$ranking.': '.$CustodyFirstName
+                .' ohne Nachname erhält diesen vom Schüler: '.$CustodyLastName;
+        } elseif(!$CustodyFirstName && $CustodyLastName){
+            $error[] = 'Zeile: ' . ($RunY + 1) . ' Sorgeberechtigter S'.$ranking.': '.$CustodyLastName
+                .' ohne Vornamen kann nicht importiert werden. "'.$CustodyLastName.'"';
+        }
+
         $cityCode = $importService->formatZipCode('Sorgeberechtigter' . $ranking . '_Plz', $RunY);
         if ($CustodyLastName !== '') {
             $status = $this->getValue('Sorgeberechtigter' . ($ranking == 1 ? '' : $ranking) . '_Status', $Location, $Document, $RunY);

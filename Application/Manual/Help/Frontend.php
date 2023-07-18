@@ -58,8 +58,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn('<h4>Link zu Lehrvideos <b>Notenbuch</b></h4>'
                             . (new Link(new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                                // todo link
-                                , 'Link zu Lehrvideos Notenbuch '.new Muted(new Small('Stand:&nbsp;07.07.2023'))), 'https://www.youtube.com/playlist?list=PLvZfeA-UBJ_z_MRV2-lVLoW3cnYJ4wEJh'))
+                                , 'Link zu Lehrvideos Notenbuch '.new Muted(new Small('Stand:&nbsp;07.07.2023'))), 'https://www.youtube.com/playlist?list=PLvZfeA-UBJ_wjWmbKjMZbzBab1MJx-xKO'))
                                 ->setExternal()
                             , 3),
                         new LayoutColumn('', 2),
