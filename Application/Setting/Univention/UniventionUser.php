@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Univention;
 
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -105,6 +106,7 @@ class UniventionUser
             // Mandant + AccountId
 //            'source_uid' => $source_uid // kann raus, ist nur für den CSV Import wichtig
         );
+        $UserData = $PersonContent;
         $PersonContent = json_encode($PersonContent);
 //        echo'<pre>';
 //        echo 'Gesendete Daten:';
@@ -187,6 +189,21 @@ class UniventionUser
             $Error .= new Container($Json);
             return $Error;
         }
+        if($Error !== null
+        && ($tblAccount = Account::useService()->getAccountBySession())
+        && $tblAccount->getServiceTblIdentification()->getName() == 'System'
+        ) {
+            $Error .= '<pre>'.print_r($UserData, true).'</pre>';
+        } elseif($Error !== null) {
+            $Error .= '<pre>'.print_r(array(
+                    'record_uid'  => $UserData['record_uid'],
+                    'AccountName' => $UserData['name'],
+                    'Vorname'     => $UserData['firstname'],
+                    'Nachname'    => $UserData['lastname'],
+                    'User-Email'  => $UserData['email'],
+                    'Reco-Email'  => $UserData['udm_properties']['PasswordRecoveryEmail']
+                ), true).'</pre>';
+        }
 
         return $Error;
     }
@@ -234,6 +251,7 @@ class UniventionUser
             // Mandant + AccountId to human resolve problems?
 //            'source_uid' => $source_uid
         );
+        $UserData = $PersonContent;
 
 //        Debugger::devDump($PersonContent);
 
@@ -308,6 +326,21 @@ class UniventionUser
             $Error = $e;
             $Error .= new Container($Json);
             return $Error;
+        }
+        if($Error !== null
+        && ($tblAccount = Account::useService()->getAccountBySession())
+        && $tblAccount->getServiceTblIdentification()->getName() == 'System'
+        ) {
+            $Error .= '<pre>'.print_r($UserData, true).'</pre>';
+        } elseif($Error !== null) {
+            $Error .= '<pre>'.print_r(array(
+                    'record_uid'  => $UserData['record_uid'],
+                    'AccountName' => $UserData['name'],
+                    'Vorname'     => $UserData['firstname'],
+                    'Nachname'    => $UserData['lastname'],
+                    'User-Email'  => $UserData['email'],
+                    'Reco-Email'  => $UserData['udm_properties']['PasswordRecoveryEmail']
+                ), true).'</pre>';
         }
 
         return $Error;

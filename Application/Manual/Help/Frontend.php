@@ -43,19 +43,25 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn('', 3),
-                        new LayoutColumn(
-                            new Layout(new LayoutGroup(new LayoutRow(array(
-                                new LayoutColumn('', 3),
-                                new LayoutColumn('<h4>Schulsoftware Download der Hilfe</h4>'
-                                    .new Link(new Thumbnail(
-                                        FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                        , 'Allgemeine Hilfe '.new Muted(new Small('Stand:&nbsp;18.04.2023'))), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Help'))
-                                , 6),
-                                new LayoutColumn('', 3),
-                            ))))
-                        , 6),
-                        new LayoutColumn('', 3)
+                        new LayoutColumn('', 1),
+                        new LayoutColumn('<h4>Schulsoftware Download der Hilfe</h4>'
+                            . new Link(new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                                , 'Allgemeine Hilfe '.new Muted(new Small('Stand:&nbsp;18.04.2023'))), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Help'))
+                            , 3),
+                        new LayoutColumn('<h4>Link zu Lehrvideos <b>Kursverwaltung</b></h4>'
+                            . (new Link(new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                                , 'Link zu Lehrvideos Kursverwaltung '.new Muted(new Small('Stand:&nbsp;31.05.2023'))), 'https://www.youtube.com/playlist?list=PLvZfeA-UBJ_z_MRV2-lVLoW3cnYJ4wEJh'))
+                                ->setExternal()
+                            , 3),
+                        new LayoutColumn('<h4>Link zu Lehrvideos <b>Notenbuch</b></h4>'
+                            . (new Link(new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                                , 'Link zu Lehrvideos Notenbuch '.new Muted(new Small('Stand:&nbsp;07.07.2023'))), 'https://www.youtube.com/playlist?list=PLvZfeA-UBJ_wjWmbKjMZbzBab1MJx-xKO'))
+                                ->setExternal()
+                            , 3),
+                        new LayoutColumn('', 2),
                     )),
 
                     new LayoutRow(
