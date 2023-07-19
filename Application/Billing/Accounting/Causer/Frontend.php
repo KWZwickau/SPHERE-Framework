@@ -329,9 +329,9 @@ class Frontend extends Extension implements IFrontendInterface
                 if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
                     foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
                         $item['Item'] = $tblInvoiceItemDebtor->getName();
-                        $item['Price'] = $tblInvoiceItemDebtor->getPriceString();
+                        $item['Price'] = $tblInvoiceItemDebtor->getPriceString('€', true);
                         $item['Quantity'] = $tblInvoiceItemDebtor->getQuantity();
-                        $item['Summary'] = $tblInvoiceItemDebtor->getSummaryPrice();
+                        $item['Summary'] = $tblInvoiceItemDebtor->getSummaryPriceFrontend();
                         $CheckBox = (new CheckBox('IsPaid', ' ', $tblInvoiceItemDebtor->getId()))->ajaxPipelineOnClick(
                             ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId()));
                         if(!$tblInvoiceItemDebtor->getIsPaid()){

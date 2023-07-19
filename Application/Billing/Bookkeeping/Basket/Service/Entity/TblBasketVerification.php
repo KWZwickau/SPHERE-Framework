@@ -90,7 +90,7 @@ class TblBasketVerification extends Element
     {
 
         if($IsFormInput){
-            return str_replace('.', ',', str_replace(',', '', number_format($this->Value, 2)));
+            return number_format($this->Value, 2, ',', '');
         }
         return $this->Value;
     }

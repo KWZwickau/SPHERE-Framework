@@ -251,7 +251,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Offene Posten', 'Übersicht');
-        $TableContent = Invoice::useService()->getInvoiceUpPaidList();
+        $TableContent = Invoice::useService()->getInvoiceUnPaidList();
 
         $Stage->setContent(ApiInvoiceIsPaid::receiverService()
             .new Layout(

@@ -459,20 +459,17 @@ class TblInvoiceItemDebtor extends Element
 
     /**
      * @param string $Sign
-     * @param bool   $IsPointToComma
+     * @param bool   $isFrontend
      *
      * @return string
      */
-    public function getPriceString($Sign = '€', $IsPointToComma = false)
+    public function getPriceString($Sign = '€', $isFrontend = false)
     {
 
-
-        if($IsPointToComma){
-            $Value = number_format($this->Value, 2, ',', '').' '.$Sign;
-        } else {
-            $Value = number_format($this->Value, 2, '.', '').' '.$Sign;
+        if($isFrontend){
+            return $Value = number_format($this->Value, 2, ',', '.').' '.$Sign;
         }
-        return $Value;
+        return $Value = number_format($this->Value, 2, '.', '').' '.$Sign;
     }
 
     /**
@@ -487,6 +484,20 @@ class TblInvoiceItemDebtor extends Element
             $result = $this->Value;
         }
         return number_format($result, 2).' €';
+    }
+
+    /**
+     * @return string
+     * with " €"
+     */
+    public function getSummaryPriceFrontend()
+    {
+        if($this->Quantity !== 0){
+            $result = $this->Value * $this->Quantity;
+        } else {
+            $result = $this->Value;
+        }
+        return number_format($result, 2, ',', '.').' €';
     }
 
     /**

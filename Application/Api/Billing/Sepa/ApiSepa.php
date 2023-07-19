@@ -165,9 +165,9 @@ class ApiSepa extends Extension implements IApiInterface
 //                    }
 //                    $Price = str_replace('.', ',', $Price);
 //                    $item['SummaryPrice'] = $Price;
-                    $item['SummaryPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
+                    $item['SummaryPrice'] = $tblInvoiceItemDebtor->getSummaryPriceFrontend();
                     $EndPrice = round((float)$tblInvoiceItemDebtor->getSummaryPriceInt() + (float)$Value, 2);
-                    $EndPrice = number_format($EndPrice, 2, '.', '');
+                    $EndPrice = number_format($EndPrice, 2, ',', '.');
                     $EndPrice .= ' €';
                     $item['EndPrice'] = self::receiverEndPrice($EndPrice, $tblInvoiceItemDebtor->getId());
                     $item['Owner'] = $tblInvoiceItemDebtor->getOwner();
