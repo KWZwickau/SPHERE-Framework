@@ -1140,7 +1140,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                     $PriceString = $tblItemCalculation->getPriceString();
                 }
                 $PriceString = $tblItemVariant->getName().': '.$PriceString;
-            } elseif(($Value = $tblDebtorSelection->getValue())) {
+            } elseif(($Value = $tblDebtorSelection->getValuePriceString())) {
                 $PriceString = $Value;
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(

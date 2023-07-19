@@ -1068,7 +1068,7 @@ class Creator extends Extension
             $Data['BillTime'] = $tblInvoice->getBillTime('Y/m');
             $Data['BillName'] = $tblInvoice->getBasketName();
             $Data['Count'] = $tblInvoiceItemDebtor->getQuantity();
-            $Data['Price'] = $tblInvoiceItemDebtor->getPriceString();
+            $Data['Price'] = $tblInvoiceItemDebtor->getPriceString('€', true);
             $Data['SummaryPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
             $Data['TargetTime'] = $tblInvoice->getTargetTime();
 
