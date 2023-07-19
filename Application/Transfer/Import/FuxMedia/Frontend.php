@@ -14,12 +14,14 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -54,52 +56,55 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setContent(
             new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
-                        new Well(
-                            FuxSchool::useService()->getTypeAndYear(
-                                new Form(
-                                    new FormGroup(array(
-                                        new FormRow(array(
-                                            new FormColumn(
-                                                new SelectBox('Data[YearId]', 'Schuljahr',
-                                                    array('{{Name}}' => $tblYearAll)),
-                                                4
-                                            ),
-                                            new FormColumn(
-                                                new SelectBox('Data[TypeId]', 'Schulart auswählen',
-                                                    array('{{Name}}' => $tblTypeAll)),
-                                                4
-                                            ),
-                                            new FormColumn(
-                                                new Layout(new LayoutGroup(array(
-                                                    new LayoutRow(new LayoutColumn(
-                                                        '</br>'
-                                                    )),
-                                                    new LayoutRow(new LayoutColumn(
-                                                        new CheckBox('Data[UseTypeFromImport]', 'oder Schulart aus Spalte: Schüler_Schulart verwenden', 1)
-                                                    ))
-                                                ))),
-                                                4
-                                            ),
-                                        )),
-                                        new FormRow(array(
-                                            new FormColumn(
-                                                new SelectBox('Data[mail1]', 'Ziel Kommunikation_Email1',
-                                                    $mailTarget),
-                                                4
-                                            ),
-                                            new FormColumn(
-                                                new SelectBox('Data[mail2]', 'Ziel Kommunikation_Email2',
-                                                    $mailTarget),
-                                                4
-                                            ),
-                                        )),
-                                    ))
-                                    , new Primary('Auswählen', new Select())
-                                ), $Data, '/Transfer/Import/FuxMedia/Student/Import'
-                            )
+                    new Well(
+                        FuxSchool::useService()->getTypeAndYear(
+                            new Form(
+                                new FormGroup(array(
+                                    new FormRow(array(
+                                        new FormColumn(
+                                            new SelectBox('Data[YearId]', 'Schuljahr',
+                                                array('{{Name}}' => $tblYearAll)),
+                                            4
+                                        ),
+                                        new FormColumn(
+                                            new SelectBox('Data[TypeId]', 'Schulart auswählen',
+                                                array('{{Name}}' => $tblTypeAll)),
+                                            4
+                                        ),
+                                        new FormColumn(
+                                            new Layout(new LayoutGroup(array(
+                                                new LayoutRow(new LayoutColumn(
+                                                    '</br>'
+                                                )),
+                                                new LayoutRow(new LayoutColumn(
+                                                    new CheckBox('Data[UseTypeFromImport]', 'oder Schulart aus Spalte: Schüler_Schulart verwenden', 1)
+                                                ))
+                                            ))),
+                                            4
+                                        ),
+                                    )),
+                                    new FormRow(array(
+                                        new FormColumn(
+                                            new SelectBox('Data[mail1]', 'Ziel Kommunikation_Email1',
+                                                $mailTarget),
+                                            4
+                                        ),
+                                        new FormColumn(
+                                            new SelectBox('Data[mail2]', 'Ziel Kommunikation_Email2',
+                                                $mailTarget),
+                                            4
+                                        ),
+                                    )),
+                                ))
+                                , new Primary('Auswählen', new Select())
+                            ), $Data, '/Transfer/Import/FuxMedia/Student/Import'
                         )
-                    )
-                )
+                    ),
+                    new Info('Bemerkung besteht aus:'.
+                        new Container('Schüler_allgemeine_Bemerkungen -> $Value').
+                        new Container('Zusatzfeld5 -> "Buchsatz: $Value"').
+                        new Container('Zusatzfeld10 -> $Value'))
+                ))
             )))
         );
 
