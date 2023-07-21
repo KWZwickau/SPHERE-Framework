@@ -408,6 +408,38 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $PersonIdList
+     *
+     * @return array
+     */
+    public function getPersonArrayByIdList($PersonIdList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $Person = new TblPerson();
+        $Salutation = new TblSalutation('');
+
+        $query = $queryBuilder->select('tP.Id as tblPersonId, tS.Salutation, tP.FirstName, tP.SecondName, tP.LastName')
+            ->from($Person->getEntityFullName(), 'tP')
+            ->leftJoin($Salutation->getEntityFullName(), 'tS', 'WITH', 'tS.Id = tP.tblSalutation')
+            //            ->leftJoin($tblPerson->getEntityFullName(), 'tP',
+            //                'WITH', 'tP.Id = tM.serviceTblPerson')
+            ->where($queryBuilder->expr()->in('tP.Id', $PersonIdList))
+            ->andWhere($queryBuilder->expr()->isNull('tP.EntityRemove'))
+            ->getQuery();
+//        $ResultList = $query->getResult(ColumnHydrator::HYDRATION_MODE);
+        $result = $query->getResult();
+        $IdCorrectedResult = array();
+        if(!empty($result)){
+            foreach($result as $row){
+                $IdCorrectedResult[$row['tblPersonId']] = $row;
+            }
+        }
+        return $IdCorrectedResult;
+    }
+
+    /**
      * @param integer $ImportId
      *
      * @return bool|TblPerson

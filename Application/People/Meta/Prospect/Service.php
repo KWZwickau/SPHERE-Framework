@@ -158,6 +158,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @return false|TblProspectReservation[]
+     */
+    public function getProspectReservationAll()
+    {
+
+        return (new Data($this->getBinding()))->getProspectReservationAll();
+    }
+
+    /**
+     * @param array $FilterList
+     *
+     * @return mixed
+     */
+    public function fetchIdPersonByFilter(array $FilterList = array())
+    {
+
+        return (new Data($this->getBinding()))->fetchIdPersonByFilter($FilterList);
+    }
+
+    /**
      * @param TblPerson       $tblPerson
      * @param string          $ReservationDate
      * @param string          $InterviewDate
@@ -202,15 +222,6 @@ class Service extends AbstractService
             $tblProspectReservation,
             $Remark
         );
-    }
-
-    /**
-     * @return false|TblProspectReservation[]
-     */
-    public function getProspectReservationAll()
-    {
-
-        return (new Data($this->getBinding()))->getProspectReservationAll();
     }
 
     /**

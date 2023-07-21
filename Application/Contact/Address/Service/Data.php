@@ -999,6 +999,42 @@ class Data extends AbstractData
     }
 
     /**
+     * @param array $personIdList of TblAddress->Id
+     *
+     * @return array
+     */
+    public function fetchAddressAllByPersonIdList($personIdList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $tblAddress = new TblAddress();
+        $tblCity = new TblCity();
+        $tblToPerson = new TblToPerson();
+        $tblType = new TblType();
+
+        $Builder = $Manager->getQueryBuilder();
+        $Query = $Builder->select('tTP.serviceTblPerson as tblPersonId, tA.Id as tblAddressId, tA.StreetName, tA.StreetNumber, tA.StreetNumber, tC.Id as tblCityId, tC.Code, tC.Name, tC.District') //
+            ->from($tblToPerson->getEntityFullName(), 'tTP')
+            ->leftJoin($tblAddress->getEntityFullName(), 'tA', 'WITH', 'tA.Id = tTP.tblAddress')
+            ->leftJoin($tblCity->getEntityFullName(), 'tC', 'WITH', 'tC.Id = tA.tblCity')
+            ->leftJoin($tblType->getEntityFullName(), 'tT', 'WITH', 'tT.Id = tTP.tblType')
+            ->where($Builder->expr()->in('tTP.serviceTblPerson', '?1'))
+            ->andWhere($Builder->expr()->eq('tT.Name', '?2'))
+            ->andWhere($Builder->expr()->isNull('tTP.EntityRemove'))
+            ->setParameter(1, $personIdList)
+            ->setParameter(2, 'Hauptadresse')
+            ->getQuery();
+        $result = $Query->getResult();
+        $IdCorrectedResult = array();
+        if(!empty($result)){
+            foreach($result as $row){
+                $IdCorrectedResult[$row['tblPersonId']] = $row;
+            }
+        }
+        return $IdCorrectedResult;
+    }
+
+    /**
      * @param TblToPerson $tblToPerson
      *
      * @return bool
