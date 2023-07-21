@@ -643,7 +643,7 @@ class Service extends ServiceTabs
     public function getTimetableFromLastLessonContent(TblDivisionCourse $tblDivisionCourse, DateTime $dateTime, int $lesson)
     {
         // kein importierter Stundenplan für den Tag vorhanden
-        if (Timetable::useService()->getTimeTableNodeBy($tblDivisionCourse, $dateTime, null)) {
+        if (Timetable::useService()->getTimeTableNodeListBy($tblDivisionCourse, $dateTime, null)) {
             return false;
         }
 
