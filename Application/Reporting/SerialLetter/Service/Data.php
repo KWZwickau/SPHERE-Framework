@@ -89,11 +89,12 @@ class Data extends AbstractData
     private function isUpdateRequired()
     {
 
-        $tblFilterFieldAll = $this->getFilterFieldAll();
-        foreach($tblFilterFieldAll as $tblFilterField){
-            $Field = $tblFilterField->getField();
-            if($Field == 'TblDivision_Name' || $Field == 'TblLevel_Id'){
-                return true;
+        if(($tblFilterFieldAll = $this->getFilterFieldAll())){
+            foreach($tblFilterFieldAll as $tblFilterField){
+                $Field = $tblFilterField->getField();
+                if($Field == 'TblDivision_Name' || $Field == 'TblLevel_Id'){
+                    return true;
+                }
             }
         }
         return false;
