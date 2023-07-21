@@ -1012,6 +1012,9 @@ class Service extends AbstractService
                         if (($tblCertificate = Setting::useService()->getCertificateById($certificateId))
                             // Abitur Fächerprüfung ignorieren
                             && $tblCertificate->getCertificate() != 'GymAbitur'
+                            && $tblCertificate->getCertificate() != 'BGymAbitur'
+                            && $tblCertificate->getCertificate() != 'BGymKurshalbjahreszeugnis'
+                            && $tblCertificate->getCertificate() != 'BGymAbgSekII'
                             && !Setting::useService()->getCertificateSubjectIgnoreTechnicalCourseBySubject($tblCertificate, $tblSubject)
                         ) {
                             $subjectList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();

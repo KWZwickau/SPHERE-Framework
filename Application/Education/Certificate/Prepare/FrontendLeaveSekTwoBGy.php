@@ -2,11 +2,10 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
-use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekII;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
-use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockIView;
-use SPHERE\Application\Education\Certificate\Prepare\Abitur\LeavePoints;
+use SPHERE\Application\Education\Certificate\Prepare\BGyAbitur\LeaveLevelEleven;
+use SPHERE\Application\Education\Certificate\Prepare\BGyAbitur\LeavePoints;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -14,10 +13,8 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -30,9 +27,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -47,7 +42,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
-abstract class FrontendLeaveSekTwo extends FrontendLeave
+abstract class FrontendLeaveSekTwoBGy extends FrontendLeaveSekTwo
 {
     /**
      * @param TblPerson $tblPerson
@@ -59,7 +54,7 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
      *
      * @return array
      */
-    public function setLeaveContentForSekTwo(
+    public function setLeaveContentForSekTwoBGy(
         TblPerson $tblPerson,
         TblYear $tblYear,
         Stage $stage,
@@ -144,10 +139,18 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
                             '/Education/Certificate/Prepare/Leave/Student/Abitur/Points',
                             new Edit(), array(
                                 'Id' => $tblLeaveStudent->getId(),
+                                'SchoolType' => 'BGy'
                             )
                         ),
                         new Standard('Sonstige Informationen bearbeiten',
                             '/Education/Certificate/Prepare/Leave/Student/Abitur/Information',
+                            new Edit(), array(
+                                'Id' => $tblLeaveStudent->getId(),
+                                'SchoolType' => 'BGy'
+                            )
+                        ),
+                        new Standard('Klassenstufe 11 bearbeiten',
+                            '/Education/Certificate/Prepare/Leave/Student/Abitur/LevelEleven',
                             new Edit(), array(
                                 'Id' => $tblLeaveStudent->getId(),
                             )
@@ -168,15 +171,15 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
             }
 
             $panelList[] = array();
-            if (($leaveTermInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'LeaveTerm'))) {
+            if (($leaveTermInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'DateFrom'))) {
                 $panelList[] = new Panel(
-                    'verlässt das Gymnasium',
+                    'hat vom (Datum1)',
                     $leaveTermInformation->getValue()
                 );
             }
-            if (($midTermInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'MidTerm'))) {
+            if (($midTermInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'DateTo'))) {
                 $panelList[] = new Panel(
-                    'Kurshalbjahr',
+                    'hat bis (Datum2)',
                     $midTermInformation->getValue()
                 );
             }
@@ -186,10 +189,22 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
                     $dateInformation->getValue()
                 );
             }
-            if (($remarkInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'Remark'))) {
+            if (($remarkInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'RemarkWithoutTeam'))) {
                 $panelList[] = new Panel(
                     'Bemerkungen',
                     $remarkInformation->getValue()
+                );
+            }
+            if (($bellSubjectInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'BellSubject'))) {
+                $panelList[] = new Panel(
+                    'Thema der Besonderen Lernleistung',
+                    $bellSubjectInformation->getValue()
+                );
+            }
+            if (($bellPointsInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'BellPoints'))) {
+                $panelList[] = new Panel(
+                    'Punktzahl der besonderen Lernleistung in einfacher Wertung',
+                    $bellPointsInformation->getValue()
                 );
             }
 
@@ -206,128 +221,143 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
     }
 
     /**
-     * @param $Id
-     * @param string $SchoolType
-     * @param $Data
-     *
-     * @return Stage|string
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param bool $isApproved
+     * @return Form
      */
-    public function frontendLeaveStudentAbiturPoints($Id = null, string $SchoolType = 'Gy', $Data = null)
+    public function getLeaveInformationBGyAbiturForm(TblLeaveStudent $tblLeaveStudent, bool $isApproved): Form
     {
-        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($Id))
-            && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
-        ) {
-            $stage = new Stage(new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Punkte'));
-
-            $tblYear = $tblLeaveStudent->getServiceTblYear();
-            $tblCertificate = $tblLeaveStudent->getServiceTblCertificate();
-
-            $tblType = false;
-            if ($tblYear && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
-                $tblType = $tblStudentEducation->getServiceTblSchoolType();
+        // Post
+        if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
+            $global = $this->getGlobal();
+            foreach ($tblLeaveInformationList as $tblLeaveInformation) {
+                $global->POST['Data'][$tblLeaveInformation->getField()] = $tblLeaveInformation->getValue();
             }
-
-            $stage->addButton(new Standard(
-                'Zurück', '/Education/Certificate/Prepare/Leave/Student', new ChevronLeft(), array(
-                    'PersonId' => $tblPerson->getId(),
-                    'YearId' => $tblYear ? $tblYear->getId() : 0
-                )
-            ));
-
-            if (Student::useService()->getIsSupportByPerson($tblPerson)) {
-                $support = ApiSupportReadOnly::openOverViewModal($tblPerson->getId(), false);
-            } else {
-                $support = false;
-            }
-
-            $layoutGroups[] = new LayoutGroup(array(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        new Panel(
-                            'Schüler',
-                            $tblPerson->getLastFirstNameWithCallNameUnderline(),
-                            Panel::PANEL_TYPE_INFO
-                        )
-                        , 3),
-                    new LayoutColumn(
-                        new Panel(
-                            'Schuljahr',
-                            $tblYear->getDisplayName(),
-                            Panel::PANEL_TYPE_INFO
-                        )
-                        , 3),
-                    new LayoutColumn(
-                        new Panel(
-                            'Schulart',
-                            $tblType
-                                ? $tblType->getName()
-                                : new Warning(new Exclamation()
-                                . ' Keine aktuelle Schulart zum Schüler gefunden!'),
-                            $tblType ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
-                        )
-                        , 3),
-                    new LayoutColumn(
-                        new Panel(
-                            'Zeugnisvorlage',
-                            $tblCertificate
-                                ? $tblCertificate->getName()
-                                . ($tblCertificate->getDescription()
-                                    ? new Muted(' - ' . $tblCertificate->getDescription()) : '')
-                                : new Warning(new Exclamation()
-                                . ' Keine Zeugnisvorlage verfügbar!'),
-                            $tblCertificate ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
-                        )
-                        , 3),
-                    ($support
-                        ? new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO))
-                        : null
-                    )
-                )),
-            ));
-
-            if ($SchoolType == 'Gy') {
-                $LeavePoints = new LeavePoints($tblLeaveStudent, BlockIView::EDIT_GRADES);
-            } else {
-                // BGy
-                $LeavePoints = new \SPHERE\Application\Education\Certificate\Prepare\BGyAbitur\LeavePoints(
-                    $tblLeaveStudent, \SPHERE\Application\Education\Certificate\Prepare\BGyAbitur\BlockIView::EDIT_GRADES
-                );
-            }
-            $form = $LeavePoints->getForm();
-
-            $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn(
-                new Well(
-                    Prepare::useService()->updateLeaveStudentAbiturPoints($form, $tblLeaveStudent, $Data)
-                )
-            )));
-
-            $stage->setContent(new Layout($layoutGroups));
-
-            return $stage;
-        } else {
-            return new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Schüler')
-                . new Danger('Schüler nicht gefunden', new Ban())
-                . new Redirect('/Education/Certificate/Prepare/Leave', Redirect::TIMEOUT_ERROR);
+            $global->savePost();
         }
+
+        $datePickerFrom = (new DatePicker('Data[DateFrom]', '', 'hat vom (Datum1)', new Calendar()))->setRequired();
+        $datePickerTo = (new DatePicker('Data[DateTo]', '', 'hat bis (Datum2)', new Calendar()))->setRequired();
+        $datePicker = (new DatePicker('Data[CertificateDate]', '', 'Zeugnisdatum', new Calendar()))->setRequired();
+        $remarkTextArea = new TextArea('Data[RemarkWithoutTeam]', '', 'Bemerkungen');
+
+        // Besondere Lernleistung BELL
+        $bellSubject = (new TextField('Data[BellSubject]', '', 'Thema'));
+        $bellPoints = (new TextField('Data[BellPoints]', '', 'Punktzahl in einfacher Wertung'));
+
+        // headmaster
+        $headmasterNameTextField = new TextField('Data[HeadmasterName]', '',
+            'Name des/der Schulleiters/in');
+        $headmasterRadioSex1 = (new RadioBox('Data[HeadmasterGender]', 'Männlich',
+            ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
+                ? $tblCommonGender->getId() : 0));
+        $headmasterRadioSex2 = (new RadioBox('Data[HeadmasterGender]', 'Weiblich',
+            ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
+                ? $tblCommonGender->getId() : 0));
+
+        // tudor
+        $tudorNameTextField = new TextField('Data[TudorName]', '',
+            'Name des/der Tutors/in');
+        $tudorRadioSex1 = (new RadioBox('Data[TudorGender]', 'Männlich',
+            ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
+                ? $tblCommonGender->getId() : 0));
+        $tudorRadioSex2 = (new RadioBox('Data[TudorGender]', 'Weiblich',
+            ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
+                ? $tblCommonGender->getId() : 0));
+
+        if ($isApproved) {
+            $datePickerFrom->setDisabled();
+            $datePickerTo->setDisabled();
+            $datePicker->setDisabled();
+            $remarkTextArea->setDisabled();
+
+            $bellSubject->setDisabled();
+            $bellPoints->setDisabled();
+
+            $headmasterNameTextField->setDisabled();
+            $headmasterRadioSex1->setDisabled();
+            $headmasterRadioSex2->setDisabled();
+
+            $tudorNameTextField->setDisabled();
+            $tudorRadioSex1->setDisabled();
+            $tudorRadioSex2->setDisabled();
+        }
+
+        $otherInformationList = array(
+            $datePickerFrom,
+            $datePickerTo,
+            $datePicker,
+            $remarkTextArea
+        );
+
+        return new Form(new FormGroup(array(
+            new FormRow(new FormColumn(
+                new Panel(
+                    'Sonstige Informationen',
+                    $otherInformationList,
+                    Panel::PANEL_TYPE_INFO
+                )
+            )),
+            new FormRow(new FormColumn(
+                new Panel(
+                    'Besondere Lernleistung',
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn($bellSubject, 6),
+                        new LayoutColumn($bellPoints, 6)
+                    )))),
+                    Panel::PANEL_TYPE_INFO
+                )
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new Panel(
+                        'Unterzeichner - Schulleiter',
+                        array(
+                            $headmasterNameTextField,
+                            new Panel(
+                                new Small(new Bold('Geschlecht des/der Schulleiters/in')),
+                                array($headmasterRadioSex1, $headmasterRadioSex2),
+                                Panel::PANEL_TYPE_DEFAULT
+                            )
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                    , 6),
+                new FormColumn(
+                    new Panel(
+                        'Unterzeichner - Tutor',
+                        array(
+                            $tudorNameTextField,
+                            new Panel(
+                                new Small(new Bold('Geschlecht des/der Tudors/in')),
+                                array($tudorRadioSex1, $tudorRadioSex2),
+                                Panel::PANEL_TYPE_DEFAULT
+                            )
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                    , 6),
+            )),
+        )));
     }
 
     /**
-     * @param $Id
-     * @param string $SchoolType
-     * @param $Data
+     * @param null $Id
+     * @param null $Data
      *
-     * @return Stage|string
+     * @return string
      */
-    public function frontendLeaveStudentAbiturInformation($Id = null, string $SchoolType = 'Gy', $Data = null)
-    {
+    public function frontendLeaveStudentAbiturLevelEleven(
+        $Id = null,
+        $Data = null
+    ): Stage {
         if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($Id))
             && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
         ) {
-            $stage = new Stage(new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Sonstige Informationen'));
+            $stage = new Stage(new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Ergebnisse der Pflichtfächer, die in Klassenstufe 11 abgeschlossen wurden'));
 
             $tblYear = $tblLeaveStudent->getServiceTblYear();
             $tblCertificate = $tblLeaveStudent->getServiceTblCertificate();
-            $isApproved = $tblLeaveStudent->isApproved();
 
             $stage->addButton(new Standard(
                 'Zurück', '/Education/Certificate/Prepare/Leave/Student', new ChevronLeft(), array(
@@ -392,25 +422,8 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
                 )),
             ));
 
-            if ($tblCertificate) {
-                if ($SchoolType == 'Gy') {
-                    $form = $this->getLeaveInformationGyAbiturForm($tblLeaveStudent, $isApproved);
-                } else {
-                    // BGy
-                    $form = $this->getLeaveInformationBGyAbiturForm($tblLeaveStudent, $isApproved);
-                }
-            } else {
-                $form = null;
-            }
-
-            if ($isApproved) {
-                $content = $form;
-            } else {
-                $form->appendFormButton(new Primary('Speichern', new Save()));
-                $content = new Well(
-                    Prepare::useService()->updateAbiturLeaveInformation($form, $tblLeaveStudent, $Data)
-                );
-            }
+            $levelEleven = new LeaveLevelEleven($tblPerson, $tblLeaveStudent);
+            $content = $levelEleven->getContent($Data);
 
             $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn(
                 $content
@@ -424,99 +437,5 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
                 . new Danger('Schüler nicht gefunden', new Ban())
                 . new Redirect('/Education/Certificate/Prepare/Leave', Redirect::TIMEOUT_ERROR);
         }
-    }
-
-    /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     * @param bool $isApproved
-     * @return Form
-     */
-    private function getLeaveInformationGyAbiturForm(TblLeaveStudent $tblLeaveStudent, bool $isApproved): Form
-    {
-        $leaveTerms = GymAbgSekII::getLeaveTerms();
-        $midTerms = GymAbgSekII::getMidTerms();
-
-        // Post
-        if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
-            $global = $this->getGlobal();
-            foreach ($tblLeaveInformationList as $tblLeaveInformation) {
-                if ($tblLeaveInformation->getField() == 'LeaveTerm') {
-                    $value = array_search($tblLeaveInformation->getValue(), $leaveTerms);
-                } elseif ($tblLeaveInformation->getField() == 'MidTerm') {
-                    $value = array_search($tblLeaveInformation->getValue(), $midTerms);
-                } else {
-                    $value = $tblLeaveInformation->getValue();
-                }
-
-                $global->POST['Data'][$tblLeaveInformation->getField()] = $value;
-            }
-            $global->savePost();
-        }
-
-        $leaveTermSelectBox = (new SelectBox(
-            'Data[LeaveTerm]',
-            'verlässt das Gymnasium',
-            $leaveTerms
-        ))->setRequired();
-        $midTermSelectBox = (new SelectBox(
-            'Data[MidTerm]',
-            'Kurshalbjahr',
-            $midTerms
-        ))->setRequired();
-        $datePicker = (new DatePicker('Data[CertificateDate]', '', 'Zeugnisdatum',
-            new Calendar()))->setRequired();
-        $remarkTextArea = new TextArea('Data[Remark]', '', 'Bemerkungen');
-        if ($isApproved) {
-            $datePicker->setDisabled();
-            $remarkTextArea->setDisabled();
-            $leaveTermSelectBox->setDisabled();
-            $midTermSelectBox->setDisabled();
-        }
-        $otherInformationList = array(
-            $leaveTermSelectBox,
-            $midTermSelectBox,
-            $datePicker,
-            $remarkTextArea
-        );
-
-        $headmasterNameTextField = new TextField('Data[HeadmasterName]', '',
-            'Name des/der Schulleiters/in');
-        $radioSex1 = (new RadioBox('Data[HeadmasterGender]', 'Männlich',
-            ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
-                ? $tblCommonGender->getId() : 0));
-        $radioSex2 = (new RadioBox('Data[HeadmasterGender]', 'Weiblich',
-            ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
-                ? $tblCommonGender->getId() : 0));
-        if ($isApproved) {
-            $headmasterNameTextField->setDisabled();
-            $radioSex1->setDisabled();
-            $radioSex2->setDisabled();
-        }
-
-        return new Form(new FormGroup(array(
-            new FormRow(new FormColumn(
-                new Panel(
-                    'Sonstige Informationen',
-                    $otherInformationList,
-                    Panel::PANEL_TYPE_INFO
-                )
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new Panel(
-                        'Unterzeichner - Schulleiter',
-                        array(
-                            $headmasterNameTextField,
-                            new Panel(
-                                new Small(new Bold('Geschlecht des/der Schulleiters/in')),
-                                array($radioSex1, $radioSex2),
-                                Panel::PANEL_TYPE_DEFAULT
-                            )
-                        ),
-                        Panel::PANEL_TYPE_INFO
-                    )
-                    , 6),
-            )),
-        )));
     }
 }

@@ -114,6 +114,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                             || $tblType->getName() == 'Fachschule'
                             || $tblType->getName() == 'Fachoberschule'
                             || $tblType->getName() == 'Förderschule'
+                            || $tblType->getName() == 'Berufliches Gymnasium'
                         )
                     ) {
                         $studentTable[] = array(
@@ -248,6 +249,15 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('HOGA\FosAbg');
                         } elseif ($tblType->getName() == 'Förderschule') {
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('FoesAbgGeistigeEntwicklung');
+                        } elseif ($tblType->getName() == 'Berufliches Gymnasium') {
+                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BGymAbgSekII');
+                            if ($tblCertificate) {
+                                $tblLeaveStudent = Prepare::useService()->createLeaveStudent(
+                                    $tblPerson,
+                                    $tblYear,
+                                    $tblCertificate
+                                );
+                            }
                         }
                     }
                 }
@@ -255,6 +265,15 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
 
             if ($tblCertificate && $tblCertificate->getCertificate() == 'GymAbgSekII') {
                 $layoutGroups = Prepare::useFrontend()->setLeaveContentForSekTwo(
+                    $tblPerson,
+                    $tblYear,
+                    $stage,
+                    $tblCertificate,
+                    $tblLeaveStudent ?: null,
+                    $tblType ?: null
+                );
+            } elseif ($tblCertificate && $tblCertificate->getCertificate() == 'BGymAbgSekII') {
+                $layoutGroups = Prepare::useFrontend()->setLeaveContentForSekTwoBGy(
                     $tblPerson,
                     $tblYear,
                     $stage,

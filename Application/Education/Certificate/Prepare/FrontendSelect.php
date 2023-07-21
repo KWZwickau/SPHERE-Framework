@@ -363,6 +363,7 @@ abstract class FrontendSelect extends FrontendPreview
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId))) {
             $tableData = array();
             $tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy');
+            $tblSchoolTypeBGy = Type::useService()->getTypeByShortName('BGy');
             $tblSchoolTypeFS = Type::useService()->getTypeByShortName('FS');
             $tblSchoolTypeBgj = Type::useService()->getTypeByShortName('BGJ');
             $tblSchoolTypeOS = Type::useService()->getTypeByShortName('OS');
@@ -400,7 +401,7 @@ abstract class FrontendSelect extends FrontendPreview
                         );
 
                         if ($Route == 'Diploma'
-                            && isset($tblSchoolTypeList[$tblSchoolTypeGy->getId()])
+                            && (isset($tblSchoolTypeList[$tblSchoolTypeGy->getId()]) || isset($tblSchoolTypeList[$tblSchoolTypeBGy->getId()]))
                         ) {
                             // Gymnasium, Abitur
                             $options = new Standard(

@@ -19,6 +19,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\I
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataHOGA;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataLWSZ;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataBerufsfachschule;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataBGym;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataFachschule;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataFoerderschule;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataGym;
@@ -354,6 +355,7 @@ class Data extends AbstractData
             $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
             $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
             $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
+            $this->tblSchoolTypeBeruflichesGymnasium = Type::useService()->getTypeByName('Berufliches Gymnasium');
             $this->tblSchoolTypeFoerderSchule = Type::useService()->getTypeByName('Förderschule');
             $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
             $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
@@ -370,6 +372,9 @@ class Data extends AbstractData
                     return true;
                 case TblCertificate::CERTIFICATE_TYPE_GYM :
                     SDataGym::setCertificateStandard($this);
+                    return true;
+                case TblCertificate::CERTIFICATE_TYPE_B_GYM :
+                    SDataBGym::setCertificateStandard($this);
                     return true;
                 case TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE :
                     SDataBerufsfachschule::setCertificateStandard($this);

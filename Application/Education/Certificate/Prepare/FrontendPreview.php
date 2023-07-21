@@ -250,7 +250,10 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
 
                     // Abitur Fächerprüfung ignorieren
                     if ($tblCertificate
-                        && $tblCertificate->getCertificate() == 'GymAbitur'
+                        && ($tblCertificate->getCertificate() == 'GymAbitur'
+                        || $tblCertificate->getCertificate() == 'BGymAbitur'
+                        || $tblCertificate->getCertificate() == 'BGymKurshalbjahreszeugnis'
+                        || $tblCertificate->getCertificate() == 'BGymAbgSekII')
                     ) {
                         $checkSubjectsString = new Success(
                             new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Keine Fächerzuordnung erforderlich.'

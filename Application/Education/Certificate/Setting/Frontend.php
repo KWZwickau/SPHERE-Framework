@@ -114,7 +114,9 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             // Spezial Fall Abiturzeugnis
-            if ($tblCertificate->getCertificate() == 'GymAbitur') {
+            if ($tblCertificate->getCertificate() == 'GymAbitur'
+                || $tblCertificate->getCertificate() == 'BGymAbitur'
+            ) {
                 if (($tblCertificateReferenceForLanguagesList = Generator::useService()->getCertificateReferenceForLanguagesAllByCertificate($tblCertificate))) {
                     $global = $this->getGlobal();
                     foreach ($tblCertificateReferenceForLanguagesList as $tblCertificateReferenceForLanguages) {
@@ -133,7 +135,9 @@ class Frontend extends Extension implements IFrontendInterface
                             array(
                                 new Layout(new LayoutGroup(new LayoutRow(array(
                                     new LayoutColumn(
-                                        new TextField('Data[' . $i . '][ToLevel10]', '', 'Bis Klasse 10')
+                                        new TextField('Data[' . $i . '][ToLevel10]', '', 'Bis Klasse '
+                                            . ($tblCertificate->getCertificate() == 'BGymAbitur' ? '11' : '10')
+                                        )
                                     , 4),
                                     new LayoutColumn(
                                         new TextField('Data[' . $i . '][AfterBasicCourse]', '', 'Nach Grundkurs')
@@ -762,6 +766,13 @@ class Frontend extends Extension implements IFrontendInterface
             $TemplateTable = array();
             array_walk($tblTemplateAll,
                 function (TblCertificate $tblCertificate) use (&$TemplateTable) {
+                    $hasOption = true;
+                    $name = $tblCertificate->getName();
+                    if ($name == 'Berufliches Gymnasium Abgangszeugnis'
+                        || $name == 'Berufliches Gymnasium Kurshalbjahreszeugnis'
+                    ) {
+                        $hasOption = false;
+                    }
 
                     $TemplateTable[] = array_merge($tblCertificate->__toArray(), array(
                             'Typ'    => '<div class="text-center">'.( $tblCertificate->getServiceTblConsumer()
@@ -770,11 +781,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 ).'</div>',
                             'Category' => $tblCertificate->getDisplayCategory(),
                             'CertificateNumber' => $tblCertificate->getCertificateNumber(),
-                            'Option' => new Standard(
-                                '', '/Education/Certificate/Setting/Configuration', new Select(),
-                                array(
-                                    'Certificate' => $tblCertificate->getId()
-                                ), 'Zeugnisvorlage auswählen')
+                            'Option' => $hasOption
+                                ? new Standard(
+                                    '', '/Education/Certificate/Setting/Configuration', new Select(),
+                                    array(
+                                        'Certificate' => $tblCertificate->getId()
+                                    ),
+                                    'Zeugnisvorlage auswählen'
+                                )
+                                : ''
                         )
                     );
                 });
@@ -804,8 +819,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
 
-        } else {
-            // TODO Error
         }
 
         return $Stage;
@@ -889,6 +902,13 @@ class Frontend extends Extension implements IFrontendInterface
             && School::useService()->getSchoolByType($tblType)){
             $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_GYM,
                 'Gymnasium', 'GymJ', count($LayoutRowList));
+        }
+        if($showAll
+            || (($tblType = Type::useService()->getTypeByName(TblType::IDENT_BERUFLICHES_GYMNASIUM))
+                && School::useService()->getSchoolByType($tblType))
+        ) {
+            $LayoutRowList[] = $this->getCertificateInstallAccordion(TblCertificate::CERTIFICATE_TYPE_B_GYM,
+                'Berufliches Gymnasium', 'BGymJ', count($LayoutRowList));
         }
         if($showAll || ($tblType = Type::useService()->getTypeByName(TblType::IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE))
             && School::useService()->getSchoolByType($tblType)){
@@ -990,6 +1010,14 @@ class Frontend extends Extension implements IFrontendInterface
             'Gymnasium Abgangszeugnis Sek I' => 'GymAbgSekI',
             'Gymnasium Abgangszeugnis Sek II' => 'GymAbgSekII'
         );
+        // Berufliches Gymnasium
+        $BGymList = array(
+            'Berufliches Gymnasium Halbjahreszeugnis' => 'BGymHjZ',
+            'Berufliches Gymnasium Jahreszeugnis' => 'BGymJ',
+            'Berufliches Gymnasium Kurshalbjahreszeugnis' => 'BGymKurshalbjahreszeugnis',
+            'Berufliches Gymnasium Abschlusszeugnis' => 'BGymAbitur',
+            'Berufliches Gymnasium Abgangszeugnis Sek II' => 'BGymAbgSekII'
+        );
         $BfsList = array(
             'Berufsfachschule Halbjahresinformation' => 'BfsHjInfo',
             'Berufsfachschule Halbjahreszeugnis' => 'BfsHj',
@@ -1025,6 +1053,9 @@ class Frontend extends Extension implements IFrontendInterface
                 break;
             case TblCertificate::CERTIFICATE_TYPE_GYM:
                 $List = $GymList;
+                break;
+            case TblCertificate::CERTIFICATE_TYPE_B_GYM:
+                $List = $BGymList;
                 break;
             case TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE:
                 $List = $BfsList;

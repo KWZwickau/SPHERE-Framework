@@ -40,6 +40,7 @@ class TblCertificate extends Element
     const CERTIFICATE_TYPE_PRIMARY = 'Primary';
     const CERTIFICATE_TYPE_SECONDARY = 'Secondary';
     const CERTIFICATE_TYPE_GYM = 'Gym';
+    const CERTIFICATE_TYPE_B_GYM = 'BGym';
     const CERTIFICATE_TYPE_BERUFSFACHSCHULE = 'Berufsfachschule';
     const CERTIFICATE_TYPE_FACHSCHULE = 'Fachschule';
     const CERTIFICATE_TYPE_FOERDERSCHULE = 'Förderschule';
