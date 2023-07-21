@@ -35,16 +35,18 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param $Id
      * @param bool|false $Confirm
-     * @param null $Group
+     * @param null $PseudoId
      * @return Stage
      */
-    public function frontendDestroyPerson($Id = null, $Confirm = false, $Group = null)
+    public function frontendDestroyPerson($Id = null, $Confirm = false, $PseudoId = null, $PersonView = false)
     {
 
         $Stage = new Stage('Person', 'Löschen');
         if ($Id) {
-            if ($Group) {
-                $Stage->addButton(new Standard('Zurück', '/People', new ChevronLeft(), array('Id' => $Group)));
+            if ($PersonView) {
+                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id,'PseudoId' => $PseudoId)));
+            } elseif ($PseudoId) {
+                $Stage->addButton(new Standard('Zurück', '/People', new ChevronLeft(), array('PseudoId' => $PseudoId)));
             }
             $tblPerson = Person::useService()->getPersonById($Id);
             if (!$tblPerson){
@@ -52,7 +54,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             new Danger('Die Person konnte nicht gefunden werden.', new Ban()),
-                            new Redirect('/People', Redirect::TIMEOUT_ERROR, array('PseudoId' => $Group))
+                            new Redirect('/People', Redirect::TIMEOUT_ERROR, array('PseudoId' => $PseudoId))
                         )))
                     )))
                 );
@@ -76,21 +78,16 @@ class Frontend extends Extension implements IFrontendInterface
                         $canRemove = false;
                         $descriptionList[] = 'Diese Person kann aktuell nicht gelöscht werden, da ein Account für diese Person Exisitert ('.implode(',', $AccountList).')';
                     }
-
+                    $Button = new Standard('Nein', '/People', new Disable(), array('PseudoId' => $PseudoId));
+                    if ($PersonView) {
+                        $Button = new Standard('Nein', '/People/Person', new Disable(), array('Id' => $Id, 'PseudoId' => $PseudoId));
+                    }
                     if ($canRemove) {
                         $buttonList =
-                            new Standard(
-                                'Ja', '/People/Person/Destroy', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
-                            )
-                            . new Standard(
-                                'Nein', '/People', new Disable(), array('PseudoId' => $Group)
-                            );
+                            new Standard('Ja', '/People/Person/Destroy', new Ok(), array('Id' => $Id, 'Confirm' => true, 'PseudoId' => $PseudoId))
+                            .$Button;
                     } else {
-                        $buttonList =
-                            new Standard(
-                                'Nein', '/People', new Disable(), array('PseudoId' => $Group)
-                            );
+                        $buttonList = $Button;
                     }
 
                     $Stage->setContent(
@@ -119,7 +116,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Person wurde gelöscht.')
                                     : new Danger(new Ban() . ' Die Person konnte nicht gelöscht werden.')
                                 ),
-                                new Redirect('/People', Redirect::TIMEOUT_SUCCESS, array('PseudoId' => $Group))
+                                new Redirect('/People', Redirect::TIMEOUT_SUCCESS, array('PseudoId' => $PseudoId))
                             )))
                         )))
                     );
@@ -130,7 +127,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Daten nicht abrufbar.', new Ban()),
-                        new Redirect('/People', Redirect::TIMEOUT_ERROR, array('PseudoId' => $Group))
+                        new Redirect('/People', Redirect::TIMEOUT_ERROR, array('PseudoId' => $PseudoId))
                     )))
                 )))
             );
