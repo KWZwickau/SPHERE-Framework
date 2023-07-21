@@ -70,25 +70,25 @@ class Frontend extends Extension implements IFrontendInterface
                     case TblOnlineContact::VALUE_TYPE_ADDRESS:
                         /** @var TblAddressToPerson $tblToPerson */
                         $link = ($tblToPerson = $tblOnlineContact->getServiceTblToPerson())
-                            ? (new Standard('', ApiAddressToPerson::getEndpoint(), new Edit()))
+                            ? (new Standard('', ApiAddressToPerson::getEndpoint(), new Edit(), array(), 'Änderungswunsch'))
                                 ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineOpenEditAddressToPersonModal($tblPerson->getId(), $tblToPerson->getId(), $tblOnlineContact->getId()))
-                            : (new Standard('', ApiAddressToPerson::getEndpoint(), new Plus()))
+                            : (new Standard('', ApiAddressToPerson::getEndpoint(), new Plus(), array(), 'neue Angabe'))
                                 ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineOpenCreateAddressToPersonModal($tblPerson->getId(), $tblOnlineContact->getId()));
                         break;
                     case TblOnlineContact::VALUE_TYPE_PHONE:
                         /** @var TblPhoneToPerson $tblToPerson */
                         $link = ($tblToPerson = $tblOnlineContact->getServiceTblToPerson())
-                            ? (new Standard('', ApiPhoneToPerson::getEndpoint(), new Edit()))
+                            ? (new Standard('', ApiPhoneToPerson::getEndpoint(), new Edit(), array(), 'Änderungswunsch'))
                                 ->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineOpenEditPhoneToPersonModal($tblPerson->getId(), $tblToPerson->getId(), $tblOnlineContact->getId()))
-                            : (new Standard('', ApiPhoneToPerson::getEndpoint(), new Plus()))
+                            : (new Standard('', ApiPhoneToPerson::getEndpoint(), new Plus(), array(), 'neue Angabe'))
                                 ->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineOpenCreatePhoneToPersonModal($tblPerson->getId(), $tblOnlineContact->getId()));
                         break;
                     case TblOnlineContact::VALUE_TYPE_MAIL:
                         /** @var TblMailToPerson $tblToPerson */
                         $link = ($tblToPerson = $tblOnlineContact->getServiceTblToPerson())
-                            ? (new Standard('', ApiMailToPerson::getEndpoint(), new Edit()))
+                            ? (new Standard('', ApiMailToPerson::getEndpoint(), new Edit(), array(), 'Änderungswunsch'))
                                 ->ajaxPipelineOnClick(ApiMailToPerson::pipelineOpenEditMailToPersonModal($tblPerson->getId(), $tblToPerson->getId(), $tblOnlineContact->getId()))
-                            : (new Standard('', ApiMailToPerson::getEndpoint(), new Plus()))
+                            : (new Standard('', ApiMailToPerson::getEndpoint(), new Plus(), array(), 'neue Angabe'))
                                 ->ajaxPipelineOnClick(ApiMailToPerson::pipelineOpenCreateMailToPersonModal($tblPerson->getId(), $tblOnlineContact->getId()));
                         break;
                 }
@@ -110,7 +110,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Content' => $tblOnlineContact->getContactContent(),
                     'Remark' => $tblOnlineContact->getRemark(),
                     'Options' => $link
-                        . (new Standard('', ApiContactDetails::getEndpoint(), new Remove()))
+                        . (new Standard('', ApiContactDetails::getEndpoint(), new Remove(), array(), 'Vorschlag löschen'))
                             ->ajaxPipelineOnClick(ApiContactDetails::pipelineOpenDeleteContactDetailModal($tblPerson->getId(), $tblOnlineContact->getId()))
                 );
             }
