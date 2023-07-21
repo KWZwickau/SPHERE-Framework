@@ -220,6 +220,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $PersonIdList
+     *
+     * @return array
+     */
+    public function getPersonArrayByIdList($PersonIdList)
+    {
+
+        return (new Data($this->getBinding()))->getPersonArrayByIdList($PersonIdList);
+    }
+
+    /**
      * @param $ImportId
      *
      * @return bool|TblPerson

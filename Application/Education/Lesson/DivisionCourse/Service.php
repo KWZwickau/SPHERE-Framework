@@ -666,6 +666,17 @@ class Service extends ServiceYearChange
     }
 
     /**
+     * @param array $FilterList
+     *
+     * @return array
+     */
+    public function fetchIdPersonByFilter(array $FilterList = array())
+    {
+
+        return (new Data($this->getBinding()))->fetchIdPersonByFilter($FilterList);
+    }
+
+    /**
      * @param array $Data
      *
      * @return false|TblDivisionCourse
@@ -1346,12 +1357,13 @@ class Service extends ServiceYearChange
     {
 
         $LevelList = (new Data($this->getBinding()))->getStudentEducationLevelList();
-        $LevelListing[] = '-[ Nicht ausgewählt ]-';
+        $LevelList = array_filter($LevelList);
+        $LevelListing[] = '-[ Nicht ausgewählt ]-'; // should be replaced by Object
         if(!empty($LevelList)){
+            sort($LevelList);
             foreach($LevelList as $Level){
-                $LevelListing[] = current($Level);
+                $LevelListing[$Level] = $Level;
             }
-            sort($LevelListing);
         }
         return $LevelListing;
     }

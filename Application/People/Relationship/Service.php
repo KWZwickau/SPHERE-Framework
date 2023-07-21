@@ -191,10 +191,10 @@ class Service extends AbstractService
      *
      * @return bool|TblToCompany[]
      */
-    public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany)
+    public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany, TblType $tblType = null)
     {
 
-        return (new Data($this->getBinding()))->getCompanyRelationshipAllByCompany($tblCompany);
+        return (new Data($this->getBinding()))->getCompanyRelationshipAllByCompany($tblCompany, $tblType);
     }
 
     /**
