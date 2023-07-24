@@ -304,6 +304,10 @@ class Frontend extends FrontendTabs
         } else {
             $minLesson = 1;
         }
+
+        $isAutoTimeTable = ($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'IsAutoTimeTable'))
+            && $tblSetting->getValue();
+
         $bodyList = array();
         $bodyBackgroundList = array();
         $divisionCourseList[] = $tblDivisionCourse;
@@ -434,9 +438,11 @@ class Frontend extends FrontendTabs
                     }
                 }
             //  alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
-            } elseif (($tblLessonContentTemp = Digital::useService()->getTimetableFromLastLessonContent(
-                $tblDivisionCourse, $date, $i
-            ))) {
+            } elseif ($isAutoTimeTable
+                && ($tblLessonContentTemp = Digital::useService()->getTimetableFromLastLessonContent(
+                    $tblDivisionCourse, $date, $i
+                ))
+            ) {
                 $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
                     $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom());
             // neu links
@@ -643,6 +649,10 @@ class Frontend extends FrontendTabs
         } else {
             $minLesson = 1;
         }
+
+        $isAutoTimeTable = ($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'IsAutoTimeTable'))
+            && $tblSetting->getValue();
+
         $headerList = array();
         $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), $widthLesson);
         $bodyList = array();
@@ -828,9 +838,11 @@ class Frontend extends FrontendTabs
                             ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $dateStringList[$j], $i == 0 ? -1 : $i, $SubjectId));
                         }
                     // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
-                    } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
-                        $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
-                    ))) {
+                    } elseif ($isAutoTimeTable
+                        && ($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                            $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
+                        ))
+                    ) {
                         $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
                         $cell = (new Link(
                             $cellContent,
@@ -982,6 +994,9 @@ class Frontend extends FrontendTabs
     public function formLessonContent(TblDivisionCourse $tblDivisionCourse, $LessonContentId = null, bool $setPost = false, string $Date = null,
         string $Lesson = null, string $SubjectId = null): Form
     {
+        $isAutoTimeTable = ($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'IsAutoTimeTable'))
+            && $tblSetting->getValue();
+
         $tblSubject = false;
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
         if ($setPost && $LessonContentId
@@ -1033,9 +1048,11 @@ class Frontend extends FrontendTabs
                 }
                 $Global->savePost();
             // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
-            } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
-                $tblDivisionCourse, new DateTime($Date), (int) $Lesson
-            ))) {
+            } elseif ($isAutoTimeTable
+                && ($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                    $tblDivisionCourse, new DateTime($Date), (int) $Lesson
+                ))
+            ) {
                 $Global = $this->getGlobal();
 
                 $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
