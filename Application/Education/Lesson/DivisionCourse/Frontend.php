@@ -140,6 +140,11 @@ class Frontend extends FrontendYearChange
                     continue;
                 }
 
+                $optionSubCourse = !$tblDivisionCourse->getIsDivisionOrCoreGroup()
+                    ? (new Standard('', ApiDivisionCourse::getEndpoint(), new LinkIcon(), array(), 'Unter-Kurse verknüpfen'))
+                        ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenLinkDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
+                    : '';
+
                 $countActive = 0;
                 $countInActive = 0;
                 $tblSubCourseList = array();
@@ -169,8 +174,7 @@ class Frontend extends FrontendYearChange
                             new EyeOpen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter), 'Kurs einsehen')
                         . (new Standard('', ApiDivisionCourse::getEndpoint(), new Pen(), array(), 'Name des Kurses bearbeiten'))
                             ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenEditDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
-                        . (new Standard('', ApiDivisionCourse::getEndpoint(), new LinkIcon(), array(), 'Unter-Kurse verknüpfen'))
-                            ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenLinkDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
+                        . $optionSubCourse
                         . (new Standard('', ApiDivisionCourse::getEndpoint(), new Remove(), array(), 'Kurs löschen'))
                             ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenDeleteDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
                 );
