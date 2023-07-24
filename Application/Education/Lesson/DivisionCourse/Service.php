@@ -1982,7 +1982,7 @@ class Service extends ServiceYearChange
         return new Title(new Calendar() . ' Schuljahresübersicht für: ' . new Bold($tblYear->getDisplayName()) . new PullRight(new Muted($countTotal . ' Schüler')))
             . implode('<br/>', $panelList)
             . (empty($missingStudentGroup) ? '' : new Panel(
-                'Personen, welche nicht mehr in der Personengruppe Schüler sind:',
+                'Folgende Personen sind in der Zählung inbegriffen, jedoch nicht mehr in der Personengruppe Schüler.',
                 $missingStudentGroup,
                 Panel::PANEL_TYPE_WARNING
             ));
