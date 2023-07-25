@@ -255,10 +255,11 @@ class ApiItem extends ItemVariant implements IApiInterface
 
     /**
      * @param string $Identifier
+     * @param string $ItemId
      *
      * @return Pipeline
      */
-    public static function pipelineCloseModal($Identifier = '')
+    public static function pipelineCloseModal($Identifier = '', $CalculationId = '')
     {
         $Pipeline = new Pipeline();
         // reload the whole Table
@@ -266,15 +267,18 @@ class ApiItem extends ItemVariant implements IApiInterface
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getItemTable'
         ));
+        $Emitter->setPostPayload(array(
+            'CalculationId' => $CalculationId,
+        ));
         $Pipeline->appendEmitter($Emitter);
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal('', $Identifier)))->getEmitter());
         return $Pipeline;
     }
 
-    public function getItemTable()
+    public function getItemTable($CalculationId = '')
     {
 
-        return Item::useFrontend()->getItemTable();
+        return Item::useFrontend()->getItemTable($CalculationId);
     }
 
     /**
@@ -564,7 +568,7 @@ class ApiItem extends ItemVariant implements IApiInterface
         }
 
         return ($Item
-            ? new Success('Beitragsart erfolgreich angelegt').self::pipelineCloseModal($Identifier)
+            ? new Success('Beitragsart erfolgreich geändert').self::pipelineCloseModal($Identifier)
             : new Danger('Beitragsart konnte nicht gengelegt werden'));
     }
 

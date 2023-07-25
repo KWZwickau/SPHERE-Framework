@@ -64,6 +64,13 @@ class ApiDigital extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openDeleteLessonContentModal');
         $Dispatcher->registerMethod('saveDeleteLessonContentModal');
 
+        $Dispatcher->registerMethod('openCreateFullTimeContentModal');
+        $Dispatcher->registerMethod('saveCreateFullTimeContentModal');
+        $Dispatcher->registerMethod('openEditFullTimeContentModal');
+        $Dispatcher->registerMethod('saveEditFullTimeContentModal');
+        $Dispatcher->registerMethod('openDeleteFullTimeContentModal');
+        $Dispatcher->registerMethod('saveDeleteFullTimeContentModal');
+
         $Dispatcher->registerMethod('loadLessonContentLinkPanel');
 
         $Dispatcher->registerMethod('loadLessonWeekContent');
@@ -166,11 +173,13 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionCourseId
      * @param string|null $Date
      * @param string|null $Lesson
+     * @param string|null $SubjectId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateLessonContentModal(string $DivisionCourseId = null, string $Date = null, string $Lesson = null): Pipeline
-    {
+    public static function pipelineOpenCreateLessonContentModal(
+        string $DivisionCourseId = null, string $Date = null, string $Lesson = null, string $SubjectId = null
+    ): Pipeline {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
@@ -179,8 +188,10 @@ class ApiDigital extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'Date' => $Date,
-            'Lesson' => $Lesson
+            'Lesson' => $Lesson,
+            'SubjectId' => $SubjectId
         ));
+
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
@@ -190,16 +201,17 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionCourseId
      * @param string|null $Date
      * @param string|null $Lesson
+     * @param string|null $SubjectId
      *
      * @return string
      */
-    public function openCreateLessonContentModal(string $DivisionCourseId = null, string $Date = null, string $Lesson = null): string
+    public function openCreateLessonContentModal(string $DivisionCourseId = null, string $Date = null, string $Lesson = null, string $SubjectId = null): string
     {
         if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)))) {
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getLessonContentModal(Digital::useFrontend()->formLessonContent($tblDivisionCourse, null, false, $Date, $Lesson));
+        return $this->getLessonContentModal(Digital::useFrontend()->formLessonContent($tblDivisionCourse, null, false, $Date, $Lesson, $SubjectId));
     }
 
     /**
@@ -519,6 +531,309 @@ class ApiDigital extends Extension implements IApiInterface
                 . self::pipelineClose();
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gelöscht werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param string|null $DivisionCourseId
+     * @param string|null $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenCreateFullTimeContentModal(string $DivisionCourseId = null, string $Date = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openCreateFullTimeContentModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Date' => $Date
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $form
+     * @param string|null $FullTimeContentId
+     *
+     * @return string
+     */
+    private function getFullTimeContentModal($form, string $FullTimeContentId = null): string
+    {
+        if ($FullTimeContentId) {
+            $title = new Title(new Edit() . ' Ganztägig bearbeiten');
+        } else {
+            $title = new Title(new Plus() . ' Ganztägig hinzufügen');
+        }
+
+        return $title
+            . new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Well(
+                                    $form
+                                )
+                            )
+                        )
+                    ))
+            );
+    }
+
+    /**
+     * @param string|null $DivisionCourseId
+     * @param string|null $Date
+     *
+     * @return string
+     */
+    public function openCreateFullTimeContentModal(string $DivisionCourseId = null, string $Date = null): string
+    {
+        if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getFullTimeContentModal(Digital::useFrontend()->formFullTimeContent($tblDivisionCourse, null, false, $Date));
+    }
+
+    /**
+     * @param string $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCreateFullTimeContentSave(string $DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreateFullTimeContentModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $DivisionCourseId
+     * @param array|null $Data
+     *
+     * @return Danger|string
+     */
+    public function saveCreateFullTimeContentModal(string $DivisionCourseId, array $Data = null)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = Digital::useService()->checkFormFullTimeContent($Data, $tblDivisionCourse))) {
+            // display Errors on form
+            return $this->getFullTimeContentModal($form);
+        }
+
+        if (($tblFullTimeContent = Digital::useService()->createFullTimeContent($Data, $tblDivisionCourse))) {
+            return new Success('Ganztägig wurde erfolgreich gespeichert.')
+                . self::pipelineLoadLessonContentContent($DivisionCourseId, $Data['FromDate'],
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineClose();
+        } else {
+            return new Danger('Ganztägig konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditFullTimeContentModal(string $FullTimeContentId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openEditFullTimeContentModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'FullTimeContentId' => $FullTimeContentId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditFullTimeContentSave(string $FullTimeContentId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditFullTimeContentModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'FullTimeContentId' => $FullTimeContentId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $FullTimeContentId
+     *
+     * @return string
+     */
+    public function openEditFullTimeContentModal($FullTimeContentId)
+    {
+        if (!($tblFullTimeContent = Digital::useService()->getFullTimeContentById($FullTimeContentId))) {
+            return new Danger('Ganztägig wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = $tblFullTimeContent->getServiceTblDivisionCourse())) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getFullTimeContentModal(Digital::useFrontend()->formFullTimeContent($tblDivisionCourse, $FullTimeContentId, true), $FullTimeContentId);
+    }
+
+    /**
+     * @param $FullTimeContentId
+     * @param $Data
+     *
+     * @return Danger|string
+     */
+    public function saveEditFullTimeContentModal($FullTimeContentId, $Data)
+    {
+        if (!($tblFullTimeContent = Digital::useService()->getFullTimeContentById($FullTimeContentId))) {
+            return new Danger('Ganztägig wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = $tblFullTimeContent->getServiceTblDivisionCourse())) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = Digital::useService()->checkFormFullTimeContent($Data, $tblDivisionCourse, $tblFullTimeContent))) {
+            // display Errors on form
+            return $this->getFullTimeContentModal($form, $FullTimeContentId);
+        }
+
+        if (Digital::useService()->updateFullTimeContent($tblFullTimeContent, $Data)) {
+            return new Success('Ganztägig wurde erfolgreich gespeichert.')
+                . self::pipelineLoadLessonContentContent($tblDivisionCourse->getId(), $Data['FromDate'],
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineClose();
+        } else {
+            return new Danger('Ganztägig konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteFullTimeContentModal(string $FullTimeContentId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteFullTimeContentModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'FullTimeContentId' => $FullTimeContentId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return string
+     */
+    public function openDeleteFullTimeContentModal(string $FullTimeContentId)
+    {
+        if (!($tblFullTimeContent = Digital::useService()->getFullTimeContentById($FullTimeContentId))) {
+            return new Danger('Ganztägig wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Remove() . ' Ganztägig löschen')
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Ganztägig wirklich löschen?',
+                                array(
+                                    $tblFullTimeContent->getFromDateString(),
+                                    $tblFullTimeContent->getToDateString(),
+                                    $tblFullTimeContent->getContent(),
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteFullTimeContentSave($FullTimeContentId))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                )
+            );
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteFullTimeContentSave(string $FullTimeContentId): Pipeline
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDeleteFullTimeContentModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'FullTimeContentId' => $FullTimeContentId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return Danger|string
+     */
+    public function saveDeleteFullTimeContentModal(string $FullTimeContentId)
+    {
+        if (!($tblFullTimeContent = Digital::useService()->getFullTimeContentById($FullTimeContentId))) {
+            return new Danger('Ganztägig wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = $tblFullTimeContent->getServiceTblDivisionCourse())) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+        $date = $tblFullTimeContent->getFromDateString();
+
+        if (Digital::useService()->destroyFullTimeContent($tblFullTimeContent)) {
+            return new Success('Ganztägig wurde erfolgreich gelöscht.')
+                . self::pipelineLoadLessonContentContent($tblDivisionCourse->getId(), $date,
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineClose();
+        } else {
+            return new Danger('Ganztägig konnte nicht gelöscht werden.') . self::pipelineClose();
         }
     }
 

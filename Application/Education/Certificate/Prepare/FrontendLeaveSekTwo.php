@@ -206,12 +206,13 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
     }
 
     /**
-     * @param null $Id
-     * @param null $Data
+     * @param $Id
+     * @param string $SchoolType
+     * @param $Data
      *
      * @return Stage|string
      */
-    public function frontendLeaveStudentAbiturPoints($Id = null, $Data = null)
+    public function frontendLeaveStudentAbiturPoints($Id = null, string $SchoolType = 'Gy', $Data = null)
     {
         if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($Id))
             && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
@@ -284,7 +285,14 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
                 )),
             ));
 
-            $LeavePoints = new LeavePoints($tblLeaveStudent, BlockIView::EDIT_GRADES);
+            if ($SchoolType == 'Gy') {
+                $LeavePoints = new LeavePoints($tblLeaveStudent, BlockIView::EDIT_GRADES);
+            } else {
+                // BGy
+                $LeavePoints = new \SPHERE\Application\Education\Certificate\Prepare\BGyAbitur\LeavePoints(
+                    $tblLeaveStudent, \SPHERE\Application\Education\Certificate\Prepare\BGyAbitur\BlockIView::EDIT_GRADES
+                );
+            }
             $form = $LeavePoints->getForm();
 
             $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -304,12 +312,13 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
     }
 
     /**
-     * @param null $Id
-     * @param null $Data
+     * @param $Id
+     * @param string $SchoolType
+     * @param $Data
      *
      * @return Stage|string
      */
-    public function frontendLeaveStudentAbiturInformation($Id = null, $Data = null)
+    public function frontendLeaveStudentAbiturInformation($Id = null, string $SchoolType = 'Gy', $Data = null)
     {
         if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($Id))
             && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
@@ -384,91 +393,12 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
             ));
 
             if ($tblCertificate) {
-                $leaveTerms = GymAbgSekII::getLeaveTerms();
-                $midTerms = GymAbgSekII::getMidTerms();
-
-                // Post
-                if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
-                    $global = $this->getGlobal();
-                    foreach ($tblLeaveInformationList as $tblLeaveInformation) {
-                        if ($tblLeaveInformation->getField() == 'LeaveTerm') {
-                            $value = array_search($tblLeaveInformation->getValue(), $leaveTerms);
-                        } elseif ($tblLeaveInformation->getField() == 'MidTerm') {
-                            $value = array_search($tblLeaveInformation->getValue(), $midTerms);
-                        } else {
-                            $value = $tblLeaveInformation->getValue();
-                        }
-
-                        $global->POST['Data'][$tblLeaveInformation->getField()] = $value;
-                    }
-                    $global->savePost();
+                if ($SchoolType == 'Gy') {
+                    $form = $this->getLeaveInformationGyAbiturForm($tblLeaveStudent, $isApproved);
+                } else {
+                    // BGy
+                    $form = $this->getLeaveInformationBGyAbiturForm($tblLeaveStudent, $isApproved);
                 }
-
-                $leaveTermSelectBox = (new SelectBox(
-                    'Data[LeaveTerm]',
-                    'verlässt das Gymnasium',
-                    $leaveTerms
-                ))->setRequired();
-                $midTermSelectBox = (new SelectBox(
-                    'Data[MidTerm]',
-                    'Kurshalbjahr',
-                    $midTerms
-                ))->setRequired();
-                $datePicker = (new DatePicker('Data[CertificateDate]', '', 'Zeugnisdatum',
-                    new Calendar()))->setRequired();
-                $remarkTextArea = new TextArea('Data[Remark]', '', 'Bemerkungen');
-                if ($isApproved) {
-                    $datePicker->setDisabled();
-                    $remarkTextArea->setDisabled();
-                    $leaveTermSelectBox->setDisabled();
-                    $midTermSelectBox->setDisabled();
-                }
-                $otherInformationList = array(
-                    $leaveTermSelectBox,
-                    $midTermSelectBox,
-                    $datePicker,
-                    $remarkTextArea
-                );
-
-                $headmasterNameTextField = new TextField('Data[HeadmasterName]', '',
-                    'Name des/der Schulleiters/in');
-                $radioSex1 = (new RadioBox('Data[HeadmasterGender]', 'Männlich',
-                    ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
-                        ? $tblCommonGender->getId() : 0));
-                $radioSex2 = (new RadioBox('Data[HeadmasterGender]', 'Weiblich',
-                    ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
-                        ? $tblCommonGender->getId() : 0));
-                if ($isApproved) {
-                    $headmasterNameTextField->setDisabled();
-                    $radioSex1->setDisabled();
-                    $radioSex2->setDisabled();
-                }
-
-                $form = new Form(new FormGroup(array(
-                    new FormRow(new FormColumn(
-                        new Panel(
-                            'Sonstige Informationen',
-                            $otherInformationList,
-                            Panel::PANEL_TYPE_INFO
-                        )
-                    )),
-                    new FormRow(array(
-                        new FormColumn(
-                            new Panel(
-                                'Unterzeichner - Schulleiter',
-                                array(
-                                    $headmasterNameTextField,
-                                    new Panel(
-                                        new Small(new Bold('Geschlecht des/der Schulleiters/in')),
-                                        array($radioSex1, $radioSex2),
-                                        Panel::PANEL_TYPE_DEFAULT
-                                    )
-                                ),
-                                Panel::PANEL_TYPE_INFO
-                            )
-                            , 6),
-                    )),
-                )));
             } else {
                 $form = null;
             }
@@ -494,5 +424,99 @@ abstract class FrontendLeaveSekTwo extends FrontendLeave
                 . new Danger('Schüler nicht gefunden', new Ban())
                 . new Redirect('/Education/Certificate/Prepare/Leave', Redirect::TIMEOUT_ERROR);
         }
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param bool $isApproved
+     * @return Form
+     */
+    private function getLeaveInformationGyAbiturForm(TblLeaveStudent $tblLeaveStudent, bool $isApproved): Form
+    {
+        $leaveTerms = GymAbgSekII::getLeaveTerms();
+        $midTerms = GymAbgSekII::getMidTerms();
+
+        // Post
+        if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
+            $global = $this->getGlobal();
+            foreach ($tblLeaveInformationList as $tblLeaveInformation) {
+                if ($tblLeaveInformation->getField() == 'LeaveTerm') {
+                    $value = array_search($tblLeaveInformation->getValue(), $leaveTerms);
+                } elseif ($tblLeaveInformation->getField() == 'MidTerm') {
+                    $value = array_search($tblLeaveInformation->getValue(), $midTerms);
+                } else {
+                    $value = $tblLeaveInformation->getValue();
+                }
+
+                $global->POST['Data'][$tblLeaveInformation->getField()] = $value;
+            }
+            $global->savePost();
+        }
+
+        $leaveTermSelectBox = (new SelectBox(
+            'Data[LeaveTerm]',
+            'verlässt das Gymnasium',
+            $leaveTerms
+        ))->setRequired();
+        $midTermSelectBox = (new SelectBox(
+            'Data[MidTerm]',
+            'Kurshalbjahr',
+            $midTerms
+        ))->setRequired();
+        $datePicker = (new DatePicker('Data[CertificateDate]', '', 'Zeugnisdatum',
+            new Calendar()))->setRequired();
+        $remarkTextArea = new TextArea('Data[Remark]', '', 'Bemerkungen');
+        if ($isApproved) {
+            $datePicker->setDisabled();
+            $remarkTextArea->setDisabled();
+            $leaveTermSelectBox->setDisabled();
+            $midTermSelectBox->setDisabled();
+        }
+        $otherInformationList = array(
+            $leaveTermSelectBox,
+            $midTermSelectBox,
+            $datePicker,
+            $remarkTextArea
+        );
+
+        $headmasterNameTextField = new TextField('Data[HeadmasterName]', '',
+            'Name des/der Schulleiters/in');
+        $radioSex1 = (new RadioBox('Data[HeadmasterGender]', 'Männlich',
+            ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
+                ? $tblCommonGender->getId() : 0));
+        $radioSex2 = (new RadioBox('Data[HeadmasterGender]', 'Weiblich',
+            ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
+                ? $tblCommonGender->getId() : 0));
+        if ($isApproved) {
+            $headmasterNameTextField->setDisabled();
+            $radioSex1->setDisabled();
+            $radioSex2->setDisabled();
+        }
+
+        return new Form(new FormGroup(array(
+            new FormRow(new FormColumn(
+                new Panel(
+                    'Sonstige Informationen',
+                    $otherInformationList,
+                    Panel::PANEL_TYPE_INFO
+                )
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new Panel(
+                        'Unterzeichner - Schulleiter',
+                        array(
+                            $headmasterNameTextField,
+                            new Panel(
+                                new Small(new Bold('Geschlecht des/der Schulleiters/in')),
+                                array($radioSex1, $radioSex2),
+                                Panel::PANEL_TYPE_DEFAULT
+                            )
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                    , 6),
+            )),
+        )));
     }
 }

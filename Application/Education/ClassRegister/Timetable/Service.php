@@ -275,21 +275,21 @@ class Service extends AbstractService
      * @param DateTime $dateTime
      * @param ?Int $lesson
      *
-     * @return false|TblTimetableNode
+     * @return false|TblTimetableNode[]
      */
-    public function getTimeTableNodeBy(TblDivisionCourse $tblDivisionCourse, DateTime $dateTime, ?Int $lesson)
+    public function getTimeTableNodeListBy(TblDivisionCourse $tblDivisionCourse, DateTime $dateTime, ?Int $lesson)
     {
         $day = (int) $dateTime->format('w');
-        $tblPerson = Account::useService()->getPersonByLogin();
 
         // Startdatum der Woche ermitteln, wird für Stundenplan mit Wochen abhängig benötigt
         $startDateOfWeek = $this->getStartDateOfWeek($dateTime);
 
         if (($tblTimeTableList = $this->getTimetableListByDateTime($dateTime))) {
-            // Suche mit aktueller Person
-            if (($result = $this->searchTimeTableNode($tblTimeTableList, $tblDivisionCourse, $day, $lesson, $startDateOfWeek, $tblPerson ?: null))) {
-                return $result;
-            }
+            // Suche mit aktueller Person, erstmal nicht mehr verwenden da jetzt alle Fächer aus dem Stundenplan zu der Stunde angezeigt werden
+//            $tblPerson = Account::useService()->getPersonByLogin();
+//            if (($tblTimetableNodeList = $this->searchTimeTableNode($tblTimeTableList, $tblDivisionCourse, $day, $lesson, $startDateOfWeek, $tblPerson ?: null))) {
+//                return $tblTimetableNodeList;
+//            }
 
             // Suche ohne aktuelle Person als Fallback
             return $this->searchTimeTableNode($tblTimeTableList, $tblDivisionCourse, $day, $lesson, $startDateOfWeek, null);
@@ -306,7 +306,7 @@ class Service extends AbstractService
      * @param DateTime $startDateOfWeek
      * @param TblPerson|null $tblPerson
      *
-     * @return false|TblTimetableNode|TblTimetableNode[]
+     * @return false|TblTimetableNode[]
      */
     private function searchTimeTableNode(array $tblTimeTableList, TblDivisionCourse $tblDivisionCourse, $day, ?int $lesson, DateTime $startDateOfWeek, ?TblPerson $tblPerson)
     {
@@ -324,13 +324,8 @@ class Service extends AbstractService
                     }
                 }
 
-                if ($lesson === null) {
+                if (!empty($resultList)) {
                     return $resultList;
-                }
-
-                // nur bei einem gültigem Treffer das Fach und den Raum vorsetzen
-                if (count($resultList) == 1) {
-                    return reset($resultList);
                 }
             }
         }
@@ -343,43 +338,43 @@ class Service extends AbstractService
      * @param DateTime $dateTime
      * @param Int $lesson
      *
-     * @return false|TblLessonContent
+     * @return false|TblLessonContent[]
      */
-    public function getLessonContentFromTimeTableNodeWithReplacementBy(TblDivisionCourse $tblDivisionCourse, DateTime $dateTime, Int $lesson)
+    public function getLessonContentListFromTimeTableNodeWithReplacementBy(TblDivisionCourse $tblDivisionCourse, DateTime $dateTime, Int $lesson)
     {
-        $tblPerson = Account::useService()->getPersonByLogin();
-        if (!($replacementList = $this->getTimetableReplacementByTime($dateTime, $tblPerson ?: null, $tblDivisionCourse, $lesson))) {
+        $resultList = array();
+
+        // Suche mit Person, erstmal nicht mehr verwenden da jetzt alle Fächer aus dem Stundenplan zu der Stunde angezeigt werden
+//        $tblPerson = Account::useService()->getPersonByLogin();
+//        if (!($replacementList = $this->getTimetableReplacementByTime($dateTime, $tblPerson ?: null, $tblDivisionCourse, $lesson))) {
             // Suche ohne aktuelle Person als Fallback
-            $replacementList = $this->getTimetableReplacementByTime($dateTime, null, $tblDivisionCourse, $lesson);
-        }
+        $replacementList = $this->getTimetableReplacementByTime($dateTime, null, $tblDivisionCourse, $lesson);
+//        }
 
         if ($replacementList) {
             // Vertretungsplan gefunden
-            if (count($replacementList) == 1) {
-                /** @var TblTimetableReplacement $tblTimetableReplacement */
-                $tblTimetableReplacement = reset($replacementList);
+            foreach ($replacementList as $tblTimetableReplacement) {
                 $tblLessonContent = new TblLessonContent();
                 $tblLessonContent->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubject() ?: null);
                 $tblLessonContent->setServiceTblSubstituteSubject($tblTimetableReplacement->getServiceTblSubstituteSubject() ?: null);
                 $tblLessonContent->setRoom($tblTimetableReplacement->getRoom());
                 $tblLessonContent->setIsCanceled($tblTimetableReplacement->getIsCanceled() || $tblTimetableReplacement->getServiceTblSubstituteSubject());
 
-                return $tblLessonContent;
-            } else {
-                return false;
+                $resultList[] = $tblLessonContent;
             }
         } else {
             // kein Vertretungsplan -> normaler Stundenplan
-            if (($tblTimeTableNode = $this->getTimeTableNodeBy($tblDivisionCourse, $dateTime, $lesson))) {
-                $tblLessonContent = new TblLessonContent();
-                $tblLessonContent->setServiceTblSubject($tblTimeTableNode->getServiceTblSubject() ?: null);
-                $tblLessonContent->setRoom($tblTimeTableNode->getRoom());
-
-                return $tblLessonContent;
-            } else {
-                return false;
+            if (($tblTimeTableNodeList = $this->getTimeTableNodeListBy($tblDivisionCourse, $dateTime, $lesson))) {
+                foreach ($tblTimeTableNodeList as $tblTimetableNode) {
+                    $tblLessonContent = new TblLessonContent();
+                    $tblLessonContent->setServiceTblSubject($tblTimetableNode->getServiceTblSubject() ?: null);
+                    $tblLessonContent->setRoom($tblTimetableNode->getRoom());
+                    $resultList[] = $tblLessonContent;
+                }
             }
         }
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**

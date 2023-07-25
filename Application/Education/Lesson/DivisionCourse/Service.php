@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group as GroupPerson;
@@ -665,6 +666,17 @@ class Service extends ServiceYearChange
     }
 
     /**
+     * @param array $FilterList
+     *
+     * @return array
+     */
+    public function fetchIdPersonByFilter(array $FilterList = array())
+    {
+
+        return (new Data($this->getBinding()))->fetchIdPersonByFilter($FilterList);
+    }
+
+    /**
      * @param array $Data
      *
      * @return false|TblDivisionCourse
@@ -694,8 +706,15 @@ class Service extends ServiceYearChange
      * @return TblDivisionCourse
      */
     public function insertDivisionCourse(
-        TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description, bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject
-    ): TblDivisionCourse {
+        TblDivisionCourseType $tblType,
+        TblYear $tblYear,
+        string $name,
+        string $description = '',
+        bool $isShownInPersonData = true,
+        bool $isReporting = true,
+        ?TblSubject $tblSubject = null): TblDivisionCourse
+    {
+
         return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
     }
 
@@ -1338,12 +1357,13 @@ class Service extends ServiceYearChange
     {
 
         $LevelList = (new Data($this->getBinding()))->getStudentEducationLevelList();
-        $LevelListing[] = '-[ Nicht ausgewählt ]-';
+        $LevelList = array_filter($LevelList);
+        $LevelListing[] = '-[ Nicht ausgewählt ]-'; // should be replaced by Object
         if(!empty($LevelList)){
+            sort($LevelList);
             foreach($LevelList as $Level){
-                $LevelListing[] = current($Level);
+                $LevelListing[$Level] = $Level;
             }
-            sort($LevelListing);
         }
         return $LevelListing;
     }
@@ -1826,6 +1846,41 @@ class Service extends ServiceYearChange
     }
 
     /**
+     * @param TblPerson              $tblPerson
+     * @param                        $Level
+     * @param TblYear                $tblYear
+     * @param null|TblDivisionCourse $tblDivisionCourseD
+     * @param null|TblDivisionCourse $tblDivisionCourseC
+     * @param null|TblType           $tblType
+     * @param null|TblCompany        $tblCompany
+     * @param null|TblCourse        $tblCourse
+     *
+     * @return TblStudentEducation
+     */
+    public function insertStudentEducation(
+        TblPerson $tblPerson,
+        $Level,
+        TblYear $tblYear,
+        ?TblDivisionCourse $tblDivisionCourseD,
+        ?TblDivisionCourse $tblDivisionCourseC,
+        ?TblType $tblType,
+        ?TblCompany $tblCompany,
+        ?TblCourse $tblCourse)
+    {
+        $tblStudentEducation = new TblStudentEducation();
+        $tblStudentEducation->setServiceTblPerson($tblPerson);
+        $tblStudentEducation->setLevel($Level);
+        $tblStudentEducation->setServiceTblYear($tblYear);
+        $tblStudentEducation->setTblDivision($tblDivisionCourseD);
+        $tblStudentEducation->setTblCoreGroup($tblDivisionCourseC);
+        $tblStudentEducation->setServiceTblSchoolType($tblType);
+        $tblStudentEducation->setServiceTblCompany($tblCompany);
+        $tblStudentEducation->setServiceTblCourse($tblCourse);
+
+        return (new Data($this->getBinding()))->createStudentEducation($tblStudentEducation);
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param string $separator
      *
@@ -1927,7 +1982,7 @@ class Service extends ServiceYearChange
         return new Title(new Calendar() . ' Schuljahresübersicht für: ' . new Bold($tblYear->getDisplayName()) . new PullRight(new Muted($countTotal . ' Schüler')))
             . implode('<br/>', $panelList)
             . (empty($missingStudentGroup) ? '' : new Panel(
-                'Personen, welche nicht mehr in der Personengruppe Schüler sind:',
+                'Folgende Personen sind in der Zählung inbegriffen, jedoch nicht mehr in der Personengruppe Schüler.',
                 $missingStudentGroup,
                 Panel::PANEL_TYPE_WARNING
             ));

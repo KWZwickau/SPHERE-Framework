@@ -946,6 +946,20 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                 }
             }
 
+            // Tudor
+            if (($tblLeaveInformationTudorName = $this->getLeaveInformationBy($tblLeaveStudent, 'TudorName'))) {
+                $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblLeaveInformationTudorName->getValue();
+            }
+            if (($tblLeaveInformationTudorGender = $this->getLeaveInformationBy($tblLeaveStudent, 'TudorGender'))) {
+                if (($tblCommonGender = Common::useService()->getCommonGenderById($tblLeaveInformationTudorGender->getValue()))) {
+                    if ($tblCommonGender->getName() == 'Männlich') {
+                        $Content['P' . $personId]['Tudor']['Description'] = 'Tutor';
+                    } elseif ($tblCommonGender->getName() == 'Weiblich') {
+                        $Content['P' . $personId]['Tudor']['Description'] = 'Tutorin';
+                    }
+                }
+            }
+
             // weitere Felder (Berufsfachschulen && Fachschulen)
             if (($tblLeaveInformationList = $this->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
                 foreach ($tblLeaveInformationList as $tblLeaveInformation) {

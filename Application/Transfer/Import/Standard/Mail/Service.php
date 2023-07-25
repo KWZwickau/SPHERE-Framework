@@ -21,7 +21,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -148,8 +147,22 @@ class Service
                             : trim($Document->getValue($Document->getCell($OptionalLocation['Geburtsdatum'], $RunY)));
 
                         if ($birthday) {
-                            if (strpos($birthday, '.') === false) {
-                                $birthday = date('d.m.Y', PHPExcel_Shared_Date::ExcelToPHP($birthday));
+                            $len = strlen($birthday);
+                            switch ($len) {
+                                case 5:
+                                    $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($birthday));
+                                    break;
+                                case 6:
+                                    $birthday = substr($birthday, 0, 2).'.'.substr($birthday, 2, 2).'.'.substr($birthday, 4, 2);
+                                    break;
+                                case 7:
+                                    $birthday = '0'.$birthday;
+                                case 8:
+                                    $birthday = substr($birthday, 0, 2).'.'.substr($birthday, 2, 2).'.'.substr($birthday, 4, 4);
+                                    break;
+                                case 10:
+//                                    $birthday = $birthday;
+                                    break;
                             }
                         }
 

@@ -917,6 +917,32 @@ class Data extends Support
     }
 
     /**
+     * @param TblStudentSpecialNeedsLevel|null $tblStudentSpecialNeedsLevel
+     *
+     * @return TblStudentSpecialNeeds
+     */
+    public function insertStudentSpecialNeedsLevel(TblStudentSpecialNeedsLevel $tblStudentSpecialNeedsLevel = null)
+    {
+
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblStudentSpecialNeeds();
+        $Entity->setIsHeavyMultipleHandicapped(false);
+        $Entity->setIncreaseFactorHeavyMultipleHandicappedSchool('');
+        $Entity->setIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities('');
+        $Entity->setRemarkHeavyMultipleHandicapped('');
+        $Entity->setDegreeOfHandicap('');
+        $Entity->setSign('');
+        $Entity->setValidTo('');
+        $Entity->setTblStudentSpecialNeedsLevel($tblStudentSpecialNeedsLevel);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
      * @param TblStudentSpecialNeeds $tblStudentSpecialNeeds
      * @param $IsHeavyMultipleHandicapped
      * @param $IncreaseFactorHeavyMultipleHandicappedSchool

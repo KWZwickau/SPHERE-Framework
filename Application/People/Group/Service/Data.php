@@ -251,6 +251,29 @@ class Data extends AbstractData
 
     /**
      * @param TblGroup $tblGroup
+     *
+     * @return array|float|int|string
+     */
+    public function fetchIdPersonAllByGroup(TblGroup $tblGroup)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $Group = new TblGroup('');
+        $Member = new TblMember();
+        $query = $queryBuilder->select('tM.serviceTblPerson')
+//        $query = $queryBuilder->select('tM')
+            ->from($Member->getEntityFullName(), 'tM')
+            ->leftJoin($Group->getEntityFullName(), 'tG', 'WITH', 'tG.Id = tM.tblGroup')
+            ->where($queryBuilder->expr()->eq('tG.Id', '?1'))
+            ->andWhere($queryBuilder->expr()->isNull('tM.EntityRemove'))
+            ->setParameter(1, $tblGroup->getId())
+            ->getQuery();
+        return $query->getResult(ColumnHydrator::HYDRATION_MODE);
+    }
+
+    /**
+     * @param TblGroup $tblGroup
      * @param bool     $IsForced
      *
      * @return false|TblMember[]
@@ -309,9 +332,7 @@ class Data extends AbstractData
 
         $tblPersonAll = Person::useService()->getPersonAll();
         if ($tblPersonAll) {
-            /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($Exclude) {
-
                 if (in_array($tblPerson->getId(), $Exclude)) {
                     $tblPerson = false;
                 }
@@ -508,25 +529,6 @@ class Data extends AbstractData
             return true;
         }
         return false;
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     *
-     * @return array of TblPerson->Id
-     */
-    public function fetchIdPersonAllByGroup(TblGroup $tblGroup)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Builder = $Manager->getQueryBuilder();
-        $Query = $Builder->select('M.serviceTblPerson')
-            ->from(__NAMESPACE__.'\Entity\TblMember', 'M')
-            ->where($Builder->expr()->eq('M.tblGroup', '?1'))
-            ->setParameter(1, $tblGroup->getId())
-            ->getQuery();
-        return $Query->getResult(ColumnHydrator::HYDRATION_MODE);
     }
 
     /**

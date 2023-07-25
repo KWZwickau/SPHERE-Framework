@@ -14,6 +14,7 @@ use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
 use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstruction;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
@@ -866,6 +867,23 @@ class ClassRegister extends AbstractDocument
                 ->styleBackgroundColor('#EEE')
                 ->addElement((new Element())
                     ->setContent($tblHoliday->getName() . ' (' . $tblHoliday->getTblHolidayType()->getName() . ')')
+                    ->stylePaddingTop('120px')
+                    ->styleAlignCenter()
+                );
+        } elseif (($tblFullTimeContentList = Digital::useService()->getFullTimeContentListByDivisionCourseAndDate($this->tblDivisionCourse, $dateTime))) {
+            $count = 10;
+            $isHoliday = true;
+
+            /** @var TblFullTimeContent $tblFullTimeContent */
+            $tblFullTimeContent = current($tblFullTimeContentList);
+            $displayFullTimeContent = 'Ganztägig' . (($tempContent = $tblFullTimeContent->getContent()) ? ': ' . $tempContent : '');
+
+            $slice = (new Slice())
+                ->styleBorderAll()
+                ->styleHeight(($count * 28) . 'px')
+                ->styleBackgroundColor('#EEE')
+                ->addElement((new Element())
+                    ->setContent($displayFullTimeContent)
                     ->stylePaddingTop('120px')
                     ->styleAlignCenter()
                 );

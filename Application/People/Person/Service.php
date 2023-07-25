@@ -180,36 +180,31 @@ class Service extends AbstractService
     }
 
     /**
-     * @param        $Salutation
-     * @param        $Title
-     * @param        $FirstName
-     * @param        $SecondName
-     * @param        $LastName
-     * @param        $GroupList
-     * @param string $BirthName
-     * @param string $ImportId
-     * @param string $CallName
+     * @param $Salutation
+     * @param $Title
+     * @param $FirstName
+     * @param $SecondName
+     * @param $LastName
+     * @param $GroupList
+     * @param $BirthName
+     * @param $ImportId
+     * @param $CallName
      *
-     * @return bool|TblPerson
+     * @return TblPerson
      */
     public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList, $BirthName = '', $ImportId = '', $CallName = '')
     {
 
-        if (( $tblPerson = (new Data($this->getBinding()))->createPerson(
-            $Salutation, $Title, $FirstName, $SecondName, $CallName, $LastName, $BirthName, $ImportId) )
-        ) {
-            // Add to Group
-            if (!empty( $GroupList )) {
-                foreach ($GroupList as $tblGroup) {
-                    Group::useService()->addGroupPerson(
-                        Group::useService()->getGroupById($tblGroup), $tblPerson
-                    );
+        $tblPerson = (new Data($this->getBinding()))->createPerson($Salutation, $Title, $FirstName, $SecondName, $CallName, $LastName, $BirthName, $ImportId);
+        // Add to Group
+        if (!empty( $GroupList )) {
+            foreach ($GroupList as $tblGroup) {
+                if($tblGroup){
+                    Group::useService()->addGroupPerson($tblGroup, $tblPerson);
                 }
             }
-            return $tblPerson;
-        } else {
-            return false;
         }
+        return $tblPerson;
     }
 
     /**
@@ -222,6 +217,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPersonById($Id, $IsForced);
+    }
+
+    /**
+     * @param $PersonIdList
+     *
+     * @return array
+     */
+    public function getPersonArrayByIdList($PersonIdList)
+    {
+
+        return (new Data($this->getBinding()))->getPersonArrayByIdList($PersonIdList);
     }
 
     /**

@@ -14,12 +14,14 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -34,11 +36,11 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param null $Select
+     * @param null $Data
      *
      * @return Stage
      */
-    public function frontendStudent($Select = null)
+    public function frontendStudent($Data = null)
     {
 
         $View = new Stage();
@@ -47,37 +49,62 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblYearAll = Term::useService()->getYearAll();
         $tblTypeAll = Type::useService()->getTypeAll();
+        $mailTarget = array('1' => 'Schüler', '2' => 'Sorgeberechtigter 1', '3' => 'Sorgeberechtigter 2');
+        $_POST['Data']['mail1'] = 1;
+        $_POST['Data']['mail2'] = 1;
 
         $View->setContent(
             new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
-                        new Well(
-                            FuxSchool::useService()->getTypeAndYear(
-                                new Form(
-                                    new FormGroup(array(
-                                        new FormRow(array(
-                                            new FormColumn(
-                                                new SelectBox('Select[Year]', 'Schuljahr',
-                                                    array('{{Name}}' => $tblYearAll)),
-                                                4
-                                            ),
-                                            new FormColumn(
-                                                new SelectBox('Select[Type]', 'Schulart auswählen',
-                                                    array('{{Name}}' => $tblTypeAll)),
-                                                4
-                                            ),
-                                            new FormColumn(
-                                                new CheckBox('Select[UseTypeFromImport]', 'oder Schulart aus Spalte: Schüler_Schulart verwenden', 1),
-                                                4
-                                            )
-                                        )),
-                                    ))
-                                    , new Primary('Auswählen', new Select())
-                                ), $Select, '/Transfer/Import/FuxMedia/Student/Import'
-                            )
+                    new Well(
+                        FuxSchool::useService()->getTypeAndYear(
+                            new Form(
+                                new FormGroup(array(
+                                    new FormRow(array(
+                                        new FormColumn(
+                                            new SelectBox('Data[YearId]', 'Schuljahr',
+                                                array('{{Name}}' => $tblYearAll)),
+                                            4
+                                        ),
+                                        new FormColumn(
+                                            new SelectBox('Data[TypeId]', 'Schulart auswählen',
+                                                array('{{Name}}' => $tblTypeAll)),
+                                            4
+                                        ),
+                                        new FormColumn(
+                                            new Layout(new LayoutGroup(array(
+                                                new LayoutRow(new LayoutColumn(
+                                                    '</br>'
+                                                )),
+                                                new LayoutRow(new LayoutColumn(
+                                                    new CheckBox('Data[UseTypeFromImport]', 'oder Schulart aus Spalte: Schüler_Schulart verwenden', 1)
+                                                ))
+                                            ))),
+                                            4
+                                        ),
+                                    )),
+                                    new FormRow(array(
+                                        new FormColumn(
+                                            new SelectBox('Data[mail1]', 'Ziel Kommunikation_Email1',
+                                                $mailTarget),
+                                            4
+                                        ),
+                                        new FormColumn(
+                                            new SelectBox('Data[mail2]', 'Ziel Kommunikation_Email2',
+                                                $mailTarget),
+                                            4
+                                        ),
+                                    )),
+                                ))
+                                , new Primary('Auswählen', new Select())
+                            ), $Data, '/Transfer/Import/FuxMedia/Student/Import'
                         )
-                    )
-                )
+                    ),
+                    new Info('Bemerkung besteht aus:'.
+                        new Container('Schüler_allgemeine_Bemerkungen -> $Value').
+                        new Container('Zusatzfeld5 -> "Buchsatz: $Value"').
+                        new Container('Zusatzfeld10 -> $Value'))
+                ))
             )))
         );
 
@@ -86,13 +113,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param UploadedFile|null $File
-     * @param null $TypeId
-     * @param null $YearId
-     * @param null $UseTypeFromImport
+     * @param array $Data
      *
      * @return Stage
      */
-    public function frontendStudentImport(UploadedFile $File = null, $TypeId = null, $YearId = null, $UseTypeFromImport = null)
+    public function frontendStudentImport(UploadedFile $File = null, array $Data = array())
     {
 
         $View = new Stage();
@@ -100,11 +125,11 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setDescription('Schülerdaten');
 
         $tblType = $tblYear = null;
-        if ($TypeId !== null) {
-            $tblType = Type::useService()->getTypeById($TypeId);
+        if ($Data['TypeId'] !== null) {
+            $tblType = Type::useService()->getTypeById($Data['TypeId']);
         }
-        if ($YearId !== null) {
-            $tblYear = Term::useService()->getYearById($YearId);
+        if ($Data['YearId'] !== null) {
+            $tblYear = Term::useService()->getYearById($Data['YearId']);
         }
 
         $View->setContent(
@@ -128,7 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     )
                                 )
                                 , new Primary('Hochladen')
-                            ), $File, $TypeId, $YearId, $UseTypeFromImport
+                            ), $File, $Data
                         )
                         . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                     )

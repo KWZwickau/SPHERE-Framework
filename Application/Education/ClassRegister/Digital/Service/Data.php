@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 
 use DateTime;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContentLink;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
@@ -723,5 +724,138 @@ class Data  extends AbstractData
         Protocol::useService()->flushBulkEntries();
 
         return true;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblFullTimeContent
+     */
+    public function getFullTimeContentById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblFullTimeContent', $Id);
+    }
+
+    /**
+     * @param $FromDate
+     * @param $ToDate
+     * @param $Content
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson|null $tblPerson
+     *
+     * @return TblFullTimeContent
+     */
+    public function createFullTimeContent(
+        $FromDate,
+        $ToDate,
+        $Content,
+        TblDivisionCourse $tblDivisionCourse,
+        TblPerson $tblPerson = null
+    ): TblFullTimeContent {
+
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblFullTimeContent();
+        $Entity->setFromDate(new DateTime($FromDate));
+        $Entity->setToDate($ToDate ? new DateTime($ToDate) : null);
+        $Entity->setContent($Content);
+        $Entity->setServiceTblDivisionCourse($tblDivisionCourse);
+        $Entity->setServiceTblPerson($tblPerson);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblFullTimeContent $tblFullTimeContent
+     * @param $FromDate
+     * @param $ToDate
+     * @param $Content
+     * @param TblPerson|null $tblPerson
+     *
+     * @return bool
+     */
+    public function updateFullTimeContent(
+        TblFullTimeContent $tblFullTimeContent,
+        $FromDate,
+        $ToDate,
+        $Content,
+        TblPerson $tblPerson = null
+    ): bool {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblFullTimeContent $Entity */
+        $Entity = $Manager->getEntityById('TblFullTimeContent', $tblFullTimeContent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setFromDate(new DateTime($FromDate));
+            $Entity->setToDate($ToDate ? new DateTime($ToDate) : null);
+            $Entity->setContent($Content);
+            $Entity->setServiceTblPerson($tblPerson);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblFullTimeContent $tblFullTimeContent
+     *
+     * @return bool
+     */
+    public function destroyFullTimeContent(TblFullTimeContent $tblFullTimeContent): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblFullTimeContent $Entity */
+        $Entity = $Manager->getEntityById('TblFullTimeContent', $tblFullTimeContent->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param DateTime $date
+     *
+     * @return TblFullTimeContent[]|false
+     */
+    public function getFullTimeContentListByDivisionCourseAndDate(TblDivisionCourse $tblDivisionCourse, DateTime $date)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblFullTimeContent', 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->eq('t.serviceTblDivisionCourse', '?1'),
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->isNull('t.ToDate'),
+                        $queryBuilder->expr()->eq('t.FromDate', '?2')
+                    ),
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->isNotNull('t.ToDate'),
+                        $queryBuilder->expr()->lte('t.FromDate', '?2'),
+                        $queryBuilder->expr()->gte('t.ToDate', '?2')
+                    ),
+                )
+            ))
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->setParameter(2, $date)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 }

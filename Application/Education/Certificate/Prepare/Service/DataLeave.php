@@ -383,6 +383,41 @@ abstract class DataLeave extends DataDiploma
 
     /**
      * @param TblLeaveStudent $tblLeaveStudent
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param bool $isForced
+     *
+     * @return false|TblLeaveAdditionalGrade[]
+     */
+    public function getLeaveAdditionalGradeListBy(
+        TblLeaveStudent $tblLeaveStudent,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        bool $isForced = false
+    ) {
+        if ($isForced) {
+            return $this->getForceEntityListBy(
+                __METHOD__,
+                $this->getEntityManager(),
+                'TblLeaveAdditionalGrade',
+                array(
+                    TblLeaveAdditionalGrade::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
+                    TblLeaveAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
+                )
+            );
+        } else {
+            return $this->getCachedEntityListBy(
+                __METHOD__,
+                $this->getEntityManager(),
+                'TblLeaveAdditionalGrade',
+                array(
+                    TblLeaveAdditionalGrade::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
+                    TblLeaveAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
+                )
+            );
+        }
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
      * @param TblSubject $tblSubject
      * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
      * @param $grade

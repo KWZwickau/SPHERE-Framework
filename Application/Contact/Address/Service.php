@@ -910,6 +910,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param array $personIdList of TblPerson->Id
+     *
+     * @return array
+     */
+    public function fetchAddressAllByPersonIdList($personIdList)
+    {
+
+        return (new Data($this->getBinding()))->fetchAddressAllByPersonIdList($personIdList);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param bool $IsSoftRemove
      */

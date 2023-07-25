@@ -297,7 +297,7 @@ class FrontendSubjectTable extends FrontendStudentSubject
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        (new TextField('Data[Level]', '', 'Klassenstufe'))
+                        (new NumberField('Data[Level]', '', 'Klassenstufe'))
                             ->setRequired()
                             ->ajaxPipelineOnKeyUp(ApiSubjectTable::pipelineLoadCheckSubjectTableContent($SchoolTypeId, $SubjectTableLinkId))
                         , 6),

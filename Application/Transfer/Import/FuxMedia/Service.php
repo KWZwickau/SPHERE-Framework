@@ -1,6 +1,4 @@
 <?php
-
-
 namespace SPHERE\Application\Transfer\Import\FuxMedia;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
@@ -46,27 +44,27 @@ class Service
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null                $Select
+     * @param null                $Data
      * @param string              $Redirect
      *
      * @return IFormInterface|Redirect|string
      */
-    public function getTypeAndYear(IFormInterface $Stage = null, $Select = null, $Redirect = '')
+    public function getTypeAndYear(IFormInterface $Stage = null, $Data = null, $Redirect = '')
     {
 
         /**
          * Skip to Frontend
          */
-        if (null === $Select) {
+        if (null === $Data) {
             return $Stage;
         }
 
         $Error = false;
-        if (!(Type::useService()->getTypeById($Select['Type'])) && !isset($Select['UseTypeFromImport'])) {
+        if (!(Type::useService()->getTypeById($Data['TypeId'])) && !isset($Data['UseTypeFromImport'])) {
             $Error = true;
             $Stage .= new Warning('Schulart nicht gefunden');
         }
-        if (!(Term::useService()->getYearById($Select['Year']))) {
+        if (!(Term::useService()->getYearById($Data['YearId']))) {
             $Error = true;
             $Stage .= new Warning('Schuljahr nicht gefunden');
         }
@@ -75,33 +73,27 @@ class Service
         }
 
         return new Redirect($Redirect, 0, array(
-            'TypeId' => $Select['Type'],
-            'YearId' => $Select['Year'],
-            'UseTypeFromImport' => isset($Select['UseTypeFromImport'])
+            'Data' => $Data,
         ));
     }
 
     /**
      * @param IFormInterface|null $Form
      * @param UploadedFile|null $File
-     * @param null $TypeId
-     * @param null $YearId
-     * @param null $UseTypeFromImport
+     * @param array $Data
      *
      * @return IFormInterface|Danger|string
      */
     public function createStudentsFromFile(
         IFormInterface $Form = null,
         UploadedFile $File = null,
-        $TypeId = null,
-        $YearId = null,
-        $UseTypeFromImport = null
+        array $Data = array()
     ) {
 
         /**
          * Skip to Frontend
          */
-        if (null === $File || $TypeId === null || $YearId === null) {
+        if (null === $File || $Data['TypeId'] === null || $Data['YearId'] === null) {
             return $Form;
         }
 
@@ -274,6 +266,7 @@ class Service
                     'Sorgeberechtigter4_GO'               => null,
                     'Sorgeberechtigter4_GD'               => null,
                     'Sorgeberechtigter4_Beruf'            => null,
+                    'Zusatzfeld5'                        => null,
                     'Zusatzfeld10'                        => null,
                 );
 
@@ -300,8 +293,8 @@ class Service
                     $countCustody = 0;
                     $countCustodyExists = 0;
 
-                    $tblTypeParameter = Type::useService()->getTypeById($TypeId);
-                    $tblYear = Term::useService()->getYearById($YearId);
+                    $tblTypeParameter = Type::useService()->getTypeById($Data['TypeId']);
+                    $tblYear = Term::useService()->getYearById($Data['YearId']);
 
                     $tblStudentAgreementCategoryPhoto = Student::useService()->getStudentAgreementCategoryById(1);
                     $tblStudentAgreementCategoryName = Student::useService()->getStudentAgreementCategoryById(2);
@@ -321,7 +314,7 @@ class Service
                         set_time_limit(300);
 
                         $isHofa = false;
-                        if ($UseTypeFromImport) {
+                        if ($Data['UseTypeFromImport']) {
                             $type = trim($Document->getValue($Document->getCell($Location['Schüler_Schulart'], $RunY)));
                             switch ($type) {
                                 case 'BGY+HOFA': $isHofa = true;
@@ -360,6 +353,16 @@ class Service
                                 Group::useService()->addGroupPerson($tblGroupHofa, $tblPerson);
                             }
 
+                            $Remark = trim($Document->getValue($Document->getCell($Location['Schüler_allgemeine_Bemerkungen'], $RunY)));
+                            $Buchsatz = trim($Document->getValue($Document->getCell($Location['Zusatzfeld5'], $RunY)));
+                            if($Buchsatz){
+                                $Remark = ($Remark?' ':'').'Buchsatz: '.$Buchsatz;
+                            }
+                            $Zecken = trim($Document->getValue($Document->getCell($Location['Zusatzfeld10'])));
+                            if($Zecken){
+                                $Remark = ($Remark?' ':'').$Zecken;
+                            }
+
                             // Student Common
                             Common::useService()->insertMeta(
                                 $tblPerson,
@@ -372,7 +375,8 @@ class Service
                                 trim($Document->getValue($Document->getCell($Location['Schüler_Konfession'], $RunY))),
                                 0,
                                 '',
-                                trim($Document->getValue($Document->getCell($Location['Schüler_allgemeine_Bemerkungen'], $RunY)))
+                                $Remark
+                                , $RunY
                             );
 
                             // Student Address
@@ -411,6 +415,8 @@ class Service
                                     $RunY))) ) != ''
                             ) {
                                 if ($tblType) {
+                                    $Level = (int)$Level;
+                                    $Level = (string)$Level;
                                     $tblLevel = Division::useService()->insertLevel($tblType, $Level);
                                     if ($tblLevel) {
                                         $Division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
@@ -529,9 +535,11 @@ class Service
                             $sibling = trim($Document->getValue($Document->getCell($Location['Schüler_Geschwister'],
                                 $RunY)));
                             $tblSiblingRank = false;
-                            if ($sibling !== '' && $sibling != '0') {
-                                if (!($tblSiblingRank = Relationship::useService()->getSiblingRankById(intval($sibling)))) {
-                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Schüler_Geschwister konnte nicht angelegt werden.';
+                            if ($sibling !== '') {
+                                if($sibling != '0'){
+                                    if (!($tblSiblingRank = Relationship::useService()->getSiblingRankById(intval($sibling)))) {
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Schüler_Geschwister konnte nicht angelegt werden.';
+                                    }
                                 }
                             }
 
@@ -1038,7 +1046,6 @@ class Service
                                             $tblPhoneType = Phone::useService()->getTypeById(2);
                                         }
                                     }
-
                                     if (0 === strpos($phoneNumber, '1')) {
                                         $phoneNumber = '0' . $phoneNumber;
                                     }
@@ -1055,75 +1062,43 @@ class Service
                             }
 
                             for ($i = 0; $i < 5; $i++) {
-                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Kommunikation_Email' . ($i == 0 ? '' : $i)],
+                                $mailAddress = trim($Document->getValue($Document->getCell($Location['Kommunikation_Email'.($i == 0 ? '' : $i)],
                                     $RunY)));
-                                if ($mailAddress != '') {
-                                    if ($consumerAcronymSachsen == 'HOGA') {
-                                        switch ($i) {
-                                            case 1:
-                                                $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
-                                                break;
-                                            case 2:
-                                                $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
-                                                break;
-                                            case 3:
-                                                $tblPersonContact = isset($personList['S3']) ? $personList['S3'] : false;
-                                                break;
-                                            case 4:
-                                                $tblPersonContact = isset($personList['S4']) ? $personList['S4'] : false;
-                                                break;
-                                            default:
+                                if($mailAddress != '') {
+                                    switch ($i) {
+                                        case 1:
+                                            if($Data['mail1'] == 1) {
                                                 $tblPersonContact = $tblPerson;
-                                        }
-
-                                        if (!$tblPersonContact) {
-                                            $tblPersonContact = $tblPerson;
-                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Email' . ($i == 0 ? '' : $i) . ':' . $mailAddress
-                                                . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
-                                        }
-                                    } elseif ($consumerAcronymSachsen == 'EOSL') {
-                                        switch ($i) {
-                                            case 1:
+                                            } elseif($Data['mail1'] == 2) {
                                                 $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
-                                                break;
-                                            case 2:
+                                            } elseif($Data['mail1'] == 3) {
                                                 $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
-                                                break;
-                                            default:
+                                            }
+                                            break;
+                                        case 2:
+                                            if($Data['mail2'] == 1) {
                                                 $tblPersonContact = $tblPerson;
-                                        }
-
-                                        if (!$tblPersonContact) {
-                                            $tblPersonContact = $tblPerson;
-                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Email' . ($i == 0 ? '' : $i) . ':' . $mailAddress
-                                                . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
-                                        }
-                                    } else if ($consumerAcronymSachsen == 'EVOSG' || $consumerAcronymSachsen == 'EVOS') {
-                                        switch ($i) {
-                                            case 1:
+                                            } elseif($Data['mail2'] == 2) {
                                                 $tblPersonContact = isset($personList['S1']) ? $personList['S1'] : false;
-                                                break;
-                                            case 2:
+                                            } elseif($Data['mail2'] == 3) {
                                                 $tblPersonContact = isset($personList['S2']) ? $personList['S2'] : false;
-                                                break;
-                                            case 3:
-                                                $tblPersonContact = isset($personList['S3']) ? $personList['S3'] : false;
-                                                break;
-                                            default:
-                                                $tblPersonContact = $tblPerson;
-                                        }
-
-                                        if (!$tblPersonContact) {
+                                            }
+                                            break;
+                                        case 3:
+                                            $tblPersonContact = isset($personList['S3']) ? $personList['S3'] : false;
+                                            break;
+                                        case 4:
+                                            $tblPersonContact = isset($personList['S4']) ? $personList['S4'] : false;
+                                            break;
+                                        default:
                                             $tblPersonContact = $tblPerson;
-                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Kommunikation_Email' . ($i == 0 ? '' : $i) . ':' . $mailAddress
-                                                . ' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
-                                        }
-                                    } else {
-                                        $tblPersonContact = $tblPerson;
                                     }
-
-                                    Mail::useService()->insertMailToPerson($tblPersonContact, $mailAddress,
-                                        Mail::useService()->getTypeById(1), '');
+                                    if(!$tblPersonContact) {
+                                        $tblPersonContact = $tblPerson;
+                                        $error[] = 'Zeile: '.($RunY + 1).' Kommunikation_Email'.($i == 0 ? '' : $i).':'.$mailAddress
+                                            .' zugehöriger Sorgeberechtigter nicht vorhanden, der Kontakt wurde dem Schüler zugewiesen.';
+                                    }
+                                    Mail::useService()->insertMailToPerson($tblPersonContact, $mailAddress, Mail::useService()->getTypeById(1), '');
                                 }
                             }
                         }
@@ -1140,7 +1115,7 @@ class Service
                             Panel::PANEL_TYPE_DANGER
                         );
                 } else {
-                    return new Warning(json_encode($Location))
+                    return new Warning('<pre>'.print_r($Location, true).'</pre>')
                     . new Danger(
                         "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
@@ -1173,7 +1148,7 @@ class Service
         $Document,
         $Location,
         $RunY,
-        $error,
+        &$error,
         $importService,
         $tblCommonGenderMale,
         $tblCommonGenderFemale,
@@ -1185,6 +1160,15 @@ class Service
         $tblPersonCustody = null;
         $CustodyFirstName = $this->getValue('Sorgeberechtigter' . $ranking . '_Vorname', $Location, $Document, $RunY);
         $CustodyLastName = $this->getValue('Sorgeberechtigter' . $ranking . '_Name', $Location, $Document, $RunY);
+        if($CustodyFirstName && !$CustodyLastName){
+            $CustodyLastName = '?'.$tblPerson->getLastName().'?';
+            $error[] = 'Zeile: ' . ($RunY + 1) . ' Sorgeberechtigter S'.$ranking.': '.$CustodyFirstName
+                .' ohne Nachname erhält diesen vom Schüler: '.$CustodyLastName;
+        } elseif(!$CustodyFirstName && $CustodyLastName){
+            $error[] = 'Zeile: ' . ($RunY + 1) . ' Sorgeberechtigter S'.$ranking.': '.$CustodyLastName
+                .' ohne Vornamen kann nicht importiert werden. "'.$CustodyLastName.'"';
+        }
+
         $cityCode = $importService->formatZipCode('Sorgeberechtigter' . $ranking . '_Plz', $RunY);
         if ($CustodyLastName !== '') {
             $status = $this->getValue('Sorgeberechtigter' . ($ranking == 1 ? '' : $ranking) . '_Status', $Location, $Document, $RunY);

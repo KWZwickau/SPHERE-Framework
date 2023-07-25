@@ -244,6 +244,8 @@ abstract class ServiceLeave extends ServiceDiploma
                         switch ($value) {
                             case 1: $value = 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.'; break;
                             case 2: $value = 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.'; break;
+                            case 3: $value = $tblPerson->getFullName() . ' wurde zur Abschlussprüfung nicht zugelassen und kann erst nach erfolgreicher Wiederholung der Klassenstufe an der Abschlussprüfung teilnehmen.'; break;
+                            case 4: $value = '&nbsp;'; break;
                             default: $value = '';
                         }
                     }
@@ -430,6 +432,21 @@ abstract class ServiceLeave extends ServiceDiploma
         bool $isForced = false
     ) {
         return (new Data($this->getBinding()))->getLeaveAdditionalGradeBy($tblLeaveStudent, $tblSubject, $tblPrepareAdditionalGradeType, $isForced);
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param bool $isForced
+     *
+     * @return false|TblLeaveAdditionalGrade[]
+     */
+    public function getLeaveAdditionalGradeListBy(
+        TblLeaveStudent $tblLeaveStudent,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        bool $isForced = false
+    ) {
+        return (new Data($this->getBinding()))->getLeaveAdditionalGradeListBy($tblLeaveStudent, $tblPrepareAdditionalGradeType, $isForced);
     }
 
     /**
@@ -670,5 +687,103 @@ abstract class ServiceLeave extends ServiceDiploma
         } else {
             return '&ndash;';
         }
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param TblSubject $tblSubject
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param $grade
+     * @param bool $isLocked
+     *
+     * @return TblLeaveAdditionalGrade
+     */
+    public function createLeaveAdditionalGrade(
+        TblLeaveStudent $tblLeaveStudent,
+        TblSubject $tblSubject,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        $grade,
+        bool $isLocked = false
+    ): TblLeaveAdditionalGrade {
+        return (new Data($this->getBinding()))->createLeaveAdditionalGrade($tblLeaveStudent, $tblSubject, $tblPrepareAdditionalGradeType, $grade, $isLocked);
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param $Data
+     * @param int $level
+     *
+     * @return IFormInterface|string
+     */
+    public function updateLeaveAbiturLevelElevenGrades(
+        IFormInterface $form,
+        TblLeaveStudent $tblLeaveStudent,
+        $Data,
+        int $level = 11
+    ) {
+        /**
+         * Skip to Frontend
+         */
+        if ($Data === null) {
+            return $form;
+        }
+
+        // check Wertebereich
+        $errorGrades = false;
+        if (isset($Data['Grades'])) {
+            foreach ($Data['Grades'] as $value) {
+                if (trim($value) !== '') {
+                    if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
+                        $errorGrades = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ($errorGrades) {
+            $form->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                    'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1 - 6). Die Daten wurden nicht gespeichert.', new Exclamation())
+                ))));
+
+            return $form;
+        }
+
+        if (isset($Data['Grades'])
+            && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-' . $level))
+        ) {
+            foreach ($Data['Grades'] as $subjectId => $value) {
+                $value = trim($value);
+                if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                    if (($tblLeaveAdditionalGrade = $this->getLeaveAdditionalGradeBy(
+                        $tblLeaveStudent,
+                        $tblSubject,
+                        $tblPrepareAdditionalGradeType
+                    ))) {
+                        (new Data($this->getBinding()))->updateLeaveAdditionalGrade(
+                            $tblLeaveAdditionalGrade,
+                            $value
+                        );
+                    } else {
+                        if ($value !== '') {
+                            (new Data($this->getBinding()))->createLeaveAdditionalGrade(
+                                $tblLeaveStudent,
+                                $tblSubject,
+                                $tblPrepareAdditionalGradeType,
+                                $value
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
+            . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
+                'PersonId' => ($tblPerson = $tblLeaveStudent->getServiceTblPerson()) ? $tblPerson->getId() : 0,
+                'YearId' => ($tblYear = $tblLeaveStudent->getServiceTblYear()) ? $tblYear->getId() : 0
+            ));
     }
 }

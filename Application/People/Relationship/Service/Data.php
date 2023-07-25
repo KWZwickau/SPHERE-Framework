@@ -527,13 +527,14 @@ class Data extends AbstractData
      *
      * @return bool|TblToCompany[]
      */
-    public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany)
+    public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany, TblType $tblType = null)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
-            array(
-                TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
-            ));
+        $Filter[TblToCompany::SERVICE_TBL_COMPANY] = $tblCompany->getId();
+        if(null !== $tblType){
+            $Filter[TblToCompany::ATT_TBL_TYPE] = $tblType->getId();
+        }
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany', $Filter);
     }
 
     /**

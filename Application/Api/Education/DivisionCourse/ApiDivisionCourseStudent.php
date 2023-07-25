@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Transfer;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -434,8 +435,17 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
      */
     private function getChangeDivisionCourseModal($form, TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson): string
     {
-        return new Title(new Transfer() . ' ' . $tblDivisionCourse->getTypeName() . 'nwechsel im Schuljahr')
+        return new Title(new Transfer() . ' ' . $tblDivisionCourse->getTypeName() . 'nwechsel im Schuljahr / Schüler deaktivieren')
             . new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Warning(
+                            new Container($tblDivisionCourse->getTypeName() . 'nwechsel im Schuljahr: Neue Klasse und / oder neue Stammgruppe auswählen.')
+                            . new Container('Schüler deaktivieren (z.B. Auslandsschüler): Klasse und / oder Stammgruppe 
+                                auf -[ Nicht ausgewählt ]- setzen.')
+                        )
+                    ),
+                )),
                 new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Schüler', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO)

@@ -81,13 +81,33 @@ abstract class ServiceAbitur extends AbstractService
         ))) {
             if (($tblYear = $tblPrepare->getYear())) {
                 $advancedCourses = DivisionCourse::useService()->getAdvancedCoursesForStudent($tblPerson, $tblYear);
+                // BGy
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                    && $tblSchoolType->getShortName() == 'BGy'
+                ) {
+                    $identifierList = array(
+                        '12-1' => 1,
+                        '12-2' => 1,
+                        '13-1' => 1,
+                        '13-2' => 1,
+                    );
+                } else {
+                    // Gy
+                    $identifierList = array(
+                        '11-1' => 1,
+                        '11-2' => 1,
+                        '12-1' => 1,
+                        '12-2' => 1,
+                    );
+                }
             } else {
                 $advancedCourses = array();
             }
 
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                 $identifier = $tblPrepareAdditionalGrade->getTblPrepareAdditionalGradeType()->getIdentifier();
-                if ($identifier == '11-1' || $identifier == '11-2' || $identifier == '12-1' || $identifier == '12-2') {
+                if (isset($identifierList[$identifier])) {
                     if (($tblPrepareAdditionalGrade->isSelected())) {
                         $countCourses++;
                         // Leistungskurse zählen doppelt
@@ -390,7 +410,21 @@ abstract class ServiceAbitur extends AbstractService
                 }
             }
         } elseif ($View == BlockIView::CHOOSE_COURSES) {
-            for ($level = 11; $level < 13; $level++) {
+            // BGy
+            if (($tblYear = $tblPrepare->getYear())
+                && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && $tblSchoolType->getShortName() == 'BGy'
+            ) {
+                $levelFrom = 12;
+                $levelTo = 13;
+            } else {
+                // Gy
+                $levelFrom = 11;
+                $levelTo = 12;
+            }
+
+            for ($level = $levelFrom; $level <= $levelTo; $level++) {
                 for ($term = 1; $term < 3; $term++) {
                     $midTerm = $level . '-' . $term;
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($midTerm))
@@ -593,6 +627,7 @@ abstract class ServiceAbitur extends AbstractService
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param $Data
+     * @param int $level
      *
      * @return IFormInterface|string
      */
@@ -600,7 +635,8 @@ abstract class ServiceAbitur extends AbstractService
         IFormInterface $form,
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        $Data
+        $Data,
+        int $level = 10
     ) {
         /**
          * Skip to Frontend
@@ -633,7 +669,7 @@ abstract class ServiceAbitur extends AbstractService
         }
 
         if (isset($Data['Grades'])
-            && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-10'))
+            && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-' . $level))
         ) {
             $ranking = 1;
             foreach ($Data['Grades'] as $subjectId => $value) {

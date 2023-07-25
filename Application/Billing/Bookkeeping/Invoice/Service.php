@@ -677,12 +677,6 @@ class Service extends AbstractService
                             continue;
                         }
 
-                        $item['DebtorPerson'] = '';
-                        $item['Item'] = '';
-                        $item['ItemQuantity'] = '';
-                        $item['ItemPrice'] = 0;
-                        $item['ItemSumPrice'] = 0;
-
                         $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
                         $item['Item'] = $tblInvoiceItemDebtor->getName();
                         $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
@@ -705,8 +699,8 @@ class Service extends AbstractService
 
 //                        $item['Option'] = '';
                         // convert to Frontend
-                        $item['ItemPrice'] = str_replace('.',',', number_format($item['ItemPrice'], 2) . ($IsFrontend ? '&nbsp;€' : ''));
-                        $item['ItemSumPrice'] = str_replace('.',',', number_format($item['ItemSumPrice'], 2) . ($IsFrontend ? '&nbsp;€' : ''));
+                        $item['ItemPrice'] = number_format($item['ItemPrice'], 2, ',', '.').($IsFrontend ? '&nbsp;€' : '');
+                        $item['ItemSumPrice'] = number_format($item['ItemSumPrice'], 2, ',', '.').($IsFrontend ? '&nbsp;€' : '');
                         array_push($TableContent, $item);
                     }
                 }
@@ -856,19 +850,19 @@ class Service extends AbstractService
                         $price = $tblInvoiceItemDebtor->getQuantity() * $tblInvoiceItemDebtor->getValue();
                         $ItemPrice += $price;
                         $ItemList[] = $tblInvoiceItemDebtor->getName() . ': '
-                            . str_replace('.',',', number_format($price, 2)) . '&nbsp;€';
+                            .number_format($price, 2, ',', '.').'&nbsp;€';
                         $itemsForExcel[] = array(
                             'Name' => $tblInvoiceItemDebtor->getName(),
-                            'DisplayPrice' => str_replace('.',',', number_format($price, 2)),
+                            'DisplayPrice' => number_format($price, 2, ',', '.'),
                             'Price' => $price
                         );
                     }
                     $item['PaymentType'] = implode(', ', $PaymentList);
                     // convert to Frontend
                     $ItemString = implode(',<br>', $ItemList);
-                    $item['DisplaySumPrice'] = str_replace('.',',', number_format($ItemPrice, 2))
+                    $item['DisplaySumPrice'] = number_format($ItemPrice, 2, ',', '.')
                         . ($IsFrontend ? ' €&nbsp;&nbsp;&nbsp;' . (new ToolTip(new Info(), $ItemString))->enableHtml() : '');
-                    $item['SumPrice'] = number_format($ItemPrice, 2);
+                    $item['SumPrice'] = number_format($ItemPrice, 2, '.', '');
                     $item['ItemsForExcel'] = $itemsForExcel;
                 }
 //                $item['Option'] = '';
@@ -986,9 +980,9 @@ class Service extends AbstractService
             $column = 15;
             $row++;
             $export->setValue($export->getCell($column++, $row), 'Summe');
-            $export->setValue($export->getCell($column++, $row), str_replace('.', ',', number_format($sum['Total'], 2)));
+            $export->setValue($export->getCell($column++, $row), number_format($sum['Total'], 2, ',', '.'));
             foreach ($extraHeaderList as $headerItem) {
-                $export->setValue($export->getCell($column++, $row), str_replace('.', ',', number_format($sum[$headerItem], 2)));
+                $export->setValue($export->getCell($column++, $row), number_format($sum[$headerItem], 2, ',', '.'));
             }
             $export->setStyle($export->getCell(7, $row), $export->getCell($column - 1, $row))->setFontBold();
 
@@ -1002,7 +996,7 @@ class Service extends AbstractService
     /**
      * @return array
      */
-    public function getInvoiceUpPaidList()
+    public function getInvoiceUnPaidList()
     {
 
         $TableContent = array();
@@ -1012,8 +1006,8 @@ class Service extends AbstractService
                 $item['DebtorPerson'] = '';
                 $item['Item'] = $tblInvoiceItemDebtor->getName();
                 $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
-                $item['ItemPrice'] = $tblInvoiceItemDebtor->getPriceString();
-                $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
+                $item['ItemPrice'] = $tblInvoiceItemDebtor->getPriceString('€', true);
+                $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getSummaryPriceFrontend();
                 $item['PaymentType'] = ($tblInvoiceItemDebtor->getServiceTblPaymentType()
                     ? $tblInvoiceItemDebtor->getServiceTblPaymentType()->getName()
                     : 'Zahlungsart nicht gefunden');
@@ -1073,8 +1067,8 @@ class Service extends AbstractService
     /**
  * @return bool|\SPHERE\Application\Document\Storage\FilePointer
  */
-    public function createInvoiceUpPaidListExcel() {
-        $resultList = $this->getInvoiceUpPaidList();
+    public function createInvoiceUnPaidListExcel() {
+        $resultList = $this->getInvoiceUnPaidList();
         if(!empty($resultList)){
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */

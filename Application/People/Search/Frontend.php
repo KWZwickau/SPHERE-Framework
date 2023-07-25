@@ -246,14 +246,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 '',
                                 '/People/Person',
                                 new Edit(),
-                                array('Id'    => $tblPerson->getId(), 'Group' => 'S' . $Search),
+                                array('Id'    => $tblPerson->getId(), 'PseudoId' => 'S' . $Search),
                                 'Bearbeiten'
                             )
                             . new Standard(
                                 '',
                                 '/People/Person/Destroy',
                                 new Remove(),
-                                array('Id' => $tblPerson->getId(), 'Group' => 'S' . $Search),
+                                array('Id' => $tblPerson->getId(), 'PseudoId' => 'S' . $Search),
                                 'Person löschen'
                             )
                     );
@@ -377,14 +377,14 @@ class Frontend extends Extension implements IFrontendInterface
                         '',
                         '/People/Person',
                         new Edit(),
-                        array('Id'    => $tblPerson->getId(), 'Group' => 'C' . $tblDivisionCourse->getId()),
+                        array('Id'    => $tblPerson->getId(), 'PseudoId' => 'C' . $tblDivisionCourse->getId()),
                         'Bearbeiten'
                     )
                     . new Standard(
                         '',
                         '/People/Person/Destroy',
                         new Remove(),
-                        array('Id' => $tblPerson->getId(), 'Group' => 'C' . $tblDivisionCourse->getId())
+                        array('Id' => $tblPerson->getId(), 'PseudoId' => 'C' . $tblDivisionCourse->getId())
                         , 'Person löschen'
                     );
 
@@ -405,11 +405,19 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $columnList['Option'] = '';
 
-        $columnDefs = array(
-            array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
-            array('type' => 'natural', 'targets' => array(3,4)),
-            array('orderable' => false, 'width' => '60px', 'targets' => -1),
-        );
+        $targetsNatural = array();
+        if ($showDivision || $showCoreGroup) {
+            $targetsNatural[] = 3;
+        }
+        if ($showDivision && $showCoreGroup) {
+            $targetsNatural[] = 4;
+        }
+
+        $columnDefs[] = array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0);
+        if (!empty($targetsNatural)) {
+            $columnDefs[] = array('type' => 'natural', 'targets' => $targetsNatural);
+        }
+        $columnDefs[] = array('orderable' => false, 'width' => '60px', 'targets' => -1);
 
         return new Title('Verfügbare Personen ' . new Small(new Muted('im Kurs: ')) . (new Bold($tblDivisionCourse->getDisplayName())))
             . new TableData($tableContent, null, $columnList, array('columnDefs' => $columnDefs, 'order' => array(0, 'asc')));
@@ -424,6 +432,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
         // result by Views
         $ContentArray = Individual::useService()->getPersonListByGroup($tblGroup);
+        $showIdentifier = false;
         $showDivision = false;
         $showCoreGroup = false;
 
@@ -434,7 +443,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblRelationshipList = Relationship::useService()->getPersonRelationshipArrayByType($tblRelationshipType);
             $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE);
             array_walk($ContentArray, function($contentRow) use (&$tableContent, $tblGroup, $tblRelationshipList,
-                $tblStudentTransferType, &$showDivision, &$showCoreGroup
+                $tblStudentTransferType, &$showDivision, &$showCoreGroup, &$showIdentifier
             ){
                 // Custody
                 $childrenList = array();
@@ -449,7 +458,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     = new Standard('', '/People/Person', new PersonIcon(),
                                         array(
                                             'Id' => $childId,
-                                            'Group' => 'G' . $tblGroup->getId()
+                                            'PseudoId' => 'G' . $tblGroup->getId()
                                         ),
                                         'zur Person wechseln'
                                     )
@@ -509,6 +518,9 @@ class Frontend extends Extension implements IFrontendInterface
                 // Student
                 $item['Division'] = $displayDivision;
                 $item['CoreGroup'] = $displayCoreGroup;
+                if (trim($contentRow['Identifier'])) {
+                    $showIdentifier = true;
+                }
                 $item['Identifier'] = trim($contentRow['Identifier']);
                 // Custody
                 $item['Custody'] = (empty($childrenList) ? '' : (string)new Listing($childrenList));
@@ -525,12 +537,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $item['Option'] = new Standard('', '/People/Person', new Edit(),
                         array(
                             'Id'    => $contentRow['TblPerson_Id'],
-                            'Group' => 'G' . $tblGroup->getId())
+                            'PseudoId' => 'G' . $tblGroup->getId())
                         , 'Bearbeiten')
                     .new Standard('',
                         '/People/Person/Destroy', new Remove(),
                         array('Id' => $contentRow['TblPerson_Id'],
-                            'Group' => 'G' . $tblGroup->getId())
+                            'PseudoId' => 'G' . $tblGroup->getId())
                         , 'Person löschen');
 
                 array_push($tableContent, $item);
@@ -539,6 +551,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tableContent = array_filter($tableContent);
 
+        $targetsNatural = array();
         if($tblGroup->getMetaTable() == TblGroup::META_TABLE_CUSTODY){
             if(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC')){
                 $ColumnArray = array(
@@ -557,12 +570,14 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             }
 
-        } elseif ($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT) {
+        } elseif ($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT || !$tblGroup->isLocked()) {
             $ColumnArray = array(
                 'FullName'   => 'Name',
                 'Address'    => 'Adresse',
-                'Identifier' => 'Schülernummer',
             );
+            if ($showIdentifier) {
+                $ColumnArray['Identifier'] = 'Schülernummer';
+            }
             if ($showDivision) {
                 $ColumnArray['Division'] = 'Klasse';
             }
@@ -570,6 +585,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $ColumnArray['CoreGroup'] = 'Stammgruppe';
             }
             $ColumnArray['Option'] = '';
+
+            if ($showDivision || $showCoreGroup) {
+                $targetsNatural[] = $showIdentifier ? 3 : 2;
+            }
+            if ($showDivision && $showCoreGroup) {
+                $targetsNatural[] = $showIdentifier ? 4 : 3;
+            }
         } elseif ($tblGroup->getMetaTable() == TblGroup::META_TABLE_PROSPECT) {
             $ColumnArray = array(
                 'FullName'     => 'Name',
@@ -589,18 +611,6 @@ class Frontend extends Extension implements IFrontendInterface
                 'LeaveDate'       => 'Abgang Datum',
                 'Option'          => '',
             );
-        } elseif ($showDivision) {
-            $ColumnArray = array(
-                'FullName' => 'Name',
-                'Address'  => 'Adresse',
-            );
-            if ($showDivision) {
-                $ColumnArray['Division'] = 'Klasse';
-            }
-            if ($showCoreGroup) {
-                $ColumnArray['CoreGroup'] = 'Stammgruppe';
-            }
-            $ColumnArray['Option'] = '';
         } else {
             $ColumnArray = array(
                 'FullName' => 'Name',
@@ -623,12 +633,12 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
         // Student column definition
-        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT){
-            $columnDefs = array(
-                array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
-                array('type' => 'natural', 'targets' => array(3,4)),
-                array('orderable' => false, 'width' => '60px', 'targets' => -1),
-            );
+        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT || !$tblGroup->isLocked()){
+            $columnDefs[] = array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0);
+            if (!empty($targetsNatural)) {
+                $columnDefs[] = array('type' => 'natural', 'targets' => $targetsNatural);
+            }
+            $columnDefs[] = array('orderable' => false, 'width' => '60px', 'targets' => -1);
         }
         // Archive order & column definition
         if($tblGroup->getMetaTable() == TblGroup::META_TABLE_ARCHIVE){
@@ -636,13 +646,6 @@ class Frontend extends Extension implements IFrontendInterface
             $columnDefs = array(
                 array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
                 array('type' => 'de_date', 'targets' => 4),
-                array('orderable' => false, 'width' => '60px', 'targets' => -1),
-            );
-        }
-        if ($showDivision) {
-            $columnDefs = array(
-                array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
-                array('type' => 'natural', 'targets' => 2,3),
                 array('orderable' => false, 'width' => '60px', 'targets' => -1),
             );
         }

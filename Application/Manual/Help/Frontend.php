@@ -39,23 +39,43 @@ class Frontend extends Extension implements IFrontendInterface
         $isUcsConsumer = ($tblConsumer = Consumer::useService()->getConsumerBySession())
             && Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS);
 
+        $LayoutColumnList = null;
+        if($isUcsConsumer){
+            $LayoutColumnList[] = new LayoutColumn(new Link((new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                , 'Schnittstelle Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;11.05.2023'))->setPictureHeight()
+                , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_UCS_DLLP')
+            ), 2);
+            $LayoutColumnList[] = new LayoutColumn(new Link((new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                , 'Schuljahreswechsel Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;17.07.2023'))->setPictureHeight()
+                , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_year_DLLP_UCS')
+            ), 2);
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn('', 3),
+                        new LayoutColumn('', 1),
                         new LayoutColumn('<h4>Schulsoftware Download der Hilfe</h4>'
                             . new Link(new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
                                 , 'Allgemeine Hilfe '.new Muted(new Small('Stand:&nbsp;18.04.2023'))), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Help'))
                             , 3),
-                        new LayoutColumn('<h4>Link zu Lehrvideos</h4>'
+                        new LayoutColumn('<h4>Link zu Lehrvideos <b>Kursverwaltung</b></h4>'
                             . (new Link(new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                                , 'Link zu Lehrvideos '.new Muted(new Small('Stand:&nbsp;31.05.2023'))), 'https://www.youtube.com/playlist?list=PLvZfeA-UBJ_z_MRV2-lVLoW3cnYJ4wEJh'))
+                                , 'Link zu Lehrvideos Kursverwaltung '.new Muted(new Small('Stand:&nbsp;31.05.2023'))), 'https://www.youtube.com/playlist?list=PLvZfeA-UBJ_z_MRV2-lVLoW3cnYJ4wEJh'))
                                 ->setExternal()
                             , 3),
-                        new LayoutColumn('', 3)
+                        new LayoutColumn('<h4>Link zu Lehrvideos <b>Notenbuch</b></h4>'
+                            . (new Link(new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
+                                , 'Link zu Lehrvideos Notenbuch '.new Muted(new Small('Stand:&nbsp;07.07.2023'))), 'https://www.youtube.com/playlist?list=PLvZfeA-UBJ_wjWmbKjMZbzBab1MJx-xKO'))
+                                ->setExternal()
+                            , 3),
+                        new LayoutColumn('', 2),
                     )),
 
                     new LayoutRow(
@@ -100,15 +120,7 @@ class Frontend extends Extension implements IFrontendInterface
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Untis')
                         ), 2),
                     )),
-                    new LayoutRow(array(
-                        $isUcsConsumer
-                            ? new LayoutColumn(new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'Schnittstelle Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;11.05.2023'))->setPictureHeight()
-                                , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_UCS_DLLP')
-                            ), 2)
-                            : null
-                    ))
+                    new LayoutRow($LayoutColumnList)
                 ))
             )
         );

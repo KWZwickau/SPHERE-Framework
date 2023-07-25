@@ -114,6 +114,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                             || $tblType->getName() == 'Fachschule'
                             || $tblType->getName() == 'Fachoberschule'
                             || $tblType->getName() == 'Förderschule'
+                            || $tblType->getName() == 'Berufliches Gymnasium'
                         )
                     ) {
                         $studentTable[] = array(
@@ -248,6 +249,15 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('HOGA\FosAbg');
                         } elseif ($tblType->getName() == 'Förderschule') {
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('FoesAbgGeistigeEntwicklung');
+                        } elseif ($tblType->getName() == 'Berufliches Gymnasium') {
+                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BGymAbgSekII');
+                            if ($tblCertificate) {
+                                $tblLeaveStudent = Prepare::useService()->createLeaveStudent(
+                                    $tblPerson,
+                                    $tblYear,
+                                    $tblCertificate
+                                );
+                            }
                         }
                     }
                 }
@@ -255,6 +265,15 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
 
             if ($tblCertificate && $tblCertificate->getCertificate() == 'GymAbgSekII') {
                 $layoutGroups = Prepare::useFrontend()->setLeaveContentForSekTwo(
+                    $tblPerson,
+                    $tblYear,
+                    $stage,
+                    $tblCertificate,
+                    $tblLeaveStudent ?: null,
+                    $tblType ?: null
+                );
+            } elseif ($tblCertificate && $tblCertificate->getCertificate() == 'BGymAbgSekII') {
+                $layoutGroups = Prepare::useFrontend()->setLeaveContentForSekTwoBGy(
                     $tblPerson,
                     $tblYear,
                     $stage,
@@ -477,6 +496,8 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                             switch ($value) {
                                 case 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.': $value = 1; break;
                                 case 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.': $value = 2; break;
+                                case $tblPerson->getFullName() . ' wurde zur Abschlussprüfung nicht zugelassen und kann erst nach erfolgreicher Wiederholung der Klassenstufe an der Abschlussprüfung teilnehmen.': $value = 3; break;
+                                case '&nbsp;': $value = 4; break;
                                 default: $value = '';
                             }
                         }
@@ -948,7 +969,9 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
 
                 $selectBoxExam = new SelectBox('Data[InformationList][Exam_Text]', 'Abschlussprüfung', array(
                     1 => 'Die Abschlussprüfung wurde erstmalig nicht bestanden. Sie kann wiederholt werden.',
-                    2 => 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.'
+                    2 => 'Die Abschlussprüfung wurde endgültig nicht bestanden. Sie kann nicht wiederholt werden.',
+                    3 => $tblPerson->getFullName() . ' wurde zur Abschlussprüfung nicht zugelassen und kann erst nach erfolgreicher Wiederholung der Klassenstufe an der Abschlussprüfung teilnehmen.',
+                    4 => '&nbsp;'
                 ));
                 if ($isApproved) {
                     $selectBoxExam->setDisabled();

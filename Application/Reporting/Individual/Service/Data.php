@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Reporting\Individual\Service;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
@@ -15,6 +14,77 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\TblWorkSpace;
  */
 class Data extends DataView
 {
+
+    public function setupDatabaseContent()
+    {
+        // ToDO Update alter Spalten zu neuen Spalten
+        // ToDO SR kann nach dem Live Update wieder entfernt werden
+        if(($tblWorkSpaceList = $this->getWorkSpaceAll())){
+            foreach($tblWorkSpaceList as $tblWorkSpace){
+                if($tblWorkSpace->getField() == 'TblLevel_Id'){
+                    $this->updateWorkSpaceFieldName($tblWorkSpace, 'TblLessonStudentEducation_Level');
+                }
+                if($tblWorkSpace->getField() == 'TblDivision_Display'){
+                    $this->updateWorkSpaceFieldName($tblWorkSpace, 'TblLessonDivisionCourse_Name_D');
+                }
+                if($tblWorkSpace->getField() == 'TblDivision_Description'){
+                    $this->updateWorkSpaceFieldName($tblWorkSpace, 'TblLessonDivisionCourse_Description_D');
+                }
+                if($tblWorkSpace->getField() == 'TblCompany_Name_ExtendedName'){
+                    $this->updateWorkSpaceFieldName($tblWorkSpace, 'TblCompany_ExtendedName');
+                }
+                if($tblWorkSpace->getField() == 'TblDivision_Name'){
+                    $this->removeWorkSpace($tblWorkSpace);
+                }
+                if($tblWorkSpace->getField() == 'TblStudent_NameAgreement'){
+                    $this->removeWorkSpace($tblWorkSpace);
+                }
+                if($tblWorkSpace->getField() == 'TblStudent_PictureAgreement'){
+                    $this->removeWorkSpace($tblWorkSpace);
+                }
+            }
+        }
+        if(($tblPresetList = $this->gePresetAll())){
+            foreach($tblPresetList as $tblPreset){
+                if(($tblPresetSettingList = $this->getPresetSettingAllByPreset($tblPreset, TblWorkSpace::VIEW_TYPE_STUDENT))){
+                    $isChanged = false;
+                    foreach($tblPresetSettingList as $tblPresetSetting){
+                        if($tblPresetSetting->getField() == 'TblLevel_Id'){
+                            $this->updatePresetSettingFieldName($tblPresetSetting, 'TblLessonStudentEducation_Level');
+                            $isChanged = true;
+                        }
+                        if($tblPresetSetting->getField() == 'TblDivision_Display'){
+                            $this->updatePresetSettingFieldName($tblPresetSetting, 'TblLessonDivisionCourse_Name_D');
+                            $isChanged = true;
+                        }
+                        if($tblPresetSetting->getField() == 'TblDivision_Description'){
+                            $this->updatePresetSettingFieldName($tblPresetSetting, 'TblLessonDivisionCourse_Description_D');
+                            $isChanged = true;
+                        }
+                        if($tblPresetSetting->getField() == 'TblCompany_Name_ExtendedName'){
+                            $this->updatePresetSettingFieldName($tblPresetSetting, 'TblCompany_ExtendedName');
+                            $isChanged = true;
+                        }
+                        if($tblPresetSetting->getField() == 'TblDivision_Name'){
+                            $this->removePresetSetting($tblPresetSetting);
+                            $isChanged = true;
+                        }
+                        if($tblPresetSetting->getField() == 'TblStudent_NameAgreement'){
+                            $this->removePresetSetting($tblPresetSetting);
+                            $isChanged = true;
+                        }
+                        if($tblPresetSetting->getField() == 'TblStudent_PictureAgreement'){
+                            $this->removePresetSetting($tblPresetSetting);
+                            $isChanged = true;
+                        }
+                    }
+                    if($isChanged && empty($tblPreset->getPostValue())){
+                        $this->updatePresetEmptyPost($tblPreset);
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * @param $Id
@@ -46,6 +116,23 @@ class Data extends DataView
     }
 
     /**
+     * @param TblAccount $tblAccount
+     * @param string     $ViewType
+     *
+     * @return bool|TblWorkSpace[]
+     */
+    public function getWorkSpaceAll($ViewType = TblWorkSpace::VIEW_TYPE_STUDENT)
+    {
+
+        return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkSpace',
+            array(
+                TblWorkSpace::ATTR_VIEW_TYPE => $ViewType
+            ), array(
+                TblWorkSpace::ATTR_POSITION => self::ORDER_ASC
+            ));
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblPreset
@@ -56,9 +143,18 @@ class Data extends DataView
     }
 
     /**
+     * @return bool|TblPreset[]
+     */
+    public function gePresetAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPreset');
+    }
+
+    /**
      * @param TblAccount $tblAccount
      *
-     * @return bool|TblWorkSpace[]
+     * @return bool|TblPreset[]
      */
     public function gePresetAllByAccount(TblAccount $tblAccount)
     {
@@ -69,7 +165,7 @@ class Data extends DataView
     }
 
     /**
-     * @return bool|TblWorkSpace[]
+     * @return bool|TblPreset[]
      */
     public function gePresetAllByPublic()
     {
@@ -275,6 +371,31 @@ class Data extends DataView
 
     /**
      * @param TblWorkSpace $tblWorkSpace
+     * @param string       $FieldName
+     *
+     * @return false|TblWorkSpace
+     */
+    public function updateWorkSpaceFieldName(TblWorkSpace $tblWorkSpace, $FieldName)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /**
+         * @var TblWorkSpace $Protocol
+         * @var TblWorkSpace $Entity
+         */
+        $Entity = $Manager->getEntityById('TblWorkSpace', $tblWorkSpace->getId());
+        $Protocol = clone $Entity;
+        if ($Entity !== null) {
+            $Entity->setField($FieldName);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return $Entity;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblWorkSpace $tblWorkSpace
      * @param int          $Position
      *
      * @return bool|TblWorkSpace
@@ -302,7 +423,7 @@ class Data extends DataView
      * @param TblPreset $tblPreset
      * @param string    $Name
      *
-     * @return bool|TblPreset
+     * @return false|TblPreset
      */
     public function updatePreset(TblPreset $tblPreset, $Name)
     {
@@ -316,6 +437,56 @@ class Data extends DataView
         $Protocol = clone $Entity;
         if ($Entity !== null) {
             $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return $Entity;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblPreset $tblPreset
+     *
+     * @return false|TblPreset
+     */
+    public function updatePresetEmptyPost(TblPreset $tblPreset)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /**
+         * @var TblPreset $Protocol
+         * @var TblPreset $Entity
+         */
+        $Entity = $Manager->getEntityById('TblPreset', $tblPreset->getId());
+        $Protocol = clone $Entity;
+        if ($Entity !== null) {
+            $Entity->setPostValue(array());
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return $Entity;
+        }
+        return false;
+    }
+
+
+
+    /**
+     * @param TblPresetSetting $tblPresetSetting
+     * @param string       $FieldName
+     *
+     * @return false|TblPresetSetting
+     */
+    public function updatePresetSettingFieldName(TblPresetSetting $tblPresetSetting, $FieldName)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /**
+         * @var TblPresetSetting $Entity
+         */
+        $Entity = $Manager->getEntityById('TblPresetSetting', $tblPresetSetting->getId());
+        $Protocol = clone $Entity;
+        if ($Entity !== null) {
+            $Entity->setField($FieldName);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return $Entity;

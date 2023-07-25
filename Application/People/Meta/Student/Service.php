@@ -1297,6 +1297,19 @@ class Service extends Support
     }
 
     /**
+     * @param string $specialNeedsLevel
+     *
+     * @return TblStudentSpecialNeeds|null
+     */
+    public function insertStudentSpecialNeedsLevel(string $specialNeedsLevel = ''): ?TblStudentSpecialNeeds
+    {
+        if(($tblStudentSpecialNeedsLevel = Student::useService()->getStudentSpecialNeedsLevelByName($specialNeedsLevel))){
+            return (new Data($this->getBinding()))->insertStudentSpecialNeedsLevel($tblStudentSpecialNeedsLevel);
+        }
+        return null;
+    }
+
+    /**
      * @param TblStudentMedicalRecord $tblStudentMedicalRecord
      * @param $Disease
      * @param $Medication

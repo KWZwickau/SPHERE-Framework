@@ -15,6 +15,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Database\Fitting\ColumnHydrator;
 use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Extension\Extension;
 
@@ -110,11 +111,15 @@ class Data extends DataTeacher
         bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject): TblDivisionCourse
     {
         $Manager = $this->getEntityManager();
-
-        $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
-
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        $Entity = $Manager->getEntity('TblDivisionCourse')->findOneBy(array(
+            TblDivisionCourse::ATTR_NAME => $name,
+            TblDivisionCourse::SERVICE_TBL_YEAR => $tblYear->getId(),
+        ));
+        if($Entity === null) {
+            $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
 
         return $Entity;
     }
@@ -387,6 +392,47 @@ class Data extends DataTeacher
         }
 
         return $query->getQuery()->getResult();
+    }
+
+    /**
+     * @param array $FilterList
+     *
+     * @return array|float|int|string
+     */
+    public function fetchIdPersonByFilter(array $FilterList = array())
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $EducationStudent = new TblStudentEducation();
+        $DivisionCourse = new TblDivisionCourse();
+        $query = $queryBuilder->select('tES.serviceTblPerson as PersonId, tES.serviceTblYear as YearId, tES.Level, tDC.Name as DivisionName')
+            ->from($EducationStudent->getEntityFullName(), 'tES')
+            ->leftJoin($DivisionCourse->getEntityFullName(), 'tDC', 'WITH', 'tDC.Id = tES.tblDivision')
+            ->where($queryBuilder->expr()->isNull('tES.EntityRemove'));
+        $ParameterCount = 1;
+        foreach($FilterList as $FilterName => $FilterValue){
+            if($FilterValue != null){
+                if($FilterName == 'TblYear_Id'){
+                    $query->andWhere($queryBuilder->expr()->eq('tES.serviceTblYear', '?'.$ParameterCount))
+                    ->setParameter($ParameterCount++, $FilterValue);
+                }
+                if($FilterName == 'TblSchoolType_Id'){
+                    $query->andWhere($queryBuilder->expr()->eq('tES.serviceTblSchoolType', '?'.$ParameterCount))
+                        ->setParameter($ParameterCount++, $FilterValue);
+                }
+                if($FilterName == 'Level' && $FilterValue != 0){
+                    $query->andWhere($queryBuilder->expr()->eq('tES.Level', '?'.$ParameterCount))
+                        ->setParameter($ParameterCount++, $FilterValue);
+                }
+                if($FilterName == 'TblDivisionCourse_Name'){
+                    $query->andWhere($queryBuilder->expr()->eq('tDC.Name', '?'.$ParameterCount))
+                        ->setParameter($ParameterCount++, $FilterValue);
+                }
+            }
+        }
+        $query = $query->getQuery();
+        return $query->getResult();
     }
 
     /**
@@ -714,7 +760,7 @@ class Data extends DataTeacher
         $query = $queryBuilder->select('tSE.Level as Level');
         $query->from($tblEntityStudentEducation->getEntityFullName(), 'tSE');
         $query->groupBy('tSE.Level');
-        return $query->getQuery()->getResult();
+        return $query->getQuery()->getResult(ColumnHydrator::HYDRATION_MODE);
     }
 
     /**

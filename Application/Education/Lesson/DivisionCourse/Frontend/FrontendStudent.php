@@ -403,26 +403,32 @@ class FrontendStudent extends FrontendMember
 
                         $option = (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new MinusSign(), array(),  'Schüler entfernen'))
                             ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineRemoveStudent($tblDivisionCourse->getId(), $tblPerson->getId()));
-                        // ist der Kurs eine Klasse oder Stammgruppe und im aktuellen Schuljahr und Schuljahr noch nicht älter als 1 Monat → Modal für Schülerwechsel öffnen
-                        if (!$isInActive
-                            && ($tblDivisionCourseType = $tblDivisionCourse->getType())
-                            && ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION
-                                || $tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
-                            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-                        ) {
-                            $today = new DateTime('today');
-                            /** @var DateTime $startDate */
-                            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-                            if ($startDate && $endDate
-                                && $today > $startDate
-                                && $today < $endDate
-                                && ($firstMonthDate = clone $startDate)
-                                && $today > ($firstMonthDate->add(new DateInterval('P1M')))
-                            ) {
-                                $option = (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new Transfer(), array(), $tblDivisionCourse->getTypeName() . 'nwechsel'))
+                        if ($tblDivisionCourse->getIsDivisionOrCoreGroup() && !$isInActive) {
+                            $option .= (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new Transfer(), array(), $tblDivisionCourse->getTypeName()
+                                . 'nwechsel im Schuljahr / Schüler deaktivieren'))
                                     ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenChangeDivisionCourseModal($tblDivisionCourse->getId(), $tblPerson->getId()));
-                            }
                         }
+
+//                        // ist der Kurs eine Klasse oder Stammgruppe und im aktuellen Schuljahr und Schuljahr noch nicht älter als 1 Monat → Modal für Schülerwechsel öffnen
+//                        if (!$isInActive
+//                            && ($tblDivisionCourseType = $tblDivisionCourse->getType())
+//                            && ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+//                                || $tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+//                            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+//                        ) {
+//                            $today = new DateTime('today');
+//                            /** @var DateTime $startDate */
+//                            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+//                            if ($startDate && $endDate
+//                                && $today > $startDate
+//                                && $today < $endDate
+//                                && ($firstMonthDate = clone $startDate)
+//                                && $today > ($firstMonthDate->add(new DateInterval('P1M')))
+//                            ) {
+//                                $option = (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new Transfer(), array(), $tblDivisionCourse->getTypeName() . 'nwechsel'))
+//                                    ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenChangeDivisionCourseModal($tblDivisionCourse->getId(), $tblPerson->getId()));
+//                            }
+//                        }
 
                         $selectedList[$tblPerson->getId()] = array(
                             'Number' => ++$count,
@@ -444,7 +450,7 @@ class FrontendStudent extends FrontendMember
                 $left = (new TableData($selectedList, null, $columns, array(
                     'columnDefs' => array(
                         array('type' => 'natural', 'targets' => 0),
-                        array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                        array('orderable' => false, 'width' => $tblDivisionCourse->getIsDivisionOrCoreGroup() ? '60px' : '1%', 'targets' => -1),
                     ),
                     'pageLength' => self::PAGE_LENGTH,
                     'responsive' => false

@@ -5,6 +5,10 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Main;
 
@@ -63,54 +67,33 @@ class FuxSchool implements IModuleInterface
     }
 
     /**
-     * @return Thumbnail
+     * @return Layout
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
      */
-    public static function widgetFuxMediaCompany()
+    public static function getDownloadLayout()
     {
 
-        return new Thumbnail(
-            FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-            'FuxSchool', 'Institutionendaten (Einrichtungsdaten)',
-            new Standard('', '/Transfer/Import/FuxMedia/Company', new Upload(), array(), 'Upload')
-        );
-    }
-
-    /**
-     * @return Thumbnail
-     */
-    public static function widgetFuxMediaStudent()
-    {
-
-        return new Thumbnail(
-            FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-            'FuxSchool', 'Schülerdaten',
-            new Standard('', '/Transfer/Import/FuxMedia/Student', new Upload(), array(), 'Upload')
-        );
-    }
-
-    /**
-     * @return Thumbnail
-     */
-    public static function widgetFuxMediaTeacher()
-    {
-
-        return new Thumbnail(
-            FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-            'FuxSchool', 'Lehrerdaten',
-            new Standard('', '/Transfer/Import/FuxMedia/Teacher', new Upload(), array(), 'Upload')
-        );
-    }
-
-    /**
-     * @return Thumbnail
-     */
-    public static function widgetFuxMediaDivision()
-    {
-
-        return new Thumbnail(
-            FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-            'FuxSchool', 'Klassendaten',
-            new Standard('', '/Transfer/Import/FuxMedia/Division', new Upload(), array(), 'Upload')
-        );
+        return new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+                'FuxSchool', 'Schülerdaten',
+                (new Standard('', '/Transfer/Import/FuxMedia/Student', new Upload(), array(), 'Upload'))->setDisabled()
+            ), 2),
+            new LayoutColumn(new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+                'FuxSchool', 'Klassendaten',
+                (new Standard('', '/Transfer/Import/FuxMedia/Division', new Upload(), array(), 'Upload'))->setDisabled()
+            ), 2),
+            new LayoutColumn(new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+                'FuxSchool', 'Lehrerdaten',
+                (new Standard('', '/Transfer/Import/FuxMedia/Teacher', new Upload(), array(), 'Upload'))->setDisabled()
+            ), 2),
+            new LayoutColumn(new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+                'FuxSchool', 'Institutionendaten (Einrichtungsdaten)',
+                (new Standard('', '/Transfer/Import/FuxMedia/Company', new Upload(), array(), 'Upload'))->setDisabled()
+            ), 2),
+        ))));
     }
 }

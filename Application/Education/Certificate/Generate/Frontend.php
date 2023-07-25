@@ -111,7 +111,10 @@ class Frontend extends Extension
                     if (($tblSchoolTypeList = $tblGenerateCertificate->getSchoolTypes())) {
                         /** @var TblType $tblSchoolType */
                         foreach ($tblSchoolTypeList as $tblSchoolType) {
-                            if ($tblSchoolType->getShortName() == 'Gy' || $tblSchoolType->getShortName() == 'OS') {
+                            if ($tblSchoolType->getShortName() == 'Gy'
+                                || $tblSchoolType->getShortName() == 'BGy'
+                                || $tblSchoolType->getShortName() == 'OS'
+                            ) {
                                 $hasDiplomaCertificate = true;
                                 break;
                             }
@@ -829,7 +832,11 @@ class Frontend extends Extension
                     $checkSubjectsString = '';
                     if ($tblCertificate) {
                         // Abitur Fächerprüfung ignorieren
-                        if ($tblCertificate->getCertificate() == 'GymAbitur') {
+                        if ($tblCertificate->getCertificate() == 'GymAbitur'
+                            || $tblCertificate->getCertificate() == 'BGymAbitur'
+                            || $tblCertificate->getCertificate() == 'BGymKurshalbjahreszeugnis'
+                            || $tblCertificate->getCertificate() == 'BGymAbgSekII'
+                        ) {
                             $checkSubjectsString = new Success(
                                 new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Keine Fächerzuordnung erforderlich.'
                             );

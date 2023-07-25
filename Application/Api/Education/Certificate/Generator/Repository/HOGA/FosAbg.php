@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\HOGA;
 
+use DateTime;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
@@ -23,6 +24,9 @@ class FosAbg extends Style
         $school[] = 'Berufliches Schulzentrum';
         $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
         $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
+
+        // ist doch nicht das Zeugnisdatum
+        $educationToDate = '31.07.' . (new DateTime('now'))->format('Y');
 
         return (new Page())
             ->addSlice($this->getHeader($school))
@@ -69,7 +73,7 @@ class FosAbg extends Style
                     {% else %}
                         {{ Content.P' . $personId . '.Leave.CalcEducationDateFrom }}
                     {% endif %}
-                    bis {{ Content.P' . $personId . '.Input.Date }}'
+                    bis ' . $educationToDate
                     , $textSize)->styleAlignCenter())
                 ->addElement($this->getElement('den zweijährigen Bildungsgang der', $textSize)->styleAlignCenter())
                 ->addElement($this->getElement('Fachoberschule', $textSize2)->styleAlignCenter()->styleTextBold())
@@ -82,7 +86,7 @@ class FosAbg extends Style
                     , $textSize2)->styleAlignCenter()->styleTextBold()->styleMarginTop('-5px'))
                 ->addElement($this->getElement('besucht und folgende Leistungen erreicht', $textSize)->styleAlignCenter())
             )
-            ->addSlice($this->getCustomFosSubjectLanes($personId, '5px', true, false)->styleHeight('260px'))
+            ->addSlice($this->getCustomFosSubjectLanes($personId, '5px', true, false)->styleHeight('255px'))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn($this->getElement('Bemerkungen:', $textSize)
@@ -104,7 +108,7 @@ class FosAbg extends Style
                     '{{ Content.P' . $personId . '.Input.Exam_Text }} ', $textSize
                 ))
             )
-            ->addSlice($this->getCustomFosSignPart($personId))
-            ->addSlice($this->getCustomFosInfo());
+            ->addSlice($this->getCustomFosSignPart($personId, '5px'))
+            ->addSlice($this->getCustomFosInfo('-5px'));
     }
 }

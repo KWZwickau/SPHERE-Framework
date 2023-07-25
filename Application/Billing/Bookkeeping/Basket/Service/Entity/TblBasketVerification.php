@@ -90,7 +90,7 @@ class TblBasketVerification extends Element
     {
 
         if($IsFormInput){
-            return str_replace('.', ',', number_format($this->Value, 2));
+            return number_format($this->Value, 2, ',', '');
         }
         return $this->Value;
     }
@@ -327,7 +327,7 @@ class TblBasketVerification extends Element
     public function getPrice()
     {
 
-        return str_replace('.', ',', number_format($this->Value, 2).' €');
+        return number_format($this->Value, 2, ',', '.').' €';
     }
 
     /**
@@ -340,7 +340,7 @@ class TblBasketVerification extends Element
 //        } else {
 //            $result = $this->Value;
 //        }
-        return str_replace('.', ',', number_format($result, 2).' €');
+        return number_format($result, 2, ',', '.').' €';
     }
 
 

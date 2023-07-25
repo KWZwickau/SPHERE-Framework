@@ -54,7 +54,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
-class FrontendTabs extends FrontendCourseContent
+class FrontendTabs extends FrontendSelectDivisionCourse
 {
     /**
      * @param null $DivisionCourseId

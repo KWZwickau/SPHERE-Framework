@@ -23,6 +23,8 @@ class Debugger
     private static $TimeGap = 0;
     /** @var array $DeveloperList */
     public static $DeveloperList = array();
+    /** @var array $TimeArray */
+    private static array $TimeArray = array();
 
     /**
      *
@@ -260,5 +262,33 @@ class Debugger
     {
 
         return self::$Enabled;
+    }
+
+    public static function setTime($Identifier = 'one')
+    {
+        self::$TimeArray[$Identifier] = microtime(true);
+    }
+
+    public static function getTime($Identifier = 'one')
+    {
+//        $dauer = microtime(true) - self::$TimeArray[$Identifier];
+//        return $dauer;
+        $tblAccount = Account::useService()->getAccountBySession();
+        if($tblAccount && in_array($tblAccount->getUsername(), self::$DeveloperList)) {
+            if(isset(self::$TimeArray[$Identifier])){
+                $dauer = microtime(true) - self::$TimeArray[$Identifier];
+                print '<pre style="margin: 0; border-left: 0; border-right: 0; border-top:0;">'
+                    .'<span class="text-danger" style="border-bottom: 1px dotted silver;">'.new Flash().self::getCallingFunctionName().'</span><br/>'
+                    .'<code>'
+                    ."Verarbeitung des Skripts: $dauer Sek."
+                    .'</code></pre>';
+            } else {
+                print '<pre style="margin: 0; border-left: 0; border-right: 0; border-top:0;">'
+                    .'<span class="text-danger" style="border-bottom: 1px dotted silver;">'.new Flash().self::getCallingFunctionName().'</span><br/>'
+                    .'<code>'
+                    .'auf Identifier "'.$Identifier.'" kein Startzeitpunkt gefunden.'
+                    .'</code></pre>';
+            }
+        }
     }
 }

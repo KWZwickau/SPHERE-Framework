@@ -281,6 +281,51 @@ class Data extends AbstractData
     }
 
     /**
+     * @param array $FilterList
+     *
+     * @return array|float|int|string
+     */
+    public function fetchIdPersonByFilter(array $FilterList = array())
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $Prospect = new TblProspect();
+        $ProspectReservation = new TblProspectReservation();
+        $ProspectAppointment = new TblProspectAppointment();
+        $query = $queryBuilder->select('tP.serviceTblPerson as PersonId, tPR.ReservationYear, tPR.ReservationDivision,
+        tPR.serviceTblTypeOptionA as ReservationOptionA, tPR.serviceTblTypeOptionB as ReservationOptionB, tPA.ReservationDate, tPA.InterviewDate, tPA.TrialDate')
+            ->from($Prospect->getEntityFullName(), 'tP')
+            ->leftJoin($ProspectReservation->getEntityFullName(), 'tPR', 'WITH', 'tPR.Id = tP.tblProspectReservation')
+            ->leftJoin($ProspectAppointment->getEntityFullName(), 'tPA', 'WITH', 'tPA.Id = tP.tblProspectAppointment')
+            ->where($queryBuilder->expr()->isNull('tP.EntityRemove'));
+        $ParameterCount = 1;
+        foreach($FilterList as $FilterName => $FilterValue){
+            if($FilterValue != null){
+                if($FilterName == 'TblProspectReservation_ReservationYear'){
+                    $query->andWhere($queryBuilder->expr()->eq('tPR.ReservationYear', '?'.$ParameterCount))
+                        ->setParameter($ParameterCount++, $FilterValue);
+                }
+                if($FilterName == 'TblProspectReservation_ReservationDivision'){
+                    $query->andWhere($queryBuilder->expr()->eq('tPR.ReservationDivision', '?'.$ParameterCount))
+                        ->setParameter($ParameterCount++, $FilterValue);
+                }
+                if($FilterName == 'TblProspectReservation_serviceTblTypeOptionA'
+                && $FilterValue != 0){
+                    $query->andWhere(
+                        $queryBuilder->expr()->orX(
+                            $queryBuilder->expr()->eq('tPR.serviceTblTypeOptionA', '?'.$ParameterCount),
+                            $queryBuilder->expr()->eq('tPR.serviceTblTypeOptionB', '?'.$ParameterCount)
+                        ))
+                        ->setParameter($ParameterCount++, $FilterValue);
+                }
+            }
+        }
+        $query = $query->getQuery();
+        return $query->getResult();
+    }
+
+    /**
      * @param TblProspect $tblProspect
      * @param bool $IsSoftRemove
      *

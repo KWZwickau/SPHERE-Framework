@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Frontend;
 
 use SPHERE\Application\Api\Education\DivisionCourse\ApiTeacherLectureship;
@@ -222,6 +221,16 @@ class FrontendTeacher extends FrontendSubjectTable
                 $Global = $this->getGlobal();
                 $Global->POST['Filter']['Year'] = -1;
                 $Global->savePost();
+            }
+        } else {
+//            $tblYearAll[] = new SelectBoxItem(-1, 'Aktuelle Übersicht');
+            if ($Filter == null){
+                $Filter['Year'] = -1;
+                $Filter['Subject'] = 0;
+                $Filter['Teacher'] = 0;
+//                $Global = $this->getGlobal();
+//                $Global->POST['Filter']['Year'] = -1;
+//                $Global->savePost();
             }
         }
 

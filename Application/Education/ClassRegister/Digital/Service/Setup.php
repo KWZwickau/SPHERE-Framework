@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
 use SPHERE\System\Database\Binding\AbstractSetup;
@@ -27,6 +28,7 @@ class Setup  extends AbstractSetup
         $this->setTableLessonContentLink($Schema, $tblLessonContent);
         $this->setTableLessonWeek($Schema);
         $this->setTableCourseContent($Schema);
+        $this->setTableFullTimeContent($Schema);
 
         /**
          * Migration & Protocol
@@ -142,5 +144,27 @@ class Setup  extends AbstractSetup
                 array(TblCourseContent::ATTR_SERVICE_TBL_DIVISION, TblCourseContent::ATTR_SERVICE_TBL_SUBJECT, TblCourseContent::ATTR_SERVICE_TBL_SUBJECT_GROUP)
             );
         }
+    }
+
+    /**
+     * @param Schema $Schema
+     */
+    private function setTableFullTimeContent(Schema &$Schema)
+    {
+        $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterFullTimeContent');
+
+        $this->createColumn($Table, 'serviceTblDivisionCourse', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'FromDate', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'ToDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'Content', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+
+        $this->createIndex(
+            $Table,
+            array(
+                TblFullTimeContent::ATTR_SERVICE_TBL_DIVISION_COURSE, TblFullTimeContent::ATTR_FROM_DATE, TblFullTimeContent::ATTR_TO_DATE
+            ),
+            false
+        );
     }
 }

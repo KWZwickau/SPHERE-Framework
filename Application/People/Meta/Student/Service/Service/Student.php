@@ -97,7 +97,7 @@ abstract class Student extends AbstractService
         $tblStudentTechnicalSchool = null
     ) {
 
-        $tblStudent = $this->getStudentByPerson($tblPerson);
+        $tblStudent = $this->getStudentByPerson($tblPerson, true);
 
         if ($tblStudent) {
             (new Data($this->getBinding()))->updateStudent(

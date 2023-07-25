@@ -1053,7 +1053,7 @@ class Creator extends Extension
             $Data['BillTime'] = $tblInvoice->getBillTime('Y/m');
             $Data['BillName'] = $tblInvoice->getBasketName();
             $Data['Count'] = $tblInvoiceItemDebtor->getQuantity();
-            $Data['Price'] = $tblInvoiceItemDebtor->getPriceString();
+            $Data['Price'] = $tblInvoiceItemDebtor->getPriceString('€', true);
             $Data['SummaryPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
             $Data['TargetTime'] = $tblInvoice->getTargetTime();
 
@@ -1182,6 +1182,11 @@ class Creator extends Extension
             $file = "Common/Style/Resource/Document/Manual/SSW_UCS_DLLP.pdf";
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=Kurzleidfaden_UCS_DLLP_11.05.2023.pdf");
+            header("Content-Length: ".filesize($file));
+        } elseif($Select == 'SSW_year_DLLP_UCS') {
+            $file = "Common/Style/Resource/Document/Manual/SSW_Jahr_UCS_DLLP.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Kurzleidfaden_Schuljahreswechsel_SSW_UCS_DLLP_17.07.2023.pdf");
             header("Content-Length: ".filesize($file));
         }
 

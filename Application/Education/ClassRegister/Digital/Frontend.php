@@ -7,19 +7,17 @@ use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\Absence\Absence;
-use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Digital\Frontend\FrontendTabs;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -41,7 +39,6 @@ use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -59,7 +56,6 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\Table;
 use SPHERE\Common\Frontend\Table\Structure\TableBody;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -71,234 +67,6 @@ use SPHERE\Common\Window\Stage;
 
 class Frontend extends FrontendTabs
 {
-    /**
-     * @return Stage
-     */
-    public function frontendSelectDivision(): Stage
-    {
-        $hasHeadmasterRight = Access::useService()->hasAuthorization(self::BASE_ROUTE . '/Headmaster');
-        $hasTeacherRight = Access::useService()->hasAuthorization(self::BASE_ROUTE . '/Teacher');
-
-        if ($hasHeadmasterRight) {
-            if ($hasTeacherRight) {
-                return $this->frontendTeacherSelectDivision();
-            } else {
-                return $this->frontendHeadmasterSelectDivision();
-            }
-        } else {
-            return $this->frontendTeacherSelectDivision();
-        }
-    }
-
-    /**
-     * @param bool $IsAllYears
-     * @param null $YearId
-     *
-     * @return Stage
-     */
-    public function frontendTeacherSelectDivision(bool $IsAllYears = false, $YearId = null): Stage
-    {
-        $Stage = new Stage('Digitales Klassenbuch', 'Kurs auswählen');
-
-        Digital::useService()->setHeaderButtonList($Stage, View::TEACHER, self::BASE_ROUTE);
-        $yearFilterList = array();
-        $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Teacher', $IsAllYears, $YearId, false, true, $yearFilterList);
-
-        $table = false;
-        if (($tblPerson = Account::useService()->getPersonByLogin())) {
-            $dataList = array();
-            $tblDivisionCourseList = array();
-            $checkedDivisionCourseList = array();
-            if ($yearFilterList) {
-                foreach ($yearFilterList as $tblYear) {
-                    // Klassenlehrer
-                    if (($tempList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPerson, $tblYear))) {
-                        foreach ($tempList as $temp) {
-                            if (!isset($tblDivisionCourseList[$temp->getId()])
-                                && $temp->getIsDivisionOrCoreGroup()
-                            ) {
-                                $tblDivisionCourseList[$temp->getId()] = $temp;
-                                $checkedDivisionCourseList[$temp->getId()] = $temp;
-                            }
-                        }
-                    }
-
-                    // Lehraufträge -> dann alle Schüler des Lehrauftrags -> alle Klassen und Stammgruppen der Schüler
-                    if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPerson))) {
-                        foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
-                            if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
-                                && !isset($tblDivisionCourseList[$tblDivisionCourse->getId()])
-                                && !isset($checkedDivisionCourseList[$tblDivisionCourse->getId()])
-                                && ($tblDivisionCourseListFromStudents = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))
-                            ) {
-                                foreach ($tblDivisionCourseListFromStudents as $tblDivisionCourseStudent) {
-                                    if ($tblDivisionCourseStudent->getIsDivisionOrCoreGroup()
-                                        && !isset($tblDivisionCourseList[$tblDivisionCourseStudent->getId()])
-                                    ) {
-                                        $tblDivisionCourseList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
-                                        $checkedDivisionCourseList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            /** @var TblDivisionCourse $tblDivisionCourse */
-            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                $dataList[] = array(
-                    'Year' => $tblDivisionCourse->getYearName(),
-                    'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
-                    'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
-                    'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
-                    'Option' => new Standard(
-                        '',
-                        DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
-                            ? self::BASE_ROUTE . '/SelectCourse'
-                            : self::BASE_ROUTE . '/LessonContent',
-                        new Select(),
-                        array(
-                            'DivisionCourseId' => $tblDivisionCourse->getId(),
-                            'BasicRoute' => self::BASE_ROUTE . '/Teacher'
-                        ),
-                        'Auswählen'
-                    )
-                );
-            }
-
-            if (empty($dataList)) {
-                $table = new Warning('Keine entsprechenden Lehraufträge vorhanden.', new Exclamation());
-            } else {
-                $table = new TableData($dataList, null, array(
-                    'Year' => 'Schuljahr',
-                    'DivisionCourse' => 'Kurs',
-                    'DivisionCourseType' => 'Kurs-Typ',
-                    'SchoolTypes' => 'Schularten',
-                    'Option' => ''
-                ), array(
-                    'order' => array(
-                        array('0', 'desc'),
-                        array('1', 'asc'),
-                    ),
-                    'columnDefs' => array(
-                        array('type' => 'natural', 'targets' => 1),
-                        array('orderable' => false, 'width' => '1%', 'targets' => -1)
-                    ),
-                ));
-            }
-        }
-
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        empty($buttonList)
-                            ? null
-                            : new LayoutColumn($buttonList),
-                        $table
-                            ? new LayoutColumn(array($table))
-                            : null
-                    ))
-                ), new Title(new Select() . ' Auswahl'))
-            ))
-        );
-
-        return $Stage;
-    }
-
-    /**
-     * @param bool $IsAllYears
-     * @param null $YearId
-     *
-     * @return Stage
-     */
-    public function frontendHeadmasterSelectDivision(bool $IsAllYears = false, $YearId = null): Stage
-    {
-        $Stage = new Stage('Digitales Klassenbuch', 'Kurs auswählen');
-        Digital::useService()->setHeaderButtonList($Stage, View::HEADMASTER, self::BASE_ROUTE);
-
-        $yearFilterList = array();
-        // nur Schulleitung darf History (Alle Schuljahre) sehen
-        $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Headmaster',
-            $IsAllYears, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList);
-
-        $dataList = array();
-        $tblDivisionCourseList = array();
-        if ($IsAllYears) {
-            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_DIVISION))) {
-                $tblDivisionCourseList = $tblDivisionCourseListDivision;
-            }
-            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
-            }
-        } elseif ($yearFilterList) {
-            foreach ($yearFilterList as $tblYear) {
-                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
-                    $tblDivisionCourseList = $tblDivisionCourseListDivision;
-                }
-                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
-                    TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
-                }
-            }
-        }
-
-        /** @var TblDivisionCourse $tblDivisionCourse */
-        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-            $dataList[] = array(
-                'Year' => $tblDivisionCourse->getYearName(),
-                'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
-                'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
-                'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
-                'Option' => new Standard(
-                    '',
-                    DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
-                        ? self::BASE_ROUTE . '/SelectCourse'
-                        : self::BASE_ROUTE . '/LessonContent',
-                    new Select(),
-                    array(
-                        'DivisionCourseId' => $tblDivisionCourse->getId(),
-                        'BasicRoute' => self::BASE_ROUTE . '/Headmaster'
-                    ),
-                    'Auswählen'
-                )
-            );
-        }
-
-        $table = new TableData($dataList, null, array(
-            'Year' => 'Schuljahr',
-            'DivisionCourse' => 'Kurs',
-            'DivisionCourseType' => 'Kurs-Typ',
-            'SchoolTypes' => 'Schularten',
-            'Option' => ''
-        ), array(
-            'order' => array(
-                array('0', 'desc'),
-                array('1', 'asc'),
-            ),
-            'columnDefs' => array(
-                array('type' => 'natural', 'targets' => 1),
-                array('orderable' => false, 'width' => '1%', 'targets' => -1)
-            ),
-        ));
-
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        empty($buttonList)
-                            ? null
-                            : new LayoutColumn($buttonList),
-                        new LayoutColumn($table)
-                    ))
-                ), new Title(new Select() . ' Auswahl'))
-            ))
-        );
-
-        return $Stage;
-    }
-
     /**
      * @param null $DivisionCourseId
      * @param string $BasicRoute
@@ -354,6 +122,11 @@ class Frontend extends FrontendTabs
             new Plus() . ' Thema/Hausaufgaben hinzufügen',
             ApiDigital::getEndpoint()
         ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $Date));
+
+        $buttons .= (new Primary(
+            new Plus() . ' Ganztägig hinzufügen',
+            ApiDigital::getEndpoint()
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateFullTimeContentModal($DivisionCourseId, $Date));
 
         if ($View == 'Day') {
             $buttons .= (new Primary(
@@ -505,6 +278,16 @@ class Frontend extends FrontendTabs
         // aktueller Tag
         $isCurrentDay = (new DateTime('today'))->format('d.m.Y') ==  $date->format('d.m.Y');
 
+        // Ganztägig
+        $fullTime = false;
+        if (($tblFullTimeContentList = Digital::useService()->getFullTimeContentListByDivisionCourseAndDate($tblDivisionCourse, $date))) {
+            /** @var TblFullTimeContent $tblFullTimeContent */
+            $tblFullTimeContent = current($tblFullTimeContentList);
+            $displayFullTimeContent = 'GT' . (($tempContent = $tblFullTimeContent->getContent()) ? ': ' . $tempContent : '');
+            $fullTime = (new Link($displayFullTimeContent, ApiDigital::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditFullTimeContentModal($tblFullTimeContent->getId()));
+        }
+
         $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), '30px');
         $headerList['Subject'] = $this->getTableHeadColumn('Fach', '80px');
         $headerList['Room'] = $this->getTableHeadColumn('Raum', '50px');
@@ -521,6 +304,10 @@ class Frontend extends FrontendTabs
         } else {
             $minLesson = 1;
         }
+
+        $isAutoTimeTable = ($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'IsAutoTimeTable'))
+            && $tblSetting->getValue();
+
         $bodyList = array();
         $bodyBackgroundList = array();
         $divisionCourseList[] = $tblDivisionCourse;
@@ -588,75 +375,79 @@ class Frontend extends FrontendTabs
             }
         }
 
+        $lessonContentList = array();
         if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($date, $tblDivisionCourse))) {
             foreach ($tblLessonContentList as $tblLessonContent) {
                 $lesson = $tblLessonContent->getLesson();
                 if ($lesson > $maxLesson) {
                     $maxLesson = $lesson;
                 }
-                // es können mehrere Einträge zur selben Unterrichtseinheit vorhanden sein
-                $index = $lesson * 10;
-                while (isset($bodyList[$index])) {
-                    $index++;
-                }
 
-                $isEditAllowed = Digital::useService()->getIsLessonContentEditAllowed($tblLessonContent);
-                $lessonContentId = $tblLessonContent->getId();
-                $bodyList[$index] = array(
-                    'Lesson' => $isEditAllowed ? $this->getLessonsEditLink(new Bold(new Center($lesson)), $lessonContentId, $lesson) : new Bold(new Center($lesson)),
-                    'Subject' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getDisplaySubject(true), $lessonContentId, $lesson) : $tblLessonContent->getDisplaySubject(true),
-                    'Room' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getRoom(), $lessonContentId, $lesson) : $tblLessonContent->getRoom(),
-                    'Teacher' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson) : $tblLessonContent->getTeacherString(),
-                    'Content' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson) : $tblLessonContent->getContent(),
-                    'Homework' => $isEditAllowed ?$this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId, $lesson) : $tblLessonContent->getHomework(),
-
-                    'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
-                );
-
-                $bodyBackgroundList[$index] = true;
+                $lessonContentList[$lesson][$tblLessonContent->getId()] = $tblLessonContent;
             }
         }
 
         // leere Einträge bis $maxLesson auffüllen
         for ($i = $minLesson; $i <= $maxLesson; $i++) {
-            if (!isset($bodyList[$i * 10])) {
-                $linkLesson = (new Link(
-                    new Center($i),
-                    ApiDigital::getEndpoint(),
-                    null,
-                    array(),
-                    $i . '. Thema/Hausaufgaben hinzufügen',
-                    null,
-                    AbstractLink::TYPE_MUTED_LINK
-                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $date->format('d.m.Y'), $i == 0 ? -1 : $i));
+            $count = 0;
+            $index = $i * 10;
+            $subjectIdList = array();
 
-                //  Fach aus dem importierten Stundenplan anzeigen
-                if (!$isHoliday && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
-                    $tblDivisionCourse, $date, $i
-                ))) {
-                    $subject = $tblLessonContentTemp->getDisplaySubject(true);
-                    $room = $tblLessonContentTemp->getRoom();
-                //  alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
-                } elseif (!$isHoliday && ($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
-                    $tblDivisionCourse, $date, $i
-                ))) {
-                    $subject = $tblLessonContentTemp->getDisplaySubject(true);
-                    $room = $tblLessonContentTemp->getRoom();
-                } else {
-                    $subject = '';
-                    $room = '';
+            // Eintrag ist vorhanden
+            if (isset($lessonContentList[$i])) {
+                foreach ($lessonContentList[$i] as $tblLessonContentTemp) {
+                    $SubjectId = ($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubjectTemp->getId() : null;
+                    $subjectIdList[$SubjectId] = 1;
+                    $index = $i * 10 + $count++;
+                    $this->setDayViewEditBodyList($bodyList, $bodyBackgroundList, $absenceContent, $tblLessonContentTemp, $i, $index);
                 }
+                // weitere Einträge aus dem Stundenplan
+                if (($tblLessonContentTempList = Timetable::useService()->getLessonContentListFromTimeTableNodeWithReplacementBy($tblDivisionCourse, $date, $i))) {
+                    foreach ($tblLessonContentTempList as $tblLessonContentTemp) {
+                        $index = $i * 10 + $count++;
 
-                $bodyList[$i * 10] = array(
-                    'Lesson' => $linkLesson,
-                    'Subject' => $this->getLessonsNewLink($subject, $date, $i, $DivisionCourseId),
-                    'Room' => $this->getLessonsNewLink($room, $date, $i, $DivisionCourseId),
-                    'Teacher' => $this->getLessonsNewLink('', $date, $i, $DivisionCourseId),
-                    'Content' => $this->getLessonsNewLink('', $date, $i, $DivisionCourseId),
-                    'Homework' => $this->getLessonsNewLink('', $date, $i, $DivisionCourseId),
+                        $SubjectId = ($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubjectTemp->getId() : null;
 
-                    'Absence' => isset($absenceContent[$i]) ? implode(' - ', $absenceContent[$i]) : ''
-                );
+                        if (!isset($subjectIdList[$SubjectId])) {
+                            $subjectIdList[$SubjectId] = 1;
+
+                            $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
+                                $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $SubjectId);
+                        }
+                    }
+                }
+            // Ferien
+            } elseif ($isHoliday) {
+                $index = $i * 10;
+                $this->setDayViewOnlyContentBodyList($bodyList, $absenceContent, $i, $index, new Center('f'));
+            // ganztägig
+            } elseif ($fullTime) {
+                $this->setDayViewOnlyContentBodyList($bodyList, $absenceContent, $i, $index, $fullTime);
+            //  Fach aus dem importierten Stundenplan anzeigen, mit mehreren Fächern gleichzeitig
+            } elseif (($tblLessonContentTempList = Timetable::useService()->getLessonContentListFromTimeTableNodeWithReplacementBy($tblDivisionCourse, $date, $i))) {
+                foreach ($tblLessonContentTempList as $tblLessonContentTemp) {
+                    $index = $i * 10 + $count++;
+
+                    $SubjectId = ($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubjectTemp->getId() : null;
+
+                    if (!isset($subjectIdList[$SubjectId])) {
+                        $subjectIdList[$SubjectId] = 1;
+
+                        $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
+                            $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $SubjectId);
+                    }
+                }
+            //  alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
+            } elseif ($isAutoTimeTable
+                && ($tblLessonContentTemp = Digital::useService()->getTimetableFromLastLessonContent(
+                    $tblDivisionCourse, $date, $i
+                ))
+            ) {
+                $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
+                    $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom());
+            // neu links
+            } else {
+                $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date, '', '');
             }
         }
         ksort($bodyList);
@@ -669,11 +460,13 @@ class Frontend extends FrontendTabs
             $columns = array();
             $count = 0;
             foreach ($columnList as $column) {
+                $backgroundColor = $key == -1 || ($key == 0 && $minLesson > 0) || (isset($bodyBackgroundList[$key]) && $count == 0) ? '#E0F0FF' : '';
                 $columns[] = (new TableColumn($column))
+                    ->setBackgroundColor($isHoliday ? 'lightgray' : $backgroundColor)
+                    ->setOpacity($isHoliday ? '0.5' : '1.0')
                     ->setVerticalAlign('middle')
                     ->setMinHeight('30px')
-                    ->setPadding('3')
-                    ->setBackgroundColor($key == -1 || ($key == 0 && $minLesson > 0) || (isset($bodyBackgroundList[$key]) && $count == 0) ? '#E0F0FF' : '');
+                    ->setPadding('3');
                 $count++;
             }
             $rows[] = new TableRow($columns);
@@ -730,6 +523,65 @@ class Frontend extends FrontendTabs
         );
 
         return $content . Digital::useService()->getCanceledSubjectOverview($date, $tblDivisionCourse) . ' ';
+    }
+
+    private function setDayViewEditBodyList(array &$bodyList, array &$bodyBackgroundList, array $absenceContent, TblLessonContent $tblLessonContent, int $lesson, int $index)
+    {
+        $isEditAllowed = Digital::useService()->getIsLessonContentEditAllowed($tblLessonContent);
+        $lessonContentId = $tblLessonContent->getId();
+        $bodyList[$index] = array(
+            'Lesson' => $isEditAllowed ? $this->getLessonsEditLink(new Bold(new Center($lesson)), $lessonContentId, $lesson) : new Bold(new Center($lesson)),
+            'Subject' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getDisplaySubject(true), $lessonContentId, $lesson) : $tblLessonContent->getDisplaySubject(true),
+            'Room' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getRoom(), $lessonContentId, $lesson) : $tblLessonContent->getRoom(),
+            'Teacher' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson) : $tblLessonContent->getTeacherString(),
+            'Content' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson) : $tblLessonContent->getContent(),
+            'Homework' => $isEditAllowed ?$this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId, $lesson) : $tblLessonContent->getHomework(),
+
+            'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
+        );
+
+        $bodyBackgroundList[$index] = true;
+    }
+
+    private function setDayViewNewLinkBodyList(array &$bodyList, array $absenceContent, int $lesson, int $index, int $DivisionCourseId, DateTime $date,
+        string $subject, string $room, int $SubjectId = null)
+    {
+        $linkLesson = (new Link(
+            new Center($lesson),
+            ApiDigital::getEndpoint(),
+            null,
+            array(),
+            $lesson . '. Thema/Hausaufgaben hinzufügen',
+            null,
+            AbstractLink::TYPE_MUTED_LINK
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal(
+            $DivisionCourseId, $date->format('d.m.Y'), $lesson == 0 ? -1 : $lesson, $SubjectId
+        ));
+
+        $bodyList[$index] = array(
+            'Lesson' => $linkLesson,
+            'Subject' => $this->getLessonsNewLink($subject, $date, $lesson, $DivisionCourseId, $SubjectId),
+            'Room' => $this->getLessonsNewLink($room, $date, $lesson, $DivisionCourseId, $SubjectId),
+            'Teacher' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
+            'Content' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
+            'Homework' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
+
+            'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
+        );
+    }
+
+    private function setDayViewOnlyContentBodyList(array &$bodyList, array $absenceContent, int $lesson, int $index, string $content)
+    {
+        $bodyList[$index] = array(
+            'Lesson' => new Center($lesson),
+            'Subject' => '',
+            'Room' => '',
+            'Teacher' => '',
+            'Content' => $content,
+            'Homework' => '',
+
+            'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
+        );
     }
 
     /**
@@ -797,17 +649,23 @@ class Frontend extends FrontendTabs
         } else {
             $minLesson = 1;
         }
+
+        $isAutoTimeTable = ($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'IsAutoTimeTable'))
+            && $tblSetting->getValue();
+
         $headerList = array();
         $headerList['Lesson'] = $this->getTableHeadColumn(new ToolTip('UE', 'Unterrichtseinheit'), $widthLesson);
         $bodyList = array();
         $dateStringList = array();
         $holidayList = array();
+        $fullTimeList = array();
+        $subjectIdListByDayAndLesson = array();
 
         $year = $date->format('Y');
         $week = str_pad($currentWeek, 2, '0', STR_PAD_LEFT);
         $startDate  = new DateTime(date('d.m.Y', strtotime("$year-W{$week}")));
 
-        // Prüfung ob das Datum innerhalb des Schuljahres liegt.
+        // Prüfung, ob das Datum innerhalb des Schuljahres liegt.
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
             list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
             if ($startDateSchoolYear && $endDateSchoolYear) {
@@ -841,6 +699,19 @@ class Frontend extends FrontendTabs
             }
             if ($isHoliday) {
                 $holidayList[$day] = true;
+            }
+
+            // Ganztägig
+            if (($tblFullTimeContentList = Digital::useService()->getFullTimeContentListByDivisionCourseAndDate($tblDivisionCourse, $startDate))) {
+                /** @var TblFullTimeContent $tblFullTimeContent */
+                $tblFullTimeContent = current($tblFullTimeContentList);
+                $displayFullTimeContent = 'GT' . (($tempContent = $tblFullTimeContent->getContent()) ? ': ' . $tempContent : '');
+                if ($isReadOnly) {
+                    $fullTimeList[$day] = $displayFullTimeContent;
+                } else {
+                    $fullTimeList[$day] = (new Link($displayFullTimeContent, ApiDigital::getEndpoint()))
+                        ->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditFullTimeContentModal($tblFullTimeContent->getId()));
+                }
             }
 
             // aktueller Tag
@@ -888,6 +759,9 @@ class Frontend extends FrontendTabs
                     } else {
                         $bodyList[$lesson][$day] = $item;
                     }
+
+                    $SubjectId = ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : null;
+                    $subjectIdListByDayAndLesson[$lesson][$day][$SubjectId] = 1;
                 }
             }
 
@@ -903,35 +777,90 @@ class Frontend extends FrontendTabs
                 ->setMinHeight('30px')
                 ->setPadding('3');
             for ($j = 1; $j<= $daysInWeek; $j++ ) {
+                $cell = '&nbsp;';
                 $isHoliday = isset($holidayList[$j]);
                 if (isset($bodyList[$i][$j])) {
                     $cell = $bodyList[$i][$j];
+                    // Fach aus dem importierten Stundenplan anzeigen, auch mehrere Fächer gleichzeitig
+                    if (!$isReadOnly
+                        && ($tblLessonContentTempList = Timetable::useService()->getLessonContentListFromTimeTableNodeWithReplacementBy(
+                            $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
+                        ))
+                    ) {
+                        foreach ($tblLessonContentTempList as $tblLessonContentTemp) {
+                            $SubjectId = ($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubjectTemp->getId() : null;
+                            if (!isset($subjectIdListByDayAndLesson[$i][$j][$SubjectId])) {
+                                $subjectIdListByDayAndLesson[$i][$j][$SubjectId] = 1;
+
+                                $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+
+                                if ($cell) {
+                                    $cell .= new Container(new Center('--------------------'));
+                                }
+                                $cell .= (new Link(
+                                    $cellContent,
+                                    ApiDigital::getEndpoint(),
+                                    null,
+                                    array(),
+                                    $i . '. Thema/Hausaufgaben hinzufügen'
+                                ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $dateStringList[$j], $i == 0 ? -1 : $i, $SubjectId));
+                            }
+                        }
+                    }
                 } elseif ($isHoliday) {
                     $cell = new Center(new Muted('f'));
+                } elseif (isset($fullTimeList[$j])) {
+                    $cell = new Center($fullTimeList[$j]);
                 } elseif(!$isReadOnly) {
-                    // Fach aus dem importierten Stundenplan anzeigen
-                    if (($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                    // Fach aus dem importierten Stundenplan anzeigen, auch mehrere Fächer gleichzeitig
+                    if (($tblLessonContentTempList = Timetable::useService()->getLessonContentListFromTimeTableNodeWithReplacementBy(
                         $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
                     ))) {
-                        $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+                        $cell = '';
+                        $subjectIdList = array();
+
+                        foreach ($tblLessonContentTempList as $tblLessonContentTemp) {
+                            $SubjectId = ($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubjectTemp->getId() : null;
+                            if (!isset($subjectIdList[$SubjectId])) {
+                                $subjectIdList[$SubjectId] = 1;
+                            }
+                            $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+
+                            if ($cell) {
+                                $cell .= new Container(new Center('--------------------'));
+                            }
+                            $cell .= (new Link(
+                                $cellContent,
+                                ApiDigital::getEndpoint(),
+                                null,
+                                array(),
+                                $i . '. Thema/Hausaufgaben hinzufügen'
+                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $dateStringList[$j], $i == 0 ? -1 : $i, $SubjectId));
+                        }
                     // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
-                    } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
-                        $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
-                    ))) {
+                    } elseif ($isAutoTimeTable
+                        && ($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                            $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
+                        ))
+                    ) {
                         $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+                        $cell = (new Link(
+                            $cellContent,
+                            ApiDigital::getEndpoint(),
+                            null,
+                            array(),
+                            $i . '. Thema/Hausaufgaben hinzufügen'
+                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $dateStringList[$j], $i == 0 ? -1 : $i));
                     } else {
                         $cellContent = '<div style="height: 22px"></div>';
+                        $cell = (new Link(
+                            $cellContent,
+                            ApiDigital::getEndpoint(),
+                            null,
+                            array(),
+                            $i . '. Thema/Hausaufgaben hinzufügen'
+                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $dateStringList[$j], $i == 0 ? -1 : $i));
                     }
-
-                    $cell = (new Link(
-                        $cellContent,
-                        ApiDigital::getEndpoint(),
-                        null,
-                        array(),
-                        $i . '. Thema/Hausaufgaben hinzufügen'
-                    ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $dateStringList[$j], $i == 0 ? -1 : $i));
-                } else {
-                    $cell = '&nbsp;';
                 }
                 $columns[] = (new TableColumn($cell))
                     ->setBackgroundColor($isHoliday ? 'lightgray' : '')
@@ -1009,10 +938,11 @@ class Frontend extends FrontendTabs
      * @param DateTime $date
      * @param int $Lesson
      * @param int $DivisionCourseId
+     * @param int|null $SubjectId
      *
      * @return Link
      */
-    private function getLessonsNewLink(string $name, DateTime $date, int $Lesson, int $DivisionCourseId): Link
+    private function getLessonsNewLink(string $name, DateTime $date, int $Lesson, int $DivisionCourseId, int $SubjectId = null): Link
     {
         return (new Link(
             $name ?: '<div style="height: 22px"></div>',
@@ -1020,7 +950,7 @@ class Frontend extends FrontendTabs
             null,
             array(),
             $Lesson . '. Thema/Hausaufgaben hinzufügen'
-        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $date->format('d.m.Y'), $Lesson == 0 ? -1 : $Lesson));
+        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $date->format('d.m.Y'), $Lesson == 0 ? -1 : $Lesson, $SubjectId));
     }
 
     /**
@@ -1057,11 +987,16 @@ class Frontend extends FrontendTabs
      * @param bool $setPost
      * @param string|null $Date
      * @param string|null $Lesson
+     * @param string|null $SubjectId
      *
      * @return Form
      */
-    public function formLessonContent(TblDivisionCourse $tblDivisionCourse, $LessonContentId = null, bool $setPost = false, string $Date = null, string $Lesson = null): Form
+    public function formLessonContent(TblDivisionCourse $tblDivisionCourse, $LessonContentId = null, bool $setPost = false, string $Date = null,
+        string $Lesson = null, string $SubjectId = null): Form
     {
+        $isAutoTimeTable = ($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'IsAutoTimeTable'))
+            && $tblSetting->getValue();
+
         $tblSubject = false;
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
         if ($setPost && $LessonContentId
@@ -1094,23 +1029,30 @@ class Frontend extends FrontendTabs
         } else {
             // befüllen bei neuen Einträge aus dem importierten Stundenplan
             if ($Date && $Lesson
-                && ($tblLessonContentTemp = Timetable::useService()->getLessonContentFromTimeTableNodeWithReplacementBy(
+                && ($tblLessonContentTempList = Timetable::useService()->getLessonContentListFromTimeTableNodeWithReplacementBy(
                     $tblDivisionCourse, new DateTime($Date), (int) $Lesson
                 ))
             ) {
                 $Global = $this->getGlobal();
 
-                $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
-                $Global->POST['Data']['serviceTblSubstituteSubject'] =
-                    $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
-                $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
-                $Global->POST['Data']['IsCanceled'] = $tblLessonContentTemp->getIsCanceled() ? 1 : 0;
-
+                foreach ($tblLessonContentTempList as $tblLessonContentTemp) {
+                    $tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject();
+                    if (!$SubjectId || ($tblSubjectTemp && $tblSubjectTemp->getId() == $SubjectId)) {
+                        $Global->POST['Data']['serviceTblSubject'] = $tblSubjectTemp ? $tblSubjectTemp->getId() : 0;
+                        $Global->POST['Data']['serviceTblSubstituteSubject'] =
+                            $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
+                        $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
+                        $Global->POST['Data']['IsCanceled'] = $tblLessonContentTemp->getIsCanceled() ? 1 : 0;
+                        break;
+                    }
+                }
                 $Global->savePost();
             // alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
-            } elseif (($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
-                $tblDivisionCourse, new DateTime($Date), (int) $Lesson
-            ))) {
+            } elseif ($isAutoTimeTable
+                && ($tblLessonContentTemp  = Digital::useService()->getTimetableFromLastLessonContent(
+                    $tblDivisionCourse, new DateTime($Date), (int) $Lesson
+                ))
+            ) {
                 $Global = $this->getGlobal();
 
                 $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
@@ -1221,6 +1163,79 @@ class Frontend extends FrontendTabs
 
         return (new Form(new FormGroup(
              $formRowList
+        )))->disableSubmitAction();
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param null $FullTimeContentId
+     * @param bool $setPost
+     * @param string|null $Date
+     *
+     * @return Form
+     */
+    public function formFullTimeContent(TblDivisionCourse $tblDivisionCourse, $FullTimeContentId = null, bool $setPost = false, string $Date = null): Form
+    {
+        // beim Checken der Input-Felder darf der Post nicht gesetzt werden
+        if ($setPost && $FullTimeContentId
+            && ($tblFullTimeContent = Digital::useService()->getFullTimeContentById($FullTimeContentId))
+        ) {
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['FromDate'] = $tblFullTimeContent->getFromDateString();
+            $Global->POST['Data']['ToDate'] = $tblFullTimeContent->getToDateString();
+            $Global->POST['Data']['Content'] = $tblFullTimeContent->getContent();
+
+            $Global->savePost();
+        } elseif ($Date) {
+            // hinzufügen mit Startwerten
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['FromDate'] = $Date;
+            $Global->savePost();
+        }
+
+        if ($FullTimeContentId) {
+            $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineEditFullTimeContentSave($FullTimeContentId));
+        } else {
+            $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineCreateFullTimeContentSave($tblDivisionCourse->getId()));
+        }
+        $buttonList[] = $saveButton;
+
+        // ganztägig löschen
+        if ($FullTimeContentId) {
+            $buttonList[] = (new \SPHERE\Common\Frontend\Link\Repository\Danger(
+                'Löschen',
+                ApiDigital::getEndpoint(),
+                new Remove(),
+                array(),
+                false
+            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteFullTimeContentModal($FullTimeContentId));
+        }
+
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                (new DatePicker('Data[FromDate]', '', 'von Datum', new Calendar()))->setRequired()
+                , 6),
+            new FormColumn(
+                (new DatePicker('Data[ToDate]', '', 'bis Datum', new Calendar()))
+                , 6),
+        ));
+
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
+            ),
+        ));
+
+        $formRowList[] = new FormRow(array(
+            new FormColumn(
+                $buttonList
+            )
+        ));
+
+        return (new Form(new FormGroup(
+            $formRowList
         )))->disableSubmitAction();
     }
 }
