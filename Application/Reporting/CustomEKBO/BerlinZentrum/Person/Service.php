@@ -9,16 +9,21 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 class Service extends Extension
 {
@@ -38,20 +43,19 @@ class Service extends Extension
         if(empty($tblPersonList)){
             return $TableContent;
         }
-        $userList = array();
-        array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$userList) {
+        array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
             // Content
             $item['PersonId'] = $tblPerson->getId();
             $item['StudentNumber'] = '';
-            $item['Division'] = DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson);
-            $item['PersonGroupKL'] = '';
-            $item['PersonGroupTeam'] = '';
-            $item['PersonGroupG'] = '';
+            $item['Deactivated'] = 'ja';
+            $item['Level'] = '';
+            $item['KL'] = '';
+            $item['Team'] = '';
+            $item['Tudor'] = '';
             $item['LastName'] = $tblPerson->getLastName();
             $item['CallName'] = $tblPerson->getCallName();
             $item['FirstName'] = $tblPerson->getFirstName();
             $item['SecondName'] = $tblPerson->getSecondName();
-            $item['PersonGroupTutor'] = '';
             $item['Birthday'] = '';
             $item['Birthplace'] = '';
             $item['Gender'] = '';
@@ -68,6 +72,7 @@ class Service extends Extension
             $item['Nationality'] = '';
             $item['Denomination'] = '';
             $item['LeavingSchool'] = '';
+            $item['AssistanceActivity'] = '';
             for($i = 1; $i <= 2; $i++){
                 $item['PersonIdS'.$i] = '';
                 $item['TitleS'.$i] = '';
@@ -85,7 +90,9 @@ class Service extends Extension
                 $item['EmergencyMobileS'.$i] = '';
                 $item['MailS'.$i] = '';
                 $item['Mail2S'.$i] = '';
+                $item['CustodyS'.$i] = '';
                 $item['RemarkS'.$i] = '';
+                $item['AssistanceActivityS'.$i] = '';
             }
             $item['EnterDate'] = '';
             $item['LeaveDate'] = '';
@@ -97,63 +104,78 @@ class Service extends Extension
                 $item['Foreign_Language'.$j] = '';
                 $item['Foreign_Language'.$j.'_JG'] = '';
             }
-            $userName = $this->creatUserName($tblPerson);
-            $AdditionalNumber = $this->getCountUsername($userList, $userName);
-            $userList[] = $userName;
-            if($AdditionalNumber) {
-                $userName .= $AdditionalNumber;
+            $tblDivision = false;
+            if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))){
+                $item['Level'] = $tblStudentEducation->getLevel();
+                $tblDivision = $tblStudentEducation->getTblDivision();
+                if($tblDivision){
+                    $item['KL'] = $tblDivision->getName();
+                }
+                $tblCoreGroup = $tblStudentEducation->getTblCoreGroup();
+                if($tblDivision || $tblCoreGroup){
+                    $item['Deactivated'] = '';
+                }
+                if($tblCoreGroup
+                    && ($tblPersonTeacherList = $tblCoreGroup->getDivisionTeacherList())){
+                    $TeacherAcronymList = array();
+                    foreach($tblPersonTeacherList as $tblPersonTeacher){
+                        if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonTeacher))) {
+                            if(($Acronym = $tblTeacher->getAcronym())) {
+                                $TeacherAcronymList[] = $Acronym;
+                            }
+                        }
+                    }
+                    if(!empty($TeacherAcronymList)){
+                        $item['Tudor'] = implode(', ', $TeacherAcronymList);
+                    }
+                }
             }
-            $item['UserName'] = $userName;
-            $item['MigrationBackground'] = '';
-
-            if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-                $item['StudentNumber'] = $tblStudent->getIdentifier();
-            }
-            //  Personengruppen Schüler
-            if($tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPerson)){
-                foreach($tblPersonGroupList as $tblPersonGroup){
-                    if(strpos($tblPersonGroup->getName(), 'Klasse') !== false){
-                        if($item['PersonGroupKL'] != ''){
-                            $item['PersonGroupKL'] .= ', '.$tblPersonGroup->getName();
-                        } else {
-                            $item['PersonGroupKL'] .= $tblPersonGroup->getName();
-                        }
-                    }
-                    if(strpos($tblPersonGroup->getName(), 'Team') !== false){
-                        if($item['PersonGroupTeam'] != ''){
-                            $item['PersonGroupTeam'] .= ', '.$tblPersonGroup->getName();
-                        } else {
-                            $item['PersonGroupTeam'] .= $tblPersonGroup->getName();
-                        }
-                    }
-                    if(strpos($tblPersonGroup->getName(), 'Gruppe') !== false){
-                        if($item['PersonGroupG'] != ''){
-                            $item['PersonGroupG'] .= ', '.$tblPersonGroup->getName();
-                        } else {
-                            $item['PersonGroupG'] .= $tblPersonGroup->getName();
-                        }
-                    }
-                    if(strpos($tblPersonGroup->getName(), 'Tutor') !== false){
-                        if($item['PersonGroupTutor'] != ''){
-                            $item['PersonGroupTutor'] .= ', '.$tblPersonGroup->getName();
-                        } else {
-                            $item['PersonGroupTutor'] .= $tblPersonGroup->getName();
+            // unterrichtsgruppen
+            $TeachingList = array();
+            if(($tblYearList = Term::useService()->getYearByNow())){
+                foreach($tblYearList as $tblYear){
+                    if(($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentAndYear($tblPerson, $tblYear))){
+                        foreach($tblDivisionCourseList as $tblDivisionCourse){
+                            if($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHING_GROUP){
+                                $TeachingList[] = $tblDivisionCourse->getName();
+                            }
                         }
                     }
                 }
             }
+            // alles außer Zahlen entfernen
+            if(!empty($TeachingList)){
+                foreach($TeachingList as &$Teaching){
+                    $Teaching = preg_replace('/[^0-9]/', '', $Teaching);
+                }
+                $TeachingList = array_filter($TeachingList);
+            }
+            if(!empty($TeachingList)){
+                $item['Team'] = implode(', ', $TeachingList);
+            }
+            $item['UserName'] = '';
+            if(($tblUserAccount = Account::useService()->getUserAccountByPerson($tblPerson))
+            && ($tblAccount = $tblUserAccount->getServiceTblAccount())){
+                $item['UserName'] = $tblAccount->getUsername();
+            }
+            $item['MigrationBackground'] = '';
+            if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
+                $item['StudentNumber'] = $tblStudent->getIdentifier();
+            }
+
             // Allgemeine Daten Schüler
-            if (($common = Common::useService()->getCommonByPerson($tblPerson))) {
-                if(($tblCommonBirthDates = $common->getTblCommonBirthDates())){
+            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
                     $item['Birthday'] = $tblCommonBirthDates->getBirthday();
                     $item['Birthplace'] = $tblCommonBirthDates->getBirthplace();
                     if(($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())){
                         $item['Gender'] = $tblCommonGender->getName();
                     }
                 }
-                if(($tblCommonInformation = $common->getTblCommonInformation())){
+                if(($tblCommonInformation = $tblCommon->getTblCommonInformation())){
                     $item['Nationality'] = $tblCommonInformation->getNationality();
                     $item['Denomination'] = $tblCommonInformation->getDenomination();
+                    $item['AssistanceActivity'] = $tblCommonInformation->getAssistanceActivity();
                 }
             }
             // Address Schüler
@@ -271,10 +293,10 @@ class Service extends Extension
             }
             // Sorgeberechtigte
             if(($tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN))){
-                if(($tbltoPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))){
-                    foreach($tbltoPersonList as $tbltoPerson){
-                        if(($tblPersonS = $tbltoPerson->getServiceTblPersonFrom())){
-                            $Number = $tbltoPerson->getRanking();
+                if(($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))){
+                    foreach($tblToPersonList as $tblToPerson){
+                        if(($tblPersonS = $tblToPerson->getServiceTblPersonFrom())){
+                            $Number = $tblToPerson->getRanking();
                             $item['PersonIdS'.$Number] = $tblPersonS->getId();
                             $item['TitleS'.$Number] = $tblPersonS->getTitle();
                             $item['LastNameS'.$Number] = $tblPersonS->getLastName();
@@ -356,6 +378,20 @@ class Service extends Extension
                                     $item['Mail2S'.$Number] = $tblMail->getAddress();
                                 }
                             }
+                            // Elternvertreter
+                            if($tblDivision && ($tblPersonCustodyList = $tblDivision->getCustody())){
+                                foreach($tblPersonCustodyList as $tblPersonCustody){
+                                    if($tblPersonCustody->getId() == $tblPersonS->getId()){
+                                        $item['CustodyS'.$Number] = $tblDivision->getName();
+                                    }
+                                }
+                            }
+                            // Mitarbeitsbereitschaft
+                            if (($tblCommon = Common::useService()->getCommonByPerson($tblPersonS))) {
+                                if(($tblCommonInformation = $tblCommon->getTblCommonInformation())){
+                                    $item['AssistanceActivityS'.$Number] = $tblCommonInformation->getAssistanceActivity();
+                                }
+                            }
 
                             if(($tblCommonS = $tblPerson->getCommon())){
                                 $item['RemarkS'.$Number] = $tblCommonS->getRemark();
@@ -385,42 +421,6 @@ class Service extends Extension
     }
 
     /**
-     * @param TblPerson $tblPerson
-     *
-     * @return string
-     */
-    private function creatUserName(TblPerson $tblPerson):string
-    {
-
-        $userName = $tblPerson->getLastName().'.'.$tblPerson->getFirstName();
-        $userName = strtolower($userName);
-        $userName = str_replace(' ', '-', $userName);
-        $userName = str_replace('ä', 'ae', $userName);
-        $userName = str_replace('ö', 'oe', $userName);
-        $userName = str_replace('ü', 'ue', $userName);
-        $userName = str_replace('ß', 'ss', $userName);
-
-        return $userName;
-    }
-
-    /**
-     * @param array  $userList
-     * @param string $search
-     *
-     * @return int
-     */
-    private function getCountUsername(array $userList, string $search):int
-    {
-        $count = 0;
-        foreach ($userList as $user) {
-            if ($user === $search) {
-                $count++;
-            }
-        }
-        return $count;
-    }
-
-    /**
      * @param array $PersonList
      * @param array $tblPersonList
      *
@@ -442,12 +442,13 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), "JG");
             $export->setValue($export->getCell($column++, $row), "KL");
             $export->setValue($export->getCell($column++, $row), "TEAM");
-            $export->setValue($export->getCell($column++, $row), "Gruppe");
+            $export->setValue($export->getCell($column++, $row), "Tudor");
             $export->setValue($export->getCell($column++, $row), "Nachname");
             $export->setValue($export->getCell($column++, $row), "Rufname");
             $export->setValue($export->getCell($column++, $row), "Vorname");
             $export->setValue($export->getCell($column++, $row), "Zweiter Vorname");
             $export->setValue($export->getCell($column++, $row), "Tutor");
+            $export->setValue($export->getCell($column++, $row), "Deaktiviert");
             $export->setValue($export->getCell($column++, $row), "Geburtsdatum");
             $export->setValue($export->getCell($column++, $row), "Geburtsort");
             $export->setValue($export->getCell($column++, $row), "Geschlecht");
@@ -464,6 +465,7 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), "Nationalität");
             $export->setValue($export->getCell($column++, $row), "Kirche");
             $export->setValue($export->getCell($column++, $row), "Grundschule");
+            $export->setValue($export->getCell($column++, $row), "Mitarbeit Tätigkeit");
             $export->setValue($export->getCell($column++, $row), "PersonId_S2");
             $export->setValue($export->getCell($column++, $row), "Akad. Titel_S2");
             $export->setValue($export->getCell($column++, $row), "Nachname_S2");
@@ -480,7 +482,9 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), "Notfall_Mobil_S2");
             $export->setValue($export->getCell($column++, $row), "Mail_S2");
             $export->setValue($export->getCell($column++, $row), "Mail_S2_Zwei");
+            $export->setValue($export->getCell($column++, $row), "Elternvertretung_S2");
             $export->setValue($export->getCell($column++, $row), "Bemerkung_S2");
+            $export->setValue($export->getCell($column++, $row), "Mitarbeit Tätigkeit_S2");
             $export->setValue($export->getCell($column++, $row), "PersonId_S1");
             $export->setValue($export->getCell($column++, $row), "Titel_S1");
             $export->setValue($export->getCell($column++, $row), "Nachname_S1");
@@ -497,7 +501,9 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), "Notfall_Mobil_S1");
             $export->setValue($export->getCell($column++, $row), "Mail_S1");
             $export->setValue($export->getCell($column++, $row), "Mail_S1_Zwei");
+            $export->setValue($export->getCell($column++, $row), "Elternvertretung_S1");
             $export->setValue($export->getCell($column++, $row), "Bemerkung_S1");
+            $export->setValue($export->getCell($column++, $row), "Mitarbeit Tätigkeit_S1");
             $export->setValue($export->getCell($column++, $row), "Zugang");
             $export->setValue($export->getCell($column++, $row), "Abgang");
             $export->setValue($export->getCell($column++, $row), "Stadtbezirk");
@@ -518,15 +524,16 @@ class Service extends Extension
 
                 $export->setValue($export->getCell($column++, $row), $RowContent['PersonId']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['StudentNumber']);
-                $export->setValue($export->getCell($column++, $row), $RowContent['Division']);
-                $export->setValue($export->getCell($column++, $row), $RowContent['PersonGroupKL']);
-                $export->setValue($export->getCell($column++, $row), $RowContent['PersonGroupTeam']);
-                $export->setValue($export->getCell($column++, $row), $RowContent['PersonGroupG']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['Level']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['KL']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['Team']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['Tudor']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['LastName']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['CallName']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['FirstName']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['SecondName']);
-                $export->setValue($export->getCell($column++, $row), $RowContent['PersonGroupTutor']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['Tudor']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['Deactivated']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Birthday']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Birthplace']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Gender']);
@@ -543,6 +550,7 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $row), $RowContent['Nationality']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Denomination']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['LeavingSchool']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['AssistanceActivity']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['PersonIdS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['TitleS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['LastNameS2']);
@@ -559,7 +567,9 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $row), $RowContent['EmergencyMobileS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['MailS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Mail2S2']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['CustodyS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['RemarkS2']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['AssistanceActivityS2']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['PersonIdS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['TitleS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['LastNameS1']);
@@ -576,7 +586,9 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $row), $RowContent['EmergencyMobileS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['MailS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Mail2S1']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['CustodyS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['RemarkS1']);
+                $export->setValue($export->getCell($column++, $row), $RowContent['AssistanceActivityS1']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['EnterDate']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['LeaveDate']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Region']);

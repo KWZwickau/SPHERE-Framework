@@ -266,13 +266,20 @@ class Debugger
 
     public static function setTime($Identifier = 'one')
     {
+
         self::$TimeArray[$Identifier] = microtime(true);
     }
 
     public static function getTime($Identifier = 'one')
     {
-//        $dauer = microtime(true) - self::$TimeArray[$Identifier];
-//        return $dauer;
+
+        $dauer = microtime(true) - self::$TimeArray[$Identifier];
+        return $dauer;
+    }
+
+    public static function showTime($Identifier = 'one')
+    {
+
         $tblAccount = Account::useService()->getAccountBySession();
         if($tblAccount && in_array($tblAccount->getUsername(), self::$DeveloperList)) {
             if(isset(self::$TimeArray[$Identifier])){
