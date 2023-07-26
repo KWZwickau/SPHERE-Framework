@@ -2105,6 +2105,10 @@ class Service extends Extension
         if (empty($tblPersonList)) {
             return $TableContent;
         }
+        $tblYear = false;
+        if(isset($Data['YearId'])){
+            $tblYear = Term::useService()->getYearById($Data['YearId']);
+        }
         /* @var TblPerson $tblPerson */
         foreach($tblPersonList as $tblPerson){
             $item['Level'] = '';
@@ -2136,7 +2140,12 @@ class Service extends Extension
                     $item['Medication'] = $tblStudentMedicalRecord->getMedication();
                 }
             }
-            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+            if($tblYear) {
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+            } else {
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson);
+            }
+            if($tblStudentEducation) {
                 $item['Level'] = $tblStudentEducation->getLevel();
                 if(($tblCompany = $tblStudentEducation->getServiceTblCompany())){
                     $item['School'] = $tblCompany->getDisplayName();
