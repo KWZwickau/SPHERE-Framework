@@ -103,7 +103,6 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
         // Person bearbeiten
         if ($Id != null && ($tblPerson = Person::useService()->getPersonById($Id))) {
-            $validationMessage = FilterService::getPersonMessageTable($tblPerson);
             $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id, $PseudoId), 'BasicContent');
             $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
 
@@ -223,19 +222,17 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 false
             );
             $stage->setContent(
-                ($validationMessage ? $validationMessage : '')
-                .
                 ($PictureContent === false
-                ? $basicContent. $commonContent
-                : new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(
-                        $basicContent
-                        . $commonContent
-                        , 9),
-                    new LayoutColumn(
-                        $PictureContent
-                        , 3)
-                ))))
+                    ? $basicContent. $commonContent
+                    : new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(
+                            $basicContent
+                            . $commonContent
+                            , 9),
+                        new LayoutColumn(
+                            $PictureContent
+                            , 3)
+                    ))))
                 )
                 . $childContent
                 . $studentContent

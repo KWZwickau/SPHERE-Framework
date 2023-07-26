@@ -286,7 +286,7 @@ class ClassRegister extends AbstractDocument
                             ->styleBorderBottom()
                         )
                         ->addElement((new Element())
-                            ->setContent($this->tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION ? 'Klassenlehrer/in' : 'Tudor/in')
+                            ->setContent($this->tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION ? 'Klassenlehrer/in' : 'Tutor/in')
                             ->styleTextSize($textSize)
                             ->stylePaddingLeft($paddingLeft)
                         )

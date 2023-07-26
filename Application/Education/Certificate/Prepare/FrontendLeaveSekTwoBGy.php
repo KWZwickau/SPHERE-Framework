@@ -329,7 +329,7 @@ abstract class FrontendLeaveSekTwoBGy extends FrontendLeaveSekTwo
                         array(
                             $tudorNameTextField,
                             new Panel(
-                                new Small(new Bold('Geschlecht des/der Tudors/in')),
+                                new Small(new Bold('Geschlecht des/der Tutors/in')),
                                 array($tudorRadioSex1, $tudorRadioSex2),
                                 Panel::PANEL_TYPE_DEFAULT
                             )

@@ -647,7 +647,7 @@ abstract class BGymStyle extends Certificate
             ? '{% if(Content.P' . $personId . '.Tudor.Description is not empty) %}
                   {{ Content.P' . $personId . '.Tudor.Description }}
               {% else %}
-                  Tudor/in
+                  Tutor/in
               {% endif %}'
             : '{% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
                   {{ Content.P' . $personId . '.DivisionTeacher.Description }}

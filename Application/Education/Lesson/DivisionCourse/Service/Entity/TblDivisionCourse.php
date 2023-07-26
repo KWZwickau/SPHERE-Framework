@@ -315,7 +315,7 @@ class TblDivisionCourse extends Element
     {
         switch ($this->getTypeName()) {
             case 'Klasse': return 'Klassenlehrer';
-            case 'Stammgruppe': return $isPlural ? 'Tutoren/Mentoren' : 'Tudor/Mentor';
+            case 'Stammgruppe': return $isPlural ? 'Tutoren/Mentoren' : 'Tutor/Mentor';
             case 'Unterrichtsgruppe':
             default: return 'Gruppenleiter';
         }
