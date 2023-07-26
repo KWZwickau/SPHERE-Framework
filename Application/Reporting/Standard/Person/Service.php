@@ -2145,13 +2145,16 @@ class Service extends Extension
                 $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
                 $tblCourse = $tblStudentEducation->getServiceTblCourse();
                 // berufsbildende Schulart
+                $courseName = '';
                 if ($tblSchoolType && $tblSchoolType->isTechnical()) {
                     $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
-                } else {
-                    $courseName = $tblCourse ? $tblCourse->getName() : '';
+                } elseif($tblCourse) {
+                    $courseName = $tblCourse->getName();
                 }
                 $item['CourseType'] = $courseName;
-                $item['SchoolType'] = $tblSchoolType->getName();
+                if($tblSchoolType){
+                    $item['SchoolType'] = $tblSchoolType->getName();
+                }
                 // Klasse / Gruppe
                 if(($tblDivisionCourseClass = $tblStudentEducation->getTblDivision())){
                     $item['DivisionCourse'] = $tblDivisionCourseClass->getDisplayName();
