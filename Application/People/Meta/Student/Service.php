@@ -1303,6 +1303,20 @@ class Service extends Support
      */
     public function insertStudentSpecialNeedsLevel(string $specialNeedsLevel = ''): ?TblStudentSpecialNeeds
     {
+        switch ($specialNeedsLevel){
+            case 'US':
+                $specialNeedsLevel = 'Unterstufe';
+                break;
+            case 'MS':
+                $specialNeedsLevel = 'Mittelstufe';
+                break;
+            case 'OS':
+                $specialNeedsLevel = 'Oberstufe';
+                break;
+            case 'WS':
+                $specialNeedsLevel = 'Werkstufe';
+                break;
+        }
         if(($tblStudentSpecialNeedsLevel = Student::useService()->getStudentSpecialNeedsLevelByName($specialNeedsLevel))){
             return (new Data($this->getBinding()))->insertStudentSpecialNeedsLevel($tblStudentSpecialNeedsLevel);
         }

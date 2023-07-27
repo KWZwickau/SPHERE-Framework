@@ -148,11 +148,12 @@ class Service
             'HNR'      => null,
             'Land'     => null,
             // contact
-            'Notfall_Festnetz' => null,
-            'Notfall_Mobil'    => null,
-            'Privat_Festnetz'  => null,
-            'Privat_Mobil'     => null,
-            'E_Mail_Privat'    => null,
+            'Notfall_Festnetz'    => null,
+            'Notfall_Mobil'       => null,
+            'Privat_Festnetz'     => null,
+            'Privat_Mobil'        => null,
+            'E_Mail_Privat'       => null,
+            'E_Mail_Geschäftlich' => null,
             ///////////////////////////////////
             // S1
             'S1_Anrede'  => null,
@@ -407,7 +408,8 @@ class Service
             $privatePhone = $this->getValue('Privat_Festnetz');
             $privateMobile = $this->getValue('Privat_Mobil');
             $privateMail = $this->getValue('E_Mail_Privat');
-            $this->setPersonContact($tblPerson, $emergencyPhone, $emergencyMobile, $privatePhone, $privateMobile, '', '', $privateMail, '');
+            $businessMail = $this->getValue('E_Mail_Geschäftlich');
+            $this->setPersonContact($tblPerson, $emergencyPhone, $emergencyMobile, $privatePhone, $privateMobile, '', '', $privateMail, $businessMail);
 
             // S1 --------------------------------------------------------------------------------------------------
             $firstName_S1 = $this->getValue('S1_Vorname');
