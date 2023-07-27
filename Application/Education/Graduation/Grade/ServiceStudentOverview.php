@@ -383,7 +383,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                         if ($isShownAverage) {
                             if (isset($testGrades[$i])) {
                                 list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $testGrades[$i],
-                                    $tblScoreRule ?? null);
+                                    $tblScoreRule ?: null);
                                 $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
 
                                 $testGrades['All'] = array_merge($testGrades['All'], $testGrades[$i]);
@@ -405,7 +405,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                     if ($isShownAverage) {
                         if (!empty($testGrades['All'])) {
                             list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $testGrades['All'],
-                                $tblScoreRule ?? null);
+                                $tblScoreRule ?: null);
                             $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
                         } else {
                             $average = '&nbsp;';
