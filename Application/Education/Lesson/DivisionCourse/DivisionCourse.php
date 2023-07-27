@@ -25,6 +25,9 @@ class DivisionCourse implements IModuleInterface
             new Link(new Link\Route('SPHERE\Application\Education\Lesson\YearChange'), new Link\Name('Schuljahreswechsel'), new Link\Icon(new Calendar()))
         );
         Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route('SPHERE\Application\Education\Lesson\YearChangeForCoreGroup'), new Link\Name('Schuljahreswechsel für nur Stammgruppen'), new Link\Icon(new Calendar()))
+        );
+        Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route('SPHERE\Application\Education\Lesson\StudentSubjectTable'), new Link\Name('Stundentafel'), new Link\Icon(new Education()))
         );
 
@@ -65,6 +68,9 @@ class DivisionCourse implements IModuleInterface
          */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             'SPHERE/Application/Education/Lesson/YearChange', __NAMESPACE__.'\Frontend::frontendYearChange'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            'SPHERE/Application/Education/Lesson/YearChangeForCoreGroup', __NAMESPACE__.'\Frontend::frontendYearChangeForCoreGroup'
         ));
 
         /*

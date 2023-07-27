@@ -15,6 +15,11 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacher
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 
 abstract class ServiceYearChange extends ServiceTeacher
@@ -320,6 +325,8 @@ abstract class ServiceYearChange extends ServiceTeacher
                                     if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
                                         && !$tblStudentSubject->getServiceTblSubjectTable()
                                         && !$tblStudentSubject->getTblDivisionCourse()
+                                        // prüfen, ob der Schüler das Fach bereits im neuen Schuljahr hat
+                                        && !DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYearTarget, $tblSubject)
                                     ) {
                                         $createStudentSubjectList[] = TblStudentSubject::withParameter(
                                             $tblPerson, $tblYearTarget, $tblSubject, $tblStudentSubject->getHasGrading()
@@ -471,6 +478,12 @@ abstract class ServiceYearChange extends ServiceTeacher
      */
     private function getFutureDivisionCourseName(TblDivisionCourse $tblDivisionCourse): string {
         $newName = $tblDivisionCourse->getName();
+
+        // Stammgruppen sollen nicht hochgezählt werden
+        if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP) {
+            return $newName;
+        }
+
         if (preg_match_all('!\d+!', $tblDivisionCourse->getName(), $matches)) {
             $pos = strpos($tblDivisionCourse->getName(), $matches[0][0]);
             if ($pos === 0) {
@@ -480,5 +493,75 @@ abstract class ServiceYearChange extends ServiceTeacher
         }
 
         return $newName;
+    }
+
+    /**
+     * @param TblYear $tblYearSource
+     * @param TblYear $tblYearTarget
+     * @param bool $isSave
+     *
+     * @return string
+     */
+    public function getYearChangeForCoreGroupData(TblYear $tblYearSource, TblYear $tblYearTarget, bool $isSave = false): string
+    {
+        $content = '';
+        $divisionCourseNameList = array();
+        $divisionCourseTargetList = array();
+        $divisionCourseStudentList = array();
+        $createMemberList = array();
+        $updateStudentEducationList = array();
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYearSource))) {
+            $tblStudentEducationList = $this->getSorter($tblStudentEducationList)->sortObjectBy('Sort');
+            /** @var TblStudentEducation $tblStudentEducationSource */
+            foreach ($tblStudentEducationList as $tblStudentEducationSource) {
+                if (($tblPerson = $tblStudentEducationSource->getServiceTblPerson())
+                    && !$tblStudentEducationSource->isInActive()
+                    && ($tblCoreGroupSource = $tblStudentEducationSource->getTblCoreGroup())
+                    && ($tblStudentEducationTarget = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYearTarget))
+                    && !$tblStudentEducationTarget->getTblCoreGroup()
+                ) {
+                    if (!isset($divisionCourseNameList[$tblCoreGroupSource->getId()])) {
+                        $divisionCourseNameList[$tblCoreGroupSource->getId()] = DivisionCourse::useService()->getFutureDivisionCourseName($tblCoreGroupSource);
+
+                        if ($isSave) {
+                            $divisionCourseTargetList[$tblCoreGroupSource->getId()] = DivisionCourse::useService ()->getFutureDivisionCourse(
+                                $tblCoreGroupSource, $tblYearTarget, $createMemberList, false
+                            );
+                        }
+                    }
+
+                    $divisionCourseStudentList[$tblCoreGroupSource->getId()][$tblPerson->getId()] = $tblPerson->getLastFirstName();
+
+                    if ($isSave) {
+                        $tblStudentEducationTarget->setTblCoreGroup($divisionCourseTargetList[$tblCoreGroupSource->getId()] ?? null);
+                        $updateStudentEducationList[] = $tblStudentEducationTarget;
+                    }
+                }
+            }
+        }
+
+        foreach ($divisionCourseNameList as $divisionCourseId => $name) {
+            if (($tblDivisionCourseSource = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))) {
+                $content .= new Panel (
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn($tblDivisionCourseSource->getDisplayName(), 5),
+                        new LayoutColumn('->', 2),
+                        new LayoutColumn($name, 5)
+                    )))),
+                    $divisionCourseStudentList[$divisionCourseId]
+                );
+            }
+        }
+
+        if ($isSave) {
+            if (!empty($updateStudentEducationList)) {
+                (new Data($this->getBinding()))->updateEntityListBulk($updateStudentEducationList);
+            }
+            if (!empty($createMemberList)) {
+                (new Data($this->getBinding()))->createEntityListBulk($createMemberList);
+            }
+        }
+
+        return $content;
     }
 }

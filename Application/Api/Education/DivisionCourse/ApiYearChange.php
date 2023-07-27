@@ -26,6 +26,9 @@ class ApiYearChange extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadYearChangeContent');
         $Dispatcher->registerMethod('saveYearChangeContent');
 
+        $Dispatcher->registerMethod('loadYearChangeForCoreGroupContent');
+        $Dispatcher->registerMethod('saveYearChangeForCoreGroupContent');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -105,6 +108,68 @@ class ApiYearChange extends Extension implements IApiInterface
     {
         return DivisionCourse::useFrontend()->saveYearChangeContent(
             $SchoolTypeId, $YearSourceId, $YearTargetId, $hasOptionTeacherLectureship === 'true'
+        );
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadYearChangeForCoreGroupContent(): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'YearChangeForCoreGroupContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadYearChangeForCoreGroupContent',
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadYearChangeForCoreGroupContent($Data = null): string
+    {
+        return DivisionCourse::useFrontend()->loadYearChangeForCoreGroupContent($Data);
+    }
+
+    /**
+     * @param $YearSourceId
+     * @param $YearTargetId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveYearChangeForCoreGroupContent($YearSourceId, $YearTargetId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'YearChangeForCoreGroupContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveYearChangeForCoreGroupContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'YearSourceId' => $YearSourceId,
+            'YearTargetId' => $YearTargetId,
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden gespeichert');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $YearSourceId
+     * @param $YearTargetId
+     *
+     * @return string
+     */
+    public function saveYearChangeForCoreGroupContent($YearSourceId, $YearTargetId): string
+    {
+        return DivisionCourse::useFrontend()->saveYearChangeForCoreGroupContent(
+            $YearSourceId, $YearTargetId
         );
     }
 }

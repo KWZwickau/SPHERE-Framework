@@ -249,4 +249,98 @@ class FrontendYearChange extends FrontendTeacher
 
         return new Danger('Die Schulart konnte nicht ins neue Schuljahr übertragen werden');
     }
+
+    /**
+     * @return Stage
+     */
+    public function frontendYearChangeForCoreGroup(): Stage
+    {
+        $stage = new Stage('Schuljahreswechsel', 'Für nur Stammgruppen, wenn der Schuljahreswechsel bereits durchgeführt wurde!');
+        $stage->setContent(
+            new Panel(new Calendar() . ' Schuljahreswechsel', $this->formYearChangeForCoreGroup(), Panel::PANEL_TYPE_INFO)
+            . ApiYearChange::receiverBlock($this->loadYearChangeForCoreGroupContent(null), 'YearChangeForCoreGroupContent')
+        );
+
+        return $stage;
+    }
+
+    /**
+     * @return Form
+     */
+    public function formYearChangeForCoreGroup(): Form
+    {
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    (new SelectBox('Data[YearSource]', 'von Schuljahr', array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
+                        ->ajaxPipelineOnChange(ApiYearChange::pipelineLoadYearChangeForCoreGroupContent())
+                        ->setRequired()
+                    , 6),
+                new FormColumn(
+                    (new SelectBox('Data[YearTarget]', 'nach Schuljahr', array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(0))))
+                        ->ajaxPipelineOnChange(ApiYearChange::pipelineLoadYearChangeForCoreGroupContent())
+                        ->setRequired()
+                    , 6),
+            )),
+        )));
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return string
+     */
+    public function loadYearChangeForCoreGroupContent($Data): string
+    {
+        $content = '';
+        $tblYearSource = false;
+        $tblYearTarget = false;
+        if (!isset($Data['YearSource']) || !($tblYearSource = Term::useService()->getYearById($Data['YearSource']))) {
+            $content .= new Warning('Bitte wählen Sie ein Quell-Schuljahr aus.', new Exclamation());
+        }
+        if (!isset($Data['YearTarget']) || !($tblYearTarget = Term::useService()->getYearById($Data['YearTarget']))) {
+            $content .= new Warning('Bitte wählen Sie ein Ziel-Schuljahr aus.', new Exclamation());
+        }
+
+        if ($tblYearSource && $tblYearTarget) {
+            if ($tblYearTarget->getName() <= $tblYearSource->getName()) {
+                return new Warning('Bitte wählen Sie neueres Ziel-Schuljahr aus.', new Exclamation());
+            }
+
+            $content .= DivisionCourse::useService()->getYearChangeForCoreGroupData($tblYearSource, $tblYearTarget);
+
+            if ($content) {
+                $content .= (new Primary('Speichern', ApiYearChange::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick(ApiYearChange::pipelineSaveYearChangeForCoreGroupContent(
+                        $tblYearSource->getId(), $tblYearTarget->getId()
+                    ));
+            } else {
+                $content .= new Success('Es wurden bereits alle Stammgruppen übertragen');
+            }
+        }
+
+        return $content;
+    }
+
+    /**
+     * @param $YearSourceId
+     * @param $YearTargetId
+     *
+     * @return string
+     */
+    public function saveYearChangeForCoreGroupContent($YearSourceId, $YearTargetId): string
+    {
+        if (($tblYearSource = Term::useService()->getYearById($YearSourceId))
+            && ($tblYearTarget = Term::useService()->getYearById($YearTargetId))
+        ) {
+            $content = DivisionCourse::useService()->getYearChangeForCoreGroupData($tblYearSource, $tblYearTarget, true);
+
+            return $content . new Success(
+                'Die Stammgruppen wurden erfolgreich ins neue Schuljahr übertragen.',
+                new SuccessIcon()
+            );
+        }
+
+        return new Danger('Die Stammgruppen konnten nicht ins neue Schuljahr übertragen werden');
+    }
 }
