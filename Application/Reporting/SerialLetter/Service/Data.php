@@ -36,68 +36,6 @@ class Data extends AbstractData
         $this->createFilterCategory(TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT);
         $this->createFilterCategory(TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT);
         $this->createFilterCategory(TblFilterCategory::IDENTIFIER_COMPANY);
-
-        // ToDO SR Kann nach Live-stellung entfernt werden
-        if($this->isUpdateRequired()){
-            if($tblFilterFieldAll = $this->getFilterFieldAll()){
-                foreach($tblFilterFieldAll as$tblFilterField){
-                    if($tblFilterField->getField() == 'TblGroup_Id'){
-                        $tblSerialLetter = $tblFilterField->getTblSerialLetter();
-                        if($tblSerialLetter->getFilterCategory()->getName() == TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT
-                        || $tblSerialLetter->getFilterCategory()->getName() == TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT){
-                            $this->destroyFilterFiled($tblFilterField);
-                        }
-                    }
-                    if($tblFilterField->getField() == 'TblLevel_Id'){
-                        $tblSerialLetter = $tblFilterField->getTblSerialLetter();
-                        $tblFilterCategory = $tblSerialLetter->getFilterCategory();
-                        $LevelId = $tblFilterField->getValue();
-                        $FilterNumber = $tblFilterField->getFilterNumber();
-                        $DivisionName = '';
-                        if(($tblFilterFieldList = $this->getFilterFieldListByFilterFieldNumber($FilterNumber))){
-                            foreach($tblFilterFieldList as $tblFilterFieldListElement){
-                                if($tblFilterFieldListElement->getField() == 'TblDivision_Name'){
-                                    $DivisionName = $tblFilterFieldListElement->getValue();
-                                    $this->destroyFilterFiled($tblFilterFieldListElement);
-                                }
-                            }
-                        }
-                        if(($tblLevel = Division::useService()->getLevelById($LevelId))){
-                            $LevelName = $tblLevel->getName();
-                            $this->createFilterField($tblSerialLetter, $tblFilterCategory, 'Level', $LevelName, $FilterNumber);
-                            $tblSchoolType = $tblLevel->getServiceTblType();
-                            $this->createFilterField($tblSerialLetter, $tblFilterCategory, 'TblSchoolType_Id', $tblSchoolType->getId(), $FilterNumber);
-                            if($DivisionName){
-                                if(($tblYear = Term::useService()->getYearByNow())){
-                                    $tblYear = current($tblYear);
-                                    if(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByNameAndYear($LevelName.$DivisionName, $tblYear))){
-                                        $this->createFilterField($tblSerialLetter, $tblFilterCategory, 'TblDivisionCourse_Name', $tblDivisionCourse->getName(), $FilterNumber);
-                                    }
-                                }
-                            }
-                        }
-                        $this->destroyFilterFiled($tblFilterField);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    private function isUpdateRequired()
-    {
-
-        if(($tblFilterFieldAll = $this->getFilterFieldAll())){
-            foreach($tblFilterFieldAll as $tblFilterField){
-                $Field = $tblFilterField->getField();
-                if($Field == 'TblDivision_Name' || $Field == 'TblLevel_Id'){
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**

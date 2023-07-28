@@ -17,73 +17,7 @@ class Data extends DataView
 
     public function setupDatabaseContent()
     {
-        // ToDO Update alter Spalten zu neuen Spalten
-        // ToDO SR kann nach dem Live Update wieder entfernt werden
-        if(($tblWorkSpaceList = $this->getWorkSpaceAll())){
-            foreach($tblWorkSpaceList as $tblWorkSpace){
-                if($tblWorkSpace->getField() == 'TblLevel_Id'){
-                    $this->updateWorkSpaceFieldName($tblWorkSpace, 'TblLessonStudentEducation_Level');
-                }
-                if($tblWorkSpace->getField() == 'TblDivision_Display'){
-                    $this->updateWorkSpaceFieldName($tblWorkSpace, 'TblLessonDivisionCourse_Name_D');
-                }
-                if($tblWorkSpace->getField() == 'TblDivision_Description'){
-                    $this->updateWorkSpaceFieldName($tblWorkSpace, 'TblLessonDivisionCourse_Description_D');
-                }
-                if($tblWorkSpace->getField() == 'TblCompany_Name_ExtendedName'){
-                    $this->updateWorkSpaceFieldName($tblWorkSpace, 'TblCompany_ExtendedName');
-                }
-                if($tblWorkSpace->getField() == 'TblDivision_Name'){
-                    $this->removeWorkSpace($tblWorkSpace);
-                }
-                if($tblWorkSpace->getField() == 'TblStudent_NameAgreement'){
-                    $this->removeWorkSpace($tblWorkSpace);
-                }
-                if($tblWorkSpace->getField() == 'TblStudent_PictureAgreement'){
-                    $this->removeWorkSpace($tblWorkSpace);
-                }
-            }
-        }
-        if(($tblPresetList = $this->gePresetAll())){
-            foreach($tblPresetList as $tblPreset){
-                if(($tblPresetSettingList = $this->getPresetSettingAllByPreset($tblPreset, TblWorkSpace::VIEW_TYPE_STUDENT))){
-                    $isChanged = false;
-                    foreach($tblPresetSettingList as $tblPresetSetting){
-                        if($tblPresetSetting->getField() == 'TblLevel_Id'){
-                            $this->updatePresetSettingFieldName($tblPresetSetting, 'TblLessonStudentEducation_Level');
-                            $isChanged = true;
-                        }
-                        if($tblPresetSetting->getField() == 'TblDivision_Display'){
-                            $this->updatePresetSettingFieldName($tblPresetSetting, 'TblLessonDivisionCourse_Name_D');
-                            $isChanged = true;
-                        }
-                        if($tblPresetSetting->getField() == 'TblDivision_Description'){
-                            $this->updatePresetSettingFieldName($tblPresetSetting, 'TblLessonDivisionCourse_Description_D');
-                            $isChanged = true;
-                        }
-                        if($tblPresetSetting->getField() == 'TblCompany_Name_ExtendedName'){
-                            $this->updatePresetSettingFieldName($tblPresetSetting, 'TblCompany_ExtendedName');
-                            $isChanged = true;
-                        }
-                        if($tblPresetSetting->getField() == 'TblDivision_Name'){
-                            $this->removePresetSetting($tblPresetSetting);
-                            $isChanged = true;
-                        }
-                        if($tblPresetSetting->getField() == 'TblStudent_NameAgreement'){
-                            $this->removePresetSetting($tblPresetSetting);
-                            $isChanged = true;
-                        }
-                        if($tblPresetSetting->getField() == 'TblStudent_PictureAgreement'){
-                            $this->removePresetSetting($tblPresetSetting);
-                            $isChanged = true;
-                        }
-                    }
-                    if($isChanged && empty($tblPreset->getPostValue())){
-                        $this->updatePresetEmptyPost($tblPreset);
-                    }
-                }
-            }
-        }
+
     }
 
     /**
