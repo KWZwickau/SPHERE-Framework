@@ -9,8 +9,6 @@ use SPHERE\Application\Contact\Address\Service\Entity\TblState;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Address\Service\Entity\TblType;
-use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToCompany;
-use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\Contact\Address\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -24,24 +22,6 @@ use SPHERE\System\Database\Binding\AbstractService;
  */
 class Service extends AbstractService
 {
-
-    /**
-     * @return false|ViewAddressToPerson[]
-     */
-    public function viewAddressToPersonAll()
-    {
-
-        return (new Data($this->getBinding()))->viewAddressToPersonAll();
-    }
-
-    /**
-     * @return false|ViewAddressToCompany[]
-     */
-    public function viewAddressToCompanyAll()
-    {
-
-        return (new Data($this->getBinding()))->viewAddressToCompanyAll();
-    }
 
     /**
      * @param bool $doSimulation
@@ -176,24 +156,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getAddressAll();
-    }
-
-    /**
-     * @return false|ViewAddressToPerson[]
-     */
-    public function getViewAddressToPersonAll()
-    {
-
-        return (new Data($this->getBinding()))->getViewAddressToPersonAll();
-    }
-
-    /**
-     * @return false|ViewAddressToCompany[]
-     */
-    public function getViewAddressToCompanyAll()
-    {
-
-        return (new Data($this->getBinding()))->getViewAddressToCompanyAll();
     }
 
     /**

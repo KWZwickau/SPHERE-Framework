@@ -661,7 +661,7 @@ class FrontendFamily extends FrontendReadOnly
     public function getAddressContent($Ranking, $PersonIdList, $Data, $Errors, $hasAddButton = true)
     {
         $tblType = Address::useService()->getTypeAll();
-        $tblViewAddressToPersonAll = Address::useService()->getViewAddressToPersonAll();
+        $tblAddressAll = Address::useService()->getAddressAll();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
 
@@ -675,7 +675,7 @@ class FrontendFamily extends FrontendReadOnly
                     , 4),
                 new LayoutColumn(
                     $this->getInputField('AutoCompleter', $key, 'StreetName', 'Straße', 'Straße', true, $Errors,
-                        array('AddressStreetName' => $tblViewAddressToPersonAll), new MapMarker())
+                        array('StreetName' => $tblAddressAll), new MapMarker())
                     , 4),
                 new LayoutColumn(
                     $this->getInputField('TextField', $key, 'StreetNumber', 'Hausnummer', 'Hausnummer', true, $Errors,
@@ -685,21 +685,21 @@ class FrontendFamily extends FrontendReadOnly
             new LayoutRow(array(
                 new LayoutColumn(
                     $this->getInputField('AutoCompleter', $key, 'CityCode', 'Postleitzahl', 'Postleitzahl', true, $Errors,
-                        array('CityCode' => $tblViewAddressToPersonAll), new MapMarker())
+                        array('CodeString' => $tblAddressAll), new MapMarker())
                     , 4),
                 new LayoutColumn(
                     $this->getInputField('AutoCompleter', $key, 'CityName', 'Ort', 'Ort', true, $Errors,
-                        array('CityName' => $tblViewAddressToPersonAll), new MapMarker())
+                        array('CityString' => $tblAddressAll), new MapMarker())
                     , 4),
                 new LayoutColumn(
                     $this->getInputField('AutoCompleter', $key, 'CityDistrict', 'Ortsteil', 'Ortsteil', false, $Errors,
-                        array('CityDistrict' => $tblViewAddressToPersonAll), new MapMarker())
+                        array('DistrictString' => $tblAddressAll), new MapMarker())
                     , 4),
             )),
             new LayoutRow(array(
                 new LayoutColumn(
                     $this->getInputField('AutoCompleter', $key, 'County', 'Landkreis', 'Landkreis', false, $Errors,
-                        array('AddressCounty' => $tblViewAddressToPersonAll), new Map())
+                        array('County' => $tblAddressAll), new Map())
                     , 4),
                 new LayoutColumn(
                     $this->getInputField('SelectBox', $key, 'State', 'Bundesland', '', false, $Errors,
@@ -707,7 +707,7 @@ class FrontendFamily extends FrontendReadOnly
                     , 4),
                 new LayoutColumn(
                     $this->getInputField('AutoCompleter', $key, 'Nation', 'Land', 'Land', false, $Errors,
-                        array('AddressNation' => $tblViewAddressToPersonAll), new Map())
+                        array('Nation' => $tblAddressAll), new Map())
                     , 4),
             ))
         ))));
