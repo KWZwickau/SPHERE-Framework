@@ -194,6 +194,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function loadPersonSearch($Search): string
     {
         if ($Search != '' && strlen($Search) > 2) {
+            $Search = str_replace(',', '', $Search);
+            $Search = str_replace('.', '', $Search);
             $resultList = array();
             $result = '';
             $showDivision = false;
