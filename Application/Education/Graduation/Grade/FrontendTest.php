@@ -46,6 +46,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Quote;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -611,6 +612,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
         }
 
         $tblGradeList = array();
+        $attendanceList = array();
         if ($setPost) {
             if (($tempGrades = $tblTest->getGrades())) {
                 $global = $this->getGlobal();
@@ -618,6 +620,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
                     if (($tblPersonGrade = $tblTestGrade->getServiceTblPerson())) {
                         if ($tblTestGrade->getGrade() === null) {
                             $global->POST['Data'][$tblPersonGrade->getId()]['Attendance'] = 1;
+                            $attendanceList[$tblPersonGrade->getId()] = 1;
                         } else {
                             $gradeValue = str_replace('.', ',', $tblTestGrade->getGrade());
                             $global->POST['Data'][$tblPersonGrade->getId()]['Grade'] = $gradeValue;
@@ -650,7 +653,10 @@ abstract class FrontendTest extends FrontendTeacherGroup
         if ($tblTest->getIsContinues()) {
             $headerList['Date'] = $this->getTableColumnHead('Datum' . ($tblTest->getFinishDateString() ? ' (' . $tblTest->getFinishDateString() . ')' : ''));
         }
-        $headerList['Attendance'] = $this->getTableColumnHead('Nicht teil&shy;genommen');
+        $headerList['Attendance'] = $this->getTableColumnHead(
+            (new Link('Nicht teil&shy;genommen ' . new Edit(), ApiGradeBook::getEndpoint(), null, array(), 'Alle nicht teilgenommen des Kurses auf einmal bearbeiten'))
+                ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenAttendanceModal($tblTest->getId()))
+        );
         $headerList['Comment'] = $this->getTableColumnHead('Vermerk Noten&shy;änderung');
         $headerList['PublicComment'] = $this->getTableColumnHead('Kommentar für Eltern-/Schülerzugang');
 
@@ -677,7 +683,11 @@ abstract class FrontendTest extends FrontendTeacherGroup
                     $bodyList[$tblPerson->getId()]['Date'] = $this->getTableColumnBody($datePicker);
                 }
                 $bodyList[$tblPerson->getId()]['Attendance'] = $this->getTableColumnBody(
-                    (new CheckBox('Data[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(1000 + $tabIndex)
+//                    (new CheckBox('Data[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(1000 + $tabIndex)
+                    ApiGradeBook::receiverBlock(
+                        $this->getAttendanceCheckBox($tblPerson->getId(), isset($attendanceList[$tblPerson->getId()])),
+                        'ChangeAttendance_' . $tblPerson->getId()
+                    )
                 );
                 $textFieldComment = (new TextField('Data[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))->setTabIndex(2000 + $tabIndex);
                 if (isset($Errors[$tblPerson->getId()]['Comment'])) {
@@ -706,6 +716,21 @@ abstract class FrontendTest extends FrontendTeacherGroup
         )));
 
         return (new Form(new FormGroup($formRows)))->disableSubmitAction();
+    }
+
+    /**
+     * @param $personId
+     * @param $isAttendance
+     *
+     * @return CheckBox
+     */
+    public function getAttendanceCheckBox($personId, $isAttendance): CheckBox
+    {
+        $global = $this->getGlobal();
+        $global->POST['Data'][$personId]['Attendance'] = $isAttendance ? 1 : 0;
+        $global->savePost();
+
+        return new CheckBox('Data[' . $personId . '][Attendance]', ' ', 1);
     }
 
     private function getGradeInput(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, ?TblTestGrade $tblGrade, int &$tabIndex, $Errors)
@@ -878,5 +903,44 @@ abstract class FrontendTest extends FrontendTeacherGroup
         }
 
         return empty($panelList) ? new Warning('Keine entsprechenden Zensuren zu der Leistungsüberprüfung vorhanden') : implode('<br>', $panelList);
+    }
+
+    /**
+     * @param $TestId
+     *
+     * @return string
+     */
+    public function openAttendanceModal($TestId): string
+    {
+        if (!($tblTest = Grade::useService()->getTestById($TestId))) {
+            return (new Danger('Kurs nicht gefunden', new Exclamation()));
+        }
+
+        $checkBox = new CheckBox('Attendance', 'Nicht teilgenommen', 1);
+
+        return
+            new Title(new Bold('Nicht teilgenommen') . ' für die gesamte Leistungsüberprüfung: ' . new Bold($tblTest->getGradeTypeDisplayName()) . ' auswählen')
+            . '<br>'
+            . new Warning(
+                'Es werden alle nicht teilgenommen auf den gewählten Wert vorausgefüllt. Die Daten müssen anschließend noch gespeichert werden.',
+                new Exclamation()
+            )
+            . new Well(new Form(new FormGroup(array(
+                new FormRow(
+                    new FormColumn(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        $checkBox
+                    )))))
+                ),
+                new FormRow(
+                    new FormColumn(
+                        new Container('&nbsp;')
+                    )
+                ),
+                new FormRow(
+                    new FormColumn(
+                        (new Primary('Übernehmen', ApiGradeBook::getEndpoint()))->ajaxPipelineOnClick(ApiGradeBook::pipelineSetAttendance($TestId))
+                    )
+                )
+            ))));
     }
 }

@@ -477,7 +477,9 @@ class Frontend extends FrontendTestPlanning
 
                             $contentGrade = ($tblTest->getTblGradeType()->getIsHighlighted() ? new Bold($gradeValue) : $gradeValue)
                                 // öffentlicher Kommentar
-                                . (($tblTestGrade->getPublicComment() != '') ? new ToolTip(' ' . new Info(), $tblTestGrade->getPublicComment()) : '');
+                                . (($tblTestGrade->getPublicComment() != '') ? new ToolTip(' ' . new Info(), $tblTestGrade->getPublicComment()) : '')
+                                // fortlaufender Test mit Zensuren-Datum
+                                . ($tblTest->getIsContinues() && $tblTestGrade->getDate() ? ' (' . $tblTestGrade->getDate()->format('d.m.') . ')'  : '');
                             $testGradeList[$tblPerson->getId()][$tblTest->getId()] = $isEdit && $hasTestEdit
                                 ? (new Link($this->getGradeContainer($contentGrade), ApiGradeBook::getEndpoint()))
                                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestGradeEditContent(
@@ -847,6 +849,11 @@ class Frontend extends FrontendTestPlanning
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses())
         ) {
+            $hasTaskThisDivisionCourse = false;
+            if (($tblDivisionCourseListFromTask = $tblTask->getDivisionCourses())) {
+                $hasTaskThisDivisionCourse = isset($tblDivisionCourseListFromTask[$DivisionCourseId]);
+            }
+
             foreach ($tempPersons as $tblPersonTemp) {
                 if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(
                         $tblPersonTemp, $tblYear, $tblSubject
@@ -854,12 +861,32 @@ class Frontend extends FrontendTestPlanning
                     && $tblVirtualSubject->getHasGrading()
                     && !isset($tblPersonList[$tblPersonTemp->getId()])
                 ) {
-                    Grade::useService()->setStudentInfo($tblPersonTemp, $tblYear, $integrationList, $pictureList, $courseList);
-                    $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
+                    $hasTask = $hasTaskThisDivisionCourse;
+                    // nur Schüler mit dem Notenauftrag anzeigen, nicht alle im Kurs
+                    if (!$hasTask) {
+                        if ($tblDivisionCourseListFromTask
+                            && ($tblDivisionCourseListFromStudent = DivisionCourse::useService()->getDivisionCourseListByStudentAndYear(
+                                $tblPersonTemp, $tblYear
+                            ))
+                        ) {
+                            foreach ($tblDivisionCourseListFromStudent as $tblDivisionCourseStudent) {
+                                if (isset($tblDivisionCourseListFromTask[$tblDivisionCourseStudent->getId()])) {
+                                    $hasTask = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
 
-                    if (!$tblTask->getIsTypeBehavior()) {
-                        if (($tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPersonTemp, $tblYear, $tblSubject, $tblDivisionCourse))) {
-                            $personScoreRuleList[$tblPersonTemp->getId()] = $tblScoreRule;
+                    if ($hasTask) {
+                        Grade::useService()->setStudentInfo($tblPersonTemp, $tblYear, $integrationList, $pictureList, $courseList);
+                        $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
+
+                        if (!$tblTask->getIsTypeBehavior()) {
+                            if (($tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPersonTemp, $tblYear, $tblSubject,
+                                $tblDivisionCourse))) {
+                                $personScoreRuleList[$tblPersonTemp->getId()] = $tblScoreRule;
+                            }
                         }
                     }
                 }

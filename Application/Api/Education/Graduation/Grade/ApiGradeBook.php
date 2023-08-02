@@ -24,6 +24,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -76,6 +77,10 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewMinimumGradeCountReportingContent');
 
         $Dispatcher->registerMethod('loadViewTestPlanningContent');
+
+        $Dispatcher->registerMethod('openAttendanceModal');
+        $Dispatcher->registerMethod('setAttendance');
+        $Dispatcher->registerMethod('changeAttendance');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -1320,5 +1325,117 @@ class ApiGradeBook extends Extension implements IApiInterface
     public function loadViewTestPlanningContent($Data = null): string
     {
         return Grade::useFrontend()->loadViewTestPlanningContent($Data);
+    }
+
+    /**
+     * @param $TestId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenAttendanceModal($TestId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openAttendanceModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'TestId' => $TestId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $TestId
+     *
+     * @return String
+     */
+    public function openAttendanceModal($TestId): string
+    {
+        return (new Frontend())->openAttendanceModal($TestId);
+    }
+
+    /**
+     * @param $TestId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSetAttendance($TestId): Pipeline
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'setAttendance',
+        ));
+        $emitter->setPostPayload(array(
+            'TestId' => $TestId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param $TestId
+     *
+     * @return Danger|string
+     */
+    public function setAttendance($TestId)
+    {
+        if (!($tblTest = Grade::useService()->getTestById($TestId))) {
+            return (new Danger('Leistungsüberprüfung nicht gefunden', new Exclamation()));
+        }
+
+        $Global = $this->getGlobal();
+        $isAttendance = isset($Global->POST['Attendance']);
+
+        $result = '';
+        if (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                    foreach ($tempPersons as $tblPerson) {
+                        $result .= self::pipelineChangeAttendance($isAttendance, $tblPerson->getId());
+                    }
+                }
+            }
+        }
+
+        return $result . self::pipelineClose();
+    }
+
+    /**
+     * @param $isAttendance
+     * @param $personId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineChangeAttendance($isAttendance, $personId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ChangeAttendance_' . $personId), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'changeAttendance',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'isAttendance' => $isAttendance,
+            'PersonId' => $personId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $isAttendance
+     * @param $PersonId
+     *
+     * @return SelectBox
+     */
+    public function changeAttendance($isAttendance, $PersonId): CheckBox
+    {
+        return (new Frontend())->getAttendanceCheckBox($PersonId, $isAttendance == 'true');
     }
 }
