@@ -185,7 +185,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Name'] = $tblPerson->getLastFirstName();
                         //ToDO der Block ist neu aber nicht effizient
                         $tblDivisionCourseList = array();
-                        if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
+                        if($tblYear && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
                             if($tblStudentEducation->getTblDivision()){
                                 $tblDivisionCourseList[] = $tblStudentEducation->getTblDivision()->getDisplayName();
                             }
