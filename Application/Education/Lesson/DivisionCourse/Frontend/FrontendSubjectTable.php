@@ -297,7 +297,7 @@ class FrontendSubjectTable extends FrontendStudentSubject
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        (new NumberField('Data[Level]', '', 'Klassenstufe'))
+                        (new TextField('Data[Level]', '', 'Klassenstufe'))
                             ->setRequired()
                             ->ajaxPipelineOnKeyUp(ApiSubjectTable::pipelineLoadCheckSubjectTableContent($SchoolTypeId, $SubjectTableLinkId))
                         , 6),
@@ -322,7 +322,7 @@ class FrontendSubjectTable extends FrontendStudentSubject
     public function loadCheckSubjectTableContent($SchoolTypeId, $SubjectTableLinkId, $Data = null): string
     {
         if (($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))) {
-            if (isset($Data['Level']) && $Data['Level'] !== '') {
+            if (isset($Data['Level']) && $Data['Level'] !== '' && is_numeric($Data['Level'])) {
                 if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $Data['Level']))) {
                     $dataList = array();
                     foreach ($tblSubjectTableList as $tblSubjectTable) {
