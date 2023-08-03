@@ -108,7 +108,7 @@ class Service
                                 ) {
                                     $phoneNumbers[] = $phone->getTblPhone()->getNumber();
                                 }
-                                if ($Key == 2 && $phone->getTblType()->getName() == 'Geschäftlich'
+                                if ($Key == 1 && $phone->getTblType()->getName() == 'Geschäftlich'
                                     && $phone->getTblType()->getDescription() == 'Festnetz'
                                 ) {
                                     $phoneNumbersBusiness[] = $phone->getTblPhone()->getNumber();
