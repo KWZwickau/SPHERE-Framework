@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Frontend\Icon\Repository\Link as LinkIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
+use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -26,6 +27,9 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -70,7 +74,10 @@ class Frontend extends Extension
             new Form(new FormGroup(new FormRow(new FormColumn(
                     (new SelectBox('Year', 'Schuljahr', array('{{ Name }} {{ Description }}' => $tblYearList)))->ajaxPipelineOnChange(ApiItsLearning::pipelineLoad())
             ))))
-            .new Container('&nbsp;')
+            .new Warning(new Container('Validierung:')
+                .new Container('Nachfolgende Schüler und Lehrer sind in den CSV-Dateien nicht enthalten.')
+                .new Container('Der jeweilige Grund wird in der Spalte '.new Bold('"Warnung"').' angezeigt.')
+            )
             .$ApiReceiver
         );
 
@@ -91,7 +98,7 @@ class Frontend extends Extension
                 }
                 $Item = array();
                 $tblPerson = Person::useService()->getPersonById($PersonId);
-                $Item['Name'] = $tblPerson->getLastFirstName();
+                $Item['Name'] = new DangerText(new Small(new WarningIcon())).' '.$tblPerson->getLastFirstName();
                 $Item['Info'] = '';
                 if(!$Data['Account']){
                     $Item['Info'] .= new Warning('Schüler ohne Account', null, false, 3, 2);
@@ -112,7 +119,7 @@ class Frontend extends Extension
                 }
                 $Item = array();
                 $tblPerson = Person::useService()->getPersonById($PersonId);
-                $Item['Name'] = $tblPerson->getLastFirstName();
+                $Item['Name'] = new DangerText(new Small(new WarningIcon())).' '.$tblPerson->getLastFirstName();
                 // einzige Bedingung, kommen mehrere hinzu, könnte die Auswahl wieder interessant werden.
 //                $Item['Info'] = '';
 //                if(!$Data['Account']){
@@ -126,7 +133,7 @@ class Frontend extends Extension
             new LayoutRow(array(
                 new LayoutColumn(
                     new External('CSV Schüler & Sorgeberechtigte herunterladen', '/Api/Transfer/ItsLearning/StudentCustody/Download', new Download(), array('Year' => $Year), false, External::STYLE_BUTTON_PRIMARY)
-                    .new Title(new Family().' Export Schüler/Sorgeberechtigte nach itslearning')
+                    .new Title(new Family().' fehlende Schüler/Sorgeberechtigte im Export nach itslearning')
                     .(!empty($TableStudentWarningContent)
                         ? new TableData($TableStudentWarningContent, null,
                             array(
@@ -138,7 +145,7 @@ class Frontend extends Extension
                     , 6),
                 new LayoutColumn(
                     new External('CSV Lehrer herunterladen', '/Api/Transfer/ItsLearning/Teacher/Download', new Download(), array(), false, External::STYLE_BUTTON_PRIMARY)
-                    .new Title(new PersonKey().' Export Lehrer nach itslearning')
+                    .new Title(new PersonKey().' fehlende Lehrer im Export nach itslearning')
                     .(!empty($TableTeacherWarningContent)
                         ? new TableData($TableTeacherWarningContent, null,
                             array(
