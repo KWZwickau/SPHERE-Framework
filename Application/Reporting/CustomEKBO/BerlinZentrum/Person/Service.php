@@ -442,12 +442,11 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), "JG");
             $export->setValue($export->getCell($column++, $row), "KL");
             $export->setValue($export->getCell($column++, $row), "TEAM");
-            $export->setValue($export->getCell($column++, $row), "Tudor");
+            $export->setValue($export->getCell($column++, $row), "Tutor");
             $export->setValue($export->getCell($column++, $row), "Nachname");
             $export->setValue($export->getCell($column++, $row), "Rufname");
             $export->setValue($export->getCell($column++, $row), "Vorname");
             $export->setValue($export->getCell($column++, $row), "Zweiter Vorname");
-            $export->setValue($export->getCell($column++, $row), "Tutor");
             $export->setValue($export->getCell($column++, $row), "Deaktiviert");
             $export->setValue($export->getCell($column++, $row), "Geburtsdatum");
             $export->setValue($export->getCell($column++, $row), "Geburtsort");
@@ -532,7 +531,6 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $row), $RowContent['CallName']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['FirstName']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['SecondName']);
-                $export->setValue($export->getCell($column++, $row), $RowContent['Tudor']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Deactivated']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Birthday']);
                 $export->setValue($export->getCell($column++, $row), $RowContent['Birthplace']);
