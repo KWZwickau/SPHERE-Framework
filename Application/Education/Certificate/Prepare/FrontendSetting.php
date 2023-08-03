@@ -665,7 +665,7 @@ abstract class FrontendSetting extends FrontendSelect
             $columnTable = array(
                 'Number' => '#',
                 'Name' => 'Name',
-                'IntegrationButton' => 'Integration',
+                'IntegrationButton' => 'Inklusion',
                 'Course' => 'Bildungsgang',
 
                 'ExcusedDays' => 'Ganze Tage',
@@ -684,7 +684,7 @@ abstract class FrontendSetting extends FrontendSelect
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
-                    'IntegrationButton' => 'Integration',
+                    'IntegrationButton' => 'Inklusion',
                     'Course' => 'Bildungsgang',
 
                     'ExcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
@@ -702,7 +702,7 @@ abstract class FrontendSetting extends FrontendSelect
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
-                    'IntegrationButton' => 'Integration',
+                    'IntegrationButton' => 'Inklusion',
                     'Course' => 'Bildungsgang',
 
                     'ExcusedDaysInClassRegister' => new ToolTip('Ganze Tage', 'Ganze Tage im Klassenbuch'),
@@ -950,7 +950,7 @@ abstract class FrontendSetting extends FrontendSelect
         $columnTable = array(
             'Number' => '#',
             'Name' => 'Name',
-            'IntegrationButton' => 'Integration',
+            'IntegrationButton' => 'Inklusion',
             'Course' => 'Bildungsgang'
         );
 

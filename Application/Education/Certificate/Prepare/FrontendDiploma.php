@@ -462,7 +462,7 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
         $columnTable = array(
             'Number' => '#',
             'Name' => 'Name',
-            'IntegrationButton' => 'Integration',
+            'IntegrationButton' => 'Inklusion',
             'Course' => 'Bildungsgang'
         );
 

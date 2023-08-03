@@ -338,7 +338,7 @@ abstract class FrontendStudentOverview extends FrontendScoreType
 
             // Integrationsbutton
             if(Student::useService()->getIsSupportByPerson($tblPerson)) {
-                $supportButton = (new Standard('Integration', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                $supportButton = (new Standard('Inklusion', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                     ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
             }
 

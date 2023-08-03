@@ -272,7 +272,7 @@ class FrontendTabs extends FrontendSelectDivisionCourse
      */
     public function frontendIntegration($DivisionCourseId = null, $PersonId = null, string $BasicRoute = '', string $ReturnRoute = ''): Stage
     {
-        $Stage = new Stage('Digitales Klassenbuch', 'Integration verwalten');
+        $Stage = new Stage('Digitales Klassenbuch', 'Inklusion verwalten');
 
         if ($ReturnRoute) {
             $Stage->addButton(new Standard('Zurück', $ReturnRoute, new ChevronLeft(),

@@ -494,7 +494,7 @@ abstract class ServiceTabs extends ServiceCourseContent
                 }
 
                 if (Student::useService()->getIsSupportByPerson($tblPerson)) {
-                    $integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new Tag(), array(), 'Integration'))
+                    $integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new Tag(), array(), 'Inklusion'))
                         ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
                 }
 
@@ -546,7 +546,7 @@ abstract class ServiceTabs extends ServiceCourseContent
                                 'BasicRoute' => $BasicRoute,
                                 'ReturnRoute'=> $ReturnRoute,
                             ),
-                            'Integration des Schülers verwalten'
+                            'Inklusion des Schülers verwalten'
                         ))
                 );
             }

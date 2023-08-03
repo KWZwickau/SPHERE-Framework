@@ -1030,7 +1030,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if(!empty($Listing)){
             $Listing = new ListingLayout($Listing);
-            $Accordion->addItem('Integration '.new Muted('('.$HandyCapCount.')'), $Listing);
+            $Accordion->addItem('Inklusion '.new Muted('('.$HandyCapCount.')'), $Listing);
         }
 
 
@@ -2195,7 +2195,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns = array(
                 'Number' => '#',
                 'Name'   => 'Schüler',
-                'Integration' => 'Integration'
+                'Integration' => 'Inklusion'
             );
             if ($showCourse) {
                 $tableColumns['Course'] = 'Bildungsgang';
@@ -2217,7 +2217,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $periodListCount = array();
                 $columnDefinition['Number'] = '#';
                 $columnDefinition['Student'] = "Schüler";
-                $columnDefinition['Integration'] = "Integration";
+                $columnDefinition['Integration'] = "Inklusion";
                 if ($showCourse) {
                     $columnDefinition['Course'] = 'Bildungsgang';
                 }
@@ -2552,7 +2552,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns = array();
             $tableColumns['Number'] = '#';
             $tableColumns['Name'] = 'Schüler';
-            $tableColumns['Integration'] = 'Integration';
+            $tableColumns['Integration'] = 'Inklusion';
             if ($showCourse) {
                 $tableColumns['Course'] = 'Bildungsgang';
             }
@@ -4791,7 +4791,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tableColumns = array(
             'Number' => '#',
             'Name' => 'Schüler',
-            'Integration' => 'Integration'
+            'Integration' => 'Inklusion'
         );
         if ($showCourse) {
             $tableColumns['Course'] = 'Bildungsgang';

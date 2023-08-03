@@ -220,7 +220,7 @@ Kostenerstattung durch andere öffentlichen Träger");
             $export->setValue($export->getCell(0, $row), "Angabe des Förderschultyps");
             $export->setStyle($export->getCell(0, $row))->setBorderLeft(2)->setBorderBottom(2)->setBorderRight()->setFontBold()->setAlignmentMiddle()
                 ->setRowHeight(23);
-            $export->setValue($export->getCell(1, $row), "davon: Anzahl der Integrationsschüler");
+            $export->setValue($export->getCell(1, $row), "davon: Anzahl der Inklusionsschüler");
             $export->setStyle($export->getCell(1, $row), $export->getCell(13, $row))->mergeCells()->setBorderBottom(2)->setBorderRight(2)->setFontBold()
                 ->setAlignmentMiddle();
             $export->setStyle($export->getCell(14, $row), $export->getCell(15, $row))->setBorderBottom(2)->setBorderVertical(2)->setBorderRight(2);
