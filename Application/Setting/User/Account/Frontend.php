@@ -153,7 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
             'Check'           => 'Auswahl',
             'Name'            => 'Name',
             'StudentNumber'   => 'Schüler-Nr.',
-            'Course'          => 'Schulart',
+            'SchoolType'      => 'Schulart',
             'DivisionCourseD' => 'Klasse',
             'DivisionCourseC' => 'Stammgruppe',
             'Address'         => 'Adresse',

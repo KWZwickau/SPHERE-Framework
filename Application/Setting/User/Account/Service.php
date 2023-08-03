@@ -253,6 +253,7 @@ class Service extends AbstractService
             $DataPerson['Address'] = '';
             $DataPerson['Option'] = '';
             $DataPerson['Check'] = '';
+            $DataPerson['SchoolType'] = '';
             $DataPerson['DivisionCourseD'] = '';
             $DataPerson['DivisionCourseC'] = '';
             $DataPerson['Level'] = $tblStudentEducation->getLevel();
@@ -268,8 +269,8 @@ class Service extends AbstractService
                 $DataPerson['Check'] = '<span hidden>'.$tblPerson->getLastFirstName().'</span>'
                     .(new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ', $tblPerson->getId(),
                         array($tblPerson->getId())))->setChecked();
-                if(($tblCourse = $tblStudentEducation->getServiceTblCourse())) {
-                    $DataPerson['Course'] = $tblCourse->getName();
+                if(($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
+                    $DataPerson['SchoolType'] = $tblSchoolType->getName();
                 }
                 if($tblDivisionCourseD = $tblStudentEducation->getTblDivision()) {
                     $DataPerson['DivisionCourseD'] = $tblDivisionCourseD->getDisplayName();
@@ -277,10 +278,11 @@ class Service extends AbstractService
                 if($tblDivisionCourseC = $tblStudentEducation->getTblCoreGroup()) {
                     $DataPerson['DivisionCourseC'] = $tblDivisionCourseC->getDisplayName();
                 }
+                if(($tblStudent = $tblPerson->getStudent())) {
+                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
+                }
             }
-            if(isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
-                $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
-            }
+
             if(!isset($DataPerson['ProspectYear'])) {
                 $DataPerson['ProspectYear'] = new Small(new Muted('-NA-'));
             }
