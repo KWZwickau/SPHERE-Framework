@@ -130,37 +130,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $AddressArray = Address::useService()->getAddressAllForAutoCompleter();
-        $StreetNameList = array();
-        $CountyList = array();
-        $NationList = array();
-        $CityList = array();
-        $CodeList = array();
-        $DistrictList = array();
-        foreach($AddressArray as $Address){
-            foreach($Address as $key => $value){
-                switch ($key) {
-                    case TblAddress::ATTR_STREET_NAME:
-                        $StreetNameList[] = $value;
-                        break;
-                    case TblAddress::ATTR_COUNTY:
-                        $CountyList[] = $value;
-                        break;
-                    case TblAddress::ATTR_NATION:
-                        $NationList[] = $value;
-                        break;
-                    case TblCity::ATTR_NAME:
-                        $CityList[] = $value;
-                        break;
-                    case TblCity::ATTR_CODE:
-                        $CodeList[] = $value;
-                        break;
-                    case TblCity::ATTR_DISTRICT:
-                        $DistrictList[] = $value;
-                        break;
-                }
-            }
-        }
+        list($StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList) = Address::useService()->getAddressForAutoCompleter();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
         $tblType = Address::useService()->getTypeAll();
@@ -205,7 +175,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $rightPanelContent[] = new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit());
         $rightPanel = new Panel('Sonstiges', $rightPanelContent, Panel::PANEL_TYPE_INFO);
-
 
         return (new Form(
             new FormGroup(array(

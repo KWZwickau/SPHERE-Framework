@@ -159,19 +159,41 @@ class Service extends AbstractService
     }
 
     /**
-     * Array include:
-     * [StreetName],
-     * [County],
-     * [Nation],
-     * [Code],
-     * [Name],
-     * [District]
-     * @return bool|TblAddress[]
+     * distinct & only with existing Usage
+     * @return array[$StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList]
      */
-    public function getAddressAllForAutoCompleter()
+    public function getAddressForAutoCompleter()
     {
 
-        return (new Data($this->getBinding()))->getAddressAllForAutoCompleter();
+        $AddressArray = (new Data($this->getBinding()))->getAddressAllForAutoCompleter();;
+        $StreetNameList = $CountyList = $NationList = $CityList = $CodeList = $DistrictList = array();
+        if(is_array($AddressArray) && !empty($AddressArray)){
+            foreach($AddressArray as $Address){
+                foreach($Address as $key => $value){
+                    switch ($key) {
+                        case TblAddress::ATTR_STREET_NAME:
+                            $StreetNameList[] = $value;
+                            break;
+                        case TblAddress::ATTR_COUNTY:
+                            $CountyList[] = $value;
+                            break;
+                        case TblAddress::ATTR_NATION:
+                            $NationList[] = $value;
+                            break;
+                        case TblCity::ATTR_NAME:
+                            $CityList[] = $value;
+                            break;
+                        case TblCity::ATTR_CODE:
+                            $CodeList[] = $value;
+                            break;
+                        case TblCity::ATTR_DISTRICT:
+                            $DistrictList[] = $value;
+                            break;
+                    }
+                }
+            }
+        }
+        return array($StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList);
     }
 
     /**

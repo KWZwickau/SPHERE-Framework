@@ -18,7 +18,6 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\System\Database\Binding\AbstractData;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data

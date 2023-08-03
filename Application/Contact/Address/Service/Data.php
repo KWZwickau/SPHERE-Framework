@@ -15,7 +15,6 @@ use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
 use SPHERE\System\Database\Fitting\IdHydrator;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data
@@ -325,6 +324,7 @@ class Data extends AbstractData
      * [Code],
      * [Name],
      * [District]
+     * <br/> distinct & only with existing Usage
      * @return bool|TblAddress[]
      */
     public function getAddressAllForAutoCompleter()
@@ -341,6 +341,7 @@ class Data extends AbstractData
             ->leftJoin($tblAddress->getEntityFullName(), 'tA', 'WITH', 'tA.Id = tTP.tblAddress')
             ->leftJoin($tblCity->getEntityFullName(), 'tC', 'WITH', 'tC.Id = tA.tblCity')
             ->where($Builder->expr()->isNull('tTP.EntityRemove'))
+            ->distinct()
             ->getQuery();
 
         $resultList = $Query->getResult();

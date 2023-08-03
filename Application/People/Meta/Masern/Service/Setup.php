@@ -5,7 +5,6 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
 use SPHERE\System\Database\Binding\AbstractSetup;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Setup

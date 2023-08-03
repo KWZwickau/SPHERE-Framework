@@ -661,7 +661,7 @@ class FrontendFamily extends FrontendReadOnly
     public function getAddressContent($Ranking, $PersonIdList, $Data, $Errors, $hasAddButton = true)
     {
         $tblType = Address::useService()->getTypeAll();
-        $tblAddressAll = Address::useService()->getAddressAll();
+        list($StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList) = Address::useService()->getAddressForAutoCompleter();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
 
@@ -670,45 +670,36 @@ class FrontendFamily extends FrontendReadOnly
         $layoutLeft = new Layout(array(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
-                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
-                        array('{{ Name }} {{ Description }}' => $tblType), new TileBig())
-                    , 4),
+                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors, array('{{ Name }} {{ Description }}' => $tblType), new TileBig())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'StreetName', 'Straße', 'Straße', true, $Errors,
-                        array('StreetName' => $tblAddressAll), new MapMarker())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'StreetName', 'Straße', 'Straße', true, $Errors, $StreetNameList, new MapMarker())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('TextField', $key, 'StreetNumber', 'Hausnummer', 'Hausnummer', true, $Errors,
-                        array(), new MapMarker())
-                    , 4),
+                    $this->getInputField('TextField', $key, 'StreetNumber', 'Hausnummer', 'Hausnummer', true, $Errors, array(), new MapMarker())
+                , 4),
             )),
             new LayoutRow(array(
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'CityCode', 'Postleitzahl', 'Postleitzahl', true, $Errors,
-                        array('CodeString' => $tblAddressAll), new MapMarker())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'CityCode', 'Postleitzahl', 'Postleitzahl', true, $Errors, $CodeList, new MapMarker())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'CityName', 'Ort', 'Ort', true, $Errors,
-                        array('CityString' => $tblAddressAll), new MapMarker())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'CityName', 'Ort', 'Ort', true, $Errors, $CityList, new MapMarker())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'CityDistrict', 'Ortsteil', 'Ortsteil', false, $Errors,
-                        array('DistrictString' => $tblAddressAll), new MapMarker())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'CityDistrict', 'Ortsteil', 'Ortsteil', false, $Errors, $DistrictList, new MapMarker())
+                , 4),
             )),
             new LayoutRow(array(
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'County', 'Landkreis', 'Landkreis', false, $Errors,
-                        array('County' => $tblAddressAll), new Map())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'County', 'Landkreis', 'Landkreis', false, $Errors, $CountyList, new Map())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('SelectBox', $key, 'State', 'Bundesland', '', false, $Errors,
-                        array('Name' => $tblState), new Map())
-                    , 4),
+                    $this->getInputField('SelectBox', $key, 'State', 'Bundesland', '', false, $Errors, array('Name' => $tblState), new Map())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'Nation', 'Land', 'Land', false, $Errors,
-                        array('Nation' => $tblAddressAll), new Map())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'Nation', 'Land', 'Land', false, $Errors, $NationList, new Map())
+                , 4),
             ))
         ))));
 
