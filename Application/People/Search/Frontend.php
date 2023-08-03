@@ -742,7 +742,16 @@ class Frontend extends Extension implements IFrontendInterface
                                 . ' 2. HJ: ' . $countStudentSubjectPeriod2 . ' Mitglieder'
                             ));
                         } else {
-                            $countContent = new Muted(new Small($tblDivisionCourse->getCountStudents() . '&nbsp;Mitglieder'));
+                            $countStudents = $tblDivisionCourse->getCountStudents();
+                            $tblSubCourseList = array();
+                            DivisionCourse::useService()->getSubDivisionCourseRecursiveListByDivisionCourse($tblDivisionCourse, $tblSubCourseList);
+                            if ($tblSubCourseList) {
+                                /** @var TblDivisionCourse $tblSubDivisionCourse */
+                                foreach ($tblSubCourseList as $tblSubDivisionCourse) {
+                                    $countStudents += $tblSubDivisionCourse->getCountStudents();
+                                }
+                            }
+                            $countContent = new Muted(new Small($countStudents . '&nbsp;Mitglieder'));
                         }
 
                         $dataCourseList[] = new Layout(new LayoutGroup(new LayoutRow(array(
