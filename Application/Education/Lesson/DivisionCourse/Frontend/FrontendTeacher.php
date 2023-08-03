@@ -49,9 +49,18 @@ class FrontendTeacher extends FrontendSubjectTable
      */
     public function frontendTeacherLectureship($Filter = null): Stage
     {
+        if ($Filter == null) {
+            $Filter['Year'] = -1;
+            $Filter['Subject'] = 0;
+            $Filter['Teacher'] = 0;
+            if (Term::useService()->getYearByNow()) {
+                 $_POST['Filter']['Year'] = -1;
+            }
+        }
+
         $stage = new Stage('Lehrauftrag', 'Übersicht');
         $stage->setContent(
-            new Panel(new Filter() . ' Filter', $this->formTeacherLectureshipFilter($Filter), Panel::PANEL_TYPE_PRIMARY)
+            new Panel(new Filter() . ' Filter', $this->formTeacherLectureshipFilter(), Panel::PANEL_TYPE_PRIMARY)
             . ApiTeacherLectureship::receiverBlock($this->loadTeacherLectureshipTable($Filter), 'TeacherLectureshipContent')
         );
 
@@ -209,29 +218,11 @@ class FrontendTeacher extends FrontendSubjectTable
      *
      * @return Form
      */
-    public function formTeacherLectureshipFilter(&$Filter = null): Form
+    public function formTeacherLectureshipFilter(): Form
     {
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll && Term::useService()->getYearByNow()) {
             $tblYearAll[] = new SelectBoxItem(-1, 'Aktuelle Übersicht');
-            if ($Filter == null) {
-                $Filter['Year'] = -1;
-                $Filter['Subject'] = 0;
-                $Filter['Teacher'] = 0;
-                $Global = $this->getGlobal();
-                $Global->POST['Filter']['Year'] = -1;
-                $Global->savePost();
-            }
-        } else {
-//            $tblYearAll[] = new SelectBoxItem(-1, 'Aktuelle Übersicht');
-            if ($Filter == null){
-                $Filter['Year'] = -1;
-                $Filter['Subject'] = 0;
-                $Filter['Teacher'] = 0;
-//                $Global = $this->getGlobal();
-//                $Global->POST['Filter']['Year'] = -1;
-//                $Global->savePost();
-            }
         }
 
         $tblSubjectAll = Subject::useService()->getSubjectAll();

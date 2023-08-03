@@ -61,10 +61,14 @@ class Frontend extends FrontendYearChange
      */
     public function frontendDivisionCourse($Filter = null): Stage
     {
+        if ($Filter == null && Term::useService()->getYearByNow()) {
+            $Filter['Year'] = $_POST['Filter']['Year'] = -1;
+        }
+
         $stage = new Stage('Kurs', 'Übersicht');
         $stage->setContent(
             ApiDivisionCourse::receiverModal()
-            . new Panel(new Filter() . ' Filter', $this->formFilter($Filter), Panel::PANEL_TYPE_INFO)
+            . new Panel(new Filter() . ' Filter', $this->formFilter(), Panel::PANEL_TYPE_INFO)
             . ApiDivisionCourse::receiverBlock($this->loadDivisionCourseTable($Filter), 'DivisionCourseContent')
         );
 
@@ -261,20 +265,12 @@ class Frontend extends FrontendYearChange
      *
      * @return Form
      */
-    public function formFilter(&$Filter = null): Form
+    public function formFilter(): Form
     {
         $tblTypeAll = DivisionCourse::useService()->getDivisionCourseTypeListWithoutTeacherGroup();
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll && Term::useService()->getYearByNow()) {
-
             $tblYearAll[] = new SelectBoxItem(-1, 'Aktuelle Übersicht');
-
-            if ($Filter == null) {
-                $Filter['Year'] = -1;
-                $Global = $this->getGlobal();
-                $Global->POST['Filter']['Year'] = -1;
-                $Global->savePost();
-            }
         }
 
         return new Form(new FormGroup(array(
