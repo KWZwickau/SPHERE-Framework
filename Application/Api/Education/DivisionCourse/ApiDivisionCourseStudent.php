@@ -691,7 +691,11 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
 
         if ($tblStudentEducation && DivisionCourse::useService()->updateStudentEducation($tblStudentEducation, $StudentEducationData)) {
             return new Success('Die Schüler-Bildung wurde erfolgreich gespeichert.')
-                . ($DivisionCourseId ? self::pipelineLoadDivisionCourseStudentContent($DivisionCourseId) : ApiPersonReadOnly::pipelineLoadStudentProcessContent($PersonId))
+                . ($DivisionCourseId
+                    ? self::pipelineLoadDivisionCourseStudentContent($DivisionCourseId)
+                        // Fächer neu laden
+                        . ApiStudentSubject::pipelineLoadStudentSubjectContent($DivisionCourseId)
+                    : ApiPersonReadOnly::pipelineLoadStudentProcessContent($PersonId))
                 . self::pipelineClose();
         } else {
             return new Danger('Die Schüler-Bildung konnte nicht gespeichert werden.');
