@@ -5,6 +5,7 @@ use SPHERE\Application\Api\Contact\ApiAddressToCompany;
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
 use SPHERE\Application\Api\Contact\ApiContactDetails;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
 use SPHERE\Application\Contact\Address\Service\Entity\TblState;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
@@ -129,7 +130,37 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblAddressAll = Address::useService()->getAddressAll();
+        $AddressArray = Address::useService()->getAddressAllForAutoCompleter();
+        $StreetNameList = array();
+        $CountyList = array();
+        $NationList = array();
+        $CityList = array();
+        $CodeList = array();
+        $DistrictList = array();
+        foreach($AddressArray as $Address){
+            foreach($Address as $key => $value){
+                switch ($key) {
+                    case TblAddress::ATTR_STREET_NAME:
+                        $StreetNameList[] = $value;
+                        break;
+                    case TblAddress::ATTR_COUNTY:
+                        $CountyList[] = $value;
+                        break;
+                    case TblAddress::ATTR_NATION:
+                        $NationList[] = $value;
+                        break;
+                    case TblCity::ATTR_NAME:
+                        $CityList[] = $value;
+                        break;
+                    case TblCity::ATTR_CODE:
+                        $CodeList[] = $value;
+                        break;
+                    case TblCity::ATTR_DISTRICT:
+                        $DistrictList[] = $value;
+                        break;
+                }
+            }
+        }
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
         $tblType = Address::useService()->getTypeAll();
@@ -148,19 +179,17 @@ class Frontend extends Extension implements IFrontendInterface
                 ->setRequired()
                 ->ajaxPipelineOnChange(ApiAddressToPerson::pipelineLoadRelationshipsContent($PersonId,
                     $isOnlineContactPosted && $tblOnlineContact ? $OnlineContactId : null)),
-            (new AutoCompleter('Street[Name]', 'Straße', 'Straße',
-                array('StreetName' => $tblAddressAll), new MapMarker()
+            (new AutoCompleter('Street[Name]', 'Straße', 'Straße', $StreetNameList, new MapMarker()
             ))->setRequired(),
             (new TextField('Street[Number]', 'Hausnummer', 'Hausnummer', new MapMarker()))->setRequired()
         ), Panel::PANEL_TYPE_INFO);
 
-        $centerPanelContent[] = (new AutoCompleter('City[Code]', 'Postleitzahl', 'Postleitzahl',array('CodeString' => $tblAddressAll), new MapMarker()
-        ))->setRequired();
-        $centerPanelContent[] = (new AutoCompleter('City[Name]', 'Ort', 'Ort', array('CityString' => $tblAddressAll), new MapMarker()))->setRequired();
-        $centerPanelContent[] = new AutoCompleter('City[District]', 'Ortsteil', 'Ortsteil', array('DistrictString' => $tblAddressAll), new MapMarker());
-        $centerPanelContent[] = new AutoCompleter('County', 'Landkreis', 'Landkreis', array('County' => $tblAddressAll), new Map());
+        $centerPanelContent[] = (new AutoCompleter('City[Code]', 'Postleitzahl', 'Postleitzahl', $CodeList, new MapMarker()))->setRequired();
+        $centerPanelContent[] = (new AutoCompleter('City[Name]', 'Ort', 'Ort', $CityList, new MapMarker()))->setRequired();
+        $centerPanelContent[] = new AutoCompleter('City[District]', 'Ortsteil', 'Ortsteil', $DistrictList, new MapMarker());
+        $centerPanelContent[] = new AutoCompleter('County', 'Landkreis', 'Landkreis', $CountyList, new Map());
         $centerPanelContent[] = new SelectBox('State', 'Bundesland', array('Name' => $tblState), new Map());
-        $centerPanelContent[] = new AutoCompleter('Nation', 'Land', 'Land', array('Nation' => $tblAddressAll), new Map());
+        $centerPanelContent[] = new AutoCompleter('Nation', 'Land', 'Land', $NationList, new Map());
         $centerPanel = new Panel('Stadt', $centerPanelContent, Panel::PANEL_TYPE_INFO);
 
         if($setPost && isset($tblToPerson) && $tblToPerson && isset($tblAddress)){

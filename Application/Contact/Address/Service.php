@@ -159,6 +159,22 @@ class Service extends AbstractService
     }
 
     /**
+     * Array include:
+     * [StreetName],
+     * [County],
+     * [Nation],
+     * [Code],
+     * [Name],
+     * [District]
+     * @return bool|TblAddress[]
+     */
+    public function getAddressAllForAutoCompleter()
+    {
+
+        return (new Data($this->getBinding()))->getAddressAllForAutoCompleter();
+    }
+
+    /**
      * @return bool|TblType[]
      */
     public function getTypeAll()
