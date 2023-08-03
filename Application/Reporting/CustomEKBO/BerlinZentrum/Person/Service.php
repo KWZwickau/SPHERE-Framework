@@ -23,7 +23,6 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 class Service extends Extension
 {
@@ -112,7 +111,7 @@ class Service extends Extension
                     $item['KL'] = $tblDivision->getName();
                 }
                 $tblCoreGroup = $tblStudentEducation->getTblCoreGroup();
-                if($tblDivision || $tblCoreGroup){
+                if($tblDivision){
                     $item['Deactivated'] = '';
                 }
                 if($tblCoreGroup
@@ -138,6 +137,14 @@ class Service extends Extension
                         foreach($tblDivisionCourseList as $tblDivisionCourse){
                             if($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHING_GROUP){
                                 $TeachingList[] = $tblDivisionCourse->getName();
+                            } else {
+                                if(($tblDivisionCourseLinkList =  DivisionCourse::useService()->getAboveDivisionCourseListBySubDivisionCourse($tblDivisionCourse))){
+                                    foreach($tblDivisionCourseLinkList as $tblDivisionCourseLink){
+                                        if($tblDivisionCourseLink->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHING_GROUP){
+                                            $TeachingList[] = $tblDivisionCourseLink->getName();
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
