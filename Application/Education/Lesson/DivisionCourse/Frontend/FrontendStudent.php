@@ -452,7 +452,7 @@ class FrontendStudent extends FrontendMember
                         array('type' => 'natural', 'targets' => 0),
                         array('orderable' => false, 'width' => $tblDivisionCourse->getIsDivisionOrCoreGroup() ? '60px' : '1%', 'targets' => -1),
                     ),
-                    'pageLength' => self::PAGE_LENGTH,
+                    'paging' => false,
                     'responsive' => false
                 )))->setHash(__NAMESPACE__ . 'StudentSelected');
             } else {
@@ -696,7 +696,7 @@ class FrontendStudent extends FrontendMember
                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
                             array('orderable' => false, 'width' => '1%', 'targets' => -1),
                         ),
-                        'pageLength' => 10,
+                        'paging' => false,
                         'responsive' => false
                     )
                 );
