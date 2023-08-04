@@ -187,7 +187,7 @@ class Frontend extends FrontendClassRegister
                             $dataList[$tblDivision->getId()][$date][$personId] = $item;
                         }
                         if ($tblCoreGroup) {
-                            $dataList[$tblDivision->getId()][$date][$personId] = $item;
+                            $dataList[$tblCoreGroup->getId()][$date][$personId] = $item;
                         }
                     }
                 }
