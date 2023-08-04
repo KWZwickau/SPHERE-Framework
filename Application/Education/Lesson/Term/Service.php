@@ -191,15 +191,14 @@ class Service extends AbstractService
     {
 
         $Now = (new DateTime('now'))->add(new DateInterval('P' . $Year . 'Y'));
-
         $EntityList = array();
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
             foreach ($tblYearAll as $tblYear) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, null, true);
+                $tblPeriodList = Term::useService()->getPeriodListByYear($tblYear);
                 if ($tblPeriodList) {
                     $To = '';
-                    $tblPeriodTemp = new TblPeriod();
+                    $tblPeriodTemp = false;
                     foreach ($tblPeriodList as $tblPeriod) {
                         if (new DateTime($tblPeriod->getToDate()) > new DateTime($To) || $To == '') {
                             $To = $tblPeriod->getToDate();
@@ -208,7 +207,7 @@ class Service extends AbstractService
                             $tblPeriodTemp = $tblPeriod;
                         }
                     }
-                    if (new DateTime($To) >= new DateTime($Now->format('d.m.Y'))) {
+                    if (new DateTime($To) >= new DateTime($Now->format('d.m.Y')) && $tblPeriodTemp) {
                         $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
                         if ($tblYearTempList) {
                             foreach ($tblYearTempList as $tblYearTemp) {
