@@ -42,6 +42,9 @@ class Diary implements IApplicationInterface, IModuleInterface
             __NAMESPACE__ . '\Teacher', self::LOCATION . '\Frontend::frontendTeacherSelectDivision')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\TeacherLectureship', self::LOCATION . '\Frontend::frontendTeacherSelectDivision')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Headmaster', self::LOCATION . '\Frontend::frontendHeadmasterSelectDivision')
         );
         Main::getDispatcher()->registerRoute(

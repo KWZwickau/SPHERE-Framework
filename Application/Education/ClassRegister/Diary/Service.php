@@ -120,11 +120,12 @@ class Service extends AbstractService
     public function checkFormDiary(
         $Data,
         TblDivisionCourse $tblDivisionCourse,
+        string $BasicRoute,
         TblDiary $tblDiary = null
     ) {
         $error = false;
 
-        $form = Diary::useFrontend()->formDiary($tblDivisionCourse, $tblDiary ? $tblDiary->getId() : null);
+        $form = Diary::useFrontend()->formDiary($tblDivisionCourse, $BasicRoute, $tblDiary ? $tblDiary->getId() : null);
 
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');

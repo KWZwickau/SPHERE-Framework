@@ -112,7 +112,7 @@ class ApiDiary extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineLoadDiaryContent($DivisionCourseId): Pipeline
+    public static function pipelineLoadDiaryContent($DivisionCourseId, $BasicRoute): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DiaryContent'), self::getEndpoint());
@@ -120,7 +120,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'loadDiaryContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionCourseId' => $DivisionCourseId
+            'DivisionCourseId' => $DivisionCourseId,
+            'BasicRoute' => $BasicRoute
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -132,7 +133,7 @@ class ApiDiary extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateDiaryModal($DivisionCourseId): Pipeline
+    public static function pipelineOpenCreateDiaryModal($DivisionCourseId, $BasicRoute): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -140,7 +141,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'openCreateDiaryModal',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionCourseId' => $DivisionCourseId
+            'DivisionCourseId' => $DivisionCourseId,
+            'BasicRoute' => $BasicRoute
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -152,7 +154,7 @@ class ApiDiary extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineCreateDiarySave($DivisionCourseId): Pipeline
+    public static function pipelineCreateDiarySave($DivisionCourseId, $BasicRoute): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -160,7 +162,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'saveCreateDiaryModal'
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionCourseId' => $DivisionCourseId
+            'DivisionCourseId' => $DivisionCourseId,
+            'BasicRoute' => $BasicRoute
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -173,7 +176,7 @@ class ApiDiary extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditDiaryModal($DiaryId): Pipeline
+    public static function pipelineOpenEditDiaryModal($DiaryId, $BasicRoute): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -181,7 +184,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'openEditDiaryModal',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DiaryId' => $DiaryId
+            'DiaryId' => $DiaryId,
+            'BasicRoute' => $BasicRoute
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -193,7 +197,7 @@ class ApiDiary extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineEditDiarySave($DiaryId): Pipeline
+    public static function pipelineEditDiarySave($DiaryId, $BasicRoute): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -201,7 +205,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'saveEditDiaryModal'
         ));
         $ModalEmitter->setPostPayload(array(
-            'DiaryId' => $DiaryId
+            'DiaryId' => $DiaryId,
+            'BasicRoute' => $BasicRoute
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -214,7 +219,7 @@ class ApiDiary extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenDeleteDiaryModal($DiaryId): Pipeline
+    public static function pipelineOpenDeleteDiaryModal($DiaryId, $BasicRoute): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -222,7 +227,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'openDeleteDiaryModal',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DiaryId' => $DiaryId
+            'DiaryId' => $DiaryId,
+            'BasicRoute' => $BasicRoute
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -234,7 +240,7 @@ class ApiDiary extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineDeleteDiarySave($DiaryId): Pipeline
+    public static function pipelineDeleteDiarySave($DiaryId, $BasicRoute): Pipeline
     {
 
         $Pipeline = new Pipeline();
@@ -243,7 +249,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'saveDeleteDiaryModal'
         ));
         $ModalEmitter->setPostPayload(array(
-            'DiaryId' => $DiaryId
+            'DiaryId' => $DiaryId,
+            'BasicRoute' => $BasicRoute
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -256,7 +263,7 @@ class ApiDiary extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenSelectStudentModal($DivisionCourseId): Pipeline
+    public static function pipelineOpenSelectStudentModal($DivisionCourseId, $BasicRoute): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -264,7 +271,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'openSelectStudentModal',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionCourseId' => $DivisionCourseId
+            'DivisionCourseId' => $DivisionCourseId,
+            'BasicRoute' => $BasicRoute
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -276,7 +284,7 @@ class ApiDiary extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineSelectStudentSave($DivisionCourseId): Pipeline
+    public static function pipelineSelectStudentSave($DivisionCourseId, $BasicRoute): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -284,7 +292,8 @@ class ApiDiary extends Extension implements IApiInterface
             self::API_TARGET => 'saveSelectStudentModal'
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionCourseId' => $DivisionCourseId
+            'DivisionCourseId' => $DivisionCourseId,
+            'BasicRoute' => $BasicRoute
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -294,30 +303,32 @@ class ApiDiary extends Extension implements IApiInterface
 
     /**
      * @param $DivisionCourseId
+     * @param $BasicRoute
      *
      * @return Danger|TableData
      */
-    public function loadDiaryContent($DivisionCourseId)
+    public function loadDiaryContent($DivisionCourseId, $BasicRoute)
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return Diary::useFrontend()->loadDiaryTable($tblDivisionCourse);
+        return Diary::useFrontend()->loadDiaryTable($tblDivisionCourse, null, $BasicRoute);
     }
 
     /**
      * @param $DivisionCourseId
+     * @param $BasicRoute
      *
      * @return Danger|string
      */
-    public function openCreateDiaryModal($DivisionCourseId)
+    public function openCreateDiaryModal($DivisionCourseId, $BasicRoute)
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getDiaryModal(Diary::useFrontend()->formDiary($tblDivisionCourse));
+        return $this->getDiaryModal(Diary::useFrontend()->formDiary($tblDivisionCourse, $BasicRoute));
     }
 
     /**
@@ -350,24 +361,25 @@ class ApiDiary extends Extension implements IApiInterface
 
     /**
      * @param $DivisionCourseId
-     * @param $Data
+     * @param $BasicRoute
+     * @param null $Data
      *
      * @return Danger|string
      */
-    public function saveCreateDiaryModal($DivisionCourseId, $Data = null)
+    public function saveCreateDiaryModal($DivisionCourseId, $BasicRoute, $Data = null)
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Diary::useService()->checkFormDiary($Data, $tblDivisionCourse))) {
+        if (($form = Diary::useService()->checkFormDiary($Data, $tblDivisionCourse, $BasicRoute))) {
             // display Errors on form
             return $this->getDiaryModal($form);
         }
 
         if (Diary::useService()->createDiary($Data, $tblDivisionCourse)) {
             return new Success('Der Eintrag wurde erfolgreich gespeichert.')
-                . self::pipelineLoadDiaryContent($DivisionCourseId)
+                . self::pipelineLoadDiaryContent($DivisionCourseId, $BasicRoute)
                 . self::pipelineClose();
         } else {
             return new Danger('Der Eintrag konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -376,10 +388,11 @@ class ApiDiary extends Extension implements IApiInterface
 
     /**
      * @param $DiaryId
+     * @param $BasicRoute
      *
      * @return string
      */
-    public function openEditDiaryModal($DiaryId)
+    public function openEditDiaryModal($DiaryId, $BasicRoute)
     {
         if (!($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
             return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
@@ -389,18 +402,19 @@ class ApiDiary extends Extension implements IApiInterface
         }
 
         return $this->getDiaryModal(
-            Diary::useFrontend()->formDiary($tblDivisionCourse, $DiaryId, true),
+            Diary::useFrontend()->formDiary($tblDivisionCourse, $BasicRoute, $DiaryId, true),
             $DiaryId
         );
     }
 
     /**
      * @param $DiaryId
+     * @param $BasicRoute
      * @param $Data
      *
      * @return Danger|string
      */
-    public function saveEditDiaryModal($DiaryId, $Data)
+    public function saveEditDiaryModal($DiaryId, $BasicRoute, $Data)
     {
         if (!($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
             return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
@@ -409,14 +423,14 @@ class ApiDiary extends Extension implements IApiInterface
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Diary::useService()->checkFormDiary($Data, $tblDivisionCourse, $tblDiary))) {
+        if (($form = Diary::useService()->checkFormDiary($Data, $tblDivisionCourse, $BasicRoute, $tblDiary))) {
             // display Errors on form
             return $this->getDiaryModal($form, $DiaryId);
         }
 
         if (Diary::useService()->updateDiary($tblDiary, $Data)) {
             return new Success('Der Eintrag wurde erfolgreich gespeichert.')
-                . self::pipelineLoadDiaryContent($tblDivisionCourse->getId())
+                . self::pipelineLoadDiaryContent($tblDivisionCourse->getId(), $BasicRoute)
                 . self::pipelineClose();
         } else {
             return new Danger('Der Eintrag konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -425,10 +439,11 @@ class ApiDiary extends Extension implements IApiInterface
 
     /**
      * @param $DiaryId
+     * @param $BasicRoute
      *
      * @return string
      */
-    public function openDeleteDiaryModal($DiaryId)
+    public function openDeleteDiaryModal($DiaryId, $BasicRoute)
     {
         if (!($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
             return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
@@ -449,7 +464,7 @@ class ApiDiary extends Extension implements IApiInterface
                                 Panel::PANEL_TYPE_DANGER
                             )
                             . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
-                                ->ajaxPipelineOnClick(self::pipelineDeleteDiarySave($DiaryId))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteDiarySave($DiaryId, $BasicRoute))
                             . (new Standard('Nein', self::getEndpoint(), new Remove()))
                                 ->ajaxPipelineOnClick(self::pipelineClose())
                         )
@@ -460,10 +475,11 @@ class ApiDiary extends Extension implements IApiInterface
 
     /**
      * @param $DiaryId
+     * @param $BasicRoute
      *
      * @return Danger|string
      */
-    public function saveDeleteDiaryModal($DiaryId)
+    public function saveDeleteDiaryModal($DiaryId, $BasicRoute)
     {
         if (!($tblDiary = Diary::useService()->getDiaryById($DiaryId))) {
             return new Danger('Der Eintrag wurde nicht gefunden', new Exclamation());
@@ -474,7 +490,7 @@ class ApiDiary extends Extension implements IApiInterface
 
         if (Diary::useService()->destroyDiary($tblDiary)) {
             return new Success('Der Eintrag wurde erfolgreich gelöscht.')
-                . self::pipelineLoadDiaryContent($tblDivisionCourse->getId())
+                . self::pipelineLoadDiaryContent($tblDivisionCourse->getId(), $BasicRoute)
                 . self::pipelineClose();
         } else {
             return new Danger('Der Eintrag konnte nicht gelöscht werden.') . self::pipelineClose();
@@ -483,10 +499,11 @@ class ApiDiary extends Extension implements IApiInterface
 
     /**
      * @param $DivisionCourseId
+     * @param $BasicRoute
      *
      * @return Danger|string
      */
-    public function openSelectStudentModal($DivisionCourseId)
+    public function openSelectStudentModal($DivisionCourseId, $BasicRoute)
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
@@ -508,7 +525,7 @@ class ApiDiary extends Extension implements IApiInterface
                         new FormRow(
                             new FormColumn(
                                 (new Primary('Auswählen', ApiDiary::getEndpoint(), new Select()))
-                                    ->ajaxPipelineOnClick(ApiDiary::pipelineSelectStudentSave($DivisionCourseId))
+                                    ->ajaxPipelineOnClick(ApiDiary::pipelineSelectStudentSave($DivisionCourseId, $BasicRoute))
                             )
                         )
                     ))
@@ -517,11 +534,12 @@ class ApiDiary extends Extension implements IApiInterface
 
     /**
      * @param $DivisionCourseId
-     * @param $Data
+     * @param $BasicRoute
+     * @param null $Data
      *
      * @return Danger|string
      */
-    public function saveSelectStudentModal($DivisionCourseId, $Data = null)
+    public function saveSelectStudentModal($DivisionCourseId, $BasicRoute, $Data = null)
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
@@ -532,7 +550,7 @@ class ApiDiary extends Extension implements IApiInterface
             0,
             array(
                 'DivisionCourseId' => $tblDivisionCourse->getId(),
-                'BasicRoute' => '/Education/Diary/Teacher',
+                'BasicRoute' => $BasicRoute,
                 'StudentId' => $Data['Student'] ?? null
             )
         ) . self::pipelineClose();
