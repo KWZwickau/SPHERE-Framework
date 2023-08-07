@@ -225,6 +225,7 @@ abstract class FrontendTeacherGroup extends FrontendTask
             }
         }
 
+        $tblDivisionCourseList = array();
         if (($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             if (($tblPerson = Account::useService()->getPersonByLogin())
                 && ($tblYear = Grade::useService()->getYear())
@@ -240,6 +241,12 @@ abstract class FrontendTeacherGroup extends FrontendTask
                         if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
                             continue;
                         }
+
+                        // Kurse dürfen nur einmal angezeigt werden
+                        if (isset($tblDivisionCourseList[$tblDivisionCourse->getId()])) {
+                            continue;
+                        }
+                        $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
 
                         $contentPanel = array();
                         if (($tblStudentList = $tblDivisionCourse->getStudents())) {

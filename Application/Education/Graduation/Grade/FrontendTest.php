@@ -297,7 +297,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
                 /** @var TblTeacherLectureship $tblTeacherLectureship */
                 foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
                     if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())) {
-                        $contentPanelList[$tblDivisionCourse->getType()->getId()][]
+                        $contentPanelList[$tblDivisionCourse->getType()->getId()][$tblDivisionCourse->getId()]
                             = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1))
                                 ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
                     }
