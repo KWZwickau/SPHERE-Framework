@@ -557,6 +557,8 @@ class FrontendStudent extends FrontendMember
         }
 
         if ($Search != '' && strlen($Search) > 2) {
+            $Search = str_replace(',', '', $Search);
+            $Search = str_replace('.', '', $Search);
             $resultList = array();
             $result = '';
             if (($tblYear = $tblDivisionCourse->getServiceTblYear())
