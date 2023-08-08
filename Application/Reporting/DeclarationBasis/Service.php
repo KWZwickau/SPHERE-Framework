@@ -584,16 +584,17 @@ Förderschwerpunktes (FSP) ist der Meldung zusätzlich beizufügen.');
      */
     private function fillDataContent(TblStudentEducation $tblStudentEducation, array &$DataContent)
     {
-
         $level = $tblStudentEducation->getLevel();
         $Type = '';
-        if(($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
-            $Type = $tblSchoolType->getName();
-        }
-        if(isset($DataContent[$Type][$level])) {
-            $DataContent[$Type][$level] += 1;
-        } else {
-            $DataContent[$Type][$level] = 1;
+        if ($level) {
+            if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
+                $Type = $tblSchoolType->getName();
+            }
+            if (isset($DataContent[$Type][$level])) {
+                $DataContent[$Type][$level] += 1;
+            } else {
+                $DataContent[$Type][$level] = 1;
+            }
         }
     }
 
