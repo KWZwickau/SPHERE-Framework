@@ -660,6 +660,17 @@ class Service extends AbstractService
 
     /**
      * @param TblCompany $tblCompany
+     *
+     * @return false|TblToCompany[]
+     */
+    public function getRelationshipToCompanyByCompany(TblCompany $tblCompany)
+    {
+
+        return (new Data($this->getBinding()))->getRelationshipToCompanyByCompany($tblCompany);
+    }
+
+    /**
+     * @param TblCompany $tblCompany
      * @param TblPerson  $tblPerson
      * @param TblType    $tblType
      * @param string     $Remark

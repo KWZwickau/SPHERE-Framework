@@ -1,17 +1,13 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 08.03.2017
- * Time: 13:48
- */
-
 namespace SPHERE\Application\Document\Generator;
 
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Web\Web;
 use SPHERE\Application\Document\Generator\Service\Data;
 use SPHERE\Application\Document\Generator\Service\Entity\TblDocument;
 use SPHERE\Application\Document\Generator\Service\Entity\TblDocumentSubject;
@@ -31,6 +27,9 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -632,9 +631,24 @@ class Service extends AbstractService
      */
     public function getEnrollmentDocumentData(TblPerson $tblPerson, ?TblYear $tblYear = null): array
     {
-        $Data['PersonId'] = $tblPerson->getId();
-        $Data['FirstLastName'] = $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName();
+
+//        $Data['PersonId'] = $tblPerson->getId();
+        $Data['FirstLastName'] = $tblPerson->getFirstSecondName().' '.$tblPerson->getLastName();
         $Data['Date'] = (new DateTime())->format('d.m.Y');
+        $Data['Birthday'] = '';
+        $Data['Birthplace'] = '';
+        $Data['Gender'] = '';
+        $Data['School'] = '';
+        $Data['SchoolExtended'] = '';
+        $Data['SchoolAddressStreet'] = '';
+        $Data['SchoolAddressDistrict'] = '';
+        $Data['SchoolAddressCity'] = '';
+        $Data['Place'] = '';
+        $Data['Division'] = '';
+        $Data['AddressStreet'] = '';
+        $Data['AddressPLZ'] = '';
+        $Data['AddressCity'] = '';
+        $Data['AddressDistrict'] = '';
 
         if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
             if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
@@ -645,7 +659,6 @@ class Service extends AbstractService
                 }
             }
         }
-
         if ($tblYear) {
             $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
         } else {
@@ -654,6 +667,7 @@ class Service extends AbstractService
         if ($tblStudentEducation) {
             // Schuldaten der Schule des Schülers
             if (($tblCompanySchool = $tblStudentEducation->getServiceTblCompany())) {
+//                $Data['SchoolId'] = $tblCompanySchool->getId();
                 $Data['School'] = $tblCompanySchool->getName();
                 $Data['SchoolExtended'] = $tblCompanySchool->getExtendedName();
                 $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
@@ -674,7 +688,6 @@ class Service extends AbstractService
                 $Data['Division'] = $tblCoreGroup->getName();
             }
         }
-
         // Prepare LeaveDate
         $Now = new DateTime('now');
         // increase year if date after 31.07.20xx
@@ -684,7 +697,6 @@ class Service extends AbstractService
         $MaxDate = new DateTime('31.07.'.$Now->format('Y'));
         $DateString = $MaxDate->format('d.m.Y');
         $Data['LeaveDate'] = $DateString;
-
         if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
             && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE'))
             && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))
@@ -698,7 +710,6 @@ class Service extends AbstractService
                 }
             }
         }
-
         // Hauptadresse Schüler
         $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
         if ($tblAddress) {
@@ -708,6 +719,72 @@ class Service extends AbstractService
                 $Data['AddressPLZ'] = $tblCity->getCode();
                 $Data['AddressCity'] = $tblCity->getName();
                 $Data['AddressDistrict'] = $tblCity->getDisplayDistrict();
+            }
+        }
+
+        if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
+            $Data['FirstLastName'] = $tblPerson->getFirstSecondName().', '.$tblPerson->getLastName();
+            if(isset($tblCitySchool) && $tblCitySchool){
+                $Data['Place'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
+            }
+            $Data['CompanyPhone'] = '';
+            $Data['CompanyFax'] = '';
+            $Data['CompanyMail'] = '';
+            $Data['CompanyWeb'] = '';
+            $Data['CompanySchoolLeader'] = '';
+            $Data['CompanySecretary'] = '';
+            // Zusatzinformation EKBO Institutionen
+            if(isset($tblCompanySchool) && $tblCompanySchool) {
+                if(($tblToCompanyRelationshipList = Relationship::useService()->getRelationshipToCompanyByCompany($tblCompanySchool))){
+                    foreach($tblToCompanyRelationshipList as $tblToCompany){
+                        if(($tblRelType = $tblToCompany->getTblType())
+                            && $tblRelType->getName() == 'Schulleiter'
+                            && ($tblPersonSL = $tblToCompany->getServiceTblPerson())){
+                            $Data['CompanySchoolLeader'] .= ($Data['CompanySchoolLeader'] !== '' ? ', ': '')
+                                .$tblPersonSL->getFirstName().' '.$tblPersonSL->getLastName();
+                        }
+                        if(($tblRelType = $tblToCompany->getTblType())
+                            && $tblRelType->getName() == 'Sekretariat'
+                            && ($tblPersonS = $tblToCompany->getServiceTblPerson())){
+                            $Data['CompanySecretary'] .= ($Data['CompanySecretary'] !== '' ? ', ': '')
+                                .$tblPersonS->getFirstName().' '.$tblPersonS->getLastName();
+                        }
+                    }
+                }
+                if(($tblPhoneList = Phone::useService()->getPhoneAllByCompany($tblCompanySchool))) {
+                    foreach($tblPhoneList as $tblToCompanyPhone) {
+                        if(($tblPhoneType = $tblToCompanyPhone->getTblType())
+                            && $tblPhoneType->getName() == 'Geschäftlich'
+                            && $tblPhoneType->getDescription() == 'Festnetz'
+                            && ($tblPhone = $tblToCompanyPhone->getTblPhone())) {
+                            $Data['CompanyPhone'] = $tblPhone->getNumber();
+                        }
+                        if(($tblPhoneType = $tblToCompanyPhone->getTblType())
+                            && $tblPhoneType->getName() == 'Fax'
+                            && $tblPhoneType->getDescription() == 'Geschäftlich'
+                            && ($tblPhone = $tblToCompanyPhone->getTblPhone())) {
+                            $Data['CompanyFax'] = $tblPhone->getNumber();
+                        }
+                    }
+                }
+                if(($tblMailList = Mail::useService()->getMailAllByCompany($tblCompanySchool))) {
+                    foreach($tblMailList as $tblToCompanyMail) {
+                        if(($tblMailType = $tblToCompanyMail->getTblType())
+                            && $tblMailType->getName() == 'Geschäftlich'
+                            && ($tblMail = $tblToCompanyMail->getTblMail())) {
+                            $Data['CompanyMail'] = $tblMail->getAddress();
+                        }
+                    }
+                }
+                if(($tblWebList = Web::useService()->getWebAllByCompany($tblCompanySchool))) {
+                    foreach($tblWebList as $tblToCompanyWeb) {
+                        if(($tblWebType = $tblToCompanyWeb->getTblType())
+                            && $tblWebType->getName() == 'Geschäftlich'
+                            && ($tblWeb = $tblToCompanyWeb->getTblWeb())) {
+                            $Data['CompanyWeb'] = $tblWeb->getAddress();
+                        }
+                    }
+                }
             }
         }
 
