@@ -16,6 +16,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 abstract class ServiceStudentSubject extends ServiceCourseSystem
 {
@@ -198,7 +199,11 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
      */
     public function getStudentSubjectListBySubjectDivisionCourse(TblDivisionCourse $tblSubjectDivisionCourse)
     {
-        return (new Data($this->getBinding()))->getStudentSubjectListBySubjectDivisionCourse($tblSubjectDivisionCourse);
+        if (($list = (new Data($this->getBinding()))->getStudentSubjectListBySubjectDivisionCourse($tblSubjectDivisionCourse))) {
+            return $this->getSorter($list)->sortObjectBy('SortPersonName', new StringGermanOrderSorter());
+        }
+
+        return false;
     }
 
     /**

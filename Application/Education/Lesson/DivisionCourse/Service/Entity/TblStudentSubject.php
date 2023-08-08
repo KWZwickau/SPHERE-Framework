@@ -233,4 +233,14 @@ class TblStudentSubject extends Element
         return ($tblDivisionCourse = $this->getTblDivisionCourse())
             && ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE);
     }
+
+    /**
+     * Für Sortierung der Schüler im SekII-Kurs
+     *
+     * @return string
+     */
+    public function getSortPersonName(): string
+    {
+        return ($tblPerson = $this->getServiceTblPerson()) ? $tblPerson->getLastFirstName() : '';
+    }
 }
