@@ -275,8 +275,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Gruppe', 'Löschen');
         $Stage->addButton(new Standard('Zurück', '/People/Group', new ChevronLeft()));
 
-        if ($Id) {
-            $tblGroup = Group::useService()->getGroupById($Id);
+        if ($Id && $tblGroup = Group::useService()->getGroupById($Id)) {
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
