@@ -146,7 +146,7 @@ abstract class FrontendStudentOverview extends FrontendScoreType
             $global->savePost();
         }
 
-        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeCommonAll();
+        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll();
 
         return new Form(new FormGroup(array(
             new FormRow(array(
