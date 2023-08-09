@@ -252,7 +252,7 @@ abstract class FrontendStudentOverview extends FrontendScoreType
                         if (($tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject(
                             $tblPerson, $tblYear, $tblSubject
                         ))) {
-                            list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblTestGradeList, $tblScoreRule ?? null);
+                            list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblTestGradeList, $tblScoreRule ?: null);
                             $contentSubject = '&#216; ' . Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
                             $average = Grade::useService()->getGradeNumberValue($average);
                             if (isset($averageSumList[$tblSubject->getId()])) {
