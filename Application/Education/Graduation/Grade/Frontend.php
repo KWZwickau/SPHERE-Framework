@@ -101,6 +101,13 @@ class Frontend extends FrontendTestPlanning
                 $global->savePost();
             }
         }
+        if ($roleValue == 'Teacher' && !$hasTeacherRole) {
+            if ($hasHeadmasterRole) {
+                ConsumerSetting::useService()->createAccountSetting('GradeBookRole', 'Headmaster');
+            } elseif ($hasAllReadonlyRole) {
+                ConsumerSetting::useService()->createAccountSetting('GradeBookRole', 'AllReadonly');
+            }
+        }
 
         $roleChange = "";
         if ($hasHeadmasterRole && $hasTeacherRole) {
