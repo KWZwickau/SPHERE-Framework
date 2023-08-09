@@ -851,7 +851,7 @@ class FrontendStudent extends FrontendMember
                                         ? $tblSchoolType->getName() : new WarningText('Keine Schulart hinterlegt');
 
                                     $warningCourse = '';
-                                    if ($tblSchoolType && $tblSchoolType->getShortName() == 'OS' && intval($level) > 6
+                                    if ($tblSchoolType && $tblSchoolType->getShortName() == 'OS' && (!($level instanceof WarningText) && intval($level) > 6)
                                     ) {
                                         $warningCourse = new WarningText('Keine Bildungsgang hinterlegt');
                                     }
