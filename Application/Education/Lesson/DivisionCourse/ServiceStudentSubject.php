@@ -83,7 +83,9 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
         }
 
         // Stundentafel
-        if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+        if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+            && $tblSubjectTable->getIsFixed()
+        ) {
             return new VirtualSubject($tblSubject, $tblSubjectTable->getHasGrading(), $tblSubjectTable);
         }
 
