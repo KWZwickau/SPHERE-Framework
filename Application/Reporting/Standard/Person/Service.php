@@ -1677,6 +1677,7 @@ class Service extends Extension
                     }
                 }
                 if ($tblGroup->getMetaTable() == 'STUDENT') {
+                    $item['Division'] = '';
                     $item['Identifier'] = '';
                     $item['School'] = '';
                     $item['SchoolCourse'] = '';
@@ -1697,10 +1698,10 @@ class Service extends Extension
                     $item['NameAdd'] = '';
                     if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
                         if(($tblDivisionCourseClass = $tblStudentEducation->getTblDivision())){
-                            $item['Division'] = $tblDivisionCourseClass->getDisplayName();
+                            $item['Division'] = $tblDivisionCourseClass->getName();
                         }
                         if(($tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup())){
-                            $item['Division'] .= ($item['Division'] ? ', ' : '').$tblDivisionCourseCoreGroup->getDisplayName();
+                            $item['Division'] .= ($item['Division'] ? ', ' : '').$tblDivisionCourseCoreGroup->getName();
                         }
                         if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
                             $item['SchoolType'] = $tblSchoolType->getName();
