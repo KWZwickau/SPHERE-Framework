@@ -1804,6 +1804,16 @@ class Service extends ServiceYearChange
     }
 
     /**
+     * @param TblStudentEducation $tblStudentEducation
+     *
+     * @return bool
+     */
+    public function destroyStudentEducation(TblStudentEducation $tblStudentEducation): bool
+    {
+        return (new Data($this->getBinding()))->destroyStudentEducation($tblStudentEducation);
+    }
+
+    /**
      * @param $Data
      * @param TblPerson $tblPerson
      *

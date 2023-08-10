@@ -41,9 +41,23 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
+use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -130,6 +144,9 @@ class ApiPersonEdit extends Extension implements IApiInterface
         $Dispatcher->registerMethod('editStudentProcessContent');
         $Dispatcher->registerMethod('saveEditStudentProcess');
 
+        $Dispatcher->registerMethod('openDeleteStudentEducationModal');
+        $Dispatcher->registerMethod('saveDeleteStudentEducationModal');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -141,8 +158,26 @@ class ApiPersonEdit extends Extension implements IApiInterface
      */
     public static function receiverBlock($Content = '', $Identifier = '')
     {
-
         return (new BlockReceiver($Content))->setIdentifier($Identifier);
+    }
+
+    /**
+     * @return ModalReceiver
+     */
+    public static function receiverModal(): ModalReceiver
+    {
+        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalReciever');
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineClose(): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
+
+        return $Pipeline;
     }
 
     /**
@@ -2197,6 +2232,115 @@ class ApiPersonEdit extends Extension implements IApiInterface
                 . ApiPersonReadOnly::pipelineLoadStudentProcessContent($PersonId);
         } else {
             return new Danger('Die Schüler-Bildung konnte nicht gespeichert werden.');
+        }
+    }
+
+    /**
+     * @param $StudentEducationId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteStudentEducationModal($StudentEducationId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteStudentEducationModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'StudentEducationId' => $StudentEducationId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $StudentEducationId
+     *
+     * @return string
+     */
+    public function openDeleteStudentEducationModal($StudentEducationId): string
+    {
+        if (!($tblStudentEducation = DivisionCourse::useService()->getStudentEducationById($StudentEducationId))) {
+            return new Danger('Die Schüler-Bildung wurde nicht gefunden', new Exclamation());
+        }
+
+        $tblPerson = $tblStudentEducation->getServiceTblPerson();
+
+        return new Title(new Remove() . ' Schüler-Bildung löschen')
+            . new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(new Panel(
+                            'Schüler',
+                            $tblPerson ? $tblPerson->getFullName() : '',
+                            Panel::PANEL_TYPE_INFO
+                        ), 12),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Diese Schüler-Bildung wirklich löschen?',
+                                array(
+                                    'Schuljahr: ' . (($tblYear = $tblStudentEducation->getServiceTblYear()) ? $tblYear->getDisplayName() : ''),
+                                    'Schulart: ' . (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getName() : ''),
+                                    'Schule: ' . (($tblCompany = $tblStudentEducation->getServiceTblCompany()) ? $tblCompany->getName() : ''),
+                                    'Klasse: ' . (($tblDivision = $tblStudentEducation->getTblDivision()) ? $tblDivision->getName() : ''),
+                                    'Stammgruppe: ' . (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup()) ? $tblCoreGroup->getName() : ''),
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteStudentEducationSave($StudentEducationId))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                ))
+            );
+    }
+
+    /**
+     * @param $StudentEducationId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteStudentEducationSave($StudentEducationId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDeleteStudentEducationModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'StudentEducationId' => $StudentEducationId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $StudentEducationId
+     *
+     * @return Danger|string
+     */
+    public function saveDeleteStudentEducationModal($StudentEducationId)
+    {
+        if (!($tblStudentEducation = DivisionCourse::useService()->getStudentEducationById($StudentEducationId))) {
+            return new Danger('Die Schüler-Bildung wurde nicht gefunden', new Exclamation());
+        }
+
+        $tblPerson = $tblStudentEducation->getServiceTblPerson();
+
+        if (DivisionCourse::useService()->destroyStudentEducation($tblStudentEducation)) {
+            return new Success('Die Schüler-Bildung wurde erfolgreich gelöscht.')
+                . ApiPersonReadOnly::pipelineLoadStudentProcessContent($tblPerson ? $tblPerson->getId() : 0)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Fehlzeit konnte nicht gelöscht werden.') . self::pipelineClose();
         }
     }
 }

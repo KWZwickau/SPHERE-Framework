@@ -17,11 +17,13 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Common\Frontend\Form\Repository\Title;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\History;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
@@ -92,8 +94,11 @@ class FrontendStudentProcess extends FrontendReadOnly
                     $item['CoreGroup'] = $isInActive ? new Strikethrough($coreGroup) : $coreGroup;
                     $item['Tudors'] = $isInActive ? new Strikethrough($tudors) : $tudors;
                     if ($AllowEdit) {
-                        $item['Option'] = (new Link('Bearbeiten', ApiPersonEdit::getEndpoint(), new Pen()))
-                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentProcessContent($tblPerson->getId(), $tblStudentEducation->getId()));
+                        $item['Option'] = (new Link('', ApiPersonEdit::getEndpoint(), new Pen(), array(), 'Bearbeiten'))
+                                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentProcessContent($tblPerson->getId(), $tblStudentEducation->getId()))
+                            . ' | '
+                            . (new Link(new Danger(new Disable()), ApiPersonEdit::getEndpoint(), null, array(), 'Löschen'))
+                                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineOpenDeleteStudentEducationModal($tblStudentEducation->getId()));
                     }
                     $studentEducationList[] = $item;
 
@@ -118,7 +123,7 @@ class FrontendStudentProcess extends FrontendReadOnly
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Stamm&shy;gruppe', $backgroundColor);
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Tutor', $backgroundColor);
             if ($AllowEdit) {
-                $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('&nbsp; ', $backgroundColor, '95px');
+                $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('&nbsp; ', $backgroundColor, '50px');
             }
 
             $newLink = '';

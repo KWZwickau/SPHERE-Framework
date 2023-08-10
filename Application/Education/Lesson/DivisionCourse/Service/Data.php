@@ -855,6 +855,26 @@ class Data extends DataTeacher
 
     /**
      * @param TblStudentEducation $tblStudentEducation
+     *
+     * @return bool
+     */
+    public function destroyStudentEducation(TblStudentEducation $tblStudentEducation): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblStudentEducation $Entity */
+        $Entity = $Manager->getEntityById('TblStudentEducation', $tblStudentEducation->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblStudentEducation $tblStudentEducation
      * @param TblDivisionCourse|null $tblDivision
      * @param $divisionSortOrder
      * @param TblDivisionCourse|null $tblCoreGroup

@@ -244,30 +244,11 @@ class FrontendStudent extends FrontendMember
     {
         // es sollen nur Schuljahre zur Auswahl stehen, wo noch keine SchülerBildung angelegt wurde
         $yearSelectList = array();
-        $hasNowStudentEducation = false;
-        if (($tblYearList = Term::useService()->getYearByNow())) {
+        if (($tblYearList = Term::useService()->getYearAll())) {
             foreach ($tblYearList as $tblYear) {
-                if (DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear)) {
-                    $hasNowStudentEducation = true;
-                    break;
+                if (!DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear)) {
+                    $yearSelectList[$tblYear->getId()] = $tblYear;
                 }
-            }
-
-            if (!$hasNowStudentEducation) {
-                $yearSelectList = array_merge($yearSelectList, $tblYearList);
-            }
-        }
-        $hasFutureStudentEducation = false;
-        if (($tblFutureYearList = Term::useService()->getYearAllFutureYears(1))) {
-            foreach ($tblFutureYearList as $tblFutureYear) {
-                if (DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblFutureYear)) {
-                    $hasFutureStudentEducation = true;
-                    break;
-                }
-            }
-
-            if (!$hasFutureStudentEducation) {
-                $yearSelectList = array_merge($yearSelectList, $tblFutureYearList);
             }
         }
 

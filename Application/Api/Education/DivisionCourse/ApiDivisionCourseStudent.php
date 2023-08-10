@@ -710,32 +710,6 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
      */
     private function getCreateStudentEducationModal($form, TblPerson $tblPerson): string
     {
-        $content = '';
-        $hasNowStudentEducation = false;
-
-        if (($tblYearList = Term::useService()->getYearByNow())) {
-            foreach ($tblYearList as $tblYear) {
-                if (DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear)) {
-                    $hasNowStudentEducation = true;
-                    break;
-                }
-            }
-        }
-
-        if (($tblFutureYearList = Term::useService()->getYearAllFutureYears(1))) {
-            foreach ($tblFutureYearList as $tblFutureYear) {
-                if (DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblFutureYear)) {
-                    if ($hasNowStudentEducation) {
-                        $content = new Warning('Es existiert bereits eine Schüler-Bildung für diesen Schüler für das zukünftige Schuljahr, 
-                            bitte bearbeiten Sie diesen Eintrag.', new Exclamation());
-                    }
-                    break;
-                }
-            }
-        } elseif ($hasNowStudentEducation) {
-            $content = new Warning('Bitte legen Sie erst ein neues Schuljahr an, um für den Schüler eine neue Schüler-Bildung anzulegen.', new Exclamation());
-        }
-
         return new Title(new Plus() . ' Schüler-Bildung hinzufügen')
             . new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
@@ -745,7 +719,7 @@ class ApiDivisionCourseStudent extends Extension implements IApiInterface
                 )),
                 new LayoutRow(
                     new LayoutColumn(
-                        $content ?: new Well($form)
+                        new Well($form)
                     )
                 )
             )));
