@@ -52,13 +52,13 @@ class FrontendSubjectTable extends FrontendStudentSubject
     {
         $stage = new Stage('Stundentafel', 'Übersicht');
         $buttonList = '';
-        if (($tblSchoolTypeList = School::useService()->getConsumerSchoolTypeCommonAll())) {
+        if (($tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll())) {
             foreach ($tblSchoolTypeList as $tblSchoolType) {
                 if ($tblSchoolType->getId() == $SchoolTypeId) {
                     $buttonList .= new Standard(new Info(new Bold($tblSchoolType->getName())), '/Education/Lesson/StudentSubjectTable', new Edit(), array('SchoolTypeId' => $tblSchoolType->getId()));
                 } else {
                     $buttonList .= new Standard(
-                        $tblSchoolType->getName() . ($tblSchoolType->getShortName() == 'Gy' ? ' (SekI)' : '')
+                        $tblSchoolType->getName() . ($tblSchoolType->getShortName() == 'Gy' ||  $tblSchoolType->getShortName() == 'BGy' ? ' (SekI)' : '')
                         , '/Education/Lesson/StudentSubjectTable', null, array('SchoolTypeId' => $tblSchoolType->getId()));
                 }
             }
@@ -89,7 +89,7 @@ class FrontendSubjectTable extends FrontendStudentSubject
     public function loadSubjectTableContent($SchoolTypeId): string
     {
         if ($SchoolTypeId === null) {
-            return new Container('&nbsp;') . new Warning('Bitte wählen Sie zunächst eine allgemeinbildende Schulart aus.');
+            return new Container('&nbsp;') . new Warning('Bitte wählen Sie zunächst eine Schulart aus.');
         }
 
         if (($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))) {
