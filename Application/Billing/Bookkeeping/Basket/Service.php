@@ -665,7 +665,7 @@ class Service extends AbstractService
                 foreach($tblYearList as $tblYear){
                     foreach($tblPersonList as $tblPerson){
                         if(($tblDivisionEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
-                            if($tblType->getId() === $tblDivisionEducation->getServiceTblSchoolType()->getId()){
+                            if(($tblDivisionType = $tblDivisionEducation->getServiceTblSchoolType()) && $tblType->getId() === $tblDivisionType->getId()){
                                 $resultPersonList[] = $tblPerson;
                             }
                         }
