@@ -604,11 +604,14 @@ class Frontend extends FrontendTabs
         $tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents();
 
         $hasSaturdayLessons = false;
-        /** @var TblType $tblSchoolType */
-        foreach ($tblSchoolTypeList as $tblSchoolType) {
-            if (Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
-                $hasSaturdayLessons = true;
-                break;
+
+        if ($tblSchoolTypeList) {
+            /** @var TblType $tblSchoolType */
+            foreach ($tblSchoolTypeList as $tblSchoolType) {
+                if (Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+                    $hasSaturdayLessons = true;
+                    break;
+                }
             }
         }
         if ($hasSaturdayLessons) {
