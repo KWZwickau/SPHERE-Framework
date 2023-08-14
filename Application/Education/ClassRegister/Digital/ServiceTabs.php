@@ -683,8 +683,13 @@ abstract class ServiceTabs extends ServiceCourseContent
         } elseif (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, null, $tblDivisionCourse, $tblSubject))) {
             foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
                 if (($tblPersonTeacher = $tblTeacherLectureship->getServiceTblPerson())) {
+                    $teacherAcronym = '';
+                    if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonTeacher))) {
+                        $teacherAcronym = $tblTeacher->getAcronym();
+                    }
+
                     // Fach // Kurse -> Lehrer
-                    $teacherList[$tblPersonTeacher->getId()] = $tblPersonTeacher->getFullName();
+                    $teacherList[$tblPersonTeacher->getId()] = $tblPersonTeacher->getFullName() . ($teacherAcronym ? ' (' . $teacherAcronym . ')' : '');
                 }
             }
         }
