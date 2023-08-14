@@ -2,8 +2,6 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Frontend;
 
-use DateInterval;
-use DateTime;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
 use SPHERE\Application\Api\Education\DivisionCourse\MassReplaceStudentEducation;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
@@ -455,11 +453,21 @@ class FrontendStudent extends FrontendMember
      */
     public function loadAddStudentContent($DivisionCourseId, $AddStudentVariante, $SelectDivisionCourseId): string
     {
+        $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
+
         $buttons = (new Standard($AddStudentVariante == 'StudentSearch' ? new Bold('Schülersuche') : 'Schülersuche', ApiDivisionCourseStudent::getEndpoint(), new Search()))
                 ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineLoadAddStudentContent($DivisionCourseId, 'StudentSearch'))
             . (new Standard($AddStudentVariante == 'CourseSelect' ? new Bold('Kurs-Schüler') : 'Kurs-Schüler', ApiDivisionCourseStudent::getEndpoint(), new Select()))
-                ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineLoadAddStudentContent($DivisionCourseId, 'CourseSelect'))
-            . (new Standard($AddStudentVariante == 'ProspectSearch' ? new Bold('Interessentensuche') : 'Interessentensuche', ApiDivisionCourseStudent::getEndpoint(), new Search()))
+                ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineLoadAddStudentContent($DivisionCourseId, 'CourseSelect'));
+        if ($tblDivisionCourse && $tblDivisionCourse->getIsDivisionOrCoreGroup()) {
+            $buttons .= (new Standard(
+                $AddStudentVariante == 'StudentWithout' ? new Bold('Schüler ohne ' . $tblDivisionCourse->getTypeName()) : 'Schüler ohne ' . $tblDivisionCourse->getTypeName(),
+                ApiDivisionCourseStudent::getEndpoint(),
+                new Select())
+            )
+                ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineLoadAddStudentContent($DivisionCourseId, 'StudentWithout'));
+        }
+        $buttons .= (new Standard($AddStudentVariante == 'ProspectSearch' ? new Bold('Interessenten') : 'Interessenten', ApiDivisionCourseStudent::getEndpoint(), new Select()))
                 ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineLoadAddStudentContent($DivisionCourseId, 'ProspectSearch'))
             . new Container('&nbsp;');
 
@@ -478,8 +486,9 @@ class FrontendStudent extends FrontendMember
                         . ApiDivisionCourseStudent::receiverBlock($this->loadPersonSearch($DivisionCourseId, ''), 'SearchPerson')
                         , Panel::PANEL_TYPE_INFO
                     );
+
             case 'CourseSelect':
-                if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+                if ($tblDivisionCourse
                     && ($tblYear = $tblDivisionCourse->getServiceTblYear())
                 ) {
                     $tblCourseList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear);
@@ -506,19 +515,123 @@ class FrontendStudent extends FrontendMember
                         . ApiDivisionCourseStudent::receiverBlock('', 'SearchPerson')
                         , Panel::PANEL_TYPE_INFO
                     );
+
+            case 'StudentWithout':
+                $resultList = array();
+                if ($tblDivisionCourse
+                    && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                    && ($tblStudentGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
+                    && ($tblGroupPersonList = Group::useService()->getPersonAllByGroup($tblStudentGroup))
+                ) {
+                    $isCoreGroup = $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP;
+                    foreach ($tblGroupPersonList as $tblPerson) {
+                        $isAdd = false;
+                        if ($isCoreGroup) {
+                            if (!(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                                && $tblStudentEducation->getTblCoreGroup())
+                            ) {
+                                $isAdd = true;
+                            }
+                        } else {
+                            if (!(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                                && $tblStudentEducation->getTblDivision())
+                            ) {
+                                $isAdd = true;
+                            }
+                        }
+
+                        if ($isAdd) {
+                            $resultList[$tblPerson->getId()] = array(
+                                'Name' => $tblPerson->getLastFirstName(),
+                                'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                                'Option' => (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new PlusSign(), array(), 'Schüler hinzufügen'))
+                                    ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineAddStudent($tblDivisionCourse->getId(), $tblPerson->getId(), $AddStudentVariante))
+                            );
+                        }
+                    }
+                }
+
+                if (empty($resultList)) {
+                    $result = new Warning('Es wurden keine entsprechenden Schüler gefunden.', new Ban());
+                } else {
+                    $result = new TableData(
+                        $resultList,
+                        null,
+                        array(
+                            'Name' => 'Name',
+                            'Address' => 'Adresse',
+                            'Option' => ''
+                        ),
+                        array(
+                            'columnDefs' => array(
+                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                            ),
+                            'paging' => false,
+                            'responsive' => false
+                        )
+                    );
+                }
+
+                return $buttons . new Panel(
+                        'Schüler ohne ' . ($tblDivisionCourse ? $tblDivisionCourse->getTypeName() : 'Kurs'),
+                        ApiDivisionCourseStudent::receiverBlock($result, 'SearchPerson'),
+                        Panel::PANEL_TYPE_INFO
+                    );
+
             case 'ProspectSearch':
+                $resultList = array();
+                if ($tblDivisionCourse
+                    && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                    && ($tblProspectGroup = Group::useService()->getGroupByMetaTable('PROSPECT'))
+                    && ($tblGroupPersonList = Group::useService()->getPersonAllByGroup($tblProspectGroup))
+                ) {
+                    foreach ($tblGroupPersonList as $tblPerson) {
+                        if (($option = $this->getStudentAddOptionByPerson($tblPerson, $tblDivisionCourse, $tblYear, 'ProspectSearch'))) {
+                            if (($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))
+                                && ($tblProspectReservation = $tblProspect->getTblProspectReservation())
+                            ) {
+                                $yearString = $tblProspectReservation->getReservationYear();
+                                $level = $tblProspectReservation->getReservationDivision();
+                            } else {
+                                $yearString = '';
+                                $level =  '';
+                            }
+                            $resultList[] = array(
+                                'Name' => $tblPerson->getLastFirstName(),
+                                'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt'),
+                                'Year' => $yearString,
+                                'Level' => $level,
+                                'Option' => $option
+                            );
+                        }
+                    }
+                }
+
+                $result = new TableData(
+                    $resultList,
+                    null,
+                    array(
+                        'Name' => 'Name',
+                        'Address' => 'Adresse',
+                        'Year' => 'Schuljahr',
+                        'Level' => 'Klassenstufe',
+                        'Option' => ''
+                    ),
+                    array(
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                            array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                        ),
+                        'paging' => false,
+                        'responsive' => false
+                    )
+                );
+
                 return $buttons . new Panel(
                         'Interessenten',
-                        new Form(new FormGroup(new FormRow(new FormColumn(array(
-                            (new TextField(
-                                'Data[Search]',
-                                '',
-                                'Suche',
-                                new Search()
-                            ))->ajaxPipelineOnKeyUp(ApiDivisionCourseStudent::pipelineSearchProspect($DivisionCourseId))
-                        )))))
-                        . ApiDivisionCourseStudent::receiverBlock($this->loadProspectSearch($DivisionCourseId, ''), 'SearchPerson')
-                        , Panel::PANEL_TYPE_INFO
+                        ApiDivisionCourseStudent::receiverBlock($result, 'SearchPerson'),
+                        Panel::PANEL_TYPE_INFO
                     );
         }
 
@@ -714,7 +827,7 @@ class FrontendStudent extends FrontendMember
             ) {
                 $tblGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
                 foreach ($tblPersonList as $tblPerson) {
-                    // nur nach Schülern suchen
+                    // nur nach Interessenten suchen
                     if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                         if (($option = $this->getStudentAddOptionByPerson($tblPerson, $tblDivisionCourse, $tblYear, 'ProspectSearch'))) {
                             if (($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))
