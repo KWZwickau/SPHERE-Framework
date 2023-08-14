@@ -175,11 +175,7 @@ class UniventionUser
                             if ($Detail['loc']) {
                                 $loc = is_array($Detail['loc']) ? implode('; ', $Detail['loc']) : $Detail['loc'];
                             }
-
-                            $Error .= new Bold($name.'-> ')
-                                . $loc
-                                . ':'
-                                . (is_array($Detail['msg']) ? implode('; ', $Detail['msg']) : $Detail['msg']);
+                            $Error .= new Bold($name.'-> '). $loc. ':'. (is_array($Detail['msg']) ? implode('; ', $Detail['msg']) : $Detail['msg']);
                         }
                     }
                 }
@@ -314,10 +310,12 @@ class UniventionUser
                 }elseif(is_array($StdClassArray['detail'])){
                     $Error = '';
                     foreach($StdClassArray['detail'] as $Detail){
-                        if($Detail['msg'] && is_string($Detail['loc'])){
-                            $Error .= new Bold($name.' → ').$Detail['loc'].':'.$Detail['msg'];
-                        } elseif($Detail['msg'] && !empty($Detail['loc'])) {
-                            $Error .= new Bold($name.' → ').print_r($Detail['loc'], true).':'.$Detail['msg'];
+                        if($Detail['msg']){
+                            $loc = '';
+                            if ($Detail['loc']) {
+                                $loc = is_array($Detail['loc']) ? implode('; ', $Detail['loc']) : $Detail['loc'];
+                            }
+                            $Error .= new Bold($name.'-> '). $loc. ':'. (is_array($Detail['msg']) ? implode('; ', $Detail['msg']) : $Detail['msg']);
                         }
                     }
                 }

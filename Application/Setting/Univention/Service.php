@@ -8,6 +8,7 @@ use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -332,8 +333,10 @@ class Service extends AbstractService
             foreach($tblTeacherLectureshipList as $tblTeacherLectureship){
                 $tblPersonTeacher = $tblTeacherLectureship->getServiceTblPerson();
                 $tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse();
-                $ClassName = $this->getCorrectionClassNameByDivision($tblDivisionCourse);
-                $TeacherClasses[$tblPersonTeacher->getId()][$Acronym][$tblDivisionCourse->getId()] = $ClassName;
+                if($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION){
+                    $ClassName = $this->getCorrectionClassNameByDivision($tblDivisionCourse);
+                    $TeacherClasses[$tblPersonTeacher->getId()][$Acronym][$tblDivisionCourse->getId()] = $ClassName;
+                }
 //                // doppelte werte entfernen
 //                $TeacherClasses[$tblPersonTeacher->getId()][$Acronym] = array_unique($TeacherClasses[$tblPersonTeacher->getId()][$Acronym]);
             }
