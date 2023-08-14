@@ -439,6 +439,13 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
                         $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking))
                     && ($tblSubjectFromMeta = $tblStudentSubject->getServiceTblSubject())
                 ) {
+                    // falls z.B. die 2. FS nicht mehr für die Klassenstufen zählt
+                    if ((($levelFrom = $tblStudentSubject->getLevelFrom()) && $levelFrom > $tblSubjectTable->getLevel())
+                        || (($levelTill = $tblStudentSubject->getLevelTill()) && $levelTill < $tblSubjectTable->getLevel())
+                    ) {
+                        continue;
+                    }
+
                     if (!$tblSubject || ($tblSubject->getId() == $tblSubjectFromMeta->getId())) {
                         return $tblSubjectFromMeta;
                     }
