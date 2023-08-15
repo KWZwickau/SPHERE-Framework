@@ -357,14 +357,19 @@ class Data extends AbstractData
      *
      * @return false|TblPerson[]
      */
-    public function getPersonListLikeFirstNameAndLastName($firstName, $lastName)
+    public function getPersonListLikeFirstNameAndLastName(string $firstName, string $lastName)
     {
         $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
         $and = $queryBuilder->expr()->andX();
 
         $or = $queryBuilder->expr()->orX();
+        // Verbinden von FirstName und SecondName
+        $firstName = str_replace(' ', '%', $firstName);
+        $or->add($queryBuilder->expr()->like(
+            $queryBuilder->expr()->concat('t.FirstName', 't.SecondName'),
+            '?' . 1
+        ));
         $or->add($queryBuilder->expr()->like('t.FirstName', '?' . 1));
-        $or->add($queryBuilder->expr()->like('t.SecondName', '?' . 1));
         $and->add($or);
         $and->add($queryBuilder->expr()->like('t.LastName', '?' . 2));
         // keine gelöschten Personen anzeigen
