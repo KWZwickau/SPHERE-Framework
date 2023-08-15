@@ -818,12 +818,12 @@ class Service extends Extension
                             if($guardian->getServiceTblPersonFrom()->getId() != $tblPerson->getId()) {
                                 if(($tblStudent = Student::useService()->getStudentByPerson($guardian->getServiceTblPersonFrom()))) {
                                     $DivisionDisplay = $this->getDivisionDisplayStringByPerson($guardian->getServiceTblPersonFrom(), $tblDivisionCourse);
-                                    $Sibling[] = '[' . $guardian->getServiceTblPersonFrom()->getFirstName() . $DivisionDisplay . ']';
+                                    $Sibling[] = '[' . $guardian->getServiceTblPersonFrom()->getFirstName() . ' ' . $DivisionDisplay . ']';
                                 }
                             } elseif(($tblStudent = Student::useService()->getStudentByPerson($guardian->getServiceTblPersonTo()))) {
                                 if($guardian->getServiceTblPersonTo()->getId() != $tblPerson->getId()) {
                                     $DivisionDisplay = $this->getDivisionDisplayStringByPerson($guardian->getServiceTblPersonTo(), $tblDivisionCourse);
-                                    $Sibling[] = '[' . $guardian->getServiceTblPersonTo()->getFirstName() . $DivisionDisplay . ']';
+                                    $Sibling[] = '[' . $guardian->getServiceTblPersonTo()->getFirstName() . ' ' . $DivisionDisplay . ']';
                                 }
                             }
                         }
@@ -1037,20 +1037,12 @@ class Service extends Extension
 
         $result = '';
         if(($tblYear = $tblDivisionCourse->getServiceTblYear())){
-//            if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
-//                if(($tblDivisionCourseD = $tblStudentEducation->getTblDivision())){
-//                    $DivisionCourseList[] = $tblDivisionCourseD->getDisplayName();
-//                }
-//                if(($tblDivisionCourseS = $tblStudentEducation->getTblCoreGroup())){
-//                    $DivisionCourseList[] = $tblDivisionCourseD->getDisplayName();
-//                }
-//            }
-            if(($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT))
-            && ($tblDivisionCourseMemberList = DivisionCourse::useService()->getDivisionCourseMemberListByPersonAndYearAndMemberType($tblPerson, $tblYear, $tblDivisionCourseMemberType))){
-                foreach($tblDivisionCourseMemberList as $tblDivisionCourseMember){
-                    if(($tblDivisionCourse = $tblDivisionCourseMember->getTblDivisionCourse())){
-                        $DivisionCourseList[] = $tblDivisionCourse->getDisplayName();
-                    }
+            if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
+                if(($tblDivisionCourseDivision = $tblStudentEducation->getTblDivision())){
+                    $DivisionCourseList[] = $tblDivisionCourseDivision->getName();
+                }
+                if(($tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup())){
+                    $DivisionCourseList[] = $tblDivisionCourseCoreGroup->getName();
                 }
             }
         }
