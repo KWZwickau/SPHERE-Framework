@@ -668,6 +668,24 @@ class Service extends AbstractService
                             if(($tblDivisionType = $tblDivisionEducation->getServiceTblSchoolType()) && $tblType->getId() === $tblDivisionType->getId()){
                                 $resultPersonList[] = $tblPerson;
                             }
+                        } elseif(($tblDivisionEducationList = DivisionCourse::useService()->getStudentEducationListByPersonAndYear($tblPerson, $tblYear))) {
+                            $leaveDate = false;
+                            foreach($tblDivisionEducationList as $tblDivisionEducationTemp){
+                                $leaveDateTemp = $tblDivisionEducationTemp->getLeaveDate();
+                                $leaveDateTemp = new DateTime($leaveDateTemp);
+                                if(!$leaveDate){
+                                    $leaveDate = $leaveDateTemp;
+                                    $tblDivisionEducation = $tblDivisionEducationTemp;
+                                } elseif($leaveDate < $leaveDateTemp) {
+                                    $leaveDate = $leaveDateTemp;
+                                    $tblDivisionEducation = $tblDivisionEducationTemp;
+                                }
+                            }
+                            if($tblDivisionEducation){
+                                if(($tblDivisionType = $tblDivisionEducation->getServiceTblSchoolType()) && $tblType->getId() === $tblDivisionType->getId()){
+                                    $resultPersonList[] = $tblPerson;
+                                }
+                            }
                         }
                     }
                 }
