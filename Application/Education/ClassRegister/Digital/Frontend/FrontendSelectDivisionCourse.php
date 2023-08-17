@@ -9,6 +9,8 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -52,9 +54,11 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
     {
         $Stage = new Stage('Digitales Klassenbuch', 'Kurs auswählen');
 
+        $hasLastYearsTemp = Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA');
+
         Digital::useService()->setHeaderButtonList($Stage, View::TEACHER, self::BASE_ROUTE);
         $yearFilterList = array();
-        $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Teacher', $IsAllYears, $YearId, false, true, $yearFilterList);
+        $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Teacher', $IsAllYears, $YearId, false, true, $yearFilterList, $hasLastYearsTemp);
 
         $table = false;
         if (($tblPerson = Account::useService()->getPersonByLogin())) {
@@ -170,10 +174,12 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
         $Stage = new Stage('Digitales Klassenbuch', 'Kurs auswählen');
         Digital::useService()->setHeaderButtonList($Stage, View::HEADMASTER, self::BASE_ROUTE);
 
+        $hasLastYearsTemp = Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA');
+
         $yearFilterList = array();
         // nur Schulleitung darf History (Alle Schuljahre) sehen
         $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Headmaster',
-            $IsAllYears, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList);
+            $IsAllYears, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList, $hasLastYearsTemp);
 
         $dataList = array();
         $tblDivisionCourseList = array();

@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Digital;
 
+use DateInterval;
+use DateTime;
 use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreement;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
@@ -112,7 +114,7 @@ abstract class ServiceTabs extends ServiceCourseContent
      *
      * @return array
      */
-    public function setYearGroupButtonList($Route, $IsAllYears, $YearId, $HasAllYears, $HasCurrentYears, &$yearFilterList): array
+    public function setYearGroupButtonList($Route, $IsAllYears, $YearId, $HasAllYears, $HasCurrentYears, &$yearFilterList, bool $hasLastYearsTemp = false): array
     {
         $tblYear = false;
         $tblYearList = Term::useService()->getYearByNow();
@@ -131,6 +133,18 @@ abstract class ServiceTabs extends ServiceCourseContent
                         $Route, new Edit()));
                 } else {
                     $buttonList[] = (new Standard('Aktuelles Schuljahr', $Route, null));
+                }
+            }
+
+            if ($hasLastYearsTemp) {
+                $date = new DateTime('now');
+                $date = $date->sub(new DateInterval('P1Y'));
+                if (($tblLastYearList = Term::useService()->getYearAllByDate($date))) {
+                    foreach ($tblLastYearList as $tblLastYear) {
+                        if (!isset($tblYearList[$tblLastYear->getId()])) {
+                            $tblYearList[$tblLastYear->getId()] = $tblLastYear;
+                        }
+                    }
                 }
             }
 
