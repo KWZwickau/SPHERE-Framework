@@ -1318,11 +1318,28 @@ class Frontend extends Extension implements IFrontendInterface
             }
             if(!empty($RepresentationArray)){
                 $RowList[] = new LayoutRow(array(
-                    new LayoutColumn(new Bold('Klassensprecher:'), 3),
+                    new LayoutColumn(new Bold('Schülersprecher:'), 3),
                     new LayoutColumn(implode(', ', $RepresentationArray), 9),
                 ));
             }
         }
+
+        if(($tblPersonCustodyList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY, false, false))){
+            $CustodyArray = array();
+            foreach($tblPersonCustodyList as $tblPersonCustody){
+                if($tblPerson = $tblPersonCustody->getServiceTblPerson()){
+                    $Description = $tblPersonCustody->getDescription();
+                    $CustodyArray[] = $tblPerson->getFullName() . ($Description ? ' ' . new Muted($Description) : '');
+                }
+            }
+            if(!empty($CustodyArray)){
+                $RowList[] = new LayoutRow(array(
+                    new LayoutColumn(new Bold('Elternvertreter:'), 3),
+                    new LayoutColumn(implode(', ', $CustodyArray), 9),
+                ));
+            }
+        }
+
         return new Layout(new LayoutGroup($RowList));
     }
 

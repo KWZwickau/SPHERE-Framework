@@ -383,28 +383,7 @@ class Service extends Extension
         $row++;
         Person::setGenderFooter($export, $tblPersonList, $row, 0, 2);
         $row++;
-        if ($tblDivisionCourse) {
-            $TeacherTypeName = $tblDivisionCourse->getDivisionTeacherName().':';
-            $export->setValue($export->getCell("0", $row), $TeacherTypeName);
-            $TeacherNameListString = DivisionCourse::useService()->getDivisionTeacherNameListString($tblDivisionCourse, ', ');
-            $export->setValue($export->getCell("2", $row), $TeacherNameListString);
-
-        }
-        $row++;
-        if ($tblDivisionCourse) {
-            $export->setValue($export->getCell("0", $row), 'Klassensprecher:');
-            if (($tblDivisionRepresentationList = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))) {
-                $Representation = array();
-                foreach ($tblDivisionRepresentationList as $tblDivisionRepresentation) {
-                    $tblRepresentation = $tblDivisionRepresentation->getServiceTblPerson();
-                    $Description = $tblDivisionRepresentation->getDescription();
-                    $Representation[] = $tblRepresentation->getFirstSecondName() . ' ' . $tblRepresentation->getLastName()
-                        . ($Description ? ' (' . $Description . ')' : '');
-                }
-                $RepresentationString = implode(', ', $Representation);
-                $export->setValue($export->getCell("2", $row), $RepresentationString);
-            }
-        }
+        $this->setOuterMembers($tblDivisionCourse, $export, $row);
         // Legende
         $row = $rowDescription;
         $export->setValue($export->getCell("11", $row++), 'Abkürzungen Telefon:');
@@ -415,6 +394,46 @@ class Service extends Extension
         // Export File
         $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
         return $fileLocation;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param PhpExcel $export
+     * @param int $row
+     */
+    private function setOuterMembers(TblDivisionCourse $tblDivisionCourse, PhpExcel $export, int $row)
+    {
+        $TeacherTypeName = $tblDivisionCourse->getDivisionTeacherName().':';
+        $export->setValue($export->getCell("0", $row), $TeacherTypeName);
+        $TeacherNameListString = DivisionCourse::useService()->getDivisionTeacherNameListString($tblDivisionCourse, ', ');
+        $export->setValue($export->getCell("2", $row), $TeacherNameListString);
+
+        $row++;
+        $export->setValue($export->getCell("0", $row), 'Schülersprecher:');
+        if (($tblDivisionRepresentationList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false))) {
+            $Representation = array();
+            foreach ($tblDivisionRepresentationList as $tblDivisionRepresentation) {
+                $tblRepresentation = $tblDivisionRepresentation->getServiceTblPerson();
+                $Description = $tblDivisionRepresentation->getDescription();
+                $Representation[] = $tblRepresentation->getFirstSecondName() . ' ' . $tblRepresentation->getLastName()
+                    . ($Description ? ' (' . $Description . ')' : '');
+            }
+            $RepresentationString = implode(', ', $Representation);
+            $export->setValue($export->getCell("2", $row), $RepresentationString);
+        }
+
+        $row++;
+        $export->setValue($export->getCell("0", $row), 'Elternvertreter:');
+        if (($tblDivisionCustodyList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY, false, false))) {
+            $Custody = array();
+            foreach ($tblDivisionCustodyList as $tblDivisionCustody) {
+                $tblCustody = $tblDivisionCustody->getServiceTblPerson();
+                $Description = $tblDivisionCustody->getDescription();
+                $Custody[] = $tblCustody->getFullName() . ($Description ? ' (' . $Description . ')' : '');
+            }
+            $CustodyString = implode(', ', $Custody);
+            $export->setValue($export->getCell("2", $row), $CustodyString);
+        }
     }
 
     /**
@@ -599,27 +618,7 @@ class Service extends Extension
             Person::setGenderFooter($export, $tblPersonList, $row, 0, 2);
         }
         $row++;
-        if ($tblDivisionCourse) {
-            $TeacherTypeName = $tblDivisionCourse->getDivisionTeacherName().':';
-            $export->setValue($export->getCell("0", $row), $TeacherTypeName);
-            $TeacherNameListString = DivisionCourse::useService()->getDivisionTeacherNameListString($tblDivisionCourse, ', ');
-            $export->setValue($export->getCell("2", $row), $TeacherNameListString);
-        }
-        $row++;
-        if ($tblDivisionCourse) {
-            $export->setValue($export->getCell("0", $row), 'Klassensprecher:');
-            if (($tblDivisionRepresentationList = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))) {
-                $Representation = array();
-                foreach ($tblDivisionRepresentationList as $tblDivisionRepresentation) {
-                    $tblRepresentation = $tblDivisionRepresentation->getServiceTblPerson();
-                    $Description = $tblDivisionRepresentation->getDescription();
-                    $Representation[] = $tblRepresentation->getFirstSecondName() . ' ' . $tblRepresentation->getLastName()
-                        . ($Description ? ' (' . $Description . ')' : '');
-                }
-                $RepresentationString = implode(', ', $Representation);
-                $export->setValue($export->getCell("2", $row), $RepresentationString);
-            }
-        }
+        $this->setOuterMembers($tblDivisionCourse, $export, $row);
         // Legende
         $row = $rowDescription;
         $export->setValue($export->getCell("11", $row++), 'Abkürzungen Telefon:');
