@@ -483,7 +483,7 @@ class Creator extends Extension
                         if (class_exists($CertificateClass)) {
                             $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
                             /** @var Certificate $Certificate */
-                            $Certificate = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare);
+                            $Certificate = new $CertificateClass($tblStudentEducation ?: null, $tblPrepare, false);
 
                             // get Content
                             Prepare::useService()->createCertificateContent($tblPerson, $tblPrepareStudent, null, $Data);
