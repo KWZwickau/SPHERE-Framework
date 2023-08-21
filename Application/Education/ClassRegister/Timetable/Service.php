@@ -355,10 +355,17 @@ class Service extends AbstractService
             // Vertretungsplan gefunden
             foreach ($replacementList as $tblTimetableReplacement) {
                 $tblLessonContent = new TblLessonContent();
-                $tblLessonContent->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubject() ?: null);
-                $tblLessonContent->setServiceTblSubstituteSubject($tblTimetableReplacement->getServiceTblSubstituteSubject() ?: null);
+
+                if ($tblTimetableReplacement->getIsCanceled() && !$tblTimetableReplacement->getServiceTblSubject()) {
+                    $tblLessonContent->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubstituteSubject() ?: null);
+                    $tblLessonContent->setServiceTblSubstituteSubject(null);
+                } else {
+                    $tblLessonContent->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubject() ?: null);
+                    $tblLessonContent->setServiceTblSubstituteSubject($tblTimetableReplacement->getServiceTblSubstituteSubject() ?: null);
+                }
+
                 $tblLessonContent->setRoom($tblTimetableReplacement->getRoom());
-                $tblLessonContent->setIsCanceled($tblTimetableReplacement->getIsCanceled() || $tblTimetableReplacement->getServiceTblSubstituteSubject());
+                $tblLessonContent->setIsCanceled($tblTimetableReplacement->getIsCanceled());
 
                 $resultList[] = $tblLessonContent;
             }

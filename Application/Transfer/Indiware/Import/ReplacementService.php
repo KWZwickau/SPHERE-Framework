@@ -292,7 +292,7 @@ class ReplacementService
                 }
 
                 if ($tblSubject) {
-                    $Row['tblSubstituteSubject'] = Subject::useService()->getSubjectByVariantAcronym($Row['Subject']);
+                    $Row['tblSubstituteSubject'] = $tblSubject;
                 }
             }
             if (!$Row['tblSubstituteSubject']) {

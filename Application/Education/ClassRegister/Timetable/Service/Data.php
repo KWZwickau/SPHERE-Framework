@@ -396,7 +396,7 @@ class Data extends AbstractData
                     $Entity->setIsCanceled(false);
                 }
                 $Entity->setSubjectGroup($Row['SubjectGroup']);
-                if(!$Row['tblSubject']){
+                if(!isset($Row['tblSubject']) || !$Row['tblSubject']){
                     $Row['tblSubject'] = null;
                 }
                 $Entity->setServiceTblSubject($Row['tblSubject']);
