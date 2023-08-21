@@ -410,7 +410,7 @@ class Service extends AbstractService
                     }
 
                     if (!$tblSchoolType || ($tblSchoolTypePerson && $tblSchoolType->getId() == $tblSchoolTypePerson->getId())) {
-                        $resultList = $this->setAbsenceContent($tblSchoolTypePerson, $tblDivisionCoursePerson ?: null, $tblPerson, $tblAbsence, $resultList);
+                        $resultList = $this->setAbsenceContent($tblSchoolTypePerson ?: null, $tblDivisionCoursePerson ?: null, $tblPerson, $tblAbsence, $resultList);
                     }
 
                     if (!$hasAbsenceTypeOptions && $tblSchoolTypePerson && $tblSchoolTypePerson->isTechnical()) {
@@ -446,7 +446,7 @@ class Service extends AbstractService
      * @return array
      */
     public function setAbsenceContent(
-        TblType $tblSchoolType,
+        ?TblType $tblSchoolType,
         ?TblDivisionCourse $tblDivisionCourse,
         TblPerson $tblPerson,
         TblAbsence $tblAbsence,
@@ -457,8 +457,8 @@ class Service extends AbstractService
 
         $resultList[] = array(
             'AbsenceId' => $tblAbsence->getId(),
-            'Type' => $tblSchoolType->getName(),
-            'TypeExcel' => $tblSchoolType->getShortName(),
+            'Type' => $tblSchoolType ? $tblSchoolType->getName() : '',
+            'TypeExcel' => $tblSchoolType ? $tblSchoolType->getShortName() : '',
             'Division' => $tblDivisionCourse->getName(),
             'Person' => $tblPerson->getLastFirstNameWithCallNameUnderline(),
             'PersonExcel' => $tblPerson->getLastFirstName(),
