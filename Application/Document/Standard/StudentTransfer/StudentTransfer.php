@@ -37,6 +37,7 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
 
 class StudentTransfer extends Extension
 {
@@ -93,7 +94,15 @@ class StudentTransfer extends Extension
             $Global->POST['Data']['LastFirstName'] = $tblPerson->getLastFirstName();
             $Global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');
 
-            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+            $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson);
+            // Schüler hat keine aktuelle SchülerBildung mehr
+            if (!$tblStudentEducation && ($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
+                $tblStudentEducationList = (new Extension())->getSorter($tblStudentEducationList)->sortObjectBy('YearNameForSorter', null, Sorter::ORDER_DESC);
+
+                $tblStudentEducation = reset($tblStudentEducationList);
+            }
+
+            if ($tblStudentEducation) {
                 if (($tblDivision = $tblStudentEducation->getTblDivision())) {
                     $Global->POST['Data']['Division'] = $tblDivision->getName();
                 } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {

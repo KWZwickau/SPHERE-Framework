@@ -23,6 +23,8 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
 
 /**
  * Class AbstractDocument
@@ -94,11 +96,23 @@ abstract class AbstractDocument
     public function getStudentEducation()
     {
         if (($tblPerson = $this->getTblPerson())) {
+
+
             if (($tblYear = $this->getTblYear())) {
-                return DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
             } else {
-                return DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson);
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson);
             }
+
+            // Schüler hat keine aktuelle SchülerBildung mehr
+            if (!$tblStudentEducation && ($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
+                $tblStudentEducationList = (new Extension())->getSorter($tblStudentEducationList)->sortObjectBy('YearNameForSorter', null, Sorter::ORDER_DESC);
+
+                $tblStudentEducation = reset($tblStudentEducationList);
+            }
+
+
+            return $tblStudentEducation;
         }
 
         return false;
